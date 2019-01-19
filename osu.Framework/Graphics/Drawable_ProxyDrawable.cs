@@ -34,9 +34,9 @@ namespace osu.Framework.Graphics
 
             protected override DrawNode CreateDrawNode() => new ProxyDrawNode(this);
 
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, ref float vertexDepth)
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
             {
-                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, ref depth);
+                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
 
                 node.DrawNodeIndex = treeIndex;
                 node.FrameCount = frame;
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
                     this.proxyDrawable = proxyDrawable;
                 }
 
-                public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
+                public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
                 {
                     var target = proxyDrawable.originalDrawNodes[DrawNodeIndex];
                     if (target == null)
@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics
                     if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
                         return;
 
-                    target.Draw(pass, vertexAction);
+                    target.Draw(pass, vertexAction, ref vertexDepth);
                 }
             }
         }

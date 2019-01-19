@@ -1,9 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -69,12 +72,25 @@ namespace osu.Framework.Graphics.Cursor
                     Radius = 50
                 };
 
-                Child = new Box
+                Child = new CursorBox
                 {
                     Size = new Vector2(8, 8),
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
                 };
+            }
+
+            private class CursorBox : Box
+            {
+                protected override DrawNode CreateDrawNode() => new CursorBoxDrawNode();
+
+                private class CursorBoxDrawNode : SpriteDrawNode
+                {
+                    public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+                    {
+                        base.Draw(pass, vertexAction, ref vertexDepth);
+                    }
+                }
             }
         }
     }

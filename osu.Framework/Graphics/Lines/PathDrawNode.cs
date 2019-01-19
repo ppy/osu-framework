@@ -187,9 +187,9 @@ namespace osu.Framework.Graphics.Lines
                 addLineQuads(segment, texRect);
         }
 
-        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
+        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
         {
-            base.Draw(pass, vertexAction);
+            base.Draw(pass, vertexAction, ref vertexDepth);
 
             if (Texture?.Available != true || Segments.Count == 0)
                 return;

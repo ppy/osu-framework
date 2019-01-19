@@ -30,17 +30,21 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(ScreenSpaceDrawQuad, 0.25f, DrawColourInfo.Colour, null, vertexAction,
+            Texture.DrawQuad(ScreenSpaceDrawQuad, Depth, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
-        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
+        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
         {
+            base.Draw(pass, vertexAction, ref vertexDepth);
+
             if (pass == RenderPass.Front)
+                vertexDepth -= 0.0002f;
+
+            if (vertexDepth < 0)
             {
 
             }
-            base.Draw(pass, vertexAction);
 
             if (Texture?.Available != true)
                 return;
@@ -56,6 +60,6 @@ namespace osu.Framework.Graphics.Sprites
             shader.Unbind();
         }
 
-        protected internal override bool SupportsFrontRenderPass => base.SupportsFrontRenderPass && !needsRoundedShader;
+        protected internal override bool SupportsFrontRenderPass => false;
     }
 }

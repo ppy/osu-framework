@@ -38,8 +38,11 @@ namespace osu.Framework.Graphics
         /// <param name="vertexAction">The action to be performed on each vertex of
         ///     the draw node in order to draw it if required. This is primarily used by
         ///     textured sprites.</param>
-        public virtual void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
+        /// <param name="vertexDepth"></param>
+        public virtual void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
         {
+            Depth = vertexDepth;
+
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 

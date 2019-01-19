@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
                 Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
-        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
+        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
         {
             updateVertexBatch();
 
@@ -200,19 +200,18 @@ namespace osu.Framework.Graphics.Containers
             if (Shared.VertexBatch != null)
                 vertexAction = Shared.VertexBatch.AddAction;
 
-            base.Draw(pass, vertexAction);
+            base.Draw(pass, vertexAction, ref vertexDepth);
 
             if (pass == RenderPass.Back)
-            {
                 drawEdgeEffect();
-                if (MaskingInfo != null)
-                {
-                    MaskingInfo info = MaskingInfo.Value;
-                    if (info.BorderThickness > 0)
-                        info.BorderColour *= DrawColourInfo.Colour.AverageColour;
 
-                    GLWrapper.PushMaskingInfo(info);
-                }
+            if (MaskingInfo != null)
+            {
+                MaskingInfo info = MaskingInfo.Value;
+                if (info.BorderThickness > 0)
+                    info.BorderColour *= DrawColourInfo.Colour.AverageColour;
+
+                GLWrapper.PushMaskingInfo(info);
             }
 
             if (Children != null)
@@ -223,8 +222,9 @@ namespace osu.Framework.Graphics.Containers
                     case RenderPass.Back:
                         for (int i = 0; i < Children.Count; i++)
                         {
-                            if (!Children[i].SupportsFrontRenderPass)
-                                Children[i].Draw(pass, vertexAction);
+                            if (Children[i] is CompositeDrawNode || !Children[i].SupportsFrontRenderPass)
+                                Children[i].Draw(pass, vertexAction, ref vertexDepth);
+                            vertexDepth = Children[i].Depth;
                         }
 
                         break;
@@ -232,20 +232,17 @@ namespace osu.Framework.Graphics.Containers
                         for (int i = Children.Count - 1; i >= 0; i--)
                         {
                             if (Children[i].SupportsFrontRenderPass)
-                                Children[i].Draw(pass, vertexAction);
+                                Children[i].Draw(pass, vertexAction, ref vertexDepth);
+                            else
+                                Children[i].Depth = vertexDepth;
                         }
 
                         break;
                 }
             }
 
-            if (pass == RenderPass.Back)
-            {
-                if (MaskingInfo != null)
-                    GLWrapper.PopMaskingInfo();
-            }
+            if (MaskingInfo != null)
+                GLWrapper.PopMaskingInfo();
         }
-
-        protected internal override bool SupportsFrontRenderPass => base.SupportsFrontRenderPass && MaskingInfo == null;
     }
 }

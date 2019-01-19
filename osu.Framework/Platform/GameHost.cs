@@ -316,10 +316,8 @@ namespace osu.Framework.Platform
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
-            float depth = 1;
-
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false, ref depth);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
         protected virtual void DrawInitialize()
@@ -366,15 +364,18 @@ namespace osu.Framework.Platform
                     osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
                     GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                    buffer.Object.Draw(RenderPass.Front, null);
+                    float depth = 1;
+
+                    GL.DepthFunc(DepthFunction.Greater);
+                    buffer.Object.Draw(RenderPass.Front, null, ref depth);
 
                     GLWrapper.FlushCurrentBatch();
 
-                    // var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
-                    // osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height, osuTK.Graphics.OpenGL.PixelFormat.DepthComponent, osuTK.Graphics.OpenGL.PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
-                    // image.Mutate(c => c.Flip(FlipMode.Vertical));
+                    GL.DepthMask(false);
+                    GL.DepthFunc(DepthFunction.Gequal);
+                    buffer.Object.Draw(RenderPass.Back, null, ref depth);
 
-                    // buffer.Object.Draw(RenderPass.Back, null);
+                    GLWrapper.FlushCurrentBatch();
 
                     lastDrawFrameId = buffer.FrameId;
                     break;
