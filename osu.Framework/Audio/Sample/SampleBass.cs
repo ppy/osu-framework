@@ -41,7 +41,7 @@ namespace osu.Framework.Audio.Sample
 
         private int loadSample(byte[] data)
         {
-            BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
+            const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 
             if (RuntimeInfo.SupportsJIT)
                 return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);

@@ -36,7 +36,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 
