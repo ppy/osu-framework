@@ -28,9 +28,9 @@ namespace osu.Framework.Graphics.Sprites
 
             private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
             {
-                base.Draw(vertexAction);
+                base.Draw(pass, vertexAction);
 
                 Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
 

@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void drawEdgeEffect()
         {
-            if (MaskingInfo == null || EdgeEffect.Type == EdgeEffectType.None || EdgeEffect.Radius <= 0.0f || EdgeEffect.Colour.Linear.A <= 0.0f)
+            if (MaskingInfo == null || EdgeEffect.Type == EdgeEffectType.None || EdgeEffect.Radius <= 0.0f || EdgeEffect.Colour.Linear.A <= 0)
                 return;
 
             RectangleF effectRect = MaskingInfo.Value.MaskingRect.Inflate(EdgeEffect.Radius).Offset(EdgeEffect.Offset);
@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
                 Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
         {
             updateVertexBatch();
 
@@ -200,24 +200,48 @@ namespace osu.Framework.Graphics.Containers
             if (Shared.VertexBatch != null)
                 vertexAction = Shared.VertexBatch.AddAction;
 
-            base.Draw(vertexAction);
+            base.Draw(pass, vertexAction);
 
-            drawEdgeEffect();
-            if (MaskingInfo != null)
+            if (pass == RenderPass.Back)
             {
-                MaskingInfo info = MaskingInfo.Value;
-                if (info.BorderThickness > 0)
-                    info.BorderColour *= DrawColourInfo.Colour.AverageColour;
+                drawEdgeEffect();
+                if (MaskingInfo != null)
+                {
+                    MaskingInfo info = MaskingInfo.Value;
+                    if (info.BorderThickness > 0)
+                        info.BorderColour *= DrawColourInfo.Colour.AverageColour;
 
-                GLWrapper.PushMaskingInfo(info);
+                    GLWrapper.PushMaskingInfo(info);
+                }
             }
 
             if (Children != null)
-                for (int i = 0; i < Children.Count; i++)
-                    Children[i].Draw(vertexAction);
+            {
+                switch (pass)
+                {
+                    default:
+                    case RenderPass.Back:
+                        for (int i = 0; i < Children.Count; i++)
+                            Children[i].Draw(pass, vertexAction);
+                        break;
+                    case RenderPass.Front:
+                        for (int i = Children.Count - 1; i >= 0; i--)
+                        {
+                            if (Children[i].SupportsFrontRenderPass)
+                                Children[i].Draw(pass, vertexAction);
+                        }
 
-            if (MaskingInfo != null)
-                GLWrapper.PopMaskingInfo();
+                        break;
+                }
+            }
+
+            if (pass == RenderPass.Back)
+            {
+                if (MaskingInfo != null)
+                    GLWrapper.PopMaskingInfo();
+            }
         }
+
+        protected internal override bool SupportsFrontRenderPass => base.SupportsFrontRenderPass && MaskingInfo == null;
     }
 }

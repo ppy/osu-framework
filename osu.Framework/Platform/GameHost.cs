@@ -355,7 +355,7 @@ namespace osu.Framework.Platform
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
-                    buffer.Object.Draw(null);
+                    buffer.Object.Draw(RenderPass.Back, null);
                     lastDrawFrameId = buffer.FrameId;
                     break;
                 }

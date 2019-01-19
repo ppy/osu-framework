@@ -4,6 +4,7 @@
 using osu.Framework.Graphics.OpenGL;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
@@ -31,12 +32,21 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Draws this draw node to the screen.
         /// </summary>
+        /// <param name="pass"></param>
         /// <param name="vertexAction">The action to be performed on each vertex of
-        /// the draw node in order to draw it if required. This is primarily used by
-        /// textured sprites.</param>
-        public virtual void Draw(Action<TexturedVertex2D> vertexAction)
+        ///     the draw node in order to draw it if required. This is primarily used by
+        ///     textured sprites.</param>
+        public virtual void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
+
+        protected internal virtual bool SupportsFrontRenderPass => DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd;
+    }
+
+    public enum RenderPass
+    {
+        Back,
+        Front
     }
 }

@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PushOrtho(ScreenSpaceDrawRectangle);
 
                 GLWrapper.ClearColour(BackgroundColour);
-                base.Draw(vertexAction);
+                base.Draw(RenderPass.Back, vertexAction);
 
                 GLWrapper.PopOrtho();
             }
@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
         // we do not want to allocate a third buffer for nothing and hence we start with 0.
         private int originalIndex => DrawOriginal && (BlurRadius.X > 0 || BlurRadius.Y > 0) ? 2 : 0;
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
         {
             currentFrameBufferIndex = originalIndex;
 

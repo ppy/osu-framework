@@ -245,9 +245,9 @@ namespace osu.Framework.Graphics.Audio
                 }
             }
 
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction)
             {
-                base.Draw(vertexAction);
+                base.Draw(pass, vertexAction);
 
                 if (Texture?.Available != true || points == null || points.Count == 0)
                     return;
