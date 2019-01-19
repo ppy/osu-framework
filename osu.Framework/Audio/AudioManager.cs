@@ -13,7 +13,6 @@ using System.Linq;
 using System.Diagnostics;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
-using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio
 {

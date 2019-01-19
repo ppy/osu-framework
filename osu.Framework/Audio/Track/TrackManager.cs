@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.IO;
-using osu.Framework.Audio.Callbacks;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
