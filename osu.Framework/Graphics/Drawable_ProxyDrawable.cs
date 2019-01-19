@@ -34,9 +34,9 @@ namespace osu.Framework.Graphics
 
             protected override DrawNode CreateDrawNode() => new ProxyDrawNode(this);
 
-            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, ref float vertexDepth)
             {
-                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+                var node = (ProxyDrawNode)base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode, ref depth);
 
                 node.DrawNodeIndex = treeIndex;
                 node.FrameCount = frame;

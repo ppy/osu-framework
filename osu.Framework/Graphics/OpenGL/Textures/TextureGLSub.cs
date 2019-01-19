@@ -64,14 +64,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return parent.GetTextureRect(boundsInParent(textureRect));
         }
 
-        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            parent.DrawTriangle(vertexTriangle, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, depth, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
-            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
+            parent.DrawQuad(vertexQuad, depth, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         internal override bool Upload()

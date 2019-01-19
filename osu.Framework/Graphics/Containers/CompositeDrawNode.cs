@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
             colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
             Texture.WhitePixel.DrawQuad(
-                ScreenSpaceMaskingQuad.Value,
+                ScreenSpaceMaskingQuad.Value, Depth,
                 colour, null, null, null,
                 // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                 // masking blend range when rendering edge effects. This is needed for smooth inner edges

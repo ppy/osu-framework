@@ -1681,8 +1681,9 @@ namespace osu.Framework.Graphics
         /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
+        /// <param name="vertexDepth"></param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode, ref float vertexDepth)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null || forceNewDrawNode)
@@ -1696,6 +1697,9 @@ namespace osu.Framework.Graphics
                 ApplyDrawNode(node);
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
+
+            node.Depth = vertexDepth;
+            vertexDepth -= 0.0001f;
 
             return node;
         }

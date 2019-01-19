@@ -316,8 +316,10 @@ namespace osu.Framework.Platform
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
+            float depth = 1;
+
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false, ref depth);
         }
 
         protected virtual void DrawInitialize()
@@ -355,7 +357,23 @@ namespace osu.Framework.Platform
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
-                    buffer.Object.Draw(RenderPass.Back, null);
+                    GL.Enable(EnableCap.DepthTest);
+
+                    GL.DepthFunc(DepthFunction.Always);
+                    GL.DepthMask(true);
+                    GL.ClearDepth(1f);
+                    GL.Clear(ClearBufferMask.DepthBufferBit);
+
+                    buffer.Object.Draw(RenderPass.Front, null);
+
+                    GLWrapper.FlushCurrentBatch();
+
+                    // var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
+                    // osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height, osuTK.Graphics.OpenGL.PixelFormat.DepthComponent, osuTK.Graphics.OpenGL.PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                    // image.Mutate(c => c.Flip(FlipMode.Vertical));
+
+                    // buffer.Object.Draw(RenderPass.Back, null);
+
                     lastDrawFrameId = buffer.FrameId;
                     break;
                 }
@@ -395,6 +413,40 @@ namespace osu.Framework.Platform
                     osuTK.Graphics.OpenGL.PixelFormat.Rgba,
                     osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
                     ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+
+                complete = true;
+            });
+
+            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
+
+            image.Mutate(c => c.Flip(FlipMode.Vertical));
+
+            return image;
+        }
+
+        /// <summary>
+        /// Takes a screenshot of the game. The returned <see cref="Image{TPixel}"/> must be disposed by the caller when applicable.
+        /// </summary>
+        /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
+        public async Task<Image<Rgba32>> TakeScreenshotAsync2()
+        {
+            if (Window == null) throw new NullReferenceException(nameof(Window));
+
+            var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
+
+            bool complete = false;
+
+            DrawThread.Scheduler.Add(() =>
+            {
+                if (GraphicsContext.CurrentContext == null)
+                    throw new GraphicsContextMissingException();
+
+                osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height, osuTK.Graphics.OpenGL.PixelFormat.DepthComponent, osuTK.Graphics.OpenGL.PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });

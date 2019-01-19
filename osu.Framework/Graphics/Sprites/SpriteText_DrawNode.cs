@@ -54,14 +54,16 @@ namespace osu.Framework.Graphics.Sprites
                         shadowQuad.BottomLeft += ShadowOffset;
                         shadowQuad.BottomRight += ShadowOffset;
 
-                        Parts[i].Texture.DrawQuad(shadowQuad, shadowColour, vertexAction: vertexAction);
+                        Parts[i].Texture.DrawQuad(shadowQuad, Depth, shadowColour, vertexAction: vertexAction);
                     }
 
-                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, Depth, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
                 shader.Unbind();
             }
+
+            protected internal override bool SupportsFrontRenderPass => false;
         }
 
         internal class SpriteTextDrawNodeSharedData

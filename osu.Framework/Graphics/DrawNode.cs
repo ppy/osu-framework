@@ -29,6 +29,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public long InvalidationID;
 
+        public float Depth;
+
         /// <summary>
         /// Draws this draw node to the screen.
         /// </summary>
