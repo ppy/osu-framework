@@ -258,5 +258,7 @@ namespace osu.Framework.Graphics.Containers
 
             Shader.Unbind();
         }
+
+        protected internal override bool SupportsFrontRenderPass => false;
     }
 }
