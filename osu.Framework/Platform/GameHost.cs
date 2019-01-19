@@ -361,7 +361,9 @@ namespace osu.Framework.Platform
 
                     GL.DepthFunc(DepthFunction.Always);
                     GL.DepthMask(true);
-                    GL.ClearDepth(1f);
+
+                    // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
+                    osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
                     GL.Clear(ClearBufferMask.DepthBufferBit);
 
                     buffer.Object.Draw(RenderPass.Front, null);
