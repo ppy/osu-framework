@@ -709,9 +709,6 @@ namespace osu.Framework.Platform
 
         public abstract ITextInputSource GetTextInput();
 
-        public virtual AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
-            new AudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
-
         #region IDisposable Support
 
         private bool isDisposed;
