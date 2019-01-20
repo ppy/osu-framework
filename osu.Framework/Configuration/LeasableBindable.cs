@@ -24,10 +24,10 @@ namespace osu.Framework.Configuration
             this.underlyingBindable = underlyingBindable;
         }
 
-        public IMutableBindable<T> BeginLease(bool revertValueOnReturn)
+        public LeasedBindable<T> BeginLease(bool revertValueOnReturn)
         {
             if (isLeased)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
             if (revertValueOnReturn)
             {
@@ -41,8 +41,11 @@ namespace osu.Framework.Configuration
 
         internal void EndLease(IMutableBindable<T> returnedBindable)
         {
-            if (!isLeased || returnedBindable != leasedBindable)
-                throw new InvalidOperationException();
+            if (!isLeased)
+                throw new InvalidOperationException("Attempted to end a lease without beginning one.");
+
+            if (returnedBindable != leasedBindable)
+                throw new InvalidOperationException("Attempted to end a lease but returned a different bindable to the one used to start the lease.");
 
             leasedBindable = null;
             underlyingBindable.Disabled = false;
@@ -68,7 +71,11 @@ namespace osu.Framework.Configuration
         public bool Disabled
         {
             get => underlyingBindable.Disabled;
-            set => underlyingBindable.Disabled = value;
+            set
+            {
+                throwIfLeased();
+                underlyingBindable.Disabled = value;
+            }
         }
 
         public bool IsDefault => underlyingBindable.IsDefault;
@@ -115,5 +122,11 @@ namespace osu.Framework.Configuration
 
         public WeakReference<Bindable<T>> WeakReference => underlyingBindable.WeakReference;
         public void AddWeakReference(WeakReference<Bindable<T>> weakReference) => underlyingBindable.AddWeakReference(weakReference);
+
+        private void throwIfLeased()
+        {
+            if (isLeased)
+                throw new InvalidOperationException($"Cannot perform this operation on a {nameof(LeasableBindable<T>)} that is currently in a leased state.");
+        }
     }
 }
