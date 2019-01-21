@@ -45,18 +45,22 @@ namespace osu.Framework.Configuration
             get => disabled;
             set
             {
+                // if a lease is active, disabled can *only* be changed by that leased bindable.
                 throwIfLeased();
+
+                if (disabled == value) return;
+
                 SetDisabled(value);
             }
         }
 
-        internal void SetDisabled(bool value, bool bypassChecks = false)
+        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
         {
-            if (disabled == value) return;
+            if (!bypassChecks)
+                throwIfLeased();
 
             disabled = value;
-
-            TriggerDisabledChange(true, bypassChecks);
+            TriggerDisabledChange(source ?? this, true, bypassChecks);
         }
 
         /// <summary>
@@ -77,20 +81,22 @@ namespace osu.Framework.Configuration
             get => value;
             set
             {
+                // intentionally don't have throwIfLeased here().
+                // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
+
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
+
+                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
                 SetValue(value);
             }
         }
 
-        internal void SetValue(T value, bool bypassChecks = false)
+        internal void SetValue(T value, bool bypassChecks = false, Bindable<T> source = null)
         {
-            if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
-
             this.value = value;
-
-            TriggerValueChange(true, bypassChecks);
+            TriggerValueChange(source ?? this, true, bypassChecks);
         }
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
@@ -210,37 +216,33 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual void TriggerChange()
         {
-            TriggerValueChange(false);
-            TriggerDisabledChange(false);
+            TriggerValueChange(this, false);
+            TriggerDisabledChange(this, false);
         }
 
-        protected void TriggerValueChange(bool propagateToBindings = true, bool bypassChecks = false)
+        protected void TriggerValueChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
             if (propagateToBindings)
                 Bindings?.ForEachAlive(b =>
                 {
-                    if (bypassChecks)
-                        b.SetValue(value, true);
-                    else
-                        b.Value = value;
+                    if (b == source) return;
+                    b.SetValue(value, bypassChecks, this);
                 });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(value);
         }
 
-        protected void TriggerDisabledChange(bool propagateToBindings = true, bool bypassChecks = false)
+        protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
             if (propagateToBindings)
                 Bindings?.ForEachAlive(b =>
                 {
-                    if (bypassChecks)
-                        b.SetDisabled(disabled, true);
-                    else
-                        b.Disabled = disabled;
+                    if (b == source) return;
+                    b.SetDisabled(disabled, bypassChecks, this);
                 });
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
@@ -380,7 +382,7 @@ namespace osu.Framework.Configuration
 
             if (revertValueOnReturn)
             {
-                SetValue(valueBeforeLease, true);
+                SetValue(valueBeforeLease, true, this);
 
                 revertValueOnReturn = false;
                 valueBeforeLease = default;

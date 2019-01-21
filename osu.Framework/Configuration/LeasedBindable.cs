@@ -12,8 +12,8 @@ namespace osu.Framework.Configuration
 
         internal LeasedBindable([NotNull] Bindable<T> source)
         {
-            this.source = source ?? throw new ArgumentNullException(nameof(source));
             BindTo(source);
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
         public LeasedBindable(T value) : base(value)
@@ -49,7 +49,7 @@ namespace osu.Framework.Configuration
                 else
                 {
                     checkValid();
-                    source.SetValue(value, true);
+                    source.SetValue(value, true, this);
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace osu.Framework.Configuration
                 else
                 {
                     checkValid();
-                    source.SetDisabled(value, true);
+                    source.SetDisabled(value, true, this);
                 }
             }
         }

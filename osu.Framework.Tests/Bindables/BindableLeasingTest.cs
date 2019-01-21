@@ -125,6 +125,22 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestDisabledChangeViaBindingToLeased()
+        {
+            bool? changedState = null;
+            original.DisabledChanged += d => changedState = d;
+
+            var leased = original.BeginLease(true);
+
+            var bound = leased.GetBoundCopy();
+
+            bound.Disabled = false;
+
+            Assert.AreEqual(changedState, false);
+            Assert.IsFalse(original.Disabled);
+        }
+
+        [Test]
         public void TestValueChangeViaBindings()
         {
             original.BeginLease(true);
@@ -140,7 +156,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(true)]
         public void TestDisabledRevertedAfterLease(bool revert)
         {
+            bool? changedState = null;
+
             original.Disabled = true;
+            original.DisabledChanged += d => changedState = d;
 
             var leased = original.BeginLease(revert);
 
@@ -148,6 +167,7 @@ namespace osu.Framework.Tests.Bindables
 
             // regardless of revert specification, disabled should always be reverted to the original value.
             Assert.IsTrue(original.Disabled);
+            Assert.IsFalse(changedState.HasValue);
         }
 
         [Test]
@@ -189,6 +209,14 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(original.Value, 1);
             Assert.IsFalse(original.Disabled);
         }
+
+        [Test]
+        public void TestCantLeaseFromLease()
+        {
+            var leased = original.BeginLease(false);
+            Assert.Throws<InvalidOperationException>(() => leased.BeginLease(false));
+        }
+
 
         [Test]
         public void TestReturnFromBoundCopyOfLeaseFails()
