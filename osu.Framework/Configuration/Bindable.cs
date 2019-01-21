@@ -45,12 +45,18 @@ namespace osu.Framework.Configuration
             get => disabled;
             set
             {
-                if (disabled == value) return;
-
-                disabled = value;
-
-                TriggerDisabledChange();
+                throwIfLeased();
+                SetDisabled(value);
             }
+        }
+
+        internal void SetDisabled(bool value)
+        {
+            if (disabled == value) return;
+
+            disabled = value;
+
+            TriggerDisabledChange();
         }
 
         /// <summary>
@@ -71,15 +77,20 @@ namespace osu.Framework.Configuration
             get => value;
             set
             {
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
-
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
 
-                this.value = value;
-
-                TriggerValueChange();
+                SetValue(value);
             }
+        }
+
+        internal void SetValue(T value)
+        {
+            if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+
+            this.value = value;
+
+            TriggerValueChange();
         }
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
@@ -267,15 +278,6 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Reset this bindable to its <see cref="Default"/> value and set <see cref="Disabled"/> to false.
-        /// </summary>
-        internal void Reset()
-        {
-            Value = Default;
-            Disabled = false;
-        }
-
-        /// <summary>
         /// Create an unbound clone of this bindable.
         /// </summary>
         public Bindable<T> GetUnboundCopy()
@@ -312,6 +314,55 @@ namespace osu.Framework.Configuration
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             Value = serializer.Deserialize<T>(reader);
+        }
+
+        private bool isLeased => leasedBindable != null;
+
+        private LeasedBindable<T> leasedBindable;
+        private T valueBeforeLease;
+        private bool disabledBeforeLease;
+
+        private bool revertValueOnReturn;
+
+        public LeasedBindable<T> BeginLease(bool revertValueOnReturn)
+        {
+            if (isLeased)
+                throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
+
+            if (revertValueOnReturn)
+            {
+                this.revertValueOnReturn = true;
+                valueBeforeLease = Value;
+            }
+
+            disabledBeforeLease = Disabled;
+            Disabled = true;
+            return leasedBindable = new LeasedBindable<T>(this);
+        }
+
+        internal void EndLease(IMutableBindable<T> returnedBindable)
+        {
+            if (!isLeased)
+                throw new InvalidOperationException("Attempted to end a lease without beginning one.");
+
+            if (returnedBindable != leasedBindable)
+                throw new InvalidOperationException("Attempted to end a lease but returned a different bindable to the one used to start the lease.");
+
+            leasedBindable = null;
+            Disabled = disabledBeforeLease;
+            if (revertValueOnReturn)
+            {
+                Value = valueBeforeLease;
+
+                revertValueOnReturn = false;
+                valueBeforeLease = default;
+            }
+        }
+
+        private void throwIfLeased()
+        {
+            if (isLeased)
+                throw new InvalidOperationException($"Cannot perform this operation on a {nameof(Bindable<T>)} that is currently in a leased state.");
         }
     }
 }

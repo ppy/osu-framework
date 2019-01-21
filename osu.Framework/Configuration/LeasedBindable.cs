@@ -7,19 +7,17 @@ namespace osu.Framework.Configuration
 {
     public class LeasedBindable<T> : IMutableBindable<T>
     {
-        private readonly IMutableBindable<T> underlyingBindable;
-        private readonly LeasableBindable<T> source;
+        private readonly Bindable<T> source;
 
-        public LeasedBindable(IMutableBindable<T> underlyingBindable, LeasableBindable<T> source)
+        public LeasedBindable(Bindable<T> source)
         {
-            this.underlyingBindable = underlyingBindable.GetBoundCopy();
             this.source = source;
         }
 
         private bool hasBeenReturned;
 
         /// <summary>
-        /// End the lease on the source <see cref="LeasableBindable{T}"/>.
+        /// End the lease on the source <see cref="Bindable{T}"/>.
         /// </summary>
         public void Return()
         {
@@ -31,29 +29,26 @@ namespace osu.Framework.Configuration
             hasBeenReturned = true;
         }
 
-        public void Parse(object input)
-        {
-            underlyingBindable.Parse(input);
-        }
+        public void Parse(object input) => source.Parse(input);
 
         public event Action<bool> DisabledChanged
         {
             add
             {
                 checkValid();
-                underlyingBindable.DisabledChanged += value;
+                source.DisabledChanged += value;
             }
             remove
             {
                 checkValid();
-                underlyingBindable.DisabledChanged -= value;
+                source.DisabledChanged -= value;
             }
         }
 
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
             checkValid();
-            underlyingBindable.BindDisabledChanged(onChange, runOnceImmediately);
+            source.BindDisabledChanged(onChange, runOnceImmediately);
         }
 
         public bool Disabled
@@ -61,12 +56,12 @@ namespace osu.Framework.Configuration
             get
             {
                 checkValid();
-                return underlyingBindable.Disabled;
+                return source.Disabled;
             }
             set
             {
                 checkValid();
-                underlyingBindable.Disabled = value;
+                source.SetDisabled(value);
             }
         }
 
@@ -75,32 +70,32 @@ namespace osu.Framework.Configuration
             get
             {
                 checkValid();
-                return underlyingBindable.IsDefault;
+                return source.IsDefault;
             }
         }
 
         public void UnbindEvents()
         {
             checkValid();
-            underlyingBindable.UnbindEvents();
+            source.UnbindEvents();
         }
 
         public void UnbindBindings()
         {
             checkValid();
-            underlyingBindable.UnbindBindings();
+            source.UnbindBindings();
         }
 
         public void UnbindAll()
         {
             checkValid();
-            underlyingBindable.UnbindAll();
+            source.UnbindAll();
         }
 
         public void UnbindFrom(IUnbindable them)
         {
             checkValid();
-            underlyingBindable.UnbindFrom(them);
+            source.UnbindFrom(them);
         }
 
         public string Description
@@ -108,30 +103,30 @@ namespace osu.Framework.Configuration
             get
             {
                 checkValid();
-                return underlyingBindable.Description;
+                return source.Description;
             }
         }
 
         public void BindTo(IBindable them)
         {
             checkValid();
-            underlyingBindable.BindTo(them);
+            ((IBindable)source).BindTo(them);
         }
 
         IBindable<T> IBindable<T>.GetBoundCopy()
         {
-            return underlyingBindable.GetBoundCopy();
+            return source.GetBoundCopy();
         }
 
         IBindable IBindable.GetBoundCopy()
         {
-            return ((IBindable)underlyingBindable).GetBoundCopy();
+            return ((IBindable)source).GetBoundCopy();
         }
 
         public IMutableBindable<T> GetBoundCopy()
         {
             checkValid();
-            return underlyingBindable.GetBoundCopy();
+            return source.GetBoundCopy();
         }
 
         public event Action<T> ValueChanged
@@ -139,13 +134,13 @@ namespace osu.Framework.Configuration
             add
             {
                 checkValid();
-                underlyingBindable.ValueChanged += value;
+                source.ValueChanged += value;
             }
 
             remove
             {
                 checkValid();
-                underlyingBindable.ValueChanged -= value;
+                source.ValueChanged -= value;
             }
         }
 
@@ -154,15 +149,13 @@ namespace osu.Framework.Configuration
             get
             {
                 checkValid();
-                return underlyingBindable.Value;
+                return source.Value;
             }
 
             set
             {
                 checkValid();
-                underlyingBindable.Disabled = false;
-                underlyingBindable.Value = value;
-                underlyingBindable.Disabled = true;
+                source.SetValue(value);
             }
         }
 
@@ -171,29 +164,29 @@ namespace osu.Framework.Configuration
             get
             {
                 checkValid();
-                return underlyingBindable.Default;
+                return source.Default;
             }
 
             set
             {
                 checkValid();
-                underlyingBindable.Default = value;
+                source.Default = value;
             }
         }
 
-        public WeakReference<Bindable<T>> WeakReference => underlyingBindable.WeakReference;
-        public void AddWeakReference(WeakReference<Bindable<T>> weakReference) => underlyingBindable.AddWeakReference(weakReference);
+        public WeakReference<Bindable<T>> WeakReference => source.WeakReference;
+        public void AddWeakReference(WeakReference<Bindable<T>> weakReference) => source.AddWeakReference(weakReference);
 
         public void BindTo(IBindable<T> them)
         {
             checkValid();
-            underlyingBindable.BindTo(them);
+            ((IBindable<T>)source).BindTo(them);
         }
 
         public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
         {
             checkValid();
-            underlyingBindable.BindValueChanged(onChange, runOnceImmediately);
+            source.BindValueChanged(onChange, runOnceImmediately);
         }
 
         private void checkValid()
