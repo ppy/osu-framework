@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Configuration
@@ -16,7 +17,8 @@ namespace osu.Framework.Configuration
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
-        public LeasedBindable(T value) : base(value)
+        public LeasedBindable(T value)
+            : base(value)
         {
             // used for GetBoundCopy, where we don't want a source.
         }
@@ -39,31 +41,27 @@ namespace osu.Framework.Configuration
 
         public override T Value
         {
-            get => source == null ? base.Value : source.Value;
+            get => base.Value;
             set
             {
-                if (source == null)
-                    SetValue(value, true);
-                else
-                {
+                if (source != null)
                     checkValid();
-                    source.SetValue(value, true, this);
-                }
+
+                if (EqualityComparer<T>.Default.Equals(Value, value)) return;
+                SetValue(value, true);
             }
         }
 
         public override bool Disabled
         {
-            get => source?.Disabled ?? base.Disabled;
+            get => base.Disabled;
             set
             {
-                if (source == null)
-                    SetDisabled(value, true);
-                else
-                {
+                if (source != null)
                     checkValid();
-                    source.SetDisabled(value, true, this);
-                }
+
+                if (Disabled == value) return;
+                SetDisabled(value, true);
             }
         }
 
