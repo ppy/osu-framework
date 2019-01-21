@@ -7,6 +7,11 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Configuration
 {
+    /// <summary>
+    /// A bindable carrying a mutually exclusive lease on another bindable.
+    /// Can only be retrieved via <see cref="Bindable{T}.BeginLease"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class LeasedBindable<T> : Bindable<T>
     {
         private readonly Bindable<T> source;

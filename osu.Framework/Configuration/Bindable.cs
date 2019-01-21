@@ -338,6 +338,13 @@ namespace osu.Framework.Configuration
 
         private bool revertValueOnReturn;
 
+        /// <summary>
+        /// Takes out a mutually exclusive lease on this bindable.
+        /// During a lease, the bindable will be set to <see cref="Disabled"/>, but changes can still be applied via the <see cref="LeasedBindable{T}"/> returned by this call.
+        /// You should end a lease by calling <see cref="LeasedBindable{T}.Return"/> when done.
+        /// </summary>
+        /// <param name="revertValueOnReturn">Whether the <see cref="Value"/> when <see cref="BeginLease"/> was called should be restored when the lease ends.</param>
+        /// <returns>A bindable with a lease.</returns>
         public LeasedBindable<T> BeginLease(bool revertValueOnReturn)
         {
             if (checkForLease(this))
@@ -367,6 +374,10 @@ namespace osu.Framework.Configuration
             return found;
         }
 
+        /// <summary>
+        /// Called internally by a <see cref="LeasedBindable{T}"/> to end a lease.
+        /// </summary>
+        /// <param name="returnedBindable">The <see cref="LeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
         internal void EndLease(Bindable<T> returnedBindable)
         {
             if (!isLeased)
