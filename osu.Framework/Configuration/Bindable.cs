@@ -218,13 +218,14 @@ namespace osu.Framework.Configuration
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
-            if (propagateToBindings) Bindings?.ForEachAlive(b =>
-            {
-                if (bypassChecks)
-                    b.SetValue(value, true);
-                else
-                    b.Value = value;
-            });
+            if (propagateToBindings)
+                Bindings?.ForEachAlive(b =>
+                {
+                    if (bypassChecks)
+                        b.SetValue(value, true);
+                    else
+                        b.Value = value;
+                });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(value);
         }
@@ -233,13 +234,14 @@ namespace osu.Framework.Configuration
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
-            if (propagateToBindings) Bindings?.ForEachAlive(b =>
-            {
-                if (bypassChecks)
-                    b.SetDisabled(disabled, true);
-                else
-                    b.Disabled = disabled;
-            });
+            if (propagateToBindings)
+                Bindings?.ForEachAlive(b =>
+                {
+                    if (bypassChecks)
+                        b.SetDisabled(disabled, true);
+                    else
+                        b.Disabled = disabled;
+                });
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
@@ -329,7 +331,7 @@ namespace osu.Framework.Configuration
         }
 
         private bool isLeased => leasedBindable != null;
-        
+
         private LeasedBindable<T> leasedBindable;
         private T valueBeforeLease;
         private bool disabledBeforeLease;
@@ -377,7 +379,7 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException("Attempted to end a lease but returned a different bindable to the one used to start the lease.");
 
             leasedBindable = null;
-            
+
             if (revertValueOnReturn)
             {
                 SetValue(valueBeforeLease, true);

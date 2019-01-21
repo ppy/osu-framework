@@ -201,4 +201,3 @@ namespace osu.Framework.Tests.Bindables
         }
     }
 }
-
