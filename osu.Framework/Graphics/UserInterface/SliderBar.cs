@@ -168,7 +168,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e) => commit();
+        protected override bool OnKeyUp(KeyUpEvent e)
+        {
+            if (e.Key == Key.Left || e.Key == Key.Right)
+                return commit();
+            return false;
+        }
 
         private bool uncommittedChanges;
 
