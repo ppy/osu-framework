@@ -271,7 +271,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
         /// </summary>
-        public void UnbindAll()
+        public virtual void UnbindAll()
         {
             UnbindEvents();
             UnbindBindings();

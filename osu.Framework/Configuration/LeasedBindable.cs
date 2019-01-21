@@ -35,8 +35,6 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException($"This bindable has already been {nameof(Return)}ed.");
 
             UnbindAll();
-            source.EndLease(this);
-            hasBeenReturned = true;
         }
 
         public override T Value
@@ -67,6 +65,17 @@ namespace osu.Framework.Configuration
                     source.SetDisabled(value, true, this);
                 }
             }
+        }
+
+        public override void UnbindAll()
+        {
+            if (!hasBeenReturned)
+            {
+                source.EndLease(this);
+                hasBeenReturned = true;
+            }
+
+            base.UnbindAll();
         }
 
         private void checkValid()

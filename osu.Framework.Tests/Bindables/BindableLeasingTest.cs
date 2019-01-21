@@ -237,5 +237,13 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Throws<InvalidOperationException>(() => ((LeasedBindable<int>)copy).Return());
         }
+
+        [Test]
+        public void TestUnbindAllReturnsLease()
+        {
+            var leased = original.BeginLease(true);
+            leased.UnbindAll();
+            leased.UnbindAll();
+        }
     }
 }
