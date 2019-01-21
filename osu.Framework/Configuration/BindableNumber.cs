@@ -193,7 +193,7 @@ namespace osu.Framework.Configuration
                 MaxValueChanged?.Invoke(maxValue);
         }
 
-        public override void BindTo(IMutableBindable<T> them)
+        public override void BindTo(Bindable<T> them)
         {
             if (them is BindableNumber<T> other)
             {

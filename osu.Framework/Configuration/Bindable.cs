@@ -16,7 +16,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IMutableBindable<T>, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -128,7 +128,7 @@ namespace osu.Framework.Configuration
 
         void IBindable<T>.BindTo(IBindable<T> them)
         {
-            if (!(them is IMutableBindable<T> tThem))
+            if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
             BindTo(tThem);
         }
@@ -138,14 +138,14 @@ namespace osu.Framework.Configuration
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
-        public virtual void BindTo(IMutableBindable<T> them)
+        public virtual void BindTo(Bindable<T> them)
         {
             Value = them.Value;
             Disabled = them.Disabled;
             Default = them.Default;
 
-            AddWeakReference(them.WeakReference);
-            them.AddWeakReference(WeakReference);
+            addWeakReference(them.WeakReference);
+            them.addWeakReference(WeakReference);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace osu.Framework.Configuration
                 onChange(Disabled);
         }
 
-        public void AddWeakReference(WeakReference<Bindable<T>> weakReference)
+        private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new LockedWeakList<Bindable<T>>();
@@ -318,8 +318,6 @@ namespace osu.Framework.Configuration
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
-        IMutableBindable<T> IMutableBindable<T>.GetBoundCopy() => GetBoundCopy();
-
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
             serializer.Serialize(writer, Value);
@@ -370,7 +368,7 @@ namespace osu.Framework.Configuration
             return found;
         }
 
-        internal void EndLease(IMutableBindable<T> returnedBindable)
+        internal void EndLease(Bindable<T> returnedBindable)
         {
             if (!isLeased)
                 throw new InvalidOperationException("Attempted to end a lease without beginning one.");
