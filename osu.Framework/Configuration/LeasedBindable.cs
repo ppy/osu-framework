@@ -69,7 +69,7 @@ namespace osu.Framework.Configuration
 
         public override void UnbindAll()
         {
-            if (!hasBeenReturned)
+            if (source != null && !hasBeenReturned)
             {
                 source.EndLease(this);
                 hasBeenReturned = true;
