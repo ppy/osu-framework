@@ -361,10 +361,7 @@ namespace osu.Framework.Configuration
             bool found = false;
             Bindings?.ForEachAlive(b =>
             {
-                if (b == source) return;
-
-                if (b.isLeased)
-                    found = true;
+                if (b != source) found |= b.checkForLease(this);
             });
 
             return found;

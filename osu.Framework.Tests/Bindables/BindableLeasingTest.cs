@@ -217,6 +217,15 @@ namespace osu.Framework.Tests.Bindables
             Assert.Throws<InvalidOperationException>(() => leased.BeginLease(false));
         }
 
+        [Test]
+        public void TestCantLeaseFromBindingChain()
+        {
+            var bound1 = original.GetBoundCopy();
+            var bound2 = bound1.GetBoundCopy();
+
+            original.BeginLease(false);
+            Assert.Throws<InvalidOperationException>(() => bound2.BeginLease(false));
+        }
 
         [Test]
         public void TestReturnFromBoundCopyOfLeaseFails()
