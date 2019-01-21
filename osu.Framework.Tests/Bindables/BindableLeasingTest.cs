@@ -207,6 +207,7 @@ namespace osu.Framework.Tests.Bindables
             original.Value = 1;
 
             Assert.AreEqual(original.Value, 1);
+            Assert.AreEqual(original.Value, copy.Value);
             Assert.IsFalse(original.Disabled);
         }
 
