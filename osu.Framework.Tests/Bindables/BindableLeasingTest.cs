@@ -149,5 +149,56 @@ namespace osu.Framework.Tests.Bindables
             // regardless of revert specification, disabled should always be reverted to the original value.
             Assert.IsTrue(original.Disabled);
         }
+
+        [Test]
+        public void TestLeaseFromBoundBindable()
+        {
+            var copy = original.GetBoundCopy();
+
+            var leased = copy.BeginLease(true);
+
+            // can't take a second lease from the original.
+            Assert.Throws<InvalidOperationException>(() => original.BeginLease(false));
+
+            // can't take a second lease from the copy.
+            Assert.Throws<InvalidOperationException>(() => copy.BeginLease(false));
+
+            leased.Value = 2;
+
+            // value propagates everywhere
+            Assert.AreEqual(original.Value, 2);
+            Assert.AreEqual(original.Value, leased.Value);
+            Assert.AreEqual(original.Value, copy.Value);
+
+            // bound copies of the lease still allow setting value / disabled.
+            var leasedCopy = leased.GetBoundCopy();
+
+            leasedCopy.Value = 3;
+
+            Assert.AreEqual(original.Value, 3);
+            Assert.AreEqual(original.Value, leased.Value);
+            Assert.AreEqual(original.Value, copy.Value);
+
+            leasedCopy.Disabled = false;
+            leasedCopy.Disabled = true;
+
+            leased.Return();
+
+            original.Value = 1;
+
+            Assert.AreEqual(original.Value, 1);
+            Assert.IsFalse(original.Disabled);
+        }
+
+        [Test]
+        public void TestReturnFromBoundCopyOfLeaseFails()
+        {
+            var leased = original.BeginLease(true);
+
+            var copy = leased.GetBoundCopy();
+
+            Assert.Throws<InvalidOperationException>(() => ((LeasedBindable<int>)copy).Return());
+        }
     }
 }
+

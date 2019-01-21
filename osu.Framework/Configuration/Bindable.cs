@@ -40,7 +40,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Whether this bindable has been disabled. When disabled, attempting to change the <see cref="Value"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
-        public bool Disabled
+        public virtual bool Disabled
         {
             get => disabled;
             set
@@ -50,13 +50,13 @@ namespace osu.Framework.Configuration
             }
         }
 
-        internal void SetDisabled(bool value)
+        internal void SetDisabled(bool value, bool bypassChecks = false)
         {
             if (disabled == value) return;
 
             disabled = value;
 
-            TriggerDisabledChange();
+            TriggerDisabledChange(true, bypassChecks);
         }
 
         /// <summary>
@@ -84,13 +84,13 @@ namespace osu.Framework.Configuration
             }
         }
 
-        internal void SetValue(T value)
+        internal void SetValue(T value, bool bypassChecks = false)
         {
             if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
             this.value = value;
 
-            TriggerValueChange();
+            TriggerValueChange(true, bypassChecks);
         }
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
@@ -214,20 +214,32 @@ namespace osu.Framework.Configuration
             TriggerDisabledChange(false);
         }
 
-        protected void TriggerValueChange(bool propagateToBindings = true)
+        protected void TriggerValueChange(bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
+            if (propagateToBindings) Bindings?.ForEachAlive(b =>
+            {
+                if (bypassChecks)
+                    b.SetValue(value, true);
+                else
+                    b.Value = value;
+            });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(value);
         }
 
-        protected void TriggerDisabledChange(bool propagateToBindings = true)
+        protected void TriggerDisabledChange(bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (propagateToBindings) Bindings?.ForEachAlive(b =>
+            {
+                if (bypassChecks)
+                    b.SetDisabled(disabled, true);
+                else
+                    b.Disabled = disabled;
+            });
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
@@ -317,7 +329,7 @@ namespace osu.Framework.Configuration
         }
 
         private bool isLeased => leasedBindable != null;
-
+        
         private LeasedBindable<T> leasedBindable;
         private T valueBeforeLease;
         private bool disabledBeforeLease;
@@ -326,7 +338,7 @@ namespace osu.Framework.Configuration
 
         public LeasedBindable<T> BeginLease(bool revertValueOnReturn)
         {
-            if (isLeased)
+            if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
             if (revertValueOnReturn)
@@ -340,6 +352,22 @@ namespace osu.Framework.Configuration
             return leasedBindable = new LeasedBindable<T>(this);
         }
 
+        private bool checkForLease(Bindable<T> source)
+        {
+            if (isLeased) return true;
+
+            bool found = false;
+            Bindings?.ForEachAlive(b =>
+            {
+                if (b == source) return;
+
+                if (b.isLeased)
+                    found = true;
+            });
+
+            return found;
+        }
+
         internal void EndLease(IMutableBindable<T> returnedBindable)
         {
             if (!isLeased)
@@ -349,14 +377,16 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException("Attempted to end a lease but returned a different bindable to the one used to start the lease.");
 
             leasedBindable = null;
-            Disabled = disabledBeforeLease;
+            
             if (revertValueOnReturn)
             {
-                Value = valueBeforeLease;
+                SetValue(valueBeforeLease, true);
 
                 revertValueOnReturn = false;
                 valueBeforeLease = default;
             }
+
+            Disabled = disabledBeforeLease;
         }
 
         private void throwIfLeased()
