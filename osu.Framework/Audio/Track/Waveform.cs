@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using ManagedBass;
 using osuTK;
 using osu.Framework.MathUtils;
-using System.Runtime.InteropServices;
+using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
@@ -65,8 +65,7 @@ namespace osu.Framework.Audio.Track
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private readonly Task readTask;
 
-        private DataStreamFileProcedures procedures;
-        private GCHandle pinnedProcedures;
+        private FileCallbacks fileCallbacks;
 
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
@@ -82,13 +81,9 @@ namespace osu.Framework.Audio.Track
                 if (Bass.CurrentDevice <= 0)
                     return;
 
-                procedures = CreateDataStreamFileProcedures(data);
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
-                if (!RuntimeInfo.SupportsIL)
-                    pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
-
-                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procedures.BassProcedures,
-                    RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
+                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 
@@ -162,8 +157,6 @@ namespace osu.Framework.Audio.Track
                 channels = info.Channels;
             }, cancelSource.Token);
         }
-
-        protected virtual DataStreamFileProcedures CreateDataStreamFileProcedures(Stream dataStream) => new DataStreamFileProcedures(dataStream);
 
         private double computeIntensity(ChannelInfo info, float[] bins, double startFrequency, double endFrequency)
         {
@@ -312,10 +305,8 @@ namespace osu.Framework.Audio.Track
             cancelSource?.Dispose();
             points = null;
 
-            if (pinnedProcedures.IsAllocated)
-                pinnedProcedures.Free();
-
-            procedures = null;
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
         }
 
         #endregion
