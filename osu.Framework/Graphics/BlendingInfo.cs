@@ -1,11 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
-    public struct BlendingInfo
+    public struct BlendingInfo : IEquatable<BlendingInfo>
     {
         public BlendingFactorSrc Source;
         public BlendingFactorDest Destination;

@@ -36,7 +36,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 
@@ -708,9 +707,6 @@ namespace osu.Framework.Platform
         public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
-
-        public virtual AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
-            new AudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
 
         #region IDisposable Support
 

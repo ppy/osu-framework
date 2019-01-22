@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.IO;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
@@ -9,8 +8,6 @@ namespace osu.Framework.Audio.Track
     public class TrackManager : AudioCollectionManager<Track>
     {
         private readonly IResourceStore<byte[]> store;
-
-        public virtual Track CreateTrack(Stream data, bool quick) => new TrackBass(data, quick);
 
         public TrackManager(IResourceStore<byte[]> store)
         {
@@ -21,7 +18,7 @@ namespace osu.Framework.Audio.Track
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            Track track = CreateTrack(store.GetStream(name), false);
+            Track track = new TrackBass(store.GetStream(name));
             AddItem(track);
             return track;
         }

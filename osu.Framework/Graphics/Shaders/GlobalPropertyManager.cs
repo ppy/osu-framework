@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
             global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
             global_properties[(int)GlobalProperty.InnerCornerRadius] = new UniformMapping<float>("g_InnerCornerRadius");
+            global_properties[(int)GlobalProperty.GammaCorrection] = new UniformMapping<bool>("g_GammaCorrection");
         }
 
         /// <summary>

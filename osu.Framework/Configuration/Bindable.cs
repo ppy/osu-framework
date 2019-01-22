@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Caching;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
@@ -15,7 +16,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -81,7 +82,9 @@ namespace osu.Framework.Configuration
             }
         }
 
-        private readonly WeakReference<Bindable<T>> weakReference;
+        private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
+
+        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -99,8 +102,6 @@ namespace osu.Framework.Configuration
         public Bindable(T value = default)
         {
             this.value = value;
-
-            weakReference = new WeakReference<Bindable<T>>(this);
         }
 
         public static implicit operator T(Bindable<T> value) => value.Value;
@@ -281,7 +282,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Create an unbound clone of this bindable.
         /// </summary>
-        public IBindable<T> GetUnboundCopy()
+        public Bindable<T> GetUnboundCopy()
         {
             var clone = GetBoundCopy();
             clone.UnbindAll();

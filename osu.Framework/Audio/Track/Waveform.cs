@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ManagedBass;
 using osuTK;
 using osu.Framework.MathUtils;
+using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
@@ -64,11 +65,13 @@ namespace osu.Framework.Audio.Track
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private readonly Task readTask;
 
+        private FileCallbacks fileCallbacks;
+
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform(Stream data = null)
+        public Waveform(Stream data)
         {
             if (data == null) return;
 
@@ -78,9 +81,9 @@ namespace osu.Framework.Audio.Track
                 if (Bass.CurrentDevice <= 0)
                     return;
 
-                var procs = new DataStreamFileProcedures(data);
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
-                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
+                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 
@@ -180,7 +183,7 @@ namespace osu.Framework.Audio.Track
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
             if (readTask == null)
-                return new Waveform();
+                return new Waveform(null);
 
             await readTask;
 
@@ -235,7 +238,7 @@ namespace osu.Framework.Audio.Track
                     generatedPoints.Add(point);
                 }
 
-                return new Waveform
+                return new Waveform(null)
                 {
                     points = generatedPoints,
                     channels = channels
@@ -301,6 +304,9 @@ namespace osu.Framework.Audio.Track
             cancelSource?.Cancel();
             cancelSource?.Dispose();
             points = null;
+
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
         }
 
         #endregion

@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache(object)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -705,7 +705,18 @@ namespace osu.Framework.Graphics.Containers
                 disposeChildAsync(child);
         }
 
-        private void disposeChildAsync(Drawable drawable) => Task.Run(() => drawable.Dispose());
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            foreach (Drawable child in internalChildren)
+                child.UnbindAllBindables();
+        }
+
+        private void disposeChildAsync(Drawable drawable)
+        {
+            drawable.UnbindAllBindables();
+            Task.Run(() => drawable.Dispose());
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
