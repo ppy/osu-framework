@@ -25,7 +25,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
-    <None Include="packages.config" />
     <None Include="..\osu.Framework.NativeLibs\libbass.a">
       <Link>libbass.a</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
