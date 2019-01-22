@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
-        public static int MaxTextureSize { get; private set; }
+        public static int MaxTextureSize { get; private set; } = 4096;
 
         private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 

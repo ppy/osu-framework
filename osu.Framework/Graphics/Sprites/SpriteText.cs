@@ -587,12 +587,14 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character to get the texture for.</param>
         /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetTextureForCharacter(char c)
+        protected virtual Texture GetTextureForCharacter(char c) => getTextureForCharacter(c) ?? GetFallbackTextureForCharacter(c);
+
+        private Texture getTextureForCharacter(char c)
         {
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
+            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
         }
 
         /// <summary>
@@ -600,7 +602,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
+        protected virtual Texture GetFallbackTextureForCharacter(char c) => getTextureForCharacter('?');
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
