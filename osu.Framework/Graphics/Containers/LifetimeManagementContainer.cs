@@ -22,71 +22,6 @@ namespace osu.Framework.Graphics.Containers
     /// </remarks>
     public class LifetimeManagementContainer : CompositeDrawable
     {
-        private enum LifetimeState
-        {
-            /// Not yet loaded.
-            New,
-            /// Currently dead and becomes alive in the future (with respect to <see cref="Drawable.Clock"/>).
-            Future,
-            /// Currently dead and becomes alive if the clock is rewinded.
-            Past,
-            /// Currently alive.
-            Current,
-        }
-
-        /// We have to maintain lifetime separately because it is used as a key of sorted set and
-        /// dynamic change of key ordering is invalid.
-        private sealed class ChildEntry
-        {
-            [NotNull] public readonly Drawable Drawable;
-            public LifetimeState State { get; set; }
-            public double LifetimeStart { get; private set; }
-            public double LifetimeEnd { get; private set; }
-
-            public ChildEntry([NotNull] Drawable drawable)
-            {
-                Drawable = drawable;
-                State = LifetimeState.New;
-                UpdateLifetime();
-            }
-
-            public void UpdateLifetime()
-            {
-                LifetimeStart = Drawable.LifetimeStart;
-                LifetimeEnd = Math.Max(Drawable.LifetimeStart, Drawable.LifetimeEnd);    // Negative intervals are undesired for calculation.
-            }
-        }
-
-        /// <summary>
-        /// Compare by <see cref="ChildEntry.LifetimeStart"/>.
-        /// </summary>
-        private sealed class LifetimeStartComparator : IComparer<ChildEntry>
-        {
-            public int Compare(ChildEntry x, ChildEntry y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                var c = x.LifetimeStart.CompareTo(y.LifetimeStart);
-                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
-            }
-        }
-
-        /// <summary>
-        /// Compare by <see cref="ChildEntry.LifetimeEnd"/>.
-        /// </summary>
-        private sealed class LifetimeEndComparator : IComparer<ChildEntry>
-        {
-            public int Compare(ChildEntry x, ChildEntry y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                var c = x.LifetimeEnd.CompareTo(y.LifetimeEnd);
-                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
-            }
-        }
-
         /// <summary>
         /// Contains all but <see cref="newChildren"/>.
         /// </summary>
@@ -185,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert(entry.State == LifetimeState.Future);
 
                 if (currentTime < entry.LifetimeStart)
-                     break;
+                    break;
 
                 futureChildren.Remove(entry);
 
@@ -206,7 +141,7 @@ namespace osu.Framework.Graphics.Containers
                 aliveChildrenChanged |= updateChildEntry(entry);
             }
 
-            for(var i = AliveInternalChildren.Count - 1; i >= 0; -- i)
+            for (var i = AliveInternalChildren.Count - 1; i >= 0; --i)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
                 var child = AliveInternalChildren[i];
@@ -221,7 +156,8 @@ namespace osu.Framework.Graphics.Containers
             return aliveChildrenChanged;
         }
 
-        [CanBeNull] private SortedSet<ChildEntry> futureOrPastChildren(LifetimeState state)
+        [CanBeNull]
+        private SortedSet<ChildEntry> futureOrPastChildren(LifetimeState state)
         {
             switch (state)
             {
@@ -285,6 +221,86 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Invoked when the clock is skipped child lifetime interval completely.
+        /// For example, when child lifetime is [1,2) and clock is skipped from 0 to 3, it is a <see cref="SkipDirection.Forward"/> skip.
+        /// </summary>
+        /// <param name="child">The skipped child.</param>
+        /// <param name="skipDirection">The direction of the skip.</param>
+        protected virtual void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
+        {
+        }
+
+        /// We have to maintain lifetime separately because it is used as a key of sorted set and
+        /// dynamic change of key ordering is invalid.
+        private sealed class ChildEntry
+        {
+            [NotNull]
+            public readonly Drawable Drawable;
+
+            public LifetimeState State { get; set; }
+            public double LifetimeStart { get; private set; }
+            public double LifetimeEnd { get; private set; }
+
+            public ChildEntry([NotNull] Drawable drawable)
+            {
+                Drawable = drawable;
+                State = LifetimeState.New;
+                UpdateLifetime();
+            }
+
+            public void UpdateLifetime()
+            {
+                LifetimeStart = Drawable.LifetimeStart;
+                LifetimeEnd = Math.Max(Drawable.LifetimeStart, Drawable.LifetimeEnd); // Negative intervals are undesired for calculation.
+            }
+        }
+
+        /// <summary>
+        /// Compare by <see cref="ChildEntry.LifetimeStart"/>.
+        /// </summary>
+        private sealed class LifetimeStartComparator : IComparer<ChildEntry>
+        {
+            public int Compare(ChildEntry x, ChildEntry y)
+            {
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                var c = x.LifetimeStart.CompareTo(y.LifetimeStart);
+                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
+            }
+        }
+
+        /// <summary>
+        /// Compare by <see cref="ChildEntry.LifetimeEnd"/>.
+        /// </summary>
+        private sealed class LifetimeEndComparator : IComparer<ChildEntry>
+        {
+            public int Compare(ChildEntry x, ChildEntry y)
+            {
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                var c = x.LifetimeEnd.CompareTo(y.LifetimeEnd);
+                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
+            }
+        }
+
+        private enum LifetimeState
+        {
+            /// Not yet loaded.
+            New,
+
+            /// Currently dead and becomes alive in the future (with respect to <see cref="Drawable.Clock"/>).
+            Future,
+
+            /// Currently dead and becomes alive if the clock is rewound.
+            Past,
+
+            /// Currently alive.
+            Current,
+        }
+
+        /// <summary>
         /// Represents a direction of skip.
         /// </summary>
         public enum SkipDirection
@@ -298,16 +314,6 @@ namespace osu.Framework.Graphics.Containers
             /// A skip from future to past.
             /// </summary>
             Backward,
-        }
-
-        /// <summary>
-        /// Invoked when the clock is skipped child lifetime interval completely.
-        /// For example, when child lifetime is [1,2) and clock is skipped from 0 to 3, it is a <see cref="SkipDirection.Forward"/> skip.
-        /// </summary>
-        /// <param name="child">The skipped child.</param>
-        /// <param name="skipDirection">The direction of the skip.</param>
-        protected virtual void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
-        {
         }
     }
 }
