@@ -46,7 +46,10 @@ namespace osu.Framework.Graphics.Textures
         private Texture loadRaw(TextureUpload upload)
         {
             if (upload == null) return null;
-
+            
+            if (upload.Width > GLWrapper.MaxTextureSize || upload.Height > GLWrapper.MaxTextureSize)
+                return null;
+            
             var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
