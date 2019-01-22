@@ -3,7 +3,6 @@
 
 using Android.App;
 using Android.OS;
-using Android.Views;
 
 namespace osu.Framework.Android
 {
@@ -14,9 +13,6 @@ namespace osu.Framework.Android
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
-            Window.AddFlags(WindowManagerFlags.Fullscreen);
-            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
             SetContentView(new AndroidGameView(this, CreateGame()));
         }
