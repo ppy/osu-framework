@@ -16,7 +16,7 @@ namespace osu.Framework.Screens
         public bool IsCurrentScreen => !hasExited && hasEntered && ChildScreen == null;
 
         private readonly Container content;
-        private Container childModeContainer;
+        private ChildScreenContainer childScreenContainer;
 
         [Resolved]
         protected Game Game { get; private set; }
@@ -106,30 +106,33 @@ namespace osu.Framework.Screens
             {
                 enter(null);
 
-                AddInternal(childModeContainer = new Container
+                childScreenContainer = CreateChildScreenContainer(this) ?? new ChildScreenContainer(this)
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                });
+                    RelativeSizeAxes = Axes.Both
+                };
+
+                AddInternal(childScreenContainer);
             }
             else
             {
-                childModeContainer = ParentScreen.childModeContainer;
-                var customContent = CreateChildContainer();
+                childScreenContainer = ParentScreen.childScreenContainer;
+
+                var customContent = CreateChildScreenContainer(this);
                 if (customContent != null)
                 {
-                    childModeContainer.Add(customContent);
-                    childModeContainer = customContent;
+                    childScreenContainer.Add(customContent);
+                    childScreenContainer = customContent;
                 }
             }
         }
 
         /// <summary>
-        /// Create an optional container which all recursively <see cref="Push"/>ed screens are contained within.
+        /// Create an optional container to hold all recursively <see cref="Push"/>ed screens.
         /// </summary>
-        /// <returns>A container</returns>
-        protected virtual Container CreateChildContainer() => null;
+        /// <returns>The <see cref="ChildScreenContainer"/>.</returns>
+        protected virtual ChildScreenContainer CreateChildScreenContainer(Screen parentScreen) => null;
 
         /// <summary>
         /// Changes to a new Screen.
@@ -157,22 +160,7 @@ namespace osu.Framework.Screens
             startSuspend(screen);
             ModePushed?.Invoke(screen);
 
-            void finishLoad()
-            {
-                if (hasExited || screen.hasExited)
-                    return;
-
-                childModeContainer.Add(screen);
-
-                screen.enter(this);
-
-                Content.Expire();
-            }
-
-            if (screen.LoadState >= LoadState.Ready)
-                finishLoad();
-            else
-                childModeContainer.LoadComponentAsync(screen, _ => finishLoad());
+            childScreenContainer.AddScreen(screen);
         }
 
         private void startSuspend(Screen next)
@@ -263,6 +251,39 @@ namespace osu.Framework.Screens
             public ContentContainer()
             {
                 RelativeSizeAxes = Axes.Both;
+            }
+        }
+
+        protected class ChildScreenContainer : Container
+        {
+            private readonly Screen parentScreen;
+
+            public ChildScreenContainer(Screen parentScreen)
+            {
+                this.parentScreen = parentScreen;
+            }
+
+            protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+                => base.CreateChildDependencies(parentScreen.Dependencies);
+
+            internal void AddScreen(Screen screen)
+            {
+                void finishLoad()
+                {
+                    if (parentScreen.hasExited || screen.hasExited)
+                        return;
+
+                    Add(screen);
+
+                    screen.enter(parentScreen);
+
+                    parentScreen.Content.Expire();
+                }
+
+                if (screen.LoadState >= LoadState.Ready)
+                    finishLoad();
+                else
+                    LoadComponentAsync(screen, _ => finishLoad());
             }
         }
 
