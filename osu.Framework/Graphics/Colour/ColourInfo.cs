@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Colour
     /// ColourInfo contains information about the colours of all 4 vertices of a quad.
     /// These colours are always stored in linear space.
     /// </summary>
-    public struct ColourInfo : IEquatable<ColourInfo>
+    public struct ColourInfo : IEquatable<ColourInfo>, IEquatable<SRGBColour>
     {
         public SRGBColour TopLeft;
         public SRGBColour BottomLeft;
