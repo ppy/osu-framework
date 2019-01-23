@@ -46,14 +46,8 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture loadRaw(TextureUpload upload)
         {
-            if (upload == null)
-                return null;
+            if (upload == null) return null;
 
-            if (upload.Width > GLWrapper.MaxTextureSize || upload.Height > GLWrapper.MaxTextureSize)
-            {
-                Logger.Log("Texture dimensions exceeds the maximum allowable by the device!", level: LogLevel.Error);
-                return null;
-            }
             var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
@@ -77,7 +71,16 @@ namespace osu.Framework.Graphics.Textures
             {
                 // refresh the texture if no longer available (may have been previously disposed).
                 if (!textureCache.TryGetValue(name, out var tex) || tex?.Available == false)
-                    textureCache[name] = tex = getTexture(name);
+                {
+                    try
+                    {
+                        textureCache[name] = tex = getTexture(name);
+                    }
+                    catch (TextureTooLargeForGL)
+                    {
+                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                    }
+                }
 
                 return tex;
             }
