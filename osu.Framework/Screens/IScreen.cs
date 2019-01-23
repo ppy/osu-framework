@@ -68,6 +68,9 @@ namespace osu.Framework.Screens
             var last = screens.Peek();
             var next = new ScreenDescriptor { Screen = newScreen };
 
+            if (next.ScreenDrawable.RemoveWhenNotAlive)
+                throw new Screen.ScreenWillBeRemovedOnPushException(newScreen.GetType());
+
             // Suspend the current screen
             last.Screen.OnSuspending(newScreen);
             last.ScreenDrawable.Expire();

@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -290,6 +291,15 @@ namespace osu.Framework.Screens
         {
             public ScreenAlreadyEnteredException()
                 : base("Cannot push a screen in an entered state.")
+            {
+            }
+        }
+
+        public class ScreenWillBeRemovedOnPushException : InvalidOperationException
+        {
+            public ScreenWillBeRemovedOnPushException(Type type)
+                : base($"The pushed ({type.ReadableName()}) has {nameof(RemoveWhenNotAlive)} = true and will be removed when a child screen is pushed. "
+                       + $"Screens must set {nameof(RemoveWhenNotAlive)} to false.")
             {
             }
         }
