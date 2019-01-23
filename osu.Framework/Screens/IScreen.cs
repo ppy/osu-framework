@@ -75,6 +75,8 @@ namespace osu.Framework.Screens
             last.Screen.OnSuspending(newScreen);
             last.ScreenDrawable.Expire();
 
+            next.ScreenDrawable.LifetimeEnd = double.MaxValue;
+
             // Push the new screen
             screens.Push(next);
             ScreenPushed?.Invoke(newScreen);
