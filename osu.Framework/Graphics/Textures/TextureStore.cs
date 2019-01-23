@@ -54,7 +54,6 @@ namespace osu.Framework.Graphics.Textures
                 Logger.Log("Texture dimensions exceeds the maximum allowable by the device!", level: LogLevel.Error);
                 return null;
             }
-            
             var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
