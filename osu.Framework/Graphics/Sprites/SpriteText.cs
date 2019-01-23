@@ -587,15 +587,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character to get the texture for.</param>
         /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetTextureForCharacter(char c) => getTextureForCharacter(c) ?? GetFallbackTextureForCharacter(c);
-
-        private Texture getTextureForCharacter(char c)
-        {
-            if (store == null)
-                return null;
-
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
-        }
+        protected virtual Texture GetTextureForCharacter(char c) => getTextureForCharacter(c);
 
         /// <summary>
         /// Gets a <see cref="Texture"/> that represents a character which doesn't exist in the current font.
@@ -622,6 +614,14 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             return true;
+        }
+
+        private Texture getTextureForCharacter(char c)
+        {
+            if (store == null)
+                return null;
+
+            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
         }
 
         public override string ToString()
