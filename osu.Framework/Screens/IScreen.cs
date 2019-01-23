@@ -130,7 +130,7 @@ namespace osu.Framework.Screens
             => source == screens.Peek().Screen;
 
         internal IScreen GetChildScreen(IScreen source)
-            => screens.TakeWhile(d => d.Screen != source).Skip(1).First().Screen;
+            => screens.TakeWhile(d => d.Screen != source).LastOrDefault()?.Screen;
 
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
