@@ -6,7 +6,6 @@ using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -124,7 +123,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class TestScreen : CompositeDrawable, IScreen
+        private class TestScreen : Screen
         {
             public static int Sequence;
             private Button popButton;
@@ -133,41 +132,9 @@ namespace osu.Framework.Tests.Visual
 
             public override bool RemoveWhenNotAlive => false;
 
-            public bool ValidForResume { get; set; } = true;
-
-            public bool ValidForPush { get; set; } = true;
-
             public TestScreen()
             {
                 RelativeSizeAxes = Axes.Both;
-            }
-
-            public void OnEntering(IScreen last)
-            {
-                if (last != null)
-                {
-                    //only show the pop button if we are entered form another screen.
-                    popButton.Alpha = 1;
-                }
-
-                this.MoveTo(new Vector2(0, -DrawSize.Y));
-                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
-            }
-
-            public bool OnExiting(IScreen next)
-            {
-                this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
-                return false;
-            }
-
-            public void OnSuspending(IScreen next)
-            {
-                this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
-            }
-
-            public void OnResuming(IScreen last)
-            {
-                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
             [BackgroundDependencyLoader]
@@ -223,6 +190,38 @@ namespace osu.Framework.Tests.Visual
                         }
                     }
                 };
+            }
+
+            public override void OnEntering(IScreen last)
+            {
+                base.OnEntering(last);
+
+                if (last != null)
+                {
+                    //only show the pop button if we are entered form another screen.
+                    popButton.Alpha = 1;
+                }
+
+                this.MoveTo(new Vector2(0, -DrawSize.Y));
+                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+            }
+
+            public override bool OnExiting(IScreen next)
+            {
+                this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
+                return base.OnExiting(next);
+            }
+
+            public override void OnSuspending(IScreen next)
+            {
+                base.OnSuspending(next);
+                this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
+            }
+
+            public override void OnResuming(IScreen last)
+            {
+                base.OnResuming(last);
+                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
         }
     }
