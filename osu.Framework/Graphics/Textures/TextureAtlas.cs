@@ -105,11 +105,11 @@ namespace osu.Framework.Graphics.Textures
 
         internal TextureGL Add(int width, int height)
         {
+            if (width > atlasWidth || height > atlasHeight)
+                throw new InvalidOperationException($"Size of allocation request ({width}x{height}) exceeds the maximum size of this {nameof(TextureAtlas)} ({atlasWidth}x{atlasHeight}).");
+
             lock (textureRetrievalLock)
             {
-                if (width > atlasWidth || height > atlasHeight)
-                    throw new InvalidOperationException($"Size of allocation request ({width}x{height}) exceeds the maximum size of this {nameof(TextureAtlas)} ({atlasWidth}x{atlasHeight}).");
-
                 if (AtlasTexture == null)
                     Reset();
 
