@@ -109,7 +109,7 @@ namespace osu.Framework.Screens
             if (next.LoadState >= LoadState.Ready)
                 continuation?.Invoke();
             else
-                last.LoadComponentAsync(next, _ => continuation?.Invoke());
+                last.LoadComponentAsync(next, _ => continuation?.Invoke(), scheduler: Scheduler);
         }
 
         internal void Exit(IScreen source)
