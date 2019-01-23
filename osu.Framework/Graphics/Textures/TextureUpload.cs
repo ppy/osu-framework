@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Textures
             this.image = image;
 
             if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
-                throw new TextureTooLargeForGL();
+                throw new TextureTooLargeForGLException();
         }
 
         /// <summary>

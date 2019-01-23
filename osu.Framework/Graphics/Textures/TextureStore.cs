@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Textures
                     {
                         textureCache[name] = tex = getTexture(name);
                     }
-                    catch (TextureTooLargeForGL)
+                    catch (TextureTooLargeForGLException)
                     {
                         Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
                     }
