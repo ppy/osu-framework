@@ -31,6 +31,8 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
 
+[osu!design](https://github.com/phosphene47/osu-design) — design-time UI creator for osu!framework
+
 <!--
 We love to see people using our framework! Add your project here via a PR!
 
