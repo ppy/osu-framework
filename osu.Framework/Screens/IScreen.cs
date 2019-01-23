@@ -101,8 +101,11 @@ namespace osu.Framework.Screens
 
         internal void Exit(IScreen source)
         {
-            if (source != screens.First().Screen)
+            if (screens.All(d => d.Screen != source))
                 throw new Screen.ScreenNotCurrentException(nameof(Exit));
+            
+            if (source != screens.First().Screen)
+                throw new Screen.ScreenHasChildException(nameof(Exit), $"Use {nameof(ScreenExtensions.MakeCurrent)} instead.");
 
             exitFrom(source);
         }
