@@ -594,7 +594,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetFallbackTextureForCharacter(char c) => getTextureForCharacter('?');
+        protected virtual Texture GetFallbackTextureForCharacter(char c) => getFallbackCharacter('?');
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
@@ -614,6 +614,11 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             return true;
+        }
+
+        private Texture getFallbackCharacter(char c)
+        {
+            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
         }
 
         private Texture getTextureForCharacter(char c)
