@@ -6,6 +6,7 @@ using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -19,13 +20,16 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseScreen : TestCase
     {
-        private Screen baseScreen;
+        private TestScreen baseScreen;
 
         [SetUp]
         public new void SetupTest() => Schedule(() =>
         {
             Clear();
-            Add(baseScreen = new TestScreen());
+            Add(new ScreenStack(baseScreen = new TestScreen())
+            {
+                RelativeSizeAxes = Axes.Both
+            });
         });
 
         [Test]
@@ -40,15 +44,12 @@ namespace osu.Framework.Tests.Visual
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
 
-            AddAssert("ensure child", () => screen1.ChildScreen != null);
+            AddAssert("ensure child", () => screen1.GetChildScreen() != null);
 
             AddStep("pop", () => screen2.Exit());
 
-            AddAssert("ensure child gone", () => screen1.ChildScreen == null);
-            AddAssert("ensure not current", () => !screen2.IsCurrentScreen);
-
-            // can't push an exited screen
-            AddStep("bad push", () => Assert.Throws(typeof(Screen.ScreenAlreadyExitedException), () => screen1.Push(screen2)));
+            AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());
         }
@@ -66,11 +67,11 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("make current", () => screen1.MakeCurrent());
 
-            AddAssert("ensure child gone", () => screen1.ChildScreen == null);
-            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+            AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure current", () => screen1.IsCurrentScreen());
 
-            AddAssert("ensure not current", () => !screen2.IsCurrentScreen);
-            AddAssert("ensure not current", () => !screen3.IsCurrentScreen);
+            AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
+            AddAssert("ensure not current", () => !screen3.IsCurrentScreen());
         }
 
         [Test]
@@ -79,9 +80,9 @@ namespace osu.Framework.Tests.Visual
             TestScreen screen1 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddAssert("ensure not current", () => !screen1.IsCurrentScreen);
+            AddAssert("ensure current", () => !screen1.IsCurrentScreen());
             AddWaitStep(1);
-            AddUntilStep(() => screen1.IsCurrentScreen, "ensure current");
+            AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
         }
 
         [Test]
@@ -100,19 +101,18 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
-            AddAssert("ensure not current", () => !screen1.IsCurrentScreen);
             AddWaitStep(5);
-            AddAssert("ensure not current", () => !screen1.IsCurrentScreen);
-            AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen);
+            AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
+            AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
-            AddUntilStep(() => screen2.IsCurrentScreen, "ensure new current");
+            AddUntilStep(() => screen2.IsCurrentScreen(), "ensure new current");
         }
 
-        private void pushAndEnsureCurrent(Func<Screen> screenCtor, Func<Screen> target = null)
+        private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
         {
-            Screen screen = null;
+            IScreen screen = null;
             AddStep("push", () => (target?.Invoke() ?? baseScreen).Push(screen = screenCtor()));
-            AddUntilStep(() => screen.IsCurrentScreen, "ensure current");
+            AddUntilStep(() => screen.IsCurrentScreen(), "ensure current");
         }
 
         private class TestScreenSlow : TestScreen
@@ -124,14 +124,25 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class TestScreen : Screen
+        private class TestScreen : CompositeDrawable, IScreen
         {
             public static int Sequence;
             private Button popButton;
 
             private const int transition_time = 500;
 
-            protected override void OnEntering(Screen last)
+            public override bool RemoveWhenNotAlive => false;
+
+            public bool ValidForResume { get; set; } = true;
+
+            public bool ValidForPush { get; set; } = true;
+
+            public TestScreen()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            public void OnEntering(IScreen last)
             {
                 if (last != null)
                 {
@@ -139,30 +150,30 @@ namespace osu.Framework.Tests.Visual
                     popButton.Alpha = 1;
                 }
 
-                Content.MoveTo(new Vector2(0, -DrawSize.Y));
-                Content.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+                this.MoveTo(new Vector2(0, -DrawSize.Y));
+                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
-            protected override bool OnExiting(Screen next)
+            public bool OnExiting(IScreen next)
             {
-                Content.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
-                return base.OnExiting(next);
+                this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
+                return false;
             }
 
-            protected override void OnSuspending(Screen next)
+            public void OnSuspending(IScreen next)
             {
-                Content.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
+                this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
-            protected override void OnResuming(Screen last)
+            public void OnResuming(IScreen last)
             {
-                Content.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+                this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                Children = new Drawable[]
+                InternalChildren = new Drawable[]
                 {
                     new Box
                     {
@@ -192,7 +203,7 @@ namespace osu.Framework.Tests.Visual
                         Origin = Anchor.TopLeft,
                         BackgroundColour = Color4.Red,
                         Alpha = 0,
-                        Action = Exit
+                        Action = this.Exit
                     },
                     new Button
                     {
@@ -204,7 +215,7 @@ namespace osu.Framework.Tests.Visual
                         BackgroundColour = Color4.YellowGreen,
                         Action = delegate
                         {
-                            Push(new TestScreen
+                            this.Push(new TestScreen
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
