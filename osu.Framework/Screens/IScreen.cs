@@ -11,7 +11,15 @@ namespace osu.Framework.Screens
 {
     public interface IScreen : IDrawable
     {
+        /// <summary>
+        /// Whether this <see cref="IScreen"/> can be resumed.
+        /// </summary>
         bool ValidForResume { get; set; }
+
+        /// <summary>
+        /// Whether this <see cref="IScreen"/> can be pushed.
+        /// </summary>
+        bool ValidForPush { get; set; }
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -83,8 +91,11 @@ namespace osu.Framework.Screens
 
             void finishLoad()
             {
-                if (!screens.Contains(last) || !screens.Contains(next))
+                if (!next.Screen.ValidForPush)
+                {
+                    Exit(next.Screen);
                     return;
+                }
 
                 AddInternal(next.ScreenDrawable);
                 next.Screen.OnEntering(last.Screen);
@@ -105,7 +116,7 @@ namespace osu.Framework.Screens
         {
             if (screens.All(d => d.Screen != source))
                 throw new Screen.ScreenNotCurrentException(nameof(Exit));
-            
+
             if (source != screens.First().Screen)
                 throw new Screen.ScreenHasChildException(nameof(Exit), $"Use {nameof(ScreenExtensions.MakeCurrent)} instead.");
 
@@ -191,30 +202,46 @@ namespace osu.Framework.Screens
             => runOnRoot(screen, stack => stack.Push(screen, newScreen));
 
         public static void Exit(this IScreen screen)
-            => runOnRoot(screen, stack => stack.Exit(screen));
+            => runOnRoot(screen, stack => stack.Exit(screen), () => screen.ValidForPush = false);
 
         public static void MakeCurrent(this IScreen screen)
             => runOnRoot(screen, stack => stack.MakeCurrent(screen));
 
         public static bool IsCurrentScreen(this IScreen screen)
-            => runOnRoot(screen, stack => stack.IsCurrentScreen(screen));
+            => runOnRoot(screen, stack => stack.IsCurrentScreen(screen), () => false);
 
         internal static IScreen GetChildScreen(this IScreen screen)
-            => runOnRoot(screen, stack => stack.GetChildScreen(screen));
+            => runOnRoot(screen, stack => stack.GetChildScreen(screen), () => null);
 
-        private static void runOnRoot(IDrawable current, Action<ScreenStack> action)
+        private static void runOnRoot(IDrawable current, Action<ScreenStack> onRoot, Action onFail = null)
         {
-            if (current is ScreenStack stack)
-                action(stack);
-            else
-                runOnRoot(current.Parent, action);
+            switch (current)
+            {
+                case null:
+                    onFail?.Invoke();
+                    return;
+                case ScreenStack stack:
+                    onRoot(stack);
+                    break;
+                default:
+                    runOnRoot(current.Parent, onRoot, onFail);
+                    break;
+            }
         }
 
-        private static T runOnRoot<T>(IDrawable current, Func<ScreenStack, T> action)
+        private static T runOnRoot<T>(IDrawable current, Func<ScreenStack, T> onRoot, Func<T> onFail = null)
         {
-            if (current is ScreenStack stack)
-                return action(stack);
-            return runOnRoot(current.Parent, action);
+            switch (current)
+            {
+                case null:
+                    if (onFail != null)
+                        return onFail.Invoke();
+                    return default;
+                case ScreenStack stack:
+                    return onRoot(stack);
+                default:
+                    return runOnRoot(current.Parent, onRoot, onFail);
+            }
         }
     }
 }
