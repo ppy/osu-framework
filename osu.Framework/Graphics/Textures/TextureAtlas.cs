@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Textures
             lock (textureRetrievalLock)
             {
                 if (width > atlasWidth || height > atlasHeight)
-                    throw new InvalidOperationException($"Size of texture to be loaded exceeds the size of the texture atlas: {width}x{height}px.");
+                    throw new InvalidOperationException($"Size of allocation request ({width}x{height}) exceeds the maximum size of this {nameof(TextureAtlas)} ({atlasWidth}x{atlasHeight}).");
 
                 if (AtlasTexture == null)
                     Reset();
