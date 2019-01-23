@@ -6,6 +6,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
@@ -45,7 +46,15 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture loadRaw(TextureUpload upload)
         {
-            if (upload == null || upload.Width > GLWrapper.MaxTextureSize || upload.Height > GLWrapper.MaxTextureSize) return null;
+            if (upload == null)
+                return null;
+
+            if (upload.Width > GLWrapper.MaxTextureSize || upload.Height > GLWrapper.MaxTextureSize)
+            {
+                Logger.Log("Texture dimensions exceeds the maximum allowable by the device!", level: LogLevel.Error);
+                return null;
+            }
+            
             var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
