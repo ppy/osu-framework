@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
@@ -51,6 +52,9 @@ namespace osu.Framework.Graphics.Textures
         public TextureUpload(Image<Rgba32> image)
         {
             this.image = image;
+
+            if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
+                throw new TextureTooLargeForGLException();
         }
 
         /// <summary>
