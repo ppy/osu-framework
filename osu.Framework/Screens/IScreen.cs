@@ -210,7 +210,7 @@ namespace osu.Framework.Screens
         public static bool IsCurrentScreen(this IScreen screen)
             => runOnRoot(screen, stack => stack.IsCurrentScreen(screen), () => false);
 
-        internal static IScreen GetChildScreen(this IScreen screen)
+        public static IScreen GetChildScreen(this IScreen screen)
             => runOnRoot(screen, stack => stack.GetChildScreen(screen), () => null);
 
         private static void runOnRoot(IDrawable current, Action<ScreenStack> onRoot, Action onFail = null)
