@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
@@ -110,9 +108,7 @@ namespace osu.Framework.Graphics.Textures
             lock (textureRetrievalLock)
             {
                 if (width > atlasWidth || height > atlasHeight)
-                {
                     throw new InvalidOperationException($"Size of texture to be loaded exceeds the size of the texture atlas: {width}x{height}px.");
-                }
 
                 if (AtlasTexture == null)
                     Reset();
