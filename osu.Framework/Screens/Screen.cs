@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
 
@@ -12,6 +13,9 @@ namespace osu.Framework.Screens
         public bool ValidForResume { get; set; } = true;
 
         public bool ValidForPush { get; set; } = true;
+        
+        [Resolved]
+        protected Game Game { get; private set; }
 
         public virtual void OnEntering(IScreen last)
         {
