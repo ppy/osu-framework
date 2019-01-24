@@ -18,7 +18,7 @@
     <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
-    <copyright>Copyright (c) ppy Pty Ltd contact@ppy.sh</copyright>
+    <copyright>Copyright (c) 2019 ppy Pty Ltd</copyright>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <PropertyGroup Label="Sourcelink3" Condition=" '$(EnableSourceLink)' == 'true' ">
