@@ -157,7 +157,7 @@ namespace osu.Framework.Screens
             if (!screens.Contains(source))
                 return;
 
-            foreach (var child in screens)
+            foreach (var child in screens.Skip(1))
             {
                 if (child == source)
                     break;
