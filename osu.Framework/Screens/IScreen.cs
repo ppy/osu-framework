@@ -194,6 +194,9 @@ namespace osu.Framework.Screens
         /// <param name="source">The <see cref="IScreen"/> which exited. May or may not be the current screen in the stack.</param>
         private void resume(IScreen source)
         {
+            if (CurrentScreen == null)
+                return;
+
             if (CurrentScreen.ValidForResume)
             {
                 CurrentScreen.OnResuming(source);
