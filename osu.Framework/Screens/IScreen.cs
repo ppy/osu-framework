@@ -54,9 +54,9 @@ namespace osu.Framework.Screens
         public event ScreenChangedDelegate ScreenPushed;
         public event ScreenChangedDelegate ScreenExited;
 
-        public IScreen CurrentScreen => screens.FirstOrDefault();
+        public IScreen CurrentScreen => stack.FirstOrDefault();
 
-        private readonly Stack<IScreen> screens = new Stack<IScreen>();
+        private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
         public ScreenStack()
         {
@@ -86,7 +86,7 @@ namespace osu.Framework.Screens
 
         internal void Push(IScreen source, IScreen newScreen)
         {
-            if (screens.Contains(newScreen))
+            if (stack.Contains(newScreen))
                 throw new Screen.ScreenAlreadyEnteredException();
 
             if (newScreen.AsDrawable().RemoveWhenNotAlive)
@@ -95,7 +95,7 @@ namespace osu.Framework.Screens
             // Suspend the current screen, if there is one
             if (source != null)
             {
-                if (source != screens.Peek())
+                if (source != stack.Peek())
                     throw new Screen.ScreenNotCurrentException(nameof(Push));
 
                 source.OnSuspending(newScreen);
@@ -106,7 +106,7 @@ namespace osu.Framework.Screens
             newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
 
             // Push the new screen
-            screens.Push(newScreen);
+            stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
             void finishLoad()
@@ -139,7 +139,7 @@ namespace osu.Framework.Screens
 
         internal void Exit(IScreen source)
         {
-            if (!screens.Contains(source))
+            if (!stack.Contains(source))
                 throw new Screen.ScreenNotCurrentException(nameof(Exit));
 
             if (CurrentScreen != source)
@@ -154,10 +154,10 @@ namespace osu.Framework.Screens
                 return;
 
             // Todo: This should throw an exception instead?
-            if (!screens.Contains(source))
+            if (!stack.Contains(source))
                 return;
 
-            foreach (var child in screens.Skip(1))
+            foreach (var child in stack.Skip(1))
             {
                 if (child == source)
                     break;
@@ -170,7 +170,7 @@ namespace osu.Framework.Screens
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
 
         internal IScreen GetChildScreen(IScreen source)
-            => screens.TakeWhile(s => s != source).LastOrDefault();
+            => stack.TakeWhile(s => s != source).LastOrDefault();
 
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
@@ -179,11 +179,11 @@ namespace osu.Framework.Screens
         private void exitFrom(IScreen source)
         {
             // We're guaranteed that the top of the stack is the source
-            screens.Pop();
+            stack.Pop();
 
             if (source.OnExiting(CurrentScreen))
             {
-                screens.Push(source);
+                stack.Push(source);
                 return;
             }
 
