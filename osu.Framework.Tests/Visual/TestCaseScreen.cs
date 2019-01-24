@@ -130,13 +130,6 @@ namespace osu.Framework.Tests.Visual
 
             private const int transition_time = 500;
 
-            public override bool RemoveWhenNotAlive => false;
-
-            public TestScreen()
-            {
-                RelativeSizeAxes = Axes.Both;
-            }
-
             [BackgroundDependencyLoader]
             private void load()
             {

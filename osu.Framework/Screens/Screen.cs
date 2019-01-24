@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Screens
@@ -13,9 +14,16 @@ namespace osu.Framework.Screens
         public bool ValidForResume { get; set; } = true;
 
         public bool ValidForPush { get; set; } = true;
-        
+
+        public override bool RemoveWhenNotAlive => false;
+
         [Resolved]
         protected Game Game { get; private set; }
+
+        public Screen()
+        {
+            RelativeSizeAxes = Axes.Both;
+        }
 
         public virtual void OnEntering(IScreen last)
         {
