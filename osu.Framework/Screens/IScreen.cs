@@ -76,6 +76,14 @@ namespace osu.Framework.Screens
             Push(null, screen);
         }
 
+        /// <summary>
+        /// Exits from the current <see cref="IScreen"/>.
+        /// </summary>
+        public void Exit()
+        {
+            Exit(CurrentScreen);
+        }
+
         internal void Push(IScreen source, IScreen newScreen)
         {
             if (screens.Contains(newScreen))
