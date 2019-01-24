@@ -68,13 +68,29 @@ namespace osu.Framework.Graphics.Containers
             }
             else if (entry.State == LifetimeState.Current)
             {
-                if (MakeChildDead(child))
-                    return true;
+                bool removed = MakeChildDead(child);
+                Trace.Assert(!removed, $"{nameof(RemoveWhenNotAlive)} is not supported for children of {nameof(LifetimeManagementContainer)}");
                 aliveChildrenChanged = true;
             }
-            else if (entry.State != LifetimeState.New)
+
+            switch (entry.State)
             {
-                OnChildLifetimeSkipped(child, entry.State == LifetimeState.Future ? SkipDirection.Forward : SkipDirection.Backward);
+                case LifetimeState.Future:
+                    OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward);
+                    if (newState == LifetimeState.Past)
+                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward);
+                    break;
+                case LifetimeState.Current:
+                    if (newState == LifetimeState.Past)
+                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward);
+                    else
+                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
+                    break;
+                case LifetimeState.Past:
+                    OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward);
+                    if (newState == LifetimeState.Future)
+                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
+                    break;
             }
 
             entry.State = newState;
@@ -221,12 +237,12 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Invoked when the clock is skipped child lifetime interval completely.
-        /// For example, when child lifetime is [1,2) and clock is skipped from 0 to 3, it is a <see cref="SkipDirection.Forward"/> skip.
+        /// Invoked when the clock is crossed child's lifetime boundary i.e. <see cref="Drawable.LifetimeStart"/> or <see cref="Drawable.LifetimeEnd"/>.
         /// </summary>
-        /// <param name="child">The skipped child.</param>
-        /// <param name="skipDirection">The direction of the skip.</param>
-        protected virtual void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
+        /// <param name="child">The child.</param>
+        /// <param name="kind">Which lifetime boundary is crossed.</param>
+        /// <param name="direction">The direction of the crossing.</param>
+        protected virtual void OnChildLifetimeBoundaryCrossed(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
         {
         }
 
@@ -290,30 +306,46 @@ namespace osu.Framework.Graphics.Containers
             /// Not yet loaded.
             New,
 
-            /// Currently dead and becomes alive in the future (with respect to <see cref="Drawable.Clock"/>).
+            /// Currently dead and becomes alive in the future: current time &lt; <see cref="Drawable.LifetimeStart"/>.
             Future,
-
-            /// Currently dead and becomes alive if the clock is rewound.
-            Past,
 
             /// Currently alive.
             Current,
+
+            /// Currently dead and becomes alive if the clock is rewound: <see cref="Drawable.LifetimeEnd"/> &lt;= current time.
+            Past,
         }
+    }
+
+    /// <summary>
+    /// Represents a direction of lifetime boundary crossing.
+    /// </summary>
+    public enum LifetimeBoundaryCrossingDirection
+    {
+        /// <summary>
+        /// A crossing from past to future.
+        /// </summary>
+        Forward,
 
         /// <summary>
-        /// Represents a direction of skip.
+        /// A crossing from future to past.
         /// </summary>
-        public enum SkipDirection
-        {
-            /// <summary>
-            /// A skip from past to future.
-            /// </summary>
-            Forward,
+        Backward,
+    }
 
-            /// <summary>
-            /// A skip from future to past.
-            /// </summary>
-            Backward,
-        }
+    /// <summary>
+    /// Represents one of boudaries of lifetime interval.
+    /// </summary>
+    public enum LifetimeBoundaryKind
+    {
+        /// <summary>
+        /// <see cref="Drawable.LifetimeStart"/>.
+        /// </summary>
+        Start,
+
+        /// <summary>
+        /// <see cref="Drawable.LifetimeEnd"/>.
+        /// </summary>
+        End,
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +15,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseLifetimeManagementContainer : TestCase
     {
         private ManualClock manualClock;
-        private LifetimeManagementContainer container;
+        private TestContainer container;
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -113,7 +115,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
-        public void Skip()
+        public void BoundaryCrossing()
         {
             TestChild a = null, b = null, c = null;
             AddStep("Add children", () =>
@@ -123,23 +125,36 @@ namespace osu.Framework.Tests.Visual
                 container.AddInternal(c = new TestChild(1, 2));
             });
             skipTo(2);
-            AddAssert("Check skipped", () =>
-                a.Skipped == null &&
-                b.Skipped == null &&
-                c.Skipped == LifetimeManagementContainer.SkipDirection.Forward);
+            AddStep("Check crossings", () =>
+            {
+                a.CheckCrossings();
+                b.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
+                c.CheckCrossings(
+                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward),
+                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
+            });
             skipTo(1);
+            AddStep("Check crossings", () =>
+            {
+                a.CheckCrossings();
+                b.CheckCrossings();
+                c.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
+            });
             skipTo(-1);
-            AddAssert("Check skipped", () =>
-                a.Skipped == null &&
-                b.Skipped == LifetimeManagementContainer.SkipDirection.Backward &&
-                c.Skipped == null);
+            AddStep("Check crossings", () =>
+            {
+                a.CheckCrossings(
+                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
+                b.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward),
+                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
+                c.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
+            });
         }
 
         public class TestChild : SpriteText
         {
             public override bool RemoveWhenNotAlive => false;
-
-            public LifetimeManagementContainer.SkipDirection? Skipped;
+            public List<LifetimeBoundaryCrossing> Crossings = new List<LifetimeBoundaryCrossing>();
 
             public TestChild(double lifetimeStart, double lifetimeEnd)
             {
@@ -151,19 +166,35 @@ namespace osu.Framework.Tests.Visual
             protected override void Update()
             {
                 Y = ChildID * TextSize;
-                Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd}";
-                Skipped = null;
+                Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd} [{string.Join(", ", Crossings.Select(x => x.ToString()))}]";
             }
+
+            public void CheckCrossings(params LifetimeBoundaryCrossing[] expected)
+            {
+                Assert.AreEqual(expected, Crossings, $"{nameof(CheckCrossings)} for child {ChildID}");
+                Crossings.Clear();
+            }
+        }
+
+        public struct LifetimeBoundaryCrossing
+        {
+            public readonly LifetimeBoundaryKind Kind;
+            public readonly LifetimeBoundaryCrossingDirection Direction;
+
+            public LifetimeBoundaryCrossing(LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
+            {
+                Kind = kind;
+                Direction = direction;
+            }
+
+            public override string ToString() => $"({Kind}, {Direction})";
         }
 
         public class TestContainer : LifetimeManagementContainer
         {
-            protected override void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
+            protected override void OnChildLifetimeBoundaryCrossed(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
             {
-                if (child is TestChild c)
-                {
-                    c.Skipped = skipDirection;
-                }
+                ((TestChild)child).Crossings.Add(new LifetimeBoundaryCrossing(kind, direction));
             }
         }
     }
