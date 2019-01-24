@@ -73,7 +73,17 @@ namespace osu.Framework.Graphics.Containers
                 aliveChildrenChanged = true;
             }
 
-            switch (entry.State)
+            checkBoundaryCrossings(child, entry.State, newState);
+
+            entry.State = newState;
+            futureOrPastChildren(newState)?.Add(entry);
+
+            return aliveChildrenChanged;
+        }
+
+        private void checkBoundaryCrossings(Drawable child, LifetimeState prevState, LifetimeState newState)
+        {
+            switch (prevState)
             {
                 case LifetimeState.Future:
                     OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward);
@@ -92,11 +102,6 @@ namespace osu.Framework.Graphics.Containers
                         OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
                     break;
             }
-
-            entry.State = newState;
-            futureOrPastChildren(newState)?.Add(entry);
-
-            return aliveChildrenChanged;
         }
 
         protected override bool CheckChildrenLife()
