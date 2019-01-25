@@ -42,10 +42,12 @@ namespace osu.Framework.Graphics.Shapes
                 {
                     float offset = GLWrapper.CurrentMaskingInfo.CornerRadius / 3f;
 
-                    var baseSkeleton = (ScreenSpaceDrawQuad * DrawInfo.MatrixInverse).AABBFloat;
-                    baseSkeleton = baseSkeleton.Shrink(offset);
+                    skeleton = skeleton.ClampTo(GLWrapper.CurrentMaskingInfo.ScreenSpaceQuad);
 
-                    skeleton = Quad.FromRectangle(baseSkeleton) * DrawInfo.Matrix;
+                    var skeletonRect = (skeleton * DrawInfo.MatrixInverse).AABBFloat.Shrink(offset);
+                    skeletonRect = skeletonRect.Shrink(offset);
+
+                    skeleton = Quad.FromRectangle(skeletonRect) * DrawInfo.Matrix;
                 }
 
                 Shader shader = TextureShader;

@@ -872,6 +872,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
                     MaskingRect = DrawRectangle,
+                    ScreenSpaceQuad = ScreenSpaceDrawQuad,
                     ToMaskingSpace = DrawInfo.MatrixInverse,
                     CornerRadius = CornerRadius,
                     BorderThickness = BorderThickness,

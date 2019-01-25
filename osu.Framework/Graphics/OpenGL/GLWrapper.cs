@@ -669,6 +669,8 @@ namespace osu.Framework.Graphics.OpenGL
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
 
+        public Quad ScreenSpaceQuad;
+
         /// <summary>
         /// This matrix transforms screen space coordinates to masking space (likely the parent
         /// space of the container doing the masking).
