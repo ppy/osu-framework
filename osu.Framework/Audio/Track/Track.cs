@@ -21,9 +21,9 @@ namespace osu.Framework.Audio.Track
         public bool Looping { get; set; }
 
         /// <summary>
-        /// Where should the track restart from when it loops?
+        /// Where should the track restart from?
         /// </summary>
-        public double RestartFrom { get; set; }
+        public double RestartPoint { get; set; }
 
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
@@ -35,7 +35,9 @@ namespace osu.Framework.Audio.Track
             Tempo.ValueChanged += InvalidateState;
         }
 
-        /// <inheritdoc cref="IAdjustableClock.Reset"/>
+        /// <summary>
+        /// Reset this track to a logical default state.
+        /// </summary>
         public virtual void Reset()
         {
             Volume.Value = 1;
@@ -47,13 +49,12 @@ namespace osu.Framework.Audio.Track
         }
 
         /// <summary>
-        /// Restarts this track from the chosen point while retaining adjustments.
+        /// Restarts this track from the <see cref="RestartPoint"/> while retaining adjustments.
         /// </summary>
-        /// <param name="seek">Restart position in milliseconds</param>
-        public virtual void Restart(double seek = 0)
+        public virtual void Restart()
         {
             Stop();
-            Seek(seek);
+            Seek(RestartPoint);
             Start();
         }
 
@@ -86,7 +87,11 @@ namespace osu.Framework.Audio.Track
 
         public virtual int? Bitrate => null;
 
-        /// <inheritdoc cref="IAdjustableClock.Seek"/>
+        /// <summary>
+        /// Seek to a new position.
+        /// </summary>
+        /// <param name="seek">New position in milliseconds</param>
+        /// <returns>Whether the seek was successful.</returns>
         public abstract bool Seek(double seek);
 
         public virtual void Start()
@@ -126,7 +131,7 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
             if (Looping && HasCompleted)
-                Restart(RestartFrom);
+                Restart();
 
             base.UpdateState();
         }

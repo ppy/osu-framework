@@ -9,7 +9,7 @@ namespace osu.Framework.Timing
     public interface IAdjustableClock : IClock
     {
         /// <summary>
-        /// Stop and reset to a logical default state.
+        /// Stop and reset position.
         /// </summary>
         void Reset();
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// Seek to a specific time position.
         /// </summary>
-        /// <returns>Whether the seek was successful.</returns>
+        /// <returns>Whether a seek was possible.</returns>
         bool Seek(double position);
 
         /// <summary>
