@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
                     this.proxyDrawable = proxyDrawable;
                 }
 
-                public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+                public override void Draw(Action<TexturedVertex2D> vertexAction)
                 {
                     var target = proxyDrawable.originalDrawNodes[DrawNodeIndex];
                     if (target == null)
@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics
                     if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
                         return;
 
-                    target.Draw(pass, vertexAction, ref vertexDepth);
+                    target.Draw(vertexAction);
                 }
             }
         }

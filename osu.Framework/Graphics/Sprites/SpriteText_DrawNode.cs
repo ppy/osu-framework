@@ -28,9 +28,9 @@ namespace osu.Framework.Graphics.Sprites
 
             private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
-            public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+            public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
-                base.Draw(pass, vertexAction, ref vertexDepth);
+                base.Draw(vertexAction);
 
                 Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
 
@@ -62,8 +62,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 shader.Unbind();
             }
-
-            protected internal override bool SupportsFrontRenderPass => false;
         }
 
         internal class SpriteTextDrawNodeSharedData

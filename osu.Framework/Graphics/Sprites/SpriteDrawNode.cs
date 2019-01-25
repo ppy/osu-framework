@@ -28,23 +28,15 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
-        protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
+        protected virtual void Blit(Quad drawQuad, Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(ScreenSpaceDrawQuad, Depth, DrawColourInfo.Colour, null, vertexAction,
+            Texture.DrawQuad(drawQuad, Depth, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
-        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+        public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            base.Draw(pass, vertexAction, ref vertexDepth);
-
-            if (pass == RenderPass.Front)
-                vertexDepth -= 0.0005f;
-
-            if (vertexDepth < 0)
-            {
-
-            }
+            base.Draw(vertexAction);
 
             if (Texture?.Available != true)
                 return;
@@ -55,11 +47,9 @@ namespace osu.Framework.Graphics.Sprites
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
-            Blit(vertexAction);
+            Blit(ScreenSpaceDrawQuad, vertexAction);
 
             shader.Unbind();
         }
-
-        protected internal override bool SupportsFrontRenderPass => false;
     }
 }

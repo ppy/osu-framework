@@ -367,13 +367,13 @@ namespace osu.Framework.Platform
                     // Front pass
                     float depth = 1;
                     GL.DepthFunc(DepthFunction.Greater);
-                    buffer.Object.Draw(RenderPass.Front, null, ref depth);
+                    buffer.Object.DrawHull(null, ref depth);
                     GLWrapper.FlushCurrentBatch();
 
                     // Back pass
                     GL.DepthMask(false);
                     GL.DepthFunc(DepthFunction.Gequal);
-                    buffer.Object.Draw(RenderPass.Back, null, ref depth);
+                    buffer.Object.Draw(null);
                     GLWrapper.FlushCurrentBatch();
 
                     lastDrawFrameId = buffer.FrameId;

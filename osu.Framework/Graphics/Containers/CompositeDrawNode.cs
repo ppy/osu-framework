@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
                 Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
-        public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+        public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             updateVertexBatch();
 
@@ -200,10 +200,9 @@ namespace osu.Framework.Graphics.Containers
             if (Shared.VertexBatch != null)
                 vertexAction = Shared.VertexBatch.AddAction;
 
-            base.Draw(pass, vertexAction, ref vertexDepth);
+            base.Draw(vertexAction);
 
-            if (pass == RenderPass.Back)
-                drawEdgeEffect();
+            drawEdgeEffect();
 
             if (MaskingInfo != null)
             {
@@ -215,34 +214,18 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (Children != null)
-            {
-                switch (pass)
-                {
-                    default:
-                    case RenderPass.Back:
-                        for (int i = 0; i < Children.Count; i++)
-                        {
-                            if (Children[i] is CompositeDrawNode || !Children[i].SupportsFrontRenderPass)
-                                Children[i].Draw(pass, vertexAction, ref vertexDepth);
-                            vertexDepth = Children[i].Depth;
-                        }
-
-                        break;
-                    case RenderPass.Front:
-                        for (int i = Children.Count - 1; i >= 0; i--)
-                        {
-                            if (Children[i].SupportsFrontRenderPass)
-                                Children[i].Draw(pass, vertexAction, ref vertexDepth);
-                            else
-                                Children[i].Depth = vertexDepth;
-                        }
-
-                        break;
-                }
-            }
+                for (int i = 0; i < Children.Count; i++)
+                    Children[i].Draw(vertexAction);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();
+        }
+
+        public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+        {
+            if (Children != null)
+                for (int i = Children.Count - 1; i >= 0; i--)
+                    Children[i].DrawHull(vertexAction, ref vertexDepth);
         }
     }
 }

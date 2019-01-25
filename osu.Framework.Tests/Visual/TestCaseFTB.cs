@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
@@ -14,7 +13,7 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseFTB()
         {
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 50; i++)
             {
                 Add(new TestBox { RelativeSizeAxes = Axes.Both });
             }
@@ -24,14 +23,12 @@ namespace osu.Framework.Tests.Visual
         {
             protected override DrawNode CreateDrawNode() => new TestBoxDrawNode();
 
-            private class TestBoxDrawNode : SpriteDrawNode
+            private class TestBoxDrawNode : BoxDrawNode
             {
-                public override void Draw(RenderPass pass, Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+                public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
                 {
-                    base.Draw(pass, vertexAction, ref vertexDepth);
+                    base.DrawHull(vertexAction, ref vertexDepth);
                 }
-
-                protected internal override bool SupportsFrontRenderPass => true;
             }
         }
     }
