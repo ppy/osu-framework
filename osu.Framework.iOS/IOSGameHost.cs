@@ -30,6 +30,8 @@ namespace osu.Framework.iOS
             // we shouldn't exit on iOS, as Window.Run does not block
         }
 
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
