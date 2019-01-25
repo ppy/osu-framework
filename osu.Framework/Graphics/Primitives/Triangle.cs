@@ -43,6 +43,17 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
+        public Triangle ClampTo(Quad quad)
+        {
+            var theirMin = Vector2.ComponentMin(quad.TopLeft, Vector2.ComponentMin(quad.TopRight, Vector2.ComponentMin(quad.BottomLeft, quad.BottomRight)));
+            var theirMax = Vector2.ComponentMax(quad.TopLeft, Vector2.ComponentMax(quad.TopRight, Vector2.ComponentMax(quad.BottomLeft, quad.BottomRight)));
+
+            return new Triangle(
+                Vector2.Clamp(P0, theirMin, theirMax),
+                Vector2.Clamp(P1, theirMin, theirMax),
+                Vector2.Clamp(P2, theirMin, theirMax));
+        }
+
         public RectangleF AABBFloat
         {
             get

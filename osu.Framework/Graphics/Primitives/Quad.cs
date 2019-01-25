@@ -113,10 +113,10 @@ namespace osu.Framework.Graphics.Primitives
                 new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
         }
 
-        public Quad ClampTo(Quad other)
+        public Quad ClampTo(Quad quad)
         {
-            var theirMin = Vector2.ComponentMin(other.TopLeft, Vector2.ComponentMin(other.TopRight, Vector2.ComponentMin(other.BottomLeft, other.BottomRight)));
-            var theirMax = Vector2.ComponentMax(other.TopLeft, Vector2.ComponentMax(other.TopRight, Vector2.ComponentMax(other.BottomLeft, other.BottomRight)));
+            var theirMin = Vector2.ComponentMin(quad.TopLeft, Vector2.ComponentMin(quad.TopRight, Vector2.ComponentMin(quad.BottomLeft, quad.BottomRight)));
+            var theirMax = Vector2.ComponentMax(quad.TopLeft, Vector2.ComponentMax(quad.TopRight, Vector2.ComponentMax(quad.BottomLeft, quad.BottomRight)));
 
             return new Quad(
                 Vector2.Clamp(TopLeft, theirMin, theirMax),
