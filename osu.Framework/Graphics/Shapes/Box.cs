@@ -4,6 +4,8 @@
 using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
@@ -28,20 +30,35 @@ namespace osu.Framework.Graphics.Shapes
             {
                 base.DrawHull(vertexAction, ref vertexDepth);
 
-                if (GLWrapper.IsMaskingActive || DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd)
+                if (Texture?.Available != true)
                     return;
 
-                base.Draw(vertexAction);
+                if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd)
+                    return;
+
+                // Todo: This can probably be optimised
+                var skeleton = ScreenSpaceDrawQuad;
+                if (GLWrapper.IsMaskingActive)
+                {
+                    float offset = GLWrapper.CurrentMaskingInfo.CornerRadius / 3f;
+
+                    var baseSkeleton = (ScreenSpaceDrawQuad * DrawInfo.MatrixInverse).AABBFloat;
+                    baseSkeleton = baseSkeleton.Shrink(offset);
+
+                    skeleton = Quad.FromRectangle(baseSkeleton) * DrawInfo.Matrix;
+                }
+
+                Shader shader = TextureShader;
+
+                shader.Bind();
+
+                Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+
+                Blit(skeleton, vertexAction);
+
+                shader.Unbind();
 
                 vertexDepth -= 0.0001f;
-            }
-
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
-            {
-                if (!GLWrapper.IsMaskingActive && DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd)
-                    return;
-
-                base.Draw(vertexAction);
             }
         }
     }

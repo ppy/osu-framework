@@ -223,9 +223,23 @@ namespace osu.Framework.Graphics.Containers
 
         public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
         {
+            updateVertexBatch();
+
+            // Prefer to use own vertex batch instead of the parent-owned one.
+            if (Shared.VertexBatch != null)
+                vertexAction = Shared.VertexBatch.AddAction;
+
+            base.DrawHull(vertexAction, ref vertexDepth);
+
+            if (MaskingInfo != null)
+                GLWrapper.PushMaskingInfo(MaskingInfo.Value);
+
             if (Children != null)
                 for (int i = Children.Count - 1; i >= 0; i--)
                     Children[i].DrawHull(vertexAction, ref vertexDepth);
+
+            if (MaskingInfo != null)
+                GLWrapper.PopMaskingInfo();
         }
     }
 }
