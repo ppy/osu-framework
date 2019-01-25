@@ -395,10 +395,22 @@ namespace osu.Framework.Platform
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
-                    osuTK.Graphics.OpenGL.PixelFormat.Rgba,
-                    osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                string version = GL.GetString(StringName.Version);
+
+                if (version.Contains("OpenGL ES"))
+                {
+                    GL.ReadPixels(0, 0, image.Width, image.Height,
+                        PixelFormat.Rgba,
+                        PixelType.UnsignedByte,
+                        ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                }
+                else
+                {
+                    osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
+                        osuTK.Graphics.OpenGL.PixelFormat.Rgba,
+                        osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
+                        ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                }
 
                 complete = true;
             });
