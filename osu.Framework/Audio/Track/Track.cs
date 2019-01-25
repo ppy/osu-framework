@@ -21,6 +21,11 @@ namespace osu.Framework.Audio.Track
         public bool Looping { get; set; }
 
         /// <summary>
+        /// Where should the track restart from when it loops?
+        /// </summary>
+        public double RestartFrom { get; set; }
+
+        /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
         /// </summary>
         public readonly BindableDouble Tempo = new BindableDouble(1);
@@ -30,9 +35,7 @@ namespace osu.Framework.Audio.Track
             Tempo.ValueChanged += InvalidateState;
         }
 
-        /// <summary>
-        /// Reset this track to a logical default state.
-        /// </summary>
+        /// <inheritdoc cref="IAdjustableClock.Reset"/>
         public virtual void Reset()
         {
             Volume.Value = 1;
@@ -44,12 +47,13 @@ namespace osu.Framework.Audio.Track
         }
 
         /// <summary>
-        /// Restarts this track from the beginning while retaining adjustments.
+        /// Restarts this track from the chosen point while retaining adjustments.
         /// </summary>
-        public virtual void Restart()
+        /// <param name="seek">Restart position in milliseconds</param>
+        public virtual void Restart(double seek = 0)
         {
             Stop();
-            Seek(0);
+            Seek(seek);
             Start();
         }
 
@@ -82,11 +86,7 @@ namespace osu.Framework.Audio.Track
 
         public virtual int? Bitrate => null;
 
-        /// <summary>
-        /// Seek to a new position.
-        /// </summary>
-        /// <param name="seek">New position in milliseconds</param>
-        /// <returns>Whether the seek was successful.</returns>
+        /// <inheritdoc cref="IAdjustableClock.Seek"/>
         public abstract bool Seek(double seek);
 
         public virtual void Start()
@@ -126,7 +126,7 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
             if (Looping && HasCompleted)
-                Restart();
+                Restart(RestartFrom);
 
             base.UpdateState();
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 namespace osu.Framework.Timing
@@ -9,7 +9,7 @@ namespace osu.Framework.Timing
     public interface IAdjustableClock : IClock
     {
         /// <summary>
-        /// Stop and reset position.
+        /// Stop and reset to a logical default state.
         /// </summary>
         void Reset();
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// Seek to a specific time position.
         /// </summary>
-        /// <returns>Whether a seek was possible.</returns>
+        /// <returns>Whether the seek was successful.</returns>
         bool Seek(double position);
 
         /// <summary>
