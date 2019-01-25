@@ -79,6 +79,11 @@ namespace osu.Framework.Platform
 
         public event Action<IpcMessage> MessageReceived;
 
+        /// <summary>
+        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// </summary>
+        public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
+
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message)
