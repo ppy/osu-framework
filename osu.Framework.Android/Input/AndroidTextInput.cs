@@ -24,7 +24,7 @@ namespace osu.Framework.Android.Input
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
-        private void keyDown(Keycode arg)
+        private void keyDown(Keycode arg, KeyEvent e)
         {
             Key key = AndroidKeyboardHandler.GetKeyCodeAsKey(arg);
             string keynum = arg.ToString();
@@ -37,87 +37,8 @@ namespace osu.Framework.Android.Input
 
             switch (arg)
             {
-                case Keycode.Space:
-                    pending += " ";
-                    break;
-                case Keycode.LeftBracket:
-                    pending += "[";
-                    break;
-                case Keycode.RightBracket:
-                    pending += "]";
-                    break;
-                case Keycode.Backslash:
-                    pending += "\\";
-                    break;
-                case Keycode.Apostrophe:
-                    pending += "'";
-                    break;
-                case Keycode.Plus:
-                case Keycode.NumpadAdd:
-                    pending += "+";
-                    break;
-                case Keycode.Minus:
-                case Keycode.NumpadSubtract:
-                    pending += "-";
-                    break;
-                case Keycode.Star:
-                case Keycode.NumpadMultiply:
-                    pending += "*";
-                    break;
-                case Keycode.Slash:
-                case Keycode.NumpadDivide:
-                    pending += "/";
-                    break;
-                case Keycode.Period:
-                    pending += ".";
-                    break;
-                case Keycode.Comma:
-                    pending += ",";
-                    break;
-                case Keycode.Grave:
-                    pending += "`";
-                    break;
-                case Keycode.Semicolon:
-                    pending += ";";
-                    break;
-                case Keycode.CtrlLeft:
-                case Keycode.AltLeft:
-                case Keycode.ShiftLeft:
-                case Keycode.CtrlRight:
-                case Keycode.AltRight:
-                case Keycode.ShiftRight:
-                case Keycode.CapsLock:
-                case Keycode.Tab:
-                case Keycode.F1:
-                case Keycode.F2:
-                case Keycode.F3:
-                case Keycode.F4:
-                case Keycode.F5:
-                case Keycode.F6:
-                case Keycode.F7:
-                case Keycode.F8:
-                case Keycode.F9:
-                case Keycode.F10:
-                case Keycode.F11:
-                case Keycode.F12:
-                case Keycode.NumLock:
-                case Keycode.ScrollLock:
-                case Keycode.DpadDown:
-                case Keycode.DpadLeft:
-                case Keycode.DpadRight:
-                case Keycode.DpadUp:
-                case Keycode.PageDown:
-                case Keycode.PageUp:
-                case Keycode.Home:
-                case Keycode.MoveEnd:
-                case Keycode.Del:
-                case Keycode.ForwardDel:
-                case Keycode.Insert:
-                case Keycode.NumpadEnter:
-                case Keycode.Enter:
-                    break;
                 default:
-                    pending += key.ToString();
+                    pending += e.DisplayLabel;
                     break;
             }
         }

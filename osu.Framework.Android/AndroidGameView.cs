@@ -15,9 +15,9 @@ namespace osu.Framework.Android
         private AndroidGameHost host;
         private readonly Game game;
 
-        public event Action<Keycode> KeyDown;
-        public event Action<Keycode> KeyUp;
-        public event Action<Keycode> KeyLongPress;
+        public event Action<Keycode, KeyEvent> KeyDown;
+        public event Action<Keycode, KeyEvent> KeyUp;
+        public event Action<Keycode, KeyEvent> KeyLongPress;
 
         public AndroidGameView(Context context, Game game) : base(context)
         {
@@ -63,19 +63,19 @@ namespace osu.Framework.Android
 
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            KeyDown?.Invoke(keyCode);
+            KeyDown?.Invoke(keyCode, e);
             return true;
         }
 
         public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            KeyLongPress?.Invoke(keyCode);
+            KeyLongPress?.Invoke(keyCode, e);
             return true;
         }
 
         public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            KeyUp?.Invoke(keyCode);
+            KeyUp?.Invoke(keyCode, e);
             return true;
         }
 
