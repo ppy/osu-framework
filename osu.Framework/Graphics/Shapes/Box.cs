@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Shapes
 
                 // Todo: This can probably be optimised
                 var skeleton = ScreenSpaceDrawQuad;
-                if (GLWrapper.IsMaskingActive)
+                if (GLWrapper.IsMaskingActive && GLWrapper.CurrentMaskingInfo.CornerRadius != 0)
                 {
                     float offset = GLWrapper.CurrentMaskingInfo.CornerRadius / 3f;
 
@@ -59,6 +59,17 @@ namespace osu.Framework.Graphics.Shapes
                 shader.Unbind();
 
                 vertexDepth -= 0.0001f;
+            }
+
+            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            {
+                if (DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
+                                                        && (!GLWrapper.IsMaskingActive || GLWrapper.CurrentMaskingInfo.CornerRadius == 0))
+                {
+                    return;
+                }
+
+                base.Draw(vertexAction);
             }
         }
     }
