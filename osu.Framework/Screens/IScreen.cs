@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -102,7 +103,7 @@ namespace osu.Framework.Screens
                 source.AsDrawable().Expire();
             }
 
-            // Exited screens are expired, so the lifetime state needs to be reset to correctly display the re-pushed screen
+            // Screens are expired when they are exited - lifetime needs to be reset when entered
             newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
 
             // Push the new screen
@@ -113,7 +114,7 @@ namespace osu.Framework.Screens
             {
                 if (!newScreen.ValidForPush)
                 {
-                    Exit(newScreen);
+                    exitFrom(null);
                     return;
                 }
 
@@ -145,7 +146,7 @@ namespace osu.Framework.Screens
             if (CurrentScreen != source)
                 throw new Screen.ScreenHasChildException(nameof(Exit), $"Use {nameof(ScreenExtensions.MakeCurrent)} instead.");
 
-            exitFrom(source);
+            exitFrom(null);
         }
 
         internal void MakeCurrent(IScreen source)
@@ -157,14 +158,15 @@ namespace osu.Framework.Screens
             if (!stack.Contains(source))
                 return;
 
-            foreach (var child in stack.Skip(1))
+            exitFrom(null, () =>
             {
-                if (child == source)
-                    break;
-                child.ValidForResume = false;
-            }
-
-            Exit(CurrentScreen);
+                foreach (var child in stack)
+                {
+                    if (child == source)
+                        break;
+                    child.ValidForResume = false;
+                }
+            });
         }
 
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
@@ -175,32 +177,44 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="source">The <see cref="IScreen"/> which exited. May or may not be the current screen in the stack.</param>
-        private void exitFrom(IScreen source)
+        /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
+        /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
+        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null)
         {
-            // We're guaranteed that the top of the stack is the source
-            stack.Pop();
+            // The current screen is at the top of the stack, it will be the one that is exited
+            var toExit = stack.Pop();
 
-            if (source.OnExiting(CurrentScreen))
+            // The next current screen will be resumed
+            if (toExit.OnExiting(CurrentScreen))
             {
-                stack.Push(source);
+                stack.Push(toExit);
                 return;
             }
 
-            // Propagate the lifetime end from the exiting screen
-            source.AsDrawable().Expire();
-            source.AsDrawable().LifetimeEnd = ((Drawable)source).LifetimeEnd;
+            onExiting?.Invoke();
 
-            ScreenExited?.Invoke(source, CurrentScreen);
+            if (source == null)
+            {
+                // This is the first screen that exited
+                toExit.AsDrawable().Expire();
+            }
+            else
+            {
+                // This screen exited via a recursive-exit chain. Lifetime is propagated from the parent.
+                toExit.AsDrawable().LifetimeEnd = ((Drawable)source).LifetimeEnd;
+            }
 
-            resume(source);
+            ScreenExited?.Invoke(toExit, CurrentScreen);
+
+            // Resume the next current screen from the exited one
+            resumeFrom(toExit);
         }
 
         /// <summary>
         /// Resumes the current <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="source">The <see cref="IScreen"/> which exited. May or may not be the current screen in the stack.</param>
-        private void resume(IScreen source)
+        /// <param name="source">The <see cref="IScreen"/> which exited.</param>
+        private void resumeFrom([NotNull] IScreen source)
         {
             if (CurrentScreen == null)
                 return;
@@ -209,13 +223,12 @@ namespace osu.Framework.Screens
             {
                 CurrentScreen.OnResuming(source);
 
-                // Suspended screens are expired, so the lifetime state needs to be reset to correctly display the resumed screen
+                // Screens are expired when they are suspended - lifetime needs to be reset when resumed
                 CurrentScreen.AsDrawable().LifetimeEnd = double.MaxValue;
             }
             else
                 exitFrom(source);
         }
-
     }
 
     public static class ScreenExtensions

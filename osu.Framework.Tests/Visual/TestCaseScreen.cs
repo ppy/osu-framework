@@ -38,19 +38,33 @@ namespace osu.Framework.Tests.Visual
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
 
+            AddAssert("baseScreen suspended to screen1", () => baseScreen.SuspendedTo == screen1);
+            AddAssert("screen1 entered from baseScreen", () => screen1.EnteredFrom == baseScreen);
+
             // we don't support pushing a screen that has been entered
             AddStep("bad push", () => Assert.Throws(typeof(Screen.ScreenAlreadyEnteredException), () => screen1.Push(screen1)));
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
 
+            AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo == screen2);
+            AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom == screen1);
+
             AddAssert("ensure child", () => screen1.GetChildScreen() != null);
 
             AddStep("pop", () => screen2.Exit());
+
+            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom == screen2);
+            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo == screen1);
+            AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());
+
+            AddAssert("baseScreen resumed from screen1", () => baseScreen.ResumedFrom == screen1);
+            AddAssert("screen1 exited to baseScreen", () => screen1.ExitedTo == baseScreen);
+            AddAssert("screen1 has lifetime end", () => screen1.LifetimeEnd != double.MaxValue);
         }
 
         [Test]
@@ -59,12 +73,20 @@ namespace osu.Framework.Tests.Visual
             TestScreen screen1 = null, screen2 = null, screen3 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
+            pushAndEnsureCurrent(() => screen2 = new TestScreen { ValidForResume = false }, () => screen1);
             pushAndEnsureCurrent(() => screen3 = new TestScreen(), () => screen2);
 
             AddStep("bad exit", () => Assert.Throws(typeof(Screen.ScreenHasChildException), () => screen1.Exit()));
+            AddStep("exit", () => screen3.Exit());
 
-            AddStep("make current", () => screen1.MakeCurrent());
+            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
+            AddAssert("screen2 not resumed from screen3", () => screen2.ResumedFrom == null);
+            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo == screen1);
+            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom == screen2);
+
+            AddAssert("screen3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
+            AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
+            AddAssert("screens 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
             AddAssert("ensure current", () => screen1.IsCurrentScreen());
@@ -100,11 +122,37 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
-            AddWaitStep(5);
+            AddUntilStep(() => screen1.LoadState >= LoadState.Ready, "wait for screen to load");
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
             AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep(() => screen2.IsCurrentScreen(), "ensure new current");
+        }
+
+        [Test]
+        public void TestMakeCurrent()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(), () => screen2);
+
+            AddStep("block exit", () => screen3.Exiting = () => true);
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
+            AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
+            AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
+            AddAssert("screen 1 valid for resume", () => screen1.ValidForResume);
+
+            AddStep("don't block exit", () => screen3.Exiting = () => false);
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
+            AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
+            AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
+            AddAssert("screen 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -125,6 +173,14 @@ namespace osu.Framework.Tests.Visual
 
         private class TestScreen : Screen
         {
+            public Func<bool> Exiting;
+
+            public IScreen EnteredFrom;
+            public IScreen ExitedTo;
+
+            public IScreen SuspendedTo;
+            public IScreen ResumedFrom;
+
             public static int Sequence;
             private Button popButton;
 
@@ -187,6 +243,8 @@ namespace osu.Framework.Tests.Visual
 
             public override void OnEntering(IScreen last)
             {
+                EnteredFrom = last;
+
                 base.OnEntering(last);
 
                 if (last != null)
@@ -201,18 +259,27 @@ namespace osu.Framework.Tests.Visual
 
             public override bool OnExiting(IScreen next)
             {
+                ExitedTo = next;
+
+                if (Exiting?.Invoke() == true)
+                    return true;
+
                 this.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
                 return base.OnExiting(next);
             }
 
             public override void OnSuspending(IScreen next)
             {
+                SuspendedTo = next;
+
                 base.OnSuspending(next);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
             public override void OnResuming(IScreen last)
             {
+                ResumedFrom = last;
+
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
