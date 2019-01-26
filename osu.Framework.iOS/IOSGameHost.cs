@@ -1,19 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
-using osu.Framework.iOS.Audio;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
-using osu.Framework.Threading;
 
 namespace osu.Framework.iOS
 {
@@ -33,6 +30,8 @@ namespace osu.Framework.iOS
             // we shouldn't exit on iOS, as Window.Run does not block
         }
 
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
@@ -46,8 +45,5 @@ namespace osu.Framework.iOS
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
-
-        public override AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
-            new IOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
     }
 }
