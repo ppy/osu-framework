@@ -197,6 +197,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = topColour.Linear,
+                Depth = depth
             });
             vertexAction(new TexturedVertex2D
             {
