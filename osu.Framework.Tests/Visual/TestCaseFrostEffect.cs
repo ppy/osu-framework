@@ -1,5 +1,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(200);
                 Masking = true;
                 CornerRadius = 20;
-                BorderColour = Color4.Red;
+                BorderColour = Color4.Magenta;
                 BorderThickness = 2;
 
                 InternalChild = new BufferedContainer
@@ -43,6 +44,26 @@ namespace osu.Framework.Tests.Visual
                         SynchronizedDrawQuad = true
                     }
                 };
+
+                AddInternal(_infoText = new SpriteText
+                {
+                    Anchor = Anchor.TopCentre,
+                    Origin = Anchor.TopCentre,
+                    Text = "You can drag this window.",
+                    TextSize = 16
+                });
+            }
+
+            private SpriteText _infoText;
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                _infoText
+                    .Delay(5000)
+                    .MoveToY(-_infoText.TextSize, 500)
+                    .Expire();
             }
 
             protected override bool OnDrag(DragEvent e)
