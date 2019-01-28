@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual
             Add(buffer = new BufferedContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Children = new[] { TestContainer }
+                Child = TestContainer
             });
 
             Add(new BlurView(buffer));
