@@ -514,7 +514,7 @@ namespace osu.Framework.Input
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
-            if (handledBy != null)
+            if (handledBy != null && !(handledBy is IDontLogKeyPresses))
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
