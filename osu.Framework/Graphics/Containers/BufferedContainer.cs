@@ -12,6 +12,8 @@ using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -388,6 +390,93 @@ namespace osu.Framework.Graphics.Containers
 
         //    base.Dispose(isDisposing);
         //}
+
+        public class BufferSprite : Drawable
+        {
+            private Shader textureShader;
+            private Shader roundedTextureShader;
+
+            #region Disposal
+
+            protected override void Dispose(bool isDisposing)
+            {
+                texture?.Dispose();
+                texture = null;
+
+                base.Dispose(isDisposing);
+            }
+
+            #endregion
+
+            private readonly WeakReference<BufferedContainer<T>> _buffered;
+
+            public BufferSprite(BufferedContainer<T> buffered)
+            {
+                _buffered = new WeakReference<BufferedContainer<T>>(buffered);
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(ShaderManager shaders)
+            {
+                textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+                roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            }
+
+            protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode.BufferSpriteDrawNode();
+
+            public BufferedContainer<T> BufferedContainer => _buffered.TryGetTarget(out var buffered) ? buffered : null;
+
+            private Texture texture;
+            public Texture Texture
+            {
+                get
+                {
+                    var buffered = BufferedContainer;
+
+                    if (buffered == null)
+                        return null;
+
+                    if (texture != null)
+                        return texture;
+
+                    var frame = buffered.sharedData.FrameBuffers[0];
+
+                    if (frame.IsInitialized)
+                        return texture = new Texture(frame.Texture);
+
+                    return null;
+                }
+            }
+
+            private bool syncDrawQuad;
+            public bool SynchronizedDrawQuad
+            {
+                get => syncDrawQuad;
+                set
+                {
+                    if (value == syncDrawQuad)
+                        return;
+
+                    syncDrawQuad = value;
+
+                    Invalidate(Invalidation.DrawNode);
+                }
+            }
+
+            protected override void ApplyDrawNode(DrawNode node)
+            {
+                BufferedContainerDrawNode.BufferSpriteDrawNode n = (BufferedContainerDrawNode.BufferSpriteDrawNode)node;
+
+                n.ScreenSpaceDrawQuad = syncDrawQuad ? BufferedContainer?.ScreenSpaceDrawQuad ?? ScreenSpaceDrawQuad : ScreenSpaceDrawQuad;
+                n.DrawRectangle = syncDrawQuad ? BufferedContainer?.DrawRectangle ?? DrawRectangle : DrawRectangle;
+                n.Shared = BufferedContainer?.sharedData;
+
+                n.TextureShader = textureShader;
+                n.RoundedTextureShader = roundedTextureShader;
+
+                base.ApplyDrawNode(node);
+            }
+        }
     }
 
     public enum EffectPlacement

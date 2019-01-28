@@ -14,6 +14,8 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using System.Diagnostics;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -35,6 +37,8 @@ namespace osu.Framework.Graphics.Containers
         /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
         /// </summary>
         public long DrawVersion = -1;
+
+        public int LastFrameBufferIndex = -1;
 
         public BufferedContainerDrawNodeSharedData()
         {
@@ -257,6 +261,40 @@ namespace osu.Framework.Graphics.Containers
             }
 
             Shader.Unbind();
+
+            Shared.LastFrameBufferIndex = currentFrameBufferIndex;
+        }
+
+        public class BufferSpriteDrawNode : SpriteDrawNode
+        {
+            public BufferedContainerDrawNodeSharedData Shared;
+
+            private readonly Texture[] textures = new Texture[2];
+
+            private Texture getCurrentFrameBufferTexture()
+            {
+                var index = Shared?.LastFrameBufferIndex ?? -1;
+
+                if (index == -1)
+                    return null;
+
+                if (textures[index] != null)
+                    return textures[index];
+
+                var frame = Shared.FrameBuffers[index];
+
+                if (frame.IsInitialized)
+                    return textures[index] = new Texture(frame.Texture);
+
+                return null;
+            }
+
+            public override void Draw(Action<TexturedVertex2D> vertexAction)
+            {
+                Texture = getCurrentFrameBufferTexture();
+
+                base.Draw(vertexAction);
+            }
         }
     }
 }
