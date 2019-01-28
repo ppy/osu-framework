@@ -39,6 +39,7 @@ namespace osu.Framework.Graphics.Containers
         public long DrawVersion = -1;
 
         public int LastFrameBufferIndex = -1;
+        public RectangleI LastDrawRectangle;
 
         public BufferedContainerDrawNodeSharedData()
         {
@@ -263,6 +264,7 @@ namespace osu.Framework.Graphics.Containers
             Shader.Unbind();
 
             Shared.LastFrameBufferIndex = currentFrameBufferIndex;
+            Shared.LastDrawRectangle = drawRectangle;
         }
 
         public class BufferSpriteDrawNode : SpriteDrawNode
@@ -287,6 +289,15 @@ namespace osu.Framework.Graphics.Containers
                     return textures[index] = new Texture(frame.Texture);
 
                 return null;
+            }
+
+            protected override void Blit(Action<TexturedVertex2D> vertexAction)
+            {
+                // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
+                RectangleF textureRect = new RectangleF(0, Texture.Height, Texture.Width, -Texture.Height);
+
+                Texture.DrawQuad(ScreenSpaceDrawQuad, DrawColourInfo.Colour, textureRect, vertexAction,
+                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
