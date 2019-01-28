@@ -85,7 +85,7 @@ namespace osu.Framework.Platform
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
 
         /// <summary>
-        ///Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
+        /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
         public virtual bool CanExit => true;
 
