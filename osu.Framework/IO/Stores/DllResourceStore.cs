@@ -15,7 +15,11 @@ namespace osu.Framework.IO.Stores
 
         public DllResourceStore(string dllName)
         {
-            assembly = Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName));
+            // prefer the local file if it exists, else load from assembly cache.
+            assembly = System.IO.File.Exists(dllName) ?
+                Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName)) :
+                Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
+
             space = Path.GetFileNameWithoutExtension(dllName);
         }
 
