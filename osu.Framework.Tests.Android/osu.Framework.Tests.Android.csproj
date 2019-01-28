@@ -24,13 +24,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.61" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="ManagedBass" Version="2.0.4" />
-    <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002298" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
       <Project>{4d112e30-462b-4264-b44d-53b61abb185e}</Project>
       <Name>osu.Framework.Android</Name>
