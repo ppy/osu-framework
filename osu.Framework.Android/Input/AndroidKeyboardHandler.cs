@@ -18,6 +18,8 @@ namespace osu.Framework.Android.Input
         public AndroidKeyboardHandler(AndroidGameView view)
         {
             this.view = view;
+            view.KeyDown += keyDown;
+            view.KeyUp += keyUp;
         }
 
         public override bool IsActive
@@ -26,13 +28,7 @@ namespace osu.Framework.Android.Input
         public override int Priority
             => 0;
 
-        public override bool Initialize(GameHost host)
-        {
-            view.KeyDown += keyDown;
-            view.KeyUp += keyUp;
-
-            return true;
-        }
+        public override bool Initialize(GameHost host) => true;
 
         private void keyDown(Keycode keycode, KeyEvent e)
         {
@@ -64,6 +60,13 @@ namespace osu.Framework.Android.Input
             }
 
             return Key.Unknown;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            view.KeyDown -= keyDown;
+            view.KeyUp -= keyUp;
+            base.Dispose(disposing);
         }
     }
 }
