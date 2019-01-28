@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -105,6 +105,12 @@ namespace osu.Framework.Graphics.Textures
 
         internal TextureGL Add(int width, int height)
         {
+            if (width > atlasWidth)
+                throw new ArgumentOutOfRangeException(nameof(width), width, $"Must be less than this atlas' width ({atlasWidth}px).");
+
+            if (height > atlasHeight)
+                throw new ArgumentOutOfRangeException(nameof(height), height, $"Must be less than this atlas' height ({atlasHeight}px).");
+
             lock (textureRetrievalLock)
             {
                 if (AtlasTexture == null)
