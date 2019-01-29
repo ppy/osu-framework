@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                     }
                 };
 
-                AddInternal(_infoText = new SpriteText
+                AddInternal(infoText = new SpriteText
                 {
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre,
@@ -57,15 +57,15 @@ namespace osu.Framework.Tests.Visual
                 });
             }
 
-            private readonly SpriteText _infoText;
+            private readonly SpriteText infoText;
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
 
-                _infoText
+                infoText
                     .Delay(5000)
-                    .MoveToY(-_infoText.TextSize, 500)
+                    .MoveToY(-infoText.TextSize, 500)
                     .Expire();
             }
 

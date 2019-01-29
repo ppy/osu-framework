@@ -407,11 +407,11 @@ namespace osu.Framework.Graphics.Containers
 
             #endregion
 
-            private readonly WeakReference<BufferedContainer<T>> _buffered;
+            private readonly WeakReference<BufferedContainer<T>> buffered;
 
             public BufferSprite(BufferedContainer<T> buffered)
             {
-                _buffered = new WeakReference<BufferedContainer<T>>(buffered);
+                this.buffered = new WeakReference<BufferedContainer<T>>(buffered);
             }
 
             [BackgroundDependencyLoader]
@@ -423,7 +423,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode.BufferSpriteDrawNode();
 
-            public BufferedContainer<T> BufferedContainer => _buffered.TryGetTarget(out var buffered) ? buffered : null;
+            public BufferedContainer<T> BufferedContainer => buffered.TryGetTarget(out var buffered) ? buffered : null;
 
             private Texture texture;
             public Texture Texture
