@@ -423,7 +423,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode.BufferSpriteDrawNode();
 
-            public BufferedContainer<T> BufferedContainer => buffered.TryGetTarget(out var buffered) ? buffered : null;
+            public BufferedContainer<T> BufferedContainer => buffered.TryGetTarget(out var b) ? b : null;
 
             private Texture texture;
             public Texture Texture
