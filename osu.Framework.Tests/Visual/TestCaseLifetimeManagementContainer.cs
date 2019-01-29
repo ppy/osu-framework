@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -151,6 +152,33 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
+        [Test]
+        public void LifetimeChangeOnCallback()
+        {
+            AddStep("Add children", () =>
+            {
+                TestChild a;
+                container.AddInternal(a = new TestChild(0, 1));
+                container.OnCrossing += (_, kind, direction) =>
+                {
+                    if (kind == LifetimeBoundaryKind.End && direction == LifetimeBoundaryCrossingDirection.Forward)
+                        a.LifetimeEnd = 2;
+                    else if (kind == LifetimeBoundaryKind.Start && direction == LifetimeBoundaryCrossingDirection.Backward)
+                        a.LifetimeEnd = 1;
+                    else if (kind == LifetimeBoundaryKind.Start && direction == LifetimeBoundaryCrossingDirection.Forward)
+                        a.LifetimeStart = a.LifetimeStart == 0 ? 1 : 0;
+                };
+            });
+            skipTo(1);
+            validate(1);
+            skipTo(-1);
+            validate(0);
+            skipTo(0);
+            validate(0);
+            skipTo(1);
+            validate(1);
+        }
+
         public class TestChild : SpriteText
         {
             public override bool RemoveWhenNotAlive => false;
@@ -192,9 +220,12 @@ namespace osu.Framework.Tests.Visual
 
         public class TestContainer : LifetimeManagementContainer
         {
+            public event Action<Drawable, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> OnCrossing;
+
             protected override void OnChildLifetimeBoundaryCrossed(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
             {
                 ((TestChild)child).Crossings.Add(new LifetimeBoundaryCrossing(kind, direction));
+                OnCrossing?.Invoke(child, kind, direction);
             }
         }
     }

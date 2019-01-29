@@ -41,12 +41,13 @@ namespace osu.Framework.Graphics.Containers
         /// Otherwise, the entry should already be removed from the corresponding list.
         /// </summary>
         /// <returns>Whether <see cref="CompositeDrawable.AliveInternalChildren"/> has changed.</returns>
-        private bool updateChildEntry([NotNull] ChildEntry entry)
+        private bool updateChildEntry([NotNull] ChildEntry entry, bool onChildLifetimeChange = false)
         {
             var child = entry.Drawable;
+            var oldState = entry.State;
             Debug.Assert(child.LoadState >= LoadState.Ready);
             Debug.Assert(childStateMap.TryGetValue(child, out var e) && e == entry);
-            Debug.Assert(entry.State != LifetimeState.Current || AliveInternalChildren.Contains(child));
+            Debug.Assert(oldState != LifetimeState.Current || AliveInternalChildren.Contains(child));
             Debug.Assert(!futureChildren.Contains(entry) && !pastChildren.Contains(entry));
 
             var currentTime = Time.Current;
@@ -54,9 +55,14 @@ namespace osu.Framework.Graphics.Containers
                 currentTime < entry.LifetimeStart ? LifetimeState.Future :
                 entry.LifetimeEnd <= currentTime ? LifetimeState.Past :
                 LifetimeState.Current;
-            if (newState == entry.State)
+
+            if (newState == oldState)
             {
-                Debug.Assert(newState != LifetimeState.Future && newState != LifetimeState.Past);
+                // We need to re-insert to future/past children even if lifetime state is not changed if it is from ChildLifetimeChange.
+                if (onChildLifetimeChange)
+                    futureOrPastChildren(newState)?.Add(entry);
+                else
+                    Debug.Assert(newState != LifetimeState.Future && newState != LifetimeState.Past);
                 return false;
             }
 
@@ -66,24 +72,25 @@ namespace osu.Framework.Graphics.Containers
                 MakeChildAlive(child);
                 aliveChildrenChanged = true;
             }
-            else if (entry.State == LifetimeState.Current)
+            else if (oldState == LifetimeState.Current)
             {
                 bool removed = MakeChildDead(child);
                 Trace.Assert(!removed, $"{nameof(RemoveWhenNotAlive)} is not supported for children of {nameof(LifetimeManagementContainer)}");
                 aliveChildrenChanged = true;
             }
 
-            checkBoundaryCrossings(child, entry.State, newState);
-
             entry.State = newState;
             futureOrPastChildren(newState)?.Add(entry);
+
+            callbackBoundaryCrossings(child, oldState, newState);
 
             return aliveChildrenChanged;
         }
 
-        private void checkBoundaryCrossings(Drawable child, LifetimeState prevState, LifetimeState newState)
+        private void callbackBoundaryCrossings(Drawable child, LifetimeState oldState, LifetimeState newState)
         {
-            switch (prevState)
+            Debug.Assert(oldState != newState);
+            switch (oldState)
             {
                 case LifetimeState.Future:
                     OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward);
@@ -196,13 +203,9 @@ namespace osu.Framework.Graphics.Containers
             if (!childStateMap.TryGetValue(child, out var entry)) return;
 
             futureOrPastChildren(entry.State)?.Remove(entry);
-
-            // We need to re-insert to the future/past children set even if state is unchanged.
-            if (entry.State == LifetimeState.Future || entry.State == LifetimeState.Past)
-                entry.State = LifetimeState.New;
             entry.UpdateLifetime();
 
-            updateChildEntry(entry);
+            updateChildEntry(entry, true);
         }
 
         protected internal override void AddInternal(Drawable drawable)
