@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache(object)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -661,7 +661,18 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        private void disposeChildAsync(Drawable drawable) => Task.Run(() => drawable.Dispose());
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            foreach (Drawable child in internalChildren)
+                child.UnbindAllBindables();
+        }
+
+        private void disposeChildAsync(Drawable drawable)
+        {
+            drawable.UnbindAllBindables();
+            Task.Run(() => drawable.Dispose());
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {

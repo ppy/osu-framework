@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osuTK;
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Colour
     /// ColourInfo contains information about the colours of all 4 vertices of a quad.
     /// These colours are always stored in linear space.
     /// </summary>
-    public struct ColourInfo : IEquatable<ColourInfo>
+    public struct ColourInfo : IEquatable<ColourInfo>, IEquatable<SRGBColour>
     {
         public SRGBColour TopLeft;
         public SRGBColour BottomLeft;

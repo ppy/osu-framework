@@ -1,11 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Caching;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
@@ -81,7 +82,9 @@ namespace osu.Framework.Configuration
             }
         }
 
-        private readonly WeakReference<Bindable<T>> weakReference;
+        private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
+
+        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -99,8 +102,6 @@ namespace osu.Framework.Configuration
         public Bindable(T value = default)
         {
             this.value = value;
-
-            weakReference = new WeakReference<Bindable<T>>(this);
         }
 
         public static implicit operator T(Bindable<T> value) => value.Value;

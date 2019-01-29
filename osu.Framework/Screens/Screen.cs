@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Allocation;
@@ -59,9 +59,9 @@ namespace osu.Framework.Screens
         }
 
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
-        // children inside childScreenContainer.
-        // this means the root screen always received input.
-        private bool propagateInputSubtree => IsCurrentScreen || !hasExited && ParentScreen == null;
+        // children inside childScreenContainer. this means the root screen always receive input.
+        // Also only propagate when content is present, else we may incorrectly block/handle events at a screen level.
+        private bool propagateInputSubtree => IsCurrentScreen && Content.IsPresent || !hasExited && ParentScreen == null;
 
         public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && propagateInputSubtree;
         public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && propagateInputSubtree;

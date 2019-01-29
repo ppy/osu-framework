@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -114,25 +114,22 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        /// <summary>
-        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
-        /// </summary>
-        private void unbindAllBindables()
+        internal virtual void UnbindAllBindables() => unbindAllBindables();
+
+        private void cacheUnbindActions()
         {
             Type type = GetType();
+
             do
             {
-                unbind(type);
+                cacheUnbindAction(type);
                 type = type.BaseType;
             } while (type != null && type != typeof(object));
 
-            void unbind(Type targetType)
+            void cacheUnbindAction(Type targetType)
             {
-                if (unbind_action_cache.TryGetValue(targetType, out var existing))
-                {
-                    existing(this);
+                if (unbind_action_cache.TryGetValue(targetType, out _))
                     return;
-                }
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
@@ -147,10 +144,7 @@ namespace osu.Framework.Graphics
                                            .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
                                            .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                unbind_action_cache[targetType] = performUnbind;
-                performUnbind(this);
-
-                void performUnbind(object target)
+                unbind_action_cache[targetType] = target =>
                 {
                     foreach (var a in actions)
                     {
@@ -163,8 +157,29 @@ namespace osu.Framework.Graphics
                             // Execution should continue regardless of whether an unbind failed
                         }
                     }
-                }
+                };
             }
+        }
+
+        private bool unbindComplete;
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            if (unbindComplete) return;
+            unbindComplete = true;
+
+            Type type = GetType();
+
+            do
+            {
+                if (unbind_action_cache.TryGetValue(type, out var existing))
+                    existing?.Invoke(this);
+
+                type = type.BaseType;
+            } while (type != null && type != typeof(object));
         }
 
         #endregion
@@ -240,6 +255,8 @@ namespace osu.Framework.Graphics
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
+
+            cacheUnbindActions();
 
             LoadAsyncComplete();
 
@@ -1487,7 +1504,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1857,9 +1874,15 @@ namespace osu.Framework.Graphics
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
+
         protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
         protected virtual bool OnHover(HoverEvent e) => Handle(e);
-        protected virtual void OnHoverLost(HoverLostEvent e) { Handle(e); }
+
+        protected virtual void OnHoverLost(HoverLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
         protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
@@ -1868,12 +1891,22 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDrag(DragEvent e) => Handle(e);
         protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
-        protected virtual void OnFocus(FocusEvent e) { Handle(e); }
-        protected virtual void OnFocusLost(FocusLostEvent e) { Handle(e); }
+
+        protected virtual void OnFocus(FocusEvent e)
+        {
+            Handle(e);
+        }
+
+        protected virtual void OnFocusLost(FocusLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
         protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
         #endregion
 
         /// <summary>
@@ -1970,6 +2003,7 @@ namespace osu.Framework.Graphics
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
                 }
+
                 return value;
             }
 
