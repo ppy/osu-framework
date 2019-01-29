@@ -1,11 +1,12 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
@@ -70,7 +71,16 @@ namespace osu.Framework.Graphics.Textures
             {
                 // refresh the texture if no longer available (may have been previously disposed).
                 if (!textureCache.TryGetValue(name, out var tex) || tex?.Available == false)
-                    textureCache[name] = tex = getTexture(name);
+                {
+                    try
+                    {
+                        textureCache[name] = tex = getTexture(name);
+                    }
+                    catch (TextureTooLargeForGLException)
+                    {
+                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                    }
+                }
 
                 return tex;
             }

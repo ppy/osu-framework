@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +29,10 @@ namespace osu.Framework.iOS
         {
             // we shouldn't exit on iOS, as Window.Run does not block
         }
+
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
+        public override bool CanExit => false;
 
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
