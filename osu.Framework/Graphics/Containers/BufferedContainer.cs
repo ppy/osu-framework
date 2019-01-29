@@ -12,7 +12,6 @@ using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Containers

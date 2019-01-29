@@ -275,10 +275,10 @@ namespace osu.Framework.Graphics.Containers
 
             private Texture getCurrentFrameBufferTexture()
             {
-                var index = Shared?.LastFrameBufferIndex ?? -1;
-
-                if (index == -1)
+                if (Shared == null || Shared.LastFrameBufferIndex == -1)
                     return null;
+
+                var index = Shared.LastFrameBufferIndex;
 
                 if (textures[index] != null)
                     return textures[index];

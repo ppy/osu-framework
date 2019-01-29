@@ -12,19 +12,19 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseFrostEffect : TestCaseMasking
     {
-        private readonly BufferedContainer buffer;
-
         public TestCaseFrostEffect()
         {
             Remove(TestContainer);
 
-            Add(buffer = new BufferedContainer
+            BufferedContainer buffered;
+
+            Add(buffered = new BufferedContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = TestContainer
             });
 
-            Add(new BlurView(buffer));
+            Add(new BlurView(buffered));
         }
 
         private class BlurView : CompositeDrawable
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual
                 });
             }
 
-            private SpriteText _infoText;
+            private readonly SpriteText _infoText;
 
             protected override void LoadComplete()
             {
