@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly SortedSet<ChildEntry> pastChildren = new SortedSet<ChildEntry>(new LifetimeEndComparator());
 
+        private readonly Queue<LifetimeBoundaryCrossedEvent> eventQueue = new Queue<LifetimeBoundaryCrossedEvent>();
+
         /// <summary>
         /// Update child life according to the current time.
         /// The entry should be in <see cref="childStateMap"/>.
@@ -82,31 +84,30 @@ namespace osu.Framework.Graphics.Containers
             entry.State = newState;
             futureOrPastChildren(newState)?.Add(entry);
 
-            callbackBoundaryCrossings(child, oldState, newState);
+            enqueueEvents(child, oldState, newState);
 
             return aliveChildrenChanged;
         }
 
-        private void callbackBoundaryCrossings(Drawable child, LifetimeState oldState, LifetimeState newState)
+        private void enqueueEvents(Drawable child, LifetimeState oldState, LifetimeState newState)
         {
             Debug.Assert(oldState != newState);
             switch (oldState)
             {
                 case LifetimeState.Future:
-                    OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward);
+                    eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward));
                     if (newState == LifetimeState.Past)
-                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward);
+                        eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
                     break;
                 case LifetimeState.Current:
-                    if (newState == LifetimeState.Past)
-                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward);
-                    else
-                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
+                    eventQueue.Enqueue(newState == LifetimeState.Past
+                        ? new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward)
+                        : new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
                     break;
                 case LifetimeState.Past:
-                    OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward);
+                    eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
                     if (newState == LifetimeState.Future)
-                        OnChildLifetimeBoundaryCrossed(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
+                        eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
                     break;
             }
         }
@@ -181,6 +182,12 @@ namespace osu.Framework.Graphics.Containers
 
             Debug.Assert(newChildren.Count + futureChildren.Count + pastChildren.Count + AliveInternalChildren.Count == InternalChildren.Count);
 
+            while (eventQueue.Count != 0)
+            {
+                var e = eventQueue.Dequeue();
+                OnChildLifetimeBoundaryCrossed(e);
+            }
+
             return aliveChildrenChanged;
         }
 
@@ -245,12 +252,11 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Invoked when the clock is crossed child's lifetime boundary i.e. <see cref="Drawable.LifetimeStart"/> or <see cref="Drawable.LifetimeEnd"/>.
+        /// Called when the clock is crossed child lifetime boundary.
+        /// If child's lifetime is changed during this callback and that causes additional crossings,
+        /// those events are queued and this method will be called later (on the same frame).
         /// </summary>
-        /// <param name="child">The child.</param>
-        /// <param name="kind">Which lifetime boundary is crossed.</param>
-        /// <param name="direction">The direction of the crossing.</param>
-        protected virtual void OnChildLifetimeBoundaryCrossed(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
+        protected virtual void OnChildLifetimeBoundaryCrossed(LifetimeBoundaryCrossedEvent e)
         {
         }
 
@@ -355,5 +361,35 @@ namespace osu.Framework.Graphics.Containers
         /// <see cref="Drawable.LifetimeEnd"/>.
         /// </summary>
         End,
+    }
+
+    /// <summary>
+    /// Represents that the clock is crossed <see cref="LifetimeManagementContainer"/>'s child lifetime boundary i.e. <see cref="Drawable.LifetimeStart"/> or <see cref="Drawable.LifetimeEnd"/>,
+    /// </summary>
+    public struct LifetimeBoundaryCrossedEvent
+    {
+        /// <summary>
+        /// The drawable.
+        /// </summary>
+        public readonly Drawable Child;
+
+        /// <summary>
+        /// Which lifetime boundary is crossed.
+        /// </summary>
+        public readonly LifetimeBoundaryKind Kind;
+
+        /// <summary>
+        /// The direction of the crossing.
+        /// </summary>
+        public readonly LifetimeBoundaryCrossingDirection Direction;
+
+        public LifetimeBoundaryCrossedEvent(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
+        {
+            Child = child;
+            Kind = kind;
+            Direction = direction;
+        }
+
+        public override string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
     }
 }

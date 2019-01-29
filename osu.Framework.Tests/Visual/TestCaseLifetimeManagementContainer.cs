@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual
                 foreach (var child in container.InternalChildren)
                 {
                     num += child.IsAlive ? 1 : 0;
-                    Assert.AreEqual(child.IsAlive, child.ShouldBeAlive, $"Aliveness is invalid for {child}");
+                    Assert.AreEqual(child.ShouldBeAlive, child.IsAlive, $"Aliveness is invalid for {child}");
                 }
 
                 return num == numAlive;
@@ -129,26 +129,26 @@ namespace osu.Framework.Tests.Visual
             AddStep("Check crossings", () =>
             {
                 a.CheckCrossings();
-                b.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
+                b.CheckCrossings(new LifetimeBoundaryCrossedEvent(b, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
                 c.CheckCrossings(
-                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward),
-                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
+                    new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Forward),
+                    new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
             });
             skipTo(1);
             AddStep("Check crossings", () =>
             {
                 a.CheckCrossings();
                 b.CheckCrossings();
-                c.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
+                c.CheckCrossings(new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
             });
             skipTo(-1);
             AddStep("Check crossings", () =>
             {
                 a.CheckCrossings(
-                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
-                b.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward),
-                    new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
-                c.CheckCrossings(new LifetimeBoundaryCrossing(LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
+                    new LifetimeBoundaryCrossedEvent(a, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
+                b.CheckCrossings(new LifetimeBoundaryCrossedEvent(b, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward),
+                    new LifetimeBoundaryCrossedEvent(b, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
+                c.CheckCrossings(new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
             });
         }
 
@@ -159,8 +159,10 @@ namespace osu.Framework.Tests.Visual
             {
                 TestChild a;
                 container.AddInternal(a = new TestChild(0, 1));
-                container.OnCrossing += (_, kind, direction) =>
+                container.OnCrossing += e =>
                 {
+                    var kind = e.Kind;
+                    var direction = e.Direction;
                     if (kind == LifetimeBoundaryKind.End && direction == LifetimeBoundaryCrossingDirection.Forward)
                         a.LifetimeEnd = 2;
                     else if (kind == LifetimeBoundaryKind.Start && direction == LifetimeBoundaryCrossingDirection.Backward)
@@ -179,10 +181,109 @@ namespace osu.Framework.Tests.Visual
             validate(1);
         }
 
+        [Test, Ignore("Takes too long. Unignore when you changed relevant code.")]
+        public void Fuzz()
+        {
+            var rng = new Random(2222);
+
+            void randomLifetime(out double l, out double r)
+            {
+                l = rng.Next(5);
+                r = rng.Next(5);
+                if (l > r)
+                {
+                    var l1 = l;
+                    l = r;
+                    r = l1;
+                }
+
+                ++r;
+            }
+
+            void checkAll()
+            {
+                Schedule(() =>
+                {
+                    foreach (var child in container.InternalChildren)
+                        Assert.AreEqual(child.ShouldBeAlive, child.IsAlive, $"Aliveness is invalid for {child}");
+                });
+            }
+
+            void addChild()
+            {
+                randomLifetime(out var l, out var r);
+                container.AddInternal(new TestChild(l, r));
+                checkAll();
+            }
+
+            void removeChild()
+            {
+                var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
+                Console.WriteLine($"removeChild: {child.ChildID}");
+                container.RemoveInternal(child);
+            }
+
+            void changeLifetime()
+            {
+                var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
+                randomLifetime(out var l, out var r);
+                Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
+                child.LifetimeStart = l;
+                child.LifetimeEnd = r;
+                checkAll();
+            }
+
+            void changeTime()
+            {
+                int time = rng.Next(6);
+                Console.WriteLine($"changeTime: {time}");
+                manualClock.CurrentTime = time;
+                checkAll();
+            }
+
+            AddStep("init", () =>
+            {
+                addChild();
+                container.OnCrossing += e =>
+                {
+                    Console.WriteLine($"OnCrossing({e})");
+                    changeLifetime();
+                };
+            });
+
+            int count = 1;
+            for (int i = 0; i < 1000; i++)
+            {
+                switch (rng.Next(3))
+                {
+                    case 0:
+                        if (count < 20)
+                        {
+                            AddStep("Add child", addChild);
+                            count += 1;
+                        }
+                        else
+                        {
+                            AddStep("Remove child", removeChild);
+                            count -= 1;
+                        }
+
+                        break;
+                    case 1:
+                        AddStep("Change lifetime", changeLifetime);
+                        break;
+                    case 2:
+                        AddStep("Change time", changeTime);
+                        break;
+                }
+            }
+        }
+
         public class TestChild : SpriteText
         {
             public override bool RemoveWhenNotAlive => false;
-            public List<LifetimeBoundaryCrossing> Crossings = new List<LifetimeBoundaryCrossing>();
+            public List<LifetimeBoundaryCrossedEvent> Crossings = new List<LifetimeBoundaryCrossedEvent>();
+            public int StartDelta, EndDelta;
 
             public TestChild(double lifetimeStart, double lifetimeEnd)
             {
@@ -197,35 +298,30 @@ namespace osu.Framework.Tests.Visual
                 Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd} [{string.Join(", ", Crossings.Select(x => x.ToString()))}]";
             }
 
-            public void CheckCrossings(params LifetimeBoundaryCrossing[] expected)
+            public void CheckCrossings(params LifetimeBoundaryCrossedEvent[] expected)
             {
                 Assert.AreEqual(expected, Crossings, $"{nameof(CheckCrossings)} for child {ChildID}");
                 Crossings.Clear();
             }
         }
 
-        public struct LifetimeBoundaryCrossing
-        {
-            public readonly LifetimeBoundaryKind Kind;
-            public readonly LifetimeBoundaryCrossingDirection Direction;
-
-            public LifetimeBoundaryCrossing(LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
-            {
-                Kind = kind;
-                Direction = direction;
-            }
-
-            public override string ToString() => $"({Kind}, {Direction})";
-        }
-
         public class TestContainer : LifetimeManagementContainer
         {
-            public event Action<Drawable, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> OnCrossing;
+            public event Action<LifetimeBoundaryCrossedEvent> OnCrossing;
 
-            protected override void OnChildLifetimeBoundaryCrossed(Drawable child, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
+            protected override void OnChildLifetimeBoundaryCrossed(LifetimeBoundaryCrossedEvent e)
             {
-                ((TestChild)child).Crossings.Add(new LifetimeBoundaryCrossing(kind, direction));
-                OnCrossing?.Invoke(child, kind, direction);
+                if (e.Child is TestChild c)
+                {
+                    c.Crossings.Add(e);
+                    int d = e.Direction == LifetimeBoundaryCrossingDirection.Forward ? 1 : -1;
+                    if (e.Kind == LifetimeBoundaryKind.Start)
+                        c.StartDelta += d;
+                    else
+                        c.EndDelta += d;
+                    Assert.IsTrue(Math.Abs(c.StartDelta) <= 1 && Math.Abs(c.EndDelta) <= 1);
+                }
+                OnCrossing?.Invoke(e);
             }
         }
     }
