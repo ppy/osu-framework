@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual
             AddAssert("screen1 entered from baseScreen", () => screen1.EnteredFrom == baseScreen);
 
             // we don't support pushing a screen that has been entered
-            AddStep("bad push", () => Assert.Throws(typeof(Screen.ScreenAlreadyEnteredException), () => screen1.Push(screen1)));
+            AddStep("bad push", () => Assert.Throws(typeof(ScreenStack.ScreenAlreadyEnteredException), () => screen1.Push(screen1)));
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual
             pushAndEnsureCurrent(() => screen2 = new TestScreen { ValidForResume = false }, () => screen1);
             pushAndEnsureCurrent(() => screen3 = new TestScreen(), () => screen2);
 
-            AddStep("bad exit", () => Assert.Throws(typeof(Screen.ScreenHasChildException), () => screen1.Exit()));
+            AddStep("bad exit", () => Assert.Throws(typeof(ScreenStack.ScreenHasChildException), () => screen1.Exit()));
             AddStep("exit", () => screen3.Exit());
 
             AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
