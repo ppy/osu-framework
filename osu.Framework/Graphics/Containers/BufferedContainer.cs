@@ -430,15 +430,13 @@ namespace osu.Framework.Graphics.Containers
             {
                 get
                 {
-                    var buffered = BufferedContainer;
-
-                    if (buffered == null)
+                    if (BufferedContainer == null)
                         return null;
 
                     if (texture != null)
                         return texture;
 
-                    var frame = buffered.sharedData.FrameBuffers[0];
+                    var frame = BufferedContainer.sharedData.FrameBuffers[0];
 
                     if (frame.IsInitialized)
                         return texture = new Texture(frame.Texture);
