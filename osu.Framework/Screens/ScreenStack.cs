@@ -141,9 +141,8 @@ namespace osu.Framework.Screens
             if (CurrentScreen == source)
                 return;
 
-            // Todo: This should throw an exception instead?
             if (!stack.Contains(source))
-                return;
+                throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             exitFrom(null, () =>
             {
@@ -247,6 +246,14 @@ namespace osu.Framework.Screens
             public ScreenWillBeRemovedOnPushException(Type type)
                 : base($"The pushed ({type.ReadableName()}) has {nameof(RemoveWhenNotAlive)} = true and will be removed when a child screen is pushed. "
                        + $"Screens must set {nameof(RemoveWhenNotAlive)} to false.")
+            {
+            }
+        }
+
+        public class ScreenNotInStackException : InvalidOperationException
+        {
+            public ScreenNotInStackException(string action)
+                : base($"Cannot perform {action} on a screen not in a {nameof(ScreenStack)}.")
             {
             }
         }
