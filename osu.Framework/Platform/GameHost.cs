@@ -79,6 +79,16 @@ namespace osu.Framework.Platform
 
         public event Action<IpcMessage> MessageReceived;
 
+        /// <summary>
+        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// </summary>
+        public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
+
+        /// <summary>
+        /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
+        /// </summary>
+        public virtual bool CanExit => true;
+
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         public virtual Task SendMessageAsync(IpcMessage message)
@@ -390,10 +400,7 @@ namespace osu.Framework.Platform
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
-                    osuTK.Graphics.OpenGL.PixelFormat.Rgba,
-                    osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });
