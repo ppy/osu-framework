@@ -62,10 +62,10 @@
     <Reference Include="Java.Interop" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.61" />
+    <PackageReference Include="ppy.osuTK.Android" Version="1.0.63" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002298" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
   </ItemGroup>
 </Project>
