@@ -11,12 +11,16 @@ namespace osu.Framework.IO.Stores
     public class DllResourceStore : IResourceStore<byte[]>
     {
         private readonly Assembly assembly;
-        private readonly string space;
+        private readonly string prefix;
 
         public DllResourceStore(string dllName)
         {
-            assembly = Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName));
-            space = Path.GetFileNameWithoutExtension(dllName);
+            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName);
+
+            // prefer the local file if it exists, else load from assembly cache.
+            assembly = System.IO.File.Exists(filePath) ? Assembly.LoadFrom(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
+
+            prefix = Path.GetFileNameWithoutExtension(dllName);
         }
 
         public byte[] Get(string name)
@@ -51,7 +55,7 @@ namespace osu.Framework.IO.Stores
             for (int i = 0; i < split.Length - 1; i++)
                 split[i] = split[i].Replace('-', '_');
 
-            return assembly?.GetManifestResourceStream($@"{space}.{string.Join(".", split)}");
+            return assembly?.GetManifestResourceStream($@"{prefix}.{string.Join(".", split)}");
         }
 
         #region IDisposable Support
