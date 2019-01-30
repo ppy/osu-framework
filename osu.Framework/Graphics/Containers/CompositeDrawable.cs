@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
 
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Containers
             // At this point we can assume that we are loaded although we're not in the "ready" state, because we'll be given
             // a "ready" state soon after this method terminates. Therefore we can perform an early check to add any alive children
             // while we're still in an asynchronous context and avoid putting pressure on the main thread during UpdateSubTree.
-            checkChildrenLife();
+            CheckChildrenLife();
         }
 
         /// <summary>
@@ -566,7 +566,7 @@ namespace osu.Framework.Graphics.Containers
             if (LoadState < LoadState.Ready)
                 return false;
 
-            if (!checkChildrenLife())
+            if (!CheckChildrenLife())
                 return false;
 
             return true;
@@ -578,7 +578,7 @@ namespace osu.Framework.Graphics.Containers
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <returns>Whether any child's alive state has changed.</returns>
-        private bool checkChildrenLife()
+        protected virtual bool CheckChildrenLife()
         {
             bool anyAliveChanged = false;
 
@@ -587,6 +587,8 @@ namespace osu.Framework.Graphics.Containers
             int originalCount = internalChildren.Count;
             for (int i = 0; i < internalChildren.Count; i++)
                 anyAliveChanged |= checkChildLife(internalChildren[i + internalChildren.Count - originalCount]);
+
+            FrameStatistics.Add(StatisticsCounterType.CCL, originalCount);
 
             if (anyAliveChanged)
                 childrenSizeDependencies.Invalidate();
@@ -606,59 +608,101 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            bool changed = false;
-
             if (child.ShouldBeAlive)
             {
                 if (!child.IsAlive)
                 {
-                    // If we're already loaded, we can eagerly allow children to be loaded
-                    loadChild(child);
-
-                    if (child.LoadState >= LoadState.Ready)
+                    if (child.LoadState < LoadState.Ready)
                     {
-                        aliveInternalChildren.Add(child);
-
-                        // If the new child has the flag set, we should propagate the flag towards the root.
-                        // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
-                        if (child.RequestsNonPositionalInputSubTree)
-                        {
-                            for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.RequestsNonPositionalInputSubTree = true;
-                        }
-
-                        if (child.RequestsPositionalInputSubTree)
-                        {
-                            for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.RequestsPositionalInputSubTree = true;
-                        }
-
-                        ChildBecameAlive?.Invoke(child);
-                        child.IsAlive = true;
-                        changed = true;
+                        // If we're already loaded, we can eagerly allow children to be loaded
+                        loadChild(child);
+                        if (child.LoadState < LoadState.Ready)
+                            return false;
                     }
+
+                    MakeChildAlive(child);
+                    return true;
                 }
             }
             else
             {
                 if (child.IsAlive)
                 {
-                    aliveInternalChildren.Remove(child);
-                    ChildDied?.Invoke(child);
-                    child.IsAlive = false;
-                    changed = true;
+                    MakeChildDead(child);
+                    return true;
                 }
-
                 if (child.RemoveWhenNotAlive)
                 {
-                    RemoveInternal(child);
-
-                    if (child.DisposeOnDeathRemoval)
-                        disposeChildAsync(child);
+                    removeChildByDeath(child);
                 }
             }
 
-            return changed;
+            return false;
+        }
+
+        /// <summary>
+        /// Make a child alive.
+        /// </summary>
+        /// <remarks>
+        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the child is at least <see cref="LoadState.Ready"/>.
+        /// </remarks>
+        /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make alive.</param>
+        protected void MakeChildAlive(Drawable child)
+        {
+            Debug.Assert(!child.IsAlive && child.LoadState >= LoadState.Ready);
+
+            // If the new child has the flag set, we should propagate the flag towards the root.
+            // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
+            if (child.RequestsNonPositionalInputSubTree)
+            {
+                for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
+                    ancestor.RequestsNonPositionalInputSubTree = true;
+            }
+
+            if (child.RequestsPositionalInputSubTree)
+            {
+                for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
+                    ancestor.RequestsPositionalInputSubTree = true;
+            }
+
+            aliveInternalChildren.Add(child);
+            child.IsAlive = true;
+
+            ChildBecameAlive?.Invoke(child);
+        }
+
+        /// <summary>
+        /// Make a child dead (not alive).
+        /// </summary>
+        /// <remarks>
+        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
+        /// </remarks>
+        /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make dead.</param>
+        /// <returns>Returns true if <paramref name="child"/> is removed by death.</returns>
+        protected bool MakeChildDead(Drawable child)
+        {
+            Debug.Assert(child.IsAlive);
+
+            aliveInternalChildren.Remove(child);
+            child.IsAlive = false;
+
+            ChildDied?.Invoke(child);
+
+            if (child.RemoveWhenNotAlive)
+            {
+                removeChildByDeath(child);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void removeChildByDeath(Drawable child)
+        {
+            RemoveInternal(child);
+
+            if (child.DisposeOnDeathRemoval)
+                disposeChildAsync(child);
         }
 
         internal override void UnbindAllBindables()

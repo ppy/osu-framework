@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -140,10 +140,6 @@ namespace osu.Framework.Audio
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
-        protected virtual TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new TrackManager(store);
-
-        protected virtual SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new SampleManager(store);
-
         /// <summary>
         /// Returns a list of the names of recognized audio devices.
         /// </summary>
@@ -158,12 +154,12 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
-            TrackManager tm = CreateTrackManager(store);
+            TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
             VolumeTrack.ValueChanged += tm.InvalidateState;
@@ -175,12 +171,12 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
-            SampleManager sm = CreateSampleManager(store);
+            SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
             VolumeSample.ValueChanged += sm.InvalidateState;
