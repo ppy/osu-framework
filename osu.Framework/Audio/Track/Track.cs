@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Track
         public bool Looping { get; set; }
 
         /// <summary>
-        /// Where should the track restart from?
+        /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
         /// </summary>
         public double RestartPoint { get; set; }
 
