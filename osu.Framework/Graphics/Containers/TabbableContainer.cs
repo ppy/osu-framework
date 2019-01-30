@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
-        public Container<Drawable> TabbableContentContainer { private get; set; }
+        public CompositeDrawable TabbableContentContainer { private get; set; }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private Drawable nextTabStop(Container<Drawable> target, bool reverse)
+        private Drawable nextTabStop(CompositeDrawable target, bool reverse)
         {
             Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing

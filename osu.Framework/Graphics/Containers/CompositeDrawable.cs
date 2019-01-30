@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
 
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
