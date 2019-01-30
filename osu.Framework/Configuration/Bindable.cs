@@ -346,11 +346,7 @@ namespace osu.Framework.Configuration
             if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
-            leasedBindable = new LeasedBindable<T>(this, revertValueOnReturn);
-
-            if (!disabled) SetDisabled(true, true);
-
-            return leasedBindable;
+            return leasedBindable = new LeasedBindable<T>(this, revertValueOnReturn);
         }
 
         private bool checkForLease(Bindable<T> source)

@@ -35,8 +35,6 @@ namespace osu.Framework.Configuration
             disabledBeforeLease = Disabled;
 
             Disabled = true;
-
-            this.revertValueOnReturn = revertValueOnReturn;
         }
 
         public LeasedBindable(T value)
