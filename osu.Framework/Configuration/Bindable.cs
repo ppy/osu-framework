@@ -81,7 +81,7 @@ namespace osu.Framework.Configuration
             get => value;
             set
             {
-                // intentionally don't have throwIfLeased here().
+                // intentionally don't have throwIfLeased() here.
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
 
                 if (Disabled)
@@ -101,7 +101,7 @@ namespace osu.Framework.Configuration
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
 
-        public WeakReference<Bindable<T>> WeakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -150,8 +150,8 @@ namespace osu.Framework.Configuration
             Disabled = them.Disabled;
             Default = them.Default;
 
-            addWeakReference(them.WeakReference);
-            them.addWeakReference(WeakReference);
+            addWeakReference(them.weakReference);
+            them.addWeakReference(weakReference);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace osu.Framework.Configuration
             Bindings?.Clear();
         }
 
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.WeakReference);
+        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
@@ -282,8 +282,8 @@ namespace osu.Framework.Configuration
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            removeWeakReference(tThem.WeakReference);
-            tThem.removeWeakReference(WeakReference);
+            removeWeakReference(tThem.weakReference);
+            tThem.removeWeakReference(weakReference);
         }
 
         public string Description { get; set; }
@@ -330,13 +330,9 @@ namespace osu.Framework.Configuration
             Value = serializer.Deserialize<T>(reader);
         }
 
-        private bool isLeased => leasedBindable != null;
-
         private LeasedBindable<T> leasedBindable;
-        private T valueBeforeLease;
-        private bool disabledBeforeLease;
 
-        private bool revertValueOnReturn;
+        private bool isLeased => leasedBindable != null;
 
         /// <summary>
         /// Takes out a mutually exclusive lease on this bindable.
@@ -350,15 +346,11 @@ namespace osu.Framework.Configuration
             if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
-            if (revertValueOnReturn)
-            {
-                this.revertValueOnReturn = true;
-                valueBeforeLease = Value;
-            }
+            leasedBindable = new LeasedBindable<T>(this, revertValueOnReturn);
 
-            disabledBeforeLease = Disabled;
-            Disabled = true;
-            return leasedBindable = new LeasedBindable<T>(this);
+            if (!disabled) SetDisabled(true, true);
+
+            return leasedBindable;
         }
 
         private bool checkForLease(Bindable<T> source)
@@ -387,16 +379,6 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException("Attempted to end a lease but returned a different bindable to the one used to start the lease.");
 
             leasedBindable = null;
-
-            if (revertValueOnReturn)
-            {
-                SetValue(valueBeforeLease, true, this);
-
-                revertValueOnReturn = false;
-                valueBeforeLease = default;
-            }
-
-            Disabled = disabledBeforeLease;
         }
 
         private void throwIfLeased()

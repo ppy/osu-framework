@@ -16,10 +16,27 @@ namespace osu.Framework.Configuration
     {
         private readonly Bindable<T> source;
 
-        internal LeasedBindable([NotNull] Bindable<T> source)
+        private readonly T valueBeforeLease;
+        private readonly bool disabledBeforeLease;
+        private readonly bool revertValueOnReturn;
+
+        internal LeasedBindable([NotNull] Bindable<T> source, bool revertValueOnReturn)
         {
             BindTo(source);
+
             this.source = source ?? throw new ArgumentNullException(nameof(source));
+
+            if (revertValueOnReturn)
+            {
+                this.revertValueOnReturn = true;
+                valueBeforeLease = Value;
+            }
+
+            disabledBeforeLease = Disabled;
+
+            Disabled = true;
+
+            this.revertValueOnReturn = revertValueOnReturn;
         }
 
         public LeasedBindable(T value)
@@ -74,6 +91,11 @@ namespace osu.Framework.Configuration
         {
             if (source != null && !hasBeenReturned)
             {
+                if (revertValueOnReturn)
+                    Value = valueBeforeLease;
+
+                Disabled = disabledBeforeLease;
+
                 source.EndLease(this);
                 hasBeenReturned = true;
             }
