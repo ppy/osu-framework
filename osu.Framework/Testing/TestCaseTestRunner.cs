@@ -76,13 +76,13 @@ namespace osu.Framework.Testing
                     // We want to remove the TestCase from the hierarchy on completion as under nUnit, it may have operations run on it from a different thread.
                     // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
                     // is run from its own asynchronous thread.
-                    Remove(test);
+                    RemoveInternal(test);
                     completed = true;
                 }
 
                 Schedule(() =>
                 {
-                    Add(test);
+                    AddInternal(test);
 
                     Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
 
