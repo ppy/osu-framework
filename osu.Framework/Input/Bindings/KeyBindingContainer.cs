@@ -198,7 +198,7 @@ namespace osu.Framework.Input.Bindings
                     handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
-            if (handled != null && !(handled is IDontLogKeyPresses))
+            if (handled != null)
                 Logger.Log($"Pressed ({pressed}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handled != null;
@@ -250,7 +250,7 @@ namespace osu.Framework.Input.Bindings
                 pressedActions.Remove(released);
             }
 
-            if (handled != null && !(handled is IDontLogKeyPresses))
+            if (handled != null)
                 Logger.Log($"Released ({released}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handled != null;
