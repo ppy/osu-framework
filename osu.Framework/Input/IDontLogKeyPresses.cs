@@ -8,6 +8,5 @@ namespace osu.Framework.Input
     /// </summary>
     public interface IDontLogKeyPresses
     {
-
     }
 }
