@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -514,8 +515,11 @@ namespace osu.Framework.Input
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
-            if (handledBy != null && !(handledBy is IDontLogKeyPresses))
-                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+            {
+                var detail = handledBy is IDontLogKeyPresses ? e.GetType().ReadableName() : e.ToString();
+                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
 
             return handledBy != null;
         }
