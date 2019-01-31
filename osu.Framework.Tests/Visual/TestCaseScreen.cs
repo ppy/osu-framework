@@ -65,6 +65,7 @@ namespace osu.Framework.Tests.Visual
             AddAssert("baseScreen resumed from screen1", () => baseScreen.ResumedFrom == screen1);
             AddAssert("screen1 exited to baseScreen", () => screen1.ExitedTo == baseScreen);
             AddAssert("screen1 has lifetime end", () => screen1.LifetimeEnd != double.MaxValue);
+            AddUntilStep(() => screen1.Parent == null, "screen1 is removed");
         }
 
         [Test]
