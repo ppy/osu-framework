@@ -152,12 +152,12 @@ namespace osu.Framework.Tests.Dependencies
 
             dependencies.Model.Value = null;
 
-            // Todo: This is probably not what we want going forward
-            Assert.AreEqual(2, resolver.Model.Bindable.Value);
+            // Should be reset to the default value
+            Assert.AreEqual(1, resolver.Model.Bindable.Value);
 
             model.Bindable.Value = 3;
 
-            Assert.AreEqual(2, resolver.Model.Bindable.Value);
+            Assert.AreEqual(1, resolver.Model.Bindable.Value);
         }
 
         [Test]

@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly IReadOnlyDependencyContainer parent;
 
-        private TModel lastModel; // Todo: Remove with https://github.com/ppy/osu-framework/pull/2012
+        private TModel currentModel;
 
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
@@ -27,8 +27,13 @@ namespace osu.Framework.Graphics.Containers
 
             Model.BindValueChanged(newModel =>
             {
-                updateShadowModel(ShadowModel, lastModel, newModel);
-                lastModel = newModel;
+                // When setting a null model, we actually want to reset the shadow model to a default state
+                // rather than leaving the current state on-going
+                newModel = newModel ?? new TModel();
+
+                updateShadowModel(ShadowModel, currentModel, newModel);
+
+                currentModel = newModel;
             });
         }
 
