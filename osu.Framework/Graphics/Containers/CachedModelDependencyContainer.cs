@@ -18,12 +18,15 @@ namespace osu.Framework.Graphics.Containers
         public readonly TModel ShadowModel = new TModel();
 
         private readonly IReadOnlyDependencyContainer parent;
+        private readonly IReadOnlyDependencyContainer shadowDependencies;
 
         private TModel currentModel;
 
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
             this.parent = parent;
+
+            shadowDependencies = DependencyActivator.MergeDependencies(ShadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
             Model.BindValueChanged(newModel =>
             {
@@ -37,9 +40,16 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        public object Get(Type type) => type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type);
+        public object Get(Type type) => Get(type, default);
 
-        public object Get(Type type, CacheInfo info) => type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
+        public object Get(Type type, CacheInfo info)
+        {
+            if (info.Parent == null)
+                return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
+            if (info.Parent == typeof(TModel))
+                return shadowDependencies.Get(type, info) ?? parent?.Get(type, info);
+            return parent?.Get(type, info);
+        }
 
         public void Inject<T>(T instance) where T : class => DependencyActivator.Activate(instance, this);
 

@@ -5,7 +5,6 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Dependencies
@@ -177,6 +176,44 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreNotSame(resolver1.Model, resolver2.Model);
         }
 
+        [Test]
+        public void TestResolveIndividualProperties()
+        {
+            var resolver = new DerivedFieldModelPropertyResolver();
+
+            var model1 = new DerivedFieldModel
+            {
+                Bindable = { Value = 2 },
+                BindableString = { Value = "2" }
+            };
+
+            var model2 = new DerivedFieldModel
+            {
+                Bindable = { Value = 3 },
+                BindableString = { Value = "3" }
+            };
+
+            var dependencies = new CachedModelDependencyContainer<DerivedFieldModel>(null)
+            {
+                Model = { Value = model1 }
+            };
+
+            dependencies.Inject(resolver);
+
+            Assert.AreEqual(2, resolver.Bindable.Value);
+            Assert.AreEqual("2", resolver.BindableString.Value);
+
+            dependencies.Model.Value = model2;
+
+            Assert.AreEqual(3, resolver.Bindable.Value);
+            Assert.AreEqual("3", resolver.BindableString.Value);
+
+            dependencies.Model.Value = null;
+
+            Assert.AreEqual(1, resolver.Bindable.Value);
+            Assert.AreEqual(null, resolver.BindableString.Value);
+        }
+
         private class NonBindablePublicFieldModel
         {
 #pragma warning disable 649
@@ -209,28 +246,31 @@ namespace osu.Framework.Tests.Dependencies
             public readonly Bindable<string> BindableString = new Bindable<string>();
         }
 
-        private class FieldModelResolver : Drawable
+        private class FieldModelResolver
         {
             [Resolved]
             public FieldModel Model { get; private set; }
         }
 
-        private class PropertyModelResolver : Drawable
+        private class PropertyModelResolver
         {
             [Resolved]
             public PropertyModel Model { get; private set; }
         }
 
-        private class DerivedFieldModelResolver : Drawable
+        private class DerivedFieldModelResolver
         {
             [Resolved]
             public DerivedFieldModel Model { get; private set; }
         }
 
-        private class WholeFieldModelResolver : Drawable
+        private class DerivedFieldModelPropertyResolver
         {
-            [Resolved]
-            public FieldModel FieldModel { get; private set; }
+            [Resolved(typeof(DerivedFieldModel))]
+            public Bindable<int> Bindable { get; private set; }
+
+            [Resolved(typeof(DerivedFieldModel))]
+            public Bindable<string> BindableString { get; private set; }
         }
     }
 }
