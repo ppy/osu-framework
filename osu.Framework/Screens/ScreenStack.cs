@@ -177,6 +177,10 @@ namespace osu.Framework.Screens
                 return;
             }
 
+            // we will probably want to change this logic when we support returning to a screen after exiting.
+            toExit.ValidForResume = false;
+            toExit.ValidForPush = false;
+
             onExiting?.Invoke();
 
             if (source == null)
