@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2019 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -95,19 +95,23 @@ namespace osu.Framework.Audio.Track
                     initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-                    // Init Events
-                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => RaiseFailed());
-                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
-                    {
-                        if (!Looping)
-                            RaiseCompleted();
-                    });
+                    SetUpCompletionEvents(activeStream);
 
                     isLoaded = true;
                 }
             });
 
             InvalidateState();
+        }
+
+        protected virtual void SetUpCompletionEvents(int handle)
+        {
+            Bass.ChannelSetSync(handle, SyncFlags.Stop, 0, (a, b, c, d) => RaiseFailed());
+            Bass.ChannelSetSync(handle, SyncFlags.End, 0, (a, b, c, d) =>
+            {
+                if (!Looping)
+                    RaiseCompleted();
+            });
         }
 
         protected virtual DataStreamFileProcedures CreateDataStreamFileProcedures(Stream dataStream) => new DataStreamFileProcedures(dataStream);
