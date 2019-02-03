@@ -96,23 +96,21 @@ namespace osu.Framework.Audio.Track
                     initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-                    SetUpCompletionEvents(activeStream);
+                    var stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
+                    var endCallback = new SyncCallback((a, b, c, d) =>
+                    {
+                        if (!Looping)
+                            RaiseCompleted();
+                    });
+
+                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
 
                     isLoaded = true;
                 }
             });
 
             InvalidateState();
-        }
-
-        protected virtual void SetUpCompletionEvents(int handle)
-        {
-            Bass.ChannelSetSync(handle, SyncFlags.Stop, 0, (a, b, c, d) => RaiseFailed());
-            Bass.ChannelSetSync(handle, SyncFlags.End, 0, (a, b, c, d) =>
-            {
-                if (!Looping)
-                    RaiseCompleted();
-            });
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
