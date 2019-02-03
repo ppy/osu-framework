@@ -517,7 +517,7 @@ namespace osu.Framework.Input
 
             if (handledBy != null)
             {
-                var detail = handledBy is IDontLogKeyPresses ? e.GetType().ReadableName() : e.ToString();
+                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
                 Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
             }
 

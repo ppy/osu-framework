@@ -5,7 +5,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class PasswordTextBox : TextBox, IDontLogKeyPresses
+    public class PasswordTextBox : TextBox, ISuppressKeyEventLogging
     {
         protected virtual char MaskCharacter => '*';
 
