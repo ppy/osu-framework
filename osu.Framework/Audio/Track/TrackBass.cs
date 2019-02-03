@@ -42,7 +42,6 @@ namespace osu.Framework.Audio.Track
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
 
-
         private volatile bool isLoaded;
 
         public override bool IsLoaded => isLoaded;
