@@ -39,6 +39,9 @@ namespace osu.Framework.Audio.Track
         private bool isPlayed;
 
         private FileCallbacks fileCallbacks;
+        private SyncCallback stopCallback;
+        private SyncCallback endCallback;
+
 
         private volatile bool isLoaded;
 
@@ -96,8 +99,8 @@ namespace osu.Framework.Audio.Track
                     initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-                    var stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-                    var endCallback = new SyncCallback((a, b, c, d) =>
+                    stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
+                    endCallback = new SyncCallback((a, b, c, d) =>
                     {
                         if (!Looping)
                             RaiseCompleted();
@@ -164,6 +167,12 @@ namespace osu.Framework.Audio.Track
 
             fileCallbacks?.Dispose();
             fileCallbacks = null;
+
+            stopCallback?.Dispose();
+            stopCallback = null;
+
+            endCallback?.Dispose();
+            endCallback = null;
 
             base.Dispose(disposing);
         }
