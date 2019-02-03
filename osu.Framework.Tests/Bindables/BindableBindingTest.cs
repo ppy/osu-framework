@@ -1,10 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -345,6 +347,9 @@ namespace osu.Framework.Tests.Bindables
             public TestDrawable()
             {
                 bindable.BindValueChanged(_ => ValueChanged = true);
+
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
             }
 
             public virtual void SetValue(int value) => bindable.Value = value;
@@ -372,6 +377,12 @@ namespace osu.Framework.Tests.Bindables
         {
             public Func<Bindable<int>> GetBindable;
             private Bindable<int> bindable => GetBindable();
+
+            public TestDrawable2()
+            {
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
+            }
 
             public void SetValue(int value) => bindable.Value = value;
         }

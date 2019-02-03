@@ -1,0 +1,12 @@
+clone_depth: 1
+version: '{build}'
+skip_non_tags: true
+image: Visual Studio 2017
+configuration: Release
+platform: Any CPU
+before_build:
+- ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
+build_script:
+  - cmd: dotnet pack osu.Framework.NativeLibs /p:Version=%APPVEYOR_BUILD_VERSION%
+artifacts:
+  - path: osu.Framework.NativeLibs/bin/Any CPU/Release/*.nupkg
