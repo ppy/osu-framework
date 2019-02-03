@@ -62,7 +62,7 @@ namespace osu.Framework.Audio.Track
 
                 fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
-                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
+                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 if (!Preview)

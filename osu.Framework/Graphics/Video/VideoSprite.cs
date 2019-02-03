@@ -130,6 +130,7 @@ namespace osu.Framework.Graphics.Video
 
             while (availableFrames.Count > 0 && availableFrames.Peek().Time <= PlaybackPosition && Math.Abs(availableFrames.Peek().Time - PlaybackPosition) < lenience_before_seek)
             {
+                if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
                 Texture = lastFrame.Texture;
             }
