@@ -4,10 +4,9 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 
-namespace osu.Framework.Graphics.Containers
+namespace osu.Framework.Allocation
 {
     public class CachedModelDependencyContainer<TModel> : IReadOnlyDependencyContainer
         where TModel : class, new()
