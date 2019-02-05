@@ -8,11 +8,25 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Allocation
 {
+    /// <summary>
+    /// A <see cref="DependencyContainer"/> which caches a <typeparamref name="TModel"/> and members it contains attached with a <see cref="CachedAttribute"/> as dependencies.
+    /// </summary>
+    /// <remarks>
+    /// Users can query the model by directly querying for the <typeparamref name="TModel"/> type,
+    /// and query for the model's dependencies by providing the <typeparamref name="TModel"/> type as a parent.
+    /// </remarks>
+    /// <typeparam name="TModel">The type of the model to cache. Must contain only <see cref="Bindable{T}"/> fields or auto-properties.</typeparam>
     public class CachedModelDependencyContainer<TModel> : IReadOnlyDependencyContainer
         where TModel : class, new()
     {
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
+        /// <summary>
+        /// The <typeparamref name="TModel"/> that provides the cached values.
+        /// </summary>
+        /// <remarks>
+        /// This model is not injected directly, users of the <see cref="CachedModelDependencyContainer{TModel}"/> receive a shadow-bound copy of this value in all cases.
+        /// </remarks>
         public readonly Bindable<TModel> Model = new Bindable<TModel>();
 
         private readonly TModel shadowModel = new TModel();
