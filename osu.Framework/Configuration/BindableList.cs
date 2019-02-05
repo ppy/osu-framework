@@ -531,6 +531,6 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
         }
 
-        public bool IsDefault => false;
+        public bool IsDefault => Count == 0;
     }
 }
