@@ -14,7 +14,8 @@ namespace osu.Framework.Allocation
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         public readonly Bindable<TModel> Model = new Bindable<TModel>();
-        public readonly TModel ShadowModel = new TModel();
+
+        private readonly TModel shadowModel = new TModel();
 
         private readonly IReadOnlyDependencyContainer parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
@@ -25,7 +26,7 @@ namespace osu.Framework.Allocation
         {
             this.parent = parent;
 
-            shadowDependencies = DependencyActivator.MergeDependencies(ShadowModel, null, new CacheInfo(parent: typeof(TModel)));
+            shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
             Model.BindValueChanged(newModel =>
             {
@@ -33,7 +34,7 @@ namespace osu.Framework.Allocation
                 // rather than leaving the current state on-going
                 newModel = newModel ?? new TModel();
 
-                updateShadowModel(ShadowModel, currentModel, newModel);
+                updateShadowModel(shadowModel, currentModel, newModel);
 
                 currentModel = newModel;
             });
@@ -53,12 +54,12 @@ namespace osu.Framework.Allocation
         public void Inject<T>(T instance) where T : class => DependencyActivator.Activate(instance, this);
 
         /// <summary>
-        /// Creates a new shadow model bound to <see cref="ShadowModel"/>.
+        /// Creates a new shadow model bound to <see cref="shadowModel"/>.
         /// </summary>
         private TModel createChildShadowModel()
         {
             var result = new TModel();
-            updateShadowModel(result, default, ShadowModel);
+            updateShadowModel(result, default, shadowModel);
             return result;
         }
 
