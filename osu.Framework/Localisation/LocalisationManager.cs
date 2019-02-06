@@ -1,9 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using JetBrains.Annotations;
@@ -44,7 +43,7 @@ namespace osu.Framework.Localisation
             if (locales.Count == 0)
                 return;
 
-            var validLocale = locales.FirstOrDefault(l => l.Name == newValue);
+            var validLocale = locales.Find(l => l.Name == newValue);
 
             if (validLocale == null)
             {
@@ -52,7 +51,7 @@ namespace osu.Framework.Localisation
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                 {
-                    validLocale = locales.FirstOrDefault(l => l.Name == c.Name);
+                    validLocale = locales.Find(l => l.Name == c.Name);
                     if (validLocale != null)
                         break;
                 }

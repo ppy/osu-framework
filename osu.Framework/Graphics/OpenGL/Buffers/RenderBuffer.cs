@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (info.FrameBufferID != frameBuffer)
             {
                 // Make sure the framebuffer we want to attach to is bound
-                int lastFrameBuffer = GLWrapper.BindFrameBuffer(frameBuffer);
+                GLWrapper.BindFrameBuffer(frameBuffer);
 
                 switch (Format)
                 {
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                         break;
                 }
 
-                GLWrapper.BindFrameBuffer(lastFrameBuffer);
+                GLWrapper.UnbindFrameBuffer(frameBuffer);
             }
 
             info.FrameBufferID = frameBuffer;

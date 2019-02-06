@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace osu.Framework.Configuration
     /// An readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableList{T}"/>.</typeparam>
-    public interface IBindableList<T> : IReadOnlyList<T>, IUnbindable, ICanBeDisabled
+    public interface IBindableList<T> : IReadOnlyList<T>, IBindable
     {
         /// <summary>
         /// An event which is raised when an range of items get added.
@@ -34,6 +34,6 @@ namespace osu.Framework.Configuration
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindableList<T> GetBoundCopy();
+        new IBindableList<T> GetBoundCopy();
     }
 }

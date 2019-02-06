@@ -39,7 +39,8 @@
             "type": "shell",
             "command": "dotnet",
             "args": [
-                "restore"
+                "restore",
+                "osu-framework.sln"
             ],
             "problemMatcher": []
         }
