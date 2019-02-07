@@ -10,7 +10,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList, IParseable, IHasDescription
+    public class BindableList<T> : IBindableList<T>, IList<T>, IList
     {
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
@@ -450,6 +450,14 @@ namespace osu.Framework.Configuration
             ItemsAdded?.Invoke(items);
         }
 
+        void IBindable.BindTo(IBindable them)
+        {
+            if (!(them is BindableList<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            BindTo(tThem);
+        }
+
         void IBindableList<T>.BindTo(IBindableList<T> them)
         {
             if (!(them is BindableList<T> tThem))
@@ -489,6 +497,8 @@ namespace osu.Framework.Configuration
 
         private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => bindings?.Remove(weakReference);
 
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
         IBindableList<T> IBindableList<T>.GetBoundCopy()
             => GetBoundCopy();
 
@@ -520,5 +530,7 @@ namespace osu.Framework.Configuration
             if (Disabled)
                 throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
         }
+
+        public bool IsDefault => Count == 0;
     }
 }
