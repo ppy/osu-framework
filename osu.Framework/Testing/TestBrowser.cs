@@ -87,7 +87,7 @@ namespace osu.Framework.Testing
                                                         return string.IsNullOrWhiteSpace(group) ? t.Name : group;
                                                     },
                                                     t => t,
-                                                    (group, types) => new TestCaseButtonGroup.TestGroup { Name = group, TestTypes = types.ToArray() }
+                                                    (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
                                                 ).Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
@@ -130,7 +130,7 @@ namespace osu.Framework.Testing
                     {
                         new Box
                         {
-                            Colour = Color4.DimGray,
+                            Colour = new Color4(50, 50, 50, 255),
                             RelativeSizeAxes = Axes.Both
                         },
                         new FillFlowContainer
@@ -160,7 +160,6 @@ namespace osu.Framework.Testing
                                     {
                                         Padding = new MarginPadding(3),
                                         Direction = FillDirection.Vertical,
-                                        Spacing = new Vector2(0, 5),
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,
                                     }
