@@ -33,7 +33,6 @@ namespace osu.Framework.Testing.Drawables
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
         private readonly TestCaseButton header;
-        private readonly SpriteText headerSprite;
         private readonly FillFlowContainer<TestCaseButton> buttonFlow;
 
         public readonly TestGroup Group;
@@ -79,17 +78,8 @@ namespace osu.Framework.Testing.Drawables
             }
             else
             {
-                buttonFlow.Add(header = new TestCaseButton(group.Name.Replace("TestCase", "")));
+                buttonFlow.Add(header = new TestCaseHeaderButton(group.Name.Replace("TestCase", "")));
                 header.Action = ToggleVisibility;
-                header.Add(headerSprite = new SpriteText
-                {
-                    Text = "+",
-                    TextSize = 40,
-                    Margin = new MarginPadding { Right = 5, Top = -10 },
-                    BypassAutoSizeAxes = Axes.Y,
-                    Anchor = Anchor.TopRight,
-                    Origin = Anchor.TopRight,
-                });
 
                 foreach (var test in tests)
                 {
@@ -109,25 +99,13 @@ namespace osu.Framework.Testing.Drawables
         protected override void PopIn()
         {
             if (Group.TestTypes.Length > 1)
-            {
-                headerSprite.Text = "-";
-                buttonFlow.ForEach(d =>
-                {
-                    if (d != header) d.Collapsed = false;
-                });
-            }
+                buttonFlow.ForEach(b => b.Collapsed = false);
         }
 
         protected override void PopOut()
         {
             if (Group.TestTypes.Length > 1)
-            {
-                headerSprite.Text = "+";
-                buttonFlow.ForEach(d =>
-                {
-                    if (d != header) d.Collapsed = true;
-                });
-            }
+                buttonFlow.ForEach(b => b.Collapsed = true);
         }
 
         public Type SelectFirst()
@@ -143,11 +121,40 @@ namespace osu.Framework.Testing.Drawables
             return Group.TestTypes[0];
         }
 
+        private class TestCaseHeaderButton : TestCaseButton
+        {
+            private readonly SpriteText headerSprite;
+
+            public TestCaseHeaderButton(string header)
+                : base(header)
+            {
+                Add(headerSprite = new SpriteText
+                {
+                    Text = "+",
+                    TextSize = 40,
+                    BypassAutoSizeAxes = Axes.Y,
+                    Anchor = Anchor.CentreRight,
+                    Origin = Anchor.CentreRight,
+                });
+            }
+
+            public override void Hide()
+            {
+                headerSprite.Text = "+";
+            }
+
+            public override void Show()
+            {
+                headerSprite.Text = "-";
+            }
+        }
+
         private class TestCaseButton : ClickableContainer, IFilterable
         {
             public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
             private bool matchingFilter = true;
+
             public bool MatchingFilter
             {
                 set
@@ -159,19 +166,19 @@ namespace osu.Framework.Testing.Drawables
             }
 
             private bool collapsed;
+
             public bool Collapsed
             {
                 set
                 {
                     collapsed = value;
-
                     updateVisibility();
                 }
             }
 
             private void updateVisibility()
             {
-                if(collapsed || !matchingFilter)
+                if (collapsed || !matchingFilter)
                     Hide();
                 else
                     Show();
