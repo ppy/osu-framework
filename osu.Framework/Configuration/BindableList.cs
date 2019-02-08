@@ -1,22 +1,17 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList, IParseable, IHasDescription
+    public class BindableList<T> : IBindableList<T>, IList<T>, IList
     {
-        private readonly List<T> collection = new List<T>();
-
-        private readonly WeakReference<BindableList<T>> weakReference;
-
-        private LockedWeakList<BindableList<T>> bindings;
-
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
         /// </summary>
@@ -32,6 +27,14 @@ namespace osu.Framework.Configuration
         /// </summary>
         public event Action<bool> DisabledChanged;
 
+        private readonly List<T> collection = new List<T>();
+
+        private Cached<WeakReference<BindableList<T>>> weakReferenceCache;
+
+        private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
+
+        private LockedWeakList<BindableList<T>> bindings;
+
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
@@ -40,9 +43,6 @@ namespace osu.Framework.Configuration
         {
             if (items != null)
                 collection.AddRange(items);
-
-            // we can not initialize this directly at the property due to the this capture.
-            weakReference = new WeakReference<BindableList<T>>(this);
         }
 
         #region IList<T>
@@ -277,6 +277,8 @@ namespace osu.Framework.Configuration
         public void CopyTo(Array array, int index)
             => ((ICollection)collection).CopyTo(array, index);
 
+        public int BinarySearch(T item) => collection.BinarySearch(item);
+
         public int Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
@@ -448,6 +450,14 @@ namespace osu.Framework.Configuration
             ItemsAdded?.Invoke(items);
         }
 
+        void IBindable.BindTo(IBindable them)
+        {
+            if (!(them is BindableList<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            BindTo(tThem);
+        }
+
         void IBindableList<T>.BindTo(IBindableList<T> them)
         {
             if (!(them is BindableList<T> tThem))
@@ -487,6 +497,8 @@ namespace osu.Framework.Configuration
 
         private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => bindings?.Remove(weakReference);
 
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
         IBindableList<T> IBindableList<T>.GetBoundCopy()
             => GetBoundCopy();
 
@@ -518,5 +530,7 @@ namespace osu.Framework.Configuration
             if (Disabled)
                 throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
         }
+
+        public bool IsDefault => Count == 0;
     }
 }

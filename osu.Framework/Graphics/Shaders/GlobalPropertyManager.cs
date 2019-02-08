@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
             global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
             global_properties[(int)GlobalProperty.InnerCornerRadius] = new UniformMapping<float>("g_InnerCornerRadius");
+            global_properties[(int)GlobalProperty.GammaCorrection] = new UniformMapping<bool>("g_GammaCorrection");
         }
 
         /// <summary>
