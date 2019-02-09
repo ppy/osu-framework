@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
+using System.Text.RegularExpressions;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Configuration
@@ -62,21 +66,26 @@ namespace osu.Framework.Configuration
 
         public override void Parse(object input)
         {
-            // TODO
-            //switch (input)
-            //{
-            //    case string str:
-            //        string[] split = str.Split('x');
+            switch (input)
+            {
+                case string str:
+                    string[] split = str.Trim("() ".ToCharArray()).Split(',');
 
-            //        if (split.Length != 2)
-            //            throw new ArgumentException($"Input string was in wrong format! (expected: '<width>x<height>', actual: '{str}')");
+                    if (split.Length != 4)
+                        throw new ArgumentException($"Input string was in wrong format! (expected: '(<top>, <left>, <bottom>, <right>)', actual: '{str}')");
 
-            //        Value = new MarginPadding(int.Parse(split[0]), int.Parse(split[1]));
-            //        break;
-            //    default:
-            //        base.Parse(input);
-            //        break;
-            //}
+                    Value = new MarginPadding
+                    {
+                        Top = float.Parse(split[0]),
+                        Left = float.Parse(split[1]),
+                        Bottom = float.Parse(split[2]),
+                        Right = float.Parse(split[3]),
+                    };
+                    break;
+                default:
+                    base.Parse(input);
+                    break;
+            }
         }
         
         private static MarginPadding clamp(MarginPadding value, MarginPadding minValue, MarginPadding maxValue) =>
