@@ -189,6 +189,8 @@ namespace osu.Framework.Platform
 
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
 
+        public readonly BindableMarginPadding SafeAreaPadding = new BindableMarginPadding();
+
         public virtual VSyncMode VSync { get; set; }
 
         public virtual void CycleMode()
