@@ -87,7 +87,7 @@ namespace osu.Framework.Configuration
                     break;
             }
         }
-        
+
         private static MarginPadding clamp(MarginPadding value, MarginPadding minValue, MarginPadding maxValue) =>
             new MarginPadding
             {
