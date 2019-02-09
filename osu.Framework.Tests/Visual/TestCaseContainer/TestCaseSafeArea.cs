@@ -63,6 +63,9 @@ namespace osu.Framework.Tests.Visual.TestCaseContainer
         private void load(GameHost host)
         {
             window = host.Window;
+
+            if (window == null) return;
+
             safeAreaPadding.ValueChanged += updatePadding;
             safeAreaPadding.BindTo(window.SafeAreaPadding);
             updatePadding(window.SafeAreaPadding.Value);
@@ -77,6 +80,9 @@ namespace osu.Framework.Tests.Visual.TestCaseContainer
         protected override void Update()
         {
             base.Update();
+
+            if (window == null) return;
+
             var size = new Vector2(window.Width, window.Height);
             var scale = Vector2.Divide(Content.DrawSize, size);
             container.Size = box.Size = size;
