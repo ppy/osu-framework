@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
                     }
                 }
             };
-            AddStep(@"Variable width", () => { addText(flow, fixedWidth: false); });
+            AddStep(@"Variable width", () => { addText(flow); });
             AddStep(@"Fixed width", () => { addText(flow, fixedWidth: true); });
         }
 

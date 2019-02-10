@@ -436,13 +436,7 @@ namespace osu.Framework.Graphics.Sprites
                 float currentRowHeight = 0;
 
                 // Calculate period texture info outside the loop so that it isn't done per-character
-                Texture periodTexture = null;
-                float ellipsisWidth = 0.0F;
-                if (TruncateWithEllipsis)
-                {
-                    periodTexture = getTextureForCharacter('.');
-                    ellipsisWidth = 3 * periodTexture.DisplayWidth * TextSize;
-                }
+                float ellipsisWidth = TruncateWithEllipsis ? 3 * getTextureForCharacter('.').DisplayWidth * TextSize : 0.0F;
 
                 foreach (var character in displayedText)
                 {
@@ -490,6 +484,7 @@ namespace osu.Framework.Graphics.Sprites
                     // Check if this character would take us past the max width if we were to add ellipsis
                     else if (TruncateWithEllipsis && currentPos.X + glyphSize.X + ellipsisWidth >= maxWidth)
                     {
+                        Texture periodTexture = getTextureForCharacter('.');
                         // Periods are always variable width so ignore FixedWidth when setting these
                         textureSize = new Vector2(periodTexture.DisplayWidth, periodTexture.DisplayHeight);
                         glyphSize = new Vector2(textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
@@ -498,7 +493,7 @@ namespace osu.Framework.Graphics.Sprites
                         // Create 3 periods
                         for (int a = 0; a < 3; a++)
                         {
-                            float offset = (a * glyphSize.X) + ((glyphSize.X - scaledTextureSize.X) / 2);
+                            float offset = a * glyphSize.X + (glyphSize.X - scaledTextureSize.X) / 2;
                             charactersBacking.Add(new CharacterPart
                             {
                                 Texture = periodTexture,
