@@ -242,6 +242,41 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private bool truncate;
+
+        /// <summary>
+        /// True if the text should be truncated when it exceeds <see cref="Width"/>.
+        /// Has no effect if <see cref="AllowMultiline"/> is true.
+        /// </summary>
+        public bool Truncate
+        {
+            get => truncate;
+            set
+            {
+                if (truncate == value) return;
+                truncate = value;
+                invalidate(true);
+            }
+        }
+
+        private bool truncateWithEllipsis;
+
+        /// <summary>
+        /// True if the text should be truncated with ellipsis when it exceeds <see cref="Width"/>.
+        /// Overrides <see cref="Truncate"/>.
+        /// Has no effect if <see cref="AllowMultiline"/> is true.
+        /// </summary>
+        public bool TruncateWithEllipsis
+        {
+            get => truncateWithEllipsis;
+            set
+            {
+                if (truncateWithEllipsis == value) return;
+                truncateWithEllipsis = value;
+                invalidate(true);
+            }
+        }
+
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
@@ -400,6 +435,15 @@ namespace osu.Framework.Graphics.Sprites
 
                 float currentRowHeight = 0;
 
+                // Calculate period texture info outside the loop so that it isn't done per-character
+                Texture periodTexture = null;
+                float ellipsisWidth = 0.0F;
+                if (TruncateWithEllipsis)
+                {
+                    periodTexture = getTextureForCharacter('.');
+                    ellipsisWidth = 3 * periodTexture.DisplayWidth * TextSize;
+                }
+
                 foreach (var character in displayedText)
                 {
                     bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
@@ -434,12 +478,37 @@ namespace osu.Framework.Graphics.Sprites
                     Vector2 scaledTextureSize = textureSize * TextSize;
 
                     // Check if we need to go onto the next line
-                    if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
+                    if (AllowMultiline)
                     {
-                        currentPos.X = Padding.Left;
-                        currentPos.Y += currentRowHeight + spacing.Y;
-                        currentRowHeight = 0;
+                        if (currentPos.X + glyphSize.X >= maxWidth)
+                        {
+                            currentPos.X = Padding.Left;
+                            currentPos.Y += currentRowHeight + spacing.Y;
+                            currentRowHeight = 0;
+                        }
                     }
+                    // Check if this character would take us past the max width if we were to add ellipsis
+                    else if (TruncateWithEllipsis && currentPos.X + glyphSize.X + ellipsisWidth >= maxWidth)
+                    {
+                        // Periods are always variable width so ignore FixedWidth when setting these
+                        textureSize = new Vector2(periodTexture.DisplayWidth, periodTexture.DisplayHeight);
+                        glyphSize = new Vector2(textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                        scaledTextureSize = textureSize * TextSize;
+
+                        // Create 3 periods
+                        for (int a = 0; a < 3; a++)
+                        {
+                            float offset = (a * glyphSize.X) + ((glyphSize.X - scaledTextureSize.X) / 2);
+                            charactersBacking.Add(new CharacterPart
+                            {
+                                Texture = periodTexture,
+                                DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
+                            });
+                        }
+                        break;
+                    }
+                    // Check if this character would take us path the max width
+                    else if (Truncate && currentPos.X + glyphSize.X >= maxWidth) { break; }
 
                     // The height of the row depends on whether we want to use the full glyph height or not
                     currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
