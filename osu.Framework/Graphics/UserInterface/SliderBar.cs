@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Configuration;
@@ -168,7 +168,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e) => commit();
+        protected override bool OnKeyUp(KeyUpEvent e)
+        {
+            if (e.Key == Key.Left || e.Key == Key.Right)
+                return commit();
+            return false;
+        }
 
         private bool uncommittedChanges;
 

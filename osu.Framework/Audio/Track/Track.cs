@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Configuration;
 using osu.Framework.Statistics;
@@ -10,6 +10,12 @@ namespace osu.Framework.Audio.Track
 {
     public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
+        public event Action Completed;
+        public event Action Failed;
+
+        protected virtual void RaiseCompleted() => Completed?.Invoke();
+        protected virtual void RaiseFailed() => Failed?.Invoke();
+
         /// <summary>
         /// Is this track capable of producing audio?
         /// </summary>
@@ -19,6 +25,11 @@ namespace osu.Framework.Audio.Track
         /// States if this track should repeat.
         /// </summary>
         public bool Looping { get; set; }
+
+        /// <summary>
+        /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
+        /// </summary>
+        public double RestartPoint { get; set; }
 
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
@@ -44,12 +55,12 @@ namespace osu.Framework.Audio.Track
         }
 
         /// <summary>
-        /// Restarts this track from the beginning while retaining adjustments.
+        /// Restarts this track from the <see cref="RestartPoint"/> while retaining adjustments.
         /// </summary>
         public virtual void Restart()
         {
             Stop();
-            Seek(0);
+            Seek(RestartPoint);
             Start();
         }
 

@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -515,7 +516,10 @@ namespace osu.Framework.Input
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
-                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            {
+                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
 
             return handledBy != null;
         }
