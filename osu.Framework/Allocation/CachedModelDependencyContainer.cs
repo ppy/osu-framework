@@ -93,28 +93,28 @@ namespace osu.Framework.Allocation
                 Debug.Assert(type != null);
 
                 foreach (var field in type.GetFields(activator_flags))
+                    unbind(field);
+
+                foreach (var field in type.GetFields(activator_flags))
                     rebind(field);
 
                 type = type.BaseType;
             }
 
-            void rebind(MemberInfo member)
+            void unbind(MemberInfo member)
             {
                 object shadowValue = null;
                 object lastModelValue = null;
-                object newModelValue = null;
 
                 switch (member)
                 {
                     case PropertyInfo pi:
                         shadowValue = pi.GetValue(shadowModel);
                         lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
-                        newModelValue = newModel == null ? null : pi.GetValue(newModel);
                         break;
                     case FieldInfo fi:
                         shadowValue = fi.GetValue(shadowModel);
                         lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
-                        newModelValue = newModel == null ? null : fi.GetValue(newModel);
                         break;
                 }
 
@@ -123,7 +123,28 @@ namespace osu.Framework.Allocation
                     // Unbind from the last model
                     if (lastModelValue is IBindable lastModelBindable)
                         shadowBindable.UnbindFrom(lastModelBindable);
+                }
+            }
 
+            void rebind(MemberInfo member)
+            {
+                object shadowValue = null;
+                object newModelValue = null;
+
+                switch (member)
+                {
+                    case PropertyInfo pi:
+                        shadowValue = pi.GetValue(shadowModel);
+                        newModelValue = newModel == null ? null : pi.GetValue(newModel);
+                        break;
+                    case FieldInfo fi:
+                        shadowValue = fi.GetValue(shadowModel);
+                        newModelValue = newModel == null ? null : fi.GetValue(newModel);
+                        break;
+                }
+
+                if (shadowValue is IBindable shadowBindable)
+                {
                     // Bind to the new model
                     if (newModelValue is IBindable newModelBindable)
                         shadowBindable.BindTo(newModelBindable);
