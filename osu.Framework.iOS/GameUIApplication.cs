@@ -7,6 +7,7 @@ using UIKit;
 using osu.Framework.Logging;
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace osu.Framework.iOS {
     [Register("GameUIApplication")]
@@ -36,6 +37,16 @@ namespace osu.Framework.iOS {
 
         int lastEventFlags;
 
+        private HashSet<int> blockKeys = new HashSet<int>();
+
+        public GameUIApplication()
+        {
+            blockKeys.Add(79);// Right
+            blockKeys.Add(80);// Left
+            blockKeys.Add(81);// Down
+            blockKeys.Add(82);// Up
+        }
+
         unsafe bool decodeKeyEvent(NSObject eventMem) {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
@@ -46,19 +57,17 @@ namespace osu.Framework.iOS {
 
             Logger.Log(string.Format("keyboard event: {0} - {1}", eventType, eventScanCode));
 
-            if (eventType == GSEVENT_TYPE_KEYDOWN) {
-                keyEvent(eventScanCode, true);
-                return true;
-            } else
-            if (eventType == GSEVENT_TYPE_KEYUP) {
-                keyEvent(eventScanCode, false);
-                return true;
+            if (eventType == GSEVENT_TYPE_KEYDOWN || eventType == GSEVENT_TYPE_KEYUP) {
+                keyEvent(eventScanCode, eventType == GSEVENT_TYPE_KEYDOWN);
+                if (blockKeys.Contains(eventScanCode))
+                {
+                    return true;
+                }
             } else
             if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
                 bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
                 keyEvent(eventScanCode, pressed);
                 lastEventFlags = eventModifier;
-                return true;
             }
             return false;
         }
