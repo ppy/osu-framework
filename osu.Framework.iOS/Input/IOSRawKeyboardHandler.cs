@@ -8,22 +8,28 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
 
-namespace osu.Framework.iOS.Input {
-    public class IOSRawKeyboardHandler : InputHandler {
+namespace osu.Framework.iOS.Input
+{
+    public class IOSRawKeyboardHandler : InputHandler
+    {
         public override bool IsActive => true;
 
         public override int Priority => 0;
 
         Dictionary<int, Key> keyMap;
 
-        void handleKey(int keyCode, bool isDown) {
-            if (keyMap.ContainsKey(keyCode)) {
+        void handleKey(int keyCode, bool isDown)
+        {
+            if (keyMap.ContainsKey(keyCode))
+            {
                 PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
             }
         }
 
-        public override bool Initialize(GameHost host) {
-            if (!(UIApplication.SharedApplication is GameUIApplication)) {
+        public override bool Initialize(GameHost host)
+        {
+            if (!(UIApplication.SharedApplication is GameUIApplication))
+            {
                 return false;
             }
             ((GameUIApplication)UIApplication.SharedApplication).keyEvent += handleKey;

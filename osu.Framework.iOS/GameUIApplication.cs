@@ -9,9 +9,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 
-namespace osu.Framework.iOS {
+namespace osu.Framework.iOS
+{
     [Register("GameUIApplication")]
-    public class GameUIApplication : UIApplication {
+    public class GameUIApplication : UIApplication
+    {
         private static bool IS_IOS7 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(7, 0, 0));
         private static bool IS_IOS9 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(9, 0, 0));
 
@@ -47,7 +49,8 @@ namespace osu.Framework.iOS {
             blockKeys.Add(82);// Up
         }
 
-        unsafe bool decodeKeyEvent(NSObject eventMem) {
+        unsafe bool decodeKeyEvent(NSObject eventMem)
+        {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
             int eventType = (int)eventPtr[GSEVENT_TYPE];
@@ -57,14 +60,17 @@ namespace osu.Framework.iOS {
 
             Logger.Log(string.Format("keyboard event: {0} - {1}", eventType, eventScanCode));
 
-            if (eventType == GSEVENT_TYPE_KEYDOWN || eventType == GSEVENT_TYPE_KEYUP) {
+            if (eventType == GSEVENT_TYPE_KEYDOWN || eventType == GSEVENT_TYPE_KEYUP)
+            {
                 keyEvent(eventScanCode, eventType == GSEVENT_TYPE_KEYDOWN);
                 if (blockKeys.Contains(eventScanCode))
                 {
                     return true;
                 }
-            } else
-            if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
+            }
+            else
+            if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER)
+            {
                 bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
                 keyEvent(eventScanCode, pressed);
                 lastEventFlags = eventModifier;
@@ -76,10 +82,13 @@ namespace osu.Framework.iOS {
         Selector handleSelector = new Selector("handleKeyUIEvent:");
 
         [Export("handleKeyUIEvent:")]
-        void handleKeyUIEvent(UIEvent evt) {
-            if (evt.RespondsToSelector(gsSelector)) {
+        void handleKeyUIEvent(UIEvent evt)
+        {
+            if (evt.RespondsToSelector(gsSelector))
+            {
                 var eventMem = evt.PerformSelector(gsSelector);
-                if (eventMem != null) {
+                if (eventMem != null)
+                {
                     if (decodeKeyEvent(eventMem))
                     {
                         return;
