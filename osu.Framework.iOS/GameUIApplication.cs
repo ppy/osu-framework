@@ -36,7 +36,7 @@ namespace osu.Framework.iOS {
 
         int lastEventFlags;
 
-        unsafe void decodeKeyEvent(NSObject eventMem) {
+        unsafe bool decodeKeyEvent(NSObject eventMem) {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
             int eventType = (int)eventPtr[GSEVENT_TYPE];
@@ -48,15 +48,19 @@ namespace osu.Framework.iOS {
 
             if (eventType == GSEVENT_TYPE_KEYDOWN) {
                 keyEvent(eventScanCode, true);
+                return true;
             } else
             if (eventType == GSEVENT_TYPE_KEYUP) {
                 keyEvent(eventScanCode, false);
+                return true;
             } else
             if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
                 bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
                 keyEvent(eventScanCode, pressed);
                 lastEventFlags = eventModifier;
+                return true;
             }
+            return false;
         }
 
         Selector gsSelector = new Selector("_gsEvent");
@@ -67,7 +71,10 @@ namespace osu.Framework.iOS {
             if (evt.RespondsToSelector(gsSelector)) {
                 var eventMem = evt.PerformSelector(gsSelector);
                 if (eventMem != null) {
-                    decodeKeyEvent(eventMem);
+                    if (decodeKeyEvent(eventMem))
+                    {
+                        return;
+                    }
                 }
             }
             void_objc_msgSendSuper_intptr(this.SuperHandle, handleSelector.Handle, evt.Handle);
