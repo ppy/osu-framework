@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using Foundation;
 using ObjCRuntime;
@@ -43,10 +43,10 @@ namespace osu.Framework.iOS
 
         public GameUIApplication()
         {
-            blockKeys.Add(79);// Right
-            blockKeys.Add(80);// Left
-            blockKeys.Add(81);// Down
-            blockKeys.Add(82);// Up
+            blockKeys.Add(79); // Right
+            blockKeys.Add(80); // Left
+            blockKeys.Add(81); // Down
+            blockKeys.Add(82); // Up
         }
 
         unsafe bool decodeKeyEvent(NSObject eventMem)
