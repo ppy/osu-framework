@@ -116,18 +116,12 @@ namespace osu.Framework.Allocation
 
         static CachedModelDependencyContainer()
         {
-            var type = typeof(TModel);
-
-            while (type != null && type != typeof(object))
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
             {
-                foreach (var field in type.GetFields(activator_flags))
-                {
-                    if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
-                        throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
-                                                            + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
-                }
-
-                type = type.BaseType;
+                if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
+                    throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
+                                                        + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
             }
         }
     }
