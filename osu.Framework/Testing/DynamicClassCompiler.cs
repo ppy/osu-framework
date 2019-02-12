@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
@@ -47,7 +47,7 @@ namespace osu.Framework.Testing
 
             Task.Run(() =>
             {
-                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
+                var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
                     return;
@@ -73,6 +73,14 @@ namespace osu.Framework.Testing
                     watchers.Add(fsw);
                 }
             });
+
+            string getSolutionPath(DirectoryInfo d)
+            {
+                if (d == null)
+                    return null;
+
+                return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
+            }
         }
 
         private void onChange(object sender, FileSystemEventArgs e)

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void AddInternal(Drawable drawable)
         {
-            if (Content == this && !(drawable is T))
+            if (Content == this && drawable != null && !(drawable is T))
                 throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             base.AddInternal(drawable);
