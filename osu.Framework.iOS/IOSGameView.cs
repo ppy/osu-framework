@@ -47,7 +47,7 @@ namespace osu.Framework.iOS
 
         // SafeAreaInsets is cached to prevent access outside the main thread
         private UIEdgeInsets safeArea = UIEdgeInsets.Zero;
-        public UIEdgeInsets SafeArea
+        internal UIEdgeInsets SafeArea
         {
             get => safeArea;
             set
