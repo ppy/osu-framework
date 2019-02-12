@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <param name="level">The level in the document of <paramref name="paragraphBlock"/>.
         /// 0 for the root level, 1 for first-level items in a list, 2 for second-level items in a list, etc.</param>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
+        protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock);
 
         /// <summary>
         /// Creates the visualiser for a <see cref="QuoteBlock"/>.
@@ -217,13 +217,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// Creates the visualiser for a <see cref="ListBlock"/>.
         /// </summary>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownList CreateList(ListBlock listBlock) => new MarkdownList(listBlock);
+        protected virtual MarkdownList CreateList(ListBlock listBlock) => new MarkdownList();
 
         /// <summary>
         /// Creates the visualiser for a horizontal separator.
         /// </summary>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator(thematicBlock);
+        protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator();
 
         /// <summary>
         /// Creates the visualiser for an element that isn't implemented.

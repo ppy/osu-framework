@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
         {
-            return new MarkdownTableCell(cell, definition, isHeading);
+            return new MarkdownTableCell(cell, definition);
         }
 
         private class TableContainer : GridContainer
