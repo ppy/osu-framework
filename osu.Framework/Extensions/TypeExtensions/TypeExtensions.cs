@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -33,6 +34,21 @@ namespace osu.Framework.Extensions.TypeExtensions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Return every base type until (and excluding) <see cref="object"/>
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static IEnumerable<Type> EnumerateBaseTypes(this Type t)
+        {
+            while (t != typeof(object))
+            {
+                Debug.Assert(t != null);
+                yield return t;
+                t = t.BaseType;
+            }
         }
 
         public static string ReadableName(this Type t) => readableName(t, new HashSet<Type>());

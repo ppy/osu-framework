@@ -118,33 +118,25 @@ namespace osu.Framework.Graphics
 
         private void cacheUnbindActions()
         {
-            Type type = GetType();
-
-            do
+            foreach (var type in GetType().EnumerateBaseTypes())
             {
-                cacheUnbindAction(type);
-                type = type.BaseType;
-            } while (type != null && type != typeof(object));
-
-            void cacheUnbindAction(Type targetType)
-            {
-                if (unbind_action_cache.TryGetValue(targetType, out _))
+                if (unbind_action_cache.TryGetValue(type, out _))
                     return;
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
 
                 // Generate delegates to unbind fields
-                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                                            .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
                                            .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
                 // Generate delegates to unbind properties
-                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                actions.AddRange(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                                            .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
                                            .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                unbind_action_cache[targetType] = target =>
+                unbind_action_cache[type] = target =>
                 {
                     foreach (var a in actions)
                     {

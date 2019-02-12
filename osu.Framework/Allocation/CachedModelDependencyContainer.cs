@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -80,55 +80,43 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Updates a shadow model by unbinding from a previous model and binding to a new model.
         /// </summary>
-        /// <param name="shadowModel">The shadow model to update.</param>
+        /// <param name="targetShadowModel">The shadow model to update.</param>
         /// <param name="lastModel">The model to unbind from.</param>
         /// <param name="newModel">The model to bind to.</param>
-        private void updateShadowModel(TModel shadowModel, TModel lastModel, TModel newModel)
+        private void updateShadowModel(TModel targetShadowModel, TModel lastModel, TModel newModel)
         {
             // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
 
-            var type = typeof(TModel);
-            while (type != typeof(object))
-            {
-                Debug.Assert(type != null);
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
+                perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
 
-                foreach (var field in type.GetFields(activator_flags))
-                    perform(field, lastModel, t => t.shadow.UnbindFrom(t.model));
-
-                type = type.BaseType;
-            }
-
-            type = typeof(TModel);
-            while (type != typeof(object))
-            {
-                Debug.Assert(type != null);
-
-                foreach (var field in type.GetFields(activator_flags))
-                    perform(field, newModel, t => t.shadow.BindTo(t.model));
-
-                type = type.BaseType;
-            }
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
+                perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
         }
 
-        private void perform(MemberInfo member, TModel target, Action<(IBindable shadow, IBindable model)> action)
+        /// <summary>
+        /// Perform an arbitrary action across a shadow model and model.
+        /// </summary>
+        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<(IBindable shadowProp, IBindable modelProp)> action)
         {
-            IBindable shadowValue = null;
-            object modelValue = null;
+            IBindable shadowProp = null;
+            IBindable modelProp = null;
 
             switch (member)
             {
                 case PropertyInfo pi:
-                    shadowValue = (IBindable)pi.GetValue(shadowModel);
-                    modelValue = target == null ? null : pi.GetValue(target);
+                    shadowProp = (IBindable)pi.GetValue(targetShadowModel);
+                    modelProp = target == null ? null : (IBindable)pi.GetValue(target);
                     break;
                 case FieldInfo fi:
-                    shadowValue = (IBindable)fi.GetValue(shadowModel);
-                    modelValue = target == null ? null : fi.GetValue(target);
+                    shadowProp = (IBindable)fi.GetValue(targetShadowModel);
+                    modelProp = target == null ? null : (IBindable)fi.GetValue(target);
                     break;
             }
 
-            if (modelValue is IBindable modelBindable)
-                action((shadowValue, modelBindable));
+            action((shadowProp, modelProp));
         }
 
         static CachedModelDependencyContainer()
