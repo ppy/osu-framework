@@ -80,12 +80,12 @@ namespace osu.Framework.Graphics
 
         private void dispose(bool isDisposing)
         {
-            if (IsDisposed)
-                return;
-
             //we can't dispose if we are mid-load, else our children may get in a bad state.
             lock (loadLock)
             {
+                if (IsDisposed)
+                    return;
+
                 Dispose(isDisposing);
 
                 unbindAllBindables();

@@ -702,7 +702,7 @@ namespace osu.Framework.Graphics.Containers
             RemoveInternal(child);
 
             if (child.DisposeOnDeathRemoval)
-                disposeChildAsync(child);
+                DisposeChildAsync(child);
         }
 
         internal override void UnbindAllBindables()
@@ -712,7 +712,11 @@ namespace osu.Framework.Graphics.Containers
                 child.UnbindAllBindables();
         }
 
-        private void disposeChildAsync(Drawable drawable)
+        /// <summary>
+        /// Unbinds a child's bindings synchronously and queues an asynchronous disposal of the child.
+        /// </summary>
+        /// <param name="drawable">The child to dispose.</param>
+        internal void DisposeChildAsync(Drawable drawable)
         {
             drawable.UnbindAllBindables();
             Task.Run(() => drawable.Dispose());
