@@ -101,22 +101,17 @@ namespace osu.Framework.Allocation
         /// </summary>
         private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<(IBindable shadowProp, IBindable modelProp)> action)
         {
-            IBindable shadowProp = null;
-            IBindable modelProp = null;
+            if (target == null) return;
 
             switch (member)
             {
                 case PropertyInfo pi:
-                    shadowProp = (IBindable)pi.GetValue(targetShadowModel);
-                    modelProp = target == null ? null : (IBindable)pi.GetValue(target);
+                    action(((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target)));
                     break;
                 case FieldInfo fi:
-                    shadowProp = (IBindable)fi.GetValue(targetShadowModel);
-                    modelProp = target == null ? null : (IBindable)fi.GetValue(target);
+                    action(((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target)));
                     break;
             }
-
-            action((shadowProp, modelProp));
         }
 
         static CachedModelDependencyContainer()
