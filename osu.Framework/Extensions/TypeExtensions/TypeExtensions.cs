@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -43,9 +42,8 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns></returns>
         public static IEnumerable<Type> EnumerateBaseTypes(this Type t)
         {
-            while (t != typeof(object))
+            while (t != null && t != typeof(object))
             {
-                Debug.Assert(t != null);
                 yield return t;
                 t = t.BaseType;
             }
