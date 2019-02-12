@@ -93,63 +93,42 @@ namespace osu.Framework.Allocation
                 Debug.Assert(type != null);
 
                 foreach (var field in type.GetFields(activator_flags))
-                    unbind(field);
-
-                foreach (var field in type.GetFields(activator_flags))
-                    rebind(field);
+                    perform(field, lastModel, t => t.shadow.UnbindFrom(t.model));
 
                 type = type.BaseType;
             }
 
-            void unbind(MemberInfo member)
+            type = typeof(TModel);
+            while (type != typeof(object))
             {
-                object shadowValue = null;
-                object lastModelValue = null;
+                Debug.Assert(type != null);
 
-                switch (member)
-                {
-                    case PropertyInfo pi:
-                        shadowValue = pi.GetValue(shadowModel);
-                        lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
-                        break;
-                    case FieldInfo fi:
-                        shadowValue = fi.GetValue(shadowModel);
-                        lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
-                        break;
-                }
+                foreach (var field in type.GetFields(activator_flags))
+                    perform(field, newModel, t => t.shadow.BindTo(t.model));
 
-                if (shadowValue is IBindable shadowBindable)
-                {
-                    // Unbind from the last model
-                    if (lastModelValue is IBindable lastModelBindable)
-                        shadowBindable.UnbindFrom(lastModelBindable);
-                }
+                type = type.BaseType;
+            }
+        }
+
+        private void perform(MemberInfo member, TModel target, Action<(IBindable shadow, IBindable model)> action)
+        {
+            IBindable shadowValue = null;
+            object modelValue = null;
+
+            switch (member)
+            {
+                case PropertyInfo pi:
+                    shadowValue = (IBindable)pi.GetValue(shadowModel);
+                    modelValue = target == null ? null : pi.GetValue(target);
+                    break;
+                case FieldInfo fi:
+                    shadowValue = (IBindable)fi.GetValue(shadowModel);
+                    modelValue = target == null ? null : fi.GetValue(target);
+                    break;
             }
 
-            void rebind(MemberInfo member)
-            {
-                object shadowValue = null;
-                object newModelValue = null;
-
-                switch (member)
-                {
-                    case PropertyInfo pi:
-                        shadowValue = pi.GetValue(shadowModel);
-                        newModelValue = newModel == null ? null : pi.GetValue(newModel);
-                        break;
-                    case FieldInfo fi:
-                        shadowValue = fi.GetValue(shadowModel);
-                        newModelValue = newModel == null ? null : fi.GetValue(newModel);
-                        break;
-                }
-
-                if (shadowValue is IBindable shadowBindable)
-                {
-                    // Bind to the new model
-                    if (newModelValue is IBindable newModelBindable)
-                        shadowBindable.BindTo(newModelBindable);
-                }
-            }
+            if (modelValue is IBindable modelBindable)
+                action((shadowValue, modelBindable));
         }
 
         static CachedModelDependencyContainer()
