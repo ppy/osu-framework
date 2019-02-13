@@ -5,6 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Tests.Visual.TestCaseContainer;
 using osuTK;
 using osuTK.Graphics;
 
@@ -41,7 +42,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     RelativeSizeAxes = Axes.Both,
                     BlurSigma = new Vector2(30),
-                    Child = new BufferedContainer.BufferSprite(buffer)
+                    Child = new BufferSprite(buffer)
                     {
                         RelativeSizeAxes = Axes.Both,
                         SynchronizedDrawQuad = true
