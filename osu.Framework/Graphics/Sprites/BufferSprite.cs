@@ -40,11 +40,12 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        private readonly WeakReference<BufferedContainer<Drawable>> buffered;
+        private readonly WeakReference<BufferedContainer<Drawable>> bufferedRef;
+        private BufferedContainer<Drawable> buffered => bufferedRef.TryGetTarget(out var b) ? b : null;
 
         public BufferSprite(BufferedContainer<Drawable> buffered)
         {
-            this.buffered = new WeakReference<BufferedContainer<Drawable>>(buffered);
+            bufferedRef = new WeakReference<BufferedContainer<Drawable>>(buffered);
         }
 
         [BackgroundDependencyLoader]
@@ -56,20 +57,18 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new BufferSpriteDrawNode();
 
-        public BufferedContainer<Drawable> BufferedContainer => buffered.TryGetTarget(out var b) ? b : null;
-
         private Texture texture;
         public Texture Texture
         {
             get
             {
-                if (BufferedContainer == null)
+                if (buffered == null)
                     return null;
 
                 if (texture != null)
                     return texture;
 
-                var frame = BufferedContainer.sharedData.FrameBuffers[0];
+                var frame = buffered.sharedData.FrameBuffers[0];
 
                 if (frame.IsInitialized)
                     return texture = new Texture(frame.Texture);
@@ -104,10 +103,10 @@ namespace osu.Framework.Graphics.Sprites
         {
             BufferSpriteDrawNode n = (BufferSpriteDrawNode)node;
 
-            n.ScreenSpaceDrawQuad = syncDrawQuad ? BufferedContainer?.ScreenSpaceDrawQuad ?? ScreenSpaceDrawQuad : ScreenSpaceDrawQuad;
-            n.DrawRectangle = syncDrawQuad ? BufferedContainer?.DrawRectangle ?? DrawRectangle : DrawRectangle;
+            n.ScreenSpaceDrawQuad = syncDrawQuad ? buffered?.ScreenSpaceDrawQuad ?? ScreenSpaceDrawQuad : ScreenSpaceDrawQuad;
+            n.DrawRectangle = syncDrawQuad ? buffered?.DrawRectangle ?? DrawRectangle : DrawRectangle;
             n.WrapTexture = WrapTexture;
-            n.Shared = BufferedContainer?.sharedData;
+            n.Shared = buffered?.sharedData;
 
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
