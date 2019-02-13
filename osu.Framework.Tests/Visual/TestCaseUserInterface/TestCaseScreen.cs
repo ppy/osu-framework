@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             AddAssert("screen3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
-            AddAssert("screens 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
+            AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
             AddAssert("ensure current", () => screen1.IsCurrentScreen());
@@ -153,7 +153,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
-            AddAssert("screen 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
+            AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
