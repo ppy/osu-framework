@@ -4,11 +4,14 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -16,6 +19,11 @@ namespace osu.Framework.Graphics.Sprites
     {
         private Shader textureShader;
         private Shader roundedTextureShader;
+
+        /// <summary>
+        /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
+        /// </summary>
+        public bool WrapTexture;
 
         #region Disposal
 
@@ -88,6 +96,7 @@ namespace osu.Framework.Graphics.Sprites
 
             n.ScreenSpaceDrawQuad = syncDrawQuad ? BufferedContainer?.ScreenSpaceDrawQuad ?? ScreenSpaceDrawQuad : ScreenSpaceDrawQuad;
             n.DrawRectangle = syncDrawQuad ? BufferedContainer?.DrawRectangle ?? DrawRectangle : DrawRectangle;
+            n.WrapTexture = WrapTexture;
             n.Shared = BufferedContainer?.sharedData;
 
             n.TextureShader = textureShader;
@@ -96,44 +105,57 @@ namespace osu.Framework.Graphics.Sprites
             base.ApplyDrawNode(node);
         }
 
-        public class BufferSpriteDrawNode : SpriteDrawNode
+        public class BufferSpriteDrawNode : DrawNode
         {
+            public Quad ScreenSpaceDrawQuad;
+            public RectangleF DrawRectangle;
+            public bool WrapTexture;
             public BufferedContainerDrawNodeSharedData Shared;
 
-            private readonly Texture[] textures = new Texture[2];
+            public Shader TextureShader;
+            public Shader RoundedTextureShader;
 
-            private Texture getCurrentFrameBufferTexture()
+            private bool needsRoundedShader => GLWrapper.IsMaskingActive;
+
+            private TextureGL getCurrentFrameBufferTexture()
             {
                 if (Shared == null || Shared.LastFrameBufferIndex == -1)
                     return null;
 
                 var index = Shared.LastFrameBufferIndex;
 
-                if (textures[index] != null)
-                    return textures[index];
-
-                var frame = Shared.FrameBuffers[index];
-
-                if (frame.IsInitialized)
-                    return textures[index] = new Texture(frame.Texture);
+                if (Shared.FrameBuffers[index] != null)
+                    return Shared.FrameBuffers[index].Texture;
 
                 return null;
             }
 
-            protected override void Blit(Action<TexturedVertex2D> vertexAction)
+            protected virtual void Blit(TextureGL tex, Action<TexturedVertex2D> vertexAction)
             {
                 // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
-                RectangleF textureRect = new RectangleF(0, Texture.Height, Texture.Width, -Texture.Height);
+                RectangleF textureRect = new RectangleF(0, tex.Height, tex.Width, -tex.Height);
 
-                Texture.DrawQuad(ScreenSpaceDrawQuad, DrawColourInfo.Colour, textureRect, vertexAction,
-                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
+                tex.DrawQuad(ScreenSpaceDrawQuad, textureRect, DrawColourInfo.Colour, vertexAction, Vector2.Zero);
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
-                Texture = getCurrentFrameBufferTexture();
-
                 base.Draw(vertexAction);
+
+                var tex = getCurrentFrameBufferTexture();
+
+                if (tex?.IsDisposed == true)
+                    return;
+
+                Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+
+                shader.Bind();
+
+                tex.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+
+                Blit(tex, vertexAction);
+
+                shader.Unbind();
             }
         }
     }
