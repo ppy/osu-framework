@@ -9,7 +9,7 @@ using osu.Framework.Tests.Visual.TestCaseContainer;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Visual
+namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
 {
     public class TestCaseFrostEffect : TestCaseMasking
     {
