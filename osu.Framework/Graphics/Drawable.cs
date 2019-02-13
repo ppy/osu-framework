@@ -80,12 +80,12 @@ namespace osu.Framework.Graphics
 
         private void dispose(bool isDisposing)
         {
-            if (IsDisposed)
-                return;
-
             //we can't dispose if we are mid-load, else our children may get in a bad state.
             lock (loadLock)
             {
+                if (IsDisposed)
+                    return;
+
                 Dispose(isDisposing);
 
                 unbindAllBindables();
@@ -118,33 +118,25 @@ namespace osu.Framework.Graphics
 
         private void cacheUnbindActions()
         {
-            Type type = GetType();
-
-            do
+            foreach (var type in GetType().EnumerateBaseTypes())
             {
-                cacheUnbindAction(type);
-                type = type.BaseType;
-            } while (type != null && type != typeof(object));
-
-            void cacheUnbindAction(Type targetType)
-            {
-                if (unbind_action_cache.TryGetValue(targetType, out _))
+                if (unbind_action_cache.TryGetValue(type, out _))
                     return;
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
 
                 // Generate delegates to unbind fields
-                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
-                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+                actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                     .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                     .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
                 // Generate delegates to unbind properties
-                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
-                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+                actions.AddRange(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                     .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                     .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                unbind_action_cache[targetType] = target =>
+                unbind_action_cache[type] = target =>
                 {
                     foreach (var a in actions)
                     {
@@ -171,15 +163,9 @@ namespace osu.Framework.Graphics
             if (unbindComplete) return;
             unbindComplete = true;
 
-            Type type = GetType();
-
-            do
-            {
+            foreach (var type in GetType().EnumerateBaseTypes())
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
-
-                type = type.BaseType;
-            } while (type != null && type != typeof(object));
         }
 
         #endregion
@@ -1332,15 +1318,41 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool ProcessCustomClock = true;
 
+        private double lifetimeStart = double.MinValue;
+        private double lifetimeEnd = double.MaxValue;
+
+        /// <summary>
+        /// Invoked after <see cref="lifetimeStart"/> or <see cref="LifetimeEnd"/> has changed.
+        /// </summary>
+        internal event Action<Drawable> LifetimeChanged;
+
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
         /// </summary>
-        public virtual double LifetimeStart { get; set; } = double.MinValue;
+        public virtual double LifetimeStart
+        {
+            get => lifetimeStart;
+            set
+            {
+                if (lifetimeStart == value) return;
+                lifetimeStart = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// The time at which this drawable is no longer valid (and is considered for disposal).
         /// </summary>
-        public virtual double LifetimeEnd { get; set; } = double.MaxValue;
+        public virtual double LifetimeEnd
+        {
+            get => lifetimeEnd;
+            set
+            {
+                if (lifetimeEnd == value) return;
+                lifetimeEnd = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Whether this drawable should currently be alive.
