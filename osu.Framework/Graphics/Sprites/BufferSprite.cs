@@ -15,6 +15,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// A sprite that displays the contents of a <see cref="BufferedContainer{T}"/>.
+    /// </summary>
     public class BufferSprite : Drawable
     {
         private Shader textureShader;
@@ -76,6 +79,13 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private bool syncDrawQuad;
+        /// <summary>
+        /// Whether we should inherit the draw quad of the target <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <remarks>
+        /// This property can be useful when setting up a "frosting" effect where the
+        /// background framebuffer's contents are rendered again in the overlay's framebuffer.
+        /// </remarks>
         public bool SynchronizedDrawQuad
         {
             get => syncDrawQuad;
