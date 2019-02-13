@@ -38,6 +38,16 @@ namespace osu.Framework.Screens
         /// </summary>
         public ScreenStack()
         {
+            // Screens are forced to have RemoveWhenNotAlive = false and will thus never get removed OR disposed
+            // But we do want them to get removed/disposed when they're not in the stack anymore (i.e. they're not a candidate for resume)
+            ChildDied += s =>
+            {
+                if (stack.Contains(s as IScreen))
+                    return;
+
+                RemoveInternal(s);
+                DisposeChildAsync(s);
+            };
         }
 
         /// <summary>
@@ -45,6 +55,7 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="baseScreen"></param>
         public ScreenStack(IScreen baseScreen)
+            : this()
         {
             Push(baseScreen);
         }
@@ -83,9 +94,6 @@ namespace osu.Framework.Screens
                 source.OnSuspending(newScreen);
                 source.AsDrawable().Expire();
             }
-
-            // Screens are expired when they are exited - lifetime needs to be reset when entered
-            newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
 
             // Push the new screen
             stack.Push(newScreen);
@@ -176,6 +184,10 @@ namespace osu.Framework.Screens
                 stack.Push(toExit);
                 return;
             }
+
+            // we will probably want to change this logic when we support returning to a screen after exiting.
+            toExit.ValidForResume = false;
+            toExit.ValidForPush = false;
 
             onExiting?.Invoke();
 

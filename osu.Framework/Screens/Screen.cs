@@ -13,7 +13,7 @@ namespace osu.Framework.Screens
 
         public bool ValidForPush { get; set; } = true;
 
-        public override bool RemoveWhenNotAlive => false;
+        public override bool RemoveWhenNotAlive => !ValidForPush;
 
         [Resolved]
         protected Game Game { get; private set; }
