@@ -28,18 +28,6 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool WrapTexture;
 
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            texture?.Dispose();
-            texture = null;
-
-            base.Dispose(isDisposing);
-        }
-
-        #endregion
-
         private readonly WeakReference<BufferedContainer<Drawable>> bufferedRef;
         private BufferedContainer<Drawable> buffered => bufferedRef.TryGetTarget(out var b) ? b : null;
 
@@ -56,26 +44,6 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         protected override DrawNode CreateDrawNode() => new BufferSpriteDrawNode();
-
-        private Texture texture;
-        public Texture Texture
-        {
-            get
-            {
-                if (buffered == null)
-                    return null;
-
-                if (texture != null)
-                    return texture;
-
-                var frame = buffered.sharedData.FrameBuffers[0];
-
-                if (frame.IsInitialized)
-                    return texture = new Texture(frame.Texture);
-
-                return null;
-            }
-        }
 
         private bool syncDrawQuad;
         /// <summary>
