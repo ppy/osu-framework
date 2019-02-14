@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -156,6 +158,31 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
         }
 
+        [Test]
+        public void TestMakeCurrentUnbindOrder()
+        {
+            List<TestScreen> screens = new List<TestScreen>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                var screen = new TestScreen();
+                var target = screens.LastOrDefault();
+
+                screen.OnUnbind += () =>
+                {
+                    if (screens.Last() != screen)
+                        throw new InvalidOperationException("Disposal order was wrong");
+                    screens.Remove(screen);
+                };
+
+                pushAndEnsureCurrent(() => screen, target != null ? () => target : (Func<IScreen>)null);
+                screens.Add(screen);
+            }
+
+            AddStep("make first screen current", () => screens.First().MakeCurrent());
+            AddUntilStep(() => screens.Count == 1, "All screens disposed in correct order");
+        }
+
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
         {
             IScreen screen = null;
@@ -186,6 +213,14 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             private Button popButton;
 
             private const int transition_time = 500;
+
+            public Action OnUnbind;
+
+            internal override void UnbindAllBindables()
+            {
+                base.UnbindAllBindables();
+                OnUnbind?.Invoke();
+            }
 
             [BackgroundDependencyLoader]
             private void load()
