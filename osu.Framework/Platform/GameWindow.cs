@@ -189,6 +189,13 @@ namespace osu.Framework.Platform
 
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
 
+        /// <summary>
+        /// Provides a <see cref="BindableMarginPadding"/> that can be used to keep track of the "safe area" insets on mobile
+        /// devices.  This usually corresponds to areas of the screen hidden under notches and rounded corners.
+        /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
+        /// </summary>
+        public readonly BindableMarginPadding SafeAreaPadding = new BindableMarginPadding();
+
         public virtual VSyncMode VSync { get; set; }
 
         public virtual void CycleMode()
