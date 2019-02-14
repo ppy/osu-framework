@@ -73,7 +73,6 @@ namespace osu.Framework.iOS
         private bool needsResizeFrameBuffer;
         public void RequestResizeFrameBuffer() => needsResizeFrameBuffer = true;
 
-
         public override void LayoutSubviews()
         {
             base.LayoutSubviews();
