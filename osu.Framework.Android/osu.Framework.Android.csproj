@@ -37,7 +37,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.63" />
+    <PackageReference Include="ppy.osuTK.Android" Version="1.0.66" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
