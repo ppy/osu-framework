@@ -34,20 +34,15 @@ namespace osu.Framework.Screens
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
         /// <summary>
+        /// Screens which are exited and require manual cleanup.
+        /// </summary>
+        private readonly List<Drawable> exited = new List<Drawable>();
+
+        /// <summary>
         /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
         /// </summary>
         public ScreenStack()
         {
-            // Screens are forced to have RemoveWhenNotAlive = false and will thus never get removed OR disposed
-            // But we do want them to get removed/disposed when they're not in the stack anymore (i.e. they're not a candidate for resume)
-            ChildDied += s =>
-            {
-                if (stack.Contains(s as IScreen))
-                    return;
-
-                RemoveInternal(s);
-                DisposeChildAsync(s);
-            };
         }
 
         /// <summary>
@@ -196,11 +191,8 @@ namespace osu.Framework.Screens
                 // This is the first screen that exited
                 toExit.AsDrawable().Expire();
             }
-            else
-            {
-                // This screen exited via a recursive-exit chain. Lifetime is propagated from the parent.
-                toExit.AsDrawable().LifetimeEnd = ((Drawable)source).LifetimeEnd;
-            }
+
+            exited.Add(toExit.AsDrawable());
 
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
@@ -228,6 +220,25 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            if (!base.UpdateChildrenLife()) return false;
+
+            // In order to provide custom suspend/resume logic, screens always have RemoveWhenNotAlive set to false.
+            // We need to manually handle removal here (in the opposite order to how the screens were pushed to ensure bindable sanity).
+            if (exited.FirstOrDefault()?.IsAlive == false)
+            {
+                foreach (var s in exited)
+                {
+                    RemoveInternal(s);
+                    DisposeChildAsync(s);
+                }
+
+                exited.Clear();
+            }
+
+            return true;
+        }
 
         public class ScreenNotCurrentException : InvalidOperationException
         {
