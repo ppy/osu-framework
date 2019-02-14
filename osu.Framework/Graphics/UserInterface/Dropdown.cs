@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (item)
             {
                 case MenuItem i:
-                    return i.Text;
+                    return i.Text.Value;
                 case IHasText t:
                     return t.Text;
                 case Enum e:
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             Menu.SelectItem(selectedItem);
-            Header.Label = selectedItem.Text;
+            Header.Label = selectedItem.Text.Value;
         }
 
         /// <summary>

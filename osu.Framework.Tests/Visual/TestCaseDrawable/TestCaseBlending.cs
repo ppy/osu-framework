@@ -153,9 +153,9 @@ namespace osu.Framework.Tests.Visual.TestCaseDrawable
         {
             foregroundContainer.Blending = new BlendingParameters
             {
-                Mode = colourModeDropdown.Current,
-                RGBEquation = colourEquation.Current,
-                AlphaEquation = alphaEquation.Current
+                Mode = colourModeDropdown.Current.Value,
+                RGBEquation = colourEquation.Current.Value,
+                AlphaEquation = alphaEquation.Current.Value
             };
         }
 

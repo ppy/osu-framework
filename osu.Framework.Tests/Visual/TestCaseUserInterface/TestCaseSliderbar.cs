@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("Value == -6,25", () => sliderBarValue == -6.25);
+            AddAssert("Value == -6,25", () => sliderBarValue.Value == -6.25);
 
             AddStep("Press left arrow key", () =>
             {
@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 sliderBar.IsHovered = before;
             });
 
-            AddAssert("Value == -7,25", () => sliderBarValue == -7.25);
+            AddAssert("Value == -7,25", () => sliderBarValue.Value == -7.25);
 
             AddStep("Click at x = 150 with shift", () =>
             {
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 InputManager.ReleaseKey(Key.LShift);
             });
 
-            AddAssert("Value == 6", () => sliderBarValue == 6);
+            AddAssert("Value == 6", () => sliderBarValue.Value == 6);
         }
 
         private void sliderBarValueChanged(double newValue)

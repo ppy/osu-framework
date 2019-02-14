@@ -92,7 +92,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void changeState()
         {
-            if (browser.RecordState == RecordState.Stopped)
+            if (browser.RecordState.Value == RecordState.Stopped)
                 browser.RecordState.Value = RecordState.Normal;
             else
                 browser.RecordState.Value = browser.RecordState.Value + 1;
