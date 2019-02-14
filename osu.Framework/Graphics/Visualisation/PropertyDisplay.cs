@@ -53,15 +53,10 @@ namespace osu.Framework.Graphics.Visualisation
 
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
-            Type type = source.GetType();
-            while (type != null && type != typeof(object))
-            {
+            foreach (var type in source.GetType().EnumerateBaseTypes())
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
                     .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
                     .ForEach(m => allMembers.Add(m));
-
-                type = type.BaseType;
-            }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
             AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
