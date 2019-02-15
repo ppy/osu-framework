@@ -532,7 +532,7 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return true;
 
-            bool stillValid = FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
+            bool stillValid = FocusedDrawable.IsAlive && FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
 
             if (stillValid)
             {
