@@ -139,7 +139,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             TestScreen screen2 = null;
             TestScreen screen3 = null;
 
-
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
             pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
             pushAndEnsureCurrent(() => screen3 = new TestScreen(), () => screen2);
