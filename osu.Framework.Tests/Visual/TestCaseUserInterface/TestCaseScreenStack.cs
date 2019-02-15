@@ -24,7 +24,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
     {
         private TestScreen baseScreen;
 
-
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(Screen),
