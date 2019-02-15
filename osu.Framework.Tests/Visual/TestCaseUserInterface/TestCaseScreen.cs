@@ -50,8 +50,15 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         [Test]
         public void TestPushInstantExitScreenEmpty()
         {
-            AddStep("exit base screen", () => baseScreen.Exit());
-            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
+            AddStep("fresh stack with non-valid screen", () =>
+            {
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen { ValidForPush = false })
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
             AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
         }
 
