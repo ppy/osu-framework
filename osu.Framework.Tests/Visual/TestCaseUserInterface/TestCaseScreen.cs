@@ -22,12 +22,13 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
     public class TestCaseScreen : TestCase
     {
         private TestScreen baseScreen;
+        private ScreenStack stack;
 
         [SetUp]
         public new void SetupTest() => Schedule(() =>
         {
             Clear();
-            Add(new ScreenStack(baseScreen = new TestScreen())
+            Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
@@ -37,6 +38,21 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         public void TestAddScreenWithoutStackFails()
         {
             AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));
+        }
+
+        [Test]
+        public void TestPushInstantExitScreen()
+        {
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen() { ValidForPush = false }));
+            AddAssert("stack is single", () => stack.InternalChildren.Count == 1);
+        }
+
+        [Test]
+        public void TestPushInstantExitScreenEmpty()
+        {
+            AddStep("exit base screen", () => baseScreen.Exit());
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen() { ValidForPush = false }));
+            AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
         }
 
         [Test]
