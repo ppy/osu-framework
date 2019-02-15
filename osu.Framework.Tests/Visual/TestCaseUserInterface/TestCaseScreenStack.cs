@@ -19,7 +19,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 {
-    public class TestCaseScreen : TestCase
+    public class TestCaseScreenStack : TestCase
     {
         private TestScreen baseScreen;
 
