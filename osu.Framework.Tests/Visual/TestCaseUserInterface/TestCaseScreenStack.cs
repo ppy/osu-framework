@@ -36,7 +36,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         {
             Child = new ScreenStack(baseScreen = new TestScreen())
             {
-
                 RelativeSizeAxes = Axes.Both
             };
         });
@@ -51,11 +50,8 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
 
-
             AddUntilStep(() => GetContainingInputManager().FocusedDrawable != screen1, "focus lost");
         }
-
-
 
         [Test]
         public void TestPushFocusTransferred()
