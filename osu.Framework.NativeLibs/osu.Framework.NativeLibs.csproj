@@ -9,7 +9,6 @@
     <AssemblyName>osu.Framework.NativeLibs</AssemblyName>
     <Description>Native libraries for osu!framework</Description>
     <Product>osu!framework Libraries</Product>
-    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework Libraries</Title>

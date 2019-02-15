@@ -111,7 +111,7 @@ namespace osu.Framework.Screens
             else if (LoadState >= LoadState.Ready)
                 LoadScreen(this, newScreen.AsDrawable(), finishLoad);
             else
-                finishLoad();
+                Schedule(finishLoad);
         }
 
         /// <summary>
