@@ -23,6 +23,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
     public class TestCaseScreenStack : TestCase
     {
         private TestScreen baseScreen;
+        private ScreenStack stack;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -33,10 +34,11 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         [SetUp]
         public new void SetupTest() => Schedule(() =>
         {
-            Child = new ScreenStack(baseScreen = new TestScreen())
+            Clear();
+            Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
-            };
+            });
         });
 
         [Test]
@@ -69,6 +71,28 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         public void TestAddScreenWithoutStackFails()
         {
             AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));
+        }
+
+        [Test]
+        public void TestPushInstantExitScreen()
+        {
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
+            AddAssert("stack is single", () => stack.InternalChildren.Count == 1);
+        }
+
+        [Test]
+        public void TestPushInstantExitScreenEmpty()
+        {
+            AddStep("fresh stack with non-valid screen", () =>
+            {
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen { ValidForPush = false })
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
         }
 
         [Test]
