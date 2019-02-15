@@ -34,6 +34,12 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         });
 
         [Test]
+        public void TestAddScreenWithoutStackFails()
+        {
+            AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));
+        }
+
+        [Test]
         public void TestPushPop()
         {
             TestScreen screen1 = null, screen2 = null;

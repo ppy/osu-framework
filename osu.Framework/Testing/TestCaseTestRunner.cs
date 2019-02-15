@@ -7,8 +7,9 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
-using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
@@ -27,7 +28,7 @@ namespace osu.Framework.Testing
         /// <param name="test">The <see cref="TestCase"/> to run.</param>
         public void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
 
-        public class TestRunner : Screen
+        public class TestRunner : CompositeDrawable
         {
             private const double time_between_tests = 200;
 
@@ -36,6 +37,11 @@ namespace osu.Framework.Testing
 
             [Resolved]
             private GameHost host { get; set; }
+
+            public TestRunner()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
 
             [BackgroundDependencyLoader]
             private void load(FrameworkConfigManager config)
