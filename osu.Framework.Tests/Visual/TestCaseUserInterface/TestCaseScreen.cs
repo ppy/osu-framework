@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         [Test]
         public void TestPushInstantExitScreen()
         {
-            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen() { ValidForPush = false }));
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
             AddAssert("stack is single", () => stack.InternalChildren.Count == 1);
         }
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         public void TestPushInstantExitScreenEmpty()
         {
             AddStep("exit base screen", () => baseScreen.Exit());
-            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen() { ValidForPush = false }));
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
             AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
         }
 
