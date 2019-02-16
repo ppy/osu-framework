@@ -98,6 +98,8 @@ $tf/
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
+inspectcode
+inspectcodereport.xml
 
 # JustCode is a .NET coding add-in
 .JustCode
@@ -256,3 +258,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Cake #
+tools/**
+build/tools/**
