@@ -197,6 +197,38 @@ namespace osu.Framework.MathUtils
         }
 
         /// <summary>
+        /// Creates a piecewise-linear approximation of a lagrange polynomial.
+        /// </summary>
+        /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        public static List<Vector2> ApproximateLagrangePolynomial(ReadOnlySpan<Vector2> controlPoints)
+        {
+            // TODO: add some smarter logic here, chebyshev nodes?
+            const int num_steps = 51;
+
+            var result = new List<Vector2>(num_steps);
+
+            double[] weights = Interpolation.BarycentricWeights(controlPoints);
+
+            float minX = controlPoints[0].X;
+            float maxX = controlPoints[0].X;
+            for (int i = 1; i < controlPoints.Length; i++)
+            {
+                minX = Math.Min(minX, controlPoints[i].X);
+                maxX = Math.Max(maxX, controlPoints[i].X);
+            }
+            float dx = maxX - minX;
+
+            for (int i = 0; i < num_steps; i++)
+            {
+                float x = minX + dx / (num_steps - 1) * i;
+                float y = (float)Interpolation.BarycentricLagrange(controlPoints, weights, x);
+                result.Add(new Vector2(x, y));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Make sure the 2nd order derivative (approximated using finite elements) is within tolerable bounds.
         /// NOTE: The 2nd order derivative of a 2d curve represents its curvature, so intuitively this function
         ///       checks (as the name suggests) whether our approximation is _locally_ "flat". More curvy parts

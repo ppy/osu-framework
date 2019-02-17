@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -9,6 +11,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
@@ -17,19 +20,80 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 {
-    public class TestCaseScreen : TestCase
+    public class TestCaseScreenStack : TestCase
     {
         private TestScreen baseScreen;
+        private ScreenStack stack;
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Screen),
+            typeof(IScreen)
+        };
 
         [SetUp]
         public new void SetupTest() => Schedule(() =>
         {
             Clear();
-            Add(new ScreenStack(baseScreen = new TestScreen())
+            Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
         });
+
+        [Test]
+        public void TestPushFocusLost()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen1, "wait for focus grab");
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable != screen1, "focus lost");
+        }
+
+        [Test]
+        public void TestPushFocusTransferred()
+        {
+            TestScreen screen1 = null, screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen1, "wait for focus grab");
+
+            pushAndEnsureCurrent(() => screen2 = new TestScreen { EagerFocus = true }, () => screen1);
+
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen2, "focus transferred");
+        }
+
+        [Test]
+        public void TestAddScreenWithoutStackFails()
+        {
+            AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));
+        }
+
+        [Test]
+        public void TestPushInstantExitScreen()
+        {
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
+            AddAssert("stack is single", () => stack.InternalChildren.Count == 1);
+        }
+
+        [Test]
+        public void TestPushInstantExitScreenEmpty()
+        {
+            AddStep("fresh stack with non-valid screen", () =>
+            {
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen { ValidForPush = false })
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
+        }
 
         [Test]
         public void TestPushPop()
@@ -87,7 +151,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             AddAssert("screen3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
-            AddAssert("screens 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
+            AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
             AddAssert("ensure current", () => screen1.IsCurrentScreen());
@@ -153,7 +217,32 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
-            AddAssert("screen 2 & 3 share lifetime end", () => screen2.LifetimeEnd == screen3.LifetimeEnd);
+            AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
+        }
+
+        [Test]
+        public void TestMakeCurrentUnbindOrder()
+        {
+            List<TestScreen> screens = new List<TestScreen>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                var screen = new TestScreen();
+                var target = screens.LastOrDefault();
+
+                screen.OnUnbind += () =>
+                {
+                    if (screens.Last() != screen)
+                        throw new InvalidOperationException("Disposal order was wrong");
+                    screens.Remove(screen);
+                };
+
+                pushAndEnsureCurrent(() => screen, target != null ? () => target : (Func<IScreen>)null);
+                screens.Add(screen);
+            }
+
+            AddStep("make first screen current", () => screens.First().MakeCurrent());
+            AddUntilStep(() => screens.Count == 1, "All screens disposed in correct order");
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -186,6 +275,21 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             private Button popButton;
 
             private const int transition_time = 500;
+
+            public bool EagerFocus;
+
+            public override bool RequestsFocus => EagerFocus;
+
+            public override bool AcceptsFocus => EagerFocus;
+
+            public override bool HandleNonPositionalInput => true;
+            public Action OnUnbind;
+
+            internal override void UnbindAllBindables()
+            {
+                base.UnbindAllBindables();
+                OnUnbind?.Invoke();
+            }
 
             [BackgroundDependencyLoader]
             private void load()
@@ -240,6 +344,21 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                         }
                     }
                 };
+
+                BorderColour = Color4.Red;
+                Masking = true;
+            }
+
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+                BorderThickness = 10;
+            }
+
+            protected override void OnFocusLost(FocusLostEvent e)
+            {
+                base.OnFocusLost(e);
+                BorderThickness = 0;
             }
 
             public override void OnEntering(IScreen last)
