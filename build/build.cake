@@ -102,6 +102,7 @@ Task("Pack")
             Restore = true,
             BinaryLogger = new MSBuildBinaryLogSettings{Enabled = true},
             Verbosity = Verbosity.Minimal,
+            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
