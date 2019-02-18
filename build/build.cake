@@ -16,6 +16,7 @@ var version = AppVeyor.IsRunningOnAppVeyor ? $"0.0.{AppVeyor.Environment.Build.N
 
 var rootDirectory = new DirectoryPath("..");
 var toolsDirectory = new DirectoryPath("tools");
+var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
@@ -76,12 +77,14 @@ Task("InspectCode")
     .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
     .Does(() => {
+        var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
+
         InspectCode(solution, new InspectCodeSettings {
-            CachesHome = "inspectcode",
-            OutputFile = "inspectcodereport.xml",
+            CachesHome = tempDirectory.Combine("inspectcode"),
+            OutputFile = inspectcodereport,
         });
 
-        StartProcess(nVikaToolPath, @"parsereport ""inspectcodereport.xml"" --treatwarningsaserrors");
+        StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
     });
 
 Task("CodeFileSanity")
@@ -100,7 +103,10 @@ Task("Pack")
 
         var msbuildPackSettings = new MSBuildSettings {
             Restore = true,
-            BinaryLogger = new MSBuildBinaryLogSettings{Enabled = true},
+            BinaryLogger = new MSBuildBinaryLogSettings{
+                Enabled = true,
+                FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
+            },
             Verbosity = Verbosity.Minimal,
             MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
