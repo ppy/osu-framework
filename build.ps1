@@ -53,7 +53,7 @@ $TOOLS_DIR = Join-Path $BUILD_DIR "tools"
 $CAKE_CSPROJ = Join-Path $BUILD_DIR "cakebuild.csproj"
 
 # Install the required tools locally.
-Write-Host "Restoring cake tools..."
+Write-Host "Restoring cake..."
 Invoke-Expression "dotnet restore `"$CAKE_CSPROJ`" --packages `"$TOOLS_DIR`"" | Out-Null
 
 # Find the Cake executable
