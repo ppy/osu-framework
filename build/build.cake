@@ -122,12 +122,19 @@ Task("Pack")
         MSBuild(nativeLibsProject, msbuildPackSettings);
     });
 
-
+Task("Publish")
+    .IsDependentOn("Pack")
+    .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
+    .Does(() => {
+        foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
+            AppVeyor.UploadArtifact(artifact);
+    });
 
 Task("Build")
     .IsDependentOn("CodeFileSanity")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
-    .IsDependentOn("Pack");
+    .IsDependentOn("Pack")
+    .IsDependentOn("Publish");
 
 RunTarget(target);;
