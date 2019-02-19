@@ -115,7 +115,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual bool CapsLockEnabled => false;
 
-        private readonly List<GameThread> threads;
+        private readonly List<GameThread> threads = new List<GameThread>();
 
         public IEnumerable<GameThread> Threads => threads;
 
@@ -202,24 +202,19 @@ namespace osu.Framework.Platform
             Logger.GameIdentifier = gameName;
             Logger.VersionIdentifier = assembly.GetName().Version.ToString();
 
-            threads = new List<GameThread>
+            RegisterThread(DrawThread = new DrawThread(DrawFrame)
             {
-                (DrawThread = new DrawThread(DrawFrame)
-                {
-                    OnThreadStart = DrawInitialize,
-                    UnhandledException = unhandledExceptionHandler
-                }),
-                (UpdateThread = new UpdateThread(UpdateFrame)
-                {
-                    OnThreadStart = UpdateInitialize,
-                    Monitor = { HandleGC = true },
-                    UnhandledException = unhandledExceptionHandler,
-                }),
-                (InputThread = new InputThread(null)
-                {
-                    UnhandledException = unhandledExceptionHandler
-                }), //never gets started.
-            };
+                OnThreadStart = DrawInitialize,
+            });
+
+            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+            {
+                OnThreadStart = UpdateInitialize,
+                Monitor = { HandleGC = true },
+            });
+
+            //never gets started.
+            RegisterThread(InputThread = new InputThread(null));
 
             if (assemblyPath != null)
                 Environment.CurrentDirectory = assemblyPath;
