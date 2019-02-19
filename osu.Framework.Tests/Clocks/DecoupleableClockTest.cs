@@ -268,7 +268,7 @@ namespace osu.Framework.Tests.Clocks
         private class TestClock : IAdjustableClock
         {
             public double CurrentTime { get; set; }
-            public double Rate { get; set; }
+            public double Rate { get; set; } = 1;
 
             private bool isRunning;
             public bool IsRunning => isRunning;
