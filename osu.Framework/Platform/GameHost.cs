@@ -514,6 +514,8 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
+                        setActive(true);
+
                         while (ExecutionState != ExecutionState.Stopped)
                             InputThread.RunUpdate();
                     }
