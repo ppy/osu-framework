@@ -487,22 +487,14 @@ namespace osu.Framework.Platform
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
-                        Window.FocusedChanged += delegate { setActive(Window.Focused); };
-
-                        bool initialized = false;
 
                         Window.UpdateFrame += delegate
                         {
-                            if (!initialized)
-                            {
-                                setActive(Window.Focused);
-                                initialized = true;
-                            }
-
                             inputPerformanceCollectionPeriod?.Dispose();
                             InputThread.RunUpdate();
                             inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                         };
+
                         Window.Closed += delegate
                         {
                             //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
