@@ -6,6 +6,7 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Threading
 {
@@ -27,17 +28,7 @@ namespace osu.Framework.Threading
 
         private readonly Action onNewFrame;
 
-        private bool isActive = true;
-
-        public bool IsActive
-        {
-            get => isActive;
-            set
-            {
-                isActive = value;
-                Clock.MaximumUpdateHz = isActive ? activeHz : inactiveHz;
-            }
-        }
+        public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         private double activeHz = DEFAULT_ACTIVE_HZ;
 
@@ -47,7 +38,7 @@ namespace osu.Framework.Threading
             set
             {
                 activeHz = value;
-                if (IsActive)
+                if (IsActive.Value)
                     Clock.MaximumUpdateHz = activeHz;
             }
         }
@@ -60,7 +51,7 @@ namespace osu.Framework.Threading
             set
             {
                 inactiveHz = value;
-                if (!IsActive)
+                if (!IsActive.Value)
                     Clock.MaximumUpdateHz = inactiveHz;
             }
         }
@@ -92,6 +83,8 @@ namespace osu.Framework.Threading
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
+
+            IsActive.BindValueChanged(v => Scheduler.Add(() => Clock.MaximumUpdateHz = v ? activeHz : inactiveHz), true);
         }
 
         public void WaitUntilInitialized()

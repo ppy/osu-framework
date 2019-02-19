@@ -51,24 +51,20 @@ namespace osu.Framework.Platform
 
         private FrameworkConfigManager config;
 
-        private void setActive(bool isActive)
-        {
-            threads.ForEach(t => t.IsActive = isActive);
-
-            activeGCMode.TriggerChange();
-
-            if (isActive)
-                Activated?.Invoke();
-            else
-                Deactivated?.Invoke();
-        }
-
-        public bool IsActive => InputThread.IsActive;
+        public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
+        /// <summary>
+        /// Invoked when the game window is activated. Always invoked from the update thread.
+        /// </summary>
         public event Action Activated;
+
+        /// <summary>
+        /// Invoked when the game window is deactivated. Always invoked from the update thread.
+        /// </summary>
         public event Action Deactivated;
+
         public event Func<bool> Exiting;
         public event Action Exited;
 
@@ -126,6 +122,7 @@ namespace osu.Framework.Platform
         public void RegisterThread(GameThread t)
         {
             threads.Add(t);
+            t.IsActive.BindTo(IsActive);
             t.UnhandledException = unhandledExceptionHandler;
             t.Monitor.EnablePerformanceProfiling = performanceLogging;
         }
@@ -256,9 +253,9 @@ namespace osu.Framework.Platform
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
         }
 
-        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
+        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => Activated?.Invoke());
 
-        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => setActive(false));
+        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
@@ -466,6 +463,8 @@ namespace osu.Framework.Platform
                 {
                     Window.SetupWindow(config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    IsActive.BindTo(Window.IsActive);
                 }
 
                 resetInputHandlers();
@@ -478,6 +477,16 @@ namespace osu.Framework.Platform
 
                 frameSyncMode.TriggerChange();
                 ignoredInputHandlers.TriggerChange();
+
+                IsActive.BindValueChanged(v =>
+                {
+                    activeGCMode.TriggerChange();
+
+                    if (v)
+                        OnActivated();
+                    else
+                        OnDeactivated();
+                }, true);
 
                 try
                 {
@@ -506,8 +515,6 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
-                        setActive(true);
-
                         while (ExecutionState != ExecutionState.Stopped)
                             InputThread.RunUpdate();
                     }
@@ -624,7 +631,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive; };
+            activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive.Value ? newMode : GCLatencyMode.Interactive; };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>

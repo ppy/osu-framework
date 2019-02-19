@@ -43,7 +43,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         var mapped = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
 
-                        var newState = new OsuTKPollMouseState(cursorState, host.IsActive, new Vector2(mapped.X, mapped.Y));
+                        var newState = new OsuTKPollMouseState(cursorState, host.IsActive.Value, new Vector2(mapped.X, mapped.Y));
                         HandleState(newState, lastPollState, true);
                         lastPollState = newState;
                     }, 0, 1000.0 / 60));
@@ -75,7 +75,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // on windows when crossing centre screen boundaries (width/2 or height/2).
                 return;
 
-            var newState = new OsuTKEventMouseState(e.Mouse, Host.IsActive, null);
+            var newState = new OsuTKEventMouseState(e.Mouse, Host.IsActive.Value, null);
             HandleState(newState, lastEventState, true);
             lastEventState = newState;
         }
