@@ -618,7 +618,7 @@ namespace osu.Framework.Platform
         private Bindable<string> ignoredInputHandlers;
 
         private Bindable<double> cursorSensitivity;
-        private Bindable<bool> performanceLogging;
+        private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
 
         private void setupConfig()
         {
@@ -694,7 +694,7 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            performanceLogging = config.GetBindable<bool>(FrameworkSetting.PerformanceLogging);
+            config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(enabled => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = enabled), true);
         }
 
