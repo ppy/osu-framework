@@ -38,8 +38,7 @@ namespace osu.Framework.Threading
             set
             {
                 activeHz = value;
-                if (IsActive.Value)
-                    Clock.MaximumUpdateHz = activeHz;
+                updateMaximumHz();
             }
         }
 
@@ -51,8 +50,7 @@ namespace osu.Framework.Threading
             set
             {
                 inactiveHz = value;
-                if (!IsActive.Value)
-                    Clock.MaximumUpdateHz = inactiveHz;
+                updateMaximumHz();
             }
         }
 
@@ -84,13 +82,15 @@ namespace osu.Framework.Threading
                 Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
 
-            IsActive.BindValueChanged(v => Scheduler.Add(() => Clock.MaximumUpdateHz = v ? activeHz : inactiveHz), true);
+            IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
 
         public void WaitUntilInitialized()
         {
             initializedEvent.WaitOne();
         }
+
+        private void updateMaximumHz() => Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? activeHz : inactiveHz);
 
         private void runWork()
         {
