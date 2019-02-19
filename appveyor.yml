@@ -3,7 +3,5 @@ skip_tags: true
 version: '{branch}-{build}'
 image: Visual Studio 2017
 test: off
-install:
-  - cmd: git submodule update --init --recursive --depth=5
 build_script:
   - cmd: PowerShell -Version 2.0 .\build.ps1
