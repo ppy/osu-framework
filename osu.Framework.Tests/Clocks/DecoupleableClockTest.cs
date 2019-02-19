@@ -247,7 +247,6 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Stop();
 
-
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
 
