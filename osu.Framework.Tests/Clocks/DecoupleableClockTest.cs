@@ -264,26 +264,5 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
         }
-
-        private class TestClock : IAdjustableClock
-        {
-            public double CurrentTime { get; set; }
-            public double Rate { get; set; } = 1;
-
-            private bool isRunning;
-            public bool IsRunning => isRunning;
-
-            public void Reset() => throw new System.NotImplementedException();
-            public void Start() => isRunning = true;
-            public void Stop() => isRunning = false;
-
-            public bool Seek(double position)
-            {
-                CurrentTime = position;
-                return true;
-            }
-
-            public void ResetSpeedAdjustments() => throw new System.NotImplementedException();
-        }
     }
 }
