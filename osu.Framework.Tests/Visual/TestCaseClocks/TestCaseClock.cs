@@ -71,7 +71,6 @@ namespace osu.Framework.Tests.Visual.TestCaseClocks
                 BorderColour = Color4.White;
                 BorderThickness = 5;
 
-
                 InternalChildren = new Drawable[]
                 {
                     bg = new Box
@@ -108,7 +107,6 @@ namespace osu.Framework.Tests.Visual.TestCaseClocks
                     },
                 };
             }
-
 
             protected override bool OnClick(ClickEvent e)
             {
