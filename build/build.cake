@@ -1,3 +1,4 @@
+using System.Threading;
 #addin "nuget:?package=CodeFileSanity&version=0.0.21"
 #addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2018.2.2"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
@@ -12,10 +13,9 @@ var waitressPath = pythonPath.GetDirectory().CombineWithFilePath("Scripts/waitre
 
 var target = Argument("target", "Build");
 var configuration = Argument("configuration", "Debug");
-var version = AppVeyor.IsRunningOnAppVeyor ? $"0.0.{AppVeyor.Environment.Build.Number}" : "0.0.0";
+var version = "0.0.0";
 
 var rootDirectory = new DirectoryPath("..");
-var toolsDirectory = new DirectoryPath("tools");
 var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
@@ -30,18 +30,6 @@ var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeL
 
 IProcess waitressProcess;
 
-Setup(ctx => {
-    if (IsRunningOnWindows()) {
-        StartProcess(pythonPath, "-m pip install httpbin waitress");
-
-        waitressProcess = StartAndReturnProcess(waitressPath, new ProcessSettings {
-            Arguments = "--listen=*:80 httpbin:app",
-        });
-
-        Environment.SetEnvironmentVariable("LocalHttpBin", "true");
-    }
-});
-
 Teardown(ctx => {
     waitressProcess?.Kill();
 });
@@ -49,6 +37,45 @@ Teardown(ctx => {
 ///////////////////////////////////////////////////////////////////////////////
 // TASKS
 ///////////////////////////////////////////////////////////////////////////////
+
+Task("DetermineAppveyorBuildProperties")
+    .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
+    .Does(() => {
+        version = $"0.0.{AppVeyor.Environment.Build.Number}";
+        configuration = "Debug";
+    });
+
+Task("DetermineAppveyorDeployProperties")
+    .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
+    .Does(() => {
+        Environment.SetEnvironmentVariable("APPVEYOR_DEPLOY", "1");
+
+        if (AppVeyor.Environment.Repository.Tag.IsTag)
+            AppVeyor.UpdateBuildVersion(AppVeyor.Environment.Repository.Tag.Name);
+
+        configuration = "Release";
+        version = AppVeyor.Environment.Build.Version;
+    });
+
+Task("Clean")
+    .Does(() => {
+        EnsureDirectoryExists(artifactsDirectory);
+        CleanDirectory(artifactsDirectory);
+    });
+
+Task("RunHttpBin")
+    .WithCriteria(IsRunningOnWindows())
+    .Does(() => {
+        StartProcess(pythonPath, "-m pip install httpbin waitress");
+
+        waitressProcess = StartAndReturnProcess(waitressPath, new ProcessSettings {
+            Arguments = "--listen=*:80 httpbin:app",
+        });
+
+        Thread.Sleep(5000); // we need to wait for httpbin to startup. :/
+
+        Environment.SetEnvironmentVariable("LocalHttpBin", "true");
+    });
 
 Task("Compile")
     .Does(() => {
@@ -59,6 +86,7 @@ Task("Compile")
     });
 
 Task("Test")
+    .IsDependentOn("RunHttpBin")
     .IsDependentOn("Compile")
     .Does(() => {
         var testAssemblies = GetFiles(rootDirectory + $"/*.Tests/bin/{configuration}/*/*.Tests.dll");
@@ -95,13 +123,23 @@ Task("CodeFileSanity")
         });
     });
 
-Task("Pack")
+Task("PackFramework")
     .Does(() => {
-        EnsureDirectoryExists(artifactsDirectory);
-        CleanDirectory(artifactsDirectory);
-        var absoluteArtifactsPath = artifactsDirectory.MakeAbsolute(Context.Environment);
+        DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            ArgumentCustomization = args => {
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:GenerateDocumentationFile=true");
 
-        var msbuildPackSettings = new MSBuildSettings {
+                return args;
+            }
+        });
+    });
+
+Task("PackiOSFramework")
+    .Does(() => {
+        MSBuild(iosFrameworkProject, new MSBuildSettings {
             Restore = true,
             BinaryLogger = new MSBuildBinaryLogSettings{
                 Enabled = true,
@@ -113,23 +151,28 @@ Task("Pack")
             {
                 args.Append($"/p:Configuration={configuration}");
                 args.Append($"/p:Version={version}");
-                args.Append($"/p:PackageOutputPath={absoluteArtifactsPath}");
+                args.Append($"/p:PackageOutputPath={artifactsDirectory.MakeAbsolute(Context.Environment)}");
 
                 return args;
             }
-        }.WithTarget("Pack");
+        }.WithTarget("Pack"));
+    });
 
-        DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
+Task("PackNativeLibs")
+    .Does(() => {
+        DotNetCorePack(nativeLibsProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
-            ArgumentCustomization = args => args.Append($"/p:Version={version}")
+            ArgumentCustomization = args => {
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:GenerateDocumentationFile=true");
+
+                return args;
+            }
         });
-        MSBuild(iosFrameworkProject, msbuildPackSettings);
-        MSBuild(nativeLibsProject, msbuildPackSettings);
     });
 
 Task("Publish")
-    .IsDependentOn("Pack")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
         foreach (var artifact in GetFiles(artifactsDirectory.CombineWithFilePath("*").FullPath))
@@ -137,10 +180,27 @@ Task("Publish")
     });
 
 Task("Build")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
-    .IsDependentOn("Pack")
+    .IsDependentOn("PackFramework")
+    .IsDependentOn("PackiOSFramework")
+    .IsDependentOn("PackNativeLibs")
+    .IsDependentOn("Publish");
+
+Task("DeployFramework")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
+    .IsDependentOn("PackFramework")
+    .IsDependentOn("PackiOSFramework")
+    .IsDependentOn("Publish");
+
+Task("DeployNativeLibs")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
+    .IsDependentOn("PackNativeLibs")
     .IsDependentOn("Publish");
 
 RunTarget(target);;
