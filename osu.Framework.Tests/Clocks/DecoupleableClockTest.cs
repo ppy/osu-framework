@@ -247,7 +247,8 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Stop();
 
-            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
+
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
 
         /// <summary>
@@ -262,7 +263,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Stop();
 
-            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
     }
 }
