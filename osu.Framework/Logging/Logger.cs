@@ -426,7 +426,7 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                writer_idle.WaitOne(500);
+                writer_idle.WaitOne(2000);
                 NewEntry = null;
             }
         }
