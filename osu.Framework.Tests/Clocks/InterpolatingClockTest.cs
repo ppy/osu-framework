@@ -3,6 +3,7 @@
 
 using System.Threading;
 using NUnit.Framework;
+using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Clocks
@@ -39,6 +40,30 @@ namespace osu.Framework.Tests.Clocks
 
                 Thread.Sleep((int)(interpolating.AllowableErrorMilliseconds / 2));
             }
+        }
+
+        [Test]
+        public void InterpolationStaysWithinBounds()
+        {
+            source.Start();
+
+            const int sleep_time = 20;
+
+            for (int i = 0; i < 100; i++)
+            {
+                source.CurrentTime += sleep_time;
+                interpolating.ProcessFrame();
+
+                Assert.IsTrue(Precision.AlmostEquals(interpolating.CurrentTime, source.CurrentTime, interpolating.AllowableErrorMilliseconds), "Interpolating should be within allowable error bounds.");
+
+                Thread.Sleep(sleep_time);
+            }
+
+            source.Stop();
+            interpolating.ProcessFrame();
+
+            Assert.IsFalse(interpolating.IsRunning);
+            Assert.AreEqual(source.CurrentTime, interpolating.CurrentTime, "Interpolating should match source time.");
         }
     }
 }
