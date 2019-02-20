@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -9,11 +9,11 @@ namespace osu.Framework.Timing
     /// A clock which uses an internal stopwatch to interpolate (smooth out) a source.
     /// Note that this will NOT function unless a source has been set.
     /// </summary>
-    public class InterpolatingFramedClock : IFrameBasedClock
+    public class InterpolatingFramedClock : IFrameBasedClock, ISourceChangeableClock
     {
         private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
 
-        protected IClock SourceClock;
+        public IClock Source { get; private set; }
 
         protected IFrameBasedClock FramedSourceClock;
         protected double LastInterpolatedTime;
@@ -29,8 +29,8 @@ namespace osu.Framework.Timing
         {
             if (source != null)
             {
-                SourceClock = source;
-                FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
+                Source = source;
+                FramedSourceClock = Source as IFrameBasedClock ?? new FramedClock(Source);
             }
 
             LastInterpolatedTime = 0;
