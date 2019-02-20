@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
-    /// Represents a specific font and its intended usage, including the font <see cref="Family"/>, <see cref="Weight"/> and whether <see cref="Italics"/> are used.
+    /// Represents a specific usage of a font.
     /// </summary>
     public readonly struct FontUsage
     {
@@ -19,34 +19,40 @@ namespace osu.Framework.Graphics.Sprites
         public static FontUsage Default => new FontUsage(null);
 
         /// <summary>
-        /// Gets or sets the font family's name.
+        /// The font family name.
         /// </summary>
         [CanBeNull]
         public string Family { get; }
 
         /// <summary>
-        /// Gets or sets the font's weight.
+        /// The font weight.
         /// </summary>
         [CanBeNull]
         public string Weight { get; }
 
         /// <summary>
-        /// Gets or sets whether the font is italic.
+        /// Whether the font is italic.
         /// </summary>
         public bool Italics { get; }
 
         /// <summary>
-        /// Gets the size of the text in local space. This means that if <see cref="Size"/> is set to 16, a single line will have a height of 16.
+        /// The size of the text in local space. For a value of 16, a single line will have a height of 16px.
         /// </summary>
         public float Size { get; }
 
         /// <summary>
-        /// Gets whether all characters should be spaced apart the same distance.
+        /// Whether all characters should be spaced the same distance apart.
         /// </summary>
         public bool FixedWidth { get; }
 
         /// <summary>
-        /// Gets the full font name, based on all other properties.
+        /// The font's full name to be used for lookups. This is an aggregate of all other properties of <see cref="FontUsage"/>.
+        /// <remarks>
+        /// The format is of the form: <br />
+        /// {Family} <br />
+        /// {Family}-Italic <br />
+        /// {Family}-{Weight}Italic
+        /// </remarks>
         /// </summary>
         [NotNull]
         public string FontName { get; }
@@ -54,11 +60,11 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Creates an instance of <see cref="FontUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
         /// </summary>
-        /// <param name="family">The used font family.</param>
-        /// <param name="size">The used text size in local space.</param>
-        /// <param name="weight">The used font weight.</param>
+        /// <param name="family">The font family name.</param>
+        /// <param name="size">The size of the text in local space. For a value of 16, a single line will have a height of 16px.</param>
+        /// <param name="weight">The font weight.</param>
         /// <param name="italics">Whether the font is italic.</param>
-        /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance.</param>
+        /// <param name="fixedWidth">Whether all characters should be spaced the same distance apart.</param>
         public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false)
         {
             Family = family;
@@ -80,9 +86,9 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Creates a new <see cref="FontUsage"/> by applying adjustments to this <see cref="FontUsage"/>.
         /// </summary>
-        /// <param name="family">The used font family. If null, the value is copied from this <see cref="FontUsage"/>.</param>
-        /// <param name="size">The used text size in local space. If null, the value is copied from this <see cref="FontUsage"/>.</param>
-        /// <param name="weight">The used font weight. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="family">The font family. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="size">The text size. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="weight">The font weight. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <param name="italics">Whether the font is italic. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <returns>The resulting <see cref="FontUsage"/>.</returns>
