@@ -61,6 +61,9 @@ namespace osu.Framework.Platform
 
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
+        /// <summary>
+        /// Whether this <see cref="GameWindow"/> is active (in the foreground).
+        /// </summary>
         public IBindable<bool> IsActive => isActive;
 
         /// <summary>

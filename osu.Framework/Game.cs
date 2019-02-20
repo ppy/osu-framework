@@ -34,7 +34,7 @@ namespace osu.Framework
         private readonly Bindable<bool> isActive = new Bindable<bool>(true);
 
         /// <summary>
-        /// Whether the Game environment is active (in the foreground).
+        /// Whether the game is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 

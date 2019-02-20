@@ -51,6 +51,9 @@ namespace osu.Framework.Platform
 
         private FrameworkConfigManager config;
 
+        /// <summary>
+        /// Whether the <see cref="GameWindow"/> is active (in the foreground).
+        /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;

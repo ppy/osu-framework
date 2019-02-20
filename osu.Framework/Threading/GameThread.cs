@@ -28,6 +28,9 @@ namespace osu.Framework.Threading
 
         private readonly Action onNewFrame;
 
+        /// <summary>
+        /// Whether the game is active (in the foreground).
+        /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         private double activeHz = DEFAULT_ACTIVE_HZ;
