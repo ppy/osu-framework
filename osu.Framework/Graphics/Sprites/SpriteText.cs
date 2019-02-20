@@ -124,7 +124,14 @@ namespace osu.Framework.Graphics.Sprites
             get => font;
             set
             {
+                // The implicit operator can be used to convert strings to fonts, which discards size + fixedwidth in doing so
+                // For the time being, we'll forward those members from the original value
+                // Todo: Remove this along with all other obsolete members
+                if (value.Legacy)
+                    value = new FontUsage(value.Family, font.Size, value.Weight, value.Italics, font.FixedWidth);
+
                 font = value;
+
                 invalidate(true);
                 shadowOffsetCache.Invalidate();
             }

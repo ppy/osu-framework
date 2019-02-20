@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Sprites
                 FontName += "Italic";
 
             FontName = FontName.TrimEnd('-');
+            Legacy = false;
         }
 
         /// <summary>
@@ -124,9 +125,12 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Obsolete
 
+        internal bool Legacy { get; }
+
         private FontUsage(string fontName)
             : this(family: fontName)
         {
+            Legacy = true;
         }
 
         [Obsolete("Setting font by name is deprecated. Use `Font = new FontUsage(...)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
