@@ -45,21 +45,6 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="FontUsage"/> by copying from another <see cref="FontUsage"/> and applying adjusted parameters.
-        /// </summary>
-        /// <param name="usage">The <see cref="FontUsage"/> to copy from.</param>
-        /// <param name="family">The used font family. If null, the value is taken from <paramref name="usage"/>.</param>
-        /// <param name="size">The used text size in local space. If null, the value is taken from <paramref name="usage"/>.</param>
-        /// <param name="weight">The used font weight. If null, the value is taken from <paramref name="usage"/>.</param>
-        /// <param name="italics">Whether the font is italic. If null, the value is taken from <paramref name="usage"/>.</param>
-        /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance. If null, the value is taken from <paramref name="usage"/>.</param>
-        public FontUsage(FontUsage usage, [CanBeNull] string family = null, [CanBeNull] float? size = null, [CanBeNull] string weight = null, [CanBeNull] bool? italics = null,
-                         [CanBeNull] bool? fixedWidth = null)
-            : this(family ?? usage.Family, size ?? usage.Size, weight ?? usage.Weight, italics ?? usage.Italics, fixedWidth ?? usage.FixedWidth)
-        {
-        }
-
-        /// <summary>
         /// Gets or sets the font family's name.
         /// </summary>
         [CanBeNull]
@@ -91,5 +76,18 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         [NotNull]
         public string FontName { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="FontUsage"/> by applying adjustments to this <see cref="FontUsage"/>.
+        /// </summary>
+        /// <param name="family">The used font family. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="size">The used text size in local space. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="weight">The used font weight. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="italics">Whether the font is italic. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance. If null, the value is copied from this <see cref="FontUsage"/>.</param>
+        /// <returns>The resulting <see cref="FontUsage"/>.</returns>
+        public FontUsage With([CanBeNull] string family = null, [CanBeNull] float? size = null, [CanBeNull] string weight = null, [CanBeNull] bool? italics = null,
+                                [CanBeNull] bool? fixedWidth = null)
+            => new FontUsage(family ?? Family, size ?? Size, weight ?? Weight, italics ?? Italics, fixedWidth ?? FixedWidth);
     }
 }

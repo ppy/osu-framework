@@ -415,7 +415,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
             public ScrollTestButton(TestAction action, SimultaneousBindingMode concurrency)
                 : base(action, concurrency)
             {
-                SpriteText.Font = new FontUsage(SpriteText.Font, size: SpriteText.Font.Size * .9f);
+                SpriteText.Font = SpriteText.Font.With(size: SpriteText.Font.Size * .9f);
             }
 
             protected override void Update()
@@ -459,7 +459,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
                 Concurrency = concurrency;
 
                 BackgroundColour = Color4.SkyBlue;
-                SpriteText.Font = new FontUsage(SpriteText.Font, size: SpriteText.Font.Size * .8f);
+                SpriteText.Font = SpriteText.Font.With(size: SpriteText.Font.Size * .8f);
                 actionText = action.ToString().Replace('_', ' ');
 
                 RelativeSizeAxes = Axes.X;

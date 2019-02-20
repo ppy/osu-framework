@@ -9,7 +9,6 @@ using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
@@ -121,7 +120,7 @@ namespace osu.Framework.Testing.Drawables
             if (description != null)
             {
                 text.NewLine();
-                text.AddText(description, t => t.Font = new FontUsage(t.Font, size: 15));
+                text.AddText(description, t => t.Font = t.Font.With(size: 15));
             }
         }
 

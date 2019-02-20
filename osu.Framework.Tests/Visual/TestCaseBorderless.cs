@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Visual
                                         },
                                         windowCaption = new TextFlowContainer(sprite =>
                                         {
-                                            sprite.Font = new FontUsage(sprite.Font, size: 150);
+                                            sprite.Font = sprite.Font.With(size: 150);
                                             sprite.Colour = Color4.White;
                                         })
                                         {

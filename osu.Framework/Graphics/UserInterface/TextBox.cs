@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             const float cursor_width = 3;
 
-            Placeholder.Font = new FontUsage(Placeholder.Font, size: CalculatedTextSize);
+            Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
 
             textUpdateScheduler.Update();
 
