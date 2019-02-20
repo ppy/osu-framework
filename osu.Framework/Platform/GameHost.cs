@@ -476,11 +476,11 @@ namespace osu.Framework.Platform
                 frameSyncMode.TriggerChange();
                 ignoredInputHandlers.TriggerChange();
 
-                IsActive.BindValueChanged(v =>
+                IsActive.BindValueChanged(active =>
                 {
                     activeGCMode.TriggerChange();
 
-                    if (v)
+                    if (active)
                         OnActivated();
                     else
                         OnDeactivated();
