@@ -19,32 +19,6 @@ namespace osu.Framework.Graphics.Sprites
         public static FontUsage Default => new FontUsage(null);
 
         /// <summary>
-        /// Creates an instance of <see cref="FontUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
-        /// </summary>
-        /// <param name="family">The used font family.</param>
-        /// <param name="size">The used text size in local space.</param>
-        /// <param name="weight">The used font weight.</param>
-        /// <param name="italics">Whether the font is italic.</param>
-        /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance.</param>
-        public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false)
-        {
-            Family = family;
-            Size = size >= 0 ? size : throw new ArgumentOutOfRangeException(nameof(size), "Must be non-negative.");
-            Weight = weight;
-            Italics = italics;
-            FixedWidth = fixedWidth;
-
-            FontName = Family + "-";
-            if (!string.IsNullOrEmpty(weight))
-                FontName += weight;
-
-            if (italics)
-                FontName += "Italic";
-
-            FontName = FontName.TrimEnd('-');
-        }
-
-        /// <summary>
         /// Gets or sets the font family's name.
         /// </summary>
         [CanBeNull]
@@ -76,6 +50,32 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         [NotNull]
         public string FontName { get; }
+
+        /// <summary>
+        /// Creates an instance of <see cref="FontUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
+        /// </summary>
+        /// <param name="family">The used font family.</param>
+        /// <param name="size">The used text size in local space.</param>
+        /// <param name="weight">The used font weight.</param>
+        /// <param name="italics">Whether the font is italic.</param>
+        /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance.</param>
+        public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false)
+        {
+            Family = family;
+            Size = size >= 0 ? size : throw new ArgumentOutOfRangeException(nameof(size), "Must be non-negative.");
+            Weight = weight;
+            Italics = italics;
+            FixedWidth = fixedWidth;
+
+            FontName = Family + "-";
+            if (!string.IsNullOrEmpty(weight))
+                FontName += weight;
+
+            if (italics)
+                FontName += "Italic";
+
+            FontName = FontName.TrimEnd('-');
+        }
 
         /// <summary>
         /// Creates a new <see cref="FontUsage"/> by applying adjustments to this <see cref="FontUsage"/>.
