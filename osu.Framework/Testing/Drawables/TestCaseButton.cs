@@ -121,7 +121,7 @@ namespace osu.Framework.Testing.Drawables
             if (description != null)
             {
                 text.NewLine();
-                text.AddText(description, t => t.Font = new FontUsage(size: 15));
+                text.AddText(description, t => t.Font = new FontUsage(t.Font, size: 15));
             }
         }
 

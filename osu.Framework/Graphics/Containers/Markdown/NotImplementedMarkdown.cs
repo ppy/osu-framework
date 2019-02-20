@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var text = parentTextComponent.CreateSpriteText();
             text.Colour = new Color4(255, 0, 0, 255);
-            text.Font = new FontUsage(size: 21);
+            text.Font = new FontUsage(text.Font, size: 21);
             text.Text = markdownObject?.GetType() + " Not implemented.";
             return text;
         }
