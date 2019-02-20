@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// Represents a specific usage of a font.
     /// </summary>
-    public readonly struct FontUsage
+    public readonly struct FontUsage : IEquatable<FontUsage>
     {
         private const float default_text_size = 20;
 
@@ -83,11 +83,6 @@ namespace osu.Framework.Graphics.Sprites
             FontName = FontName.TrimEnd('-');
         }
 
-        private FontUsage(string fontName)
-            : this(family: fontName)
-        {
-        }
-
         /// <summary>
         /// Creates a new <see cref="FontUsage"/> by applying adjustments to this <see cref="FontUsage"/>.
         /// </summary>
@@ -98,12 +93,51 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance. If null, the value is copied from this <see cref="FontUsage"/>.</param>
         /// <returns>The resulting <see cref="FontUsage"/>.</returns>
         public FontUsage With([CanBeNull] string family = null, [CanBeNull] float? size = null, [CanBeNull] string weight = null, [CanBeNull] bool? italics = null,
-                                [CanBeNull] bool? fixedWidth = null)
+                              [CanBeNull] bool? fixedWidth = null)
             => new FontUsage(family ?? Family, size ?? Size, weight ?? Weight, italics ?? Italics, fixedWidth ?? FixedWidth);
 
-        [Obsolete("Constructing a font by name is deprecated. Use FontUsage (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}";
+
+        public bool Equals(FontUsage other)
+        {
+            return string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight) && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is FontUsage other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = Family != null ? Family.GetHashCode() : 0;
+                hashCode = (hashCode * 397) ^ (Weight != null ? Weight.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ Italics.GetHashCode();
+                hashCode = (hashCode * 397) ^ Size.GetHashCode();
+                hashCode = (hashCode * 397) ^ FixedWidth.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        #region Obsolete
+
+        private FontUsage(string fontName)
+            : this(family: fontName)
+        {
+        }
+
+        [Obsolete("Setting font by name is deprecated. Use `Font = new FontUsage(...)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
         public static implicit operator FontUsage(string fontName) => new FontUsage(fontName);
 
-        public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}";
+        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
+        public static bool operator ==(FontUsage fontUsage, string fontName) => fontUsage.FontName == fontName;
+
+        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
+        public static bool operator !=(FontUsage fontUsage, string fontName) => fontUsage.FontName != fontName;
+
+        #endregion
     }
 }
