@@ -83,6 +83,11 @@ namespace osu.Framework.Graphics.Sprites
             FontName = FontName.TrimEnd('-');
         }
 
+        private FontUsage(string fontName)
+            : this(family: fontName)
+        {
+        }
+
         /// <summary>
         /// Creates a new <see cref="FontUsage"/> by applying adjustments to this <see cref="FontUsage"/>.
         /// </summary>
@@ -95,6 +100,9 @@ namespace osu.Framework.Graphics.Sprites
         public FontUsage With([CanBeNull] string family = null, [CanBeNull] float? size = null, [CanBeNull] string weight = null, [CanBeNull] bool? italics = null,
                                 [CanBeNull] bool? fixedWidth = null)
             => new FontUsage(family ?? Family, size ?? Size, weight ?? Weight, italics ?? Italics, fixedWidth ?? FixedWidth);
+
+        [Obsolete("Constructing a font by name is deprecated. Use FontUsage (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public static implicit operator FontUsage(string fontName) => new FontUsage(fontName);
 
         public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}";
     }
