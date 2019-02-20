@@ -6,6 +6,7 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Threading
 {
@@ -27,17 +28,10 @@ namespace osu.Framework.Threading
 
         private readonly Action onNewFrame;
 
-        private bool isActive = true;
-
-        public bool IsActive
-        {
-            get => isActive;
-            set
-            {
-                isActive = value;
-                Clock.MaximumUpdateHz = isActive ? activeHz : inactiveHz;
-            }
-        }
+        /// <summary>
+        /// Whether the game is active (in the foreground).
+        /// </summary>
+        public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         private double activeHz = DEFAULT_ACTIVE_HZ;
 
@@ -47,8 +41,7 @@ namespace osu.Framework.Threading
             set
             {
                 activeHz = value;
-                if (IsActive)
-                    Clock.MaximumUpdateHz = activeHz;
+                updateMaximumHz();
             }
         }
 
@@ -60,8 +53,7 @@ namespace osu.Framework.Threading
             set
             {
                 inactiveHz = value;
-                if (!IsActive)
-                    Clock.MaximumUpdateHz = inactiveHz;
+                updateMaximumHz();
             }
         }
 
@@ -92,12 +84,16 @@ namespace osu.Framework.Threading
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
+
+            IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
 
         public void WaitUntilInitialized()
         {
             initializedEvent.WaitOne();
         }
+
+        private void updateMaximumHz() => Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? activeHz : inactiveHz);
 
         private void runWork()
         {

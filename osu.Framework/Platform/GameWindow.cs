@@ -59,6 +59,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
+        private readonly Bindable<bool> isActive = new Bindable<bool>();
+
+        /// <summary>
+        /// Whether this <see cref="GameWindow"/> is active (in the foreground).
+        /// </summary>
+        public IBindable<bool> IsActive => isActive;
+
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
@@ -72,6 +79,20 @@ namespace osu.Framework.Platform
 
             MouseEnter += (sender, args) => CursorInWindow = true;
             MouseLeave += (sender, args) => CursorInWindow = false;
+
+            FocusedChanged += (o, e) => isActive.Value = Focused;
+
+            bool firstUpdate = true;
+            UpdateFrame += (o, e) =>
+            {
+                if (firstUpdate)
+                {
+                    isActive.Value = Focused;
+                    firstUpdate = false;
+                }
+            };
+
+            WindowStateChanged += (o, e) => isActive.Value = WindowState != WindowState.Minimized;
 
             MakeCurrent();
 

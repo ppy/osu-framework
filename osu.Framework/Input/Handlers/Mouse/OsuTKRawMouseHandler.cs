@@ -71,7 +71,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 if (lastState != null && rawState.Equals(lastState.RawState))
                                     continue;
 
-                                var newState = new OsuTKPollMouseState(rawState, host.IsActive, getUpdatedPosition(rawState, lastState));
+                                var newState = new OsuTKPollMouseState(rawState, host.IsActive.Value, getUpdatedPosition(rawState, lastState));
 
                                 HandleState(newState, lastState, rawState.Flags.HasFlag(MouseStateFlags.MoveAbsolute));
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                             var state = osuTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
+                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive.Value, new Vector2(screenPoint.X, screenPoint.Y));
 
                             HandleState(newState, lastUnfocusedState, true);
 
