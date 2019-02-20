@@ -86,6 +86,8 @@ namespace osu.Framework.Timing
                 //if we differ from the elapsed time of the source, let's adjust for the difference.
                 CurrentInterpolatedTime += (FramedSourceClock.CurrentTime - CurrentInterpolatedTime) / 8;
             }
+
+            CurrentInterpolatedTime = Rate >= 0 ? Math.Max(LastInterpolatedTime, CurrentInterpolatedTime) : Math.Min(LastInterpolatedTime, CurrentInterpolatedTime);
         }
     }
 }
