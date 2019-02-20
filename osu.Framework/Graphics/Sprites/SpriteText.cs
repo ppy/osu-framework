@@ -91,26 +91,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        /// <summary>
-        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
-        /// </summary>
-        [Obsolete("Setting TextSize directly is deprecated. Use FontUsage (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public float TextSize
-        {
-            get => Font.Size;
-            set => Font = Font.With(size: value);
-        }
-
-        /// <summary>
-        /// True if all characters should be spaced apart the same distance.
-        /// </summary>
-        [Obsolete("Setting FixedWidth directly is deprecated. Use FontUsage(fixedWidth: value) (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public bool FixedWidth
-        {
-            get => Font.FixedWidth;
-            set => Font = Font.With(fixedWidth: value);
-        }
-
         private readonly Bindable<string> current = new Bindable<string>();
 
         public Bindable<string> Current
@@ -148,6 +128,26 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
                 shadowOffsetCache.Invalidate();
             }
+        }
+
+        /// <summary>
+        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// </summary>
+        [Obsolete("Setting TextSize directly is deprecated. Use `Font = text.Font.With(size: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public float TextSize
+        {
+            get => Font.Size;
+            set => Font = Font.With(size: value);
+        }
+
+        /// <summary>
+        /// True if all characters should be spaced apart the same distance.
+        /// </summary>
+        [Obsolete("Setting FixedWidth directly is deprecated. Use `Font = text.Font.With(fixedWidth: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public bool FixedWidth
+        {
+            get => Font.FixedWidth;
+            set => Font = Font.With(fixedWidth: value);
         }
 
         private bool allowMultiline = true;
