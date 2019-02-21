@@ -40,9 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
             Active.ValueChanged += active_ValueChanged;
         }
 
-        private void active_ValueChanged(bool newValue)
+        private void active_ValueChanged(ValueChangedEvent<bool> args)
         {
-            if (newValue)
+            if (args.NewValue)
                 OnActivated();
             else
                 OnDeactivated();

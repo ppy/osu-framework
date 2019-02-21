@@ -53,9 +53,9 @@ namespace osu.Framework.Audio
 
         protected AdjustableAudioComponent()
         {
-            Volume.ValueChanged += InvalidateState;
-            Balance.ValueChanged += InvalidateState;
-            Frequency.ValueChanged += InvalidateState;
+            Volume.ValueChanged += args => InvalidateState(args.NewValue);
+            Balance.ValueChanged += args => InvalidateState(args.NewValue);
+            Frequency.ValueChanged += args => InvalidateState(args.NewValue);
         }
 
         internal void InvalidateState(double newValue = 0) => EnqueueAction(OnStateChanged);

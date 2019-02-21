@@ -21,7 +21,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event Action<T> ValueChanged;
+        public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
@@ -89,14 +89,14 @@ namespace osu.Framework.Configuration
 
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
-                SetValue(value);
+                SetValue(this.value, value);
             }
         }
 
-        internal void SetValue(T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
             this.value = value;
-            TriggerValueChange(source ?? this, true, bypassChecks);
+            TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
         }
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
@@ -159,11 +159,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
-        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        public void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false)
         {
             ValueChanged += onChange;
             if (runOnceImmediately)
-                onChange(Value);
+                onChange(new ValueChangedEvent<T>(Value, Value));
         }
 
         /// <summary>
@@ -216,11 +216,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual void TriggerChange()
         {
-            TriggerValueChange(this, false);
+            TriggerValueChange(value, this, false);
             TriggerDisabledChange(this, false);
         }
 
-        protected void TriggerValueChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
+        protected void TriggerValueChange(T previousValue, Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
@@ -228,10 +228,10 @@ namespace osu.Framework.Configuration
                 Bindings?.ForEachAlive(b =>
                 {
                     if (b == source) return;
-                    b.SetValue(value, bypassChecks, this);
+                    b.SetValue(previousValue, value, bypassChecks, this);
                 });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
-                ValueChanged?.Invoke(value);
+                ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
         }
 
         protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)

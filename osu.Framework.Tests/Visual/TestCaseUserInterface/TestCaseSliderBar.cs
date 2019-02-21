@@ -112,9 +112,9 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("Value == 6", () => Precision.AlmostEquals(sliderBarValue, 6, Precision.FLOAT_EPSILON));
         }
 
-        private void sliderBarValueChanged(double newValue)
+        private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
-            sliderBarText.Text = $"Selected value: {newValue:N}";
+            sliderBarText.Text = $"Selected value: {args.NewValue:N}";
         }
     }
 }
