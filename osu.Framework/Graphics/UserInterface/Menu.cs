@@ -590,7 +590,6 @@ namespace osu.Framework.Graphics.UserInterface
                 if (Content is IHasText textContent)
                 {
                     textContent.Text = item.Text.Value;
-                    textContent.Text = item.Text;
                     Item.Text.ValueChanged += args => textContent.Text = args.NewValue;
                 }
             }
