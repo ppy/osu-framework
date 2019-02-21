@@ -19,9 +19,9 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             base.Initialize(host);
 
-            Enabled.BindValueChanged(args =>
+            Enabled.BindValueChanged(e =>
             {
-                if (args.NewValue)
+                if (e.NewValue)
                 {
                     host.Window.MouseMove += handleMouseEvent;
                     host.Window.MouseDown += handleMouseEvent;

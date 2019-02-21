@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            Current.ValueChanged += args => box.FadeColour(args.NewValue ? CheckedColor : UncheckedColor, FadeDuration);
+            Current.ValueChanged += e => box.FadeColour(e.NewValue ? CheckedColor : UncheckedColor, FadeDuration);
             Current.TriggerChange();
         }
     }

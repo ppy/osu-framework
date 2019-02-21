@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainer
 
             if (window == null) return;
 
-            safeAreaPadding.ValueChanged += args => updatePadding(args.NewValue);
+            safeAreaPadding.ValueChanged += e => updatePadding(e.NewValue);
             safeAreaPadding.BindTo(window.SafeAreaPadding);
             updatePadding(window.SafeAreaPadding.Value);
         }

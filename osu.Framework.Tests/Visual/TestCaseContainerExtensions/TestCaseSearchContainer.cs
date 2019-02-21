@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
             });
 
-            textBox.Current.ValueChanged += args => search.SearchTerm = args.NewValue;
+            textBox.Current.ValueChanged += e => search.SearchTerm = e.NewValue;
         }
 
         private class HeaderContainer : Container, IHasFilterableChildren

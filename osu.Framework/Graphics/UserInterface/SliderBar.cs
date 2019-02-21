@@ -69,18 +69,18 @@ namespace osu.Framework.Graphics.UserInterface
 
             currentNumberInstantaneous = CurrentNumber.GetUnboundCopy();
 
-            CurrentNumber.ValueChanged += args => currentNumberInstantaneous.Value = args.NewValue;
+            CurrentNumber.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
             CurrentNumber.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
             CurrentNumber.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
             CurrentNumber.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
             CurrentNumber.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
 
-            currentNumberInstantaneous.ValueChanged += args =>
+            currentNumberInstantaneous.ValueChanged += e =>
             {
                 if (TransferValueOnCommit)
                     uncommittedChanges = true;
                 else
-                    CurrentNumber.Value = args.NewValue;
+                    CurrentNumber.Value = e.NewValue;
             };
         }
 

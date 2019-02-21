@@ -214,7 +214,7 @@ namespace osu.Framework.Testing
                 }
             };
 
-            searchTextBox.Current.ValueChanged += args => leftFlowContainer.SearchTerm = args.NewValue;
+            searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.SupportsJIT)
             {
@@ -239,7 +239,7 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(args => rateAdjustClock.Rate = args.NewValue, true);
+            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
         }
 
         protected override void Dispose(bool isDisposing)

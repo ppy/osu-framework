@@ -42,9 +42,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
             }
 
-            Enabled.BindValueChanged(args =>
+            Enabled.BindValueChanged(e =>
             {
-                if (args.NewValue)
+                if (e.NewValue)
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
