@@ -34,7 +34,6 @@ namespace osu.Framework.Allocation
         private readonly IReadOnlyDependencyContainer parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-        private TModel currentModel;
 
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
@@ -42,6 +41,7 @@ namespace osu.Framework.Allocation
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
+            TModel currentModel = null;
             Model.BindValueChanged(e =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
