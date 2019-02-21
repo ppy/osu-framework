@@ -97,19 +97,6 @@ namespace osu.Framework.Testing.Input
 
                     InternalChildren = new Drawable[]
                     {
-                        border = new CircularContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderThickness = 2,
-                            BorderColour = Color4.Cyan,
-                            Child = new Box
-                            {
-                                Colour = Color4.Black,
-                                Alpha = 0.1f,
-                                RelativeSizeAxes = Axes.Both,
-                            },
-                        },
                         left = new Container
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -151,6 +138,19 @@ namespace osu.Framework.Testing.Input
                                     Alpha = 0.1f,
                                     RelativeSizeAxes = Axes.Both,
                                 },
+                            },
+                        },
+                        border = new CircularContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Masking = true,
+                            BorderThickness = 2,
+                            BorderColour = Color4.Cyan,
+                            Child = new Box
+                            {
+                                Colour = Color4.Black,
+                                Alpha = 0.1f,
+                                RelativeSizeAxes = Axes.Both,
                             },
                         },
                         circle = new CircularContainer
