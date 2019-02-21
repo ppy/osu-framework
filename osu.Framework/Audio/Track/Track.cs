@@ -117,7 +117,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get => Frequency * Tempo;
+            get => Frequency.Value * Tempo.Value;
             set => Tempo.Value = value;
         }
 

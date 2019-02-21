@@ -157,11 +157,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case Key.Right:
                     currentNumberInstantaneous.Add(step);
-                    OnUserChange(currentNumberInstantaneous);
+                    OnUserChange(currentNumberInstantaneous.Value);
                     return true;
                 case Key.Left:
                     currentNumberInstantaneous.Add(-step);
-                    OnUserChange(currentNumberInstantaneous);
+                    OnUserChange(currentNumberInstantaneous.Value);
                     return true;
                 default:
                     return false;
@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!currentNumberInstantaneous.Disabled)
                 currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
-            OnUserChange(currentNumberInstantaneous);
+            OnUserChange(currentNumberInstantaneous.Value);
         }
 
         /// <summary>

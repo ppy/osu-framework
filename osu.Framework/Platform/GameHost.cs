@@ -127,7 +127,7 @@ namespace osu.Framework.Platform
             threads.Add(t);
             t.IsActive.BindTo(IsActive);
             t.UnhandledException = unhandledExceptionHandler;
-            t.Monitor.EnablePerformanceProfiling = performanceLogging;
+            t.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
         }
 
         public GameThread DrawThread;
@@ -683,7 +683,7 @@ namespace osu.Framework.Platform
                 if (restoreDefaults)
                 {
                     resetInputHandlers();
-                    ignoredInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => !h.Enabled).Select(h => h.ToString()));
+                    ignoredInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
                 }
                 else
                 {
@@ -705,7 +705,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

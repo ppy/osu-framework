@@ -196,7 +196,7 @@ namespace osu.Framework.Platform
                 switch (newMode)
                 {
                     case Configuration.WindowMode.Fullscreen:
-                        ChangeResolution(currentDisplay, sizeFullscreen);
+                        ChangeResolution(currentDisplay, sizeFullscreen.Value);
                         lastFullscreenDisplay = currentDisplay;
 
                         WindowState = WindowState.Fullscreen;
@@ -224,7 +224,7 @@ namespace osu.Framework.Platform
                         WindowBorder = WindowBorder.Resizable;
 
                         ClientSize = newSize;
-                        Position = new Vector2((float)windowPositionX, (float)windowPositionY);
+                        Position = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
                         break;
                 }
             }

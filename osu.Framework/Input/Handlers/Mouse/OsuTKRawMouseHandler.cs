@@ -122,7 +122,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             {
                 const int raw_input_resolution = 65536;
 
-                if (mapAbsoluteInputToWindow)
+                if (mapAbsoluteInputToWindow.Value)
                 {
                     // map directly to local window
                     currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;
