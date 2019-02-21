@@ -3,8 +3,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.InputQueue;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osuTK;
@@ -42,30 +42,6 @@ namespace osu.Framework.Input
         }
 
         private bool useParentInput = true;
-
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
-        {
-            if (!PropagateNonPositionalInputSubTree) return false;
-
-            if (!allowBlocking)
-            {
-                base.BuildNonPositionalInputQueue(queue, false);
-                return false;
-            }
-
-            if (UseParentInput)
-                queue.Add(this);
-            return false;
-        }
-
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
-        {
-            if (!PropagatePositionalInputSubTree) return false;
-
-            if (UseParentInput)
-                queue.Add(this);
-            return false;
-        }
 
         protected override List<IInput> GetPendingInputs()
         {
@@ -130,6 +106,10 @@ namespace osu.Framework.Input
             // Some non-positional events are blocked. Sync every frame.
             if (UseParentInput) Sync(true);
         }
+
+        public override bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true) => visitor.Visit(this, allowBlocking);
+
+        public override bool Accept(IPositionalInputVisitor visitor, Vector2 screenSpacePos) => visitor.Visit(screenSpacePos, this);
 
         /// <summary>
         /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.

@@ -28,6 +28,7 @@ using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.InputQueue;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osuTK.Input;
@@ -46,7 +47,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract partial class Drawable : Transformable, IDisposable, IDrawable
+    public abstract partial class Drawable : Transformable, IDisposable, IDrawable, IInputQueueElement
     {
         #region Construction and disposal
 
@@ -2105,39 +2106,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
-        /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
-        /// </summary>
-        /// <param name="queue">The input queue to be built.</param>
-        /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        /// <returns>Returns false if we should skip this sub-tree.</returns>
-        internal virtual bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
-        {
-            if (!PropagateNonPositionalInputSubTree)
-                return false;
+        public virtual bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true) => visitor.Visit(this, allowBlocking);
 
-            if (HandleNonPositionalInput)
-                queue.Add(this);
-
-            return true;
-        }
-
-        /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive positional input in reverse order.
-        /// </summary>
-        /// <param name="screenSpacePos">The screen space position of the positional input.</param>
-        /// <param name="queue">The input queue to be built.</param>
-        /// <returns>Returns false if we should skip this sub-tree.</returns>
-        internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
-        {
-            if (!PropagatePositionalInputSubTree)
-                return false;
-
-            if (HandlePositionalInput && ReceivePositionalInputAt(screenSpacePos))
-                queue.Add(this);
-
-            return true;
-        }
+        public virtual bool Accept(IPositionalInputVisitor visitor, Vector2 screenSpacePos) => visitor.Visit(screenSpacePos, this);
 
         #endregion
 

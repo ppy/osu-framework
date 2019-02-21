@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Input.InputQueue;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -1149,6 +1150,10 @@ namespace osu.Framework.Graphics.Containers
 
         #region Interaction / Input
 
+        public override bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true) => visitor.Visit(this, allowBlocking);
+
+        public override bool Accept(IPositionalInputVisitor visitor, Vector2 screenSpacePos) => visitor.Visit(screenSpacePos, this);
+
         public override bool Contains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
@@ -1157,31 +1162,6 @@ namespace osu.Framework.Graphics.Containers
             if (cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
-        }
-
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
-        {
-            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
-                return false;
-
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
-
-            return true;
-        }
-
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
-        {
-            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
-                return false;
-
-            if (Masking && !ReceivePositionalInputAt(screenSpacePos))
-                return false;
-
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
-
-            return true;
         }
 
         #endregion

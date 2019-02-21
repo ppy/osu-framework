@@ -8,6 +8,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.InputQueue;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osuTK;
@@ -52,14 +53,14 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
 
-        private readonly List<Drawable> queue = new List<Drawable>();
+        private readonly NonPositionalInputQueue queue = new NonPositionalInputQueue();
 
         private List<Drawable> childrenInputQueue
         {
             get
             {
                 queue.Clear();
-                BuildNonPositionalInputQueue(queue, false);
+                Accept(queue, false);
                 queue.Reverse();
 
                 return queue;
@@ -79,25 +80,6 @@ namespace osu.Framework.Input.Bindings
         /// Each repeated action will have its own pressed/released event pair.
         /// </summary>
         protected virtual bool SendRepeats => false;
-
-        /// <summary>
-        /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
-        /// </summary>
-        protected virtual bool Prioritised => false;
-
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
-        {
-            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
-                return false;
-
-            if (Prioritised)
-            {
-                queue.Remove(this);
-                queue.Add(this);
-            }
-
-            return true;
-        }
 
         protected override bool Handle(UIEvent e)
         {
@@ -125,11 +107,11 @@ namespace osu.Framework.Input.Bindings
                     return handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
 
                 case ScrollEvent scroll:
-                {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
-                    return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
-                }
+                    {
+                        var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                        if (key == InputKey.None) return false;
+                        return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
+                    }
             }
 
             return false;
@@ -270,6 +252,11 @@ namespace osu.Framework.Input.Bindings
 
         public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
 
+        /// <summary>
+        /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
+        /// </summary>
+        protected internal virtual bool Prioritised => false;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -280,6 +267,8 @@ namespace osu.Framework.Input.Bindings
         {
             KeyBindings = DefaultKeyBindings;
         }
+
+        public override bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true) => visitor.Visit(this, allowBlocking);
     }
 
     public enum SimultaneousBindingMode

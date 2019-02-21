@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        protected override bool BlockPositionalInput => false;
+        protected internal override bool BlockPositionalInput => false;
 
         private Bindable<bool> enabled;
 

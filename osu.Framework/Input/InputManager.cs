@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.InputQueue;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
@@ -210,16 +211,6 @@ namespace osu.Framework.Input
             return true;
         }
 
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
-        {
-            if (!allowBlocking)
-                base.BuildNonPositionalInputQueue(queue, false);
-
-            return false;
-        }
-
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue) => false;
-
         private bool hoverEventsUpdated;
 
         protected override void Update()
@@ -279,7 +270,11 @@ namespace osu.Framework.Input
             return inputs;
         }
 
-        private readonly List<Drawable> inputQueue = new List<Drawable>();
+        public override bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true) => visitor.Visit(this, allowBlocking);
+
+        public override bool Accept(IPositionalInputVisitor visitor, Vector2 screenSpacePos) => visitor.Visit(screenSpacePos, this);
+
+        private readonly NonPositionalInputQueue inputQueue = new NonPositionalInputQueue();
 
         private IEnumerable<Drawable> buildNonPositionalInputQueue()
         {
@@ -290,7 +285,7 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildNonPositionalInputQueue(inputQueue);
+                (children[i] as IInputQueueElement).Accept(inputQueue);
 
             if (!unfocusIfNoLongerValid())
             {
@@ -306,7 +301,7 @@ namespace osu.Framework.Input
             return inputQueue;
         }
 
-        private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
+        private readonly PositionalInputQueue positionalInputQueue = new PositionalInputQueue();
 
         private IEnumerable<Drawable> buildPositionalInputQueue(InputState state)
         {
@@ -317,7 +312,7 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(state.Mouse.Position, positionalInputQueue);
+                (children[i] as IInputQueueElement).Accept(positionalInputQueue, state.Mouse.Position);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;

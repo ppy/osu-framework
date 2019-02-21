@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Visualisation
             inputManager = GetContainingInputManager();
         }
 
-        protected override bool BlockPositionalInput => false;
+        protected internal override bool BlockPositionalInput => false;
 
         protected override void PopIn()
         {
