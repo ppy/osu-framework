@@ -103,7 +103,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
-        private void updateState(BindableValueChangedEventArgs<RecordState> args)
+        private void updateState(ValueChangedEvent<RecordState> args)
         {
             switch (args.To)
             {

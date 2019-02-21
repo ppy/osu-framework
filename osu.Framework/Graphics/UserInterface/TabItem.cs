@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
             Active.ValueChanged += active_ValueChanged;
         }
 
-        private void active_ValueChanged(BindableValueChangedEventArgs<bool> args)
+        private void active_ValueChanged(ValueChangedEvent<bool> args)
         {
             if (args.To)
                 OnActivated();

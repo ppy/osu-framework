@@ -135,7 +135,7 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(BindableValueChangedEventArgs<string> args)
+        private void onDeviceChanged(ValueChangedEvent<string> args)
         {
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(args.To) ? null : args.To));
         }

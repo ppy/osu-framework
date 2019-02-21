@@ -156,9 +156,9 @@ namespace osu.Framework.Platform
             windowDisplayIndex.Value = CurrentDisplay.GetIndex();
         }
 
-        private void windowDisplayIndexChanged(BindableValueChangedEventArgs<DisplayIndex> args) => CurrentDisplay = DisplayDevice.GetDisplay(args.To);
+        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplay = DisplayDevice.GetDisplay(args.To);
 
-        private void confineMouseModeChanged(BindableValueChangedEventArgs<ConfineMouseMode> args)
+        private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
         {
             bool confine = false;
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Platform
             Position = new Vector2(0.5f);
         }
 
-        private void windowModeChanged(BindableValueChangedEventArgs<WindowMode> args) => UpdateWindowMode(args.To);
+        private void windowModeChanged(ValueChangedEvent<WindowMode> args) => UpdateWindowMode(args.To);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {

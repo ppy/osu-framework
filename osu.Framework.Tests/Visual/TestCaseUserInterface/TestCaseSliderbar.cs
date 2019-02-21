@@ -111,7 +111,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("Value == 6", () => sliderBarValue == 6);
         }
 
-        private void sliderBarValueChanged(BindableValueChangedEventArgs<double> args)
+        private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
             sliderbarText.Text = $"Selected value: {args.To:N}";
         }

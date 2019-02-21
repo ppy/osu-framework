@@ -38,7 +38,7 @@ namespace osu.Framework.Localisation
         [NotNull]
         public ILocalisedBindableString GetLocalisedString(LocalisedString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
-        private void updateLocale(BindableValueChangedEventArgs<string> args)
+        private void updateLocale(ValueChangedEvent<string> args)
         {
             if (locales.Count == 0)
                 return;

@@ -21,7 +21,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event Action<BindableValueChangedEventArgs<T>> ValueChanged;
+        public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
@@ -159,11 +159,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
-        public void BindValueChanged(Action<BindableValueChangedEventArgs<T>> onChange, bool runOnceImmediately = false)
+        public void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false)
         {
             ValueChanged += onChange;
             if (runOnceImmediately)
-                onChange(new BindableValueChangedEventArgs<T>(Value, Value));
+                onChange(new ValueChangedEvent<T>(Value, Value));
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace osu.Framework.Configuration
                     b.SetValue(previousValue, value, bypassChecks, this);
                 });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
-                ValueChanged?.Invoke(new BindableValueChangedEventArgs<T>(previousValue, value));
+                ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
         }
 
         protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
