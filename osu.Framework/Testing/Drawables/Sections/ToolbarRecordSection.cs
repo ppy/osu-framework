@@ -93,7 +93,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void changeState()
         {
-            if (browser.RecordState == RecordState.Stopped)
+            if (browser.RecordState.Value == RecordState.Stopped)
                 browser.RecordState.Value = RecordState.Normal;
             else
                 browser.RecordState.Value = browser.RecordState.Value + 1;
@@ -191,7 +191,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 public Label()
                 {
-                    TextSize = 18;
+                    Font = new FontUsage(size: 18);
                     Padding = new MarginPadding { Horizontal = 2 };
                 }
             }

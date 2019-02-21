@@ -294,7 +294,7 @@ namespace osu.Framework.Tests.Visual
 
             protected override void Update()
             {
-                Y = ChildID * TextSize;
+                Y = ChildID * Font.Size;
                 Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd} [{string.Join(", ", Crossings.Select(x => x.ToString()))}]";
             }
 

@@ -313,7 +313,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                         Text = $@"Screen {Sequence++}",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        TextSize = 50,
+                        Font = new FontUsage(size: 50)
                     },
                     popButton = new Button
                     {

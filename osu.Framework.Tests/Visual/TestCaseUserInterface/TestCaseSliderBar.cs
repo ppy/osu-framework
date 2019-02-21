@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             });
 
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in this test
-            AddAssert("Value == -6.25", () => Precision.AlmostEquals(sliderBarValue, -6.25, Precision.FLOAT_EPSILON));
+            AddAssert("Value == -6.25", () => Precision.AlmostEquals(sliderBarValue.Value, -6.25, Precision.FLOAT_EPSILON));
 
             AddStep("Press left arrow key", () =>
             {
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 sliderBar.IsHovered = before;
             });
 
-            AddAssert("Value == -7.25", () => Precision.AlmostEquals(sliderBarValue, -7.25, Precision.FLOAT_EPSILON));
+            AddAssert("Value == -7.25", () => Precision.AlmostEquals(sliderBarValue.Value, -7.25, Precision.FLOAT_EPSILON));
 
             AddStep("Click at 75% mark, holding shift", () =>
             {
@@ -109,7 +109,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 InputManager.ReleaseKey(Key.LShift);
             });
 
-            AddAssert("Value == 6", () => Precision.AlmostEquals(sliderBarValue, 6, Precision.FLOAT_EPSILON));
+            AddAssert("Value == 6", () => Precision.AlmostEquals(sliderBarValue.Value, 6, Precision.FLOAT_EPSILON));
         }
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)

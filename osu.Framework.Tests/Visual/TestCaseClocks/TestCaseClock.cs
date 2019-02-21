@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.TestCaseClocks
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        TextSize = 14,
+                        Font = new FontUsage(size: 14),
                         Y = 40,
                     },
                     hand = new Box

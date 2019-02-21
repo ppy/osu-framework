@@ -121,8 +121,6 @@ namespace osu.Framework.Configuration
             this.value = value;
         }
 
-        public static implicit operator T(Bindable<T> value) => value.Value;
-
         protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
