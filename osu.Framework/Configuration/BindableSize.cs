@@ -46,8 +46,6 @@ namespace osu.Framework.Configuration
             base.BindTo(them);
         }
 
-        public static implicit operator Size(BindableSize value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableSize)} to a {nameof(Size)} is likely a mistake");
-
         public override string ToString() => $"{Value.Width}x{Value.Height}";
 
         public override void Parse(object input)

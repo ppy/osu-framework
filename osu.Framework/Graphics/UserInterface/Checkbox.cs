@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!Current.Disabled)
-                Current.Value = !Current;
+                Current.Value = !Current.Value;
 
             base.OnClick(e);
             return true;
