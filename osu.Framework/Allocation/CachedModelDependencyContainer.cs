@@ -42,11 +42,11 @@ namespace osu.Framework.Allocation
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
-            Model.BindValueChanged(newModel =>
+            Model.BindValueChanged(args =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
                 // rather than leaving the current state on-going
-                newModel = newModel ?? new TModel();
+                var newModel = args.NewValue ?? new TModel();
 
                 updateShadowModel(shadowModel, currentModel, newModel);
 

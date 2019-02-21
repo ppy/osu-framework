@@ -73,13 +73,13 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private void updateList(Assembly asm)
+        private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
             //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm)
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
                                                 .GroupBy(
                                                     t =>
                                                     {
@@ -213,7 +213,7 @@ namespace osu.Framework.Testing
                 }
             };
 
-            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
+            searchTextBox.Current.ValueChanged += args => leftFlowContainer.SearchTerm = args.NewValue;
 
             if (RuntimeInfo.SupportsJIT)
             {
@@ -238,7 +238,7 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
+            PlaybackRate.BindValueChanged(args => rateAdjustClock.Rate = args.NewValue, true);
         }
 
         protected override void Dispose(bool isDisposing)
