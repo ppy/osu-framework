@@ -77,9 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             currentNumberInstantaneous.ValueChanged += e =>
             {
-                if (TransferValueOnCommit)
-                    uncommittedChanges = true;
-                else
+                if (!TransferValueOnCommit)
                     CurrentNumber.Value = e.NewValue;
             };
         }
@@ -202,6 +200,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void OnUserChange(T value)
         {
+           uncommittedChanges = true;
         }
     }
 }
