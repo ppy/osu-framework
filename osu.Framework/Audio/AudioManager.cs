@@ -162,7 +162,7 @@ namespace osu.Framework.Audio
             TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += args => tm.InvalidateState(args.NewValue);
+            VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
 
             return tm;
         }
@@ -179,7 +179,7 @@ namespace osu.Framework.Audio
             SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += args => sm.InvalidateState(args.NewValue);
+            VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
 
             return sm;
         }
