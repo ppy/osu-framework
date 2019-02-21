@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableSize : Bindable<Size>
     {

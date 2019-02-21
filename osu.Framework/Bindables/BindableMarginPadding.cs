@@ -5,7 +5,7 @@ using System;
 using System.Globalization;
 using osu.Framework.Graphics;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableMarginPadding : Bindable<MarginPadding>
     {

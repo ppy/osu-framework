@@ -3,7 +3,7 @@
 
 using System;
 using System.Reflection;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation

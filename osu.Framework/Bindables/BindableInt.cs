@@ -3,7 +3,7 @@
 
 using System.Globalization;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableInt : BindableNumber<int>
     {

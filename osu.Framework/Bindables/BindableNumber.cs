@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
         where T : struct, IComparable, IConvertible

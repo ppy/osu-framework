@@ -8,7 +8,7 @@ using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Lists;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableList<T> : IBindableList<T>, IList<T>, IList
     {

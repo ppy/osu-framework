@@ -10,7 +10,7 @@ using osu.Framework.Caching;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
     /// A generic implementation of a <see cref="IBindable"/>

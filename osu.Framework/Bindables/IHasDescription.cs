@@ -1,16 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// Interface for objects that have a default value.
+    /// Interface for objects that have a description.
     /// </summary>
-    public interface IHasDefaultValue
+    public interface IHasDescription
     {
         /// <summary>
-        /// Check whether this object has its default value.
+        /// The description for this object.
         /// </summary>
-        bool IsDefault { get; }
+        string Description { get; }
     }
 }
