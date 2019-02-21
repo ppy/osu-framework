@@ -174,12 +174,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.To))
-                && args.To != null)
+            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
+                && args.NewValue != null)
             {
-                if (!itemMap.TryGetValue(args.To, out selectedItem))
+                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.To), args.To);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
             }
 

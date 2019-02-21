@@ -24,7 +24,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             Enabled.BindValueChanged(args =>
             {
-                if (args.To)
+                if (args.NewValue)
                 {
                     host.Window.KeyDown += handleKeyboardEvent;
                     host.Window.KeyUp += handleKeyboardEvent;

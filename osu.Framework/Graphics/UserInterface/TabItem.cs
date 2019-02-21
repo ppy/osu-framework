@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void active_ValueChanged(ValueChangedEvent<bool> args)
         {
-            if (args.To)
+            if (args.NewValue)
                 OnActivated();
             else
                 OnDeactivated();

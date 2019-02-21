@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
-            sliderbarText.Text = $"Selected value: {args.To:N}";
+            sliderbarText.Text = $"Selected value: {args.NewValue:N}";
         }
     }
 }

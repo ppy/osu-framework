@@ -480,7 +480,7 @@ namespace osu.Framework.Platform
                 {
                     activeGCMode.TriggerChange();
 
-                    if (args.To)
+                    if (args.NewValue)
                         OnActivated();
                     else
                         OnDeactivated();
@@ -629,7 +629,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += args => { GCSettings.LatencyMode = IsActive.Value ? args.To : GCLatencyMode.Interactive; };
+            activeGCMode.ValueChanged += args => { GCSettings.LatencyMode = IsActive.Value ? args.NewValue : GCLatencyMode.Interactive; };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += args =>
@@ -644,7 +644,7 @@ namespace osu.Framework.Platform
 
                 setVSyncMode();
 
-                switch (args.To)
+                switch (args.NewValue)
                 {
                     case FrameSync.VSync:
                         drawLimiter = int.MaxValue;
@@ -674,11 +674,11 @@ namespace osu.Framework.Platform
             ignoredInputHandlers = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += args =>
             {
-                var configIgnores = args.To.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
+                var configIgnores = args.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
                 // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
                 // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
-                bool restoreDefaults = !configIgnores.Any() || args.To.Contains("OpenTK");
+                bool restoreDefaults = !configIgnores.Any() || args.NewValue.Contains("OpenTK");
 
                 if (restoreDefaults)
                 {
@@ -698,7 +698,7 @@ namespace osu.Framework.Platform
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(args => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = args.To), true);
+            performanceLogging.BindValueChanged(args => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = args.NewValue), true);
         }
 
         private void setVSyncMode()

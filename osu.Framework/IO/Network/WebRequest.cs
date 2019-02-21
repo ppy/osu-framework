@@ -302,7 +302,7 @@ namespace osu.Framework.IO.Network
                         requestStream.BytesRead.ValueChanged += args =>
                         {
                             reportForwardProgress();
-                            UploadProgress?.Invoke(args.To, contentLength);
+                            UploadProgress?.Invoke(args.NewValue, contentLength);
                         };
 
                         request.Content = new StreamContent(requestStream);

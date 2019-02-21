@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             for (int i = 1; i <= 16; i *= 2)
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
-            zoom.ValueChanged += args => flow.Width = track_width * args.To;
+            zoom.ValueChanged += args => flow.Width = track_width * args.NewValue;
         }
 
         private void startStop()

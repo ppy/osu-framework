@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             Enabled.BindValueChanged(args =>
             {
-                if (args.To)
+                if (args.NewValue)
                 {
                     host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
 

@@ -46,7 +46,7 @@ namespace osu.Framework.Allocation
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
                 // rather than leaving the current state on-going
-                var newModel = args.To ?? new TModel();
+                var newModel = args.NewValue ?? new TModel();
 
                 updateShadowModel(shadowModel, currentModel, newModel);
 

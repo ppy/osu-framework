@@ -8,17 +8,17 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// The old value.
         /// </summary>
-        public readonly T From;
+        public readonly T OldValue;
 
         /// <summary>
         /// The new (and current) value.
         /// </summary>
-        public readonly T To;
+        public readonly T NewValue;
 
-        public ValueChangedEvent(T from, T to)
+        public ValueChangedEvent(T oldValue, T newValue)
         {
-            From = from;
-            To = to;
+            OldValue = oldValue;
+            NewValue = newValue;
         }
     }
 }

@@ -43,11 +43,11 @@ namespace osu.Framework.Localisation
             if (locales.Count == 0)
                 return;
 
-            var validLocale = locales.Find(l => l.Name == args.To);
+            var validLocale = locales.Find(l => l.Name == args.NewValue);
 
             if (validLocale == null)
             {
-                var culture = string.IsNullOrEmpty(args.To) ? CultureInfo.CurrentCulture : new CultureInfo(args.To);
+                var culture = string.IsNullOrEmpty(args.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(args.NewValue);
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                 {
@@ -60,7 +60,7 @@ namespace osu.Framework.Localisation
                     validLocale = locales[0];
             }
 
-            if (validLocale.Name != args.To)
+            if (validLocale.Name != args.NewValue)
                 configLocale.Value = validLocale.Name;
             else
             {

@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 }
             };
 
-            selectionDropdown.Current.ValueChanged += args => changeTest(args.To);
+            selectionDropdown.Current.ValueChanged += args => changeTest(args.NewValue);
             buildTest();
             selectionDropdown.Current.Value = FlowTestCase.Full;
             changeTest(FlowTestCase.Full);

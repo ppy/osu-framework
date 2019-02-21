@@ -105,7 +105,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void updateState(ValueChangedEvent<RecordState> args)
         {
-            switch (args.To)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
@@ -124,7 +124,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     break;
             }
 
-            switch (args.To)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                 case RecordState.Recording:
