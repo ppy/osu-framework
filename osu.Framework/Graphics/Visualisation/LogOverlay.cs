@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void load(FrameworkConfigManager config)
         {
             enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += val => State = val ? Visibility.Visible : Visibility.Hidden;
+            enabled.ValueChanged += args => State = args.NewValue ? Visibility.Visible : Visibility.Hidden;
             enabled.TriggerChange();
         }
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Shadow = true,
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            TextSize = font_size,
+                            Font = new FontUsage(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Child = new SpriteText
                     {
                         RelativeSizeAxes = Axes.X,
-                        TextSize = font_size,
+                        Font = new FontUsage(size: font_size),
                         Text = entry.Message
                     }
                 }

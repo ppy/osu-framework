@@ -298,7 +298,7 @@ namespace osu.Framework.Graphics.Cursor
                     },
                     text = new SpriteText
                     {
-                        TextSize = text_size,
+                        Font = new FontUsage(size: text_size),
                         Padding = new MarginPadding(5),
                     }
                 };

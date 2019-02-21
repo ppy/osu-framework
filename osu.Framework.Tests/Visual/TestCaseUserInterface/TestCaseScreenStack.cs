@@ -11,6 +11,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
@@ -19,19 +20,80 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 {
-    public class TestCaseScreen : TestCase
+    public class TestCaseScreenStack : TestCase
     {
         private TestScreen baseScreen;
+        private ScreenStack stack;
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Screen),
+            typeof(IScreen)
+        };
 
         [SetUp]
         public new void SetupTest() => Schedule(() =>
         {
             Clear();
-            Add(new ScreenStack(baseScreen = new TestScreen())
+            Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
         });
+
+        [Test]
+        public void TestPushFocusLost()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen1, "wait for focus grab");
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable != screen1, "focus lost");
+        }
+
+        [Test]
+        public void TestPushFocusTransferred()
+        {
+            TestScreen screen1 = null, screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { EagerFocus = true });
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen1, "wait for focus grab");
+
+            pushAndEnsureCurrent(() => screen2 = new TestScreen { EagerFocus = true }, () => screen1);
+
+            AddUntilStep(() => GetContainingInputManager().FocusedDrawable == screen2, "focus transferred");
+        }
+
+        [Test]
+        public void TestAddScreenWithoutStackFails()
+        {
+            AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));
+        }
+
+        [Test]
+        public void TestPushInstantExitScreen()
+        {
+            AddStep("push non-valid screen", () => baseScreen.Push(new TestScreen { ValidForPush = false }));
+            AddAssert("stack is single", () => stack.InternalChildren.Count == 1);
+        }
+
+        [Test]
+        public void TestPushInstantExitScreenEmpty()
+        {
+            AddStep("fresh stack with non-valid screen", () =>
+            {
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen { ValidForPush = false })
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            AddAssert("stack is empty", () => stack.InternalChildren.Count == 0);
+        }
 
         [Test]
         public void TestPushPop()
@@ -214,6 +276,13 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             private const int transition_time = 500;
 
+            public bool EagerFocus;
+
+            public override bool RequestsFocus => EagerFocus;
+
+            public override bool AcceptsFocus => EagerFocus;
+
+            public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
             internal override void UnbindAllBindables()
@@ -244,7 +313,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                         Text = $@"Screen {Sequence++}",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        TextSize = 50,
+                        Font = new FontUsage(size: 50)
                     },
                     popButton = new Button
                     {
@@ -275,6 +344,21 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                         }
                     }
                 };
+
+                BorderColour = Color4.Red;
+                Masking = true;
+            }
+
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+                BorderThickness = 10;
+            }
+
+            protected override void OnFocusLost(FocusLostEvent e)
+            {
+                base.OnFocusLost(e);
+                BorderThickness = 0;
             }
 
             public override void OnEntering(IScreen last)

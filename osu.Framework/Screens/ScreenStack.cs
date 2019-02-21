@@ -111,7 +111,7 @@ namespace osu.Framework.Screens
             else if (LoadState >= LoadState.Ready)
                 LoadScreen(this, newScreen.AsDrawable(), finishLoad);
             else
-                finishLoad();
+                Schedule(finishLoad);
         }
 
         /// <summary>
@@ -170,6 +170,9 @@ namespace osu.Framework.Screens
         /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
         private void exitFrom([CanBeNull] IScreen source, Action onExiting = null)
         {
+            if (stack.Count == 0)
+                return;
+
             // The current screen is at the top of the stack, it will be the one that is exited
             var toExit = stack.Pop();
 

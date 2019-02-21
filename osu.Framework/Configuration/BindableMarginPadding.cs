@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Configuration
@@ -73,10 +74,10 @@ namespace osu.Framework.Configuration
 
                     Value = new MarginPadding
                     {
-                        Top = float.Parse(split[0]),
-                        Left = float.Parse(split[1]),
-                        Bottom = float.Parse(split[2]),
-                        Right = float.Parse(split[3]),
+                        Top = float.Parse(split[0], CultureInfo.InvariantCulture),
+                        Left = float.Parse(split[1], CultureInfo.InvariantCulture),
+                        Bottom = float.Parse(split[2], CultureInfo.InvariantCulture),
+                        Right = float.Parse(split[3], CultureInfo.InvariantCulture),
                     };
                     break;
                 default:

@@ -47,21 +47,12 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
 
             for (int i = 1; i <= 200; i++)
             {
-                string font = "OpenSans-";
-                if (i % 4 > 1)
-                    font += "Bold";
-                if (i % 2 == 1)
-                    font += "Italic";
-
-                font = font.TrimEnd('-');
-
                 SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
-                    Font = font,
+                    Font = new FontUsage("OpenSans", i, i % 4 > 1 ? "Bold" : null, i % 2 == 1),
                     AllowMultiline = true,
                     RelativeSizeAxes = Axes.X,
-                    TextSize = i
                 };
 
                 flow.Add(text);

@@ -111,9 +111,9 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("Value == 6", () => sliderBarValue.Value == 6);
         }
 
-        private void sliderBarValueChanged(double newValue)
+        private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
-            sliderbarText.Text = $"Selected value: {newValue:N}";
+            sliderbarText.Text = $"Selected value: {args.NewValue:N}";
         }
     }
 }

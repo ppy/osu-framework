@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -102,9 +103,9 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
-        private void updateState(RecordState state)
+        private void updateState(ValueChangedEvent<RecordState> args)
         {
-            switch (state)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
@@ -123,7 +124,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     break;
             }
 
-            switch (state)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                 case RecordState.Recording:
@@ -190,7 +191,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 public Label()
                 {
-                    TextSize = 18;
+                    Font = new FontUsage(size: 18);
                     Padding = new MarginPadding { Horizontal = 2 };
                 }
             }

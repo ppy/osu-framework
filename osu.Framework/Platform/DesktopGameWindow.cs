@@ -73,10 +73,10 @@ namespace osu.Framework.Platform
         {
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
-            sizeFullscreen.ValueChanged += newSize =>
+            sizeFullscreen.ValueChanged += args =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    ChangeResolution(CurrentDisplay, newSize);
+                    ChangeResolution(CurrentDisplay, args.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>
@@ -156,13 +156,13 @@ namespace osu.Framework.Platform
             windowDisplayIndex.Value = CurrentDisplay.GetIndex();
         }
 
-        private void windowDisplayIndexChanged(DisplayIndex index) => CurrentDisplay = DisplayDevice.GetDisplay(index);
+        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplay = DisplayDevice.GetDisplay(args.NewValue);
 
-        private void confineMouseModeChanged(ConfineMouseMode newValue)
+        private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
         {
             bool confine = false;
 
-            switch (newValue)
+            switch (args.NewValue)
             {
                 case Input.ConfineMouseMode.Fullscreen:
                     confine = WindowMode.Value != Configuration.WindowMode.Windowed;
@@ -184,7 +184,7 @@ namespace osu.Framework.Platform
             Position = new Vector2(0.5f);
         }
 
-        private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+        private void windowModeChanged(ValueChangedEvent<WindowMode> args) => UpdateWindowMode(args.NewValue);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {

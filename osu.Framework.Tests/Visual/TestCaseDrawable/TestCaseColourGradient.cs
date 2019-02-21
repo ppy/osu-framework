@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.TestCaseDrawable
                     new SpriteText
                     {
                         Text = labels[i],
-                        TextSize = 20,
+                        Font = new FontUsage(size: 20),
                         Colour = colours[0],
                     },
                     boxes[i] = new Box
