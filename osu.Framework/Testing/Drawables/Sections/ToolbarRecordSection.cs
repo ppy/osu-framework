@@ -191,7 +191,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 public Label()
                 {
-                    TextSize = 18;
+                    Font = new FontUsage(size: 18);
                     Padding = new MarginPadding { Horizontal = 2 };
                 }
             }

@@ -63,7 +63,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    TextSize = 14,
+                    Font = new FontUsage(size: 14),
                     X = 5,
                     Padding = new MarginPadding(5),
                 }

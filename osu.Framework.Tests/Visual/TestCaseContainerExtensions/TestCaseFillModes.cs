@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                         new SpriteText
                         {
                             Text = $"{nameof(FillMode)}=FillMode.{fillModes[i]}, {nameof(FillAspectRatio)}={aspects[j]}",
-                            TextSize = 20,
+                            Font = new FontUsage(size: 20),
                         },
                         new Container
                         {

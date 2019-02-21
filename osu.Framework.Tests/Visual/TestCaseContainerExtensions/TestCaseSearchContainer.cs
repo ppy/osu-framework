@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 });
                 AddInternal(flowContainer = new FillFlowContainer
                 {
-                    Margin = new MarginPadding { Top = header.TextSize, Left = 30 },
+                    Margin = new MarginPadding { Top = header.Font.Size, Left = 30 },
                     AutoSizeAxes = Axes.Both,
                     Direction = FillDirection.Vertical,
                 });
