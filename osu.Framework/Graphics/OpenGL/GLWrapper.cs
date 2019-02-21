@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -22,23 +22,25 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal static class GLWrapper
+    public static class GLWrapper
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
-        public static bool UsingBackbuffer => lastFrameBuffer == 0;
+        public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
+
+        public static int DefaultFrameBuffer;
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
         /// </summary>
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
-        public static int MaxTextureSize { get; private set; }
+        public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
+        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
@@ -82,20 +84,20 @@ namespace osu.Framework.Graphics.OpenGL
                 action.Invoke();
 
             lastBoundTexture = null;
-
+            lastActiveBatch = null;
             lastDepthTest = null;
-
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            lastFrameBuffer = 0;
-
             viewport_stack.Clear();
             ortho_stack.Clear();
             masking_stack.Clear();
             scissor_rect_stack.Clear();
+            frame_buffer_stack.Clear();
+
+            BindFrameBuffer(DefaultFrameBuffer);
 
             scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
 
@@ -269,28 +271,6 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = blendingInfo;
         }
 
-        private static int lastFrameBuffer;
-
-        /// <summary>
-        /// Binds a framebuffer.
-        /// </summary>
-        /// <param name="frameBuffer">The framebuffer to bind.</param>
-        /// <returns>The last bound framebuffer.</returns>
-        public static int BindFrameBuffer(int frameBuffer)
-        {
-            if (lastFrameBuffer == frameBuffer)
-                return lastFrameBuffer;
-
-            FlushCurrentBatch();
-
-            int last = lastFrameBuffer;
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
-            lastFrameBuffer = frameBuffer;
-
-            return last;
-        }
-
         private static readonly Stack<RectangleI> viewport_stack = new Stack<RectangleI>();
 
         /// <summary>
@@ -392,6 +372,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
+        private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
@@ -517,12 +498,55 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void BindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            bool alreadyBound = frame_buffer_stack.Count > 0 && frame_buffer_stack.Peek() == frameBuffer;
+
+            frame_buffer_stack.Push(frameBuffer);
+
+            if (!alreadyBound)
+            {
+                FlushCurrentBatch();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            }
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+        }
+
+        /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void UnbindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            if (frame_buffer_stack.Peek() != frameBuffer)
+                return;
+
+            frame_buffer_stack.Pop();
+
+            FlushCurrentBatch();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+        }
+
+        /// <summary>
         /// Deletes a framebuffer.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to delete.</param>
         internal static void DeleteFramebuffer(int frameBuffer)
         {
             if (frameBuffer == -1) return;
+
+            while (frame_buffer_stack.Peek() == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
 
             //todo: don't use scheduler
             ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });

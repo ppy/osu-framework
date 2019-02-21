@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -98,6 +98,29 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.AreEqual(toSerialize.Value.Bindable1.Value, deserialized.Value.Bindable1.Value);
             Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized.Value.Bindable2.Value);
+        }
+
+        [Test]
+        public void TestPopulateBindable()
+        {
+            var obj = new CustomObj2
+            {
+                Bindable =
+                {
+                    MaxValue = 500,
+                    Value = 500
+                }
+            };
+
+            var serialized = JsonConvert.SerializeObject(obj);
+            obj.Bindable.Value = 100;
+
+            bool valueChanged = false;
+            obj.Bindable.BindValueChanged(_ => valueChanged = true);
+
+            JsonConvert.PopulateObject(serialized, obj);
+
+            Assert.IsTrue(valueChanged);
         }
 
         private class CustomObj

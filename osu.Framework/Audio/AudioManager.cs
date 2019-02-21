@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -154,8 +154,8 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
@@ -171,7 +171,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
@@ -212,7 +212,7 @@ namespace osu.Framework.Audio
             }
 
             if (newDevice == oldDevice && oldDeviceValid)
-                    return true;
+                return true;
 
             if (string.IsNullOrEmpty(newDevice))
             {

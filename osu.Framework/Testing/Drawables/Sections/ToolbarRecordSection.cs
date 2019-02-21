@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -33,8 +33,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             this.browser = browser;
 
-            BasicSliderBar<int> frameSliderBar;
-
             InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Y,
@@ -57,10 +55,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Text = "Playback:"
                             },
-                            frameSliderBar = new FrameSliderBar
+                            new FrameSliderBar
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 Width = 250,
+                                Current = browser.CurrentFrame
                             },
                             previousButton = new RepeatButton
                             {
@@ -89,7 +88,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(browser.CurrentFrame);
             browser.RecordState.BindValueChanged(updateState, true);
         }
 

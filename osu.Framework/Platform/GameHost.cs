@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -36,6 +36,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
 {
@@ -49,24 +51,23 @@ namespace osu.Framework.Platform
 
         private FrameworkConfigManager config;
 
-        private void setActive(bool isActive)
-        {
-            threads.ForEach(t => t.IsActive = isActive);
-
-            activeGCMode.TriggerChange();
-
-            if (isActive)
-                Activated?.Invoke();
-            else
-                Deactivated?.Invoke();
-        }
-
-        public bool IsActive => InputThread.IsActive;
+        /// <summary>
+        /// Whether the <see cref="GameWindow"/> is active (in the foreground).
+        /// </summary>
+        public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
+        /// <summary>
+        /// Invoked when the game window is activated. Always invoked from the update thread.
+        /// </summary>
         public event Action Activated;
+
+        /// <summary>
+        /// Invoked when the game window is deactivated. Always invoked from the update thread.
+        /// </summary>
         public event Action Deactivated;
+
         public event Func<bool> Exiting;
         public event Action Exited;
 
@@ -76,6 +77,16 @@ namespace osu.Framework.Platform
         public event Func<Exception, bool> ExceptionThrown;
 
         public event Action<IpcMessage> MessageReceived;
+
+        /// <summary>
+        /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
+        /// </summary>
+        public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
+
+        /// <summary>
+        /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
+        /// </summary>
+        public virtual bool CanExit => true;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
@@ -107,13 +118,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual bool CapsLockEnabled => false;
 
-        private readonly List<GameThread> threads;
+        private readonly List<GameThread> threads = new List<GameThread>();
 
         public IEnumerable<GameThread> Threads => threads;
 
         public void RegisterThread(GameThread t)
         {
             threads.Add(t);
+            t.IsActive.BindTo(IsActive);
             t.UnhandledException = unhandledExceptionHandler;
             t.Monitor.EnablePerformanceProfiling = performanceLogging;
         }
@@ -193,24 +205,19 @@ namespace osu.Framework.Platform
             Logger.GameIdentifier = gameName;
             Logger.VersionIdentifier = assembly.GetName().Version.ToString();
 
-            threads = new List<GameThread>
+            RegisterThread(DrawThread = new DrawThread(DrawFrame)
             {
-                (DrawThread = new DrawThread(DrawFrame)
-                {
-                    OnThreadStart = DrawInitialize,
-                    UnhandledException = unhandledExceptionHandler
-                }),
-                (UpdateThread = new UpdateThread(UpdateFrame)
-                {
-                    OnThreadStart = UpdateInitialize,
-                    Monitor = { HandleGC = true },
-                    UnhandledException = unhandledExceptionHandler,
-                }),
-                (InputThread = new InputThread(null)
-                {
-                    UnhandledException = unhandledExceptionHandler
-                }), //never gets started.
-            };
+                OnThreadStart = DrawInitialize,
+            });
+
+            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+            {
+                OnThreadStart = UpdateInitialize,
+                Monitor = { HandleGC = true },
+            });
+
+            //never gets started.
+            RegisterThread(InputThread = new InputThread(null));
 
             if (assemblyPath != null)
                 Environment.CurrentDirectory = assemblyPath;
@@ -244,9 +251,9 @@ namespace osu.Framework.Platform
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
         }
 
-        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
+        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => Activated?.Invoke());
 
-        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => setActive(false));
+        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => Deactivated?.Invoke());
 
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
@@ -388,10 +395,7 @@ namespace osu.Framework.Platform
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
-                    osuTK.Graphics.OpenGL.PixelFormat.Rgba,
-                    osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });
@@ -413,10 +417,21 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit()
+        public void Exit() => PerformExit(false);
+
+        /// <summary>
+        /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
+        /// </summary>
+        /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
+        protected virtual void PerformExit(bool immediately)
         {
-            ExecutionState = ExecutionState.Stopping;
-            InputThread.Scheduler.Add(exit, false);
+            if (immediately)
+                exit();
+            else
+            {
+                ExecutionState = ExecutionState.Stopping;
+                InputThread.Scheduler.Add(exit, false);
+            }
         }
 
         /// <summary>
@@ -446,6 +461,8 @@ namespace osu.Framework.Platform
                 {
                     Window.SetupWindow(config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    IsActive.BindTo(Window.IsActive);
                 }
 
                 resetInputHandlers();
@@ -459,6 +476,16 @@ namespace osu.Framework.Platform
                 frameSyncMode.TriggerChange();
                 ignoredInputHandlers.TriggerChange();
 
+                IsActive.BindValueChanged(active =>
+                {
+                    activeGCMode.TriggerChange();
+
+                    if (active)
+                        OnActivated();
+                    else
+                        OnDeactivated();
+                }, true);
+
                 try
                 {
                     if (Window != null)
@@ -467,22 +494,14 @@ namespace osu.Framework.Platform
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
-                        Window.FocusedChanged += delegate { setActive(Window.Focused); };
-
-                        bool initialized = false;
 
                         Window.UpdateFrame += delegate
                         {
-                            if (!initialized)
-                            {
-                                setActive(Window.Focused);
-                                initialized = true;
-                            }
-
                             inputPerformanceCollectionPeriod?.Dispose();
                             InputThread.RunUpdate();
                             inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                         };
+
                         Window.Closed += delegate
                         {
                             //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
@@ -505,7 +524,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                exit();
+                PerformExit(true);
             }
         }
 
@@ -602,7 +621,7 @@ namespace osu.Framework.Platform
         private Bindable<string> ignoredInputHandlers;
 
         private Bindable<double> cursorSensitivity;
-        private Bindable<bool> performanceLogging;
+        private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
 
         private void setupConfig()
         {
@@ -610,7 +629,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += args => GCSettings.LatencyMode = IsActive ? args.To : GCLatencyMode.Interactive;
+            activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive.Value ? newMode : GCLatencyMode.Interactive; };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += args =>
@@ -678,7 +697,7 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            performanceLogging = config.GetBindable<bool>(FrameworkSetting.PerformanceLogging);
+            config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(args => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = args.To), true);
         }
 
@@ -774,6 +793,14 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentPrevious)),
         };
+
+        /// <summary>
+        /// Create a texture loader store based on an underlying data store.
+        /// </summary>
+        /// <param name="underlyingStore">The underlying provider of texture data (in arbitrary image formats).</param>
+        /// <returns>A texture loader store.</returns>
+        public virtual IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
+            => new TextureLoaderStore(underlyingStore);
     }
 
     /// <summary>

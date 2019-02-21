@@ -1,0 +1,38 @@
+﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+  <PropertyGroup Label="Project">
+    <TargetFramework>xamarinios10</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>osu!framework iOS</AssemblyTitle>
+    <AssemblyName>osu.Framework.iOS</AssemblyName>
+    <RootNamespace>osu.Framework.iOS</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
+    <Product>osu!framework</Product>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework iOS</Title>
+    <PackageId>ppy.osu.Framework.iOS</PackageId>
+    <Authors>ppy Pty Ltd</Authors>
+    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
+    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
+    <copyright>Copyright (c) 2019 ppy Pty Ltd</copyright>
+    <PackageTags>osu game framework</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.61" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
+  </ItemGroup>
+</Project>

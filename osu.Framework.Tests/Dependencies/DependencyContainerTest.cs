@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading;
@@ -262,8 +262,59 @@ namespace osu.Framework.Tests.Dependencies
             var dependencies = new DependencyContainer();
             dependencies.CacheValueAs(testObject);
 
-            Assert.AreEqual(5, dependencies.GetValue<int>());
-            Assert.AreEqual(5, dependencies.GetValue<int?>());
+            Assert.AreEqual(testObject, dependencies.GetValue<int>());
+            Assert.AreEqual(testObject, dependencies.GetValue<int?>());
+        }
+
+        [Test]
+        public void TestCacheWithDependencyInfo()
+        {
+            var cases = new[]
+            {
+                default,
+                new CacheInfo("name"),
+                new CacheInfo(parent: typeof(object)),
+                new CacheInfo("name", typeof(object))
+            };
+
+            var dependencies = new DependencyContainer();
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(i, cases[i]);
+
+            Assert.Multiple(() =>
+            {
+                for (int i = 0; i < cases.Length; i++)
+                    Assert.AreEqual(i, dependencies.GetValue<int>(cases[i]));
+            });
+        }
+
+        [Test]
+        public void TestDependenciesOverrideParent()
+        {
+            var cases = new[]
+            {
+                default,
+                new CacheInfo("name"),
+                new CacheInfo(parent: typeof(object)),
+                new CacheInfo("name", typeof(object))
+            };
+
+            var dependencies = new DependencyContainer();
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(i, cases[i]);
+
+            dependencies = new DependencyContainer(dependencies);
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(cases.Length + i, cases[i]);
+
+            Assert.Multiple(() =>
+            {
+                for (int i = 0; i < cases.Length; i++)
+                    Assert.AreEqual(cases.Length + i, dependencies.GetValue<int>(cases[i]));
+            });
         }
 
         private interface IBaseInterface

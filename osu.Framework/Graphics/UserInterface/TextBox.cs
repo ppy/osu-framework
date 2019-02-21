@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -559,7 +559,20 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        public Bindable<string> Current { get; } = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>();
+
+        public Bindable<string> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         private string text = string.Empty;
 
@@ -646,7 +659,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (e.ControlPressed || e.SuperPressed)
+            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
 
             // we only care about keys which can result in text output.

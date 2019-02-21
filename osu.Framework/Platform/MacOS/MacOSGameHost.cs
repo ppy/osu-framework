@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using osu.Framework.Input;
@@ -14,13 +14,6 @@ namespace osu.Framework.Platform.MacOS
             : base(gameName, bindIPC, toolkitOptions)
         {
             Window = new MacOSGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
-            {
-                if (Window.WindowState != WindowState.Minimized)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            };
         }
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);

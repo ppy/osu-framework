@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -38,6 +38,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                         rateAdjustSlider = new BasicSliderBar<double>
                         {
                             RelativeSizeAxes = Axes.Both,
+                            Current = browser.PlaybackRate
                         },
                         rateText = new SpriteText
                         {
@@ -48,7 +49,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            rateAdjustSlider.Current.BindTo(browser.PlaybackRate);
             rateAdjustSlider.Current.BindValueChanged(args => rateText.Text = args.To.ToString("0%"), true);
         }
     }

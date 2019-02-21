@@ -1,15 +1,17 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
@@ -21,7 +23,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public partial class SpriteText : Drawable, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
+    public partial class SpriteText : Drawable, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
@@ -35,6 +37,11 @@ namespace osu.Framework.Graphics.Sprites
         private ILocalisedBindableString localisedText;
 
         private float spaceWidth;
+
+        public SpriteText()
+        {
+            current.BindValueChanged(v => Text = v);
+        }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -54,13 +61,13 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
+            spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
-                GetTextureForCharacter(character);
+                getTextureForCharacter(character);
         }
 
         private LocalisedString text = string.Empty;
@@ -77,8 +84,25 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 text = value;
 
+                current.Value = text;
+
                 if (localisedText != null)
                     localisedText.Text = value;
+            }
+        }
+
+        private readonly Bindable<string> current = new Bindable<string>();
+
+        public Bindable<string> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
             }
         }
 
@@ -399,7 +423,7 @@ namespace osu.Framework.Graphics.Sprites
                     }
                     else
                     {
-                        texture = GetTextureForCharacter(character);
+                        texture = getTextureForCharacter(character);
                         textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
 
@@ -488,7 +512,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Cached<float> constantWidthCache;
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0;
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
         private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
@@ -558,6 +582,8 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
+        private Texture getTextureForCharacter(char c) => GetTextureForCharacter(c) ?? GetFallbackTextureForCharacter(c);
+
         /// <summary>
         /// Gets the texture for the given character.
         /// </summary>
@@ -568,7 +594,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
+            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
         }
 
         /// <summary>

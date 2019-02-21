@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -52,19 +53,15 @@ namespace osu.Framework.Graphics.Visualisation
 
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
-            Type type = source.GetType();
-            while (type != null && type != typeof(object))
-            {
+            foreach (var type in source.GetType().EnumerateBaseTypes())
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null)
+                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
                     .ForEach(m => allMembers.Add(m));
-
-                type = type.BaseType;
-            }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
             AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
                                .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+                               .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
                                .Select(m => new PropertyItem(m, source)));
         }
 

@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
@@ -12,7 +13,20 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
-        public Bindable<double> Current { get; } = new Bindable<double>();
+        private readonly Bindable<double> current = new Bindable<double>();
+
+        public Bindable<double> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         public CircularProgress()
         {
