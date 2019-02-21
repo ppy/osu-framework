@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.UserInterface
                 },
             };
 
-            Current.ValueChanged += args => { Text = args.NewValue; };
+            Current.ValueChanged += e => { Text = e.NewValue; };
         }
 
         [BackgroundDependencyLoader]

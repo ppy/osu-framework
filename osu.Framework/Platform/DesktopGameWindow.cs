@@ -73,10 +73,10 @@ namespace osu.Framework.Platform
         {
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
-            sizeFullscreen.ValueChanged += args =>
+            sizeFullscreen.ValueChanged += e =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    ChangeResolution(CurrentDisplay, args.NewValue);
+                    ChangeResolution(CurrentDisplay, e.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>

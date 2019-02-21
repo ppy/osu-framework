@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Dependencies
 
             public CrossDependentFieldModel()
             {
-                Bindable.BindValueChanged(args => BindableTwo.Value = args.NewValue);
+                Bindable.BindValueChanged(e => BindableTwo.Value = e.NewValue);
             }
         }
 
