@@ -79,7 +79,7 @@ namespace osu.Framework.Testing
             //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm)
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.To)
                                                 .GroupBy(
                                                     t =>
                                                     {

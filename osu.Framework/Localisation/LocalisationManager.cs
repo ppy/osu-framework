@@ -43,7 +43,7 @@ namespace osu.Framework.Localisation
             if (locales.Count == 0)
                 return;
 
-            var validLocale = locales.Find(l => l.Name == newValue);
+            var validLocale = locales.Find(l => l.Name == args.To);
 
             if (validLocale == null)
             {

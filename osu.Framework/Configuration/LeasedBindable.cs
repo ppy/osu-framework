@@ -68,7 +68,8 @@ namespace osu.Framework.Configuration
                     checkValid();
 
                 if (EqualityComparer<T>.Default.Equals(Value, value)) return;
-                SetValue(value, true);
+
+                SetValue(base.Value, value, true);
             }
         }
 

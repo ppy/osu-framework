@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public SpriteText()
         {
-            current.BindValueChanged(v => Text = v);
+            current.BindValueChanged(args => Text = args.To);
         }
 
         [BackgroundDependencyLoader]

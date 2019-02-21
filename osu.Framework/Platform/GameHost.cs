@@ -476,11 +476,11 @@ namespace osu.Framework.Platform
                 frameSyncMode.TriggerChange();
                 ignoredInputHandlers.TriggerChange();
 
-                IsActive.BindValueChanged(active =>
+                IsActive.BindValueChanged(args =>
                 {
                     activeGCMode.TriggerChange();
 
-                    if (active)
+                    if (args.To)
                         OnActivated();
                     else
                         OnDeactivated();
@@ -629,7 +629,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive.Value ? newMode : GCLatencyMode.Interactive; };
+            activeGCMode.ValueChanged += args => { GCSettings.LatencyMode = IsActive.Value ? args.To : GCLatencyMode.Interactive; };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += args =>
