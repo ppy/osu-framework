@@ -37,7 +37,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             Menu menu;
             Children = new Drawable[]
             {
-                new CursorContainer(),
                 new Container
                 {
                     RelativeSizeAxes = Axes.Both,
