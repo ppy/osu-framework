@@ -127,14 +127,14 @@ namespace osu.Framework.Graphics.Sprites
 
         internal bool Legacy { get; }
 
-        private FontUsage(string fontName)
+        private FontUsage(string fontName, bool isLegacy)
             : this(family: fontName)
         {
-            Legacy = true;
+            Legacy = isLegacy;
         }
 
         [Obsolete("Setting font by name is deprecated. Use `Font = new FontUsage(...)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public static implicit operator FontUsage(string fontName) => new FontUsage(fontName);
+        public static implicit operator FontUsage(string fontName) => new FontUsage(fontName, isLegacy: true);
 
         [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
         public static bool operator ==(FontUsage fontUsage, string fontName) => fontUsage.FontName == fontName;
