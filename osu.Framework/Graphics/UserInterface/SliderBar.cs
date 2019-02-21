@@ -157,11 +157,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case Key.Right:
                     currentNumberInstantaneous.Add(step);
-                    OnUserChange(currentNumberInstantaneous.Value);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
                 case Key.Left:
                     currentNumberInstantaneous.Add(-step);
-                    OnUserChange(currentNumberInstantaneous.Value);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
                 default:
                     return false;
@@ -194,7 +194,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!currentNumberInstantaneous.Disabled)
                 currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
-            OnUserChange(currentNumberInstantaneous.Value);
+            onUserChange(currentNumberInstantaneous.Value);
+        }
+
+        private void onUserChange(T value)
+        {
+            uncommittedChanges = true;
+            OnUserChange(value);
         }
 
         /// <summary>
@@ -202,7 +208,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void OnUserChange(T value)
         {
-           uncommittedChanges = true;
         }
     }
 }
