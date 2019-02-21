@@ -77,9 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             currentNumberInstantaneous.ValueChanged += e =>
             {
-                if (TransferValueOnCommit)
-                    uncommittedChanges = true;
-                else
+                if (!TransferValueOnCommit)
                     CurrentNumber.Value = e.NewValue;
             };
         }
@@ -135,12 +133,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(DragStartEvent e)
         {
+            handleMouseInput(e);
             Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDragEnd(DragEndEvent e)
         {
+            handleMouseInput(e);
             commit();
             return true;
         }
@@ -157,11 +157,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case Key.Right:
                     currentNumberInstantaneous.Add(step);
-                    OnUserChange(currentNumberInstantaneous.Value);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
                 case Key.Left:
                     currentNumberInstantaneous.Add(-step);
-                    OnUserChange(currentNumberInstantaneous.Value);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
                 default:
                     return false;
@@ -194,7 +194,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!currentNumberInstantaneous.Disabled)
                 currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
-            OnUserChange(currentNumberInstantaneous.Value);
+            onUserChange(currentNumberInstantaneous.Value);
+        }
+
+        private void onUserChange(T value)
+        {
+            uncommittedChanges = true;
+            OnUserChange(value);
         }
 
         /// <summary>

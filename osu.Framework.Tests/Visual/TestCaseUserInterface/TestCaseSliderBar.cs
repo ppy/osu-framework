@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
@@ -23,73 +25,81 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderBarText;
         private readonly SliderBar<double> sliderBar;
+        private readonly SliderBar<double> transferOnCommitSliderBar;
 
         public TestCaseSliderBar()
         {
-            sliderBarValue = new BindableDouble(8)
+            sliderBarValue = new BindableDouble
             {
                 MinValue = -10,
                 MaxValue = 10
             };
             sliderBarValue.ValueChanged += sliderBarValueChanged;
 
-            sliderBarText = new SpriteText
+            Add(new FillFlowContainer
             {
-                Text = $"Selected value: {sliderBarValue.Value}",
-                Position = new Vector2(25, 0)
-            };
-
-            sliderBar = new BasicSliderBar<double>
-            {
-                Size = new Vector2(200, 10),
-                Position = new Vector2(25, 25),
-                BackgroundColour = Color4.White,
-                SelectionColour = Color4.Pink,
-                KeyboardStep = 1,
-                Current = sliderBarValue
-            };
-
-            Add(sliderBar);
-            Add(sliderBarText);
-
-            Add(sliderBar = new BasicSliderBar<double>
-            {
-                Size = new Vector2(200, 10),
-                RangePadding = 20,
-                Position = new Vector2(25, 45),
-                BackgroundColour = Color4.White,
-                SelectionColour = Color4.Pink,
-                KeyboardStep = 1,
-                Current = sliderBarValue
-            });
-
-            Add(new BasicSliderBar<double>
-            {
-                TransferValueOnCommit = true,
-                Size = new Vector2(200, 10),
-                RangePadding = 20,
-                Position = new Vector2(25, 65),
-                BackgroundColour = Color4.White,
-                SelectionColour = Color4.Pink,
-                KeyboardStep = 1,
-                Current = sliderBarValue
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Padding = new MarginPadding(5),
+                Spacing = new Vector2(5, 5),
+                Children = new Drawable[]
+                {
+                    sliderBarText = new SpriteText
+                    {
+                        Text = $"Value of Bindable: {sliderBarValue.Value}",
+                    },
+                    new SpriteText
+                    {
+                        Text = "BasicSliderBar:",
+                    },
+                    sliderBar = new BasicSliderBar<double>
+                    {
+                        Size = new Vector2(200, 10),
+                        BackgroundColour = Color4.White,
+                        SelectionColour = Color4.Pink,
+                        KeyboardStep = 1,
+                        Current = sliderBarValue
+                    },
+                    new SpriteText
+                    {
+                        Text = "w/ RangePadding:",
+                    },
+                    new BasicSliderBar<double>
+                    {
+                        Size = new Vector2(200, 10),
+                        RangePadding = 20,
+                        BackgroundColour = Color4.White,
+                        SelectionColour = Color4.Pink,
+                        KeyboardStep = 1,
+                        Current = sliderBarValue
+                    },
+                    new SpriteText
+                    {
+                        Text = "w/ TransferValueOnCommit:",
+                    },
+                    transferOnCommitSliderBar = new BasicSliderBar<double>
+                    {
+                        TransferValueOnCommit = true,
+                        Size = new Vector2(200, 10),
+                        BackgroundColour = Color4.White,
+                        SelectionColour = Color4.Pink,
+                        KeyboardStep = 1,
+                        Current = sliderBarValue
+                    },
+                }
             });
         }
 
         [Test]
-        public void Basic()
+        public void SliderBar()
         {
-            AddSliderStep("Value", sliderBarValue.MinValue, sliderBarValue.MaxValue, 0, v => sliderBarValue.Value = v);
-
             AddStep("Click at 25% mark", () =>
             {
-                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(new Vector2(sliderBar.DrawWidth * 0.25f, sliderBar.DrawHeight * 0.5f)));
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
-
-            // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in this test
-            AddAssert("Value == -6.25", () => Precision.AlmostEquals(sliderBarValue.Value, -6.25, Precision.FLOAT_EPSILON));
-
+            // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
+            AddAssert("Value == -5", () => Precision.AlmostEquals(sliderBarValue.Value, -5, Precision.FLOAT_EPSILON));
             AddStep("Press left arrow key", () =>
             {
                 var before = sliderBar.IsHovered;
@@ -98,23 +108,41 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 InputManager.ReleaseKey(Key.Left);
                 sliderBar.IsHovered = before;
             });
-
-            AddAssert("Value == -7.25", () => Precision.AlmostEquals(sliderBarValue.Value, -7.25, Precision.FLOAT_EPSILON));
-
+            AddAssert("Value == -6", () => Precision.AlmostEquals(sliderBarValue.Value, -6, Precision.FLOAT_EPSILON));
             AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
-                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(new Vector2(sliderBar.DrawWidth * 0.75f, sliderBar.DrawHeight * 0.5f)));
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
                 InputManager.ReleaseKey(Key.LShift);
             });
+            AddAssert("Value == 5", () => Precision.AlmostEquals(sliderBarValue.Value, 5, Precision.FLOAT_EPSILON));
+        }
 
+        [Test]
+        public void TransferValueOnCommit()
+        {
+            AddStep("Click at 80% mark", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.8f, 0.5f)));
+                InputManager.Click(MouseButton.Left);
+            });
             AddAssert("Value == 6", () => Precision.AlmostEquals(sliderBarValue.Value, 6, Precision.FLOAT_EPSILON));
+
+            // These steps are broken up so we can see each of the steps being performed independently
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.75f, 0.5f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag",
+                () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddAssert("Value == 6 (still)", () => Precision.AlmostEquals(sliderBarValue.Value, 6, Precision.FLOAT_EPSILON));
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            AddAssert("Value == -5", () => Precision.AlmostEquals(sliderBarValue.Value, -5, Precision.FLOAT_EPSILON));
         }
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
-            sliderBarText.Text = $"Selected value: {args.NewValue:N}";
+            sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
         }
     }
 }
