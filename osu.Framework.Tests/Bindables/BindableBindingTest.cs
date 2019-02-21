@@ -338,6 +338,35 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreNotEqual(bindable1.Value, bindable2.Value);
         }
 
+        [Test]
+        public void TestEventArgs()
+        {
+            var bindable1 = new Bindable<int>();
+            var bindable2 = new Bindable<int>();
+
+            bindable2.BindTo(bindable1);
+
+            ValueChangedEvent<int> event1 = null;
+            ValueChangedEvent<int> event2 = null;
+
+            bindable1.BindValueChanged(e => event1 = e);
+            bindable2.BindValueChanged(e => event2 = e);
+
+            bindable1.Value = 1;
+
+            Assert.AreEqual(0, event1.OldValue);
+            Assert.AreEqual(1, event1.NewValue);
+            Assert.AreEqual(0, event2.OldValue);
+            Assert.AreEqual(1, event2.NewValue);
+
+            bindable1.Value = 2;
+
+            Assert.AreEqual(1, event1.OldValue);
+            Assert.AreEqual(2, event1.NewValue);
+            Assert.AreEqual(1, event2.OldValue);
+            Assert.AreEqual(2, event2.NewValue);
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
