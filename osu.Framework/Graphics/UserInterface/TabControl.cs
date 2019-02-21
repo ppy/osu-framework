@@ -123,10 +123,10 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newSelection =>
             {
                 if (IsLoaded)
-                    SelectTab(tabMap[Current]);
+                    SelectTab(tabMap[Current.Value]);
                 else
                     //will be handled in LoadComplete
-                    SelectedTab = tabMap[Current];
+                    SelectedTab = tabMap[Current.Value];
             };
         }
 
