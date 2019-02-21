@@ -7,7 +7,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
@@ -37,7 +36,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             Menu menu;
             Children = new Drawable[]
             {
-                new CursorContainer(),
                 new Container
                 {
                     RelativeSizeAxes = Axes.Both,
