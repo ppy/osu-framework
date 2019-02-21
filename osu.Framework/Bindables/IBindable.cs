@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
     /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="IBindable.Disabled"/> changes.

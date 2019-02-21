@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;

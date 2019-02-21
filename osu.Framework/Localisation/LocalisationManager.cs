@@ -6,6 +6,7 @@ using System.Globalization;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using JetBrains.Annotations;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
 {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Threading;

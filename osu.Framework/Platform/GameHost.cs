@@ -19,6 +19,7 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osuTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
