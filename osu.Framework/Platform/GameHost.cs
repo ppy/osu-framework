@@ -477,11 +477,11 @@ namespace osu.Framework.Platform
                 frameSyncMode.TriggerChange();
                 ignoredInputHandlers.TriggerChange();
 
-                IsActive.BindValueChanged(e =>
+                IsActive.BindValueChanged(active =>
                 {
                     activeGCMode.TriggerChange();
 
-                    if (e.NewValue)
+                    if (active.NewValue)
                         OnActivated();
                     else
                         OnDeactivated();
@@ -699,7 +699,7 @@ namespace osu.Framework.Platform
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(e => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = e.NewValue), true);
+            performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
         }
 
         private void setVSyncMode()
