@@ -2,6 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Cake: Debug Script (CoreCLR)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceRoot}/tools/Cake.CoreCLR/Cake.dll",
+            "args": [
+                "${workspaceRoot}/build/build.cake",
+                "--debug",
+                "--verbosity=diagnostic"
+            ],
+            "cwd": "${workspaceRoot}/build",
+            "stopAtEntry": true,
+            "externalConsole": false
+        },
+        {
             "name": "VisualTests (Debug)",
             "type": "coreclr",
             "request": "launch",
