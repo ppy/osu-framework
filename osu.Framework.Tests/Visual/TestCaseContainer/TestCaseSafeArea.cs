@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainer
 
             if (window == null) return;
 
-            safeAreaPadding.ValueChanged += updatePadding;
+            safeAreaPadding.ValueChanged += e => updatePadding(e.NewValue);
             safeAreaPadding.BindTo(window.SafeAreaPadding);
             updatePadding(window.SafeAreaPadding.Value);
         }

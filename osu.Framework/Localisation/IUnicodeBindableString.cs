@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using JetBrains.Annotations;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
 {

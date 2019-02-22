@@ -1,12 +1,12 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Caching;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -40,16 +40,16 @@ namespace osu.Framework.Graphics.Sprites
 
         public SpriteText()
         {
-            current.BindValueChanged(v => Text = v);
+            current.BindValueChanged(e => Text = e.NewValue);
         }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
             localisedText = localisation.GetLocalisedString(text);
-            localisedText.BindValueChanged(t =>
+            localisedText.BindValueChanged(e =>
             {
-                if (string.IsNullOrEmpty(t))
+                if (string.IsNullOrEmpty(e.NewValue))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
@@ -114,41 +114,47 @@ namespace osu.Framework.Graphics.Sprites
             set => Text = value;
         }
 
-        private float textSize = default_text_size;
+        private FontUsage font = FontUsage.Default;
 
         /// <summary>
-        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// Contains information on the font used to display the text.
         /// </summary>
-        public float TextSize
+        public FontUsage Font
         {
-            get => textSize;
+            get => font;
             set
             {
-                if (textSize == value)
-                    return;
-                textSize = value;
+                // The implicit operator can be used to convert strings to fonts, which discards size + fixedwidth in doing so
+                // For the time being, we'll forward those members from the original value
+                // Todo: Remove this along with all other obsolete members
+                if (value.Legacy)
+                    value = new FontUsage(value.Family, font.Size, value.Weight, value.Italics, font.FixedWidth);
+
+                font = value;
 
                 invalidate(true);
                 shadowOffsetCache.Invalidate();
             }
         }
 
-        private string font;
+        /// <summary>
+        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// </summary>
+        [Obsolete("Setting TextSize directly is deprecated. Use `Font = text.Font.With(size: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public float TextSize
+        {
+            get => Font.Size;
+            set => Font = Font.With(size: value);
+        }
 
         /// <summary>
-        /// The name of the font to use when looking up textures for the individual characters.
+        /// True if all characters should be spaced apart the same distance.
         /// </summary>
-        public string Font
+        [Obsolete("Setting FixedWidth directly is deprecated. Use `Font = text.Font.With(fixedWidth: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public bool FixedWidth
         {
-            get => font;
-            set
-            {
-                if (font == value)
-                    return;
-                font = value;
-
-                invalidate(true);
-            }
+            get => Font.FixedWidth;
+            set => Font = Font.With(fixedWidth: value);
         }
 
         private bool allowMultiline = true;
@@ -208,7 +214,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool useFullGlyphHeight = true;
 
         /// <summary>
-        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
+        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="FontUsage.Size"/>  (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight
@@ -219,24 +225,6 @@ namespace osu.Framework.Graphics.Sprites
                 if (useFullGlyphHeight == value)
                     return;
                 useFullGlyphHeight = value;
-
-                invalidate(true);
-            }
-        }
-
-        private bool fixedWidth;
-
-        /// <summary>
-        /// True if all characters should be spaced apart the same distance.
-        /// </summary>
-        public bool FixedWidth
-        {
-            get => fixedWidth;
-            set
-            {
-                if (fixedWidth == value)
-                    return;
-                fixedWidth = value;
 
                 invalidate(true);
             }
@@ -402,9 +390,9 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
+                    bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
 
-                    // Unscaled size (i.e. not multiplied by TextSize)
+                    // Unscaled size (i.e. not multiplied by Font.Size)
                     Vector2 textureSize;
                     Texture texture = null;
 
@@ -428,10 +416,10 @@ namespace osu.Framework.Graphics.Sprites
                     }
 
                     // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
 
-                    // Texture size scaled by TextSize
-                    Vector2 scaledTextureSize = textureSize * TextSize;
+                    // Texture size scaled by Font.Size
+                    Vector2 scaledTextureSize = textureSize * Font.Size;
 
                     // Check if we need to go onto the next line
                     if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
@@ -515,7 +503,7 @@ namespace osu.Framework.Graphics.Sprites
         private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -594,7 +582,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
+            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c);
         }
 
         /// <summary>
@@ -605,7 +593,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         /// <summary>
-        /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
+        /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.
         /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
         /// </summary>
         /// <param name="c">The character.</param>
@@ -636,14 +624,14 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font);
+                var baseHeight = store.GetBaseHeight(Font.FontName);
                 if (baseHeight.HasValue)
-                    return baseHeight.Value * TextSize;
+                    return baseHeight.Value * Font.Size;
 
                 if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
             }
         }
 

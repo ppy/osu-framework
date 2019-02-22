@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 }
             };
 
-            selectionDropdown.Current.ValueChanged += changeTest;
+            selectionDropdown.Current.ValueChanged += e => changeTest(e.NewValue);
             buildTest();
             selectionDropdown.Current.Value = FlowTestCase.Full;
             changeTest(FlowTestCase.Full);
@@ -112,16 +112,16 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
         {
             base.Update();
 
-            if (childAnchor != anchorDropdown.Current)
+            if (childAnchor != anchorDropdown.Current.Value)
             {
-                childAnchor = anchorDropdown.Current;
+                childAnchor = anchorDropdown.Current.Value;
                 foreach (var child in fillContainer.Children)
                     child.Anchor = childAnchor;
             }
 
-            if (childOrigin != originDropdown.Current)
+            if (childOrigin != originDropdown.Current.Value)
             {
-                childOrigin = originDropdown.Current;
+                childOrigin = originDropdown.Current.Value;
                 foreach (var child in fillContainer.Children)
                     child.Origin = childOrigin;
             }
@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 else
                 {
                     foreach (var child in fillContainer.Children)
-                        child.Origin = originDropdown.Current;
+                        child.Origin = originDropdown.Current.Value;
                 }
             });
 

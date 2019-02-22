@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Containers

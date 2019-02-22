@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Visual
         private Drawable createLabel(string text) => new SpriteText
         {
             Text = text,
-            TextSize = 20,
+            Font = new FontUsage(size: 20),
             Colour = Color4.White,
         };
 

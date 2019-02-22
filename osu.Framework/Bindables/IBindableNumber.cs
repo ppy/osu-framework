@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public interface IBindableNumber<T> : IBindable<T>
     {

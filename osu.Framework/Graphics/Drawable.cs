@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input.Bindings;

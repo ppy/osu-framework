@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Configuration.Tracking
 {
@@ -41,6 +42,6 @@ namespace osu.Framework.Configuration.Tracking
             bindable.ValueChanged -= displaySetting;
         }
 
-        private void displaySetting(U value) => SettingChanged?.Invoke(generateDescription(value));
+        private void displaySetting(ValueChangedEvent<U> args) => SettingChanged?.Invoke(generateDescription(args.NewValue));
     }
 }

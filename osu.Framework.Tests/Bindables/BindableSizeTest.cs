@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Configuration;
 using System.Drawing;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
 {

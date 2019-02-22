@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration

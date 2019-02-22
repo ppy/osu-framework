@@ -89,7 +89,7 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo;
+                clock.Rate = Tempo.Value;
         }
     }
 }
