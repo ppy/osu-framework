@@ -24,5 +24,12 @@ namespace osu.Framework.Bindables
             OldValue = oldValue;
             NewValue = newValue;
         }
+
+        /// <summary>
+        /// Converts this <see cref="ValueChangedEvent{T}"/> to its new value.
+        /// </summary>
+        /// <param name="e">The <see cref="ValueChangedEvent{T}"/>.</param>
+        /// <returns><paramref name="e.NewValue"/>.</returns>
+        public static implicit operator T(ValueChangedEvent<T> e) => e.NewValue;
     }
 }
