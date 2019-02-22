@@ -22,6 +22,8 @@ namespace osu.Framework.Input.Events
             IsPrecise = isPrecise;
         }
 
+        public override bool AllowedWhenDragging => false;
+
         public override string ToString() => $"{GetType().ReadableName()}({ScrollDelta}, {IsPrecise})";
     }
 }

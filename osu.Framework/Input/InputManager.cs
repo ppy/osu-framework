@@ -513,6 +513,9 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
+            if (!e.AllowedWhenDragging && DraggedDrawable != null)
+                return false;
+
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
