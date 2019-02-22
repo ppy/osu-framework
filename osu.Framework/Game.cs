@@ -5,6 +5,7 @@ using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -31,7 +32,12 @@ namespace osu.Framework
 
         protected GameHost Host { get; private set; }
 
-        private bool isActive;
+        private readonly Bindable<bool> isActive = new Bindable<bool>(true);
+
+        /// <summary>
+        /// Whether the game is active (in the foreground).
+        /// </summary>
+        public IBindable<bool> IsActive => isActive;
 
         public AudioManager Audio;
 
@@ -87,8 +93,8 @@ namespace osu.Framework
         {
             Host = host;
             host.Exiting += OnExiting;
-            host.Activated += () => IsActive = true;
-            host.Deactivated += () => IsActive = false;
+            host.Activated += () => isActive.Value = true;
+            host.Deactivated += () => isActive.Value = false;
         }
 
         private DependencyContainer dependencies;
@@ -157,25 +163,6 @@ namespace osu.Framework
             addDebugTools();
         }
 
-        /// <summary>
-        /// Whether the Game environment is active (in the foreground).
-        /// </summary>
-        public bool IsActive
-        {
-            get => isActive;
-            private set
-            {
-                if (value == isActive)
-                    return;
-                isActive = value;
-
-                if (isActive)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            }
-        }
-
         protected FrameStatisticsMode FrameStatisticsMode
         {
             get => performanceContainer.State;
@@ -219,14 +206,6 @@ namespace osu.Framework
         public void Exit()
         {
             Host.Exit();
-        }
-
-        protected virtual void OnActivated()
-        {
-        }
-
-        protected virtual void OnDeactivated()
-        {
         }
 
         protected virtual bool OnExiting()

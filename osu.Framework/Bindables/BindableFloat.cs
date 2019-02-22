@@ -4,17 +4,17 @@
 using System;
 using System.Globalization;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
-    public class BindableDouble : BindableNumber<double>
+    public class BindableFloat : BindableNumber<float>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
-        protected override double DefaultMinValue => double.MinValue;
-        protected override double DefaultMaxValue => double.MaxValue;
-        protected override double DefaultPrecision => double.Epsilon;
+        protected override float DefaultMinValue => float.MinValue;
+        protected override float DefaultMaxValue => float.MaxValue;
+        protected override float DefaultPrecision => float.Epsilon;
 
-        public BindableDouble(double value = 0)
+        public BindableFloat(float value = 0)
             : base(value)
         {
         }

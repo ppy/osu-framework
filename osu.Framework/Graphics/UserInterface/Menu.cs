@@ -599,8 +599,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (Content is IHasText textContent)
                 {
-                    textContent.Text = item.Text;
-                    Item.Text.ValueChanged += newText => textContent.Text = newText;
+                    textContent.Text = item.Text.Value;
+                    Item.Text.ValueChanged += e => textContent.Text = e.NewValue;
                 }
             }
 
@@ -772,7 +772,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 Padding = new MarginPadding(5),
-                TextSize = 17,
+                Font = new FontUsage(size: 17),
             };
         }
 

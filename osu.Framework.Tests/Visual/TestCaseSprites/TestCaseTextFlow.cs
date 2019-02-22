@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
             var textSize = 48f;
             textFlowContainer.AddParagraph("Multiple Text Sizes", t =>
             {
-                t.TextSize = textSize;
+                t.Font = t.Font.With(size: textSize);
                 textSize -= 12f;
             });
             textFlowContainer.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);

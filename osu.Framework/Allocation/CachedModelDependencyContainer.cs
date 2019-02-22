@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -34,7 +34,6 @@ namespace osu.Framework.Allocation
         private readonly IReadOnlyDependencyContainer parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-        private TModel currentModel;
 
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
@@ -42,11 +41,12 @@ namespace osu.Framework.Allocation
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
-            Model.BindValueChanged(newModel =>
+            TModel currentModel = null;
+            Model.BindValueChanged(e =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
                 // rather than leaving the current state on-going
-                newModel = newModel ?? new TModel();
+                var newModel = e.NewValue ?? new TModel();
 
                 updateShadowModel(shadowModel, currentModel, newModel);
 
@@ -80,71 +80,48 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Updates a shadow model by unbinding from a previous model and binding to a new model.
         /// </summary>
-        /// <param name="shadowModel">The shadow model to update.</param>
+        /// <param name="targetShadowModel">The shadow model to update.</param>
         /// <param name="lastModel">The model to unbind from.</param>
         /// <param name="newModel">The model to bind to.</param>
-        private void updateShadowModel(TModel shadowModel, TModel lastModel, TModel newModel)
+        private void updateShadowModel(TModel targetShadowModel, TModel lastModel, TModel newModel)
         {
             // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
 
-            var type = typeof(TModel);
-            while (type != typeof(object))
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
+                perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
+
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
+                perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
+        }
+
+        /// <summary>
+        /// Perform an arbitrary action across a shadow model and model.
+        /// </summary>
+        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<(IBindable shadowProp, IBindable modelProp)> action)
+        {
+            if (target == null) return;
+
+            switch (member)
             {
-                Debug.Assert(type != null);
-
-                foreach (var field in type.GetFields(activator_flags))
-                    rebind(field);
-
-                type = type.BaseType;
-            }
-
-            void rebind(MemberInfo member)
-            {
-                object shadowValue = null;
-                object lastModelValue = null;
-                object newModelValue = null;
-
-                switch (member)
-                {
-                    case PropertyInfo pi:
-                        shadowValue = pi.GetValue(shadowModel);
-                        lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
-                        newModelValue = newModel == null ? null : pi.GetValue(newModel);
-                        break;
-                    case FieldInfo fi:
-                        shadowValue = fi.GetValue(shadowModel);
-                        lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
-                        newModelValue = newModel == null ? null : fi.GetValue(newModel);
-                        break;
-                }
-
-                if (shadowValue is IBindable shadowBindable)
-                {
-                    // Unbind from the last model
-                    if (lastModelValue is IBindable lastModelBindable)
-                        shadowBindable.UnbindFrom(lastModelBindable);
-
-                    // Bind to the new model
-                    if (newModelValue is IBindable newModelBindable)
-                        shadowBindable.BindTo(newModelBindable);
-                }
+                case PropertyInfo pi:
+                    action(((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target)));
+                    break;
+                case FieldInfo fi:
+                    action(((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target)));
+                    break;
             }
         }
 
         static CachedModelDependencyContainer()
         {
-            var type = typeof(TModel);
-
-            while (type != null && type != typeof(object))
+            foreach (var type in typeof(TModel).EnumerateBaseTypes())
+            foreach (var field in type.GetFields(activator_flags))
             {
-                foreach (var field in type.GetFields(activator_flags))
-                {
-                    if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
-                        throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
-                                                            + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
-                }
-
-                type = type.BaseType;
+                if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
+                    throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
+                                                        + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
             }
         }
     }

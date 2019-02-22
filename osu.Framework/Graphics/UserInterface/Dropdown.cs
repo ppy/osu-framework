@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (item)
             {
                 case MenuItem i:
-                    return i.Text;
+                    return i.Text.Value;
                 case IHasText t:
                     return t.Text;
                 case Enum e:
@@ -211,21 +211,21 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default)
+        private void selectionChanged(ValueChangedEvent<T> args)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
-                && newSelection != null)
+            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
+                && args.NewValue != null)
             {
-                if (!itemMap.TryGetValue(newSelection, out selectedItem))
+                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
             }
 
             Menu.SelectItem(selectedItem);
-            Header.Label = selectedItem.Text;
+            Header.Label = selectedItem.Text.Value;
         }
 
         /// <summary>

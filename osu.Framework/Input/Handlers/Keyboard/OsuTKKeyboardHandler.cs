@@ -22,9 +22,9 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            Enabled.BindValueChanged(enabled =>
+            Enabled.BindValueChanged(e =>
             {
-                if (enabled)
+                if (e.NewValue)
                 {
                     host.Window.KeyDown += handleKeyboardEvent;
                     host.Window.KeyUp += handleKeyboardEvent;

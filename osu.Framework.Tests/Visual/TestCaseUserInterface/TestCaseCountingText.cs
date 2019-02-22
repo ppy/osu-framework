@@ -3,7 +3,7 @@
 
 using System;
 using System.Globalization;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         public TestTextCounter(Func<double, string> resultFunction)
         {
             this.resultFunction = resultFunction;
-            AddInternal(text = new SpriteText { TextSize = 24 });
+            AddInternal(text = new SpriteText { Font = new FontUsage(size: 24) });
         }
 
         protected override void OnCountChanged(double count) => text.Text = resultFunction(count);

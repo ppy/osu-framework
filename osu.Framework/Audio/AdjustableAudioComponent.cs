@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
@@ -53,18 +53,18 @@ namespace osu.Framework.Audio
 
         protected AdjustableAudioComponent()
         {
-            Volume.ValueChanged += InvalidateState;
-            Balance.ValueChanged += InvalidateState;
-            Frequency.ValueChanged += InvalidateState;
+            Volume.ValueChanged += e => InvalidateState(e.NewValue);
+            Balance.ValueChanged += e => InvalidateState(e.NewValue);
+            Frequency.ValueChanged += e => InvalidateState(e.NewValue);
         }
 
         internal void InvalidateState(double newValue = 0) => EnqueueAction(OnStateChanged);
 
         internal virtual void OnStateChanged()
         {
-            VolumeCalculated.Value = volumeAdjustments.Aggregate(Volume.Value, (current, adj) => current * adj);
-            BalanceCalculated.Value = balanceAdjustments.Aggregate(Balance.Value, (current, adj) => current + adj);
-            FrequencyCalculated.Value = frequencyAdjustments.Aggregate(Frequency.Value, (current, adj) => current * adj);
+            VolumeCalculated.Value = volumeAdjustments.Aggregate(Volume.Value, (current, adj) => current * adj.Value);
+            BalanceCalculated.Value = balanceAdjustments.Aggregate(Balance.Value, (current, adj) => current + adj.Value);
+            FrequencyCalculated.Value = frequencyAdjustments.Aggregate(Frequency.Value, (current, adj) => current * adj.Value);
         }
 
         public void AddAdjustmentDependency(AdjustableAudioComponent component)

@@ -4,7 +4,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -83,11 +83,14 @@ namespace osu.Framework.Tests.Dependencies
             var resolver = new DerivedFieldModelResolver();
             var dependencies = new CachedModelDependencyContainer<DerivedFieldModel>(null)
             {
-                Model = { Value = new DerivedFieldModel
+                Model =
                 {
-                    Bindable = { Value = 2 },
-                    BindableString = { Value = "2" }
-                } }
+                    Value = new DerivedFieldModel
+                    {
+                        Bindable = { Value = 2 },
+                        BindableString = { Value = "2" }
+                    }
+                }
             };
 
             dependencies.Inject(resolver);
@@ -100,6 +103,46 @@ namespace osu.Framework.Tests.Dependencies
 
             Assert.AreEqual(3, resolver.Model.Bindable.Value);
             Assert.AreEqual("3", resolver.Model.BindableString.Value);
+        }
+
+        [Test]
+        public void TestCrossDependentBindsDoNotPollute()
+        {
+            var model1 = new CrossDependentFieldModel { Bindable = { Value = 2 } };
+            var model2 = new CrossDependentFieldModel { Bindable = { Value = 3 } };
+
+            var dependencies = new CachedModelDependencyContainer<CrossDependentFieldModel>(null)
+            {
+                Model = { Value = model1 }
+            };
+
+            Assert.AreEqual(2, model1.Bindable.Value);
+            Assert.AreEqual(2, model1.BindableTwo.Value);
+
+            Assert.AreEqual(3, model2.Bindable.Value);
+            Assert.AreEqual(3, model2.BindableTwo.Value);
+
+            dependencies.Model.Value = model2;
+
+            Assert.AreEqual(2, model1.Bindable.Value);
+            Assert.AreEqual(2, model1.BindableTwo.Value);
+
+            Assert.AreEqual(3, model2.Bindable.Value);
+            Assert.AreEqual(3, model2.BindableTwo.Value);
+        }
+
+        private class CrossDependentFieldModel
+        {
+            [Cached]
+            public readonly Bindable<int> Bindable = new Bindable<int>(1);
+
+            [Cached]
+            public readonly Bindable<int> BindableTwo = new Bindable<int>();
+
+            public CrossDependentFieldModel()
+            {
+                Bindable.BindValueChanged(e => BindableTwo.Value = e.NewValue);
+            }
         }
 
         [Test]

@@ -96,10 +96,10 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
 
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(13));
+            AddAssert("item 13 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(13));
 
             AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(15));
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown1 is open", () => styledDropdown.Menu.State == MenuState.Open);
@@ -111,11 +111,11 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             AddStep("select 'invalid'", () => styledDropdown.Current.Value = "invalid");
 
-            AddAssert("'invalid' is selected", () => styledDropdown.Current == "invalid");
+            AddAssert("'invalid' is selected", () => styledDropdown.Current.Value == "invalid");
             AddAssert("label shows 'invalid'", () => styledDropdown.Header.Label == "invalid");
 
             AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(2));
 
             AddStep("Select next item", () =>
             {
