@@ -5,7 +5,7 @@ using osuTK;
 
 namespace osu.Framework.Input.InputQueue
 {
-    interface IInputQueueElement
+    public interface IInputQueueElement
     {
         bool Accept(INonPositionalInputVisitor visitor, bool allowBlocking = true);
         bool Accept(IPositionalInputVisitor visitor, Vector2 screenSpacePos);
