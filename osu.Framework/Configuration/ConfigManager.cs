@@ -151,7 +151,7 @@ namespace osu.Framework.Configuration
             if (ConfigStore.TryGetValue(lookup, out IBindable obj))
             {
                 if (!(obj is Bindable<U>))
-                    throw new InvalidCastException();
+                    throw new InvalidCastException($"Cannot convert bindable of type {obj.GetType()} retrieved from {nameof(ConfigManager<T>)} to {typeof(Bindable<U>)}.");
 
                 return (Bindable<U>)obj;
             }
