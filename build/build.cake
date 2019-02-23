@@ -54,7 +54,7 @@ Task("DetermineAppveyorDeployProperties")
             AppVeyor.UpdateBuildVersion(AppVeyor.Environment.Repository.Tag.Name);
 
         configuration = "Release";
-        version = AppVeyor.Environment.Build.Version;
+        version = AppVeyor.Environment.Repository.Tag.Name;
     });
 
 Task("Clean")
