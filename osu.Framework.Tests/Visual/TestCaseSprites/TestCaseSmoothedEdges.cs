@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
                     new SpriteText
                     {
                         Text = $"{nameof(Sprite.EdgeSmoothness)}={smoothnesses[i]}",
-                        TextSize = 20,
+                        Font = new FontUsage(size: 20),
                     },
                     boxes[i] = new Box
                     {

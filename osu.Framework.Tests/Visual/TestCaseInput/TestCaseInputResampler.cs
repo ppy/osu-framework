@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
         private SpriteText createLabel(string text) => new SpriteText
         {
             Text = text,
-            TextSize = 14,
+            Font = new FontUsage(size: 14),
             Colour = Color4.White,
         };
 

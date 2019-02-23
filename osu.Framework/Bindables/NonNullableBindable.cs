@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class NonNullableBindable<T> : Bindable<T>
     {

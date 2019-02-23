@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
     /// An readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.

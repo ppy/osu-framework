@@ -7,7 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Track;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             for (int i = 1; i <= 16; i *= 2)
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
-            zoom.ValueChanged += v => flow.Width = track_width * v;
+            zoom.ValueChanged += e => flow.Width = track_width * e.NewValue;
         }
 
         private void startStop()

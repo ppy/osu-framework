@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -123,10 +123,10 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newSelection =>
             {
                 if (IsLoaded)
-                    SelectTab(tabMap[Current]);
+                    SelectTab(tabMap[Current.Value]);
                 else
                     //will be handled in LoadComplete
-                    SelectedTab = tabMap[Current];
+                    SelectedTab = tabMap[Current.Value];
             };
         }
 

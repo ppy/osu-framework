@@ -5,7 +5,7 @@ using System;
 using System.Globalization;
 using osu.Framework.Graphics;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableMarginPadding : Bindable<MarginPadding>
     {
@@ -59,8 +59,6 @@ namespace osu.Framework.Configuration
 
             base.BindTo(them);
         }
-
-        public static implicit operator MarginPadding(BindableMarginPadding value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableMarginPadding)} to a {nameof(MarginPadding)} is likely a mistake");
 
         public override string ToString() => Value.ToString();
 
