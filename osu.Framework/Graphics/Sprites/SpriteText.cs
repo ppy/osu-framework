@@ -40,16 +40,16 @@ namespace osu.Framework.Graphics.Sprites
 
         public SpriteText()
         {
-            current.BindValueChanged(e => Text = e.NewValue);
+            current.BindValueChanged(text => Text = text.NewValue);
         }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
             localisedText = localisation.GetLocalisedString(text);
-            localisedText.BindValueChanged(e =>
+            localisedText.BindValueChanged(str =>
             {
-                if (string.IsNullOrEmpty(e.NewValue))
+                if (string.IsNullOrEmpty(str.NewValue))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
