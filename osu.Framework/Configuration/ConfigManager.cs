@@ -149,7 +149,12 @@ namespace osu.Framework.Configuration
         protected Bindable<U> GetOriginalBindable<U>(T lookup)
         {
             if (ConfigStore.TryGetValue(lookup, out IBindable obj))
-                return obj as Bindable<U>;
+            {
+                if (!(obj is Bindable<U>))
+                    throw new InvalidCastException($"Cannot convert bindable of type {obj.GetType()} retrieved from {nameof(ConfigManager<T>)} to {typeof(Bindable<U>)}.");
+
+                return (Bindable<U>)obj;
+            }
 
             return null;
         }
