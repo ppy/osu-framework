@@ -100,18 +100,23 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public float Bottom => Y + Height;
 
+        /// <summary>Gets the top left corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 TopLeft => new Vector2(Left, Top);
 
+        /// <summary>Gets the top right corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 TopRight => new Vector2(Right, Top);
 
+        /// <summary>Gets the bottom left corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 BottomLeft => new Vector2(Left, Bottom);
 
+        /// <summary>Gets the bottom right corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 BottomRight => new Vector2(Right, Bottom);
 
+        /// <summary>Gets the center of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 Centre => new Vector2(X + Width / 2, Y + Height / 2);
 
@@ -158,6 +163,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         public bool Contains(float x, float y) => X <= x && x < X + Width && Y <= y && y < Y + Height;
 
+        /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
+        /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="T:System.Drawing.RectangleF"/> structure; otherwise false.</returns>
+        /// <param name="pt">The point to test against this <see cref="T:System.Drawing.RectangleF"/>.</param>
+        /// <filterpriority>1</filterpriority>
         public bool Contains(Vector2 pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
@@ -187,8 +196,22 @@ namespace osu.Framework.Graphics.Primitives
             // ReSharper restore NonReadonlyMemberInGetHashCode
         }
 
+        /// <summary>Gets the Area of this <see cref="RectangleF"/>.</summary>
         public float Area => Width * Height;
 
+        /// <summary>
+        /// Gets this <see cref="RectangleF"/> with positive width and height.
+        /// This is usefull if you have an <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
+        /// </summary>
+        /// <example>
+        /// var rect = new <see cref="RectangleF"/> { <see cref="Width"/> = -200, <see cref="Height"/> = -300 }
+        ///
+        /// rect.<see cref="WithPositiveExtent"/> will result in
+        /// Width = 200
+        /// Height = 300
+        /// X = -200
+        /// Y = -300
+        /// </example>
         public RectangleF WithPositiveExtent
         {
             get
@@ -211,10 +234,28 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
+        /// <summary>
+        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
+        /// <summary>
+        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
+        /// <summary>
+        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
             X - amount.Left,
             Y - amount.Top,
