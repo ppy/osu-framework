@@ -140,26 +140,6 @@ namespace osu.Framework
             Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans-Italic"));
             Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans-BoldItalic"));
 
-            //Roboto
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-Regular"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-RegularItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-Bold"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-BoldItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-Black"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-BlackItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-Light"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-LightItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-Thin"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/Roboto/Roboto-ThinItalic"));
-
-            //RobotoCondensed
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-RegularItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-BoldItalic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Light"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/RobotoCondensed/RobotoCondensed-LightItalic"));
-
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
