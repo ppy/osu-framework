@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>
-        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
         /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
         /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
@@ -243,7 +243,7 @@ namespace osu.Framework.Graphics.Primitives
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
         /// <summary>
-        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
         /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
         /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.Primitives
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         /// <summary>
-        /// Gets an <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
         /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
         /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
