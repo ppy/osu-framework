@@ -20,5 +20,10 @@ namespace osu.Framework.Graphics.Primitives
         /// </para>
         /// </summary>
         Vector2[] AxisVertices { get; }
+
+        /// <summary>
+        /// Whether the polygon contains a given vertex.
+        /// </summary>
+        bool Contains(Vector2 v);
     }
 }

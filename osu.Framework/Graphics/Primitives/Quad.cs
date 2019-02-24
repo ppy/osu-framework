@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Extensions.PolygonExtensions;
 using osuTK;
 using osu.Framework.MathUtils;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -115,14 +116,22 @@ namespace osu.Framework.Graphics.Primitives
 
         public Quad ClampTo(Quad quad)
         {
-            var theirMin = Vector2.ComponentMin(quad.TopLeft, Vector2.ComponentMin(quad.TopRight, Vector2.ComponentMin(quad.BottomLeft, quad.BottomRight)));
-            var theirMax = Vector2.ComponentMax(quad.TopLeft, Vector2.ComponentMax(quad.TopRight, Vector2.ComponentMax(quad.BottomLeft, quad.BottomRight)));
+            Vector2[] itss = (this as IConvexPolygon).Intersect(quad);
 
-            return new Quad(
-                Vector2.Clamp(TopLeft, theirMin, theirMax),
-                Vector2.Clamp(TopRight, theirMin, theirMax),
-                Vector2.Clamp(BottomLeft, theirMin, theirMax),
-                Vector2.Clamp(BottomRight, theirMin, theirMax));
+            float xMin = float.MaxValue;
+            float yMin = float.MaxValue;
+            float xMax = float.MinValue;
+            float yMax = float.MinValue;
+
+            foreach (var its in itss)
+            {
+                xMin = Math.Min(xMin, its.X);
+                yMin = Math.Min(yMin, its.Y);
+                xMax = Math.Max(xMax, its.X);
+                yMax = Math.Max(yMax, its.Y);
+            }
+
+            return FromRectangle(new RectangleF(xMin, yMin, xMax - xMin, yMax - yMin));
         }
 
         public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;

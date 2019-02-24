@@ -18,7 +18,7 @@ uniform mat3 g_ToMaskingSpace;
 
 void main(void)
 {
-	// Transform to position to masking space.
+	// Transform from screen space to masking space.
 	vec3 maskingPos = g_ToMaskingSpace * vec3(m_Position, 1.0);
 	v_MaskingPosition = maskingPos.xy / maskingPos.z;
 

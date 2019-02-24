@@ -37,18 +37,10 @@ namespace osu.Framework.Graphics.Shapes
                     return;
 
                 // Todo: This can probably be optimised
-                var skeleton = ScreenSpaceDrawQuad;
-                if (GLWrapper.IsMaskingActive && GLWrapper.CurrentMaskingInfo.CornerRadius != 0)
-                {
-                    float offset = GLWrapper.CurrentMaskingInfo.CornerRadius / 3f;
+                var skeleton = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
 
-                    skeleton = skeleton.ClampTo(GLWrapper.CurrentMaskingInfo.ScreenSpaceQuad);
-
-                    var skeletonRect = (skeleton * DrawInfo.MatrixInverse).AABBFloat.Shrink(offset);
-                    skeletonRect = skeletonRect.Shrink(offset);
-
-                    skeleton = Quad.FromRectangle(skeletonRect) * DrawInfo.Matrix;
-                }
+                if (GLWrapper.IsMaskingActive)
+                    skeleton = skeleton.ClampTo(GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
 
                 Shader shader = TextureShader;
 
@@ -65,11 +57,11 @@ namespace osu.Framework.Graphics.Shapes
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
-                if (DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
-                                                        && (!GLWrapper.IsMaskingActive || GLWrapper.CurrentMaskingInfo.CornerRadius == 0))
-                {
-                    return;
-                }
+                //if (DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
+                //                                        && (!GLWrapper.IsMaskingActive || GLWrapper.CurrentMaskingInfo.CornerRadius == 0))
+                //{
+                //    return;
+                //}
 
                 base.Draw(vertexAction);
             }

@@ -2,14 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.MathUtils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
     /// <summary>
-    /// Represents a single line segment.  Drawing is handled by the LineManager class.
+    /// Represents a single line segment.
     /// </summary>
-    public class Line
+    public struct Line
     {
         /// <summary>
         /// Begin point of the line.
@@ -31,7 +32,9 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
-        public Vector2 Direction => (EndPoint - StartPoint).Normalized();
+        public Vector2 Difference => EndPoint - StartPoint;
+
+        public Vector2 Direction => Difference.Normalized();
 
         public Vector2 OrthogonalDirection
         {
@@ -42,11 +45,44 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-
         public Line(Vector2 p1, Vector2 p2)
         {
             StartPoint = p1;
             EndPoint = p2;
+        }
+
+        /// <summary>
+        /// Computes a position along the line.
+        /// </summary>
+        /// <param name="t">Parameterizes the position along the line to compute. t is in [0, 1], where 0 yields the
+        /// start point and 1 yields the end point.</param>
+        /// <returns>The position along the line.</returns>
+        public Vector2 At(float t) => StartPoint + Difference * t;
+
+        /// <summary>
+        /// Intersects 2 lines.
+        /// </summary>
+        /// <param name="other">Other line to intersect this with.</param>
+        /// <returns>Whether the two lines intersect and, if so, the normalized distance along the line (i.e. distance
+        /// divided by length of line). To compute the point of intersection, use `StartPoint + Difference * t`.</returns>
+        public (bool success, float distance) Intersect(Line other)
+        {
+            Vector2 diff1 = Difference;
+            Vector2 diff2 = other.Difference;
+
+            float denom = diff1.X * diff2.Y - diff1.Y * diff2.X;
+            if (Precision.AlmostEquals(denom, 0))
+                return (false, 0);
+
+            float t = (other.StartPoint.X - StartPoint.X) * diff2.Y - (other.StartPoint.Y - StartPoint.Y) * diff2.X;
+            if (Precision.DefinitelyBigger(0, t) || t > denom)
+                return (false, 0);
+
+            float u = (other.StartPoint.X - StartPoint.X) * diff1.Y - (other.StartPoint.Y - StartPoint.Y) * diff1.X;
+            if (u < 0 || u > denom)
+                return (false, 0);
+
+            return (true, t);
         }
 
         /// <summary>

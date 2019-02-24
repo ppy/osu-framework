@@ -669,7 +669,7 @@ namespace osu.Framework.Graphics.OpenGL
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
 
-        public Quad ScreenSpaceQuad;
+        public Quad ConservativeScreenSpaceQuad;
 
         /// <summary>
         /// This matrix transforms screen space coordinates to masking space (likely the parent

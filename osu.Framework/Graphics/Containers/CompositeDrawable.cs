@@ -905,6 +905,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
+        private static readonly float cos_45 = (float)Math.Cos(Math.PI / 4);
+
         protected override void ApplyDrawNode(DrawNode node)
         {
             CompositeDrawNode n = (CompositeDrawNode)node;
@@ -913,22 +915,26 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+            float blendRange = MaskingSmoothness * (scale.X + scale.Y) / 2;
+
+            float shrinkage = CornerRadius - CornerRadius * cos_45 + blendRange;
+            var shrunkDrawRectangle = DrawRectangle.Shrink(shrinkage);
 
             n.MaskingInfo = !Masking
                 ? (MaskingInfo?)null
                 : new MaskingInfo
                 {
-                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                    ScreenSpaceAABB = base.ScreenSpaceDrawQuad.AABB,
                     MaskingRect = DrawRectangle,
-                    ScreenSpaceQuad = ScreenSpaceDrawQuad,
-                    ToMaskingSpace = DrawInfo.MatrixInverse,
-                    CornerRadius = CornerRadius,
+                    ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * base.DrawInfo.Matrix,
+                    ToMaskingSpace = base.DrawInfo.MatrixInverse,
+                    CornerRadius = this.CornerRadius,
                     BorderThickness = BorderThickness,
                     BorderColour = BorderColour,
                     // We are setting the linear blend range to the approximate size of a _pixel_ here.
                     // This results in the optimal trade-off between crispness and smoothness of the
                     // edges of the masked region according to sampling theory.
-                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    BlendRange = blendRange,
                     AlphaExponent = 1,
                 };
 
