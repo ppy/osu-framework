@@ -1,9 +1,11 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Graphics;
+using System;
 
 namespace osu.Framework.iOS
 {
@@ -17,8 +19,7 @@ namespace osu.Framework.iOS
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            // TODO
-
+            Resize += onResize;
             // for now, let's just say the cursor is always in the window.
             CursorInWindow = true;
         }
@@ -37,6 +38,17 @@ namespace osu.Framework.iOS
         public override void Run(double updateRate)
         {
             // do nothing for iOS
+        }
+
+        private void onResize(object sender, EventArgs e)
+        {
+            SafeAreaPadding.Value = new MarginPadding
+            {
+                Top = (float)GameView.SafeArea.Top * GameView.Scale,
+                Left = (float)GameView.SafeArea.Left * GameView.Scale,
+                Bottom = (float)GameView.SafeArea.Bottom * GameView.Scale,
+                Right = (float)GameView.SafeArea.Right * GameView.Scale
+            };
         }
     }
 }

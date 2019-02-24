@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -38,9 +38,9 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
-        public static int MaxTextureSize { get; private set; }
+        public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
+        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.

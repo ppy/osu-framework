@@ -1,16 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 
@@ -135,14 +135,10 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(string newDevice)
+        private void onDeviceChanged(ValueChangedEvent<string> args)
         {
-            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
+            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(args.NewValue) ? null : args.NewValue));
         }
-
-        protected virtual TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new TrackManager(store);
-
-        protected virtual SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new SampleManager(store);
 
         /// <summary>
         /// Returns a list of the names of recognized audio devices.
@@ -158,15 +154,15 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
-            TrackManager tm = CreateTrackManager(store);
+            TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += tm.InvalidateState;
+            VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
 
             return tm;
         }
@@ -175,15 +171,15 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
-            SampleManager sm = CreateSampleManager(store);
+            SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += sm.InvalidateState;
+            VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
 
             return sm;
         }

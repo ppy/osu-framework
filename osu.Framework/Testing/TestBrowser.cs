@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -33,7 +34,7 @@ namespace osu.Framework.Testing
         public TestCase CurrentTest { get; private set; }
 
         private TextBox searchTextBox;
-        private SearchContainer<TestCaseButton> leftFlowContainer;
+        private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -73,11 +74,22 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private void updateList(Assembly asm)
+        private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
             //Add buttons for each TestCase.
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
+            string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
+
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
+                                                .GroupBy(
+                                                    t =>
+                                                    {
+                                                        string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
+                                                        return string.IsNullOrWhiteSpace(group) ? t.Name : group;
+                                                    },
+                                                    t => t,
+                                                    (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
+                                                ).Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
@@ -119,7 +131,7 @@ namespace osu.Framework.Testing
                     {
                         new Box
                         {
-                            Colour = Color4.DimGray,
+                            Colour = new Color4(50, 50, 50, 255),
                             RelativeSizeAxes = Axes.Both
                         },
                         new FillFlowContainer
@@ -134,7 +146,7 @@ namespace osu.Framework.Testing
                                     {
                                         var firstVisible = leftFlowContainer.FirstOrDefault(b => b.IsPresent);
                                         if (firstVisible != null)
-                                            LoadTest(firstVisible.TestType);
+                                            LoadTest(firstVisible.SelectFirst());
                                     },
                                     Height = 20,
                                     RelativeSizeAxes = Axes.X,
@@ -145,11 +157,10 @@ namespace osu.Framework.Testing
                                     Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
                                     ScrollbarOverlapsContent = false,
-                                    Child = leftFlowContainer = new SearchContainer<TestCaseButton>
+                                    Child = leftFlowContainer = new SearchContainer<TestCaseButtonGroup>
                                     {
                                         Padding = new MarginPadding(3),
                                         Direction = FillDirection.Vertical,
-                                        Spacing = new Vector2(0, 5),
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,
                                     }
@@ -193,7 +204,7 @@ namespace osu.Framework.Testing
                                     },
                                     new SpriteText
                                     {
-                                        TextSize = 30,
+                                        Font = new FontUsage(size: 30),
                                         Text = @"Compiling new version..."
                                     }
                                 },
@@ -203,9 +214,9 @@ namespace osu.Framework.Testing
                 }
             };
 
-            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
+            searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
-            if (RuntimeInfo.SupportsIL)
+            if (RuntimeInfo.SupportsJIT)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestCase>
                 {
@@ -228,7 +239,7 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
+            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -437,7 +448,7 @@ namespace osu.Framework.Testing
         private void updateButtons()
         {
             foreach (var b in leftFlowContainer.Children)
-                b.Current = b.TestType.Name == CurrentTest?.GetType().Name;
+                b.Current = CurrentTest.GetType();
         }
 
         private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper

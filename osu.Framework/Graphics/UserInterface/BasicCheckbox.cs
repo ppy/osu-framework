@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.Color4Extensions;
 using osuTK;
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            Current.ValueChanged += c => box.FadeColour(c ? CheckedColor : UncheckedColor, FadeDuration);
+            Current.ValueChanged += e => box.FadeColour(e.NewValue ? CheckedColor : UncheckedColor, FadeDuration);
             Current.TriggerChange();
         }
     }

@@ -1,14 +1,16 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
-using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
@@ -27,7 +29,7 @@ namespace osu.Framework.Testing
         /// <param name="test">The <see cref="TestCase"/> to run.</param>
         public void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
 
-        public class TestRunner : Screen
+        public class TestRunner : CompositeDrawable
         {
             private const double time_between_tests = 200;
 
@@ -36,6 +38,11 @@ namespace osu.Framework.Testing
 
             [Resolved]
             private GameHost host { get; set; }
+
+            public TestRunner()
+            {
+                RelativeSizeAxes = Axes.Both;
+            }
 
             [BackgroundDependencyLoader]
             private void load(FrameworkConfigManager config)
@@ -76,13 +83,13 @@ namespace osu.Framework.Testing
                     // We want to remove the TestCase from the hierarchy on completion as under nUnit, it may have operations run on it from a different thread.
                     // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
                     // is run from its own asynchronous thread.
-                    Remove(test);
+                    RemoveInternal(test);
                     completed = true;
                 }
 
                 Schedule(() =>
                 {
-                    Add(test);
+                    AddInternal(test);
 
                     Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
 

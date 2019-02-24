@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Platform.Windows.Native;
@@ -26,21 +26,10 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
 
             Window = new WindowsGameWindow();
-            Window.WindowStateChanged += onWindowOnWindowStateChanged;
-        }
-
-        private void onWindowOnWindowStateChanged(object sender, EventArgs e)
-        {
-            if (Window.WindowState != WindowState.Minimized)
-                OnActivated();
-            else
-                OnDeactivated();
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            Window.WindowStateChanged -= onWindowOnWindowStateChanged;
-
             timePeriod?.Dispose();
             base.Dispose(isDisposing);
         }

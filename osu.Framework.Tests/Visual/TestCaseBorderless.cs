@@ -1,9 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Drawing;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -72,7 +73,7 @@ namespace osu.Framework.Tests.Visual
                                         },
                                         windowCaption = new TextFlowContainer(sprite =>
                                         {
-                                            sprite.TextSize = 150;
+                                            sprite.Font = sprite.Font.With(size: 150);
                                             sprite.Colour = Color4.White;
                                         })
                                         {
@@ -127,7 +128,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Padding = new MarginPadding(50),
                         Text = name,
-                        TextSize = 200,
+                        Font = new FontUsage(size: 200),
                         Colour = Color4.Black
                     }
                 }

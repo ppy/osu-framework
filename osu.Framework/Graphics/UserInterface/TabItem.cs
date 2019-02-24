@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 
@@ -40,9 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
             Active.ValueChanged += active_ValueChanged;
         }
 
-        private void active_ValueChanged(bool newValue)
+        private void active_ValueChanged(ValueChangedEvent<bool> args)
         {
-            if (newValue)
+            if (args.NewValue)
                 OnActivated();
             else
                 OnDeactivated();

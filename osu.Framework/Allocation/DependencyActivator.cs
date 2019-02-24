@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -48,7 +48,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="obj">The object to inject the dependencies into.</param>
         /// <param name="dependencies">The dependencies to use for injection.</param>
-        public static void Activate(object obj, DependencyContainer dependencies)
+        public static void Activate(object obj, IReadOnlyDependencyContainer dependencies)
             => getActivator(obj.GetType()).activate(obj, dependencies);
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace osu.Framework.Allocation
             return existing;
         }
 
-        private void activate(object obj, DependencyContainer dependencies)
+        private void activate(object obj, IReadOnlyDependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
 
