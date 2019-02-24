@@ -44,14 +44,14 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
             }
         }
 
-        private readonly Box[] boxes = new Box[4];
-
-        protected override void Update()
+        protected override void LoadComplete()
         {
-            base.Update();
+            base.LoadComplete();
 
-            foreach (Box box in boxes)
-                box.Rotation += 0.01f;
+            for (int i = 0; i < Rows * Cols; ++i)
+                boxes[i].Spin(10000, RotationDirection.Clockwise);
         }
+
+        private readonly Box[] boxes = new Box[4];
     }
 }
