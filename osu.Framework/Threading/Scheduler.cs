@@ -59,7 +59,7 @@ namespace osu.Framework.Threading
         public void UpdateClock(IClock newClock)
         {
             if (newClock == null)
-                throw new NullReferenceException($"{nameof(newClock)} may not be null.");
+                throw new ArgumentNullException(nameof(newClock));
 
             if (newClock == clock)
                 return;

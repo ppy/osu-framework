@@ -3,7 +3,7 @@
 
 using System;
 using System.Globalization;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Visual
                     }
                 };
 
-                bindable.ValueChanged += v => valueText.Text = v.ToString(CultureInfo.InvariantCulture);
+                bindable.ValueChanged += e => valueText.Text = e.NewValue.ToString(CultureInfo.InvariantCulture);
             }
         }
     }

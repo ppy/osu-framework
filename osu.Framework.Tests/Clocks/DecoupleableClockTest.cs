@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Stop();
 
-            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
 
         /// <summary>
@@ -262,28 +262,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Stop();
 
-            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
-        }
-
-        private class TestClock : IAdjustableClock
-        {
-            public double CurrentTime { get; set; }
-            public double Rate { get; set; }
-
-            private bool isRunning;
-            public bool IsRunning => isRunning;
-
-            public void Reset() => throw new System.NotImplementedException();
-            public void Start() => isRunning = true;
-            public void Stop() => isRunning = false;
-
-            public bool Seek(double position)
-            {
-                CurrentTime = position;
-                return true;
-            }
-
-            public void ResetSpeedAdjustments() => throw new System.NotImplementedException();
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
     }
 }

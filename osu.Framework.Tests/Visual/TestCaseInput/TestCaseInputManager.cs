@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
         {
             public SmallText()
             {
-                TextSize = 20;
+                Font = new FontUsage(size: 20);
             }
         }
 

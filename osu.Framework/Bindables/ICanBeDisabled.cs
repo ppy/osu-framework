@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
     /// Interface for objects that have a disabled state.

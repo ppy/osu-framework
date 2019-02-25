@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableSize : Bindable<Size>
     {
@@ -45,8 +45,6 @@ namespace osu.Framework.Configuration
 
             base.BindTo(them);
         }
-
-        public static implicit operator Size(BindableSize value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableSize)} to a {nameof(Size)} is likely a mistake");
 
         public override string ToString() => $"{Value.Width}x{Value.Height}";
 

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     /// <summary>
     /// A bindable carrying a mutually exclusive lease on another bindable.
@@ -68,7 +68,8 @@ namespace osu.Framework.Configuration
                     checkValid();
 
                 if (EqualityComparer<T>.Default.Equals(Value, value)) return;
-                SetValue(value, true);
+
+                SetValue(base.Value, value, true);
             }
         }
 

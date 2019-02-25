@@ -1,10 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Configuration;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Track
 {
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Track
 
         protected Track()
         {
-            Tempo.ValueChanged += InvalidateState;
+            Tempo.ValueChanged += e => InvalidateState(e.NewValue);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get => Frequency * Tempo;
+            get => Frequency.Value * Tempo.Value;
             set => Tempo.Value = value;
         }
 
