@@ -37,8 +37,8 @@ namespace osu.Framework.Tests.Visual
                 },
             };
 
-            sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize}";
-            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode}";
+            sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize.NewValue}";
+            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode.NewValue}";
         }
 
         private void testResolution(int w, int h)
