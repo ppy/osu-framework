@@ -1,101 +1,89 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Foundation;
 using ObjCRuntime;
 using UIKit;
-using osu.Framework.Logging;
-using System;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
 
 namespace osu.Framework.iOS
 {
     [Register("GameUIApplication")]
     public class GameUIApplication : UIApplication
     {
-        private static bool IS_IOS7 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(7, 0, 0));
-        private static bool IS_IOS9 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(9, 0, 0));
+        private const int gsevent_type = 2;
+        private const int gsevent_flags = 10;
 
-        private static bool IS_64BIT = IntPtr.Size == 8;
+        private const int gsevent_keycode = 13;
 
-        private static int GSEVENT_TYPE = 2;
-        private static int GSEVENT_FLAGS = IS_64BIT ? 10 : 12;
-
-        private static int GSEVENT_KEYCODE = IS_64BIT ? (IS_IOS9 ? 13 : 19) : (IS_IOS7 ? 17 : 15);
-
-        private static int GSEVENT_TYPE_KEYDOWN = 10;
-        private static int GSEVENT_TYPE_KEYUP = 11;
-        private static int GSEVENT_TYPE_MODIFIER = 12;
+        private const int gsevent_type_keydown = 10;
+        private const int gsevent_type_keyup = 11;
+        private const int gsevent_type_modifier = 12;
 
         public delegate void KeyHandler(int keyCode, bool isDown);
-        public event KeyHandler keyEvent;
+
+        /// <summary>
+        /// Occurs when key event.
+        /// </summary>
+        public event KeyHandler KeyEvent;
 
         // https://github.com/xamarin/xamarin-macios/blob/master/src/ObjCRuntime/Messaging.iOS.cs
-        internal const string LIBOBJC_DYLIB = "/usr/lib/libobjc.dylib";
-
-        [DllImport(LIBOBJC_DYLIB, EntryPoint = "objc_msgSendSuper")]
-        public extern static void void_objc_msgSendSuper_intptr(IntPtr receiver, IntPtr selector, IntPtr arg1);
+        [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSendSuper")]
+        private static extern void send_super(IntPtr receiver, IntPtr selector, IntPtr arg1);
 
         int lastEventFlags;
 
-        private HashSet<int> blockKeys = new HashSet<int>();
+        /// <summary>
+        /// Is this required?
+        /// </summary>
+        private readonly HashSet<int> blockKeys = new HashSet<int> { 
+            79, // Right
+            80, // Left
+            81, // Down
+            82  // Up
+        };
 
-        public GameUIApplication()
+        private unsafe bool decodeKeyEvent(NSObject eventMem)
         {
-            blockKeys.Add(79); // Right
-            blockKeys.Add(80); // Left
-            blockKeys.Add(81); // Down
-            blockKeys.Add(82); // Up
-        }
+            if (eventMem == null) return false;
 
-        unsafe bool decodeKeyEvent(NSObject eventMem)
-        {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
-            int eventType = (int)eventPtr[GSEVENT_TYPE];
-            int eventModifier = (int)eventPtr[GSEVENT_FLAGS];
-            int eventScanCode = (int)eventPtr[GSEVENT_KEYCODE];
+            int eventType = (int)eventPtr[gsevent_type];
+            int eventModifier = (int)eventPtr[gsevent_flags];
+            int eventScanCode = (int)eventPtr[gsevent_keycode];
             int eventLastModifier = lastEventFlags;
 
-            Logger.Log(string.Format("keyboard event: {0} - {1}", eventType, eventScanCode));
+            switch (eventType)
+            {
+                case gsevent_type_keydown:
+                case gsevent_type_keyup:
+                        KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
+                        if (blockKeys.Contains(eventScanCode))
+                            return true;
+                    break;
+                case gsevent_type_modifier:
+            
+                        KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
+                        lastEventFlags = eventModifier;
+                    break;
+            }
 
-            if (eventType == GSEVENT_TYPE_KEYDOWN || eventType == GSEVENT_TYPE_KEYUP)
-            {
-                keyEvent(eventScanCode, eventType == GSEVENT_TYPE_KEYDOWN);
-                if (blockKeys.Contains(eventScanCode))
-                {
-                    return true;
-                }
-            }
-            else
-            if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER)
-            {
-                bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
-                keyEvent(eventScanCode, pressed);
-                lastEventFlags = eventModifier;
-            }
             return false;
         }
 
-        Selector gsSelector = new Selector("_gsEvent");
-        Selector handleSelector = new Selector("handleKeyUIEvent:");
+        private readonly Selector gsSelector = new Selector("_gsEvent");
+        private readonly Selector handleSelector = new Selector("handleKeyUIEvent:");
 
         [Export("handleKeyUIEvent:")]
-        void handleKeyUIEvent(UIEvent evt)
+        private void handleKeyUIEvent(UIEvent evt)
         {
-            if (evt.RespondsToSelector(gsSelector))
-            {
-                var eventMem = evt.PerformSelector(gsSelector);
-                if (eventMem != null)
-                {
-                    if (decodeKeyEvent(eventMem))
-                    {
-                        return;
-                    }
-                }
-            }
-            void_objc_msgSendSuper_intptr(this.SuperHandle, handleSelector.Handle, evt.Handle);
+            if (evt.RespondsToSelector(gsSelector) && decodeKeyEvent(evt.PerformSelector(gsSelector)))
+                return;
+
+            send_super(SuperHandle, handleSelector.Handle, evt.Handle);
         }
     }
 }
