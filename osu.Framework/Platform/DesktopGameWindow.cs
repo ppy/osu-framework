@@ -57,6 +57,13 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
 
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        {
+            Configuration.WindowMode.Windowed,
+            Configuration.WindowMode.Borderless,
+            Configuration.WindowMode.Fullscreen,
+        };
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {

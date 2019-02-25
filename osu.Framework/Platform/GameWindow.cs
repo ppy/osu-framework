@@ -85,6 +85,8 @@ namespace osu.Framework.Platform
 
             FocusedChanged += (o, e) => isActive.Value = Focused;
 
+            SupportedWindowModes.AddRange(DefaultSupportedWindowModes);
+
             bool firstUpdate = true;
             UpdateFrame += (o, e) =>
             {
@@ -219,6 +221,12 @@ namespace osu.Framework.Platform
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
         public readonly BindableMarginPadding SafeAreaPadding = new BindableMarginPadding();
+
+        public readonly BindableList<WindowMode> SupportedWindowModes = new BindableList<WindowMode>();
+
+        public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
+
+        protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
 

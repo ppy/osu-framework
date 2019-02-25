@@ -6,6 +6,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.iOS
 {
@@ -29,6 +30,11 @@ namespace osu.Framework.iOS
         public override bool Focused => true;
 
         public override osuTK.WindowState WindowState { get => osuTK.WindowState.Normal; set { } }
+
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        {
+            WindowMode.Fullscreen,
+        };
 
         public override void Run()
         {
