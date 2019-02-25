@@ -30,8 +30,6 @@ namespace osu.Framework.Platform
         private DisplayDevice lastFullscreenDisplay;
         private bool inWindowModeTransition;
 
-        public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
-
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
         public override IGraphicsContext Context => Implementation.Context;

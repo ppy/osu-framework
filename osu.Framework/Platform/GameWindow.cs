@@ -60,6 +60,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
+        public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
+
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
         /// <summary>
