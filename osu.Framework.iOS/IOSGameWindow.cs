@@ -33,7 +33,7 @@ namespace osu.Framework.iOS
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
         {
-            WindowMode.Fullscreen,
+            Configuration.WindowMode.Fullscreen,
         };
 
         public override void Run()
