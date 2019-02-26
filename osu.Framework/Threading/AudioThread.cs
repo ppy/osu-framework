@@ -30,8 +30,13 @@ namespace osu.Framework.Threading
         private void onNewFrame()
         {
             lock (managers)
-            foreach (var m in managers)
-                m.Update();
+            {
+                for (var i = 0; i < managers.Count; i++)
+                {
+                    var m = managers[i];
+                    m.Update();
+                }
+            }
         }
 
         public void RegisterManager(AudioManager manager)
