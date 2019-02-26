@@ -469,9 +469,8 @@ namespace osu.Framework.Platform
 
                 resetInputHandlers();
 
-                DrawThread.Start();
-                UpdateThread.Start();
-                AudioThread.Start();
+                foreach (var t in threads)
+                    t.Start();
 
                 DrawThread.WaitUntilInitialized();
                 bootstrapSceneGraph(game);
