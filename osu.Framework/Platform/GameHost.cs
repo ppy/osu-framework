@@ -634,6 +634,8 @@ namespace osu.Framework.Platform
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
             windowMode.BindValueChanged(mode =>
             {
+                if (Window == null)
+                    return;
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
