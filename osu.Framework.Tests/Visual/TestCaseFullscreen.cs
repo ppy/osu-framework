@@ -55,7 +55,11 @@ namespace osu.Framework.Tests.Visual
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
             currentWindowMode.Text = $"Window Mode: {windowMode}";
-            supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", host.Window.SupportedWindowModes)}";
+
+            if (window == null)
+                return;
+
+            supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });
@@ -63,18 +67,18 @@ namespace osu.Framework.Tests.Visual
             var initialWindowMode = windowMode.Value;
 
             // if we support windowed mode, switch to it and test resizing the window
-            if (host.Window.SupportedWindowModes.Contains(WindowMode.Windowed))
+            if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
                 AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
             }
 
             // if we support borderless, test that it can be used
-            if (host.Window.SupportedWindowModes.Contains(WindowMode.Borderless))
+            if (window.SupportedWindowModes.Contains(WindowMode.Borderless))
                 AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
 
             // if we support fullscreen mode, switch to it and test swapping resolutions
-            if (host.Window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
+            if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
                 testResolution(1920, 1080);
