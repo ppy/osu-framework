@@ -4,14 +4,16 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Audio;
 
 namespace osu.Framework.Threading
 {
     public class AudioThread : GameThread
     {
-        public AudioThread(Action onNewFrame)
-            : base(onNewFrame, "Audio")
+        public AudioThread()
+            : base(name: "Audio")
         {
+            OnNewFrame = onNewFrame;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
@@ -23,10 +25,34 @@ namespace osu.Framework.Threading
             StatisticsCounterType.Components,
         };
 
+        private readonly List<AudioManager> managers = new List<AudioManager>();
+
+        private void onNewFrame()
+        {
+            lock (managers)
+            foreach (var m in managers)
+                m.Update();
+        }
+
+        public void RegisterManager(AudioManager manager)
+        {
+            lock (managers)
+            {
+                if (managers.Contains(manager))
+                    throw new InvalidOperationException($"{manager} was already registered");
+                managers.Add(manager);
+            }
+        }
+
+        public void UnregisterManager(AudioManager manager)
+        {
+            lock (managers)
+                managers.Remove(manager);
+        }
+
         protected override void PerformExit()
         {
             base.PerformExit();
-
             ManagedBass.Bass.Free();
         }
     }

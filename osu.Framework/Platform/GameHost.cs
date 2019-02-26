@@ -134,6 +134,7 @@ namespace osu.Framework.Platform
         public GameThread DrawThread;
         public GameThread UpdateThread;
         public InputThread InputThread;
+        public AudioThread AudioThread;
 
         private double maximumUpdateHz;
 
@@ -217,8 +218,8 @@ namespace osu.Framework.Platform
                 Monitor = { HandleGC = true },
             });
 
-            //never gets started.
-            RegisterThread(InputThread = new InputThread(null));
+            RegisterThread(InputThread = new InputThread());
+            RegisterThread(AudioThread = new AudioThread());
 
             if (assemblyPath != null)
                 Environment.CurrentDirectory = assemblyPath;
@@ -470,6 +471,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Start();
                 UpdateThread.Start();
+                AudioThread.Start();
 
                 DrawThread.WaitUntilInitialized();
                 bootstrapSceneGraph(game);
