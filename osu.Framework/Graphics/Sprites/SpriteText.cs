@@ -38,6 +38,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
+        private Shader textureShader;
+        private Shader roundedTextureShader;
+
         public SpriteText()
         {
             current.BindValueChanged(text => Text = text.NewValue);
@@ -62,8 +65,8 @@ namespace osu.Framework.Graphics.Sprites
             }, true);
 
             spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
-            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
@@ -544,7 +547,11 @@ namespace osu.Framework.Graphics.Sprites
 
         #region DrawNode
 
-        private readonly SpriteTextDrawNodeSharedData sharedData = new SpriteTextDrawNodeSharedData();
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new SpriteTextDrawNodeSharedData
+        {
+            TextureShader = textureShader,
+            RoundedTextureShader = roundedTextureShader
+        };
 
         protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode();
 
@@ -553,8 +560,6 @@ namespace osu.Framework.Graphics.Sprites
             base.ApplyDrawNode(node);
 
             var n = (SpriteTextDrawNode)node;
-
-            n.Shared = sharedData;
 
             n.Parts.Clear();
             n.Parts.AddRange(screenSpaceCharacters);
@@ -638,6 +643,14 @@ namespace osu.Framework.Graphics.Sprites
         public IEnumerable<string> FilterTerms
         {
             get { yield return displayedText; }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            textureShader?.Dispose();
+            roundedTextureShader?.Dispose();
         }
     }
 }

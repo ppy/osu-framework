@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
     /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
     /// <see cref="CompositeDrawable"/>.
     /// </summary>
-    public class CompositeDrawNodeSharedData
+    public class CompositeDrawNodeSharedData : DrawNodeSharedData
     {
         /// <summary>
         /// The vertex batch used for rendering.
@@ -84,11 +84,24 @@ namespace osu.Framework.Graphics.Containers
         public QuadBatch<TexturedVertex2D> VertexBatch;
 
         /// <summary>
+        /// The shader to use for rendering.
+        /// </summary>
+        public Shader Shader;
+
+        /// <summary>
         /// Whether we always want to use our own vertex batch for our corresponding
         /// <see cref="CompositeDrawable"/>. If false, then we may get rendered with some other
         /// shared vertex batch.
         /// </summary>
         public bool ForceOwnVertexBatch;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            VertexBatch?.Dispose();
+            Shader?.Dispose();
+        }
     }
 
     /// <summary>
@@ -123,12 +136,7 @@ namespace osu.Framework.Graphics.Containers
         /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
         /// <see cref="CompositeDrawable"/>.
         /// </summary>
-        public CompositeDrawNodeSharedData Shared;
-
-        /// <summary>
-        /// The shader to be used for rendering the edge effect.
-        /// </summary>
-        public Shader Shader;
+        public new CompositeDrawNodeSharedData SharedData => (CompositeDrawNodeSharedData)base.SharedData;
 
         private void drawEdgeEffect()
         {
@@ -156,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
 
             GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
-            Shader.Bind();
+            SharedData.Shader.Bind();
 
             ColourInfo colour = ColourInfo.SingleColour(EdgeEffect.Colour);
             colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Linear.A);
@@ -172,14 +180,14 @@ namespace osu.Framework.Graphics.Containers
                 // with a hollow edge effect.
                 new Vector2(MaskingInfo.Value.BlendRange));
 
-            Shader.Unbind();
+            SharedData.Shader.Unbind();
 
             GLWrapper.PopMaskingInfo();
         }
 
         private const int min_amount_children_to_warrant_batch = 5;
 
-        private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
+        private bool mayHaveOwnVertexBatch(int amountChildren) => SharedData.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
         {
@@ -188,8 +196,8 @@ namespace osu.Framework.Graphics.Containers
 
             // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
             int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (Shared.VertexBatch == null || Shared.VertexBatch.Size < clampedAmountChildren))
-                Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (SharedData.VertexBatch == null || SharedData.VertexBatch.Size < clampedAmountChildren))
+                SharedData.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -197,8 +205,8 @@ namespace osu.Framework.Graphics.Containers
             updateVertexBatch();
 
             // Prefer to use own vertex batch instead of the parent-owned one.
-            if (Shared.VertexBatch != null)
-                vertexAction = Shared.VertexBatch.AddAction;
+            if (SharedData.VertexBatch != null)
+                vertexAction = SharedData.VertexBatch.AddAction;
 
             base.Draw(vertexAction);
 

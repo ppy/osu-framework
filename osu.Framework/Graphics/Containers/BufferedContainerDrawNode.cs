@@ -17,7 +17,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BufferedContainerDrawNodeSharedData
+    public class BufferedContainerDrawNodeSharedData : CompositeDrawNodeSharedData
     {
         /// <summary>
         /// The <see cref="Shader"/> to use when rendering blur effects.
@@ -40,6 +40,15 @@ namespace osu.Framework.Graphics.Containers
         {
             for (int i = 0; i < FrameBuffers.Length; i++)
                 FrameBuffers[i] = new FrameBuffer();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            for (int i = 0; i < FrameBuffers.Length; i++)
+                FrameBuffers[i].Dispose();
+            BlurShader?.Dispose();
         }
     }
 
@@ -65,12 +74,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
 
-        public new BufferedContainerDrawNodeSharedData Shared;
+        public new BufferedContainerDrawNodeSharedData SharedData => (BufferedContainerDrawNodeSharedData)base.SharedData;
 
         /// <summary>
         /// Whether this <see cref="BufferedContainerDrawNode"/> should have its children re-drawn.
         /// </summary>
-        public bool RequiresRedraw => UpdateVersion > Shared.DrawVersion;
+        public bool RequiresRedraw => UpdateVersion > SharedData.DrawVersion;
 
         private ValueInvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
         {
@@ -158,30 +167,30 @@ namespace osu.Framework.Graphics.Containers
 
             using (bindFrameBuffer(target, source.Size))
             {
-                Shared.BlurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
-                Shared.BlurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
+                SharedData.BlurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
+                SharedData.BlurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
 
                 Vector2 size = source.Size;
-                Shared.BlurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
+                SharedData.BlurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                 float radians = -MathHelper.DegreesToRadians(blurRotation);
                 Vector2 blur = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
-                Shared.BlurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
+                SharedData.BlurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
-                Shared.BlurShader.Bind();
+                SharedData.BlurShader.Bind();
                 drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), ColourInfo.SingleColour(Color4.White));
-                Shared.BlurShader.Unbind();
+                SharedData.BlurShader.Unbind();
             }
         }
 
         private int currentFrameBufferIndex;
-        private FrameBuffer currentFrameBuffer => Shared.FrameBuffers[currentFrameBufferIndex];
-        private FrameBuffer advanceFrameBuffer() => Shared.FrameBuffers[currentFrameBufferIndex = (currentFrameBufferIndex + 1) % 2];
+        private FrameBuffer currentFrameBuffer => SharedData.FrameBuffers[currentFrameBufferIndex];
+        private FrameBuffer advanceFrameBuffer() => SharedData.FrameBuffers[currentFrameBufferIndex = (currentFrameBufferIndex + 1) % 2];
 
         /// <summary>
         /// Makes sure the first frame buffer is always the one we want to draw from.
         /// This saves us the need to sync the draw indices across draw node trees
-        /// since the Shared.FrameBuffers array is already shared.
+        /// since the SharedData.FrameBuffers array is already shared.
         /// </summary>
         private void finalizeFrameBuffer()
         {
@@ -190,9 +199,9 @@ namespace osu.Framework.Graphics.Containers
                 Trace.Assert(currentFrameBufferIndex == 1,
                     $"Only the first two framebuffers should be the last to be written to at the end of {nameof(Draw)}.");
 
-                FrameBuffer temp = Shared.FrameBuffers[0];
-                Shared.FrameBuffers[0] = Shared.FrameBuffers[1];
-                Shared.FrameBuffers[1] = temp;
+                FrameBuffer temp = SharedData.FrameBuffers[0];
+                SharedData.FrameBuffers[0] = SharedData.FrameBuffers[1];
+                SharedData.FrameBuffers[1] = temp;
 
                 currentFrameBufferIndex = 0;
             }
@@ -210,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
             if (RequiresRedraw)
             {
-                Shared.DrawVersion = UpdateVersion;
+                SharedData.DrawVersion = UpdateVersion;
 
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
@@ -235,12 +244,12 @@ namespace osu.Framework.Graphics.Containers
                 ? new RectangleF(ScreenSpaceDrawRectangle.X, ScreenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : ScreenSpaceDrawRectangle;
 
-            Shader.Bind();
+            SharedData.Shader.Bind();
 
             if (DrawOriginal && EffectPlacement == EffectPlacement.InFront)
             {
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
+                drawFrameBufferToBackBuffer(SharedData.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
             }
 
             // Blit the final framebuffer to screen.
@@ -248,15 +257,15 @@ namespace osu.Framework.Graphics.Containers
 
             ColourInfo effectColour = DrawColourInfo.Colour;
             effectColour.ApplyChild(EffectColour);
-            drawFrameBufferToBackBuffer(Shared.FrameBuffers[0], drawRectangle, effectColour);
+            drawFrameBufferToBackBuffer(SharedData.FrameBuffers[0], drawRectangle, effectColour);
 
             if (DrawOriginal && EffectPlacement == EffectPlacement.Behind)
             {
                 GLWrapper.SetBlend(DrawColourInfo.Blending);
-                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
+                drawFrameBufferToBackBuffer(SharedData.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
             }
 
-            Shader.Unbind();
+            SharedData.Shader.Unbind();
         }
     }
 }

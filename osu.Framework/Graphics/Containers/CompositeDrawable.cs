@@ -230,6 +230,8 @@ namespace osu.Framework.Graphics.Containers
             OnAutoSize = null;
             schedulerAfterChildren = null;
 
+            shader?.Dispose();
+
             base.Dispose(isDisposing);
         }
 
@@ -900,8 +902,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private readonly CompositeDrawNodeSharedData compositeDrawNodeSharedData = new CompositeDrawNodeSharedData();
         private Shader shader;
+
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CompositeDrawNodeSharedData { Shader = shader };
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
@@ -932,11 +935,7 @@ namespace osu.Framework.Graphics.Containers
                 };
 
             n.EdgeEffect = EdgeEffect;
-
             n.ScreenSpaceMaskingQuad = null;
-            n.Shared = compositeDrawNodeSharedData;
-
-            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }

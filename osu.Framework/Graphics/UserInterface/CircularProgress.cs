@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.UserInterface
         private Shader roundedTextureShader;
         private Shader textureShader;
 
-        private readonly CircularProgressDrawNodeSharedData pathDrawNodeSharedData = new CircularProgressDrawNodeSharedData();
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CircularProgressDrawNodeSharedData();
 
         #region Disposal
 
@@ -60,9 +60,6 @@ namespace osu.Framework.Graphics.UserInterface
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
             n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
             n.Angle = (float)Current.Value * MathHelper.TwoPi;
             n.InnerRadius = innerRadius;
 

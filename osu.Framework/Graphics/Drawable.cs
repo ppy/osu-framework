@@ -102,6 +102,8 @@ namespace osu.Framework.Graphics
                 OnDispose?.Invoke();
                 OnDispose = null;
 
+                drawNodeSharedData?.Dispose();
+
                 IsDisposed = true;
             }
         }
@@ -1685,6 +1687,8 @@ namespace osu.Framework.Graphics
 
         #region DrawNode
 
+        private DrawNodeSharedData drawNodeSharedData;
+
         private readonly DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
@@ -1721,6 +1725,7 @@ namespace osu.Framework.Graphics
             node.DrawInfo = DrawInfo;
             node.DrawColourInfo = DrawColourInfo;
             node.InvalidationID = invalidationID;
+            node.SharedData = drawNodeSharedData ?? (drawNodeSharedData = CreateDrawNodeSharedData());
         }
 
         /// <summary>
@@ -1728,6 +1733,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>The created draw node.</returns>
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
+
+        /// <summary>
+        /// Creates a <see cref="DrawNodeSharedData"/> to store data that is common to all <see cref="DrawNode"/>s of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <returns>The <see cref="DrawNodeSharedData"/>.</returns>
+        protected virtual DrawNodeSharedData CreateDrawNodeSharedData() => null;
 
         #endregion
 

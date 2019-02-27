@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new PathDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new PathDrawNode();
 
@@ -175,8 +175,6 @@ namespace osu.Framework.Graphics.Lines
             n.RoundedTextureShader = roundedTextureShader;
             n.Width = PathWidth;
             n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
 
             n.Segments = segments.ToList();
 

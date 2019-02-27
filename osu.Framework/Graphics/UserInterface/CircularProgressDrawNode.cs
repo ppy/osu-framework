@@ -15,11 +15,18 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNodeSharedData
+    public class CircularProgressDrawNodeSharedData : DrawNodeSharedData
     {
         // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle. MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
         // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
+        public readonly LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            HalfCircleBatch.Dispose();
+        }
     }
 
     public class CircularProgressDrawNode : DrawNode
@@ -34,7 +41,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Shader TextureShader;
         public Shader RoundedTextureShader;
 
-        public CircularProgressDrawNodeSharedData Shared;
+        public new CircularProgressDrawNodeSharedData SharedData => (CircularProgressDrawNodeSharedData)base.SharedData;
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
@@ -72,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
             float prevOffset = dir >= 0 ? 0 : 1;
 
             // First center point
-            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            SharedData.HalfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
@@ -80,7 +87,7 @@ namespace osu.Framework.Graphics.UserInterface
             });
 
             // First outer point.
-            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            SharedData.HalfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = new Vector2(current.X, current.Y),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
@@ -103,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // current center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                SharedData.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
@@ -111,7 +118,7 @@ namespace osu.Framework.Graphics.UserInterface
                 });
 
                 // current outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                SharedData.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(texRect.Left + normalisedOffset * texRect.Width, texRect.Bottom),

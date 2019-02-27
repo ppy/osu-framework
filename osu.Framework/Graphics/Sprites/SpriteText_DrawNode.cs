@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Sprites
     {
         internal class SpriteTextDrawNode : DrawNode
         {
-            internal SpriteTextDrawNodeSharedData Shared;
+            internal new SpriteTextDrawNodeSharedData SharedData => (SpriteTextDrawNodeSharedData)base.SharedData;
 
             public bool Shadow;
             public ColourInfo ShadowColour;
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(vertexAction);
 
-                Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
+                Shader shader = needsRoundedShader ? SharedData.RoundedTextureShader : SharedData.TextureShader;
 
                 shader.Bind();
 
@@ -64,10 +64,18 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        internal class SpriteTextDrawNodeSharedData
+        internal class SpriteTextDrawNodeSharedData : DrawNodeSharedData
         {
             public Shader TextureShader;
             public Shader RoundedTextureShader;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                TextureShader?.Dispose();
+                RoundedTextureShader?.Dispose();
+            }
         }
 
         /// <summary>

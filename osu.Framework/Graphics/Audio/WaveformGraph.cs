@@ -178,7 +178,8 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = null;
         }
 
-        private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new WaveformDrawNodeSharedData();
+
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -188,7 +189,6 @@ namespace osu.Framework.Graphics.Audio
             n.Shader = shader;
             n.Texture = texture;
             n.DrawSize = DrawSize;
-            n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
             n.LowColour = lowColour ?? DrawColourInfo.Colour;
@@ -204,9 +204,16 @@ namespace osu.Framework.Graphics.Audio
             cancelGeneration();
         }
 
-        private class WaveformDrawNodeSharedData
+        private class WaveformDrawNodeSharedData : DrawNodeSharedData
         {
             public readonly QuadBatch<TexturedVertex2D> VertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                VertexBatch.Dispose();
+            }
         }
 
         private class WaveformDrawNode : DrawNode
@@ -214,7 +221,7 @@ namespace osu.Framework.Graphics.Audio
             public Shader Shader;
             public Texture Texture;
 
-            public WaveformDrawNodeSharedData Shared;
+            public new WaveformDrawNodeSharedData SharedData => (WaveformDrawNodeSharedData)base.SharedData;
 
             public Vector2 DrawSize;
             public int Channels;
@@ -312,7 +319,7 @@ namespace osu.Framework.Graphics.Audio
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    Texture.DrawQuad(quadToDraw, colour, null, Shared.VertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    Texture.DrawQuad(quadToDraw, colour, null, SharedData.VertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 Shader.Unbind();
