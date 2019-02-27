@@ -23,8 +23,7 @@ namespace osu.Framework.Graphics.Sprites
         public Vector2 InflationAmount;
         public bool WrapTexture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public new SpriteDrawNodeSharedData SharedData => (SpriteDrawNodeSharedData)base.SharedData;
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
@@ -41,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            Shader shader = needsRoundedShader ? SharedData.RoundedTextureShader : SharedData.TextureShader;
 
             shader.Bind();
 
@@ -50,6 +49,20 @@ namespace osu.Framework.Graphics.Sprites
             Blit(vertexAction);
 
             shader.Unbind();
+        }
+    }
+
+    public class SpriteDrawNodeSharedData : DrawNodeSharedData
+    {
+        public Shader TextureShader;
+        public Shader RoundedTextureShader;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            TextureShader?.Dispose();
+            RoundedTextureShader?.Dispose();
         }
     }
 }
