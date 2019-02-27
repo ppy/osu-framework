@@ -76,8 +76,20 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
+            int frameCount = 0;
+
             if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
+                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+
+            void scheduleNextDisposal() => reset_scheduler.Add(() =>
+            {
+                // There may be a number of DrawNodes queued to be drawn
+                // Disposal should only take place after
+                if (frameCount++ >= MAX_DRAW_NODES)
+                    disposalAction.Invoke();
+                else
+                    scheduleNextDisposal();
+            });
         }
 
         internal static void Reset(Vector2 size)
