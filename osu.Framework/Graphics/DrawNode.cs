@@ -17,16 +17,16 @@ namespace osu.Framework.Graphics
         /// Contains a linear transformation, colour information, and blending information
         /// of this draw node.
         /// </summary>
-        public DrawInfo DrawInfo;
+        public DrawInfo DrawInfo { get; internal set; }
 
-        public DrawColourInfo DrawColourInfo;
+        public DrawColourInfo DrawColourInfo { get; internal set; }
 
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
         /// <see cref="Drawable"/>. Whenever the invalidation state of this draw node disagrees
         /// with the state of its <see cref="Drawable"/> it has to be updated.
         /// </summary>
-        public long InvalidationID;
+        public long InvalidationID { get; internal set; }
 
         /// <summary>
         /// Draws this draw node to the screen.
