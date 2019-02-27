@@ -279,22 +279,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override void CycleMode()
-        {
-            switch (WindowMode.Value)
-            {
-                case Configuration.WindowMode.Windowed:
-                    WindowMode.Value = Configuration.WindowMode.Borderless;
-                    break;
-                case Configuration.WindowMode.Borderless:
-                    WindowMode.Value = Configuration.WindowMode.Fullscreen;
-                    break;
-                default:
-                    WindowMode.Value = Configuration.WindowMode.Windowed;
-                    break;
-            }
-        }
-
         public override VSyncMode VSync
         {
             get => Implementation.VSync;
