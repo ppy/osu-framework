@@ -53,12 +53,12 @@ namespace osu.Framework.Graphics.Shaders
         {
             if (Loaded)
             {
-                Unbind();
+                Loaded = false;
 
                 GLWrapper.DeleteProgram(this);
-                Loaded = false;
-                programID = -1;
                 GlobalPropertyManager.Unregister(this);
+
+                programID = -1;
             }
         }
 

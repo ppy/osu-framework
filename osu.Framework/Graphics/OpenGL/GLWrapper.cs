@@ -585,7 +585,11 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteProgram(Shader shader)
         {
             //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteProgram(shader); });
+            ScheduleDisposal(() =>
+            {
+                shader.Unbind();
+                GL.DeleteProgram(shader);
+            });
         }
 
         /// <summary>
