@@ -2,15 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
-using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Threading
 {
     public class InputThread : GameThread
     {
-        public InputThread(Action onNewFrame)
-            : base(onNewFrame, "Input")
+        public InputThread()
+            : base(name: "Input")
         {
         }
 
@@ -20,6 +19,11 @@ namespace osu.Framework.Threading
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
         };
+
+        public override void Start()
+        {
+            // InputThread does not get started. it is run manually by GameHost.
+        }
 
         public void RunUpdate() => ProcessFrame();
     }

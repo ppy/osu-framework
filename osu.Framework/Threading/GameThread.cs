@@ -26,7 +26,7 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
-        private readonly Action onNewFrame;
+        protected Action OnNewFrame;
 
         /// <summary>
         /// Whether the game is active (in the foreground).
@@ -69,9 +69,9 @@ namespace osu.Framework.Threading
 
         public readonly string Name;
 
-        internal GameThread(Action onNewFrame, string name, bool monitorPerformance = true)
+        internal GameThread(Action onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
         {
-            this.onNewFrame = onNewFrame;
+            OnNewFrame = onNewFrame;
 
             Thread = new Thread(runWork)
             {
@@ -137,7 +137,7 @@ namespace osu.Framework.Threading
                 Scheduler.Update();
 
             using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
-                onNewFrame?.Invoke();
+                OnNewFrame?.Invoke();
 
             using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                 Clock.ProcessFrame();
@@ -149,7 +149,7 @@ namespace osu.Framework.Threading
         public bool Exited => exitCompleted;
 
         public void Exit() => exitRequested = true;
-        public void Start() => Thread?.Start();
+        public virtual void Start() => Thread?.Start();
 
         protected virtual void PerformExit()
         {
