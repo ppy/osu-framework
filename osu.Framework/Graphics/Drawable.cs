@@ -26,6 +26,7 @@ using System.Threading;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -1689,7 +1690,7 @@ namespace osu.Framework.Graphics
 
         private DrawNodeSharedData drawNodeSharedData;
 
-        private readonly DrawNode[] drawNodes = new DrawNode[3];
+        private readonly DrawNode[] drawNodes = new DrawNode[GLWrapper.MAX_DRAW_NODES];
 
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.
