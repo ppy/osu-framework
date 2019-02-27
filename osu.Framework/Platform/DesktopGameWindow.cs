@@ -57,7 +57,7 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Windowed,
             Configuration.WindowMode.Borderless,

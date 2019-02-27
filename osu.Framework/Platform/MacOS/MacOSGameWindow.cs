@@ -62,7 +62,7 @@ namespace osu.Framework.Platform.MacOS
 
         private bool menuBarVisible => Cocoa.SendBool(classNSMenu, selMenuBarVisible);
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Windowed,
             Configuration.WindowMode.Fullscreen,
