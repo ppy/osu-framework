@@ -644,13 +644,5 @@ namespace osu.Framework.Graphics.Sprites
         {
             get { yield return displayedText; }
         }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            textureShader?.Dispose();
-            roundedTextureShader?.Dispose();
-        }
     }
 }

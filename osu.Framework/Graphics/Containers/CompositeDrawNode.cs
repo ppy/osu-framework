@@ -100,7 +100,6 @@ namespace osu.Framework.Graphics.Containers
             base.Dispose(isDisposing);
 
             VertexBatch?.Dispose();
-            Shader?.Dispose();
         }
     }
 

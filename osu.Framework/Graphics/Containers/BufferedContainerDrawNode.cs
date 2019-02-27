@@ -48,7 +48,6 @@ namespace osu.Framework.Graphics.Containers
 
             for (int i = 0; i < FrameBuffers.Length; i++)
                 FrameBuffers[i].Dispose();
-            BlurShader?.Dispose();
         }
     }
 

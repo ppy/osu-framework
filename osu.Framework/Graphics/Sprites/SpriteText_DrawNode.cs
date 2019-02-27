@@ -68,14 +68,6 @@ namespace osu.Framework.Graphics.Sprites
         {
             public Shader TextureShader;
             public Shader RoundedTextureShader;
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-
-                TextureShader?.Dispose();
-                RoundedTextureShader?.Dispose();
-            }
         }
 
         /// <summary>

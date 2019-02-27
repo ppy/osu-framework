@@ -230,8 +230,6 @@ namespace osu.Framework.Graphics.Containers
             OnAutoSize = null;
             schedulerAfterChildren = null;
 
-            shader?.Dispose();
-
             base.Dispose(isDisposing);
         }
 

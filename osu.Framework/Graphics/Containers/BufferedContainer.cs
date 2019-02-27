@@ -385,13 +385,6 @@ namespace osu.Framework.Graphics.Containers
                 return result;
             }
         }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            blurShader?.Dispose();
-        }
     }
 
     public enum EffectPlacement
