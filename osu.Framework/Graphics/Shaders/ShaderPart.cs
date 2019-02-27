@@ -147,13 +147,13 @@ namespace osu.Framework.Graphics.Shaders
             return program.partID;
         }
 
-        protected void Dispose(bool disposing)
+        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (!disposing || partID == -1) return;
 
-            GLWrapper.DeleteShader(this);
+            GL.DeleteShader(this);
             Compiled = false;
             partID = -1;
-        }
+        });
     }
 }

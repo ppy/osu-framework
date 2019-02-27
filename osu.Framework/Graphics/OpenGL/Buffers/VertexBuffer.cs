@@ -39,17 +39,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (IsDisposed)
                 return;
 
             Unbind();
 
-            GLWrapper.DeleteBuffer(vboId);
+            GL.DeleteBuffer(vboId);
 
             IsDisposed = true;
-        }
+        });
 
         private void resize(int amountVertices)
         {

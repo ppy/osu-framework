@@ -42,18 +42,20 @@ namespace osu.Framework.Graphics.Shaders
             Dispose(false);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (Loaded)
             {
                 Loaded = false;
 
-                GLWrapper.DeleteProgram(this);
+                Unbind();
+                GL.DeleteProgram(this);
+
                 GlobalPropertyManager.Unregister(this);
 
                 programID = -1;
             }
-        }
+        });
 
         #endregion
 

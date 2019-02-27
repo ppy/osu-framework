@@ -566,52 +566,7 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            //todo: don't use scheduler
             ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
-        }
-
-        /// <summary>
-        /// Deletes a buffer object.
-        /// </summary>
-        /// <param name="vboId">The buffer object to delete.</param>
-        internal static void DeleteBuffer(int vboId)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteBuffer(vboId); });
-        }
-
-        /// <summary>
-        /// Deletes textures.
-        /// </summary>
-        /// <param name="ids">An array of textures to delete.</param>
-        internal static void DeleteTextures(params int[] ids)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteTextures(ids.Length, ids); });
-        }
-
-        /// <summary>
-        /// Deletes a shader program.
-        /// </summary>
-        /// <param name="shader">The shader program to delete.</param>
-        internal static void DeleteProgram(Shader shader)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() =>
-            {
-                shader.Unbind();
-                GL.DeleteProgram(shader);
-            });
-        }
-
-        /// <summary>
-        /// Deletes a shader part.
-        /// </summary>
-        /// <param name="shaderPart">The shader part to delete.</param>
-        internal static void DeleteShader(ShaderPart shaderPart)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteShader(shaderPart); });
         }
 
         private static int currentShader;
