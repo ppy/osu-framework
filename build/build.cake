@@ -20,6 +20,8 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var iosSolution = rootDirectory.CombineWithFilePath("osu-framework.iOS.sln");
+
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
@@ -108,6 +110,13 @@ Task("InspectCode")
         var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
 
         InspectCode(solution, new InspectCodeSettings {
+            CachesHome = tempDirectory.Combine("inspectcode"),
+            OutputFile = inspectcodereport,
+        });
+
+        StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+
+        InspectCode(iosSolution, new InspectCodeSettings {
             CachesHome = tempDirectory.Combine("inspectcode"),
             OutputFile = inspectcodereport,
         });
