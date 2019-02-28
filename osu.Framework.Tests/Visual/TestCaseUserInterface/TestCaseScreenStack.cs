@@ -77,7 +77,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddStep("ensure internal throws", () => Assert.Throws<InvalidOperationException>(() => stack.Push(null, new TestScreen())));
         }
 
-
         [Test]
         public void TestAddScreenWithoutStackFails()
         {
