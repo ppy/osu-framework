@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The color of the checkbox when the checkbox is checked. Defaults to White
         /// </summary>
         /// <remarks>
-        /// The changes done to this property are only applied when <see cref="Current"/>'s value changes.
+        /// The changes done to this property are only applied when <see cref="Checkbox.Current"/>'s value changes.
         /// </remarks>
         public Color4 CheckedColor { get; set; } = Color4.White;
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The color of the checkbox when the checkbox is not checked. Default is an white with low opacity.
         /// </summary>
         /// <remarks>
-        /// The changes done to this property are only applied when <see cref="Current"/>'s value changes.
+        /// The changes done to this property are only applied when <see cref="Checkbox.Current"/>'s value changes.
         /// </remarks>
         public Color4 UncheckedColor { get; set; } = Color4.White.Opacity(0.2f);
 
