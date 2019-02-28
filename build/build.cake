@@ -22,6 +22,7 @@ var artifactsDirectory = rootDirectory.Combine("artifacts");
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
+var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -158,6 +159,27 @@ Task("PackiOSFramework")
         }.WithTarget("Pack"));
     });
 
+Task("PackAndroidFramework")
+    .Does(() => {
+        MSBuild(androidFrameworkProject, new MSBuildSettings {
+            Restore = true,
+            BinaryLogger = new MSBuildBinaryLogSettings{
+                Enabled = true,
+                FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
+            },
+            Verbosity = Verbosity.Minimal,
+            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
+            ArgumentCustomization = args =>
+            {
+                args.Append($"/p:Configuration={configuration}");
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:PackageOutputPath={artifactsDirectory.MakeAbsolute(Context.Environment)}");
+
+                return args;
+            }
+        }.WithTarget("Pack"));
+    });
+
 Task("PackNativeLibs")
     .Does(() => {
         DotNetCorePack(nativeLibsProject.FullPath, new DotNetCorePackSettings{
@@ -187,6 +209,7 @@ Task("Build")
     .IsDependentOn("Test")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
+    .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("PackNativeLibs")
     .IsDependentOn("Publish");
 
@@ -195,6 +218,7 @@ Task("DeployFramework")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
+    .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("Publish");
 
 Task("DeployNativeLibs")
