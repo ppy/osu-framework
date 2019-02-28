@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private readonly IBindableList<T> itemSource = new BindableList<T>();
-        private bool usingItemSource = false;
+        private bool usingItemSource;
 
         /// <summary>
         /// Allows the developer to assign an <see cref="IBindableList{T}"/> as the source
