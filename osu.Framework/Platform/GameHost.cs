@@ -642,10 +642,21 @@ namespace osu.Framework.Platform
         private Bindable<double> cursorSensitivity;
         private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
 
+        private Bindable<WindowMode> windowMode;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+
+            windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+            windowMode.BindValueChanged(mode =>
+            {
+                if (Window == null)
+                    return;
+                if (!Window.SupportedWindowModes.Contains(mode.NewValue))
+                    windowMode.Value = Window.DefaultWindowMode;
+            }, true);
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += e => { GCSettings.LatencyMode = IsActive.Value ? e.NewValue : GCLatencyMode.Interactive; };
