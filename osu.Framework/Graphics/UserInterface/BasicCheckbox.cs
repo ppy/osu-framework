@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The color of the checkbox when the checkbox is checked. Defaults to White
         /// </summary>
         /// <remarks>
-        /// The changes done to this property are only applied when <see cref="Current"/>'s value got changed.
+        /// The changes done to this property are only applied when <see cref="Current"/>'s value changes.
         /// </remarks>
         public Color4 CheckedColor { get; set; } = Color4.White;
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The color of the checkbox when the checkbox is not checked. Default is an white with low opacity.
         /// </summary>
         /// <remarks>
-        /// The changes done to this property are only applied when <see cref="Current"/>'s value got changed.
+        /// The changes done to this property are only applied when <see cref="Current"/>'s value changes.
         /// </remarks>
         public Color4 UncheckedColor { get; set; } = Color4.White.Opacity(0.2f);
 
@@ -36,16 +36,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <remarks>
         /// Changes to this property only affect future transitions between checked and unchecked.
-        /// Transitions between checked and unchecked that are already in progress are uneffected.
+        /// Transitions between checked and unchecked that are already in progress are unaffected.
         /// </remarks>
         public int FadeDuration { get; set; } = 50;
 
         /// <summary>
         /// The text in the label.
         /// </summary>
-        /// <remarks>
-        /// Changing the value of this property only has an effect when <see cref="labelSpriteText"/> is not null.
-        /// </remarks>
         public string LabelText
         {
             get => labelSpriteText?.Text;
@@ -57,11 +54,8 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// The padding of the label.
+        /// The padding of the label text.
         /// </summary>
-        /// <remarks>
-        /// Changing the value of this property only has an effect when <see cref="labelSpriteText"/> is not null.
-        /// </remarks>
         public MarginPadding LabelPadding
         {
             get => labelSpriteText?.Padding ?? new MarginPadding();
