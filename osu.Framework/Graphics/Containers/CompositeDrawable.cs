@@ -902,7 +902,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Shader shader;
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CompositeDrawNodeSharedData { Shader = shader };
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CompositeDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
@@ -934,6 +934,7 @@ namespace osu.Framework.Graphics.Containers
 
             n.EdgeEffect = EdgeEffect;
             n.ScreenSpaceMaskingQuad = null;
+            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }

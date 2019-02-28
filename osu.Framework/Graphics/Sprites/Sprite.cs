@@ -49,12 +49,6 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new SpriteDrawNodeSharedData
-        {
-            TextureShader = textureShader,
-            RoundedTextureShader = roundedTextureShader
-        };
-
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -66,6 +60,8 @@ namespace osu.Framework.Graphics.Sprites
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
             n.InflationAmount = inflationAmount;
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
 
             base.ApplyDrawNode(node);
         }

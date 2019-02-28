@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics.Containers
 
         private BufferedContainerDrawNodeSharedData sharedData;
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => sharedData = new BufferedContainerDrawNodeSharedData { BlurShader = blurShader };
+        protected override DrawNodeSharedData CreateDrawNodeSharedData() => sharedData = new BufferedContainerDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
@@ -281,6 +281,8 @@ namespace osu.Framework.Graphics.Containers
 
             n.Formats.Clear();
             n.Formats.AddRange(attachedFormats);
+
+            n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);
 

@@ -84,11 +84,6 @@ namespace osu.Framework.Graphics.Containers
         public QuadBatch<TexturedVertex2D> VertexBatch;
 
         /// <summary>
-        /// The shader to use for rendering.
-        /// </summary>
-        public Shader Shader;
-
-        /// <summary>
         /// Whether we always want to use our own vertex batch for our corresponding
         /// <see cref="CompositeDrawable"/>. If false, then we may get rendered with some other
         /// shared vertex batch.
@@ -132,6 +127,11 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffectParameters EdgeEffect;
 
         /// <summary>
+        /// The shader to use for rendering.
+        /// </summary>
+        public Shader Shader;
+
+        /// <summary>
         /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
         /// <see cref="CompositeDrawable"/>.
         /// </summary>
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
 
             GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
-            SharedData.Shader.Bind();
+            Shader.Bind();
 
             ColourInfo colour = ColourInfo.SingleColour(EdgeEffect.Colour);
             colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Linear.A);
@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.Containers
                 // with a hollow edge effect.
                 new Vector2(MaskingInfo.Value.BlendRange));
 
-            SharedData.Shader.Unbind();
+            Shader.Unbind();
 
             GLWrapper.PopMaskingInfo();
         }

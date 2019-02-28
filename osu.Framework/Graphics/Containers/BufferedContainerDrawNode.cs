@@ -20,11 +20,6 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainerDrawNodeSharedData : CompositeDrawNodeSharedData
     {
         /// <summary>
-        /// The <see cref="Shader"/> to use when rendering blur effects.
-        /// </summary>
-        public Shader BlurShader;
-
-        /// <summary>
         /// The <see cref="FrameBuffer"/>s to render to.
         /// These are used in a ping-pong manner to render effects <see cref="BufferedContainerDrawNode"/>.
         /// </summary>
@@ -72,6 +67,11 @@ namespace osu.Framework.Graphics.Containers
         /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
         /// </summary>
         public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
+
+        /// <summary>
+        /// The <see cref="Shader"/> to use when rendering blur effects.
+        /// </summary>
+        public Shader BlurShader;
 
         public new BufferedContainerDrawNodeSharedData SharedData => (BufferedContainerDrawNodeSharedData)base.SharedData;
 
@@ -166,19 +166,19 @@ namespace osu.Framework.Graphics.Containers
 
             using (bindFrameBuffer(target, source.Size))
             {
-                SharedData.BlurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
-                SharedData.BlurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
+                BlurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
+                BlurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
 
                 Vector2 size = source.Size;
-                SharedData.BlurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
+                BlurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                 float radians = -MathHelper.DegreesToRadians(blurRotation);
                 Vector2 blur = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
-                SharedData.BlurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
+                BlurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
-                SharedData.BlurShader.Bind();
+                BlurShader.Bind();
                 drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), ColourInfo.SingleColour(Color4.White));
-                SharedData.BlurShader.Unbind();
+                BlurShader.Unbind();
             }
         }
 
@@ -243,7 +243,7 @@ namespace osu.Framework.Graphics.Containers
                 ? new RectangleF(ScreenSpaceDrawRectangle.X, ScreenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : ScreenSpaceDrawRectangle;
 
-            SharedData.Shader.Bind();
+            Shader.Bind();
 
             if (DrawOriginal && EffectPlacement == EffectPlacement.InFront)
             {
@@ -264,7 +264,7 @@ namespace osu.Framework.Graphics.Containers
                 drawFrameBufferToBackBuffer(SharedData.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
             }
 
-            SharedData.Shader.Unbind();
+            Shader.Unbind();
         }
     }
 }

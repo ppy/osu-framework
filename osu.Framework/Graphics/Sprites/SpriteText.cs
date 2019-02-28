@@ -547,12 +547,6 @@ namespace osu.Framework.Graphics.Sprites
 
         #region DrawNode
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new SpriteTextDrawNodeSharedData
-        {
-            TextureShader = textureShader,
-            RoundedTextureShader = roundedTextureShader
-        };
-
         protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -565,6 +559,9 @@ namespace osu.Framework.Graphics.Sprites
             n.Parts.AddRange(screenSpaceCharacters);
 
             n.Shadow = Shadow;
+
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
 
             if (Shadow)
             {
