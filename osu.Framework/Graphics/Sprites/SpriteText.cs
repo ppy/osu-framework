@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
 
         public Bindable<string> Current
         {
