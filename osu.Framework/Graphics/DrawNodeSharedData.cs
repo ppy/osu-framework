@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics
 {
@@ -11,9 +10,14 @@ namespace osu.Framework.Graphics
     /// </summary>
     public class DrawNodeSharedData : IDisposable
     {
+        ~DrawNodeSharedData()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
-            GLWrapper.ScheduleDisposal(() => Dispose(true));
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
