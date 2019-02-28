@@ -11,19 +11,30 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public abstract class VertexBuffer<T> : IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        public T[] Vertices;
-
         protected static readonly int STRIDE = VertexUtils<T>.STRIDE;
 
-        private readonly int vboId;
+        public readonly T[] Vertices;
+
         private readonly BufferUsageHint usage;
+
+        private bool isInitialised;
+        private int vboId;
 
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
             this.usage = usage;
+
+            Vertices = new T[amountVertices];
+        }
+
+        protected virtual void Initialise()
+        {
             GL.GenBuffers(1, out vboId);
 
-            resize(amountVertices);
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
+                VertexUtils<T>.Bind();
+
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * STRIDE), IntPtr.Zero, usage);
         }
 
         ~VertexBuffer()
@@ -51,23 +62,16 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             IsDisposed = true;
         }
 
-        private void resize(int amountVertices)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not resize disposed vertex buffers.");
-
-            Array.Resize(ref Vertices, amountVertices);
-
-            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                VertexUtils<T>.Bind();
-
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * STRIDE), IntPtr.Zero, usage);
-        }
-
         public virtual void Bind(bool forRendering)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
+
+            if (!isInitialised)
+            {
+                Initialise();
+                isInitialised = true;
+            }
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 VertexUtils<T>.Bind();
