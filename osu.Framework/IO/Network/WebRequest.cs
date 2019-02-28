@@ -10,7 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -299,10 +299,10 @@ namespace osu.Framework.IO.Network
                         }
 
                         requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += v =>
+                        requestStream.BytesRead.ValueChanged += e =>
                         {
                             reportForwardProgress();
-                            UploadProgress?.Invoke(v, contentLength);
+                            UploadProgress?.Invoke(e.NewValue, contentLength);
                         };
 
                         request.Content = new StreamContent(requestStream);

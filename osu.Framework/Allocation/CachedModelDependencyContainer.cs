@@ -3,7 +3,7 @@
 
 using System;
 using System.Reflection;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -34,7 +34,6 @@ namespace osu.Framework.Allocation
         private readonly IReadOnlyDependencyContainer parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-        private TModel currentModel;
 
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
@@ -42,11 +41,12 @@ namespace osu.Framework.Allocation
 
             shadowDependencies = DependencyActivator.MergeDependencies(shadowModel, null, new CacheInfo(parent: typeof(TModel)));
 
-            Model.BindValueChanged(newModel =>
+            TModel currentModel = null;
+            Model.BindValueChanged(e =>
             {
                 // When setting a null model, we actually want to reset the shadow model to a default state
                 // rather than leaving the current state on-going
-                newModel = newModel ?? new TModel();
+                var newModel = e.NewValue ?? new TModel();
 
                 updateShadowModel(shadowModel, currentModel, newModel);
 

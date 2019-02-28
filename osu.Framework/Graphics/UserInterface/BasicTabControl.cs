@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     Margin = new MarginPadding(2),
                     Text = value.ToString(),
-                    TextSize = 18
+                    Font = new FontUsage(size: 18),
                 });
             }
 

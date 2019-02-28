@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
             });
 
-            textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
+            textBox.Current.ValueChanged += e => search.SearchTerm = e.NewValue;
         }
 
         private class HeaderContainer : Container, IHasFilterableChildren
@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 });
                 AddInternal(flowContainer = new FillFlowContainer
                 {
-                    Margin = new MarginPadding { Top = header.TextSize, Left = 30 },
+                    Margin = new MarginPadding { Top = header.Font.Size, Left = 30 },
                     AutoSizeAxes = Axes.Both,
                     Direction = FillDirection.Vertical,
                 });

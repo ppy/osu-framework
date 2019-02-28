@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -73,13 +74,13 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private void updateList(Assembly asm)
+        private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
             //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm)
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
                                                 .GroupBy(
                                                     t =>
                                                     {
@@ -203,7 +204,7 @@ namespace osu.Framework.Testing
                                     },
                                     new SpriteText
                                     {
-                                        TextSize = 30,
+                                        Font = new FontUsage(size: 30),
                                         Text = @"Compiling new version..."
                                     }
                                 },
@@ -213,7 +214,7 @@ namespace osu.Framework.Testing
                 }
             };
 
-            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
+            searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.SupportsJIT)
             {
@@ -238,7 +239,7 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
+            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
         }
 
         protected override void Dispose(bool isDisposing)

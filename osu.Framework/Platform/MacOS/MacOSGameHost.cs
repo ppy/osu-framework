@@ -14,13 +14,6 @@ namespace osu.Framework.Platform.MacOS
             : base(gameName, bindIPC, toolkitOptions)
         {
             Window = new MacOSGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
-            {
-                if (Window.WindowState != WindowState.Minimized)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            };
         }
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);

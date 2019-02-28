@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Performance
         {
             public CounterText()
             {
-                FixedWidth = true;
+                Font = new FontUsage(fixedWidth: true);
             }
 
             protected override bool UseFixedWidthForCharacter(char c)

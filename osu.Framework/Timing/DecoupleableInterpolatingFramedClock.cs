@@ -10,7 +10,7 @@ namespace osu.Framework.Timing
     ///
     /// This clock type removes the requirement of having a source set.
     ///
-    /// If a <see cref="InterpolatingFramedClock.SourceClock"/> is set, it is presumed that we have exclusive control over operations on it.
+    /// If a <see cref="InterpolatingFramedClock.Source"/> is set, it is presumed that we have exclusive control over operations on it.
     /// This is used to our advantage to allow correct <see cref="IsRunning"/> state tracking in the event of cross-thread communication delays (with an audio thread, for instance).
     /// </summary>
     public class DecoupleableInterpolatingFramedClock : InterpolatingFramedClock, IAdjustableClock
@@ -31,7 +31,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.
         /// </summary>
-        private IAdjustableClock adjustableSource => SourceClock as IAdjustableClock;
+        private IAdjustableClock adjustableSource => Source as IAdjustableClock;
 
         public override double CurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Timing
 
         public override double Rate
         {
-            get => SourceClock?.Rate ?? 1;
+            get => Source?.Rate ?? 1;
             set => adjustableSource.Rate = value;
         }
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Timing
 
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
 
-            bool sourceRunning = SourceClock?.IsRunning ?? false;
+            bool sourceRunning = Source?.IsRunning ?? false;
 
             if (IsRunning)
             {
@@ -93,8 +93,7 @@ namespace osu.Framework.Timing
             // transfer our value to the source clock.
             (source as IAdjustableClock)?.Seek(CurrentTime);
 
-            SourceClock = source;
-            FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
+            base.ChangeSource(source);
         }
 
         public void Reset()

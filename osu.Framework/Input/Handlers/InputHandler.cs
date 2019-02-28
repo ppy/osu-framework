@@ -5,7 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 
 namespace osu.Framework.Input.Handlers

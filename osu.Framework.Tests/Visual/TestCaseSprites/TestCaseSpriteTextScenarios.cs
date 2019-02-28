@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -29,8 +30,8 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
 
             Cell(1, 0).Child = new SpriteText
             {
-                Text = "Text size = 15",
-                TextSize = 15
+                Text = "Font size = 15",
+                Font = new FontUsage(size: 15),
             };
 
             Cell(2, 0).Child = new SpriteText
@@ -112,8 +113,8 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
 
             Cell(2, 2).Child = new SpriteText
             {
-                Text = "FixedWidth = true",
-                FixedWidth = true
+                Text = "Fixed width",
+                Font = new FontUsage(fixedWidth: true),
             };
 
             Cell(3, 2).Child = new SpriteText
@@ -232,7 +233,7 @@ namespace osu.Framework.Tests.Visual.TestCaseSprites
         {
             public NoFixedWidthSpaceText()
             {
-                FixedWidth = true;
+                Font = new FontUsage(fixedWidth: true);
             }
 
             protected override bool UseFixedWidthForCharacter(char c) => c != ' ';

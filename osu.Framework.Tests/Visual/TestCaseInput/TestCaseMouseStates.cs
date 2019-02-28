@@ -503,7 +503,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
             {
                 public SmallText()
                 {
-                    TextSize = 14;
+                    Font = new FontUsage(size: 14);
                 }
             }
 

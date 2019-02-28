@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 
@@ -40,9 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
             Active.ValueChanged += active_ValueChanged;
         }
 
-        private void active_ValueChanged(bool newValue)
+        private void active_ValueChanged(ValueChangedEvent<bool> args)
         {
-            if (newValue)
+            if (args.NewValue)
                 OnActivated();
             else
                 OnDeactivated();

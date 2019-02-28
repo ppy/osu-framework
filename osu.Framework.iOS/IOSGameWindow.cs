@@ -4,6 +4,9 @@
 using osuTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Graphics;
+using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.iOS
 {
@@ -17,8 +20,7 @@ namespace osu.Framework.iOS
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            // TODO
-
+            Resize += onResize;
             // for now, let's just say the cursor is always in the window.
             CursorInWindow = true;
         }
@@ -29,6 +31,11 @@ namespace osu.Framework.iOS
 
         public override osuTK.WindowState WindowState { get => osuTK.WindowState.Normal; set { } }
 
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        {
+            Configuration.WindowMode.Fullscreen,
+        };
+
         public override void Run()
         {
             // do nothing for iOS
@@ -37,6 +44,17 @@ namespace osu.Framework.iOS
         public override void Run(double updateRate)
         {
             // do nothing for iOS
+        }
+
+        private void onResize(object sender, EventArgs e)
+        {
+            SafeAreaPadding.Value = new MarginPadding
+            {
+                Top = (float)GameView.SafeArea.Top * GameView.Scale,
+                Left = (float)GameView.SafeArea.Left * GameView.Scale,
+                Bottom = (float)GameView.SafeArea.Bottom * GameView.Scale,
+                Right = (float)GameView.SafeArea.Right * GameView.Scale
+            };
         }
     }
 }

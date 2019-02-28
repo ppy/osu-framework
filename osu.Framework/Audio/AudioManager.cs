@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 
@@ -92,19 +92,21 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
+        /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            Thread = audioThread;
+
+            Thread.RegisterManager(this);
+
             AudioDevice.ValueChanged += onDeviceChanged;
 
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
-
-            Thread = new AudioThread(Update);
-            Thread.Start();
 
             globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
             globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
@@ -129,15 +131,17 @@ namespace osu.Framework.Audio
 
         protected override void Dispose(bool disposing)
         {
+            Thread.UnregisterManager(this);
+
             OnNewDevice = null;
             OnLostDevice = null;
 
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(string newDevice)
+        private void onDeviceChanged(ValueChangedEvent<string> args)
         {
-            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
+            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(args.NewValue) ? null : args.NewValue));
         }
 
         /// <summary>
@@ -162,7 +166,7 @@ namespace osu.Framework.Audio
             TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += tm.InvalidateState;
+            VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
 
             return tm;
         }
@@ -179,7 +183,7 @@ namespace osu.Framework.Audio
             SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += sm.InvalidateState;
+            VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
 
             return sm;
         }

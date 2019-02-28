@@ -1,9 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-
-namespace osu.Framework.Configuration
+namespace osu.Framework.Bindables
 {
     public class BindableBool : Bindable<bool>
     {
@@ -11,8 +9,6 @@ namespace osu.Framework.Configuration
             : base(value)
         {
         }
-
-        public static implicit operator bool(BindableBool value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableBool)} to a bool is likely a mistake");
 
         public override string ToString() => Value.ToString();
 
