@@ -26,6 +26,8 @@ namespace osu.Framework
         public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
         public static bool IsWine { get; }
         public static bool SupportsJIT => OS != Platform.iOS;
+        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
+        public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
 
         static RuntimeInfo()
         {

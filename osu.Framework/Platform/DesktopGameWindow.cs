@@ -30,8 +30,6 @@ namespace osu.Framework.Platform
         private DisplayDevice lastFullscreenDisplay;
         private bool inWindowModeTransition;
 
-        public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
-
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
         public override IGraphicsContext Context => Implementation.Context;
@@ -58,6 +56,13 @@ namespace osu.Framework.Platform
         }
 
         public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
+
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        {
+            Configuration.WindowMode.Windowed,
+            Configuration.WindowMode.Borderless,
+            Configuration.WindowMode.Fullscreen,
+        };
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
@@ -271,22 +276,6 @@ namespace osu.Framework.Platform
                     (int)Math.Round((display.Height - Size.Height) * value.Y));
 
                 Location = new Point(relativeLocation.X + display.Bounds.X, relativeLocation.Y + display.Bounds.Y);
-            }
-        }
-
-        public override void CycleMode()
-        {
-            switch (WindowMode.Value)
-            {
-                case Configuration.WindowMode.Windowed:
-                    WindowMode.Value = Configuration.WindowMode.Borderless;
-                    break;
-                case Configuration.WindowMode.Borderless:
-                    WindowMode.Value = Configuration.WindowMode.Fullscreen;
-                    break;
-                default:
-                    WindowMode.Value = Configuration.WindowMode.Windowed;
-                    break;
             }
         }
 
