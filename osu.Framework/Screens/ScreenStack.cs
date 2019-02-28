@@ -61,7 +61,7 @@ namespace osu.Framework.Screens
         /// <param name="screen">The <see cref="IScreen"/> to push.</param>
         public void Push(IScreen screen)
         {
-            Push(null, screen);
+            Push(CurrentScreen, screen);
         }
 
         /// <summary>
@@ -76,6 +76,9 @@ namespace osu.Framework.Screens
         {
             if (stack.Contains(newScreen))
                 throw new ScreenAlreadyEnteredException();
+
+            if (source == null && stack.Count > 0)
+                throw new InvalidOperationException($"A source must be provided when pushing to a non-empty {nameof(ScreenStack)}");
 
             if (newScreen.AsDrawable().RemoveWhenNotAlive)
                 throw new ScreenWillBeRemovedOnPushException(newScreen.GetType());
