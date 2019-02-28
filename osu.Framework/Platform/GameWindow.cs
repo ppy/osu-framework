@@ -248,7 +248,7 @@ namespace osu.Framework.Platform
                         currentValue = Configuration.WindowMode.Windowed;
                         break;
                 }
-            } while (SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
+            } while (!SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
 
             WindowMode.Value = currentValue;
         }
