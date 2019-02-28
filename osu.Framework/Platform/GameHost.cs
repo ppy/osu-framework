@@ -115,7 +115,7 @@ namespace osu.Framework.Platform
         public Storage Storage { get; protected set; }
 
         /// <summary>
-        /// If capslock is enabled on the system, false if not overwritten by a subclass
+        /// If caps-lock is enabled on the system, false if not overwritten by a subclass
         /// </summary>
         public virtual bool CapsLockEnabled => false;
 
@@ -123,17 +123,35 @@ namespace osu.Framework.Platform
 
         public IEnumerable<GameThread> Threads => threads;
 
-        public void RegisterThread(GameThread t)
+        /// <summary>
+        /// Register a thread to be monitored and tracked by this <see cref="GameHost"/>
+        /// </summary>
+        /// <param name="thread">The thread.</param>
+        public void RegisterThread(GameThread thread)
         {
-            threads.Add(t);
-            t.IsActive.BindTo(IsActive);
-            t.UnhandledException = unhandledExceptionHandler;
-            t.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
+            threads.Add(thread);
+            thread.IsActive.BindTo(IsActive);
+            thread.UnhandledException = unhandledExceptionHandler;
+            thread.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
+        }
+
+        /// <summary>
+        /// Unregister a previously registered thread.<see cref="GameHost"/>
+        /// </summary>
+        /// <param name="thread">The thread.</param>
+        public void UnregisterThread(GameThread thread)
+        {
+            if (!threads.Remove(thread))
+                return;
+
+            IsActive.UnbindFrom(thread.IsActive);
+            thread.UnhandledException = null;
         }
 
         public GameThread DrawThread;
         public GameThread UpdateThread;
         public InputThread InputThread;
+        public AudioThread AudioThread;
 
         private double maximumUpdateHz;
 
@@ -217,8 +235,8 @@ namespace osu.Framework.Platform
                 Monitor = { HandleGC = true },
             });
 
-            //never gets started.
-            RegisterThread(InputThread = new InputThread(null));
+            RegisterThread(InputThread = new InputThread());
+            RegisterThread(AudioThread = new AudioThread());
 
             if (assemblyPath != null)
                 Environment.CurrentDirectory = assemblyPath;
@@ -468,8 +486,8 @@ namespace osu.Framework.Platform
 
                 resetInputHandlers();
 
-                DrawThread.Start();
-                UpdateThread.Start();
+                foreach (var t in threads)
+                    t.Start();
 
                 DrawThread.WaitUntilInitialized();
                 bootstrapSceneGraph(game);
