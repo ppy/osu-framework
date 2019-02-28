@@ -32,6 +32,11 @@ namespace osu.Framework.Android
             CursorInWindow = true;
         }
 
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        {
+            Configuration.WindowMode.Fullscreen,
+        };
+
         public override void Run()
         {
         }
