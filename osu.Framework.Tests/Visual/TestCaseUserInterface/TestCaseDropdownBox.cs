@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -19,7 +20,8 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly StyledDropdown styledDropdown, styledDropdownMenu2;
+        private readonly StyledDropdown styledDropdown, styledDropdownMenu2, bindableDropdown;
+        private readonly BindableList<string> bindableList = new BindableList<string>();
 
         public TestCaseDropdownBox()
         {
@@ -40,6 +42,13 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 Width = 150,
                 Position = new Vector2(400, 70),
                 Items = testItems
+            });
+
+            Add(bindableDropdown = new StyledDropdown
+            {
+                Width = 150,
+                Position = new Vector2(600, 70),
+                ItemSource = bindableList
             });
         }
 
@@ -87,6 +96,18 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2));
             AddAssert("item 2 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(2));
+
+            AddStep("clear bindable list", () => bindableList.Clear());
+            AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
+            AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }));
+            AddAssert("three items in dropdown", () => bindableDropdown.Items.Count() == 3);
+            AddStep("select three", () => bindableDropdown.Current.Value = "three");
+            AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
+            AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
+            AddAssert("current value still three", () => bindableDropdown.Current.Value == "three");
+            AddStep("remove three", () => bindableList.Remove("three"));
+            AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown)
