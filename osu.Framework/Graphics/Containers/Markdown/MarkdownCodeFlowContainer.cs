@@ -61,15 +61,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void ApplyCodeText(SpriteText text, MarkdownCodeStyle.Style codeStyle)
         {
-            string font = "OpenSans-";
-            if (codeStyle.Bold)
-                font += "Bold";
-            if (codeStyle.Italic)
-                font += "Italic";
+            var textDrawable = CreateSpriteText();
 
             text.Colour = codeStyle.Colour;
             text.ShadowColour = codeStyle.BackgroundColour ?? text.ShadowColour;
-            text.Font = font.Trim('-');
+            text.Font = textDrawable.Font.With(weight: codeStyle.Bold ? "Bold" : null, italics: codeStyle.Italic);
         }
 
         public class ClassFormatter : CodeColorizerBase
