@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
         // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
         // MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
         // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
-        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
+        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
