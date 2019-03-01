@@ -429,7 +429,7 @@ namespace osu.Framework.Bindables
         /// Adds a collection of items to this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="items">The collection whose items should be added to this collection.</param>
-        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
+        /// <exception cref="InvalidOperationException"> is being thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
             => addRange(items, null);
 
@@ -505,7 +505,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Create a new instance of <see cref="BindableList{T}"/> and binds it to this instance.
         /// </summary>
-        /// <returns>The created instace.</returns>
+        /// <returns>The created instance.</returns>
         public BindableList<T> GetBoundCopy()
         {
             var copy = (BindableList<T>)Activator.CreateInstance(GetType(), new object[] { null });
