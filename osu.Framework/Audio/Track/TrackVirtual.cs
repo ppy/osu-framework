@@ -81,10 +81,14 @@ namespace osu.Framework.Audio.Track
 
             lock (clock)
             {
-                if (!(CurrentTime >= Length) || hasRaisedCompleted || Looping)
+                if (!(CurrentTime >= Length))
                     return;
 
                 Stop();
+
+                if (!Looping && hasRaisedCompleted)
+                    return;
+
                 RaiseCompleted();
                 hasRaisedCompleted = true;
             }
