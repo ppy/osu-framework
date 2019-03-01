@@ -429,7 +429,7 @@ namespace osu.Framework.Bindables
         /// Adds a collection of items to this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="items">The collection whose items should be added to this collection.</param>
-        /// <exception cref="InvalidOperationException"> is being thrown if this collection is <see cref="Disabled"/></exception>
+        /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
             => addRange(items, null);
 
