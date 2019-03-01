@@ -1,12 +1,14 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
 
 namespace osu.Framework.Graphics
 {
     /// <summary>
     /// Contains information about how an <see cref="IDrawable"/> should be blended into its destination.
     /// </summary>
-    public struct BlendingParameters
+    public struct BlendingParameters : IEquatable<BlendingParameters>
     {
         /// <summary>
         /// Gets or sets <see cref="BlendingMode"/> to use.

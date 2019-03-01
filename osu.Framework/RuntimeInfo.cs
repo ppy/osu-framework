@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Runtime.InteropServices;
@@ -25,7 +25,9 @@ namespace osu.Framework
         public static Platform OS { get; }
         public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
         public static bool IsWine { get; }
-        public static bool SupportsIL => OS != Platform.iOS;
+        public static bool SupportsJIT => OS != Platform.iOS;
+        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
+        public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
 
         static RuntimeInfo()
         {

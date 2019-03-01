@@ -1,11 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using System.Globalization;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using JetBrains.Annotations;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
 {
@@ -38,16 +39,16 @@ namespace osu.Framework.Localisation
         [NotNull]
         public ILocalisedBindableString GetLocalisedString(LocalisedString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
-        private void updateLocale(string newValue)
+        private void updateLocale(ValueChangedEvent<string> args)
         {
             if (locales.Count == 0)
                 return;
 
-            var validLocale = locales.Find(l => l.Name == newValue);
+            var validLocale = locales.Find(l => l.Name == args.NewValue);
 
             if (validLocale == null)
             {
-                var culture = string.IsNullOrEmpty(newValue) ? CultureInfo.CurrentCulture : new CultureInfo(newValue);
+                var culture = string.IsNullOrEmpty(args.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(args.NewValue);
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                 {
@@ -60,7 +61,7 @@ namespace osu.Framework.Localisation
                     validLocale = locales[0];
             }
 
-            if (validLocale.Name != newValue)
+            if (validLocale.Name != args.NewValue)
                 configLocale.Value = validLocale.Name;
             else
             {

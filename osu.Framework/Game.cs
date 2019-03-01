@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -31,7 +32,12 @@ namespace osu.Framework
 
         protected GameHost Host { get; private set; }
 
-        private bool isActive;
+        private readonly Bindable<bool> isActive = new Bindable<bool>(true);
+
+        /// <summary>
+        /// Whether the game is active (in the foreground).
+        /// </summary>
+        public IBindable<bool> IsActive => isActive;
 
         public AudioManager Audio;
 
@@ -87,8 +93,8 @@ namespace osu.Framework
         {
             Host = host;
             host.Exiting += OnExiting;
-            host.Activated += () => IsActive = true;
-            host.Deactivated += () => IsActive = false;
+            host.Activated += () => isActive.Value = true;
+            host.Deactivated += () => isActive.Value = false;
         }
 
         private DependencyContainer dependencies;
@@ -114,10 +120,8 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = Host.CreateAudioManager(tracks, samples, Scheduler);
-            dependencies.CacheAs(Audio);
-
-            Host.RegisterThread(Audio.Thread);
+            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
+            dependencies.Cache(Audio);
 
             //attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
@@ -155,25 +159,6 @@ namespace osu.Framework
             }, AddInternal);
 
             addDebugTools();
-        }
-
-        /// <summary>
-        /// Whether the Game environment is active (in the foreground).
-        /// </summary>
-        public bool IsActive
-        {
-            get => isActive;
-            private set
-            {
-                if (value == isActive)
-                    return;
-                isActive = value;
-
-                if (isActive)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            }
         }
 
         protected FrameStatisticsMode FrameStatisticsMode
@@ -219,14 +204,6 @@ namespace osu.Framework
         public void Exit()
         {
             Host.Exit();
-        }
-
-        protected virtual void OnActivated()
-        {
-        }
-
-        protected virtual void OnDeactivated()
-        {
         }
 
         protected virtual bool OnExiting()

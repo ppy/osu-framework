@@ -1,10 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -336,6 +338,35 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreNotEqual(bindable1.Value, bindable2.Value);
         }
 
+        [Test]
+        public void TestEventArgs()
+        {
+            var bindable1 = new Bindable<int>();
+            var bindable2 = new Bindable<int>();
+
+            bindable2.BindTo(bindable1);
+
+            ValueChangedEvent<int> event1 = null;
+            ValueChangedEvent<int> event2 = null;
+
+            bindable1.BindValueChanged(e => event1 = e);
+            bindable2.BindValueChanged(e => event2 = e);
+
+            bindable1.Value = 1;
+
+            Assert.AreEqual(0, event1.OldValue);
+            Assert.AreEqual(1, event1.NewValue);
+            Assert.AreEqual(0, event2.OldValue);
+            Assert.AreEqual(1, event2.NewValue);
+
+            bindable1.Value = 2;
+
+            Assert.AreEqual(1, event1.OldValue);
+            Assert.AreEqual(2, event1.NewValue);
+            Assert.AreEqual(1, event2.OldValue);
+            Assert.AreEqual(2, event2.NewValue);
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
@@ -345,6 +376,9 @@ namespace osu.Framework.Tests.Bindables
             public TestDrawable()
             {
                 bindable.BindValueChanged(_ => ValueChanged = true);
+
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
             }
 
             public virtual void SetValue(int value) => bindable.Value = value;
@@ -372,6 +406,12 @@ namespace osu.Framework.Tests.Bindables
         {
             public Func<Bindable<int>> GetBindable;
             private Bindable<int> bindable => GetBindable();
+
+            public TestDrawable2()
+            {
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
+            }
 
             public void SetValue(int value) => bindable.Value = value;
         }

@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Timing;
 using osuTK;
@@ -76,8 +76,11 @@ namespace osu.Framework.Audio.Track
 
             lock (clock)
             {
-                if (CurrentTime >= Length)
+                if (clock.IsRunning && CurrentTime >= Length)
+                {
                     Stop();
+                    RaiseCompleted();
+                }
             }
         }
 
@@ -86,7 +89,7 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo;
+                clock.Rate = Tempo.Value;
         }
     }
 }

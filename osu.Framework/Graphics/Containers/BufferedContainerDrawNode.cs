@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
@@ -148,13 +148,7 @@ namespace osu.Framework.Graphics.Containers
             FrameBuffer source = currentFrameBuffer;
             FrameBuffer target = advanceFrameBuffer();
 
-            GLWrapper.SetBlend(new BlendingInfo
-            {
-                Source = BlendingFactorSrc.One,
-                Destination = BlendingFactorDest.Zero,
-                SourceAlpha = BlendingFactorSrc.One,
-                DestinationAlpha = BlendingFactorDest.Zero,
-            });
+            GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
 
             using (bindFrameBuffer(target, source.Size))
             {

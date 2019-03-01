@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ using WebRequest = osu.Framework.IO.Network.WebRequest;
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
+    [Category("httpbin")]
     public class TestWebRequest
     {
         private const string default_protocol = "http";
@@ -27,9 +28,9 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
 
-            if (isAppveyorBuild)
+            if (localHttpBin)
             {
                 // httpbin very frequently falls over and causes random tests to fail
                 // Thus appveyor builds rely on a local httpbin instance to run the tests

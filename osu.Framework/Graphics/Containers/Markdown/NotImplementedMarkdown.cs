@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using Markdig.Syntax;
 using osu.Framework.Allocation;
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var text = parentTextComponent.CreateSpriteText();
             text.Colour = new Color4(255, 0, 0, 255);
-            text.TextSize = 21;
+            text.Font = text.Font.With(size: 21);
             text.Text = markdownObject?.GetType() + " Not implemented.";
             return text;
         }
