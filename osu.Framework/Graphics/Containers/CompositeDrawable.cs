@@ -946,7 +946,7 @@ namespace osu.Framework.Graphics.Containers
         public bool ForceLocalVertexBatch
         {
             get => forceLocalVertexBatch;
-            set
+            protected set
             {
                 if (forceLocalVertexBatch == value)
                     return;
