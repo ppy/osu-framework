@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             var lines = fencedCodeBlock.Lines;
             for (int i = 0; i < lines.Count; i++)
             {
-                textFlowContainer.AddParagraph(lines.Lines[i].ToString());
+                textFlowContainer.AddCodeText(lines.Lines[i].ToString(), fencedCodeBlock.Info);
             }
         }
 
