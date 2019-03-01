@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
+using osu.Framework.Development;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -27,8 +28,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Vertices = new T[amountVertices];
         }
 
+        /// <summary>
+        /// Initialises this <see cref="VertexBuffer"/>. Guaranteed to be run on the draw thread.
+        /// </summary>
         protected virtual void Initialise()
         {
+            ThreadSafety.EnsureDrawThread();
+
             GL.GenBuffers(1, out vboId);
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
