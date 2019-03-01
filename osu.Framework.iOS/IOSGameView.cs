@@ -104,6 +104,10 @@ namespace osu.Framework.iOS
 
             private int responderSemaphore;
 
+            public override UITextSmartDashesType SmartDashesType => UITextSmartDashesType.No;
+            public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
+            public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
+
             public DummyTextField()
             {
                 AutocapitalizationType = UITextAutocapitalizationType.None;
