@@ -12,11 +12,6 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
-        /// <summary>
-        /// Has <see cref="Track.RaiseCompleted"/> been invoked by TrackVirtual at least once?
-        /// </summary>
-        private bool hasRaisedCompleted;
-
         public TrackVirtual()
         {
             Length = double.PositiveInfinity;
@@ -81,12 +76,11 @@ namespace osu.Framework.Audio.Track
 
             lock (clock)
             {
-                if (!Looping && hasRaisedCompleted || !(CurrentTime >= Length))
-                    return;
-
-                Stop();
-                RaiseCompleted();
-                hasRaisedCompleted = true;
+                if (clock.IsRunning && CurrentTime >= Length)
+                {
+                    Stop();
+                    RaiseCompleted();
+                }
             }
         }
 
