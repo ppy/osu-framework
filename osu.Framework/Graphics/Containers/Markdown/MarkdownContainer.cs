@@ -150,7 +150,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         }
                     }
                 }
-                
                 foreach (var component in parsed)
                     AddMarkdownComponent(component, document, root_level);
 

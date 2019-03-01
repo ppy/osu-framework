@@ -150,7 +150,7 @@ namespace osu.Framework.Testing
                 #if RELEASE
                     "RELEASE",
                 #endif
-            });
+            }, languageVersion: LanguageVersion.CSharp7_2);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -170,7 +170,7 @@ namespace osu.Framework.Testing
                 dynamicNamespace,
                 requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), parseOptions, file))
                              // Compile the assembly with a new version so that it replaces the existing one
-                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
+                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions))
                 ,
                 references,
                 options

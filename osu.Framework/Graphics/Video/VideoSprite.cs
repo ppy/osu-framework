@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Video
@@ -84,9 +85,11 @@ namespace osu.Framework.Graphics.Video
 
         private bool isDisposed;
 
-        public VideoSprite(Stream videoStream)
+        public VideoSprite([NotNull] Stream stream)
         {
-            decoder = new VideoDecoder(videoStream);
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            decoder = new VideoDecoder(stream);
         }
 
         public VideoSprite(string filename)
@@ -130,6 +133,7 @@ namespace osu.Framework.Graphics.Video
 
             while (availableFrames.Count > 0 && availableFrames.Peek().Time <= PlaybackPosition && Math.Abs(availableFrames.Peek().Time - PlaybackPosition) < lenience_before_seek)
             {
+                if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
                 Texture = lastFrame.Texture;
             }

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
@@ -43,17 +43,46 @@ namespace osu.Framework.Graphics.UserInterface
             get => MenuItems.Select(i => i.Value);
             set
             {
-                ClearItems();
+                if (usingItemSource)
+                    throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
+                setItems(value);
+            }
+        }
+
+        private void setItems(IEnumerable<T> items)
+        {
+            clearItems();
+            if (items == null)
+                return;
+
+            foreach (var entry in items)
+                addDropdownItem(GenerateItemText(entry), entry);
+
+            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
+                Current.Value = itemMap.Keys.FirstOrDefault();
+            else
+                Current.TriggerChange();
+        }
+
+        private readonly IBindableList<T> itemSource = new BindableList<T>();
+        private bool usingItemSource;
+
+        /// <summary>
+        /// Allows the developer to assign an <see cref="IBindableList{T}"/> as the source
+        /// of items for this dropdown.
+        /// </summary>
+        public IBindableList<T> ItemSource
+        {
+            get => itemSource;
+            set
+            {
+                itemSource.UnbindBindings();
+                usingItemSource = value != null;
+
                 if (value == null)
-                    return;
-
-                foreach (var entry in value)
-                    AddDropdownItem(GenerateItemText(entry), entry);
-
-                if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
-                    Current.Value = itemMap.Keys.FirstOrDefault();
+                    setItems(null);
                 else
-                    Current.TriggerChange();
+                    itemSource.BindTo(value);
             }
         }
 
@@ -69,6 +98,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
         protected void AddDropdownItem(string text, T value)
+        {
+            if (usingItemSource)
+                throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
+            addDropdownItem(text, value);
+        }
+
+        private void addDropdownItem(string text, T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -91,6 +127,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value of the menu item to be removed.</param>
         public bool RemoveDropdownItem(T value)
         {
+            if (usingItemSource)
+                throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
+            return removeDropdownItem(value);
+        }
+
+        private bool removeDropdownItem(T value)
+        {
             if (value == null)
                 return false;
 
@@ -108,7 +151,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (item)
             {
                 case MenuItem i:
-                    return i.Text;
+                    return i.Text.Value;
                 case IHasText t:
                     return t.Text;
                 case Enum e:
@@ -161,6 +204,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
+
+            ItemSource.ItemsAdded += _ => setItems(ItemSource);
+            ItemSource.ItemsRemoved += _ => setItems(ItemSource);
         }
 
         protected override void LoadComplete()
@@ -170,27 +216,34 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default)
+        private void selectionChanged(ValueChangedEvent<T> args)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
-                && newSelection != null)
+            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
+                && args.NewValue != null)
             {
-                if (!itemMap.TryGetValue(newSelection, out selectedItem))
+                if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.NewValue), args.NewValue);
                 }
             }
 
             Menu.SelectItem(selectedItem);
-            Header.Label = selectedItem.Text;
+            Header.Label = selectedItem.Text.Value;
         }
 
         /// <summary>
         /// Clear all the menu items.
         /// </summary>
         public void ClearItems()
+        {
+            if (usingItemSource)
+                throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
+            clearItems();
+        }
+
+        private void clearItems()
         {
             itemMap.Clear();
             Menu.Clear();

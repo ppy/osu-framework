@@ -10,6 +10,8 @@ namespace osu.Framework.iOS
     {
         public override bool PrefersStatusBarHidden() => true;
 
+        public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures => UIRectEdge.All;
+
         public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {
             coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);

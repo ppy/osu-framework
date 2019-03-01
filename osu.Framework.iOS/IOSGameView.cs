@@ -45,6 +45,20 @@ namespace osu.Framework.iOS
 
         public float Scale { get; private set; }
 
+        // SafeAreaInsets is cached to prevent access outside the main thread
+        private UIEdgeInsets safeArea = UIEdgeInsets.Zero;
+        internal UIEdgeInsets SafeArea
+        {
+            get => safeArea;
+            set
+            {
+                if (value.Equals(safeArea))
+                    return;
+                safeArea = value;
+                OnResize(EventArgs.Empty);
+            }
+        }
+
         public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
         public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
         public override void TouchesEnded(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
@@ -58,6 +72,12 @@ namespace osu.Framework.iOS
 
         private bool needsResizeFrameBuffer;
         public void RequestResizeFrameBuffer() => needsResizeFrameBuffer = true;
+
+        public override void LayoutSubviews()
+        {
+            base.LayoutSubviews();
+            SafeArea = SafeAreaInsets;
+        }
 
         public override void SwapBuffers()
         {
@@ -83,6 +103,10 @@ namespace osu.Framework.iOS
             public const int CURSOR_POSITION = 5;
 
             private int responderSemaphore;
+
+            public override UITextSmartDashesType SmartDashesType => UITextSmartDashesType.No;
+            public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
+            public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
 
             public DummyTextField()
             {

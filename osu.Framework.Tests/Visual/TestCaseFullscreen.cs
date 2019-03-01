@@ -3,6 +3,7 @@
 
 using System.Drawing;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -16,6 +17,7 @@ namespace osu.Framework.Tests.Visual
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
+        private readonly SpriteText supportedWindowModes = new SpriteText();
 
         private GameWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -32,12 +34,13 @@ namespace osu.Framework.Tests.Visual
                     currentBindableSize,
                     currentActualSize,
                     currentWindowMode,
+                    supportedWindowModes,
                     currentDisplay
                 },
             };
 
-            sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize}";
-            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode}";
+            sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize.NewValue}";
+            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode.NewValue}";
         }
 
         private void testResolution(int w, int h)
@@ -53,20 +56,38 @@ namespace osu.Framework.Tests.Visual
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
             currentWindowMode.Text = $"Window Mode: {windowMode}";
 
+            if (window == null)
+                return;
+
+            supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
+
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });
 
-            // I'll assume that most monitors are compatible with 1280x720, and this is just for testing anyways
-            testResolution(1280, 720);
-            AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
-            testResolution(1920, 1080);
-            testResolution(1280, 960);
-            testResolution(9999, 9999);
-            AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
+            var initialWindowMode = windowMode.Value;
 
-            AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640,640));
+            // if we support windowed mode, switch to it and test resizing the window
+            if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
+            {
+                AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
+                AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
+            }
 
-            AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
+            // if we support borderless, test that it can be used
+            if (window.SupportedWindowModes.Contains(WindowMode.Borderless))
+                AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
+
+            // if we support fullscreen mode, switch to it and test swapping resolutions
+            if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
+            {
+                AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
+                testResolution(1920, 1080);
+                testResolution(1280, 960);
+                testResolution(9999, 9999);
+            }
+
+            // go back to initial window mode
+            AddStep($"revert to {initialWindowMode.ToString()}", () => windowMode.Value = initialWindowMode);
         }
 
         protected override void Update()
