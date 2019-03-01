@@ -76,7 +76,7 @@ namespace osu.Framework.Audio.Track
 
             lock (clock)
             {
-                if (CurrentTime >= Length)
+                if (clock.IsRunning && CurrentTime >= Length)
                 {
                     Stop();
                     RaiseCompleted();
