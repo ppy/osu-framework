@@ -17,7 +17,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BufferedContainerDrawNodeSharedData : CompositeDrawNodeSharedData
+    public class BufferedContainerDrawNodeSharedData : IDisposable
     {
         /// <summary>
         /// The <see cref="FrameBuffer"/>s to render to.
@@ -37,10 +37,19 @@ namespace osu.Framework.Graphics.Containers
                 FrameBuffers[i] = new FrameBuffer();
         }
 
-        protected override void Dispose(bool isDisposing)
+        ~BufferedContainerDrawNodeSharedData()
         {
-            base.Dispose(isDisposing);
+            Dispose(false);
+        }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
             for (int i = 0; i < FrameBuffers.Length; i++)
                 FrameBuffers[i].Dispose();
         }
@@ -73,7 +82,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Shader BlurShader;
 
-        public new BufferedContainerDrawNodeSharedData SharedData => (BufferedContainerDrawNodeSharedData)base.SharedData;
+        public BufferedContainerDrawNodeSharedData SharedData;
 
         /// <summary>
         /// Whether this <see cref="BufferedContainerDrawNode"/> should have its children re-drawn.

@@ -36,8 +36,6 @@ namespace osu.Framework.Graphics.UserInterface
         private Shader roundedTextureShader;
         private Shader textureShader;
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CircularProgressDrawNodeSharedData();
-
         #region Disposal
 
         protected override void Dispose(bool isDisposing)

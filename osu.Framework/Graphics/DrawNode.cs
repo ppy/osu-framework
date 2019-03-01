@@ -14,11 +14,6 @@ namespace osu.Framework.Graphics
     public class DrawNode : IDisposable
     {
         /// <summary>
-        /// Contains data that is common between all <see cref="DrawNode"/>s of the same <see cref="Drawable"/> object.
-        /// </summary>
-        public DrawNodeSharedData SharedData { get; internal set; }
-
-        /// <summary>
         /// Contains a linear transformation, colour information, and blending information
         /// of this draw node.
         /// </summary>

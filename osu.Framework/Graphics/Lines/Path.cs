@@ -162,8 +162,6 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new PathDrawNodeSharedData();
-
         protected override DrawNode CreateDrawNode() => new PathDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)

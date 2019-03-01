@@ -73,25 +73,6 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
-    /// <see cref="CompositeDrawable"/>.
-    /// </summary>
-    public class CompositeDrawNodeSharedData : DrawNodeSharedData
-    {
-        /// <summary>
-        /// The vertex batch used for rendering.
-        /// </summary>
-        public QuadBatch<TexturedVertex2D> VertexBatch;
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            VertexBatch?.Dispose();
-        }
-    }
-
-    /// <summary>
     /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the
     /// <see cref="DrawNode"/>s of its children.
     /// </summary>
@@ -125,10 +106,9 @@ namespace osu.Framework.Graphics.Containers
         public Shader Shader;
 
         /// <summary>
-        /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
-        /// <see cref="CompositeDrawable"/>.
+        /// The vertex batch used for rendering.
         /// </summary>
-        public new CompositeDrawNodeSharedData SharedData => (CompositeDrawNodeSharedData)base.SharedData;
+        private QuadBatch<TexturedVertex2D> vertexBatch;
 
         private void drawEdgeEffect()
         {
@@ -188,8 +168,8 @@ namespace osu.Framework.Graphics.Containers
 
             // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
             int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (SharedData.VertexBatch == null || SharedData.VertexBatch.Size < clampedAmountChildren))
-                SharedData.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
+                vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -197,8 +177,8 @@ namespace osu.Framework.Graphics.Containers
             updateVertexBatch();
 
             // Prefer to use own vertex batch instead of the parent-owned one.
-            if (SharedData.VertexBatch != null)
-                vertexAction = SharedData.VertexBatch.AddAction;
+            if (vertexBatch != null)
+                vertexAction = vertexBatch.AddAction;
 
             base.Draw(vertexAction);
 
@@ -218,6 +198,13 @@ namespace osu.Framework.Graphics.Containers
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            vertexBatch?.Dispose();
         }
     }
 }

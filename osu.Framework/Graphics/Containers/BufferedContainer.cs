@@ -244,9 +244,7 @@ namespace osu.Framework.Graphics.Containers
         private bool addChildDrawNodes;
         internal override bool AddChildDrawNodes => addChildDrawNodes;
 
-        private BufferedContainerDrawNodeSharedData sharedData;
-
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => sharedData = new BufferedContainerDrawNodeSharedData();
+        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
@@ -283,6 +281,8 @@ namespace osu.Framework.Graphics.Containers
             n.Formats.AddRange(attachedFormats);
 
             n.BlurShader = blurShader;
+
+            n.SharedData = sharedData;
 
             base.ApplyDrawNode(node);
 
@@ -386,6 +386,13 @@ namespace osu.Framework.Graphics.Containers
                 result.Colour = ColourInfo.SingleColour(Color4.White);
                 return result;
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            sharedData.Dispose();
         }
     }
 

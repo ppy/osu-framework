@@ -902,8 +902,6 @@ namespace osu.Framework.Graphics.Containers
 
         private Shader shader;
 
-        protected override DrawNodeSharedData CreateDrawNodeSharedData() => new CompositeDrawNodeSharedData();
-
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
