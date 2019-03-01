@@ -103,6 +103,9 @@ namespace osu.Framework.Graphics
                 OnDispose?.Invoke();
                 OnDispose = null;
 
+                for (int i = 0; i < drawNodes.Length; i++)
+                    drawNodes[i]?.Dispose();
+
                 drawNodeSharedData?.Dispose();
 
                 IsDisposed = true;

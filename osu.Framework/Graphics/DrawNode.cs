@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics
     /// Contains all the information required to draw a single <see cref="Drawable"/>.
     /// A hierarchy of DrawNodes is passed to the draw thread for rendering every frame.
     /// </summary>
-    public class DrawNode
+    public class DrawNode : IDisposable
     {
         /// <summary>
         /// Contains data that is common between all <see cref="DrawNode"/>s of the same <see cref="Drawable"/> object.
@@ -42,6 +42,21 @@ namespace osu.Framework.Graphics
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+        }
+
+        ~DrawNode()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
         }
     }
 }
