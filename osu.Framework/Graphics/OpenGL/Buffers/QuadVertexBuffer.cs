@@ -21,9 +21,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class QuadVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
+        private readonly int amountQuads;
+
         public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * 4, usage)
         {
+            this.amountQuads = amountQuads;
+        }
+
+        protected override void Initialise()
+        {
+            base.Initialise();
+
             int amountIndices = amountQuads * 6;
             if (amountIndices > QuadIndexData.MaxAmountIndices)
             {
