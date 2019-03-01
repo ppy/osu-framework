@@ -83,13 +83,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public QuadBatch<TexturedVertex2D> VertexBatch;
 
-        /// <summary>
-        /// Whether we always want to use our own vertex batch for our corresponding
-        /// <see cref="CompositeDrawable"/>. If false, then we may get rendered with some other
-        /// shared vertex batch.
-        /// </summary>
-        public bool ForceOwnVertexBatch;
-
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -186,7 +179,7 @@ namespace osu.Framework.Graphics.Containers
 
         private const int min_amount_children_to_warrant_batch = 5;
 
-        private bool mayHaveOwnVertexBatch(int amountChildren) => SharedData.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
+        private bool mayHaveOwnVertexBatch(int amountChildren) => amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
         {
