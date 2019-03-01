@@ -38,7 +38,7 @@ namespace osu.Framework.iOS
         /// <summary>
         /// Is this required?
         /// </summary>
-        private readonly HashSet<int> blockKeys = new HashSet<int> { 
+        private readonly HashSet<int> blockKeys = new HashSet<int> {
             79, // Right
             80, // Left
             81, // Down
@@ -65,7 +65,6 @@ namespace osu.Framework.iOS
                             return true;
                     break;
                 case gsevent_type_modifier:
-            
                         KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
                         lastEventFlags = eventModifier;
                     break;
