@@ -106,6 +106,11 @@ namespace osu.Framework.Graphics.Containers
         public Shader Shader;
 
         /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public bool ForceLocalVertexBatch;
+
+        /// <summary>
         /// The vertex batch used for rendering.
         /// </summary>
         private QuadBatch<TexturedVertex2D> vertexBatch;
@@ -159,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
 
         private const int min_amount_children_to_warrant_batch = 5;
 
-        private bool mayHaveOwnVertexBatch(int amountChildren) => amountChildren >= min_amount_children_to_warrant_batch;
+        private bool mayHaveOwnVertexBatch(int amountChildren) => ForceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
         {

@@ -933,8 +933,27 @@ namespace osu.Framework.Graphics.Containers
             n.EdgeEffect = EdgeEffect;
             n.ScreenSpaceMaskingQuad = null;
             n.Shader = shader;
+            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
 
             base.ApplyDrawNode(node);
+        }
+
+        private bool forceLocalVertexBatch;
+
+        /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public bool ForceLocalVertexBatch
+        {
+            get => forceLocalVertexBatch;
+            set
+            {
+                if (forceLocalVertexBatch == value)
+                    return;
+                forceLocalVertexBatch = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
         }
 
         /// <summary>
