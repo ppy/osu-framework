@@ -61,9 +61,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (IsDisposed)
                 return;
 
-            Unbind();
-
-            GLWrapper.DeleteBuffer(vboId);
+            if (isInitialised)
+            {
+                Unbind();
+                GLWrapper.DeleteBuffer(vboId);
+            }
 
             IsDisposed = true;
         }
