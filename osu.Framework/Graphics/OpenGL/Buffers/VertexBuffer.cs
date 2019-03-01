@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         }
 
         /// <summary>
-        /// Initialises this <see cref="VertexBuffer"/>. Guaranteed to be run on the draw thread.
+        /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
         /// </summary>
         protected virtual void Initialise()
         {
