@@ -559,7 +559,7 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        private readonly Bindable<string> current = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
 
         public Bindable<string> Current
         {
