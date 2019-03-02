@@ -94,7 +94,8 @@ Task("Test")
         var settings = new DotNetCoreVSTestSettings {
             Logger = AppVeyor.IsRunningOnAppVeyor ? "Appveyor" : "trx",
             Parallel = true,
-            ToolTimeout = TimeSpan.FromMinutes(10),
+            ToolTimeout = TimeSpan.FromHours(10),
+            Settings = new FilePath("vstestconfig.runsettings"),
         };
 
         DotNetCoreVSTest(testAssemblies, settings);
