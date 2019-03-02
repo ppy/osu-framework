@@ -67,22 +67,32 @@ namespace osu.Framework.Graphics.Primitives
         /// divided by length of line). To compute the point of intersection, use `StartPoint + Difference * t`.</returns>
         public (bool success, float distance) Intersect(Line other)
         {
-            Vector2 diff1 = Difference;
-            Vector2 diff2 = other.Difference;
+            Vector2 diff1 = StartPoint - EndPoint;
+            Vector2 diff2 = other.StartPoint - other.EndPoint;
 
             float denom = diff1.X * diff2.Y - diff1.Y * diff2.X;
-            if (Precision.AlmostEquals(denom, 0))
+            if (Precision.AlmostEquals(0, denom))
+                return (false, 0); // Colinear
+
+            Vector2 d = StartPoint - other.StartPoint;
+
+            float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
+            if (t < 0 || t > 1)
                 return (false, 0);
 
-            float t = (other.StartPoint.X - StartPoint.X) * diff2.Y - (other.StartPoint.Y - StartPoint.Y) * diff2.X;
-            if (Precision.DefinitelyBigger(0, t) || t > denom)
-                return (false, 0);
-
-            float u = (other.StartPoint.X - StartPoint.X) * diff1.Y - (other.StartPoint.Y - StartPoint.Y) * diff1.X;
-            if (u < 0 || u > denom)
+            float u = (d.X * diff1.Y - d.Y * diff1.X) / denom;
+            if (u < 0 || u > 1)
                 return (false, 0);
 
             return (true, t);
+        }
+
+        public float Cross(Line other)
+        {
+            Vector2 diff1 = Difference;
+            Vector2 diff2 = other.Difference;
+
+            return diff1.X * diff2.Y - diff1.Y * diff2.X;
         }
 
         /// <summary>
