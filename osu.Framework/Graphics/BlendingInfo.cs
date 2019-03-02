@@ -6,15 +6,15 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
-    public struct BlendingInfo : IEquatable<BlendingInfo>
+    public readonly struct BlendingInfo : IEquatable<BlendingInfo>
     {
-        public BlendingFactorSrc Source;
-        public BlendingFactorDest Destination;
-        public BlendingFactorSrc SourceAlpha;
-        public BlendingFactorDest DestinationAlpha;
+        public readonly BlendingFactorSrc Source;
+        public readonly BlendingFactorDest Destination;
+        public readonly BlendingFactorSrc SourceAlpha;
+        public readonly BlendingFactorDest DestinationAlpha;
 
-        public BlendEquationMode RGBEquation;
-        public BlendEquationMode AlphaEquation;
+        public readonly BlendEquationMode RGBEquation;
+        public readonly BlendEquationMode AlphaEquation;
 
         public BlendingInfo(BlendingParameters parameters)
         {
