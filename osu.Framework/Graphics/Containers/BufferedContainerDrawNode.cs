@@ -78,9 +78,9 @@ namespace osu.Framework.Graphics.Containers
         public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
 
         /// <summary>
-        /// The <see cref="Shader"/> to use when rendering blur effects.
+        /// The <see cref="IShader"/> to use when rendering blur effects.
         /// </summary>
-        public Shader BlurShader;
+        public IShader BlurShader;
 
         public BufferedContainerDrawNodeSharedData SharedData;
 

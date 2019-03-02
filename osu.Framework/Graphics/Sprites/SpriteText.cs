@@ -38,8 +38,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private Shader textureShader;
-        private Shader roundedTextureShader;
+        private IShader textureShader;
+        private IShader roundedTextureShader;
 
         public SpriteText()
         {

@@ -17,20 +17,21 @@ namespace osu.Framework.Graphics.Lines
 {
     public class PathDrawNode : DrawNode
     {
-        public const int MAXRES = 24;
+        public const int MAX_RES = 24;
+
         public List<Line> Segments;
 
         public Vector2 DrawSize;
         public float Width;
         public Texture Texture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public IShader TextureShader;
+        public IShader RoundedTextureShader;
 
         // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
         // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
         // grouping of vertices into primitives.
-        private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAXRES * 100 * 3, 10, PrimitiveType.Triangles);
+        private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
         private readonly QuadBatch<TexturedVertex3D> quadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
@@ -45,7 +46,7 @@ namespace osu.Framework.Graphics.Lines
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
         {
-            const float step = MathHelper.Pi / MAXRES;
+            const float step = MathHelper.Pi / MAX_RES;
 
             float dir = Math.Sign(thetaDiff);
             thetaDiff = dir * thetaDiff;
@@ -191,7 +192,7 @@ namespace osu.Framework.Graphics.Lines
 
             GLWrapper.SetDepthTest(true);
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 

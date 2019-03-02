@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -10,7 +11,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart
+    internal class ShaderPart : IDisposable
     {
         internal const string BOUNDARY = @"----------------------{0}";
 
@@ -137,23 +138,37 @@ namespace osu.Framework.Graphics.Shaders
 #endif
 
             if (!Compiled)
-                Dispose(true);
+                delete();
 
             return Compiled;
         }
 
-        public static implicit operator int(ShaderPart program)
-        {
-            return program.partID;
-        }
+        public static implicit operator int(ShaderPart program) => program.partID;
 
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        private void delete()
         {
-            if (!disposing || partID == -1) return;
+            if (partID == -1) return;
 
             GL.DeleteShader(this);
             Compiled = false;
             partID = -1;
-        });
+        }
+
+        #region Disposal
+
+        ~ShaderPart()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delete);
+
+        #endregion
     }
 }

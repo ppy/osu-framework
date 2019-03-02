@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class WaveformGraph : Drawable
     {
-        private Shader shader;
+        private IShader shader;
         private readonly Texture texture;
 
         public WaveformGraph()
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Audio
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private float resolution = 1;
@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Audio
 
         private class WaveformDrawNode : DrawNode
         {
-            public Shader Shader;
+            public IShader Shader;
             public Texture Texture;
 
             public Vector2 DrawSize;

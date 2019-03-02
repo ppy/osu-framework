@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool CanBeFlattened => false;
 
-        private Shader blurShader;
+        private IShader blurShader;
 
         /// <summary>
         /// Constructs an empty buffered container.

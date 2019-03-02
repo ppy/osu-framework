@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.UserInterface
         public Vector2 DrawSize;
         public Texture Texture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public IShader TextureShader;
+        public IShader RoundedTextureShader;
 
         // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
         // MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (Texture?.Available != true)
                 return;
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 

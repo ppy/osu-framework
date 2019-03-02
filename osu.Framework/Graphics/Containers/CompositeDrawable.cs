@@ -900,7 +900,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private Shader shader;
+        private IShader shader;
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 

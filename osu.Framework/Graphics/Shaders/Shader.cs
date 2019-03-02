@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
@@ -9,7 +10,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Shader
+    public class Shader : IDisposable, IShader
     {
         internal StringBuilder Log = new StringBuilder();
 
@@ -34,30 +35,6 @@ namespace osu.Framework.Graphics.Shaders
 
             GLWrapper.EnqueueShaderCompile(this);
         }
-
-        #region Disposal
-
-        ~Shader()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
-        {
-            if (Loaded)
-            {
-                Loaded = false;
-
-                Unbind();
-                GL.DeleteProgram(this);
-
-                GlobalPropertyManager.Unregister(this);
-
-                programID = -1;
-            }
-        });
-
-        #endregion
 
         internal void Compile()
         {
@@ -208,5 +185,35 @@ namespace osu.Framework.Graphics.Shaders
         {
             return shader.programID;
         }
+
+        #region Disposal
+
+        ~Shader()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        {
+            if (Loaded)
+            {
+                Loaded = false;
+
+                Unbind();
+                GL.DeleteProgram(this);
+
+                GlobalPropertyManager.Unregister(this);
+
+                programID = -1;
+            }
+        });
+
+        #endregion
     }
 }

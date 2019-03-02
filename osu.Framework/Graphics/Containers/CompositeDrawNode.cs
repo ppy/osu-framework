@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The shader to use for rendering.
         /// </summary>
-        public Shader Shader;
+        public IShader Shader;
 
         /// <summary>
         /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
