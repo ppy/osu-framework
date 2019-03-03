@@ -11,7 +11,6 @@ namespace SampleGame.Android
     [Activity(MainLauncher = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, Theme = "@android:style/Theme.NoTitleBar")]
     public class SampleGameActivity : AndroidGameActivity
     {
-        protected override Game CreateGame()
-            => new SampleGameGame();
+        protected override Game CreateGame() => new SampleGameGame();
     }
 }

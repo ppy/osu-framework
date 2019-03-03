@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
-      <Project>{87D8D3B5-7E16-4207-9972-8242AF1DEC3C}</Project>
+      <Project>{4D112E30-462B-4264-B44D-53B61ABB185E}</Project>
       <Name>osu.Framework.Android</Name>
     </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -28,7 +28,7 @@
       <Name>osu.Framework</Name>
     </ProjectReference>
     <ProjectReference Include="..\SampleGame\SampleGame.csproj">
-      <Project>{E3882853-43D1-4603-AD33-D9D59C8A8692}</Project>
+      <Project>{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}</Project>
       <Name>SampleGame</Name>
     </ProjectReference>
   </ItemGroup>

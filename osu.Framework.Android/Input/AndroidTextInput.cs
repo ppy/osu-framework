@@ -16,6 +16,7 @@ namespace osu.Framework.Android.Input
         private readonly AndroidGameView view;
         private readonly InputMethodManager inputMethodManager;
         private string pending = string.Empty;
+        private readonly object pendingLock = new object();
 
         public AndroidTextInput(AndroidGameView view)
         {
@@ -78,8 +79,7 @@ namespace osu.Framework.Android.Input
             }
         }
 
-        public bool ImeActive
-            => false;
+        public bool ImeActive => false;
 
         public event Action<string> OnNewImeComposition;
         public event Action<string> OnNewImeResult;
@@ -98,13 +98,11 @@ namespace osu.Framework.Android.Input
 
         public string GetPendingText()
         {
-            try
+            lock (pendingLock)
             {
-                return pending;
-            }
-            finally
-            {
+                var oldPending = pending;
                 pending = string.Empty;
+                return oldPending;
             }
         }
     }

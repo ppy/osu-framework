@@ -22,11 +22,9 @@ namespace osu.Framework.Android.Input
             view.KeyUp += keyUp;
         }
 
-        public override bool IsActive
-            => true;
+        public override bool IsActive => true;
 
-        public override int Priority
-            => 0;
+        public override int Priority => 0;
 
         public override bool Initialize(GameHost host) => true;
 
