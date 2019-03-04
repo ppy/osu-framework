@@ -2,11 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.PolygonExtensions;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -24,10 +23,38 @@ namespace osu.Framework.Graphics.Shapes
             Texture = Texture.WhitePixel;
         }
 
+        private Cached<Quad> conservativeScreenSpaceDrawQuadBacking;
+
+        private Quad conservativeScreenSpaceDrawQuad => conservativeScreenSpaceDrawQuadBacking.IsValid
+            ? conservativeScreenSpaceDrawQuadBacking.Value
+            : (conservativeScreenSpaceDrawQuadBacking.Value = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix);
+
+        protected override void ApplyDrawNode(DrawNode node)
+        {
+            var n = (BoxDrawNode)node;
+
+            n.ConservativeScreenSpaceDrawQuad = conservativeScreenSpaceDrawQuad;
+
+            base.ApplyDrawNode(node);
+        }
+
         protected override DrawNode CreateDrawNode() => new BoxDrawNode();
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate); ;
+
+            // Either ScreenSize OR ScreenPosition OR Presence
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
+                alreadyInvalidated &= !conservativeScreenSpaceDrawQuadBacking.Invalidate();
+
+            return !alreadyInvalidated;
+        }
 
         protected class BoxDrawNode : SpriteDrawNode
         {
+            public Quad ConservativeScreenSpaceDrawQuad;
+
             public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
             {
                 base.DrawHull(vertexAction, ref vertexDepth);
@@ -41,11 +68,9 @@ namespace osu.Framework.Graphics.Shapes
                 TextureShader.Bind();
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
-                var conservativeScreenSpaceQuad = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
-
                 if (GLWrapper.IsMaskingActive)
                 {
-                    var clipper = new ConvexPolygonClipper(conservativeScreenSpaceQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
+                    var clipper = new ConvexPolygonClipper(ConservativeScreenSpaceDrawQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
 
                     Span<Vector2> buffer = stackalloc Vector2[clipper.GetBufferSize()];
                     Span<Vector2> clippedRegion = clipper.Clip(buffer);
@@ -54,7 +79,7 @@ namespace osu.Framework.Graphics.Shapes
                         Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), Depth, DrawColourInfo.Colour);
                 }
                 else
-                    Blit(conservativeScreenSpaceQuad, vertexAction);
+                    Blit(ConservativeScreenSpaceDrawQuad, vertexAction);
 
                 TextureShader.Unbind();
 
