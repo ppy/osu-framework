@@ -360,24 +360,30 @@ namespace osu.Framework.Platform
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
-                    GL.Enable(EnableCap.DepthTest);
+                    if (ftbPass.Value)
+                    {
+                        GL.Enable(EnableCap.DepthTest);
 
-                    GL.DepthFunc(DepthFunction.Always);
-                    GL.DepthMask(true);
+                        GL.DepthFunc(DepthFunction.Always);
+                        GL.DepthMask(true);
 
-                    // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
-                    osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
-                    GL.Clear(ClearBufferMask.DepthBufferBit);
+                        // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
+                        osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
+                        GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                    // Front pass
-                    float depth = 1;
-                    GL.DepthFunc(DepthFunction.Greater);
-                    buffer.Object.DrawHull(null, ref depth);
-                    GLWrapper.FlushCurrentBatch();
+                        // Front pass
+                        float depth = 1;
+                        GL.DepthFunc(DepthFunction.Greater);
+                        buffer.Object.DrawHull(null, ref depth);
+                        GLWrapper.FlushCurrentBatch();
 
-                    // Back pass
-                    GL.DepthMask(false);
-                    GL.DepthFunc(DepthFunction.Gequal);
+                        // Back pass
+                        GL.DepthMask(false);
+                        GL.DepthFunc(DepthFunction.Gequal);
+                    }
+                    else
+                        GL.Disable(EnableCap.DepthTest);
+
                     buffer.Object.Draw(null);
                     GLWrapper.FlushCurrentBatch();
 
@@ -669,6 +675,8 @@ namespace osu.Framework.Platform
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
+        private Bindable<bool> ftbPass;
+
         private Bindable<GCLatencyMode> activeGCMode;
 
         private Bindable<FrameSync> frameSyncMode;
@@ -754,6 +762,8 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
+
+            ftbPass = debugConfig.GetBindable<bool>(DebugSetting.FTBPass);
         }
 
         private void setVSyncMode()
