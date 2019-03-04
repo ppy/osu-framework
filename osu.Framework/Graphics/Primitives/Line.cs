@@ -77,12 +77,6 @@ namespace osu.Framework.Graphics.Primitives
             Vector2 d = StartPoint - other.StartPoint;
 
             float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
-            if (t < 0 || t > 1)
-                return (false, 0);
-
-            float u = (d.X * diff1.Y - d.Y * diff1.X) / denom;
-            if (u < 0 || u > 1)
-                return (false, 0);
 
             return (true, t);
         }

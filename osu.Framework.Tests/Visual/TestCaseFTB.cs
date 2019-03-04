@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseFTB()
         {
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < 500; i++)
             {
                 Add(new TestBox { RelativeSizeAxes = Axes.Both });
             }
