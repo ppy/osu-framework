@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Extensions.PolygonExtensions;
 using osuTK;
 using osu.Framework.MathUtils;
-using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -116,22 +115,10 @@ namespace osu.Framework.Graphics.Primitives
 
         public Quad ClampTo(Quad quad)
         {
-            Vector2[] itss = (this as IConvexPolygon).Intersect(quad);
+            IConvexPolygon result = (this as IConvexPolygon).ClipTo(quad);
 
-            float xMin = float.MaxValue;
-            float yMin = float.MaxValue;
-            float xMax = float.MinValue;
-            float yMax = float.MinValue;
-
-            foreach (var its in itss)
-            {
-                xMin = Math.Min(xMin, its.X);
-                yMin = Math.Min(yMin, its.Y);
-                xMax = Math.Max(xMax, its.X);
-                yMax = Math.Max(yMax, its.Y);
-            }
-
-            return FromRectangle(new RectangleF(xMin, yMin, xMax - xMin, yMax - yMin));
+            // Todo:
+            return FromRectangle(new RectangleF(0, 0, 0, 0));
         }
 
         public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;

@@ -4,8 +4,6 @@
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Extensions.PolygonExtensions
 {
@@ -40,8 +38,36 @@ namespace osu.Framework.Extensions.PolygonExtensions
             return axes;
         }
 
+        public static Vector2[] GetVerticesClockwise(this IPolygon polygon)
+        {
+            Vector2[] vertices = polygon.Vertices;
+
+            float rotation = GetRotation(vertices);
+
+            if (rotation < 0)
+                Array.Reverse(vertices);
+
+            return vertices;
+        }
+
+        public static float GetRotation(ReadOnlySpan<Vector2> vertices)
+        {
+            float rotation = 0;
+            for (int i = 0; i < vertices.Length - 1; ++i)
+            {
+                var vi = vertices[i];
+                var vj = vertices[i + 1];
+
+                rotation += (vj.X - vi.X) * (vj.Y + vi.Y);
+            }
+
+            rotation += (vertices[0].X - vertices[vertices.Length - 1].X) * (vertices[0].Y + vertices[vertices.Length - 1].Y);
+
+            return rotation;
+        }
+
         /// <summary>
-        /// Computes the sorted edges of the polygon.
+        /// Computes the edges of the polygon in clockwise-sorted order.
         /// </summary>
         /// <param name="polygon">The polygon to compute the edges for.</param>
         /// <returns>A list of line segments, each corresponding to one edge of the polygon.</returns>
@@ -56,6 +82,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
                 lines[i] = new Line(vertices[i], vertices[i + 1]);
                 rotation += (lines[i].EndPoint.X - lines[i].StartPoint.X) * (lines[i].EndPoint.Y + lines[i].StartPoint.Y);
             }
+
             lines[lines.Length - 1] = new Line(vertices[lines.Length - 1], vertices[0]);
             rotation += (lines[lines.Length - 1].EndPoint.X - lines[lines.Length - 1].StartPoint.X) * (lines[lines.Length - 1].EndPoint.Y + lines[lines.Length - 1].StartPoint.Y);
 
@@ -67,133 +94,6 @@ namespace osu.Framework.Extensions.PolygonExtensions
             }
 
             return lines;
-        }
-
-        /// <summary>
-        /// Intersects 2 lines.
-        /// </summary>
-        /// <param name="other">Other line to intersect this with.</param>
-        /// <returns>Whether the two lines intersect and, if so, the normalized distance along the line (i.e. distance
-        /// divided by length of line). To compute the point of intersection, use `StartPoint + Difference * t`.</returns>
-        public static (bool success, float t) Intersect(this IPolygon poly, Line line)
-        {
-            var result = intersect(poly.GetEdges(), line);
-            return (result.idx != -1, result.t);
-        }
-
-
-        private static (int idx, float t) intersect(Line[] edges, Line line)
-        {
-            (int idx, float t) result = (-1, 0f);
-            for (int i = 0; i < edges.Length; ++i)
-            {
-                var edgeLineIntersection = line.Intersect(edges[i]);
-                if (result.idx == -1 || edgeLineIntersection.distance < result.t)
-                    result = (i, edgeLineIntersection.distance);
-            }
-
-            return result;
-        }
-
-
-        public static Vector2[] Intersect(this IPolygon first, IPolygon second)
-        {
-            List<Vector2> result = new List<Vector2>();
-
-            var edges1 = first.GetEdges();
-            var edges2 = second.GetEdges();
-
-            int i = 0;
-            int j = 0;
-
-            bool inside = second.Contains(edges1[0].StartPoint);
-            if (inside)
-                result.Add(edges1[0].StartPoint);
-            else
-            {
-                for (i = 0; i < edges1.Length; ++i)
-                {
-                    var lineToIntersect = edges1[i];
-                    var its = intersect(edges2, lineToIntersect);
-                    if (its.idx != -1)
-                    {
-                        inside = true;
-                        result.Add(lineToIntersect.At(its.t));
-                        break;
-                    }
-                }
-
-                if (!inside)
-                {
-                    if (first.Contains(edges2[0].StartPoint))
-                        result.Add(edges2[0].StartPoint);
-                    else
-                        return Array.Empty<Vector2>();
-                }
-            }
-
-            int initialI = i;
-            int initialJ = -1;
-
-            while (true)
-            {
-                if (inside)
-                {
-                    var edge = edges1[i];
-                    var lineToIntersect = new Line(result.Last(), edge.EndPoint);
-                    var its = intersect(edges2, lineToIntersect);
-                    if (its.idx == -1)
-                    {
-                        result.Add(lineToIntersect.EndPoint);
-                        ++i;
-                        if (i == edges1.Length)
-                            i = 0;
-
-                        if (i == initialI)
-                            break;
-                    }
-                    else
-                    {
-                        inside = false;
-                        result.Add(lineToIntersect.At(its.t));
-
-                        if (initialJ == -1)
-                            initialJ = its.idx;
-                        else if ((its.idx < j || j < initialJ) && its.idx >= initialJ)
-                            break;
-
-                        j = its.idx;
-                    }
-                }
-                else
-                {
-                    var edge = edges2[j];
-                    var lineToIntersect = new Line(result.Last(), edge.EndPoint);
-                    var its = intersect(edges1, lineToIntersect);
-                    if (its.idx == -1)
-                    {
-                        result.Add(lineToIntersect.EndPoint);
-                        ++j;
-                        if (j == edges2.Length)
-                            j = 0;
-
-                        if (j == initialJ)
-                            break;
-                    }
-                    else
-                    {
-                        inside = true;
-                        result.Add(lineToIntersect.At(its.t));
-                        
-                        if ((its.idx < i || i < initialI) && its.idx >= initialI)
-                            break;
-                        
-                        i = its.idx;
-                    }
-                }
-            }
-
-            return result.ToArray();
         }
     }
 }
