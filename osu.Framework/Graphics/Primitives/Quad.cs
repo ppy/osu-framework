@@ -5,15 +5,20 @@ using System;
 using osu.Framework.Extensions.PolygonExtensions;
 using osuTK;
 using osu.Framework.MathUtils;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
+        // Note: vertices are clockwise-ordered
+
         public Vector2 TopLeft;
         public Vector2 TopRight;
-        public Vector2 BottomLeft;
         public Vector2 BottomRight;
+        public Vector2 BottomLeft;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -163,5 +168,13 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
+
+        public ReadOnlySpan<Vector2> GetVertices()
+        {
+            unsafe
+            {
+                return new Span<Vector2>(Unsafe.AsPointer(ref this), 4);
+            }
+        }
     }
 }

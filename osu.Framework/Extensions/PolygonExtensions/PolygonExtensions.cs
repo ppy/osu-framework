@@ -3,8 +3,6 @@
 
 using osu.Framework.Graphics.Primitives;
 using osuTK;
-using System;
-using System.Collections.Generic;
 
 namespace osu.Framework.Extensions.PolygonExtensions
 {
@@ -37,59 +35,6 @@ namespace osu.Framework.Extensions.PolygonExtensions
             }
 
             return axes;
-        }
-
-        public static Vector2[] GetVerticesClockwise(this IPolygon polygon)
-        {
-            Vector2[] vertices = polygon.Vertices;
-
-            float rotation = GetRotation(vertices);
-
-            if (rotation < 0)
-                Array.Reverse(vertices);
-
-            return vertices;
-        }
-
-        public static float GetRotation(ReadOnlySpan<Vector2> vertices)
-        {
-            float rotation = 0;
-            for (int i = 0; i < vertices.Length - 1; ++i)
-            {
-                var vi = vertices[i];
-                var vj = vertices[i + 1];
-
-                rotation += (vj.X - vi.X) * (vj.Y + vi.Y);
-            }
-
-            rotation += (vertices[0].X - vertices[vertices.Length - 1].X) * (vertices[0].Y + vertices[vertices.Length - 1].Y);
-
-            return rotation;
-        }
-
-        /// <summary>
-        /// Computes the edges of the polygon in clockwise-sorted order.
-        /// </summary>
-        /// <param name="polygon">The polygon to compute the edges for.</param>
-        /// <returns>A list of line segments, each corresponding to one edge of the polygon.</returns>
-        public static IEnumerable<Line> GetEdges(this IPolygon polygon)
-        {
-            Vector2[] vertices = polygon.Vertices;
-
-            float rotation = GetRotation(vertices);
-
-            if (rotation < 0)
-            {
-                for (int i = vertices.Length - 1; i > 0; i--)
-                    yield return new Line(vertices[i], vertices[i - 1]);
-                yield return new Line(vertices[0], vertices[vertices.Length - 1]);
-            }
-            else
-            {
-                for (int i = 0; i < vertices.Length - 1; i++)
-                    yield return new Line(vertices[i], vertices[i + 1]);
-                yield return new Line(vertices[vertices.Length - 1], vertices[0]);
-            }
         }
     }
 }

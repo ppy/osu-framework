@@ -1,3 +1,4 @@
+using System;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -16,5 +17,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         public bool Contains(Vector2 v) => false;
+
+        public ReadOnlySpan<Vector2> GetVertices() => vertices;
     }
 }

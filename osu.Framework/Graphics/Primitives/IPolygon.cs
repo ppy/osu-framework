@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -20,6 +21,12 @@ namespace osu.Framework.Graphics.Primitives
         /// </para>
         /// </summary>
         Vector2[] AxisVertices { get; }
+
+        /// <summary>
+        /// Retrieves the vertices for this polygon in clockwise order.
+        /// </summary>
+        /// <returns>The vertices of this polygon in clockwise order.</returns>
+        ReadOnlySpan<Vector2> GetVertices();
 
         /// <summary>
         /// Whether the polygon contains a given vertex.

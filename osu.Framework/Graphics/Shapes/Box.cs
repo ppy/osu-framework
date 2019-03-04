@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
@@ -44,10 +45,13 @@ namespace osu.Framework.Graphics.Shapes
 
                 if (GLWrapper.IsMaskingActive)
                 {
-                    var polygon = conservativeScreenSpaceQuad.ClipTo(GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
+                    var clipper = new ConvexPolygonClipper(conservativeScreenSpaceQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
 
-                    foreach (var tri in polygon.Triangulate())
-                        Texture.DrawTriangle(tri, Depth, DrawColourInfo.Colour);
+                    Span<Vector2> buffer = stackalloc Vector2[clipper.GetBufferSize()];
+                    Span<Vector2> clippedRegion = clipper.Clip(buffer);
+
+                    for (int i = 2; i < clippedRegion.Length; i++)
+                        Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), Depth, DrawColourInfo.Colour);
                 }
                 else
                     Blit(conservativeScreenSpaceQuad, vertexAction);
