@@ -56,6 +56,8 @@ namespace osu.Framework.Graphics.Shapes
                 else
                     Blit(conservativeScreenSpaceQuad, vertexAction);
 
+                TextureShader.Unbind();
+
                 vertexDepth -= 0.0001f;
             }
 
