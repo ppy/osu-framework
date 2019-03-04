@@ -28,15 +28,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.a" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.66" />
   </ItemGroup>
   <ItemGroup>
