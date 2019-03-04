@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Shapes
                 if (Texture?.Available != true)
                     return;
 
-                if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd)
+                if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd || !DrawColourInfo.Colour.HasSingleColour)
                     return;
 
                 TextureShader.Bind();
@@ -59,17 +59,6 @@ namespace osu.Framework.Graphics.Shapes
                 TextureShader.Unbind();
 
                 vertexDepth -= 0.0001f;
-            }
-
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
-            {
-                //if (DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
-                //                                        && (!GLWrapper.IsMaskingActive || GLWrapper.CurrentMaskingInfo.CornerRadius == 0))
-                //{
-                //    return;
-                //}
-
-                base.Draw(vertexAction);
             }
         }
     }
