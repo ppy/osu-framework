@@ -8,7 +8,7 @@ namespace osu.Framework.Tests.Polygons
     public class LineTest
     {
         [Test]
-        public void TestParallelLines()
+        public void TestIntersectParallelLines()
         {
             var l1 = new Line(Vector2.Zero, Vector2.One);
             var l2 = new Line(new Vector2(0, -1), new Vector2(1, 0));
@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
-        public void TestPerpendicularNonIntersectingLines()
+        public void TestIntersectPerpendicularNonIntersectingLines()
         {
             var l1 = new Line(new Vector2(0, 1), Vector2.One);
             var l2 = new Line(new Vector2(0.5f, 0), new Vector2(0.5f, 0.9f));
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
-        public void TestIntersectingLines()
+        public void TestIntersectIntersectingLines()
         {
             var l1 = new Line(Vector2.Zero, Vector2.One);
             var l2 = new Line(new Vector2(1, 0), new Vector2(0, 1));
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
-        public void TestIntersectionAtEndPoint()
+        public void TestIntersectIntersectionAtEndPoint()
         {
             var l1 = new Line(Vector2.Zero, Vector2.One);
             var l2 = new Line(new Vector2(1, 0), Vector2.One);
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
-        public void TestIntersectionAtStartPoint()
+        public void TestIntersectIntersectionAtStartPoint()
         {
             var l1 = new Line(Vector2.Zero, Vector2.One);
             var l2 = new Line(Vector2.One, new Vector2(1, 0));
@@ -128,6 +128,64 @@ namespace osu.Framework.Tests.Polygons
             (success, t) = l2.Intersect(l1);
             Assert.IsTrue(success);
             Assert.AreEqual(1, t);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestIsInsideVertical(bool inverse)
+        {
+            var line = new Line(inverse ? Vector2.One : new Vector2(1, 0), inverse ? new Vector2(1, 0) : Vector2.One);
+
+            // Colinear (independent of inverse)
+            Assert.IsTrue(line.IsInside(new Vector2(1, 0.5f)));
+            Assert.IsTrue(line.IsInside(new Vector2(1, 1f)));
+
+            // Directly right of line
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(1.5f, 0.25f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(1.5f, 0.5f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(1.5f, 0.75f)));
+
+            // Directly left of line
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, 0.25f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, 0.5f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, 0.75f)));
+
+            // Right of line at y-extrema
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(1.5f, -100f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(1.5f, 100f)));
+
+            // Left of line at y-extrema
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, -100f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, 100f)));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestIsInsideHorizontal(bool inverse)
+        {
+            var line = new Line(inverse ? Vector2.One : new Vector2(0, 1), inverse ? new Vector2(0, 1) : Vector2.One);
+
+            // Colinear (independent of inverse)
+            Assert.IsTrue(line.IsInside(new Vector2(0.5f, 1)));
+            Assert.IsTrue(line.IsInside(new Vector2(1f, 1)));
+
+            // Directly right of line
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(0.25f, 0.5f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(0.5f, 0.5f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(0.75f, 0.5f)));
+
+            // Directly last of line
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.25f, 1.5f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.5f, 1.5f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(0.75f, 1.5f)));
+
+            // Right of line at x-extrema
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(-100f, 0.5f)));
+            Assert.AreEqual(!inverse, line.IsInside(new Vector2(100f, 0.5f)));
+
+            // Left of line at x-extrema
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(-100f, 1.5f)));
+            Assert.AreEqual(inverse, line.IsInside(new Vector2(100f, 1.5f)));
         }
     }
 }
