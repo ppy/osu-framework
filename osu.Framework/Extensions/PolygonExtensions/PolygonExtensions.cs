@@ -4,6 +4,7 @@
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Extensions.PolygonExtensions
 {
@@ -71,29 +72,24 @@ namespace osu.Framework.Extensions.PolygonExtensions
         /// </summary>
         /// <param name="polygon">The polygon to compute the edges for.</param>
         /// <returns>A list of line segments, each corresponding to one edge of the polygon.</returns>
-        public static Line[] GetEdges(this IPolygon polygon)
+        public static IEnumerable<Line> GetEdges(this IPolygon polygon)
         {
             Vector2[] vertices = polygon.Vertices;
-            Line[] lines = new Line[vertices.Length];
 
-            float rotation = 0;
-            for (int i = 0; i < lines.Length - 1; ++i)
-            {
-                lines[i] = new Line(vertices[i], vertices[i + 1]);
-                rotation += (lines[i].EndPoint.X - lines[i].StartPoint.X) * (lines[i].EndPoint.Y + lines[i].StartPoint.Y);
-            }
-
-            lines[lines.Length - 1] = new Line(vertices[lines.Length - 1], vertices[0]);
-            rotation += (lines[lines.Length - 1].EndPoint.X - lines[lines.Length - 1].StartPoint.X) * (lines[lines.Length - 1].EndPoint.Y + lines[lines.Length - 1].StartPoint.Y);
+            float rotation = GetRotation(vertices);
 
             if (rotation < 0)
             {
-                for (int i = 0; i < lines.Length; ++i)
-                    lines[i] = new Line(lines[i].EndPoint, lines[i].StartPoint);
-                Array.Reverse(lines);
+                for (int i = vertices.Length - 1; i > 0; i--)
+                    yield return new Line(vertices[i], vertices[i - 1]);
+                yield return new Line(vertices[0], vertices[vertices.Length - 1]);
             }
-
-            return lines;
+            else
+            {
+                for (int i = 0; i < vertices.Length - 1; i++)
+                    yield return new Line(vertices[i], vertices[i + 1]);
+                yield return new Line(vertices[vertices.Length - 1], vertices[0]);
+            }
         }
     }
 }
