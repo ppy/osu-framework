@@ -338,6 +338,9 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
+        private int samplesPassedQuery = -1;
+        private int lastSamplesPassed;
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -359,6 +362,31 @@ namespace osu.Framework.Platform
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
                         GLWrapper.ClearColour(Color4.Black);
                     }
+
+                    bool queryAvailable = false;
+
+                    if (samplesPassedQuery == -1)
+                    {
+                        samplesPassedQuery = GL.GenQuery();
+                        queryAvailable = true;
+                    }
+                    else
+                    {
+                        GL.GetQueryObject(samplesPassedQuery, GetQueryObjectParam.QueryResultAvailable, out int queryResult);
+                        queryAvailable = queryResult == 1;
+                    }
+
+                    if (queryAvailable)
+                    {
+                        GL.GetQueryObject(samplesPassedQuery, GetQueryObjectParam.QueryResult, out int queryResult);
+                        FrameStatistics.Add(StatisticsCounterType.Fragments, queryResult);
+
+                        lastSamplesPassed = queryResult;
+
+                        GL.BeginQuery(QueryTarget.SamplesPassed, samplesPassedQuery);
+                    }
+                    else
+                        FrameStatistics.Add(StatisticsCounterType.Fragments, lastSamplesPassed);
 
                     if (ftbPass.Value)
                     {
@@ -386,6 +414,9 @@ namespace osu.Framework.Platform
 
                     buffer.Object.Draw(null);
                     GLWrapper.FlushCurrentBatch();
+
+                    if (queryAvailable)
+                        GL.EndQuery(QueryTarget.SamplesPassed);
 
                     lastDrawFrameId = buffer.FrameId;
                     break;

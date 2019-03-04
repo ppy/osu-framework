@@ -63,6 +63,7 @@ namespace osu.Framework.Statistics
         VerticesDraw,
         VerticesUpl,
         Pixels,
+        Fragments,
 
         TasksRun,
         Tracks,
