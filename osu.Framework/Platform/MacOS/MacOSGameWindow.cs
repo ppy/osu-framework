@@ -62,6 +62,12 @@ namespace osu.Framework.Platform.MacOS
 
         private bool menuBarVisible => Cocoa.SendBool(classNSMenu, selMenuBarVisible);
 
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        {
+            Configuration.WindowMode.Windowed,
+            Configuration.WindowMode.Fullscreen,
+        };
+
         protected void OnLoad(object sender, EventArgs e)
         {
             try
@@ -110,7 +116,7 @@ namespace osu.Framework.Platform.MacOS
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
             if ((pendingWindowMode ?? WindowMode.Value) == Configuration.WindowMode.Windowed)
-                pendingWindowMode = Configuration.WindowMode.Borderless;
+                pendingWindowMode = Configuration.WindowMode.Fullscreen;
         }
 
         private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => pendingWindowMode = Configuration.WindowMode.Windowed;
@@ -124,7 +130,7 @@ namespace osu.Framework.Platform.MacOS
                 pendingWindowMode = null;
 
                 bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
-                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Borderless || mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
