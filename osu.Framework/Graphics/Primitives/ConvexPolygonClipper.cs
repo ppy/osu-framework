@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Primitives
         public Span<Vector2> Clip(Span<Vector2> buffer)
         {
             ReadOnlySpan<Vector2> subjectVertices = subjectPolygon.GetVertices();
+            ReadOnlySpan<Vector2> clipVertices = clipPolygon.GetVertices();
 
             Span<Vector2> outputVertices = buffer;
             subjectVertices.CopyTo(outputVertices);
@@ -29,7 +30,7 @@ namespace osu.Framework.Graphics.Primitives
             clockwiseSort(outputVertices.Slice(0, subjectVertices.Length));
 
             Span<Line> clipEdges = stackalloc Line[clipPolygon.GetVertices().Length];
-            fillEdges(clipPolygon, clipEdges);
+            fillEdges(clipVertices, clipEdges);
 
             int inputCount = subjectVertices.Length;
             Span<Vector2> inputVertices = stackalloc Vector2[outputVertices.Length];
@@ -64,10 +65,8 @@ namespace osu.Framework.Graphics.Primitives
             return outputVertices.Slice(0, inputCount);
         }
 
-        private void fillEdges(IConvexPolygon polygon, Span<Line> edges)
+        private void fillEdges(ReadOnlySpan<Vector2> vertices, Span<Line> edges)
         {
-            var vertices = polygon.GetVertices();
-
             if (GetRotation(vertices) < 0)
             {
                 for (int i = vertices.Length - 1, c = 0; i > 0; i--, c++)
