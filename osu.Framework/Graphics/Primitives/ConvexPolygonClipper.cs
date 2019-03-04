@@ -24,6 +24,10 @@ namespace osu.Framework.Graphics.Primitives
             Span<Vector2> outputVertices = buffer;
             subjectVertices.CopyTo(outputVertices);
 
+            // Make sure that the polygon's vertices are clockwise-sorted
+            // E.g. if a quad is flipped horizontally, it's going to give vertices in counter-clockwise order
+            clockwiseSort(outputVertices.Slice(0, subjectVertices.Length));
+
             Span<Line> clipEdges = stackalloc Line[clipPolygon.GetVertices().Length];
             fillEdges(clipPolygon, clipEdges);
 
