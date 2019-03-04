@@ -357,8 +357,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    // ReSharper disable once AssignmentInConditionalExpression
-                    if (c.IsSelected = c.Item == item)
+                    c.IsSelected = c.Item == item;
+                    if (c.IsSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
