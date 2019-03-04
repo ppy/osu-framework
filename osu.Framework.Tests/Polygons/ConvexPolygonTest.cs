@@ -20,6 +20,17 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
+        public void TestClipFullyContainedClip()
+        {
+            var clipRegion = new Quad(new Vector2(0.2f, 0.8f), new Vector2(0.8f, 0.8f), new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.2f));
+            var subjectRegion = new Quad(new Vector2(0, 1), Vector2.One, Vector2.Zero, new Vector2(1, 0));
+
+            var result = subjectRegion.ClipTo(clipRegion);
+
+            checkVertices(result, clipRegion.Vertices);
+        }
+
+        [Test]
         public void Test1()
         {
             var clipRegion = new Quad(new Vector2(0, 1), Vector2.One, Vector2.Zero, new Vector2(1, 0));

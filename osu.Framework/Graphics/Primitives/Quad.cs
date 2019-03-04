@@ -113,14 +113,6 @@ namespace osu.Framework.Graphics.Primitives
                 new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
         }
 
-        public Quad ClampTo(Quad quad)
-        {
-            IConvexPolygon result = (this as IConvexPolygon).ClipTo(quad);
-
-            // Todo:
-            return FromRectangle(new RectangleF(0, 0, 0, 0));
-        }
-
         public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
 
         public float ConservativeArea

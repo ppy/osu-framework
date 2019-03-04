@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -36,21 +37,20 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd)
                     return;
 
-                // Todo: This can probably be optimised
-                var skeleton = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
-
-                if (GLWrapper.IsMaskingActive)
-                    skeleton = skeleton.ClampTo(GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
-
-                Shader shader = TextureShader;
-
-                shader.Bind();
-
+                TextureShader.Bind();
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
-                Blit(skeleton, vertexAction);
+                var conservativeScreenSpaceQuad = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
 
-                shader.Unbind();
+                if (GLWrapper.IsMaskingActive)
+                {
+                    var polygon = conservativeScreenSpaceQuad.ClipTo(GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
+
+                    foreach (var tri in polygon.Triangulate())
+                        Texture.DrawTriangle(tri, Depth, DrawColourInfo.Colour);
+                }
+                else
+                    Blit(conservativeScreenSpaceQuad, vertexAction);
 
                 vertexDepth -= 0.0001f;
             }
