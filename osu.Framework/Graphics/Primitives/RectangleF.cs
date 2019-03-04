@@ -100,18 +100,23 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public float Bottom => Y + Height;
 
+        /// <summary>Gets the top left corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 TopLeft => new Vector2(Left, Top);
 
+        /// <summary>Gets the top right corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 TopRight => new Vector2(Right, Top);
 
+        /// <summary>Gets the bottom left corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 BottomLeft => new Vector2(Left, Bottom);
 
+        /// <summary>Gets the bottom right corner of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 BottomRight => new Vector2(Right, Bottom);
 
+        /// <summary>Gets the center of the rectangle.</summary>
         [Browsable(false)]
         public Vector2 Centre => new Vector2(X + Width / 2, Y + Height / 2);
 
@@ -123,7 +128,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Tests whether obj is a <see cref="T:System.Drawing.RectangleF"></see> with the same location and size of this <see cref="T:System.Drawing.RectangleF"></see>.</summary>
         /// <returns>This method returns true if obj is a <see cref="T:System.Drawing.RectangleF"></see> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="T:System.Drawing.RectangleF"></see>; otherwise, false.</returns>
-        /// <param name="obj">The <see cref="T:System.Object"></see> to test. </param>
+        /// <param name="obj">The <see cref="T:System.Object"></see> to test.</param>
         /// <filterpriority>1</filterpriority>
         public override bool Equals(object obj)
         {
@@ -142,8 +147,8 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleF"></see> structures differ in location or size.</summary>
         /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleF.X"></see> , <see cref="P:System.Drawing.RectangleF.Y"></see>, <see cref="P:System.Drawing.RectangleF.Width"></see>, or <see cref="P:System.Drawing.RectangleF.Height"></see> properties of the two <see cref="T:System.Drawing.RectangleF"></see> structures are unequal; otherwise false.</returns>
-        /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the inequality operator. </param>
-        /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the inequality operator. </param>
+        /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the inequality operator.</param>
+        /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the inequality operator.</param>
         /// <filterpriority>3</filterpriority>
         public static bool operator !=(RectangleF left, RectangleF right) => !(left == right);
 
@@ -153,22 +158,26 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
-        /// <param name="y">The y-coordinate of the point to test. </param>
-        /// <param name="x">The x-coordinate of the point to test. </param>
+        /// <param name="y">The y-coordinate of the point to test.</param>
+        /// <param name="x">The x-coordinate of the point to test.</param>
         /// <filterpriority>1</filterpriority>
         public bool Contains(float x, float y) => X <= x && x < X + Width && Y <= y && y < Y + Height;
 
+        /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
+        /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="T:System.Drawing.RectangleF"/> structure; otherwise false.</returns>
+        /// <param name="pt">The point to test against this <see cref="T:System.Drawing.RectangleF"/>.</param>
+        /// <filterpriority>1</filterpriority>
         public bool Contains(Vector2 pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the point represented by the pt parameter is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
-        /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test. </param>
+        /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test.</param>
         /// <filterpriority>1</filterpriority>
         public bool Contains(Vector2I pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the rectangular region represented by rect is entirely contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleF"></see>; otherwise false.</returns>
-        /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test. </param>
+        /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test.</param>
         /// <filterpriority>1</filterpriority>
         public bool Contains(RectangleF rect) =>
             X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
@@ -187,8 +196,22 @@ namespace osu.Framework.Graphics.Primitives
             // ReSharper restore NonReadonlyMemberInGetHashCode
         }
 
+        /// <summary>Gets the Area of this <see cref="RectangleF"/>.</summary>
         public float Area => Width * Height;
 
+        /// <summary>
+        /// Gets this <see cref="RectangleF"/> with positive width and height.
+        /// This is usefull if you have a <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
+        /// </summary>
+        /// <example>
+        /// var rect = new <see cref="RectangleF"/> { <see cref="Width"/> = -200, <see cref="Height"/> = -300 }
+        ///
+        /// rect.<see cref="WithPositiveExtent"/> will result in
+        /// Width = 200
+        /// Height = 300
+        /// X = -200
+        /// Y = -300
+        /// </example>
         public RectangleF WithPositiveExtent
         {
             get
@@ -211,10 +234,28 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
+        /// <summary>
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
+        /// <summary>
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
+        /// <summary>
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
+        /// </summary>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
             X - amount.Left,
             Y - amount.Top,
@@ -229,7 +270,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Replaces this <see cref="T:System.Drawing.RectangleF"></see> structure with the intersection of itself and the specified <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method does not return a value.</returns>
-        /// <param name="rect">The rectangle to intersect. </param>
+        /// <param name="rect">The rectangle to intersect.</param>
         /// <filterpriority>1</filterpriority>
         public void Intersect(RectangleF rect)
         {
@@ -242,8 +283,8 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Returns a <see cref="T:System.Drawing.RectangleF"></see> structure that represents the intersection of two rectangles. If there is no intersection, and empty <see cref="T:System.Drawing.RectangleF"></see> is returned.</summary>
         /// <returns>A third <see cref="T:System.Drawing.RectangleF"></see> structure the size of which represents the overlapped area of the two specified rectangles.</returns>
-        /// <param name="a">A rectangle to intersect. </param>
-        /// <param name="b">A rectangle to intersect. </param>
+        /// <param name="a">A rectangle to intersect.</param>
+        /// <param name="b">A rectangle to intersect.</param>
         /// <filterpriority>1</filterpriority>
         public static RectangleF Intersect(RectangleF a, RectangleF b)
         {
@@ -258,22 +299,22 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Determines if this rectangle intersects with rect.</summary>
         /// <returns>This method returns true if there is any intersection.</returns>
-        /// <param name="rect">The rectangle to test. </param>
+        /// <param name="rect">The rectangle to test.</param>
         /// <filterpriority>1</filterpriority>
         public bool IntersectsWith(RectangleF rect) =>
             rect.X <= X + Width && X <= rect.X + rect.Width && rect.Y <= Y + Height && Y <= rect.Y + rect.Height;
 
         /// <summary>Determines if this rectangle intersects with rect.</summary>
         /// <returns>This method returns true if there is any intersection.</returns>
-        /// <param name="rect">The rectangle to test. </param>
+        /// <param name="rect">The rectangle to test.</param>
         /// <filterpriority>1</filterpriority>
         public bool IntersectsWith(RectangleI rect) =>
             rect.X <= X + Width && X <= rect.X + rect.Width && rect.Y <= Y + Height && Y <= rect.Y + rect.Height;
 
         /// <summary>Creates the smallest possible third rectangle that can contain both of two rectangles that form a union.</summary>
         /// <returns>A third <see cref="T:System.Drawing.RectangleF"></see> structure that contains both of the two rectangles that form the union.</returns>
-        /// <param name="a">A rectangle to union. </param>
-        /// <param name="b">A rectangle to union. </param>
+        /// <param name="a">The first rectangle to union.</param>
+        /// <param name="b">The second rectangle to union.</param>
         /// <filterpriority>1</filterpriority>
         public static RectangleF Union(RectangleF a, RectangleF b)
         {
@@ -286,14 +327,14 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Adjusts the location of this rectangle by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
-        /// <param name="pos">The amount to offset the location. </param>
+        /// <param name="pos">The amount to offset the location.</param>
         /// <filterpriority>1</filterpriority>
         public RectangleF Offset(Vector2 pos) => Offset(pos.X, pos.Y);
 
         /// <summary>Adjusts the location of this rectangle by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
-        /// <param name="y">The amount to offset the location vertically. </param>
-        /// <param name="x">The amount to offset the location horizontally. </param>
+        /// <param name="y">The amount to offset the location vertically.</param>
+        /// <param name="x">The amount to offset the location horizontally.</param>
         /// <filterpriority>1</filterpriority>
         public RectangleF Offset(float x, float y) => new RectangleF(X + x, Y + y, Width, Height);
 
@@ -322,7 +363,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Converts the specified <see cref="T:System.Drawing.RectangleI"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
-        /// <param name="r">The <see cref="T:System.Drawing.RectangleI"></see> structure to convert. </param>
+        /// <param name="r">The <see cref="T:System.Drawing.RectangleI"></see> structure to convert.</param>
         /// <filterpriority>3</filterpriority>
         public static implicit operator RectangleF(RectangleI r) => new RectangleF(r.X, r.Y, r.Width, r.Height);
 

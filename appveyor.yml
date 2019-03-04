@@ -1,6 +1,6 @@
 clone_depth: 1
 skip_tags: true
-version: '{branch}-{build}'
+version: '{build}'
 image: Visual Studio 2017
 test: off
 build_script:

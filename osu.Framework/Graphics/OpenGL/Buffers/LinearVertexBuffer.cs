@@ -24,10 +24,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class LinearVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
+        private readonly int amountVertices;
+
         public LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
             : base(amountVertices, usage)
         {
+            this.amountVertices = amountVertices;
             Type = type;
+        }
+
+        protected override void Initialise()
+        {
+            base.Initialise();
 
             if (amountVertices > LinearIndexData.MaxAmountIndices)
             {
