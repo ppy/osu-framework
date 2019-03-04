@@ -121,23 +121,11 @@ namespace osu.Framework.Testing
 
             //Roboto
             fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-RegularItalic"));
             fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-BoldItalic"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Black"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-BlackItalic"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Light"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-LightItalic"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Thin"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-ThinItalic"));
 
             //RobotoCondensed
             fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-RegularItalic"));
             fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-BoldItalic"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Light"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-LightItalic"));
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
