@@ -87,6 +87,17 @@ namespace osu.Framework.Graphics.Primitives
             return (true, t);
         }
 
+        public bool IsInside(Vector2 point)
+        {
+            var diff1 = Difference;
+            var diff2 = point - StartPoint;
+
+            // Cross product
+            var c = diff1.X * diff2.Y - diff1.Y * diff2.X;
+
+            return c <= 0;
+        }
+
         public float Cross(Line other)
         {
             Vector2 diff1 = Difference;
