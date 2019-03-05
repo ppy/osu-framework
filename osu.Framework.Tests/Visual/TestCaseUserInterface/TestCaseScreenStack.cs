@@ -68,6 +68,16 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
         }
 
         [Test]
+        public void TestPushStackTwice()
+        {
+            TestScreen testScreen = null;
+
+            AddStep("public push", () => stack.Push(testScreen = new TestScreen()));
+            AddStep("ensure succeeds", () => Assert.IsTrue(stack.CurrentScreen == testScreen));
+            AddStep("ensure internal throws", () => Assert.Throws<InvalidOperationException>(() => stack.Push(null, new TestScreen())));
+        }
+
+        [Test]
         public void TestAddScreenWithoutStackFails()
         {
             AddStep("ensure throws", () => Assert.Throws<InvalidOperationException>(() => Add(new TestScreen())));

@@ -148,13 +148,7 @@ namespace osu.Framework.Graphics.Containers
             FrameBuffer source = currentFrameBuffer;
             FrameBuffer target = advanceFrameBuffer();
 
-            GLWrapper.SetBlend(new BlendingInfo
-            {
-                Source = BlendingFactorSrc.One,
-                Destination = BlendingFactorDest.Zero,
-                SourceAlpha = BlendingFactorSrc.One,
-                DestinationAlpha = BlendingFactorDest.Zero,
-            });
+            GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
 
             using (bindFrameBuffer(target, source.Size))
             {

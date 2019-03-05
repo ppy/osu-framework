@@ -92,19 +92,21 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
+        /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            Thread = audioThread;
+
+            Thread.RegisterManager(this);
+
             AudioDevice.ValueChanged += onDeviceChanged;
 
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
-
-            Thread = new AudioThread(Update);
-            Thread.Start();
 
             globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
             globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
@@ -129,6 +131,8 @@ namespace osu.Framework.Audio
 
         protected override void Dispose(bool disposing)
         {
+            Thread.UnregisterManager(this);
+
             OnNewDevice = null;
             OnLostDevice = null;
 

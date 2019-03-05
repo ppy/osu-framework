@@ -120,10 +120,8 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = new AudioManager(tracks, samples) { EventScheduler = Scheduler };
+            Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
-
-            Host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
