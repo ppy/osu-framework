@@ -6,20 +6,20 @@ namespace osu.Framework.Graphics.Shaders
     public interface IShader
     {
         /// <summary>
-        /// Bind this shader to be the active shader.
+        /// Binds this shader to be used for rendering.
         /// </summary>
         void Bind();
 
         /// <summary>
-        /// Unbind this shader.
+        /// Unbinds this shader.
         /// </summary>
         void Unbind();
 
         /// <summary>
-        /// Returns a uniform from the shader.
+        /// Retrieves a uniform from the shader.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
-        /// <returns>Returns a base uniform.</returns>
+        /// <returns>The retrieved uniform.</returns>
         Uniform<T> GetUniform<T>(string name)
             where T : struct;
     }
