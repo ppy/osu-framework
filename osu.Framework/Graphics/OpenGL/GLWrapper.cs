@@ -113,20 +113,49 @@ namespace osu.Framework.Graphics.OpenGL
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);
+
+            Clear(new ClearInfo
+            {
+                Colour = Color4.Black,
+                Depth = 0f,
+                Stencil = 0
+            });
         }
 
-        // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
-        private static Color4 clearColour = new Color4(-1, -1, -1, -1);
+        private static ClearInfo currentClearInfo;
 
-        public static void ClearColour(Color4 c)
+        public static void Clear(ClearInfo clearInfo)
         {
-            if (clearColour != c)
+            ClearBufferMask mask = 0;
+
+            if (clearInfo.Colour != null)
             {
-                clearColour = c;
-                GL.ClearColor(clearColour);
+                if (clearInfo.Colour != currentClearInfo.Colour)
+                    GL.ClearColor(clearInfo.Colour.Value);
+                mask |= ClearBufferMask.ColorBufferBit;
             }
 
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            if (clearInfo.Depth != null)
+            {
+                if (clearInfo.Depth != currentClearInfo.Depth)
+                {
+                    // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
+                    osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth.Value);
+                }
+
+                mask |= ClearBufferMask.DepthBufferBit;
+            }
+
+            if (clearInfo.Stencil != null)
+            {
+                if (clearInfo.Stencil != currentClearInfo.Stencil)
+                    GL.ClearStencil(clearInfo.Stencil.Value);
+                mask |= ClearBufferMask.StencilBufferBit;
+            }
+
+            GL.Clear(mask);
+
+            currentClearInfo = clearInfo;
         }
 
         /// <summary>
@@ -706,5 +735,14 @@ namespace osu.Framework.Graphics.OpenGL
                 Hollow == other.Hollow &&
                 HollowCornerRadius == other.HollowCornerRadius;
         }
+    }
+
+    public struct ClearInfo
+    {
+        public Color4? Colour;
+
+        public double? Depth;
+
+        public int? Stencil;
     }
 }
