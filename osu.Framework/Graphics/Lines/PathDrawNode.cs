@@ -194,7 +194,11 @@ namespace osu.Framework.Graphics.Lines
             if (Texture?.Available != true || Segments.Count == 0)
                 return;
 
-            GLWrapper.SetDepthTest(true);
+            GLWrapper.PushDepthInfo(new DepthInfo
+            {
+                DepthTest = true,
+                Function = DepthFunction.Less
+            });
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
@@ -207,7 +211,7 @@ namespace osu.Framework.Graphics.Lines
 
             shader.Unbind();
 
-            GLWrapper.SetDepthTest(false);
+            GLWrapper.PopDepthInfo();
         }
     }
 }

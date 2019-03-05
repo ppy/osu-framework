@@ -404,30 +404,38 @@ namespace osu.Framework.Platform
 
                     if (ftbPass.Value)
                     {
-                        GL.Enable(EnableCap.DepthTest);
+                        float depth = 1;
 
-                        GL.DepthFunc(DepthFunction.Always);
-                        GL.DepthMask(true);
-
-                        // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
-                        osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
-                        GL.Clear(ClearBufferMask.DepthBufferBit);
+                        GLWrapper.PushDepthInfo(new DepthInfo
+                        {
+                            DepthTest = true,
+                            WriteDepth = true,
+                            Function = DepthFunction.Greater
+                        });
 
                         // Front pass
-                        float depth = 1;
-                        GL.DepthFunc(DepthFunction.Greater);
                         buffer.Object.DrawHull(null, ref depth);
-                        GLWrapper.FlushCurrentBatch();
 
-                        // Back pass
-                        GL.DepthMask(false);
-                        GL.DepthFunc(DepthFunction.Gequal);
+                        GLWrapper.PopDepthInfo();
+
+                        // The back pass doesn't write depth, but needs to depth test properly
+                        GLWrapper.PushDepthInfo(new DepthInfo
+                        {
+                            DepthTest = true,
+                            WriteDepth = false,
+                            Function = DepthFunction.Gequal
+                        });
                     }
                     else
-                        GL.Disable(EnableCap.DepthTest);
+                    {
+                        // Disable depth testing
+                        GLWrapper.PushDepthInfo(new DepthInfo());
+                    }
 
+                    // Back pass
                     buffer.Object.Draw(null);
-                    GLWrapper.FlushCurrentBatch();
+
+                    GLWrapper.PopDepthInfo();
 
                     if (queryAvailable)
                         GL.EndQuery(QueryTarget.SamplesPassed);
