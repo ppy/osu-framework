@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -35,9 +36,18 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
 
+        private Vector2 lastPosition;
+
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
+            if (Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition))
+                return false;
+
+            lastPosition = e.ScreenSpaceMousePosition;
+
+            ActiveCursor.RelativePositionAxes = Axes.None;
             ActiveCursor.Position = e.MousePosition;
+            ActiveCursor.RelativePositionAxes = Axes.Both;
             return base.OnMouseMove(e);
         }
 
