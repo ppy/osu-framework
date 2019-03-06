@@ -43,6 +43,7 @@ namespace osu.Framework.Screens
         /// </summary>
         public ScreenStack()
         {
+            ScreenExited += onExited;
         }
 
         /// <summary>
@@ -205,6 +206,16 @@ namespace osu.Framework.Screens
             // Resume the next current screen from the exited one
             resumeFrom(toExit);
         }
+
+        /// <summary>
+        /// Unbind and return leases for all <see cref="Bindable{T}"/>s managed by the exiting screen.
+        /// </summary>
+        /// <remarks>
+        /// While all bindables will eventually be cleaned up by disposal logic, this is too late as
+        /// leases could potentially be in a leased state during exiting transitions.
+        /// This method should be called after exiting is confirmed to ensure a correct leased state before <see cref="IScreen.OnResuming"/>.
+        /// </remarks>
+        private void onExited(IScreen prev, IScreen next) => (prev as Screen)?.UnbindAllBindables();
 
         /// <summary>
         /// Resumes the current <see cref="IScreen"/>.
