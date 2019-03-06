@@ -270,7 +270,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddAssert("Bindables have been returned by new screen", () => screen1.IsBindablesReturned);
         }
 
-
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
         {
             IScreen screen = null;
