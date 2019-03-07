@@ -356,6 +356,15 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public new bool ForceLocalVertexBatch
+        {
+            get => base.ForceLocalVertexBatch;
+            set => base.ForceLocalVertexBatch = value;
+        }
+
+        /// <summary>
         /// The size of the relative position/size coordinate space of children of this <see cref="Container"/>.
         /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.One"/> in this <see cref="Container"/>.
         /// </summary>
