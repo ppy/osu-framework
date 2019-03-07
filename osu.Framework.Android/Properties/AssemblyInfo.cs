@@ -9,5 +9,3 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
-[assembly: InternalsVisibleTo("osu.Framework.Tests.iOS")]
-[assembly: InternalsVisibleTo("osu.Framework.Tests.Android")]
