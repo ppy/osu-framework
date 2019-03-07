@@ -16,6 +16,11 @@ namespace osu.Framework.Graphics.Shaders
         void Unbind();
 
         /// <summary>
+        /// Whether this shader is ready for use.
+        /// </summary>
+        bool IsLoaded { get; }
+
+        /// <summary>
         /// Retrieves a uniform from the shader.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
