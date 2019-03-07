@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 {
     public class TestCaseCircularProgress : TestCase
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode), typeof(CircularProgressDrawNodeSharedData) };
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode) };
 
         private readonly CircularProgress clock;
 

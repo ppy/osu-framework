@@ -138,6 +138,15 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public Bindable<T> BindTarget
+        {
+            set { BindTo(value); }
+        }
+
+        /// <summary>
         /// Binds this bindable to another such that bi-directional updates are propagated.
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>

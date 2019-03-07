@@ -10,7 +10,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Shader : IDisposable
+    public class Shader : IDisposable, IShader
     {
         internal StringBuilder Log = new StringBuilder();
 
@@ -35,34 +35,6 @@ namespace osu.Framework.Graphics.Shaders
 
             GLWrapper.EnqueueShaderCompile(this);
         }
-
-        #region Disposal
-
-        ~Shader()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (Loaded)
-            {
-                Unbind();
-
-                GLWrapper.DeleteProgram(this);
-                Loaded = false;
-                programID = -1;
-                GlobalPropertyManager.Unregister(this);
-            }
-        }
-
-        #endregion
 
         internal void Compile()
         {
@@ -213,5 +185,35 @@ namespace osu.Framework.Graphics.Shaders
         {
             return shader.programID;
         }
+
+        #region Disposal
+
+        ~Shader()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        {
+            if (Loaded)
+            {
+                Loaded = false;
+
+                Unbind();
+                GL.DeleteProgram(this);
+
+                GlobalPropertyManager.Unregister(this);
+
+                programID = -1;
+            }
+        });
+
+        #endregion
     }
 }
