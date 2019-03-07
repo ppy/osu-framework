@@ -326,7 +326,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
             public TestScreen(bool shouldTakeOutLease = false)
             {
-                DummyBindable.Disabled = false;
                 this.shouldTakeOutLease = shouldTakeOutLease;
             }
 
