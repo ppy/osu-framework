@@ -36,11 +36,11 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
 
-        private Vector2 lastPosition;
+        private Vector2? lastPosition;
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            if (Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition))
+            if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition.Value))
                 return false;
 
             lastPosition = e.ScreenSpaceMousePosition;
