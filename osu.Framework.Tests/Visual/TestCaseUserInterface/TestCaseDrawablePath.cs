@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 new SmoothPath
                 {
                     RelativeSizeAxes = Axes.Both,
-                    PathWidth = 5,
+                    PathRadius = 5,
                     Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 new Path
                 {
                     RelativeSizeAxes = Axes.Both,
-                    PathWidth = 5,
+                    PathRadius = 5,
                     Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),

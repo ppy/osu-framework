@@ -124,7 +124,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
         {
             protected SmoothedPath()
             {
-                PathWidth = 2;
+                PathRadius = 2;
             }
 
             public InputResampler InputResampler { get; set; } = new InputResampler();

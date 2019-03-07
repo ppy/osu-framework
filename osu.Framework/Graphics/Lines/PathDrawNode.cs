@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Lines
         public List<Line> Segments;
 
         public Vector2 DrawSize;
-        public float Width;
+        public float Radius;
         public Texture Texture;
 
         public IShader TextureShader;
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Lines
             if (dir < 0)
                 theta += MathHelper.Pi;
 
-            Vector2 current = origin + pointOnCircle(theta) * Width;
+            Vector2 current = origin + pointOnCircle(theta) * Radius;
             Color4 currentColour = colourAt(current);
             current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Lines
                 });
 
                 float angularOffset = Math.Min(i * step, thetaDiff);
-                current = origin + pointOnCircle(theta + dir * angularOffset) * Width;
+                current = origin + pointOnCircle(theta + dir * angularOffset) * Radius;
                 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
@@ -99,8 +99,8 @@ namespace osu.Framework.Graphics.Lines
         private void addLineQuads(Line line, RectangleF texRect)
         {
             Vector2 ortho = line.OrthogonalDirection;
-            Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
-            Line lineRight = new Line(line.StartPoint - ortho * Width, line.EndPoint - ortho * Width);
+            Line lineLeft = new Line(line.StartPoint + ortho * Radius, line.EndPoint + ortho * Radius);
+            Line lineRight = new Line(line.StartPoint - ortho * Radius, line.EndPoint - ortho * Radius);
 
             Line screenLineLeft = new Line(Vector2Extensions.Transform(lineLeft.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineLeft.EndPoint, DrawInfo.Matrix));
             Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
