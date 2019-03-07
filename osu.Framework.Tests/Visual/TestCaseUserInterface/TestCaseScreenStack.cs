@@ -267,7 +267,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             pushAndEnsureCurrent(() => screen2 = new TestScreen(true), () => screen1);
             AddStep("Exit screen", () => screen2.Exit());
             AddUntilStep(() => screen1.IsCurrentScreen(), "Wait until base is current");
-            AddAssert("Bindables have been returned by new screen", () => screen1.IsBindableReturned);
+            AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -310,13 +310,11 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
-            public bool IsBindableReturned;
-
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
-            private LeasedBindable<bool> leasedCopy;
-
             private readonly bool shouldTakeOutLease;
+
+            private LeasedBindable<bool> localCopy;
 
             internal override void UnbindAllBindables()
             {
@@ -405,8 +403,8 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
                 if (shouldTakeOutLease)
                 {
-                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
-                    leasedCopy = DummyBindable.BeginLease(true);
+                    localCopy = DummyBindable.BeginLease(true);
+                    localCopy.BindTo(((TestScreen)last).DummyBindable);
                 }
 
                 base.OnEntering(last);
@@ -443,10 +441,6 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override void OnResuming(IScreen last)
             {
                 ResumedFrom = last;
-
-                // Check if the last screen's bindables have since been returned
-                if (!((TestScreen)last).leasedCopy?.Disabled ?? false)
-                    IsBindableReturned = true;
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
