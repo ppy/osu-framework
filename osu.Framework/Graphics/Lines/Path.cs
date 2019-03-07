@@ -41,16 +41,22 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private float pathWidth = 10f;
+        private float pathRadius = 10f;
 
-        public virtual float PathWidth
+        /// <summary>
+        /// How wide this path is on each side of the line.
+        /// </summary>
+        /// <remarks>
+        /// The actual width of the path is twice the PathRadius.
+        /// </remarks>
+        public virtual float PathRadius
         {
-            get => pathWidth;
+            get => pathRadius;
             set
             {
-                if (pathWidth == value) return;
+                if (pathRadius == value) return;
 
-                pathWidth = value;
+                pathRadius = value;
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
@@ -61,7 +67,7 @@ namespace osu.Framework.Graphics.Lines
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);
-            var pathWidthSquared = PathWidth * PathWidth;
+            var pathWidthSquared = PathRadius * PathRadius;
 
             foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
@@ -102,12 +108,18 @@ namespace osu.Framework.Graphics.Lines
 
         private RectangleF bounds => new RectangleF(minX, minY, maxX - minX, maxY - minY);
 
+        /// <summary>
+        /// Adjust the height and width of this Path depending on the position of the vertices and its radius.
+        /// </summary>
+        /// <remarks>
+        /// Keep in mind that the height will factor in PathRadius twice, once at the top and once on the bottom of the rectangle.
+        /// </remarks>
         private void expandBounds(Vector2 pos)
         {
-            if (pos.X - PathWidth < minX) minX = pos.X - PathWidth;
-            if (pos.Y - PathWidth < minY) minY = pos.Y - PathWidth;
-            if (pos.X + PathWidth > maxX) maxX = pos.X + PathWidth;
-            if (pos.Y + PathWidth > maxY) maxY = pos.Y + PathWidth;
+            if (pos.X - PathRadius < minX) minX = pos.X - PathRadius;
+            if (pos.Y - PathRadius < minY) minY = pos.Y - PathRadius;
+            if (pos.X + PathRadius > maxX) maxX = pos.X + PathRadius;
+            if (pos.Y + PathRadius > maxY) maxY = pos.Y + PathRadius;
 
             RectangleF b = bounds;
             if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = b.Width;
@@ -173,7 +185,7 @@ namespace osu.Framework.Graphics.Lines
             n.Texture = Texture;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
-            n.Width = PathWidth;
+            n.Width = PathRadius;
             n.DrawSize = DrawSize;
 
             n.Shared = pathDrawNodeSharedData;

@@ -19,14 +19,14 @@ namespace osu.Framework.Graphics.Lines
             validateTexture();
         }
 
-        public override float PathWidth
+        public override float PathRadius
         {
-            get => base.PathWidth;
+            get => base.PathRadius;
             set
             {
-                if (base.PathWidth == value)
+                if (base.PathRadius == value)
                     return;
-                base.PathWidth = value;
+                base.PathRadius = value;
 
                 InvalidateTexture();
             }
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Lines
             if (textureCache.IsValid)
                 return;
 
-            int textureWidth = (int)PathWidth * 2;
+            int textureWidth = (int)PathRadius * 2;
 
             var texture = new Texture(textureWidth, 1);
 
