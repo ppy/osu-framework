@@ -310,11 +310,11 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
+            private LeasedBindable<bool> localCopy;
+
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
             private readonly bool shouldTakeOutLease;
-
-            private LeasedBindable<bool> localCopy;
 
             internal override void UnbindAllBindables()
             {
@@ -403,8 +403,8 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
                 if (shouldTakeOutLease)
                 {
+                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
                     localCopy = DummyBindable.BeginLease(true);
-                    localCopy.BindTo(((TestScreen)last).DummyBindable);
                 }
 
                 base.OnEntering(last);
