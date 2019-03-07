@@ -15,28 +15,24 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class PathDrawNodeSharedData
-    {
-        // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-        // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-        // grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex3D> HalfCircleBatch = new LinearBatch<TexturedVertex3D>(PathDrawNode.MAXRES * 100 * 3, 10, PrimitiveType.Triangles);
-        public QuadBatch<TexturedVertex3D> QuadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
-    }
-
     public class PathDrawNode : DrawNode
     {
-        public const int MAXRES = 24;
+        public const int MAX_RES = 24;
+
         public List<Line> Segments;
 
         public Vector2 DrawSize;
         public float Radius;
         public Texture Texture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public IShader TextureShader;
+        public IShader RoundedTextureShader;
 
-        public PathDrawNodeSharedData Shared;
+        // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
+        // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+        // grouping of vertices into primitives.
+        private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
+        private readonly QuadBatch<TexturedVertex3D> quadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
@@ -50,7 +46,7 @@ namespace osu.Framework.Graphics.Lines
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
         {
-            const float step = MathHelper.Pi / MAXRES;
+            const float step = MathHelper.Pi / MAX_RES;
 
             float dir = Math.Sign(thetaDiff);
             thetaDiff = dir * thetaDiff;
@@ -70,7 +66,7 @@ namespace osu.Framework.Graphics.Lines
             for (int i = 1; i <= amountPoints; i++)
             {
                 // Center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                halfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -78,7 +74,7 @@ namespace osu.Framework.Graphics.Lines
                 });
 
                 // First outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                halfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -91,7 +87,7 @@ namespace osu.Framework.Graphics.Lines
                 current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                 // Second outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                halfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -110,13 +106,13 @@ namespace osu.Framework.Graphics.Lines
             Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
             Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
 
-            Shared.QuadBatch.Add(new TexturedVertex3D
+            quadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                 TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineRight.EndPoint)
             });
-            Shared.QuadBatch.Add(new TexturedVertex3D
+            quadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                 TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -133,13 +129,13 @@ namespace osu.Framework.Graphics.Lines
 
             for (int i = 0; i < 2; ++i)
             {
-                Shared.QuadBatch.Add(new TexturedVertex3D
+                quadBatch.Add(new TexturedVertex3D
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                     Colour = firstMiddleColour
                 });
-                Shared.QuadBatch.Add(new TexturedVertex3D
+                quadBatch.Add(new TexturedVertex3D
                 {
                     Position = secondMiddlePoint,
                     TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
@@ -147,13 +143,13 @@ namespace osu.Framework.Graphics.Lines
                 });
             }
 
-            Shared.QuadBatch.Add(new TexturedVertex3D
+            quadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                 TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineLeft.EndPoint)
             });
-            Shared.QuadBatch.Add(new TexturedVertex3D
+            quadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                 TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
@@ -196,7 +192,7 @@ namespace osu.Framework.Graphics.Lines
 
             GLWrapper.SetDepthTest(true);
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 
@@ -208,6 +204,14 @@ namespace osu.Framework.Graphics.Lines
             shader.Unbind();
 
             GLWrapper.SetDepthTest(false);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            halfCircleBatch.Dispose();
+            quadBatch.Dispose();
         }
     }
 }

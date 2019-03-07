@@ -14,14 +14,14 @@ namespace osu.Framework.Graphics.Lines
 {
     public class Path : Drawable
     {
-        private Shader roundedTextureShader;
-        private Shader textureShader;
+        private IShader roundedTextureShader;
+        private IShader textureShader;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -174,8 +174,6 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
-
         protected override DrawNode CreateDrawNode() => new PathDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -187,8 +185,6 @@ namespace osu.Framework.Graphics.Lines
             n.RoundedTextureShader = roundedTextureShader;
             n.Radius = PathRadius;
             n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
 
             n.Segments = segments.ToList();
 

@@ -33,10 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
-        private Shader roundedTextureShader;
-        private Shader textureShader;
-
-        private readonly CircularProgressDrawNodeSharedData pathDrawNodeSharedData = new CircularProgressDrawNodeSharedData();
+        private IShader roundedTextureShader;
+        private IShader textureShader;
 
         #region Disposal
 
@@ -60,9 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
             n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
             n.Angle = (float)Current.Value * MathHelper.TwoPi;
             n.InnerRadius = innerRadius;
 
@@ -75,8 +70,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;
