@@ -18,6 +18,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
@@ -109,12 +110,22 @@ namespace osu.Framework.Testing
         private Bindable<bool> showLogOverlay;
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
+
+            var resources = game.Resources;
+
+            //Roboto
+            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
+            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
+
+            //RobotoCondensed
+            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
+            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 

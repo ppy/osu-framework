@@ -24,7 +24,6 @@
   <ItemGroup>
     <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
     <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
     <NativeLibs Include="$(MSBuildThisFileDirectory)*.a" />
     <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
     <None Include="@(NativeLibs)">
