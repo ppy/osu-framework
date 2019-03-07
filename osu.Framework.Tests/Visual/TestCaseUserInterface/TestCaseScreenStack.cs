@@ -267,7 +267,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             pushAndEnsureCurrent(() => screen2 = new TestScreen(true), () => screen1);
             AddStep("Exit screen", () => screen2.Exit());
             AddUntilStep(() => screen1.IsCurrentScreen(), "Wait until base is current");
-            AddAssert("Bindables have been returned by new screen", () => screen1.IsBindablesReturned);
+            AddAssert("Bindables have been returned by new screen", () => screen1.IsBindableReturned);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -310,7 +310,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
-            public bool IsBindablesReturned;
+            public bool IsBindableReturned;
 
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
@@ -446,7 +446,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 
                 // Check if the last screen's bindables have since been returned
                 if (!((TestScreen)last).leasedCopy?.Disabled ?? false)
-                    IsBindablesReturned = true;
+                    IsBindableReturned = true;
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
