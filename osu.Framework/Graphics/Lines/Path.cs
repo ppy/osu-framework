@@ -67,10 +67,10 @@ namespace osu.Framework.Graphics.Lines
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);
-            var pathWidthSquared = PathRadius * PathRadius;
+            var pathRadiusSquared = PathRadius * PathRadius;
 
             foreach (var t in segments)
-                if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
+                if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
             return false;
         }
