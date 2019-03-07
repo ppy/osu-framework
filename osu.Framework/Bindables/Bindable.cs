@@ -276,10 +276,14 @@ namespace osu.Framework.Bindables
         protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
-        /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
+        /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
+        /// Also returns any active lease.
         /// </summary>
         public virtual void UnbindAll()
         {
+            if (isLeased)
+                leasedBindable.Return();
+
             UnbindEvents();
             UnbindBindings();
         }
