@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -255,6 +256,20 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             AddUntilStep(() => screens.Count == 1, "All screens disposed in correct order");
         }
 
+        /// <summary>
+        /// Make sure that all bindables are returned before OnResuming is called for the next screen.
+        /// </summary>
+        [Test]
+        public void TestReturnBindsBeforeResume()
+        {
+            TestScreen screen1 = null, screen2 = null;
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(true), () => screen1);
+            AddStep("Exit screen", () => screen2.Exit());
+            AddUntilStep(() => screen1.IsCurrentScreen(), "Wait until base is current");
+            AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled);
+        }
+
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
         {
             IScreen screen = null;
@@ -295,10 +310,21 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
+            private LeasedBindable<bool> localCopy;
+
+            public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
+
+            private readonly bool shouldTakeOutLease;
+
             internal override void UnbindAllBindables()
             {
                 base.UnbindAllBindables();
                 OnUnbind?.Invoke();
+            }
+
+            public TestScreen(bool shouldTakeOutLease = false)
+            {
+                this.shouldTakeOutLease = shouldTakeOutLease;
             }
 
             [BackgroundDependencyLoader]
@@ -374,6 +400,12 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override void OnEntering(IScreen last)
             {
                 EnteredFrom = last;
+
+                if (shouldTakeOutLease)
+                {
+                    DummyBindable.BindTo(((TestScreen)last).DummyBindable);
+                    localCopy = DummyBindable.BeginLease(true);
+                }
 
                 base.OnEntering(last);
 
