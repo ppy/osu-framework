@@ -138,14 +138,27 @@ namespace osu.Framework.Graphics.Shaders
 #endif
 
             if (!Compiled)
-                Dispose(true);
+                delete();
 
             return Compiled;
         }
 
-        public static implicit operator int(ShaderPart program)
+        public static implicit operator int(ShaderPart program) => program.partID;
+
+        private void delete()
         {
-            return program.partID;
+            if (partID == -1) return;
+
+            GL.DeleteShader(this);
+            Compiled = false;
+            partID = -1;
+        }
+
+        #region Disposal
+
+        ~ShaderPart()
+        {
+            Dispose(false);
         }
 
         public void Dispose()
@@ -154,13 +167,8 @@ namespace osu.Framework.Graphics.Shaders
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
-        {
-            if (!disposing || partID == -1) return;
+        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delete);
 
-            GLWrapper.DeleteShader(this);
-            Compiled = false;
-            partID = -1;
-        }
+        #endregion
     }
 }
