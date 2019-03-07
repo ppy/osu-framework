@@ -40,6 +40,9 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
+            // required due to IRequireHighFrequencyMousePosition firing with the last known position even when the source is not in a
+            // valid state (ie. receiving updates from user or otherwise). in this case, we generally want the cursor to remain at its
+            // last *relative* position.
             if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition.Value))
                 return false;
 
