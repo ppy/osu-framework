@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Shaders
 
             shader = new Shader($"{vertex}/{fragment}", parts);
 
-            if (!shader.Loaded)
+            if (!shader.IsLoaded)
             {
                 StringBuilder logContents = new StringBuilder();
                 logContents.AppendLine($@"Loading shader {vertex}/{fragment}");
