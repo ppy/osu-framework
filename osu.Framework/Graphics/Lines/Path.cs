@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Lines
             n.Texture = Texture;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
-            n.Width = PathRadius;
+            n.Radius = PathRadius;
             n.DrawSize = DrawSize;
 
             n.Shared = pathDrawNodeSharedData;
