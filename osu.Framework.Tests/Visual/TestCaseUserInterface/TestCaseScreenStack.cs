@@ -267,7 +267,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             pushAndEnsureCurrent(() => screen2 = new TestScreen(true), () => screen1);
             AddStep("Exit screen", () => screen2.Exit());
             AddUntilStep(() => screen1.IsCurrentScreen(), "Wait until base is current");
-            AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled);
+            AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled && !screen2.LeasedCopy.Disabled);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -310,7 +310,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
             public override bool HandleNonPositionalInput => true;
             public Action OnUnbind;
 
-            private LeasedBindable<bool> localCopy;
+            public LeasedBindable<bool> LeasedCopy;
 
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
@@ -404,7 +404,7 @@ namespace osu.Framework.Tests.Visual.TestCaseUserInterface
                 if (shouldTakeOutLease)
                 {
                     DummyBindable.BindTo(((TestScreen)last).DummyBindable);
-                    localCopy = DummyBindable.BeginLease(true);
+                    LeasedCopy = DummyBindable.BeginLease(true);
                 }
 
                 base.OnEntering(last);
