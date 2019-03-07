@@ -15,13 +15,6 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNodeSharedData
-    {
-        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle. MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
-        // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
-    }
-
     public class CircularProgressDrawNode : DrawNode
     {
         public const int MAXRES = 24;
@@ -31,10 +24,13 @@ namespace osu.Framework.Graphics.UserInterface
         public Vector2 DrawSize;
         public Texture Texture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public IShader TextureShader;
+        public IShader RoundedTextureShader;
 
-        public CircularProgressDrawNodeSharedData Shared;
+        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
+        // MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
+        // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
+        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
@@ -72,7 +68,7 @@ namespace osu.Framework.Graphics.UserInterface
             float prevOffset = dir >= 0 ? 0 : 1;
 
             // First center point
-            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            halfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
@@ -80,7 +76,7 @@ namespace osu.Framework.Graphics.UserInterface
             });
 
             // First outer point.
-            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            halfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = new Vector2(current.X, current.Y),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
@@ -93,7 +89,8 @@ namespace osu.Framework.Graphics.UserInterface
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = dir * Math.Min(i * step, dir * Angle);
                 float normalisedOffset = angularOffset / MathHelper.TwoPi;
-                if (dir < 0) {
+                if (dir < 0)
+                {
                     normalisedOffset += 1.0f;
                 }
 
@@ -103,7 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // current center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                halfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
@@ -111,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
                 });
 
                 // current outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                halfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(texRect.Left + normalisedOffset * texRect.Width, texRect.Bottom),
@@ -129,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (Texture?.Available != true)
                 return;
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 
@@ -139,6 +136,13 @@ namespace osu.Framework.Graphics.UserInterface
             updateVertexBuffer();
 
             shader.Unbind();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            halfCircleBatch.Dispose();
         }
     }
 }

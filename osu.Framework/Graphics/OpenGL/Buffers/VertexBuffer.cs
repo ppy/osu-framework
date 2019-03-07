@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (IsDisposed)
                 return;
@@ -64,11 +64,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isInitialised)
             {
                 Unbind();
-                GLWrapper.DeleteBuffer(vboId);
+                GL.DeleteBuffer(vboId);
             }
 
             IsDisposed = true;
-        }
+        });
 
         public virtual void Bind(bool forRendering)
         {
