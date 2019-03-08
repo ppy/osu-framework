@@ -17,6 +17,7 @@ namespace osu.Framework.Input
 
         public UserInputManager()
         {
+            IsAlive = true;
             UseParentInput = false;
         }
 
