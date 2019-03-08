@@ -40,32 +40,42 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct => ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
+            where T : struct
+        {
+            lock (global_properties)
+                ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
+        }
 
         public static void Register(Shader shader)
         {
-            // transfer all existing global properties across.
-            foreach (var global in global_properties)
+            lock (global_properties)
             {
-                if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
-                    continue;
+                // transfer all existing global properties across.
+                foreach (var global in global_properties)
+                {
+                    if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
+                        continue;
 
-                global.LinkShaderUniform(uniform);
+                    global.LinkShaderUniform(uniform);
+                }
+
+                all_shaders.Add(shader);
             }
-
-            all_shaders.Add(shader);
         }
 
         public static void Unregister(Shader shader)
         {
-            if (!all_shaders.Remove(shader)) return;
-
-            foreach (var global in global_properties)
+            lock (global_properties)
             {
-                if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
-                    continue;
+                if (!all_shaders.Remove(shader)) return;
 
-                global.UnlinkShaderUniform(uniform);
+                foreach (var global in global_properties)
+                {
+                    if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
+                        continue;
+
+                    global.UnlinkShaderUniform(uniform);
+                }
             }
         }
 
@@ -74,6 +84,12 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         /// <param name="name">The name to check</param>
         /// <returns>Whether a global exists.</returns>
-        public static bool CheckGlobalExists(string name) => global_properties.Any(m => m.Name == name);
+        public static bool CheckGlobalExists(string name)
+        {
+            lock (global_properties)
+            {
+                return global_properties.Any(m => m.Name == name);
+            }
+        }
     }
 }

@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual
                 points[4] = new Vector2(250, 50);
 
                 RelativeSizeAxes = Axes.Both;
-                PathWidth = 2;
+                PathRadius = 2;
                 Vertices = approximator(points);
                 Colour = Color4.White;
             }

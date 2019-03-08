@@ -30,18 +30,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private bool isDisposed;
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delegate
         {
             if (isDisposed)
                 return;
             isDisposed = true;
 
-            GLWrapper.ScheduleDisposal(delegate
-            {
-                GLWrapper.DeleteFramebuffer(frameBuffer);
-                frameBuffer = -1;
-            });
-        }
+            GLWrapper.DeleteFramebuffer(frameBuffer);
+            frameBuffer = -1;
+        });
 
         #endregion
 
