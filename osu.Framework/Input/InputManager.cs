@@ -528,6 +528,7 @@ namespace osu.Framework.Input
         /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
         /// <returns>true if there is no longer a focus.</returns>
+        /// <returns>true if there is no longer a focus.</returns>
         private bool unfocusIfNoLongerValid()
         {
             if (FocusedDrawable == null) return true;
@@ -540,7 +541,7 @@ namespace osu.Framework.Input
                 CompositeDrawable d = FocusedDrawable.Parent;
                 while (d != null)
                 {
-                    if (!d.IsPresent)
+                    if (!d.IsPresent || !d.IsAlive)
                     {
                         stillValid = false;
                         break;
@@ -588,7 +589,6 @@ namespace osu.Framework.Input
                     }
                 }
             }
-
 
             ChangeFocus(focusTarget);
         }
