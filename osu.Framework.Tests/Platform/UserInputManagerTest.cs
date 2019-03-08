@@ -2,8 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Graphics;
-using osu.Framework.Platform;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
@@ -14,27 +13,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void IsAliveTest()
         {
-            AddAssert("UserInputManager is alive", () =>
-            {
-                using (var client = new TestHeadlessGameHost(@"client", true))
-                {
-                    return client.CurrentRoot.IsAlive;
-                }
-            });
-        }
-
-        private class TestHeadlessGameHost : HeadlessGameHost
-        {
-            public Drawable CurrentRoot => Root;
-
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
-            {
-                using (var game = new TestGame())
-                {
-                    Root = game.CreateUserInputManager();
-                }
-            }
+            AddAssert("UserInputManager is alive", () => new UserInputManager().IsAlive);
         }
     }
 }
