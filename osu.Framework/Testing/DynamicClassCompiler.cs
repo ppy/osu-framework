@@ -54,23 +54,33 @@ namespace osu.Framework.Testing
 
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
-                    // only watch directories which house a csproj. this avoids submodules and directories like .git which can contain many files.
-                    if (!Directory.GetFiles(dir, "*.csproj").Any())
+                    // only watch directories which house a csproj or a vbproj. this avoids submodules and directories like .git which can contain many files.
+                    if (!Directory.GetFiles(dir, "*.csproj").Any() || !Directory.GetFiles(dir, "*.vbproj"))
                         continue;
 
                     validDirectories.Add(dir);
 
-                    var fsw = new FileSystemWatcher(dir, @"*.cs")
+                    var csfsw = new FileSystemWatcher(dir, @"*.cs")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
                         NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                     };
 
-                    fsw.Changed += onChange;
-                    fsw.Created += onChange;
+                    var vbfsw = new FileSystemWatcher(dir, @"*.vb")
+                    {
+                        EnableRaisingEvents = true,
+                        IncludeSubdirectories = true,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                    };
 
-                    watchers.Add(fsw);
+                    csfsw.Changed += onChange;
+                    csfsw.Created += onChange;
+                    vbfsw.Created += onChange;
+                    vbfsw.Created += onChange;
+
+                    watchers.Add(csfsw);
+                    watchers.Add(vbfsw);
                 }
             });
 
@@ -108,9 +118,14 @@ namespace osu.Framework.Testing
 
                     requiredFiles.Clear();
                     foreach (var d in validDirectories)
+                    {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
                                                .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                        requiredFiles.AddRange(Directory
+                                               .EnumerateFiles(d, "*.vb", SearchOption.AllDirectories)
+                                               .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                    }
                 }
 
                 lastTouchedFile = e.FullPath;
