@@ -83,7 +83,14 @@ namespace osu.Framework.Graphics.Shapes
 
                 TextureShader.Unbind();
 
-                vertexDepth -= 0.0001f;
+                Half h = new Half(vertexDepth);
+                unsafe
+                {
+                    short* s = (short*)&h;
+                    *s -= 1;
+                }
+
+                vertexDepth = h;
             }
         }
     }
