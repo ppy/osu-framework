@@ -55,7 +55,7 @@ namespace osu.Framework.Testing
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
                     // only watch directories which house a csproj or a vbproj. this avoids submodules and directories like .git which can contain many files.
-                    if (!Directory.GetFiles(dir, "*.csproj").Any() || !Directory.GetFiles(dir, "*.vbproj"))
+                    if (!Directory.GetFiles(dir, "*.csproj").Any() || !Directory.GetFiles(dir, "*.vbproj").Any())
                         continue;
 
                     validDirectories.Add(dir);
