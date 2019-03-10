@@ -73,25 +73,6 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
-    /// <see cref="CompositeDrawable"/>.
-    /// </summary>
-    public class CompositeDrawNodeSharedData
-    {
-        /// <summary>
-        /// The vertex batch used for rendering.
-        /// </summary>
-        public QuadBatch<TexturedVertex2D> VertexBatch;
-
-        /// <summary>
-        /// Whether we always want to use our own vertex batch for our corresponding
-        /// <see cref="CompositeDrawable"/>. If false, then we may get rendered with some other
-        /// shared vertex batch.
-        /// </summary>
-        public bool ForceOwnVertexBatch;
-    }
-
-    /// <summary>
     /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the
     /// <see cref="DrawNode"/>s of its children.
     /// </summary>
@@ -120,15 +101,19 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffectParameters EdgeEffect;
 
         /// <summary>
-        /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
-        /// <see cref="CompositeDrawable"/>.
+        /// The shader to use for rendering.
         /// </summary>
-        public CompositeDrawNodeSharedData Shared;
+        public IShader Shader;
 
         /// <summary>
-        /// The shader to be used for rendering the edge effect.
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
         /// </summary>
-        public Shader Shader;
+        public bool ForceLocalVertexBatch;
+
+        /// <summary>
+        /// The vertex batch used for rendering.
+        /// </summary>
+        private QuadBatch<TexturedVertex2D> vertexBatch;
 
         private void drawEdgeEffect()
         {
@@ -179,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
 
         private const int min_amount_children_to_warrant_batch = 5;
 
-        private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
+        private bool mayHaveOwnVertexBatch(int amountChildren) => ForceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
         {
@@ -188,8 +173,8 @@ namespace osu.Framework.Graphics.Containers
 
             // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
             int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (Shared.VertexBatch == null || Shared.VertexBatch.Size < clampedAmountChildren))
-                Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+            if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
+                vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -197,8 +182,8 @@ namespace osu.Framework.Graphics.Containers
             updateVertexBatch();
 
             // Prefer to use own vertex batch instead of the parent-owned one.
-            if (Shared.VertexBatch != null)
-                vertexAction = Shared.VertexBatch.AddAction;
+            if (vertexBatch != null)
+                vertexAction = vertexBatch.AddAction;
 
             base.Draw(vertexAction);
 
@@ -226,8 +211,8 @@ namespace osu.Framework.Graphics.Containers
             updateVertexBatch();
 
             // Prefer to use own vertex batch instead of the parent-owned one.
-            if (Shared.VertexBatch != null)
-                vertexAction = Shared.VertexBatch.AddAction;
+            if (vertexBatch != null)
+                vertexAction = vertexBatch.AddAction;
 
             base.DrawHull(vertexAction, ref vertexDepth);
 
@@ -240,6 +225,13 @@ namespace osu.Framework.Graphics.Containers
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            vertexBatch?.Dispose();
         }
     }
 }

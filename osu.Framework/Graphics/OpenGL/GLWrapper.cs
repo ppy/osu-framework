@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics.OpenGL
 {
     public static class GLWrapper
     {
+        /// <summary>
+        /// Maximum number of <see cref="DrawNode"/>s a <see cref="Drawable"/> can draw with.
+        /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
+        /// </summary>
+        public const int MAX_DRAW_NODES = 3;
+
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
@@ -70,8 +76,20 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
+            int frameCount = 0;
+
             if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
+                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+
+            void scheduleNextDisposal() => reset_scheduler.Add(() =>
+            {
+                // There may be a number of DrawNodes queued to be drawn
+                // Disposal should only take place after
+                if (frameCount++ >= MAX_DRAW_NODES)
+                    disposalAction.Invoke();
+                else
+                    scheduleNextDisposal();
+            });
         }
 
         internal static void Reset(Vector2 size)
@@ -615,48 +633,7 @@ namespace osu.Framework.Graphics.OpenGL
             while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
-            //todo: don't use scheduler
             ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
-        }
-
-        /// <summary>
-        /// Deletes a buffer object.
-        /// </summary>
-        /// <param name="vboId">The buffer object to delete.</param>
-        internal static void DeleteBuffer(int vboId)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteBuffer(vboId); });
-        }
-
-        /// <summary>
-        /// Deletes textures.
-        /// </summary>
-        /// <param name="ids">An array of textures to delete.</param>
-        internal static void DeleteTextures(params int[] ids)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteTextures(ids.Length, ids); });
-        }
-
-        /// <summary>
-        /// Deletes a shader program.
-        /// </summary>
-        /// <param name="shader">The shader program to delete.</param>
-        internal static void DeleteProgram(Shader shader)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteProgram(shader); });
-        }
-
-        /// <summary>
-        /// Deletes a shader part.
-        /// </summary>
-        /// <param name="shaderPart">The shader part to delete.</param>
-        internal static void DeleteShader(ShaderPart shaderPart)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteShader(shaderPart); });
         }
 
         private static int currentShader;

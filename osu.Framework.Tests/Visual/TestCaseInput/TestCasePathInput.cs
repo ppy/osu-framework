@@ -124,7 +124,7 @@ namespace osu.Framework.Tests.Visual.TestCaseInput
 
         private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>
         {
-            path.PathWidth = path_width;
+            path.PathRadius = path_width;
             path.Vertices = vertices.ToList();
         });
 
