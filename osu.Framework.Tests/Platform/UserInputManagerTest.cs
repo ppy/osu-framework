@@ -19,7 +19,6 @@ namespace osu.Framework.Tests.Platform
                 client.Run(testGame);
                 Assert.IsTrue(testGame.IsRootAlive);
             }
-
         }
 
         private class TestHeadlessGameHost : HeadlessGameHost
