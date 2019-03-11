@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit | Invalidation.Presence) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                 cellLayout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
