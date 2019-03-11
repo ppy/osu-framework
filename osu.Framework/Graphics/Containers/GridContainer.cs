@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Dimension[] rowDimensions;
+        private Dimension[] rowDimensions = Array.Empty<Dimension>();
 
         /// <summary>
         /// Explicit dimensions for rows. Each index of this array applies to the respective row index inside <see cref="Content"/>.
@@ -46,6 +46,9 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(RowDimensions));
+
                 if (rowDimensions == value)
                     return;
 
@@ -55,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Dimension[] columnDimensions;
+        private Dimension[] columnDimensions = Array.Empty<Dimension>();
 
         /// <summary>
         /// Explicit dimensions for columns. Each index of this array applies to the respective column index inside <see cref="Content"/>.
@@ -64,6 +67,9 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(ColumnDimensions));
+
                 if (columnDimensions == value)
                     return;
 
