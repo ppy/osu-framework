@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.Containers
     public class GridContainer : CompositeDrawable
     {
         private Drawable[][] content;
+
         /// <summary>
         /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
         /// of <see cref="Drawable"/>s represents a row and each element of that array represents a column.
@@ -29,6 +30,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (content == value)
                     return;
+
                 content = value;
 
                 cellContent.Invalidate();
@@ -36,6 +38,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] rowDimensions;
+
         /// <summary>
         /// Explicit dimensions for rows. Each index of this array applies to the respective row index inside <see cref="Content"/>.
         /// </summary>
@@ -45,6 +48,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (rowDimensions == value)
                     return;
+
                 rowDimensions = value;
 
                 cellLayout.Invalidate();
@@ -52,6 +56,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] columnDimensions;
+
         /// <summary>
         /// Explicit dimensions for columns. Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
@@ -61,6 +66,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (columnDimensions == value)
                     return;
+
                 columnDimensions = value;
 
                 cellLayout.Invalidate();
@@ -127,29 +133,29 @@ namespace osu.Framework.Graphics.Containers
             // Create the new cell containers and add content
             cells = new CellContainer[requiredRows, requiredColumns];
             for (int r = 0; r < cellRows; r++)
-                for (int c = 0; c < cellColumns; c++)
-                {
-                    // Add cell
-                    cells[r, c] = new CellContainer();
+            for (int c = 0; c < cellColumns; c++)
+            {
+                // Add cell
+                cells[r, c] = new CellContainer();
 
-                    // Allow empty rows
-                    if (Content[r] == null)
-                        continue;
+                // Allow empty rows
+                if (Content[r] == null)
+                    continue;
 
-                    // Allow non-square grids
-                    if (c >= Content[r].Length)
-                        continue;
+                // Allow non-square grids
+                if (c >= Content[r].Length)
+                    continue;
 
-                    // Allow empty cells
-                    if (Content[r][c] == null)
-                        continue;
+                // Allow empty cells
+                if (Content[r][c] == null)
+                    continue;
 
-                    // Add content
-                    cells[r, c].Add(Content[r][c]);
-                    cells[r, c].Depth = Content[r][c].Depth;
+                // Add content
+                cells[r, c].Add(Content[r][c]);
+                cells[r, c].Depth = Content[r][c].Depth;
 
-                    AddInternal(cells[r, c]);
-                }
+                AddInternal(cells[r, c]);
+            }
 
             cellContent.Validate();
         }
@@ -259,18 +265,18 @@ namespace osu.Framework.Graphics.Containers
 
             // Add size to distributed columns/rows and add adjust cell positions
             for (int r = 0; r < cellRows; r++)
-                for (int c = 0; c < cellColumns; c++)
-                {
-                    if (cells[r, c].DistributedWidth)
-                        cells[r, c].Width = distributedSize.X;
-                    if (cells[r, c].DistributedHeight)
-                        cells[r, c].Height = distributedSize.Y;
+            for (int c = 0; c < cellColumns; c++)
+            {
+                if (cells[r, c].DistributedWidth)
+                    cells[r, c].Width = distributedSize.X;
+                if (cells[r, c].DistributedHeight)
+                    cells[r, c].Height = distributedSize.Y;
 
-                    if (c > 0)
-                        cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
-                    if (r > 0)
-                        cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
-                }
+                if (c > 0)
+                    cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
+                if (r > 0)
+                    cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
+            }
 
             cellLayout.Validate();
         }
@@ -334,14 +340,17 @@ namespace osu.Framework.Graphics.Containers
         /// other elements which use <see cref="GridSizeMode.Distributed"/>.
         /// </summary>
         Distributed,
+
         /// <summary>
         /// This element should be sized relative to the dimensions of the <see cref="GridContainer"/>.
         /// </summary>
         Relative,
+
         /// <summary>
         /// This element has a size independent of the <see cref="GridContainer"/>.
         /// </summary>
         Absolute,
+
         /// <summary>
         /// This element will be sized to the maximum size along its span.
         /// </summary>
