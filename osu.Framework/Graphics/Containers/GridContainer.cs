@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
-using osuTK;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
@@ -174,117 +173,142 @@ namespace osu.Framework.Graphics.Containers
             if (cellLayout.IsValid)
                 return;
 
-            foreach (var cell in cells)
+            distribute(columnDimensions, Axes.X);
+            distribute(rowDimensions, Axes.Y);
+
+            cellLayout.Validate();
+        }
+
+        /// <summary>
+        /// Distributes dimensions along an axis.
+        /// </summary>
+        /// <param name="dimensions">The dimensions to distribute.</param>
+        /// <param name="axis">The axis to distribute the dimensions along.</param>
+        private void distribute(Dimension[] dimensions, Axes axis)
+        {
+            int axisCells = axis == Axes.X ? cellColumns : cellRows;
+            int oppositeAxisCells = axis == Axes.X ? cellRows : cellColumns;
+
+            // Cells which require distribution
+            Span<bool> requiresDistribution = stackalloc bool[axisCells];
+            requiresDistribution.Fill(true);
+
+            float definedSize = 0;
+            int distributionCount = axisCells;
+
+            // Compute the size of non-distributed cells
+            for (int i = 0; i < dimensions.Length; i++)
             {
-                cell.DistributedWidth = true;
-                cell.DistributedHeight = true;
-            }
+                if (i >= axisCells)
+                    break;
 
-            int autoSizedRows = cellRows;
-            int autoSizedColumns = cellColumns;
+                var d = dimensions[i];
 
-            float definedWidth = 0;
-            float definedHeight = 0;
-
-            // Compute the width of non-distributed columns
-            if (columnDimensions?.Length > 0)
-            {
-                for (int i = 0; i < columnDimensions.Length; i++)
+                float cellSize = 0;
+                switch (d.Mode)
                 {
-                    if (i >= cellColumns)
+                    case GridSizeMode.Distributed:
                         continue;
-
-                    var d = columnDimensions[i];
-
-                    float cellWidth = 0;
-                    switch (d.Mode)
-                    {
-                        case GridSizeMode.Distributed:
-                            continue;
-                        case GridSizeMode.Relative:
-                            cellWidth = d.Size * DrawWidth;
-                            break;
-                        case GridSizeMode.Absolute:
-                            cellWidth = d.Size;
-                            break;
-                        case GridSizeMode.AutoSize:
-                            for (int r = 0; r < cellRows; r++)
-                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBox.Width ?? 0);
-                            break;
-                    }
-
-                    for (int r = 0; r < cellRows; r++)
-                    {
-                        cells[r, i].Width = cellWidth;
-                        cells[r, i].DistributedWidth = false;
-                    }
-
-                    definedWidth += cellWidth;
-                    autoSizedColumns--;
+                    case GridSizeMode.Relative:
+                        cellSize = d.Size * getSizeAlongAxis(axis);
+                        break;
+                    case GridSizeMode.Absolute:
+                        cellSize = d.Size;
+                        break;
+                    case GridSizeMode.AutoSize:
+                        cellSize = getBoundingSizeAlongAxis(axis, i);
+                        break;
                 }
-            }
 
-            // Compute the height of non-distributed rows
-            if (rowDimensions?.Length > 0)
-            {
-                for (int i = 0; i < rowDimensions.Length; i++)
+                switch (axis)
                 {
-                    if (i >= cellRows)
-                        continue;
-
-                    var d = rowDimensions[i];
-
-                    float cellHeight = 0;
-                    switch (d.Mode)
-                    {
-                        case GridSizeMode.Distributed:
-                            continue;
-                        case GridSizeMode.Relative:
-                            cellHeight = d.Size * DrawHeight;
-                            break;
-                        case GridSizeMode.Absolute:
-                            cellHeight = d.Size;
-                            break;
-                        case GridSizeMode.AutoSize:
-                            for (int c = 0; c < cellColumns; c++)
-                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBox.Height ?? 0);
-                            break;
-                    }
-
-                    for (int c = 0; c < cellColumns; c++)
-                    {
-                        cells[i, c].Height = cellHeight;
-                        cells[i, c].DistributedHeight = false;
-                    }
-
-                    definedHeight += cellHeight;
-                    autoSizedRows--;
+                    case Axes.X:
+                        for (int j = 0; j < oppositeAxisCells; j++)
+                            cells[j, i].Width = cellSize;
+                        break;
+                    case Axes.Y:
+                        for (int j = 0; j < oppositeAxisCells; j++)
+                            cells[i, j].Height = cellSize;
+                        break;
                 }
+
+                requiresDistribution[i] = false;
+
+                definedSize += cellSize;
+                distributionCount--;
             }
 
             // Compute the size which all distributed columns/rows should take on
-            var distributedSize = new Vector2
-            (
-                Math.Max(0, DrawWidth - definedWidth) / autoSizedColumns,
-                Math.Max(0, DrawHeight - definedHeight) / autoSizedRows
-            );
+            float distributedSize = (getSizeAlongAxis(axis) - definedSize) / distributionCount;
 
             // Add size to distributed columns/rows and add adjust cell positions
-            for (int r = 0; r < cellRows; r++)
-            for (int c = 0; c < cellColumns; c++)
+            for (int i = 0; i < axisCells; i++)
+            for (int j = 0; j < oppositeAxisCells; j++)
             {
-                if (cells[r, c].DistributedWidth)
-                    cells[r, c].Width = distributedSize.X;
-                if (cells[r, c].DistributedHeight)
-                    cells[r, c].Height = distributedSize.Y;
+                switch (axis)
+                {
+                    case Axes.X:
+                        if (requiresDistribution[i])
+                            cells[j, i].Width = distributedSize;
+                        if (i > 0)
+                            cells[j, i].X = cells[j, i - 1].X + cells[j, i - 1].Width;
+                        break;
+                    case Axes.Y:
+                        if (requiresDistribution[i])
+                            cells[i, j].Height = distributedSize;
+                        if (i > 0)
+                            cells[i, j].Y = cells[i - 1, j].Y + cells[i - 1, j].Height;
+                        break;
+                }
+            }
+        }
 
-                if (c > 0)
-                    cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
-                if (r > 0)
-                    cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
+        /// <summary>
+        /// Retrieves the size of this <see cref="GridContainer"/> along an axis.
+        /// </summary>
+        /// <param name="axis">The axis.</param>
+        /// <returns>This <see cref="GridContainer"/>'s <see cref="Drawable.DrawWidth"/> or <see cref="Drawable.DrawHeight"/>, depending on <paramref name="axis"/>.</returns>
+        private float getSizeAlongAxis(Axes axis)
+        {
+            switch (axis)
+            {
+                case Axes.X:
+                    return DrawWidth;
+                case Axes.Y:
+                    return DrawHeight;
+                default:
+                    throw new ArgumentException("Unsupported axis.", nameof(axis));
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the minimum size required to bound children along an axis.
+        /// </summary>
+        /// <param name="axis">The axis of interest.</param>
+        /// <param name="index">The row or column which the bound should be computed for. </param>
+        /// <returns>The minimum size required along the <paramref name="axis"/> to bound all elements along the row or column at <paramref name="index"/> in the grid.
+        /// E.g. for an index of 0 and an axis of X, this will return the minimum width required to bound all children within the first column.
+        /// </returns>
+        /// <exception cref="ArgumentException"></exception>
+        private float getBoundingSizeAlongAxis(Axes axis, int index)
+        {
+            float size = 0;
+
+            switch (axis)
+            {
+                case Axes.X:
+                    for (int r = 0; r < cellRows; r++)
+                        size = Math.Max(size, Content[r]?[index]?.BoundingBox.Width ?? 0);
+                    break;
+                case Axes.Y:
+                    for (int c = 0; c < cellColumns; c++)
+                        size = Math.Max(size, Content[index]?[c]?.BoundingBox.Height ?? 0);
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported axis.", nameof(axis));
             }
 
-            cellLayout.Validate();
+            return size;
         }
 
         /// <summary>
@@ -292,16 +316,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private class CellContainer : Container
         {
-            /// <summary>
-            /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.Distributed"/> for its width.
-            /// </summary>
-            public bool DistributedWidth;
-
-            /// <summary>
-            /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.Distributed"/> for its height.
-            /// </summary>
-            public bool DistributedHeight;
-
             public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
             {
                 if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
