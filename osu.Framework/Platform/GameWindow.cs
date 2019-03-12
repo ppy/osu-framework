@@ -70,6 +70,11 @@ namespace osu.Framework.Platform
         public IBindable<bool> IsActive => isActive;
 
         /// <summary>
+        /// Set the value of IsActive property.
+        /// </summary>
+        protected void SetActive(bool val) => isActive.Value = val;
+
+        /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
         protected GameWindow([NotNull] IGameWindow implementation)

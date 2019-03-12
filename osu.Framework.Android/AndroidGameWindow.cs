@@ -32,6 +32,8 @@ namespace osu.Framework.Android
         {
             // Let's just say the cursor is always in the window.
             CursorInWindow = true;
+            // And the window is always active.
+            SetActive(true);
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
