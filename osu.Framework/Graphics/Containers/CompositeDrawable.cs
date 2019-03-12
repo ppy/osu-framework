@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
 
         /// <summary>
-        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         /// <remarks>
         /// This is generally useful if already in an asynchronous context and requiring forcefully (pre)loading content without adding it to the hierarchy.
@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
         protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
         {
             if (game == null)
-                throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
+                throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
