@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -17,12 +18,13 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
 {
     public class TestCaseGridContainer : TestCase
     {
+        private Container gridParent;
         private GridContainer grid;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new Container
+            Child = gridParent = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -479,6 +481,67 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
             AddAssert("fill box has correct size", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 50, grid.DrawHeight - 10)));
             AddStep("rotate boxes", () => autoSizingChildren.ForEach(c => c.RotateTo(90)));
             AddAssert("fill box has resized correctly", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 10, grid.DrawHeight - 50)));
+        }
+
+        [Test]
+        public void TestDimensionsWithMaximumSize()
+        {
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, maxSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, maxSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, maxSize: 80),
+                new Dimension(GridSizeMode.Distributed, maxSize: 150)
+            };
+
+            AddStep("set content", () =>
+            {
+                grid.Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        boxes[0] = new FillBox(),
+                        boxes[1] = new FillBox(),
+                        boxes[2] = new FillBox(),
+                        boxes[3] = new FillBox(),
+                        boxes[4] = new FillBox(),
+                        boxes[5] = new FillBox(),
+                        boxes[6] = new FillBox(),
+                        boxes[7] = new FillBox()
+                    },
+                };
+
+                grid.ColumnDimensions = dimensions;
+            });
+
+            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
+            checkSizes();
+            AddStep("set size = (0.5f, 0.1f)", () => gridParent.Size = new Vector2(0.5f, 0.1f));
+            checkSizes();
+            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
+            checkSizes();
+
+            void checkSizes()
+            {
+                AddAssert("max size not overflowed", () =>
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (dimensions[i].Mode == GridSizeMode.Distributed && boxes[i].DrawWidth > dimensions[i].MaxSize)
+                            return false;
+                    }
+
+                    return true;
+                });
+
+                AddAssert("column span total width", () => Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth)));
+            }
         }
 
         private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
