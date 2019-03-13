@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
@@ -22,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             manualClock = new ManualClock();
 
-            Children = new Graphics.Drawable[]
+            Children = new Drawable[]
             {
                 container = new TestContainer
                 {
