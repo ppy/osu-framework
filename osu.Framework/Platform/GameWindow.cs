@@ -68,6 +68,11 @@ namespace osu.Framework.Platform
         /// Whether this <see cref="GameWindow"/> is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
+        
+        /// <summary>
+        /// Set the value of isActive
+        /// </summary>
+        protected void SetActive(bool val) => isActive.Value = val;
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
