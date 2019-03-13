@@ -483,8 +483,9 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
             AddAssert("fill box has resized correctly", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 10, grid.DrawHeight - 50)));
         }
 
-        [Test]
-        public void TestDimensionsWithMaximumSize()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMaximumSize(bool row)
         {
             var boxes = new FillBox[8];
 
@@ -500,25 +501,20 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 new Dimension(GridSizeMode.Distributed, maxSize: 150)
             };
 
-            AddStep("set content", () =>
+            setSingleDimensionContent(() => new[]
             {
-                grid.Content = new[]
+                new Drawable[]
                 {
-                    new Drawable[]
-                    {
-                        boxes[0] = new FillBox(),
-                        boxes[1] = new FillBox(),
-                        boxes[2] = new FillBox(),
-                        boxes[3] = new FillBox(),
-                        boxes[4] = new FillBox(),
-                        boxes[5] = new FillBox(),
-                        boxes[6] = new FillBox(),
-                        boxes[7] = new FillBox()
-                    },
-                };
-
-                grid.ColumnDimensions = dimensions;
-            });
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
 
             AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
             checkSizes();
@@ -533,14 +529,25 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
                 {
                     for (int i = 0; i < 8; i++)
                     {
-                        if (dimensions[i].Mode == GridSizeMode.Distributed && boxes[i].DrawWidth > dimensions[i].MaxSize)
+                        if (dimensions[i].Mode != GridSizeMode.Distributed)
+                            continue;
+
+                        if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
+                            return false;
+
+                        if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
                             return false;
                     }
 
                     return true;
                 });
 
-                AddAssert("column span total width", () => Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth)));
+                AddAssert("column span total length", () =>
+                {
+                    return row
+                        ? Precision.AlmostEquals(grid.DrawHeight, boxes.Sum(b => b.DrawHeight))
+                        : Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth));
+                });
             }
         }
 
