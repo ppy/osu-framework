@@ -267,24 +267,26 @@ namespace osu.Framework.Graphics.Containers
             for (int i = 0; i < axisCells; i++)
             for (int j = 0; j < oppositeAxisCells; j++)
             {
+                float clampedDistributionSize = distributionSize;
+
+                if (requiresDistribution[i])
+                {
+                    float maxSize = i >= dimensions.Length ? float.MaxValue : dimensions[i].MaxSize;
+                    clampedDistributionSize = Math.Min(maxSize, clampedDistributionSize);
+                }
+
                 switch (axis)
                 {
                     case Axes.X:
                         if (requiresDistribution[i])
-                        {
-                            float maxSize = i >= dimensions.Length ? float.MaxValue : dimensions[i].MaxSize;
-                            cells[j, i].Width = Math.Min(maxSize, distributionSize);
-                        }
+                            cells[j, i].Width = clampedDistributionSize;
 
                         if (i > 0)
                             cells[j, i].X = cells[j, i - 1].X + cells[j, i - 1].Width;
                         break;
                     case Axes.Y:
                         if (requiresDistribution[i])
-                        {
-                            float maxSize = i >= dimensions.Length ? float.MaxValue : dimensions[i].MaxSize;
-                            cells[i, j].Height = Math.Min(maxSize, distributionSize);
-                        }
+                            cells[i, j].Height = clampedDistributionSize;
 
                         if (i > 0)
                             cells[i, j].Y = cells[i - 1, j].Y + cells[i - 1, j].Height;
