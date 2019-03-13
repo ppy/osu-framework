@@ -11,7 +11,7 @@ using osu.Framework.Extensions.TypeExtensions;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// Marks a method as the loader-Method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
+    /// Marks a method as the (potentially asynchronous) loader-Method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Method)]
@@ -22,14 +22,14 @@ namespace osu.Framework.Allocation
         private bool permitNulls { get; }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         public BackgroundDependencyLoaderAttribute()
         {
         }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
         public BackgroundDependencyLoaderAttribute(bool permitNulls)
