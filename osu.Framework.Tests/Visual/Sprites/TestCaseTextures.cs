@@ -4,6 +4,7 @@
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
@@ -87,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             return avatar;
         }
 
-        private class Avatar : Graphics.Sprites.Sprite
+        private class Avatar : Sprite
         {
             private readonly string url;
 
