@@ -24,6 +24,8 @@ namespace osu.Framework.Android
             Window = new AndroidGameWindow();
         }
 
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
         public override ITextInputSource GetTextInput()
             => new AndroidTextInput(gameView);
 
