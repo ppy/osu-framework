@@ -221,7 +221,7 @@ namespace osu.Framework.Tests.Visual.TestCaseContainerExtensions
             {
                 new Dimension(GridSizeMode.Relative, sizes[0]),
                 new Dimension(GridSizeMode.Absolute, sizes[1]),
-                new Dimension(GridSizeMode.Distributed),
+                new Dimension(),
             }, row);
 
             if (row)

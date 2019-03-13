@@ -364,17 +364,17 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The mode in which this row or column <see cref="GridContainer"/> is sized.
         /// </summary>
-        public GridSizeMode Mode { get; private set; }
+        public readonly GridSizeMode Mode;
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public float Size { get; private set; }
+        public readonly float Size;
 
         /// <summary>
         /// The maximum size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public float MaxSize { get; private set; }
+        public readonly float MaxSize;
 
         /// <summary>
         /// Constructs a new <see cref="Dimension"/>.
