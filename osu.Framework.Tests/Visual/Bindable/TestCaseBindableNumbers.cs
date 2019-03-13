@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 
-namespace osu.Framework.Tests.Visual
+namespace osu.Framework.Tests.Visual.Bindable
 {
     public class TestCaseBindableNumbers : TestCase
     {
