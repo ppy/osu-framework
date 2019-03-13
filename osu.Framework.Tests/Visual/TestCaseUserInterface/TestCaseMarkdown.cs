@@ -70,6 +70,28 @@ Line below";
 ```";
             });
 
+            AddStep("Markdown Fenced Code (CSharp)", () =>
+            {
+                markdownContainer.Text = @"```csharp
+// A Hello World! program in C#.
+using System;
+namespace HelloWorld
+{
+    class Hello
+    {
+        static void Main()
+        {
+            Console.WriteLine(""Hello World!"");
+
+            // Keep the console window open in debug mode.
+            Console.WriteLine(""Press any key to exit."");
+            Console.ReadKey();
+        }
+    }
+}
+```";
+            });
+
             AddStep("Markdown Table", () =>
             {
                 markdownContainer.Text =
@@ -112,7 +134,9 @@ Line below";
 
             AddStep("MarkdownFromInternet", () =>
             {
-                var req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
+                const string url = "https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md";
+                markdownContainer.RootUrl = url;
+                var req = new WebRequest(url);
                 req.Finished += () => markdownContainer.Text = req.ResponseString;
 
                 Task.Run(() => req.PerformAsync());

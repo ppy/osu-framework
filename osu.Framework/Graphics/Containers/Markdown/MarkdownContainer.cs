@@ -1,10 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
@@ -17,11 +21,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     [Cached(Type = typeof(IMarkdownTextComponent))]
     [Cached(Type = typeof(IMarkdownTextFlowComponent))]
-    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
+    [Cached(Type = typeof(IMarkdownCodeFlowComponent))]
+    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent , IMarkdownCodeFlowComponent
     {
         private const int root_level = 0;
 
         private string text = string.Empty;
+
+        private string rootUrl = string.Empty;
 
         /// <summary>
         /// The text to visualise.
@@ -34,6 +41,22 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 if (text == value)
                     return;
                 text = value;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Root url for relative link in document.
+        /// </summary>
+        public string RootUrl
+        {
+            get => rootUrl;
+            set
+            {
+                if (rootUrl == value)
+                    return;
+                rootUrl = value;
 
                 contentCache.Invalidate();
             }
@@ -103,10 +126,31 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (!contentCache.IsValid)
             {
                 var markdownText = Text;
+
+                document.Clear();
+
+                if (string.IsNullOrEmpty(Text))
+                    return;
+
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 
-                document.Clear();
+                //convert relative path to absolute path
+                if (!string.IsNullOrEmpty(RootUrl))
+                {
+                    var linkInlines = parsed.Descendants().OfType<LinkInline>();
+                    foreach (var linkInline in linkInlines)
+                    {
+                        var url = linkInline.Url;
+                        if (!string.IsNullOrEmpty(url) && !Regex.IsMatch(url, @"(http|https)://(([www\.])?|([\da-z-\.]+))\.([a-z\.]{2,3})$"))
+                        {
+                            var baseUri = new Uri(RootUrl);
+                            var relativeUri = new Uri(baseUri, url);
+                            linkInline.Url = relativeUri.AbsoluteUri;
+                        }
+                    }
+                }
+
                 foreach (var component in parsed)
                     AddMarkdownComponent(component, document, root_level);
 
@@ -122,6 +166,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         }
 
         public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownTextFlowContainer();
+
+        public virtual MarkdownCodeFlowContainer CreateCodeFlow() => new MarkdownCodeFlowContainer();
 
         public virtual SpriteText CreateSpriteText() => new SpriteText();
 
