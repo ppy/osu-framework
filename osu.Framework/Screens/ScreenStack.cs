@@ -104,10 +104,12 @@ namespace osu.Framework.Screens
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
+            var newScreenDrawable = newScreen.AsDrawable();
+
             if (source != null)
-                LoadScreen((CompositeDrawable)source, newScreen.AsDrawable(), finishLoad);
+                LoadScreen((CompositeDrawable)source, newScreenDrawable, finishLoad);
             else if (LoadState >= LoadState.Ready)
-                LoadScreen(this, newScreen.AsDrawable(), finishLoad);
+                LoadScreen(this, newScreenDrawable, finishLoad);
             else
                 Schedule(finishLoad);
 
@@ -122,8 +124,8 @@ namespace osu.Framework.Screens
                     return;
                 }
 
-                AddInternal(newScreen.AsDrawable());
-                newScreen.OnEntering(source);
+                newScreenDrawable.OnLoadComplete = _ => newScreen.OnEntering(source);
+                AddInternal(newScreenDrawable);
             }
 
             void suspend()
@@ -150,7 +152,7 @@ namespace osu.Framework.Screens
                 continuation?.Invoke();
             else
             {
-                if (loader.LoadState >= LoadState.Loaded)
+                if (loader.LoadState >= LoadState.Ready)
                     loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
                 else
                     Schedule(() => LoadScreen(loader, toLoad, continuation));

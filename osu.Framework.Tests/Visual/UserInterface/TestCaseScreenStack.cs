@@ -216,6 +216,51 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push second slow", () => Assert.Throws<InvalidOperationException>(() => screen1.Push(new TestScreenSlow())));
         }
 
+        [Test]
+        public void TestEventOrder()
+        {
+            int order = 0;
+
+            var screen1 = new TestScreen
+            {
+                Entered = () => Assert.AreEqual(1, Interlocked.Increment(ref order)),
+                Suspended = () => Assert.AreEqual(2, Interlocked.Increment(ref order)),
+                Exited = () => Assert.AreEqual(5, Interlocked.Increment(ref order)),
+            };
+
+            var screen2 = new TestScreen
+            {
+                Entered = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
+                Exited = () => Assert.AreEqual(4, Interlocked.Increment(ref order)),
+            };
+
+            AddStep("push screen1", () => stack.Push(screen1));
+            AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
+
+            AddStep("preload screen2", () => LoadComponentAsync(screen2));
+            AddUntilStep(() => screen2.LoadState == LoadState.Ready, "wait for load");
+
+            AddStep("push screen2", () => screen1.Push(screen2));
+            AddUntilStep(() => screen2.IsCurrentScreen(), "ensure current");
+
+            AddStep("exit screen2", () => screen2.Exit());
+            AddUntilStep(() => !screen2.IsCurrentScreen(), "ensure exited");
+
+            AddStep("push screen2", () => screen1.Exit());
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "ensure exited");
+        }
+
+        [Test]
+        public void TestComeVisibleFromHidden()
+        {
+            TestScreen screen1 = null;
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { Alpha = 0 });
+
+            AddUntilStep(() => screen1.Alpha > 0, "screen1 is visible");
+
+            pushAndEnsureCurrent(() => new TestScreen { Alpha = 0 },() => screen1);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestAsyncEventOrder(bool earlyExit)
@@ -231,7 +276,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             var screen2 = new TestScreenSlow
             {
                 Entered = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
-                Exited = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
+                Exited = () => Assert.AreEqual(4, Interlocked.Increment(ref order)),
             };
 
             AddStep("push slow", () => stack.Push(screen1));
@@ -257,6 +302,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 AddUntilStep(() => screen2.IsCurrentScreen(), "ensure screen2 is current");
                 AddAssert("screen2's entered fired", () => order == 3);
+                AddStep("exit 2", () => screen2.Exit());
+                AddUntilStep(() => screen1.IsCurrentScreen(), "ensure screen1 is current");
+                AddAssert("screen2's entered and exited fired", () => order == 4);
             }
         }
 
@@ -547,6 +595,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y));
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+                this.FadeIn(1000);
             }
 
             public override bool OnExiting(IScreen next)
