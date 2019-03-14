@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -174,30 +174,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestAsyncPush()
         {
-            TestScreen screen1 = null;
+            TestScreenSlow screen1 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddAssert("ensure current", () => !screen1.IsCurrentScreen());
-            AddWaitStep(1);
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
+            AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
+            AddStep("allow load", () => screen1.AllowLoad = true);
             AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
         }
 
         [Test]
         public void TestAsyncPreloadPush()
         {
-            TestScreen screen1 = null;
-            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow()));
+            TestScreenSlow screen1 = null;
+            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow { AllowLoad = true }));
             pushAndEnsureCurrent(() => screen1);
         }
 
         [Test]
         public void TestExitBeforePush()
         {
-            TestScreen screen1 = null;
+            TestScreenSlow screen1 = null;
             TestScreen screen2 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
+            AddStep("allow load", () => screen1.AllowLoad = true);
             AddUntilStep(() => screen1.LoadState >= LoadState.Ready, "wait for screen to load");
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
             AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
@@ -279,10 +281,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestScreenSlow : TestScreen
         {
+            public bool AllowLoad;
+
             [BackgroundDependencyLoader]
             private void load()
             {
-                Thread.Sleep((int)(500 / Clock.Rate));
+                while (!AllowLoad)
+                    Thread.Sleep(10);
             }
         }
 
