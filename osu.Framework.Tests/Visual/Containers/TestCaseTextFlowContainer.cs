@@ -65,5 +65,13 @@ namespace osu.Framework.Tests.Visual.Containers
                 return result == default_text;
             });
         }
+
+        [Test]
+        public void TestAddTextWithTextAnchor()
+        {
+            AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
+            AddStep("add text", () => textContainer.AddText("added text"));
+            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
+        }
     }
 }

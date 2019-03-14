@@ -106,7 +106,6 @@ namespace osu.Framework.Graphics.Containers
                 textAnchor = value;
 
                 layout.Invalidate();
-                InvalidateLayout();
             }
         }
 
@@ -123,11 +122,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override void InvalidateLayout()
         {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
+            base.InvalidateLayout();
+            layout.Invalidate();
         }
 
         public override IEnumerable<Drawable> FlowingChildren
