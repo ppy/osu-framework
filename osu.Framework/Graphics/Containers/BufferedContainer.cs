@@ -56,7 +56,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
         private Vector2 blurSigma = Vector2.Zero;
 
         /// <summary>

@@ -42,7 +42,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-
         public Line(Vector2 p1, Vector2 p2)
         {
             StartPoint = p1;
