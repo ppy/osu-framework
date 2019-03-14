@@ -217,6 +217,50 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestAsyncDoublePush()
+        {
+            TestScreenSlow screen1 = null;
+            TestScreenSlow screen2 = null;
+
+            AddStep("push slow", () => stack.Push(screen1 = new TestScreenSlow()));
+            // important to note we are pushing to the stack here, unlike the failing case above.
+            AddStep("push second slow", () => stack.Push(screen2 = new TestScreenSlow()));
+
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
+
+            AddAssert("screen1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen2 is not current", () => !screen2.IsCurrentScreen());
+
+            AddAssert("screen2 is current to stack", () => stack.CurrentScreen == screen2);
+
+            AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
+            AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
+
+            AddStep("allow load 2", () => screen2.AllowLoad = true);
+
+            // screen 2 won't actually be loading since the load is only triggered after screen1 is loaded.
+            AddWaitStep(10);
+
+            // furthermore, even though screen 2 is able to load, screen 1 has not yet so we shouldn't has received any events.
+            AddAssert("screen1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen2 is not current", () => !screen2.IsCurrentScreen());
+            AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
+            AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
+
+            AddStep("allow load 1", () => screen1.AllowLoad = true);
+            AddUntilStep(() => screen1.LoadState == LoadState.Loaded, "screen1 is loaded");
+            AddUntilStep(() => screen2.LoadState == LoadState.Loaded, "screen2 is loaded");
+
+            AddUntilStep(() => !screen1.IsAlive, "screen1 is expired");
+
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "screen1 is not current");
+            AddUntilStep(() => screen2.IsCurrentScreen(), "screen2 is current");
+
+            AddAssert("screen1 registered suspend", () => screen1.SuspendedTo == screen2);
+            AddAssert("screen2 registered entered", () => screen2.EnteredFrom == screen1);
+        }
+
+        [Test]
         public void TestMakeCurrent()
         {
             TestScreen screen1 = null;

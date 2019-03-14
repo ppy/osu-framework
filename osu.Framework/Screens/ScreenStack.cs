@@ -144,7 +144,12 @@ namespace osu.Framework.Screens
             if (toLoad.LoadState >= LoadState.Ready)
                 continuation?.Invoke();
             else
-                loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+            {
+                if (loader.LoadState >= LoadState.Loaded)
+                    loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+                else
+                    Schedule(() => LoadScreen(loader, toLoad, continuation));
+            }
         }
 
         internal void Exit(IScreen source)
