@@ -128,8 +128,13 @@ namespace osu.Framework.Screens
 
             void suspend()
             {
-                source?.OnSuspending(newScreen);
-                source?.AsDrawable().Expire();
+                var sourceDrawable = source?.AsDrawable();
+
+                sourceDrawable?.Schedule(() =>
+                {
+                    source.OnSuspending(newScreen);
+                    sourceDrawable.Expire();
+                });
             }
         }
 
