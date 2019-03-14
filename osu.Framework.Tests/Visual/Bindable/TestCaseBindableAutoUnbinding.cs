@@ -120,7 +120,6 @@ namespace osu.Framework.Tests.Visual.Bindable
                 this.badActor = badActor;
             }
 
-
             [BackgroundDependencyLoader]
             private void load(Bindable<int> parentBindable)
             {
