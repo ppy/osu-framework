@@ -127,13 +127,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void UpdateAfterChildren()
         {
-            base.UpdateAfterChildren();
-
             if (!layout.IsValid)
             {
                 computeLayout();
                 layout.Validate();
             }
+
+            base.UpdateAfterChildren();
         }
 
         protected override int Compare(Drawable x, Drawable y)
