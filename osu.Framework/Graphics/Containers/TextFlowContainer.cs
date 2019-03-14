@@ -87,6 +87,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Anchor textAnchor = Anchor.TopLeft;
+
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
@@ -99,9 +100,8 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 textAnchor = value;
 
-                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
-                if (IsLoaded)
-                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
+                layout.Invalidate();
+                InvalidateLayout();
             }
         }
 
