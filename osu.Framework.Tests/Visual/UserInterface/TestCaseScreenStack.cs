@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -258,6 +258,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("screen1 registered suspend", () => screen1.SuspendedTo == screen2);
             AddAssert("screen2 registered entered", () => screen2.EnteredFrom == screen1);
+        }
+
+        [Test]
+        public void TestAsyncPushWithNonImmediateSuspend()
+        {
+            AddStep("override stack", () =>
+            {
+                // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            TestScreenSlow screen1 = null;
+
+            AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
+            AddAssert("base screen not yet registered suspend", () => baseScreen.SuspendedTo == null);
+            AddAssert("ensure notcurrent", () => !screen1.IsCurrentScreen());
+            AddStep("allow load", () => screen1.AllowLoad = true);
+            AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
         }
 
         [Test]
