@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestCaseTextFlowContainer : TestCase
     {
-        private const string default_text = "Default text";
+        private const string default_text = "Default text\n\nnewline";
 
         private TextFlowContainer textContainer;
 
@@ -55,14 +55,14 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
             AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
-            AddAssert("children are in correct order", () =>
+            AddAssert("children are positioned correctly", () =>
             {
-                var children = textContainer.FlowingChildren.OfType<SpriteText>().Select(c => c.Text);
+                var result = textContainer.Children
+                                          .OrderBy(c => c.ScreenSpaceDrawQuad.TopLeft.Y).ThenBy(c => c is TextFlowContainer.NewLineContainer ? 0 : c.ScreenSpaceDrawQuad.TopLeft.X)
+                                          .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n")
+                                          .Aggregate((cur, next) => cur + next);
 
-                if ((anchor & Anchor.x2) > 0)
-                    children = children.Reverse();
-
-                return children.Aggregate((cur, next) => cur + next) == default_text;
+                return result == default_text;
             });
         }
     }

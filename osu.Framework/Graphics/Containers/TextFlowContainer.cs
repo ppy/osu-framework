@@ -131,9 +131,48 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public override IEnumerable<Drawable> FlowingChildren
-            => (TextAnchor & Anchor.x2) > 0
-                ? base.FlowingChildren.Reverse() // When displaying backwards, children order needs to be reversed
-                : base.FlowingChildren;
+        {
+            get
+            {
+                if ((TextAnchor & (Anchor.x2 | Anchor.y2)) == 0)
+                    return base.FlowingChildren;
+
+                var childArray = base.FlowingChildren.ToArray();
+
+                if ((TextAnchor & Anchor.x2) > 0)
+                    reverseHorizontal(childArray);
+                if ((TextAnchor & Anchor.y2) > 0)
+                    reverseVertical(childArray);
+
+                return childArray;
+            }
+        }
+
+        private void reverseHorizontal(Drawable[] children)
+        {
+            int reverseStartIndex = 0;
+
+            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (!(children[i] is NewLineContainer))
+                    continue;
+
+                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
+                reverseStartIndex = i + 1;
+            }
+
+            // Extra loop for the last newline boundary (or all children if there are no newlines)
+            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
+        }
+
+        private void reverseVertical(Drawable[] children)
+        {
+            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
+            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
+            Array.Reverse(children);
+            reverseHorizontal(children);
+        }
 
         protected override void UpdateAfterChildren()
         {
