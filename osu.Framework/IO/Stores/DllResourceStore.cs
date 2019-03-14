@@ -1,8 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -48,6 +50,24 @@ namespace osu.Framework.IO.Stores
                 return buffer;
             }
         }
+
+        /// <summary>
+        /// Retrieve a list of available resources provided by this store.
+        /// </summary>
+        public IEnumerable<string> AvailableResources =>
+            assembly.GetManifestResourceNames().Select(n =>
+            {
+                var chars = n.ToCharArray();
+
+                int startIndex = n.StartsWith(prefix) ? prefix.Length + 1 : 0;
+                int lastDot = n.LastIndexOf('.');
+
+                for (int i = startIndex; i < lastDot; i++)
+                    if (chars[i] == '.')
+                        chars[i] = '/';
+
+                return new string(chars);
+            });
 
         public Stream GetStream(string name)
         {
