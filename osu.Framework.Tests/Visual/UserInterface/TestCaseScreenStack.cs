@@ -216,6 +216,50 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push second slow", () => Assert.Throws<InvalidOperationException>(() => screen1.Push(new TestScreenSlow())));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAsyncEventOrder(bool earlyExit)
+        {
+            int order = 0;
+
+            var screen1 = new TestScreenSlow
+            {
+                Entered = () => Assert.AreEqual(1, Interlocked.Increment(ref order)),
+                Suspended = () => Assert.AreEqual(2, Interlocked.Increment(ref order))
+            };
+
+            var screen2 = new TestScreenSlow
+            {
+                Entered = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
+                Exited = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
+            };
+
+            AddStep("push slow", () => stack.Push(screen1));
+            AddStep("push second slow", () => stack.Push(screen2));
+
+            AddStep("allow load 1", () => screen1.AllowLoad = true);
+
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "ensure screen1 not current");
+            AddUntilStep(() => !screen2.IsCurrentScreen(), "ensure screen2 not current");
+
+            // but the stack has a different idea of "current"
+            AddAssert("ensure screen2 is current at the stack", () => stack.CurrentScreen == screen2);
+            AddUntilStep(() => order == 2, "screen1's entered and suspending fired");
+
+            if (earlyExit)
+                AddStep("early exit 2", () => screen2.Exit());
+
+            AddStep("allow load 2", () => screen2.AllowLoad = true);
+
+            if (earlyExit)
+                AddAssert("no screen2 events fired", () => order == 2);
+            else
+            {
+                AddUntilStep(() => screen2.IsCurrentScreen(), "ensure screen2 is current");
+                AddAssert("screen2's entered fired", () => order == 3);
+            }
+        }
+
         [Test]
         public void TestAsyncDoublePush()
         {
@@ -371,6 +415,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public Func<bool> Exiting;
 
+            public Action Entered;
+            public Action Suspended;
+            public Action Exited;
+
             public IScreen EnteredFrom;
             public IScreen ExitedTo;
 
@@ -481,6 +529,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnEntering(IScreen last)
             {
                 EnteredFrom = last;
+                Entered?.Invoke();
 
                 if (shouldTakeOutLease)
                 {
@@ -503,6 +552,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override bool OnExiting(IScreen next)
             {
                 ExitedTo = next;
+                Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
                     return true;
@@ -514,6 +564,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnSuspending(IScreen next)
             {
                 SuspendedTo = next;
+                Suspended?.Invoke();
 
                 base.OnSuspending(next);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);

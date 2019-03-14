@@ -118,7 +118,7 @@ namespace osu.Framework.Screens
 
                 if (!newScreen.ValidForPush)
                 {
-                    exitFrom(null);
+                    exitFrom(null, shouldFireEvent: false);
                     return;
                 }
 
@@ -197,7 +197,8 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
-        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null)
+        /// <param name="shouldFireEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
+        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireEvent = true)
         {
             if (stack.Count == 0)
                 return;
@@ -206,7 +207,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (toExit.OnExiting(CurrentScreen))
+            if (shouldFireEvent && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;
