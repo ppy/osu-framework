@@ -39,20 +39,25 @@ namespace osu.Framework.Screens
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
 
+        private readonly bool suspendImmediately;
+
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
         /// </summary>
-        public ScreenStack()
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(bool suspendImmediately = true)
         {
+            this.suspendImmediately = suspendImmediately;
             ScreenExited += onExited;
         }
 
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/>, and immediately pushes a <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="baseScreen"></param>
-        public ScreenStack(IScreen baseScreen)
-            : this()
+        /// <param name="baseScreen">The initial <see cref="IScreen"/> to be loaded</param>
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(IScreen baseScreen, bool suspendImmediately = true)
+            : this(suspendImmediately)
         {
             Push(baseScreen);
         }
@@ -91,16 +96,26 @@ namespace osu.Framework.Screens
                 if (source != stack.Peek())
                     throw new ScreenNotCurrentException(nameof(Push));
 
-                source.OnSuspending(newScreen);
-                source.AsDrawable().Expire();
+                if (suspendImmediately)
+                    suspend();
             }
 
             // Push the new screen
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
+            if (source != null)
+                LoadScreen((CompositeDrawable)source, newScreen.AsDrawable(), finishLoad);
+            else if (LoadState >= LoadState.Ready)
+                LoadScreen(this, newScreen.AsDrawable(), finishLoad);
+            else
+                Schedule(finishLoad);
+
             void finishLoad()
             {
+                if (!suspendImmediately)
+                    suspend();
+
                 if (!newScreen.ValidForPush)
                 {
                     exitFrom(null);
@@ -111,12 +126,11 @@ namespace osu.Framework.Screens
                 newScreen.OnEntering(source);
             }
 
-            if (source != null)
-                LoadScreen((CompositeDrawable)source, newScreen.AsDrawable(), finishLoad);
-            else if (LoadState >= LoadState.Ready)
-                LoadScreen(this, newScreen.AsDrawable(), finishLoad);
-            else
-                Schedule(finishLoad);
+            void suspend()
+            {
+                source?.OnSuspending(newScreen);
+                source?.AsDrawable().Expire();
+            }
         }
 
         /// <summary>
