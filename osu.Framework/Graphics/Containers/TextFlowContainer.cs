@@ -18,6 +18,11 @@ namespace osu.Framework.Graphics.Containers
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
 
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
         /// </summary>
@@ -125,6 +130,11 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        public override IEnumerable<Drawable> FlowingChildren
+            => (TextAnchor & Anchor.x2) > 0
+                ? base.FlowingChildren.Reverse() // When displaying backwards, children order needs to be reversed
+                : base.FlowingChildren;
+
         protected override void UpdateAfterChildren()
         {
             if (!layout.IsValid)
@@ -184,11 +194,6 @@ namespace osu.Framework.Graphics.Containers
         /// End current paragraph and start a new one.
         /// </summary>
         public void NewParagraph() => base.Add(new NewLineContainer(true));
-
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
-        {
-            this.defaultCreationParameters = defaultCreationParameters;
-        }
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
