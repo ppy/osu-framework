@@ -208,6 +208,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPushToNonLoadedScreenFails()
+        {
+            TestScreenSlow screen1 = null;
+
+            AddStep("push slow", () => stack.Push(screen1 = new TestScreenSlow()));
+            AddStep("push second slow", () => Assert.Throws<InvalidOperationException>(() => screen1.Push(new TestScreenSlow())));
+        }
+
+        [Test]
         public void TestMakeCurrent()
         {
             TestScreen screen1 = null;
