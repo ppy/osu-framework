@@ -40,8 +40,9 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
         }
 
-        private readonly Color4 idleColour = new Color4(0.15f, 0.15f, 0.15f, 1);
-        private readonly Color4 runningColour = new Color4(0.5f, 0.5f, 0.5f, 1);
+        protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
+
+        protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
         protected StepButton()
         {
@@ -50,7 +51,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = idleColour,
+                    Colour = IdleColour,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                 },
@@ -106,14 +107,14 @@ namespace osu.Framework.Testing.Drawables.Steps
         /// </summary>
         public virtual void Reset()
         {
-            Background.DelayUntilTransformsFinished().FadeColour(idleColour, 1000, Easing.OutQuint);
+            Background.DelayUntilTransformsFinished().FadeColour(IdleColour, 1000, Easing.OutQuint);
             Light.FadeColour(lightColour);
         }
 
         public virtual void PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();
-            Background.FadeColour(runningColour, 400, Easing.OutQuint);
+            Background.FadeColour(RunningColour, 400, Easing.OutQuint);
 
             try
             {
@@ -135,7 +136,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected virtual void Success()
         {
             Background.FinishTransforms();
-            Background.FadeColour(idleColour, 1000, Easing.OutQuint);
+            Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
             SpriteText.Alpha = 0.8f;

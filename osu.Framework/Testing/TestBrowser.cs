@@ -22,6 +22,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
+using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
@@ -429,15 +430,31 @@ namespace osu.Framework.Testing
                 {
                     if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                     {
-                        var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                        step.LightColour = Color4.Teal;
+                        CurrentTest.AddLabel(m.Name);
+
+                        if (setUpMethods.Any())
+                        {
+                            CurrentTest.AddStep(new SetUpStep
+                            {
+                                Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                            });
+                        }
+
                         m.Invoke(CurrentTest, null);
                     }
 
                     foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                     {
-                        var step = CurrentTest.AddStep($"Setup: {m.Name}({string.Join(", ", tc.Arguments)})", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                        step.LightColour = Color4.Teal;
+                        CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+
+                        if (setUpMethods.Any())
+                        {
+                            CurrentTest.AddStep(new SetUpStep
+                            {
+                                Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                            });
+                        }
+
                         m.Invoke(CurrentTest, tc.Arguments);
                     }
                 }
@@ -448,12 +465,24 @@ namespace osu.Framework.Testing
             });
         }
 
+        private class SetUpStep : SingleStepButton
+        {
+            public SetUpStep()
+            {
+                Text = "[SetUp]";
+                LightColour = Color4.Teal;
+            }
+        }
+
         private void runTests(Action onCompletion)
         {
-            if (!interactive || RunAllSteps.Value)
-                CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
-            else
-                CurrentTest.RunFirstStep();
+            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            {
+                if (!interactive || RunAllSteps.Value)
+                    return false;
+
+                return !(s is SetUpStep) && !(s is LabelStep);
+            });
         }
 
         private void updateButtons()
