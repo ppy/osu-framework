@@ -832,7 +832,6 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
 

@@ -37,7 +37,6 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public bool Repeat { get; set; }
 
-
         protected Animation()
         {
             AutoSizeAxes = Axes.Both;

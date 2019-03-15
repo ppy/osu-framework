@@ -53,7 +53,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
