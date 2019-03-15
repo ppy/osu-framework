@@ -398,7 +398,13 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.Ctrl_and_WheelUp),
             };
 
-            protected override bool Handle(UIEvent e)
+            protected override bool Handle(PositionalEvent e)
+            {
+                base.Handle(e);
+                return false;
+            }
+
+            protected override bool Handle(NonPositionalEvent e)
             {
                 base.Handle(e);
                 return false;

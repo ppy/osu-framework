@@ -116,10 +116,17 @@ namespace osu.Framework.Tests.Visual.Input
             test(new Vector2(370, 360), true);
         }
 
-        protected override bool OnMouseMove(MouseMoveEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            text.Text = path.ToLocalSpace(e.ScreenSpaceMousePosition).ToString();
-            return base.OnMouseMove(e);
+            switch (e)
+            {
+                case MouseMoveEvent mouseMoveEvent:
+                    text.Text = path.ToLocalSpace(e.ScreenSpaceMousePosition).ToString();
+                    return base.Handle(mouseMoveEvent);
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
         private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>
@@ -153,15 +160,21 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class HoverablePath : Path
         {
-            protected override bool OnHover(HoverEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                Colour = Color4.Green;
-                return true;
-            }
+                switch (e)
+                {
+                    case HoverEvent _:
+                        Colour = Color4.Green;
+                        return true;
 
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                Colour = Color4.White;
+                    case HoverLostEvent _:
+                        Colour = Color4.White;
+                        return false;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
         }
     }

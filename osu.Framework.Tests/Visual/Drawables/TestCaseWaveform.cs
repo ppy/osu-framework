@@ -193,28 +193,31 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             private bool mouseDown;
 
-            protected override bool OnMouseDown(MouseDownEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                mouseDown = true;
-                seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
-                return true;
-            }
-
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                mouseDown = false;
-                return true;
-            }
-
-            protected override bool OnMouseMove(MouseMoveEvent e)
-            {
-                if (mouseDown)
+                switch (e)
                 {
-                    seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
-                    return true;
-                }
+                    case MouseDownEvent _:
+                        mouseDown = true;
+                        seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
+                        return true;
 
-                return false;
+                    case MouseUpEvent _:
+                        mouseDown = false;
+                        return true;
+
+                    case MouseMoveEvent _:
+                        if (mouseDown)
+                        {
+                            seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
+                            return true;
+                        }
+
+                        return false;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
 
             private void seekTo(float x)

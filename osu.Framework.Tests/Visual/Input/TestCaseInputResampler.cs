@@ -185,18 +185,23 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected virtual void AddUserVertex(Vector2 v) => AddRawVertex(v);
 
-            protected override bool OnDragStart(DragStartEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                AddUserVertex(e.MousePosition);
-                DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
-                return true;
-            }
+                switch (e)
+                {
+                    case DragStartEvent _:
+                        AddUserVertex(e.MousePosition);
+                        DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
+                        return true;
 
-            protected override bool OnDrag(DragEvent e)
-            {
-                AddUserVertex(e.MousePosition);
-                DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
-                return base.OnDrag(e);
+                    case DragEvent dragEvent:
+                        AddUserVertex(e.MousePosition);
+                        DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
+                        return base.Handle(dragEvent);
+
+                    default:
+                        return base.Handle(e);
+                }
             }
         }
 

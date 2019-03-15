@@ -137,23 +137,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             private Vector2 oldPos;
 
-            protected override bool OnDragStart(DragStartEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                AddVertex(e.MousePosition);
-                oldPos = e.MousePosition;
-                return true;
-            }
-
-            protected override bool OnDrag(DragEvent e)
-            {
-                Vector2 pos = e.MousePosition;
-                if ((pos - oldPos).Length > 10)
+                switch (e)
                 {
-                    AddVertex(pos);
-                    oldPos = pos;
-                }
+                    case DragStartEvent _:
+                        AddVertex(e.MousePosition);
+                        oldPos = e.MousePosition;
+                        return true;
 
-                return base.OnDrag(e);
+                    case DragEvent dragEvent:
+                        Vector2 pos = e.MousePosition;
+                        if ((pos - oldPos).Length > 10)
+                        {
+                            AddVertex(pos);
+                            oldPos = pos;
+                        }
+
+                        return base.Handle(dragEvent);
+
+                    default:
+                        return base.Handle(e);
+                }
             }
         }
     }

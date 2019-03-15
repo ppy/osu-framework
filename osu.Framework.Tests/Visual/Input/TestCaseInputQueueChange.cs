@@ -107,11 +107,18 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            protected override bool OnMouseDown(MouseDownEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                HitCount++;
-                this.MoveToX(xPos + 100).Then().MoveToX(xPos, 1000, Easing.In);
-                return true;
+                switch (e)
+                {
+                    case MouseDownEvent _:
+                        HitCount++;
+                        this.MoveToX(xPos + 100).Then().MoveToX(xPos, 1000, Easing.In);
+                        return true;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
 
             public void Reset()

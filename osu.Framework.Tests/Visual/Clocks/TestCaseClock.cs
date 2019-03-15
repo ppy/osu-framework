@@ -108,7 +108,30 @@ namespace osu.Framework.Tests.Visual.Clocks
                 };
             }
 
-            protected override bool OnClick(ClickEvent e)
+            protected override bool Handle(PositionalEvent e)
+            {
+                switch (e)
+                {
+                    case ClickEvent _:
+                        return handleClick();
+
+                    case ScrollEvent scrollEvent:
+                        return handleScroll(scrollEvent);
+
+                    default:
+                        return base.Handle(e);
+                }
+            }
+
+            private bool handleScroll(ScrollEvent scrollEvent)
+            {
+                if (clock is IAdjustableClock adjustable)
+                    adjustable.Rate += scrollEvent.ScrollDelta.Y / 1000;
+
+                return base.Handle(scrollEvent);
+            }
+
+            private bool handleClick()
             {
                 if (clock is IAdjustableClock adjustable)
                 {
@@ -119,14 +142,6 @@ namespace osu.Framework.Tests.Visual.Clocks
                 }
 
                 return true;
-            }
-
-            protected override bool OnScroll(ScrollEvent e)
-            {
-                if (clock is IAdjustableClock adjustable)
-                    adjustable.Rate += e.ScrollDelta.Y / 1000;
-
-                return base.OnScroll(e);
             }
 
             protected override void Update()

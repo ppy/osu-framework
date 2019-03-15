@@ -477,15 +477,21 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private class CircularContainerWithInput : CircularContainer
         {
-            protected override bool OnHover(HoverEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                this.ScaleTo(1.2f, 100);
-                return true;
-            }
+                switch (e)
+                {
+                    case HoverEvent _:
+                        this.ScaleTo(1.2f, 100);
+                        return true;
 
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                this.ScaleTo(1f, 100);
+                    case HoverLostEvent _:
+                        this.ScaleTo(1f, 100);
+                        return false;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
         }
     }

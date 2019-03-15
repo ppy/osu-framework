@@ -590,16 +590,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Masking = true;
             }
 
-            protected override void OnFocus(FocusEvent e)
+            protected override bool Handle(FocusEventBase e)
             {
-                base.OnFocus(e);
-                BorderThickness = 10;
+                switch (e)
+                {
+                    case FocusEvent focusEvent:
+                        base.Handle(focusEvent);
+                        BorderThickness = 10;
+                        return false;
+
+                    case FocusLostEvent focusLostEvent:
+                        base.Handle(focusLostEvent);
+                        BorderThickness = 0;
+                        return false;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
 
-            protected override void OnFocusLost(FocusLostEvent e)
+            protected override bool Handle(NonPositionalEvent e)
             {
-                base.OnFocusLost(e);
-                BorderThickness = 0;
+                switch (e)
+                {
+                    default:
+                        return base.Handle(e);
+                }
             }
 
             public override void OnEntering(IScreen last)

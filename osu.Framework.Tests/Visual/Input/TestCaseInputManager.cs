@@ -121,54 +121,51 @@ namespace osu.Framework.Tests.Visual.Input
 
             public int MouseDownCount;
 
-            protected override bool OnMouseDown(MouseDownEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                ++MouseDownCount;
-                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={e.MousePosition}";
-                return true;
+                switch (e)
+                {
+                    case MouseDownEvent _:
+                        ++MouseDownCount;
+                        onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={e.MousePosition}";
+                        return true;
+
+                    case MouseUpEvent mouseUpEvent:
+                        ++MouseUpCount;
+                        onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={mouseUpEvent.MouseDownPosition}";
+                        return base.Handle(mouseUpEvent);
+
+                    case MouseMoveEvent mouseMoveEvent:
+                        ++MouseMoveCount;
+                        onMouseMoveStatus.Text = $"OnMouseMove {MouseMoveCount}: Position={e.MousePosition}, Delta={mouseMoveEvent.Delta}";
+                        return base.Handle(mouseMoveEvent);
+
+                    case ScrollEvent scrollEvent:
+                        ++ScrollCount;
+                        onScrollStatus.Text = $"OnScroll {ScrollCount}: ScrollDelta={scrollEvent.ScrollDelta}, IsPrecise={scrollEvent.IsPrecise}";
+                        return base.Handle(scrollEvent);
+
+                    case HoverEvent hoverEvent:
+                        ++HoverCount;
+                        onHoverStatus.Text = $"OnHover {HoverCount}: Position={e.MousePosition}";
+                        return base.Handle(hoverEvent);
+
+                    case ClickEvent _:
+                        this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
+                        return true;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
 
             public int MouseUpCount;
 
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                ++MouseUpCount;
-                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={e.MouseDownPosition}";
-                return base.OnMouseUp(e);
-            }
-
             public int MouseMoveCount;
-
-            protected override bool OnMouseMove(MouseMoveEvent e)
-            {
-                ++MouseMoveCount;
-                onMouseMoveStatus.Text = $"OnMouseMove {MouseMoveCount}: Position={e.MousePosition}, Delta={e.Delta}";
-                return base.OnMouseMove(e);
-            }
 
             public int ScrollCount;
 
-            protected override bool OnScroll(ScrollEvent e)
-            {
-                ++ScrollCount;
-                onScrollStatus.Text = $"OnScroll {ScrollCount}: ScrollDelta={e.ScrollDelta}, IsPrecise={e.IsPrecise}";
-                return base.OnScroll(e);
-            }
-
             public int HoverCount;
-
-            protected override bool OnHover(HoverEvent e)
-            {
-                ++HoverCount;
-                onHoverStatus.Text = $"OnHover {HoverCount}: Position={e.MousePosition}";
-                return base.OnHover(e);
-            }
-
-            protected override bool OnClick(ClickEvent e)
-            {
-                this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
-                return true;
-            }
         }
 
         [Resolved]
