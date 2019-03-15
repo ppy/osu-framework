@@ -139,7 +139,7 @@ namespace osu.Framework.Screens
                 else
                 {
                     // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
-                    sourceDrawable.OnLoadComplete = _ => performSuspend();
+                    sourceDrawable.OnLoadComplete += _ => performSuspend();
                 }
 
                 void performSuspend()
