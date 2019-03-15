@@ -219,19 +219,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestEventOrder()
         {
-            int order = 0;
+            List<int> order = new List<int>();
 
             var screen1 = new TestScreen
             {
-                Entered = () => Assert.AreEqual(1, Interlocked.Increment(ref order)),
-                Suspended = () => Assert.AreEqual(2, Interlocked.Increment(ref order)),
-                Exited = () => Assert.AreEqual(5, Interlocked.Increment(ref order)),
+                Entered = () => order.Add(1),
+                Suspended = () => order.Add(2),
+                Resumed = () => order.Add(5),
             };
 
             var screen2 = new TestScreen
             {
-                Entered = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
-                Exited = () => Assert.AreEqual(4, Interlocked.Increment(ref order)),
+                Entered = () => order.Add(3),
+                Exited = () => order.Add(4),
             };
 
             AddStep("push screen1", () => stack.Push(screen1));
@@ -248,6 +248,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("push screen2", () => screen1.Exit());
             AddUntilStep(() => !screen1.IsCurrentScreen(), "ensure exited");
+
+            AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
         }
 
         [Test]
