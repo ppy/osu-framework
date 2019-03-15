@@ -220,6 +220,8 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
+                cellSize = Math.Min(d.MaxSize, cellSize);
+
                 switch (axis)
                 {
                     case Axes.X:
@@ -238,24 +240,54 @@ namespace osu.Framework.Graphics.Containers
                 distributionCount--;
             }
 
-            // Compute the size which all distributed columns/rows should take on
-            float distributedSize = (getSizeAlongAxis(axis) - definedSize) / distributionCount;
+            // Compute the size which all distributed cells should take on
+            float distributionSize = (getSizeAlongAxis(axis) - definedSize) / distributionCount;
+
+            // Redistribute excess from distributed cells which would receive a larger size than they want
+            if (distributionCount > 1)
+            {
+                // For each distributed column, add the excess back to the distribution pool
+                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderBy(d => d.MaxSize))
+                {
+                    if (d.MaxSize >= distributionSize)
+                        continue;
+
+                    // Remove this cell from the distribution pool
+                    distributionCount--;
+
+                    if (distributionCount == 0)
+                        break;
+
+                    // Redistribute the excess between all other cells, each receiving a fraction of the excess
+                    distributionSize += (distributionSize - d.MaxSize) / distributionCount;
+                }
+            }
 
             // Add size to distributed columns/rows and add adjust cell positions
             for (int i = 0; i < axisCells; i++)
             for (int j = 0; j < oppositeAxisCells; j++)
             {
+                float clampedDistributionSize = distributionSize;
+
+                if (requiresDistribution[i])
+                {
+                    float maxSize = i >= dimensions.Length ? float.MaxValue : dimensions[i].MaxSize;
+                    clampedDistributionSize = Math.Min(maxSize, clampedDistributionSize);
+                }
+
                 switch (axis)
                 {
                     case Axes.X:
                         if (requiresDistribution[i])
-                            cells[j, i].Width = distributedSize;
+                            cells[j, i].Width = clampedDistributionSize;
+
                         if (i > 0)
                             cells[j, i].X = cells[j, i - 1].X + cells[j, i - 1].Width;
                         break;
                     case Axes.Y:
                         if (requiresDistribution[i])
-                            cells[i, j].Height = distributedSize;
+                            cells[i, j].Height = clampedDistributionSize;
+
                         if (i > 0)
                             cells[i, j].Y = cells[i - 1, j].Y + cells[i - 1, j].Height;
                         break;
@@ -329,27 +361,34 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Defines the size of a row or column in a <see cref="GridContainer"/>.
     /// </summary>
-    public struct Dimension
+    public class Dimension
     {
         /// <summary>
         /// The mode in which this row or column <see cref="GridContainer"/> is sized.
         /// </summary>
-        public GridSizeMode Mode { get; private set; }
+        public readonly GridSizeMode Mode;
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public float Size { get; private set; }
+        public readonly float Size;
+
+        /// <summary>
+        /// The maximum size of the row or column which this <see cref="Dimension"/> applies to.
+        /// </summary>
+        public readonly float MaxSize;
 
         /// <summary>
         /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
         /// <param name="mode">The sizing mode to use.</param>
         /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Distributed"/>.</param>
-        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0)
+        /// <param name="maxSize">The maximum size of this row or column.</param>
+        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float maxSize = float.MaxValue)
         {
             Mode = mode;
             Size = size;
+            MaxSize = maxSize;
         }
     }
 
