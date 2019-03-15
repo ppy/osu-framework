@@ -174,35 +174,232 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestAsyncPush()
         {
-            TestScreen screen1 = null;
+            TestScreenSlow screen1 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddAssert("ensure current", () => !screen1.IsCurrentScreen());
-            AddWaitStep(1);
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
+            AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
+            AddStep("allow load", () => screen1.AllowLoad = true);
             AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
         }
 
         [Test]
         public void TestAsyncPreloadPush()
         {
-            TestScreen screen1 = null;
-            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow()));
+            TestScreenSlow screen1 = null;
+            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow { AllowLoad = true }));
             pushAndEnsureCurrent(() => screen1);
         }
 
         [Test]
         public void TestExitBeforePush()
         {
-            TestScreen screen1 = null;
+            TestScreenSlow screen1 = null;
             TestScreen screen2 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
+            AddStep("allow load", () => screen1.AllowLoad = true);
             AddUntilStep(() => screen1.LoadState >= LoadState.Ready, "wait for screen to load");
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
             AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
             AddUntilStep(() => screen2.IsCurrentScreen(), "ensure new current");
+        }
+
+        [Test]
+        public void TestPushToNonLoadedScreenFails()
+        {
+            TestScreenSlow screen1 = null;
+
+            AddStep("push slow", () => stack.Push(screen1 = new TestScreenSlow()));
+            AddStep("push second slow", () => Assert.Throws<InvalidOperationException>(() => screen1.Push(new TestScreenSlow())));
+        }
+
+        [Test]
+        public void TestEventOrder()
+        {
+            List<int> order = new List<int>();
+
+            var screen1 = new TestScreen
+            {
+                Entered = () => order.Add(1),
+                Suspended = () => order.Add(2),
+                Resumed = () => order.Add(5),
+            };
+
+            var screen2 = new TestScreen
+            {
+                Entered = () => order.Add(3),
+                Exited = () => order.Add(4),
+            };
+
+            AddStep("push screen1", () => stack.Push(screen1));
+            AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
+
+            AddStep("preload screen2", () => LoadComponentAsync(screen2));
+            AddUntilStep(() => screen2.LoadState == LoadState.Ready, "wait for load");
+
+            AddStep("push screen2", () => screen1.Push(screen2));
+            AddUntilStep(() => screen2.IsCurrentScreen(), "ensure current");
+
+            AddStep("exit screen2", () => screen2.Exit());
+            AddUntilStep(() => !screen2.IsCurrentScreen(), "ensure exited");
+
+            AddStep("push screen2", () => screen1.Exit());
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "ensure exited");
+
+            AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestComeVisibleFromHidden()
+        {
+            TestScreen screen1 = null;
+            pushAndEnsureCurrent(() => screen1 = new TestScreen { Alpha = 0 });
+
+            AddUntilStep(() => screen1.Alpha > 0, "screen1 is visible");
+
+            pushAndEnsureCurrent(() => new TestScreen { Alpha = 0 }, () => screen1);
+        }
+
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestAsyncEventOrder(bool earlyExit, bool suspendImmediately)
+        {
+            if (!suspendImmediately)
+            {
+                AddStep("override stack", () =>
+                {
+                    // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                    Clear();
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    });
+                });
+            }
+
+            List<int> order = new List<int>();
+
+            var screen1 = new TestScreenSlow
+            {
+                Entered = () => order.Add(1),
+                Suspended = () => order.Add(2),
+                Resumed = () => order.Add(5),
+            };
+
+            var screen2 = new TestScreenSlow
+            {
+                Entered = () => order.Add(3),
+                Exited = () => order.Add(4),
+            };
+
+            AddStep("push slow", () => stack.Push(screen1));
+            AddStep("push second slow", () => stack.Push(screen2));
+
+            AddStep("allow load 1", () => screen1.AllowLoad = true);
+
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "ensure screen1 not current");
+            AddUntilStep(() => !screen2.IsCurrentScreen(), "ensure screen2 not current");
+
+            // but the stack has a different idea of "current"
+            AddAssert("ensure screen2 is current at the stack", () => stack.CurrentScreen == screen2);
+
+            if (suspendImmediately)
+                AddUntilStep(() => screen1.SuspendedTo == screen2, "screen1's suspending fired");
+            else
+                AddUntilStep(() => screen1.EnteredFrom != null, "screen1's entered and suspending fired");
+
+            if (earlyExit)
+                AddStep("early exit 2", () => screen2.Exit());
+
+            AddStep("allow load 2", () => screen2.AllowLoad = true);
+
+            if (earlyExit)
+            {
+                AddAssert("screen2's entered did not fire", () => screen2.EnteredFrom == null);
+                AddAssert("screen2's exited did not fire", () => screen2.ExitedTo == null);
+            }
+            else
+            {
+                AddUntilStep(() => screen2.IsCurrentScreen(), "ensure screen2 is current");
+                AddAssert("screen2's entered fired", () => screen2.EnteredFrom == screen1);
+                AddStep("exit 2", () => screen2.Exit());
+                AddUntilStep(() => screen1.IsCurrentScreen(), "ensure screen1 is current");
+                AddAssert("screen2's exited fired", () => screen2.ExitedTo == screen1);
+            }
+
+            AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestAsyncDoublePush()
+        {
+            TestScreenSlow screen1 = null;
+            TestScreenSlow screen2 = null;
+
+            AddStep("push slow", () => stack.Push(screen1 = new TestScreenSlow()));
+            // important to note we are pushing to the stack here, unlike the failing case above.
+            AddStep("push second slow", () => stack.Push(screen2 = new TestScreenSlow()));
+
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
+
+            AddAssert("screen1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen2 is not current", () => !screen2.IsCurrentScreen());
+
+            AddAssert("screen2 is current to stack", () => stack.CurrentScreen == screen2);
+
+            AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
+            AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
+
+            AddStep("allow load 2", () => screen2.AllowLoad = true);
+
+            // screen 2 won't actually be loading since the load is only triggered after screen1 is loaded.
+            AddWaitStep(10);
+
+            // furthermore, even though screen 2 is able to load, screen 1 has not yet so we shouldn't has received any events.
+            AddAssert("screen1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("screen2 is not current", () => !screen2.IsCurrentScreen());
+            AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
+            AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
+
+            AddStep("allow load 1", () => screen1.AllowLoad = true);
+            AddUntilStep(() => screen1.LoadState == LoadState.Loaded, "screen1 is loaded");
+            AddUntilStep(() => screen2.LoadState == LoadState.Loaded, "screen2 is loaded");
+
+            AddUntilStep(() => !screen1.IsAlive, "screen1 is expired");
+
+            AddUntilStep(() => !screen1.IsCurrentScreen(), "screen1 is not current");
+            AddUntilStep(() => screen2.IsCurrentScreen(), "screen2 is current");
+
+            AddAssert("screen1 registered suspend", () => screen1.SuspendedTo == screen2);
+            AddAssert("screen2 registered entered", () => screen2.EnteredFrom == screen1);
+        }
+
+        [Test]
+        public void TestAsyncPushWithNonImmediateSuspend()
+        {
+            AddStep("override stack", () =>
+            {
+                // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            TestScreenSlow screen1 = null;
+
+            AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
+            AddAssert("base screen not yet registered suspend", () => baseScreen.SuspendedTo == null);
+            AddAssert("ensure notcurrent", () => !screen1.IsCurrentScreen());
+            AddStep("allow load", () => screen1.AllowLoad = true);
+            AddUntilStep(() => screen1.IsCurrentScreen(), "ensure current");
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
         }
 
         [Test]
@@ -279,16 +476,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestScreenSlow : TestScreen
         {
+            public bool AllowLoad;
+
             [BackgroundDependencyLoader]
             private void load()
             {
-                Thread.Sleep((int)(500 / Clock.Rate));
+                while (!AllowLoad)
+                    Thread.Sleep(10);
             }
         }
 
         private class TestScreen : Screen
         {
             public Func<bool> Exiting;
+
+            public Action Entered;
+            public Action Suspended;
+            public Action Resumed;
+            public Action Exited;
 
             public IScreen EnteredFrom;
             public IScreen ExitedTo;
@@ -400,6 +605,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnEntering(IScreen last)
             {
                 EnteredFrom = last;
+                Entered?.Invoke();
 
                 if (shouldTakeOutLease)
                 {
@@ -417,11 +623,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y));
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+                this.FadeIn(1000);
             }
 
             public override bool OnExiting(IScreen next)
             {
                 ExitedTo = next;
+                Exited?.Invoke();
 
                 if (Exiting?.Invoke() == true)
                     return true;
@@ -433,6 +641,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnSuspending(IScreen next)
             {
                 SuspendedTo = next;
+                Suspended?.Invoke();
 
                 base.OnSuspending(next);
                 this.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
@@ -441,6 +650,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnResuming(IScreen last)
             {
                 ResumedFrom = last;
+                Resumed?.Invoke();
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
