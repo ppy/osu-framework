@@ -57,10 +57,6 @@ namespace osu.Framework.Graphics.Video
 
         private volatile DecoderState state;
 
-        /// <summary>
-        /// The state the decoder is currently in.
-        /// </summary>
-
         // libav-context-related
         private AVFormatContext* formatContext;
         private AVStream* stream;

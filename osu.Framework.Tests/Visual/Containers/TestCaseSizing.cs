@@ -202,7 +202,6 @@ namespace osu.Framework.Tests.Visual.Containers
 
                     addCornerMarkers(box, 5);
 
-
                     box.Add(box = new InfofulBoxAutoSize
                     {
                         Colour = Color4.DarkSeaGreen,

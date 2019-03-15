@@ -78,7 +78,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
