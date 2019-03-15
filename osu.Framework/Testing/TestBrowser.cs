@@ -404,7 +404,7 @@ namespace osu.Framework.Testing
                 OnCaughtError = compileFailed
             });
 
-            newTest.OnLoadComplete = d => Schedule(() =>
+            newTest.OnLoadComplete += d => Schedule(() =>
             {
                 if (lastTest?.Parent != null)
                 {
