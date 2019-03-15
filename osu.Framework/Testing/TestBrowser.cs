@@ -391,7 +391,7 @@ namespace osu.Framework.Testing
             var lastTest = CurrentTest;
 
             CurrentTest = newTest;
-            CurrentTest.OnLoadComplete = _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
+            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
 
             updateButtons();
             resetRecording();

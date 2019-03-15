@@ -178,7 +178,6 @@ namespace osu.Framework.Testing
             });
         }
 
-
         private const float steps_width = 180;
         private const float padding = 0;
 
