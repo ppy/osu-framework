@@ -258,25 +258,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddUntilStep(() => screen1.Alpha > 0, "screen1 is visible");
 
-            pushAndEnsureCurrent(() => new TestScreen { Alpha = 0 },() => screen1);
+            pushAndEnsureCurrent(() => new TestScreen { Alpha = 0 }, () => screen1);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestAsyncEventOrder(bool earlyExit)
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestAsyncEventOrder(bool earlyExit, bool suspendImmediately)
         {
-            int order = 0;
+            if (!suspendImmediately)
+            {
+                AddStep("override stack", () =>
+                {
+                    // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                    Clear();
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    });
+                });
+            }
+
+            List<int> order = new List<int>();
 
             var screen1 = new TestScreenSlow
             {
-                Entered = () => Assert.AreEqual(1, Interlocked.Increment(ref order)),
-                Suspended = () => Assert.AreEqual(2, Interlocked.Increment(ref order))
+                Entered = () => order.Add(1),
+                Suspended = () => order.Add(2),
+                Resumed = () => order.Add(5),
             };
 
             var screen2 = new TestScreenSlow
             {
-                Entered = () => Assert.AreEqual(3, Interlocked.Increment(ref order)),
-                Exited = () => Assert.AreEqual(4, Interlocked.Increment(ref order)),
+                Entered = () => order.Add(3),
+                Exited = () => order.Add(4),
             };
 
             AddStep("push slow", () => stack.Push(screen1));
@@ -289,7 +305,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // but the stack has a different idea of "current"
             AddAssert("ensure screen2 is current at the stack", () => stack.CurrentScreen == screen2);
-            AddUntilStep(() => order == 2, "screen1's entered and suspending fired");
+
+            if (suspendImmediately)
+                AddUntilStep(() => screen1.SuspendedTo == screen2, "screen1's suspending fired");
+            else
+                AddUntilStep(() => screen1.EnteredFrom != null, "screen1's entered and suspending fired");
 
             if (earlyExit)
                 AddStep("early exit 2", () => screen2.Exit());
@@ -297,15 +317,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("allow load 2", () => screen2.AllowLoad = true);
 
             if (earlyExit)
-                AddAssert("no screen2 events fired", () => order == 2);
+            {
+                AddAssert("screen2's entered did not fire", () => screen2.EnteredFrom == null);
+                AddAssert("screen2's exited did not fire", () => screen2.ExitedTo == null);
+            }
             else
             {
                 AddUntilStep(() => screen2.IsCurrentScreen(), "ensure screen2 is current");
-                AddAssert("screen2's entered fired", () => order == 3);
+                AddAssert("screen2's entered fired", () => screen2.EnteredFrom == screen1);
                 AddStep("exit 2", () => screen2.Exit());
                 AddUntilStep(() => screen1.IsCurrentScreen(), "ensure screen1 is current");
-                AddAssert("screen2's entered and exited fired", () => order == 4);
+                AddAssert("screen2's exited fired", () => screen2.ExitedTo == screen1);
             }
+
+            AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
         }
 
         [Test]
@@ -465,6 +490,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public Action Entered;
             public Action Suspended;
+            public Action Resumed;
             public Action Exited;
 
             public IScreen EnteredFrom;
@@ -622,6 +648,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override void OnResuming(IScreen last)
             {
                 ResumedFrom = last;
+                Resumed?.Invoke();
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
