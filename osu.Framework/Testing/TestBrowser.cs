@@ -366,8 +366,6 @@ namespace osu.Framework.Testing
 
         public bool OnReleased(TestBrowserAction action) => false;
 
-        public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
-
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
             if (testType == null && TestTypes.Count > 0)
@@ -375,94 +373,99 @@ namespace osu.Framework.Testing
 
             config.Set(TestBrowserSetting.LastTest, testType?.Name ?? string.Empty);
 
-            var lastTest = CurrentTest;
-
             if (testType == null)
                 return;
 
             var newTest = (TestCase)Activator.CreateInstance(testType);
 
-            const string dynamic = "dynamic";
+            const string dynamic_prefix = "dynamic";
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
-                toolbar.AddAssembly($"{dynamic} ({testType.Name})", testType.Assembly);
+                toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
             else
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
+                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
 
             Assembly.Value = testType.Assembly;
 
+            var lastTest = CurrentTest;
+
             CurrentTest = newTest;
+            CurrentTest.OnLoadComplete = _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
 
             updateButtons();
-
-            CurrentFrame.Value = 0;
-            if (RecordState.Value == Testing.RecordState.Stopped)
-                RecordState.Value = Testing.RecordState.Normal;
+            resetRecording();
 
             testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
                 OnCaughtError = compileFailed
             });
+        }
 
-            newTest.OnLoadComplete = d => Schedule(() =>
+        private void resetRecording()
+        {
+            CurrentFrame.Value = 0;
+            if (RecordState.Value == Testing.RecordState.Stopped)
+                RecordState.Value = Testing.RecordState.Normal;
+        }
+
+        private void finishLoad(Drawable newTest, Drawable lastTest, Action onCompletion)
+        {
+            if (lastTest?.Parent != null)
             {
-                if (lastTest?.Parent != null)
+                testContentContainer.Remove(lastTest.Parent);
+                lastTest.Dispose();
+            }
+
+            if (CurrentTest != newTest)
+            {
+                // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                testContentContainer.Remove(newTest.Parent);
+                return;
+            }
+
+            updateButtons();
+
+            var methods = newTest.GetType().GetMethods();
+
+            var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+            foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
+            {
+                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
-                    testContentContainer.Remove(lastTest.Parent);
-                    lastTest.Dispose();
-                }
+                    CurrentTest.AddLabel(m.Name);
 
-                if (CurrentTest != newTest)
-                {
-                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                    testContentContainer.Remove(newTest.Parent);
-                    return;
-                }
-
-                updateButtons();
-
-                var methods = testType.GetMethods();
-
-                var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
-
-                foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
-                {
-                    if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                    if (setUpMethods.Any())
                     {
-                        CurrentTest.AddLabel(m.Name);
-
-                        if (setUpMethods.Any())
+                        CurrentTest.AddStep(new SetUpStep
                         {
-                            CurrentTest.AddStep(new SetUpStep
-                            {
-                                Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                            });
-                        }
-
-                        m.Invoke(CurrentTest, null);
+                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                        });
                     }
 
-                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                    {
-                        CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
-
-                        if (setUpMethods.Any())
-                        {
-                            CurrentTest.AddStep(new SetUpStep
-                            {
-                                Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                            });
-                        }
-
-                        m.Invoke(CurrentTest, tc.Arguments);
-                    }
+                    m.Invoke(CurrentTest, null);
                 }
 
-                backgroundCompiler?.Checkpoint(CurrentTest);
-                runTests(onCompletion);
-                updateButtons();
-            });
+                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                {
+                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+
+                    if (setUpMethods.Any())
+                    {
+                        CurrentTest.AddStep(new SetUpStep
+                        {
+                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                        });
+                    }
+
+                    m.Invoke(CurrentTest, tc.Arguments);
+                }
+            }
+
+            backgroundCompiler?.Checkpoint(CurrentTest);
+            runTests(onCompletion);
+            updateButtons();
         }
 
         private class SetUpStep : SingleStepButton
