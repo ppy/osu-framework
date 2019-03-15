@@ -1,6 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Linq;
+using NUnit.Framework;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,11 +18,13 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public class TestCaseGridContainer : TestCase
     {
-        private readonly GridContainer grid;
+        private Container gridParent;
+        private GridContainer grid;
 
-        public TestCaseGridContainer()
+        [SetUp]
+        public void Setup() => Schedule(() =>
         {
-            Add(new Container
+            Child = gridParent = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -36,259 +43,378 @@ namespace osu.Framework.Tests.Visual.Layout
                     },
                     grid = new GridContainer { RelativeSizeAxes = Axes.Both }
                 }
+            };
+        });
+
+        [Test]
+        public void TestBlankGrid()
+        {
+        }
+
+        [Test]
+        public void TestSingleCellDistributedXy()
+        {
+            FillBox box = null;
+            AddStep("set content", () => grid.Content = new[] { new Drawable[] { box = new FillBox() }, });
+            AddAssert("box is same size as grid", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize));
+        }
+
+        [Test]
+        public void TestSingleCellAbsoluteXy()
+        {
+            const float size = 100;
+
+            FillBox box = null;
+            AddStep("set content", () =>
+            {
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, size) };
             });
 
-            AddStep("Blank grid", reset);
-            AddStep("1-cell (auto)", () =>
+            AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, new Vector2(size)));
+        }
+
+        [Test]
+        public void TestSingleCellRelativeXy()
+        {
+            const float size = 0.5f;
+
+            FillBox box = null;
+            AddStep("set content", () =>
             {
-                reset();
-                grid.Content = new[] { new Drawable[] { new FillBox() } };
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, size) };
             });
 
-            AddStep("1-cell (absolute)", () =>
+            AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize * new Vector2(size)));
+        }
+
+        [Test]
+        public void TestSingleCellRelativeXAbsoluteY()
+        {
+            const float absolute_height = 100;
+            const float relative_width = 0.5f;
+
+            FillBox box = null;
+            AddStep("set content", () =>
             {
-                reset();
-                grid.Content = new[] { new Drawable[] { new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, absolute_height) };
+                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, relative_width) };
             });
 
-            AddStep("1-cell (relative)", () =>
+            AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth * relative_width));
+            AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, absolute_height));
+        }
+
+        [Test]
+        public void TestSingleCellDistributedXRelativeY()
+        {
+            const float height = 0.5f;
+
+            FillBox box = null;
+            AddStep("set content", () =>
             {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Relative, height) };
             });
 
-            AddStep("1-cell (mixed)", () =>
-            {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox() } };
-                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
-                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
-            });
+            AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth));
+            AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, grid.DrawHeight * height));
+        }
 
-            AddStep("1-cell (mixed) 2", () =>
-            {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox() } };
-                grid.RowDimensions = new [] { new Dimension(GridSizeMode.Relative, 0.5f) };
-            });
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Test3CellRowOrColumnDistributedXy(bool row)
+        {
+            FillBox[] boxes = new FillBox[3];
 
-            AddStep("3-cell row (auto)", () =>
+            setSingleDimensionContent(() => new[]
             {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
-            });
+                new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() }
+            }, row: row);
 
-            AddStep("3-cell row (absolute)", () =>
+            for (int i = 0; i < 3; i++)
             {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Absolute, 100),
-                    new Dimension(GridSizeMode.Absolute, 150)
-                };
-            });
+                int local = i;
 
-            AddStep("3-cell row (relative)", () =>
-            {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Relative, 0.1f),
-                    new Dimension(GridSizeMode.Relative, 0.2f),
-                    new Dimension(GridSizeMode.Relative, 0.3f)
-                };
-            });
+                if (row)
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth / 3f, grid.DrawHeight)));
+                else
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight / 3f)));
+            }
+        }
 
-            AddStep("3-cell row (mixed)", () =>
-            {
-                reset();
-                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Relative, 0.2f)
-                };
-            });
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Test3CellRowOrColumnDistributedXyAbsoluteYx(bool row)
+        {
+            var sizes = new[] { 50f, 100f, 75f };
+            var boxes = new FillBox[3];
 
-            AddStep("3-cell column (auto)", () =>
+            setSingleDimensionContent(() => new[]
             {
-                reset();
+                new Drawable[] { boxes[0] = new FillBox() },
+                new Drawable[] { boxes[1] = new FillBox() },
+                new Drawable[] { boxes[2] = new FillBox() },
+            }, new[]
+            {
+                new Dimension(GridSizeMode.Absolute, sizes[0]),
+                new Dimension(GridSizeMode.Absolute, sizes[1]),
+                new Dimension(GridSizeMode.Absolute, sizes[2])
+            }, row);
+
+            for (int i = 0; i < 3; i++)
+            {
+                int local = i;
+
+                if (row)
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local])));
+                else
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local], grid.DrawHeight)));
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Test3CellRowOrColumnDistributedXyRelativeYx(bool row)
+        {
+            var sizes = new[] { 0.2f, 0.4f, 0.2f };
+            var boxes = new FillBox[3];
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[] { boxes[0] = new FillBox() },
+                new Drawable[] { boxes[1] = new FillBox() },
+                new Drawable[] { boxes[2] = new FillBox() },
+            }, new[]
+            {
+                new Dimension(GridSizeMode.Relative, sizes[0]),
+                new Dimension(GridSizeMode.Relative, sizes[1]),
+                new Dimension(GridSizeMode.Relative, sizes[2])
+            }, row);
+
+            for (int i = 0; i < 3; i++)
+            {
+                int local = i;
+
+                if (row)
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local] * grid.DrawHeight)));
+                else
+                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local] * grid.DrawWidth, grid.DrawHeight)));
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Test3CellRowOrColumnDistributedXyMixedYx(bool row)
+        {
+            var sizes = new[] { 0.2f, 75f };
+            var boxes = new FillBox[3];
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[] { boxes[0] = new FillBox() },
+                new Drawable[] { boxes[1] = new FillBox() },
+                new Drawable[] { boxes[2] = new FillBox() },
+            }, new[]
+            {
+                new Dimension(GridSizeMode.Relative, sizes[0]),
+                new Dimension(GridSizeMode.Absolute, sizes[1]),
+                new Dimension(),
+            }, row);
+
+            if (row)
+            {
+                AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(grid.DrawWidth, sizes[0] * grid.DrawHeight)));
+                AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth, sizes[1])));
+                AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight - boxes[0].DrawHeight - boxes[1].DrawHeight)));
+            }
+            else
+            {
+                AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(sizes[0] * grid.DrawWidth, grid.DrawHeight)));
+                AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(sizes[1], grid.DrawHeight)));
+                AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight)));
+            }
+        }
+
+        [Test]
+        public void Test3X3GridDistributedXy()
+        {
+            var boxes = new FillBox[9];
+
+            AddStep("set content", () =>
+            {
                 grid.Content = new[]
                 {
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() }
+                    new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
+                    new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
+                    new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
                 };
             });
 
-            AddStep("3-cell column (absolute)", () =>
+            for (int i = 0; i < 9; i++)
             {
-                reset();
+                int local = i;
+                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(grid.DrawSize / 3f, boxes[local].DrawSize));
+            }
+        }
+
+        [Test]
+        public void Test3X3GridAbsoluteXy()
+        {
+            var boxes = new FillBox[9];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Absolute, 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Absolute, 75)
+            };
+
+            AddStep("set content", () =>
+            {
                 grid.Content = new[]
                 {
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() }
+                    new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
+                    new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
+                    new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
                 };
 
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Absolute, 100),
-                    new Dimension(GridSizeMode.Absolute, 150)
-                };
+                grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
 
-            AddStep("3-cell column (relative)", () =>
+            for (int i = 0; i < 9; i++)
             {
-                reset();
+                int local = i;
+                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(new Vector2(dimensions[local % 3].Size, dimensions[local / 3].Size), boxes[local].DrawSize));
+            }
+        }
+
+        [Test]
+        public void Test3X3GridRelativeXy()
+        {
+            var boxes = new FillBox[9];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Relative, 0.2f),
+                new Dimension(GridSizeMode.Relative, 0.4f),
+                new Dimension(GridSizeMode.Relative, 0.2f)
+            };
+
+            AddStep("set content", () =>
+            {
                 grid.Content = new[]
                 {
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() }
+                    new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
+                    new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
+                    new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
                 };
 
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Relative, 0.1f),
-                    new Dimension(GridSizeMode.Relative, 0.2f),
-                    new Dimension(GridSizeMode.Relative, 0.3f)
-                };
+                grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
 
-            AddStep("3-cell column (mixed)", () =>
+            for (int i = 0; i < 9; i++)
             {
-                reset();
+                int local = i;
+                AddAssert($"box {local} has correct size",
+                    () => Precision.AlmostEquals(new Vector2(dimensions[local % 3].Size * grid.DrawWidth, dimensions[local / 3].Size * grid.DrawHeight), boxes[local].DrawSize));
+            }
+        }
+
+        [Test]
+        public void Test3X3GridMixedXy()
+        {
+            var boxes = new FillBox[9];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Absolute, 50),
+                new Dimension(GridSizeMode.Relative, 0.2f)
+            };
+
+            AddStep("set content", () =>
+            {
                 grid.Content = new[]
                 {
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() },
-                    new Drawable[] { new FillBox() }
+                    new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
+                    new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
+                    new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
                 };
 
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Relative, 0.2f)
-                };
+                grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
 
-            AddStep("3x3-cell (auto)", () =>
+            // Row 1
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(dimensions[0].Size, dimensions[0].Size)));
+            AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, dimensions[0].Size)));
+            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, dimensions[0].Size)));
+
+            // Row 2
+            AddAssert("box 3 has correct size", () => Precision.AlmostEquals(boxes[3].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight * dimensions[1].Size)));
+            AddAssert("box 4 has correct size", () => Precision.AlmostEquals(boxes[4].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, grid.DrawHeight * dimensions[1].Size)));
+            AddAssert("box 5 has correct size",
+                () => Precision.AlmostEquals(boxes[5].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight * dimensions[1].Size)));
+
+            // Row 3
+            AddAssert("box 6 has correct size", () => Precision.AlmostEquals(boxes[6].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight - boxes[3].DrawHeight - boxes[0].DrawHeight)));
+            AddAssert("box 7 has correct size",
+                () => Precision.AlmostEquals(boxes[7].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, grid.DrawHeight - boxes[4].DrawHeight - boxes[1].DrawHeight)));
+            AddAssert("box 8 has correct size",
+                () => Precision.AlmostEquals(boxes[8].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight - boxes[5].DrawHeight - boxes[2].DrawHeight)));
+        }
+
+        [Test]
+        public void TestGridWithNullRowsAndColumns()
+        {
+            var boxes = new FillBox[4];
+
+            AddStep("set content", () =>
             {
-                reset();
                 grid.Content = new[]
                 {
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
-            });
-
-            AddStep("3x3-cell (absolute)", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
-
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Absolute, 100),
-                    new Dimension(GridSizeMode.Absolute, 150)
-                };
-            });
-
-            AddStep("3x3-cell (relative)", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
-
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Relative, 0.1f),
-                    new Dimension(GridSizeMode.Relative, 0.2f),
-                    new Dimension(GridSizeMode.Relative, 0.3f)
-                };
-            });
-
-            AddStep("3x3-cell (mixed)", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
-
-                grid.RowDimensions = grid.ColumnDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Absolute, 50),
-                    new Dimension(GridSizeMode.Relative, 0.2f)
-                };
-            });
-
-            AddStep("Larger sides", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
-
-                grid.ColumnDimensions = grid.RowDimensions = new[]
-                {
-                    new Dimension(GridSizeMode.Relative, 0.4f),
-                    new Dimension(),
-                    new Dimension(GridSizeMode.Relative, 0.4f)
-                };
-            });
-
-            AddStep("Separated", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), null, new FillBox() },
+                    new Drawable[] { boxes[0] = new FillBox(), null, boxes[1] = new FillBox(), null },
                     null,
-                    new Drawable[] { new FillBox(), null, new FillBox() }
-                };
-            });
-
-            AddStep("Separated 2", () =>
-            {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new FillBox(), null, new FillBox(), null },
-                    null,
-                    new Drawable[] { new FillBox(), null, new FillBox(), null },
+                    new Drawable[] { boxes[2] = new FillBox(), null, boxes[3] = new FillBox(), null },
                     null
                 };
             });
 
-            AddStep("Nested grids", () =>
+            AddAssert("two extra rows and columns", () =>
             {
-                reset();
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!Precision.AlmostEquals(boxes[i].DrawSize, grid.DrawSize / 4))
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        [Test]
+        public void TestNestedGrids()
+        {
+            var boxes = new FillBox[4];
+
+            AddStep("set content", () =>
+            {
                 grid.Content = new[]
                 {
+                    new Drawable[]
+                    {
+                        new GridContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Content = new[]
+                            {
+                                new Drawable[] { boxes[0] = new FillBox(), new FillBox(), },
+                                new Drawable[] { new FillBox(), boxes[1] = new FillBox(), },
+                            }
+                        },
+                        new FillBox(),
+                    },
                     new Drawable[]
                     {
                         new FillBox(),
@@ -297,71 +423,51 @@ namespace osu.Framework.Tests.Visual.Layout
                             RelativeSizeAxes = Axes.Both,
                             Content = new[]
                             {
-                                new Drawable[] { new FillBox(), new FillBox() },
-                                new Drawable[]
-                                {
-                                    new FillBox(),
-                                    new GridContainer
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Content = new[]
-                                        {
-                                            new Drawable[] { new FillBox(), new FillBox() },
-                                            new Drawable[] { new FillBox(), new FillBox() }
-                                        }
-                                    }
-                                }
+                                new Drawable[] { boxes[2] = new FillBox(), new FillBox(), },
+                                new Drawable[] { new FillBox(), boxes[3] = new FillBox(), },
                             }
-                        },
-                        new FillBox()
-                    }
+                        }
+                    },
                 };
             });
 
-            AddStep("Auto size", () =>
+            for (int i = 0; i < 4; i++)
             {
-                reset();
-                grid.Content = new[]
-                {
-                    new Drawable[] { new Box { Size = new Vector2(30) }, new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
-                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
-                };
+                int local = i;
+                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, grid.DrawSize / 4));
+            }
+        }
 
-                grid.RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize), new Dimension(GridSizeMode.Relative, 0.5f) };
-                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize), new Dimension(GridSizeMode.Relative, 0.5f) };
-            });
+        [Test]
+        public void TestGridWithAutoSizingCells()
+        {
+            FillBox fillBox = null;
+            var autoSizingChildren = new Drawable[2];
 
-            AddStep("Autosizing child", () =>
+            AddStep("set content", () =>
             {
-                reset();
-
-                Drawable child1, child2;
-
                 grid.Content = new[]
                 {
                     new[]
                     {
-                        child1 = new Container
+                        autoSizingChildren[0] = new Box
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            AutoSizeAxes = Axes.Both,
-                            Child = new Box { Size = new Vector2(100, 50) }
+                            Size = new Vector2(50, 10)
                         },
-                        new FillBox()
+                        fillBox = new FillBox(),
                     },
                     new[]
                     {
                         null,
-                        child2 = new Container
+                        autoSizingChildren[1] = new Box
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            AutoSizeAxes = Axes.Both,
-                            Child = new Box { Size = new Vector2(100, 50) }
+                            Size = new Vector2(50, 10)
                         },
-                    }
+                    },
                 };
 
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
@@ -370,20 +476,98 @@ namespace osu.Framework.Tests.Visual.Layout
                     new Dimension(),
                     new Dimension(GridSizeMode.AutoSize),
                 };
-
-                SchedulerAfterChildren.Add(() =>
-                {
-                    child1.Spin(3000, RotationDirection.Clockwise);
-                    child2.Spin(3000, RotationDirection.Clockwise);
-                });
             });
+
+            AddAssert("fill box has correct size", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 50, grid.DrawHeight - 10)));
+            AddStep("rotate boxes", () => autoSizingChildren.ForEach(c => c.RotateTo(90)));
+            AddAssert("fill box has resized correctly", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 10, grid.DrawHeight - 50)));
         }
 
-        private void reset()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMaximumSize(bool row)
         {
-            grid.ClearInternal();
-            grid.RowDimensions = grid.ColumnDimensions = new Dimension[] { };
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, maxSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, maxSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, maxSize: 80),
+                new Dimension(GridSizeMode.Distributed, maxSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
+
+            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
+            checkSizes();
+            AddStep("set size = (0.5f, 0.1f)", () => gridParent.Size = new Vector2(0.5f, 0.1f));
+            checkSizes();
+            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
+            checkSizes();
+
+            void checkSizes()
+            {
+                AddAssert("max size not overflowed", () =>
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (dimensions[i].Mode != GridSizeMode.Distributed)
+                            continue;
+
+                        if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
+                            return false;
+
+                        if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
+                            return false;
+                    }
+
+                    return true;
+                });
+
+                AddAssert("column span total length", () =>
+                {
+                    return row
+                        ? Precision.AlmostEquals(grid.DrawHeight, boxes.Sum(b => b.DrawHeight))
+                        : Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth));
+                });
+            }
         }
+
+        private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
+        {
+            var content = contentFunc();
+
+            if (!row)
+                content = content.Invert();
+
+            grid.Content = content;
+
+            if (dimensions == null)
+                return;
+
+            if (row)
+                grid.RowDimensions = dimensions;
+            else
+                grid.ColumnDimensions = dimensions;
+        });
 
         private class FillBox : Box
         {

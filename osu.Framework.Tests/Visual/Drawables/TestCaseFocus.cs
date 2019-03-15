@@ -192,7 +192,6 @@ namespace osu.Framework.Tests.Visual.Drawables
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
-
         private class FocusOverlay : FocusedOverlayContainer
         {
             private readonly Box box;

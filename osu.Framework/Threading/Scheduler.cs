@@ -83,7 +83,6 @@ namespace osu.Framework.Threading
         /// </summary>
         protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
-
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
 

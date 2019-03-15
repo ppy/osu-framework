@@ -62,7 +62,6 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddAssert("load cancelled", () => !loader.IsLoading);
             AddAssert("didn't callback", () => !loaded);
-
         }
 
         private int id;

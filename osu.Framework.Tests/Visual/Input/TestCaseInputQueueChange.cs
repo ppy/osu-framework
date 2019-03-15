@@ -74,7 +74,6 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("box 3 not pressed", () => box3.HitCount == 0);
         }
 
-
         private class HittableBox : CompositeDrawable
         {
             private readonly int index;

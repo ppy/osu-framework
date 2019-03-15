@@ -126,7 +126,6 @@ namespace osu.Framework.Tests.Visual.Layout
                 fillFlowContainer.Width = changed_value;
             });
 
-
             skipTo(0.5f);
             check(0.5f);
 

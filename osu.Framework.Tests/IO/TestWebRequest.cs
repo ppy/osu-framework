@@ -475,7 +475,6 @@ namespace osu.Framework.Tests.IO
             public string Url { get; set; }
         }
 
-
         [Serializable]
         private class HttpBinPostResponse
         {

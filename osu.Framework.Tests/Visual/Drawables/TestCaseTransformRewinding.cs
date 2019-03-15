@@ -29,7 +29,6 @@ namespace osu.Framework.Tests.Visual.Drawables
         private ManualClock manualClock;
         private FramedClock manualFramedClock;
 
-
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
