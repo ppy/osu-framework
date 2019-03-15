@@ -10,7 +10,7 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// Represent an event which is propagated based on mouse position.
     /// </summary>
-    public abstract class MouseEvent : UIEvent
+    public abstract class PositionalEvent : UIEvent
     {
         /// <summary>
         /// Whether a specific mouse button is pressed.
@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public IEnumerable<MouseButton> PressedButtons => CurrentState.Mouse.Buttons;
 
-        protected MouseEvent(InputState state)
+        protected PositionalEvent(InputState state)
             : base(state)
         {
         }

@@ -466,34 +466,62 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
+        protected override bool Handle(FocusEventBase e)
         {
-            if (e.Key == Key.Escape && !TopLevelMenu)
+            switch (e)
             {
-                Close();
-                return true;
-            }
+                case FocusLostEvent _:
+                    // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
+                    if (submenu?.State == MenuState.Open)
+                        return false;
 
-            return base.OnKeyDown(e);
+                    if (!TopLevelMenu)
+                        // At this point we should have lost focus due to clicks outside the menu structure
+                        closeAll();
+                    return false;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
-        protected override bool OnClick(ClickEvent e) => true;
-        protected override bool OnHover(HoverEvent e) => true;
+        protected override bool Handle(PositionalEvent e)
+        {
+            switch (e)
+            {
+                case ClickEvent _:
+                    return true;
+
+                case HoverEvent _:
+                    return true;
+
+
+                default:
+                    return base.Handle(e);
+            }
+        }
+
+        protected override bool Handle(NonPositionalEvent e)
+        {
+            switch (e)
+            {
+                case KeyDownEvent keyDownEvent:
+                    if (keyDownEvent.Key == Key.Escape && !TopLevelMenu)
+                    {
+                        Close();
+                        return true;
+                    }
+
+                    return base.Handle(keyDownEvent);
+
+                default:
+                    return base.Handle(e);
+            }
+        }
 
         public override bool AcceptsFocus => !TopLevelMenu;
 
         public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
-
-        protected override void OnFocusLost(FocusLostEvent e)
-        {
-            // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
-            if (submenu?.State == MenuState.Open)
-                return;
-
-            if (!TopLevelMenu)
-                // At this point we should have lost focus due to clicks outside the menu structure
-                closeAll();
-        }
 
         /// <summary>
         /// Closes all open <see cref="Menu"/>s.
@@ -709,41 +737,44 @@ namespace osu.Framework.Graphics.UserInterface
                 Foreground.Colour = ForegroundColour;
             }
 
-            protected override bool OnHover(HoverEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
-
-                Schedule(() =>
+                switch (e)
                 {
-                    if (IsHovered)
-                        Hovered?.Invoke(this);
-                });
+                    case HoverEvent _:
+                        UpdateBackgroundColour();
+                        UpdateForegroundColour();
 
-                return false;
-            }
+                        Schedule(() =>
+                        {
+                            if (IsHovered)
+                                Hovered?.Invoke(this);
+                        });
 
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                UpdateBackgroundColour();
-                UpdateForegroundColour();
-                base.OnHoverLost(e);
+                        return false;
+
+                    case HoverLostEvent hoverLostEvent:
+                        UpdateBackgroundColour();
+                        UpdateForegroundColour();
+                        return base.Handle(hoverLostEvent);
+
+                    case ClickEvent _:
+                        if (Item.Action.Disabled)
+                            return true;
+
+                        if (!hasSubmenu)
+                            Item.Action.Value?.Invoke();
+
+                        Clicked?.Invoke(this);
+
+                        return true;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
 
             private bool hasSubmenu => Item.Items?.Count > 0;
-
-            protected override bool OnClick(ClickEvent e)
-            {
-                if (Item.Action.Disabled)
-                    return true;
-
-                if (!hasSubmenu)
-                    Item.Action.Value?.Invoke();
-
-                Clicked?.Invoke(this);
-
-                return true;
-            }
 
             /// <summary>
             /// Creates the background of this <see cref="DrawableMenuItem"/>.

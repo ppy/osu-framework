@@ -130,16 +130,21 @@ namespace osu.Framework.Testing.Drawables
             text.AddText(header);
         }
 
-        protected override bool OnHover(HoverEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            box.FadeTo(1, 150);
-            return true;
-        }
+            switch (e)
+            {
+                case HoverEvent _:
+                    box.FadeTo(1, 150);
+                    return true;
 
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            box.FadeTo(0.7f, 150);
-            base.OnHoverLost(e);
+                case HoverLostEvent _:
+                    box.FadeTo(0.7f, 150);
+                    return false;
+
+                default:
+                    return base.Handle(e);
+            }
         }
     }
 }

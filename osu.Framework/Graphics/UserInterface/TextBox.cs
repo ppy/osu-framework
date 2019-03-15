@@ -655,31 +655,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
-
-            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
-                return false;
-
-            // we only care about keys which can result in text output.
-            if (keyProducesCharacter(e.Key))
-                BeginConsumingText();
-
-            switch (e.Key)
-            {
-                case Key.Escape:
-                    KillFocus();
-                    return true;
-                case Key.KeypadEnter:
-                case Key.Enter:
-                    Commit();
-                    return true;
-            }
-
-            return base.OnKeyDown(e) || consumingText;
-        }
-
         private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0) && key != Key.KeypadEnter;
 
         /// <summary>
@@ -707,94 +682,6 @@ namespace osu.Framework.Graphics.UserInterface
             OnCommit?.Invoke(this, true);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
-        {
-            if (!e.HasAnyKeyPressed)
-                EndConsumingText();
-
-            return base.OnKeyUp(e);
-        }
-
-        protected override bool OnDrag(DragEvent e)
-        {
-            //if (textInput?.ImeActive == true) return true;
-
-            if (doubleClickWord != null)
-            {
-                //select words at a time
-                if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
-                {
-                    selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
-                    selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
-                }
-                else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
-                {
-                    selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
-                    selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
-                }
-                else
-                {
-                    //in the middle
-                    selectionStart = doubleClickWord[0];
-                    selectionEnd = doubleClickWord[1];
-                }
-
-                cursorAndLayout.Invalidate();
-            }
-            else
-            {
-                if (text.Length == 0) return true;
-
-                selectionEnd = getCharacterClosestTo(e.MousePosition);
-                if (selectionLength > 0)
-                    GetContainingInputManager().ChangeFocus(this);
-
-                cursorAndLayout.Invalidate();
-            }
-
-            return true;
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            if (HasFocus) return true;
-
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
-        }
-
-        protected override bool OnDoubleClick(DoubleClickEvent e)
-        {
-            if (textInput?.ImeActive == true) return true;
-
-            if (text.Length == 0) return true;
-
-            if (AllowClipboardExport)
-            {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
-
-                int lastSeparator = findSeparatorIndex(text, hover, -1);
-                int nextSeparator = findSeparatorIndex(text, hover, 1);
-
-                selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-                selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
-            }
-            else
-            {
-                selectionStart = 0;
-                selectionEnd = text.Length;
-            }
-
-            //in order to keep the home word selected
-            doubleClickWord = new[] { selectionStart, selectionEnd };
-
-            cursorAndLayout.Invalidate();
-            return true;
-        }
-
         private static int findSeparatorIndex(string input, int searchPos, int direction)
         {
             bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos]);
@@ -808,49 +695,174 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e)
+        protected override bool Handle(FocusEventBase e)
         {
-            if (textInput?.ImeActive == true) return true;
+            switch (e)
+            {
+                case FocusLostEvent _:
+                    unbindInput();
 
-            selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
+                    Caret.ClearTransforms();
+                    Caret.FadeOut(200);
 
-            cursorAndLayout.Invalidate();
+                    Background.ClearTransforms();
+                    Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
 
-            return false;
+                    cursorAndLayout.Invalidate();
+                    return false;
+
+                case FocusEvent _:
+                    bindInput();
+
+                    Background.ClearTransforms();
+                    Background.FadeColour(BackgroundFocused, 200, Easing.Out);
+
+                    cursorAndLayout.Invalidate();
+                    return false;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            doubleClickWord = null;
-            return true;
+            switch (e)
+            {
+                case MouseDownEvent _:
+                    if (textInput?.ImeActive == true) return true;
+
+                    selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
+
+                    cursorAndLayout.Invalidate();
+
+                    return false;
+
+                case MouseUpEvent _:
+                    doubleClickWord = null;
+                    return true;
+
+                case ClickEvent _:
+                    return !ReadOnly;
+
+                case DoubleClickEvent _:
+                    if (textInput?.ImeActive == true) return true;
+
+                    if (text.Length == 0) return true;
+
+                    if (AllowClipboardExport)
+                    {
+                        int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
+
+                        int lastSeparator = findSeparatorIndex(text, hover, -1);
+                        int nextSeparator = findSeparatorIndex(text, hover, 1);
+
+                        selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
+                        selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+                    }
+                    else
+                    {
+                        selectionStart = 0;
+                        selectionEnd = text.Length;
+                    }
+
+                    //in order to keep the home word selected
+                    doubleClickWord = new[] { selectionStart, selectionEnd };
+
+                    cursorAndLayout.Invalidate();
+                    return true;
+
+                case DragStartEvent dragStartEvent:
+                    if (HasFocus) return true;
+
+                    Vector2 posDiff = dragStartEvent.MouseDownPosition - e.MousePosition;
+
+                    return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+
+                case DragEvent _:
+                    //if (textInput?.ImeActive == true) return true;
+
+                    if (doubleClickWord != null)
+                    {
+                        //select words at a time
+                        if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
+                        {
+                            selectionStart = doubleClickWord[0];
+                            selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
+                            selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
+                        }
+                        else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
+                        {
+                            selectionStart = doubleClickWord[1];
+                            selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
+                            selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
+                        }
+                        else
+                        {
+                            //in the middle
+                            selectionStart = doubleClickWord[0];
+                            selectionEnd = doubleClickWord[1];
+                        }
+
+                        cursorAndLayout.Invalidate();
+                    }
+                    else
+                    {
+                        if (text.Length == 0) return true;
+
+                        selectionEnd = getCharacterClosestTo(e.MousePosition);
+                        if (selectionLength > 0)
+                            GetContainingInputManager().ChangeFocus(this);
+
+                        cursorAndLayout.Invalidate();
+                    }
+
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
-        protected override void OnFocusLost(FocusLostEvent e)
+        protected override bool Handle(NonPositionalEvent e)
         {
-            unbindInput();
+            switch (e)
+            {
+                case KeyUpEvent keyUpEvent:
+                    if (!keyUpEvent.HasAnyKeyPressed)
+                        EndConsumingText();
 
-            Caret.ClearTransforms();
-            Caret.FadeOut(200);
+                    return base.Handle(keyUpEvent);
 
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
+                case KeyDownEvent keyDownEvent:
+                    if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            cursorAndLayout.Invalidate();
+                    if (e.ControlPressed || e.SuperPressed || e.AltPressed)
+                        return false;
+
+                    // we only care about keys which can result in text output.
+                    if (keyProducesCharacter(keyDownEvent.Key))
+                        BeginConsumingText();
+
+                    switch (keyDownEvent.Key)
+                    {
+                        case Key.Escape:
+                            KillFocus();
+                            return true;
+                        case Key.KeypadEnter:
+                        case Key.Enter:
+                            Commit();
+                            return true;
+                    }
+
+                    return base.Handle(keyDownEvent) || consumingText;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
         public override bool AcceptsFocus => true;
-
-        protected override bool OnClick(ClickEvent e) => !ReadOnly;
-
-        protected override void OnFocus(FocusEvent e)
-        {
-            bindInput();
-
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
-
-            cursorAndLayout.Invalidate();
-        }
 
         #region Native TextBox handling (winform specific)
 

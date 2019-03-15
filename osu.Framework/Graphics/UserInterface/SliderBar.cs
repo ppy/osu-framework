@@ -118,61 +118,67 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
-        protected override bool OnClick(ClickEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            handleMouseInput(e);
-            commit();
-            return true;
-        }
-
-        protected override bool OnDrag(DragEvent e)
-        {
-            handleMouseInput(e);
-            return true;
-        }
-
-        protected override bool OnDragStart(DragStartEvent e)
-        {
-            handleMouseInput(e);
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
-        }
-
-        protected override bool OnDragEnd(DragEndEvent e)
-        {
-            handleMouseInput(e);
-            commit();
-            return true;
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (!IsHovered || currentNumberInstantaneous.Disabled)
-                return false;
-
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
-            if (currentNumberInstantaneous.IsInteger) step = (float)Math.Ceiling(step);
-
-            switch (e.Key)
+            switch (e)
             {
-                case Key.Right:
-                    currentNumberInstantaneous.Add(step);
-                    onUserChange(currentNumberInstantaneous.Value);
+                case ClickEvent _:
+                    handleMouseInput(e);
+                    commit();
                     return true;
-                case Key.Left:
-                    currentNumberInstantaneous.Add(-step);
-                    onUserChange(currentNumberInstantaneous.Value);
+
+                case DragEvent _:
+                    handleMouseInput(e);
                     return true;
+
+                case DragStartEvent dragStartEvent:
+                    handleMouseInput(e);
+                    Vector2 posDiff = dragStartEvent.MouseDownPosition - e.MousePosition;
+                    return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+
+                case DragEndEvent _:
+                    handleMouseInput(e);
+                    commit();
+                    return true;
+
                 default:
-                    return false;
+                    return base.Handle(e);
             }
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override bool Handle(NonPositionalEvent e)
         {
-            if (e.Key == Key.Left || e.Key == Key.Right)
-                return commit();
-            return false;
+            switch (e)
+            {
+                case KeyDownEvent keyDownEvent:
+                    if (!IsHovered || currentNumberInstantaneous.Disabled)
+                        return false;
+
+                    var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+                    if (currentNumberInstantaneous.IsInteger) step = (float)Math.Ceiling(step);
+
+                    switch (keyDownEvent.Key)
+                    {
+                        case Key.Right:
+                            currentNumberInstantaneous.Add(step);
+                            onUserChange(currentNumberInstantaneous.Value);
+                            return true;
+                        case Key.Left:
+                            currentNumberInstantaneous.Add(-step);
+                            onUserChange(currentNumberInstantaneous.Value);
+                            return true;
+                        default:
+                            return false;
+                    }
+
+                case KeyUpEvent keyUpEvent:
+                    if (keyUpEvent.Key == Key.Left || keyUpEvent.Key == Key.Right)
+                        return commit();
+                    return false;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
         private bool uncommittedChanges;

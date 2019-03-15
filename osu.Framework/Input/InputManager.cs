@@ -194,7 +194,7 @@ namespace osu.Framework.Input
                 previousFocus.HasFocus = false;
                 previousFocus.TriggerEvent(new FocusLostEvent(state));
 
-                if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
+                if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(FocusLostEvent)}");
             }
 
             FocusedDrawable = potentialFocusTarget;

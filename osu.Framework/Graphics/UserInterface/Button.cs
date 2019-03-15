@@ -61,24 +61,31 @@ namespace osu.Framework.Graphics.UserInterface
             Anchor = Anchor.Centre,
         };
 
-        protected override bool OnClick(ClickEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            if (Enabled.Value)
+            switch (e)
             {
-                var flash = new Box
-                {
-                    RelativeSizeAxes = Axes.Both
-                };
+                case PositionalEvent positionalEvent:
+                    if (Enabled.Value)
+                    {
+                        var flash = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        };
 
-                Add(flash);
+                        Add(flash);
 
-                flash.Colour = Background.Colour;
-                flash.Blending = BlendingMode.Additive;
-                flash.FadeOutFromOne(200);
-                flash.Expire();
+                        flash.Colour = Background.Colour;
+                        flash.Blending = BlendingMode.Additive;
+                        flash.FadeOutFromOne(200);
+                        flash.Expire();
+                    }
+
+                    return base.Handle(positionalEvent);
+
+                default:
+                    return base.Handle(e);
             }
-
-            return base.OnClick(e);
         }
     }
 }

@@ -170,42 +170,45 @@ namespace osu.Framework.Testing.Input
                     };
                 }
 
-                protected override bool OnMouseDown(MouseDownEvent e)
+                protected override bool Handle(PositionalEvent e)
                 {
-                    switch (e.Button)
+                    switch (e)
                     {
-                        case MouseButton.Left:
-                            left.FadeIn();
-                            break;
-                        case MouseButton.Right:
-                            right.FadeIn();
-                            break;
+                        case MouseDownEvent mouseDownEvent:
+                            switch (mouseDownEvent.Button)
+                            {
+                                case MouseButton.Left:
+                                    left.FadeIn();
+                                    break;
+                                case MouseButton.Right:
+                                    right.FadeIn();
+                                    break;
+                            }
+
+                            updateBorder(mouseDownEvent);
+                            return base.Handle(mouseDownEvent);
+
+                        case MouseUpEvent mouseUpEvent:
+                            switch (mouseUpEvent.Button)
+                            {
+                                case MouseButton.Left:
+                                    left.FadeOut(500);
+                                    break;
+                                case MouseButton.Right:
+                                    right.FadeOut(500);
+                                    break;
+                            }
+
+                            updateBorder(mouseUpEvent);
+                            return base.Handle(mouseUpEvent);
+
+                        case ScrollEvent scrollEvent:
+                            circle.MoveTo(circle.Position - scrollEvent.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+                            return base.Handle(scrollEvent);
+
+                        default:
+                            return base.Handle(e);
                     }
-
-                    updateBorder(e);
-                    return base.OnMouseDown(e);
-                }
-
-                protected override bool OnMouseUp(MouseUpEvent e)
-                {
-                    switch (e.Button)
-                    {
-                        case MouseButton.Left:
-                            left.FadeOut(500);
-                            break;
-                        case MouseButton.Right:
-                            right.FadeOut(500);
-                            break;
-                    }
-
-                    updateBorder(e);
-                    return base.OnMouseUp(e);
-                }
-
-                protected override bool OnScroll(ScrollEvent e)
-                {
-                    circle.MoveTo(circle.Position - e.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
-                    return base.OnScroll(e);
                 }
 
                 private void updateBorder(MouseButtonEvent e)

@@ -67,11 +67,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         public readonly BindableBool Active = new BindableBool();
 
-        protected override bool OnClick(ClickEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            base.OnClick(e);
-            ActivationRequested?.Invoke(this);
-            return true;
+            switch (e)
+            {
+                case ClickEvent clickEvent:
+                    base.Handle(clickEvent);
+                    ActivationRequested?.Invoke(this);
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
         public override string ToString() => $"{base.ToString()} value: {Value}";

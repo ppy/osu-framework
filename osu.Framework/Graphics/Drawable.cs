@@ -1,21 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
-using osuTK.Graphics;
-using osu.Framework.Allocation;
-using osu.Framework.Caching;
-using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
-using osu.Framework.Input;
-using osu.Framework.Logging;
-using osu.Framework.Statistics;
-using osu.Framework.Threading;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,14 +8,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Transforms;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
+using osu.Framework.Statistics;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
+using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics
@@ -1821,11 +1821,25 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Handle a UI event.
+        /// Handle a focus UI event.
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e) => false;
+        protected virtual bool Handle(FocusEventBase e) => false;
+
+        /// <summary>
+        /// Handle a positional UI event.
+        /// </summary>
+        /// <param name="e">The event to be handled.</param>
+        /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
+        protected virtual bool Handle(PositionalEvent e) => false;
+
+        /// <summary>
+        /// Handle a non positional UI event.
+        /// </summary>
+        /// <param name="e">The event to be handled.</param>
+        /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
+        protected virtual bool Handle(NonPositionalEvent e) => false;
 
         /// <summary>
         /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
@@ -1835,46 +1849,14 @@ namespace osu.Framework.Graphics
         public bool TriggerEvent(UIEvent e)
         {
             e.Target = this;
-
             switch (e)
             {
-                case MouseMoveEvent mouseMove:
-                    return OnMouseMove(mouseMove);
-                case HoverEvent hover:
-                    return OnHover(hover);
-                case HoverLostEvent hoverLost:
-                    OnHoverLost(hoverLost);
-                    return false;
-                case MouseDownEvent mouseDown:
-                    return OnMouseDown(mouseDown);
-                case MouseUpEvent mouseUp:
-                    return OnMouseUp(mouseUp);
-                case ClickEvent click:
-                    return OnClick(click);
-                case DoubleClickEvent doubleClick:
-                    return OnDoubleClick(doubleClick);
-                case DragStartEvent dragStart:
-                    return OnDragStart(dragStart);
-                case DragEvent drag:
-                    return OnDrag(drag);
-                case DragEndEvent dragEnd:
-                    return OnDragEnd(dragEnd);
-                case ScrollEvent scroll:
-                    return OnScroll(scroll);
-                case FocusEvent focus:
-                    OnFocus(focus);
-                    return false;
-                case FocusLostEvent focusLost:
-                    OnFocusLost(focusLost);
-                    return false;
-                case KeyDownEvent keyDown:
-                    return OnKeyDown(keyDown);
-                case KeyUpEvent keyUp:
-                    return OnKeyUp(keyUp);
-                case JoystickPressEvent joystickPress:
-                    return OnJoystickPress(joystickPress);
-                case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease);
+                case FocusEventBase focusEventBase:
+                    return Handle(focusEventBase);
+                case PositionalEvent positionalEvent:
+                    return Handle(positionalEvent);
+                case NonPositionalEvent nonPositionalEvent:
+                    return Handle(nonPositionalEvent);
                 default:
                     return false;
             }
@@ -1885,42 +1867,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
-
-        #region Individual event handlers
-
-        protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
-        protected virtual bool OnHover(HoverEvent e) => Handle(e);
-
-        protected virtual void OnHoverLost(HoverLostEvent e)
-        {
-            Handle(e);
-        }
-
-        protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
-        protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
-        protected virtual bool OnClick(ClickEvent e) => Handle(e);
-        protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
-        protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
-        protected virtual bool OnDrag(DragEvent e) => Handle(e);
-        protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
-        protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
-
-        protected virtual void OnFocus(FocusEvent e)
-        {
-            Handle(e);
-        }
-
-        protected virtual void OnFocusLost(FocusLostEvent e)
-        {
-            Handle(e);
-        }
-
-        protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
-        protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
-        protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
-        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
-
-        #endregion
 
         /// <summary>
         /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
@@ -1964,35 +1910,6 @@ namespace osu.Framework.Graphics
             private static readonly ConcurrentDictionary<Type, bool> positional_cached_values = new ConcurrentDictionary<Type, bool>();
             private static readonly ConcurrentDictionary<Type, bool> non_positional_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static readonly string[] positional_input_methods =
-            {
-                nameof(Handle),
-                nameof(OnHover),
-                nameof(OnHoverLost),
-                nameof(OnMouseDown),
-                nameof(OnMouseUp),
-                nameof(OnClick),
-                nameof(OnDoubleClick),
-                nameof(OnDragStart),
-                nameof(OnDrag),
-                nameof(OnDragEnd),
-                nameof(OnScroll),
-                nameof(OnFocus),
-                nameof(OnFocusLost),
-                nameof(OnMouseMove)
-            };
-
-            private static readonly string[] non_positional_input_methods =
-            {
-                nameof(Handle),
-                nameof(OnFocus),
-                nameof(OnFocusLost),
-                nameof(OnKeyDown),
-                nameof(OnKeyUp),
-                nameof(OnJoystickPress),
-                nameof(OnJoystickRelease)
-            };
-
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
@@ -2022,17 +1939,30 @@ namespace osu.Framework.Graphics
 
             private static bool compute(Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
-                foreach (var inputMethod in inputMethods)
-                {
-                    // check for any input method overrides which are at a higher level than drawable.
-                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
+                // check for any input method overrides which are at a higher level than drawable.
+                var focusMethod = type.GetMethod(
+                    nameof(Handle),
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    Type.DefaultBinder,
+                    new[] { typeof(FocusEventBase) },
+                    null);
 
-                    Debug.Assert(method != null);
+                Debug.Assert(focusMethod != null);
 
-                    if (method.DeclaringType != typeof(Drawable))
-                        return true;
-                }
+                if (focusMethod.DeclaringType != typeof(Drawable))
+                    return true;
+
+                var method = type.GetMethod(
+                    nameof(Handle),
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    Type.DefaultBinder,
+                    positional ? new[] { typeof(PositionalEvent) } : new[] { typeof(NonPositionalEvent) },
+                    null);
+
+                Debug.Assert(method != null);
+
+                if (method.DeclaringType != typeof(Drawable))
+                    return true;
 
                 var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
                 foreach (var inputInterface in inputInterfaces)
@@ -2212,8 +2142,7 @@ namespace osu.Framework.Graphics
 
             if (!string.IsNullOrEmpty(Name))
                 return $@"{Name} ({shortClass})";
-            else
-                return shortClass;
+            return shortClass;
         }
     }
 

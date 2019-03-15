@@ -305,34 +305,39 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
+        protected override bool Handle(NonPositionalEvent e)
         {
-            switch (e.Key)
+            switch (e)
             {
-                case Key.ControlLeft:
-                    Expanded = true;
-                    break;
-                case Key.ShiftLeft:
-                    Running = false;
-                    break;
+                case KeyDownEvent keyDownEvent:
+                    switch (keyDownEvent.Key)
+                    {
+                        case Key.ControlLeft:
+                            Expanded = true;
+                            break;
+                        case Key.ShiftLeft:
+                            Running = false;
+                            break;
+                    }
+
+                    return base.Handle(keyDownEvent);
+
+                case KeyUpEvent keyUpEvent:
+                    switch (keyUpEvent.Key)
+                    {
+                        case Key.ControlLeft:
+                            Expanded = false;
+                            break;
+                        case Key.ShiftLeft:
+                            Running = true;
+                            break;
+                    }
+
+                    return base.Handle(keyUpEvent);
+
+                default:
+                    return base.Handle(e);
             }
-
-            return base.OnKeyDown(e);
-        }
-
-        protected override bool OnKeyUp(KeyUpEvent e)
-        {
-            switch (e.Key)
-            {
-                case Key.ControlLeft:
-                    Expanded = false;
-                    break;
-                case Key.ShiftLeft:
-                    Running = true;
-                    break;
-            }
-
-            return base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)

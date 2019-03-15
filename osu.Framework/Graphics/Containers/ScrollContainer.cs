@@ -243,43 +243,116 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool OnDragStart(DragStartEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
-
-            lastDragTime = Time.Current;
-            averageDragDelta = averageDragTime = 0;
-
-            IsDragging = true;
-            return true;
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (IsHandlingKeyboardScrolling && !IsDragging)
+            switch (e)
             {
-                switch (e.Key)
-                {
-                    case Key.PageUp:
-                        ScrollTo(target - displayableContent);
-                        return true;
-                    case Key.PageDown:
-                        ScrollTo(target + displayableContent);
-                        return true;
-                }
-            }
+                case DragStartEvent dragStartEvent:
+                    if (IsDragging || dragStartEvent.Button != MouseButton.Left) return false;
 
-            return base.OnKeyDown(e);
+                    lastDragTime = Time.Current;
+                    averageDragDelta = averageDragTime = 0;
+
+                    IsDragging = true;
+                    return true;
+
+                case MouseDownEvent mouseDownEvent:
+                    if (IsDragging || mouseDownEvent.Button != MouseButton.Left) return false;
+
+                    // Continue from where we currently are scrolled to.
+                    target = Current;
+
+                    return true;
+
+                case DragEvent dragEvent:
+                    Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
+
+                    double currentTime = Time.Current;
+                    double timeDelta = currentTime - lastDragTime;
+                    double decay = Math.Pow(0.95, timeDelta);
+
+                    averageDragTime = averageDragTime * decay + timeDelta;
+                    averageDragDelta = averageDragDelta * decay - dragEvent.Delta[ScrollDim];
+
+                    lastDragTime = currentTime;
+
+                    Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(dragEvent.ScreenSpaceLastMousePosition);
+
+                    float scrollOffset = -childDelta[ScrollDim];
+                    float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
+
+                    Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+
+                    // If we are dragging past the extent of the scrollable area, half the offset
+                    // such that the user can feel it.
+                    scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
+
+                    offset(scrollOffset, false);
+                    return true;
+
+                case DragEndEvent _:
+                    Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
+
+                    IsDragging = false;
+
+                    if (averageDragTime <= 0.0)
+                        return true;
+
+                    double velocity = averageDragDelta / averageDragTime;
+
+                    // Detect whether we halted at the end of the drag and in fact should _not_
+                    // perform a flick event.
+                    const double velocity_cutoff = 0.1;
+                    if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < velocity_cutoff)
+                        velocity = 0;
+
+                    // Differentiate f(t) = distance * (1 - exp(-t)) w.r.t. "t" to obtain
+                    // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
+                    double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
+
+                    offset((float)distance, true, DistanceDecayDrag);
+
+                    return true;
+
+                case ScrollEvent scrollEvent:
+                    bool isPrecise = scrollEvent.IsPrecise;
+
+                    Vector2 scrollDelta = scrollEvent.ScrollDelta;
+                    float scrollDeltaFloat = scrollDelta.Y;
+                    if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
+                        scrollDeltaFloat = scrollDelta.X;
+
+                    offset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e)
+        protected override bool Handle(NonPositionalEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            switch (e)
+            {
+                case KeyDownEvent keyDownEvent:
+                    if (IsHandlingKeyboardScrolling && !IsDragging)
+                    {
+                        switch (keyDownEvent.Key)
+                        {
+                            case Key.PageUp:
+                                ScrollTo(target - displayableContent);
+                                return true;
+                            case Key.PageDown:
+                                ScrollTo(target + displayableContent);
+                                return true;
+                        }
+                    }
 
-            // Continue from where we currently are scrolled to.
-            target = Current;
+                    return base.Handle(keyDownEvent);
 
-            return true;
+                default:
+                    return base.Handle(e);
+            }
         }
 
         // We keep track of this because input events may happen at different intervals than update frames
@@ -293,73 +366,6 @@ namespace osu.Framework.Graphics.Containers
         // have a larger weight.
         private double averageDragTime;
         private double averageDragDelta;
-
-        protected override bool OnDrag(DragEvent e)
-        {
-            Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
-
-            double currentTime = Time.Current;
-            double timeDelta = currentTime - lastDragTime;
-            double decay = Math.Pow(0.95, timeDelta);
-
-            averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - e.Delta[ScrollDim];
-
-            lastDragTime = currentTime;
-
-            Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
-
-            float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
-
-            Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
-
-            // If we are dragging past the extent of the scrollable area, half the offset
-            // such that the user can feel it.
-            scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
-
-            offset(scrollOffset, false);
-            return true;
-        }
-
-        protected override bool OnDragEnd(DragEndEvent e)
-        {
-            Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
-
-            IsDragging = false;
-
-            if (averageDragTime <= 0.0)
-                return true;
-
-            double velocity = averageDragDelta / averageDragTime;
-
-            // Detect whether we halted at the end of the drag and in fact should _not_
-            // perform a flick event.
-            const double velocity_cutoff = 0.1;
-            if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < velocity_cutoff)
-                velocity = 0;
-
-            // Differentiate f(t) = distance * (1 - exp(-t)) w.r.t. "t" to obtain
-            // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
-            double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
-
-            offset((float)distance, true, DistanceDecayDrag);
-
-            return true;
-        }
-
-        protected override bool OnScroll(ScrollEvent e)
-        {
-            bool isPrecise = e.IsPrecise;
-
-            Vector2 scrollDelta = e.ScrollDelta;
-            float scrollDeltaFloat = scrollDelta.Y;
-            if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
-                scrollDeltaFloat = scrollDelta.X;
-
-            offset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
-            return true;
-        }
 
         private void onScrollbarMovement(float value) => scrollTo(Clamp(value / Scrollbar.Size[ScrollDim]), false);
 
@@ -577,50 +583,49 @@ namespace osu.Framework.Graphics.Containers
                 this.ResizeTo(size, duration, easing);
             }
 
-            protected override bool OnClick(ClickEvent e) => true;
-
-            protected override bool OnHover(HoverEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
-                this.FadeColour(hoverColour, 100);
-                return true;
-            }
+                switch (e)
+                {
+                    case ClickEvent _:
+                        return true;
 
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                this.FadeColour(defaultColour, 100);
-            }
+                    case HoverEvent _:
+                        this.FadeColour(hoverColour, 100);
+                        return true;
 
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
-                return true;
-            }
+                    case HoverLostEvent _:
+                        this.FadeColour(defaultColour, 100);
+                        return false;
 
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                if (e.Button != MouseButton.Left) return false;
+                    case DragStartEvent _:
+                        dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
+                        return true;
 
-                //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlightColour, 100);
+                    case MouseDownEvent mouseDownEvent:
+                        if (mouseDownEvent.Button != MouseButton.Left) return false;
 
-                dragOffset = Position[scrollDim];
-                Dragged?.Invoke(dragOffset);
-                return true;
-            }
+                        //note that we are changing the colour of the box here as to not interfere with the hover effect.
+                        box.FadeColour(highlightColour, 100);
 
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                if (e.Button != MouseButton.Left) return false;
+                        dragOffset = Position[scrollDim];
+                        Dragged?.Invoke(dragOffset);
+                        return true;
 
-                box.FadeColour(Color4.White, 100);
+                    case MouseUpEvent mouseUpEvent:
+                        if (mouseUpEvent.Button != MouseButton.Left) return false;
 
-                return base.OnMouseUp(e);
-            }
+                        box.FadeColour(Color4.White, 100);
 
-            protected override bool OnDrag(DragEvent e)
-            {
-                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
-                return true;
+                        return base.Handle(mouseUpEvent);
+
+                    case DragEvent dragEvent:
+                        Dragged?.Invoke(dragEvent.MousePosition[scrollDim] - dragOffset);
+                        return true;
+
+                    default:
+                        return base.Handle(e);
+                }
             }
         }
 

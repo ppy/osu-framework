@@ -38,14 +38,23 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
-        protected override bool OnDragStart(DragStartEvent e) => true;
-
-        protected override bool OnDrag(DragEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            movableTarget.Position += e.Delta;
-            return base.OnDrag(e);
-        }
+            switch (e)
+            {
+                case DragStartEvent _:
+                    return true;
 
-        protected override bool OnMouseDown(MouseDownEvent e) => true;
+                case DragEvent dragEvent:
+                    movableTarget.Position += dragEvent.Delta;
+                    return base.Handle(dragEvent);
+
+                case MouseDownEvent _:
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
+        }
     }
 }

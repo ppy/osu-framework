@@ -277,7 +277,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(HoverEvent e) => true;
+        protected override bool Handle(PositionalEvent e)
+        {
+            switch (e)
+            {
+                case HoverEvent _:
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
+        }
 
         /// <summary>
         /// Creates the menu body.

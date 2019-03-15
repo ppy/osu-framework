@@ -36,14 +36,21 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public CompositeDrawable TabbableContentContainer { private get; set; }
 
-        protected override bool OnKeyDown(KeyDownEvent e)
+        protected override bool Handle(NonPositionalEvent e)
         {
-            if (TabbableContentContainer == null || e.Key != Key.Tab)
-                return false;
+            switch (e)
+            {
+                case KeyDownEvent keyDownEvent:
+                    if (TabbableContentContainer == null || keyDownEvent.Key != Key.Tab)
+                        return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
-            return true;
+                    var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
+                    if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
         }
 
         private Drawable nextTabStop(CompositeDrawable target, bool reverse)

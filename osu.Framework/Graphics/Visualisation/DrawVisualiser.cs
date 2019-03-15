@@ -259,31 +259,37 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e) => Searching;
-
-        protected override bool OnClick(ClickEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            if (Searching)
+            switch (e)
             {
-                Target = cursorTarget?.Parent;
+                case MouseDownEvent _:
+                    return Searching;
 
-                if (Target != null)
-                {
-                    overlay.Target = null;
-                    targetVisualiser.ExpandAll();
+                case ClickEvent clickEvent:
+                    if (Searching)
+                    {
+                        Target = cursorTarget?.Parent;
 
-                    Searching = false;
-                    return true;
-                }
+                        if (Target != null)
+                        {
+                            overlay.Target = null;
+                            targetVisualiser.ExpandAll();
+
+                            Searching = false;
+                            return true;
+                        }
+                    }
+
+                    return base.Handle(clickEvent);
+
+                case MouseMoveEvent _:
+                    overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+                    return overlay.Target != null;
+
+                default:
+                    return base.Handle(e);
             }
-
-            return base.OnClick(e);
-        }
-
-        protected override bool OnMouseMove(MouseMoveEvent e)
-        {
-            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return overlay.Target != null;
         }
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();

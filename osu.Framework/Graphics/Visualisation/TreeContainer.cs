@@ -172,19 +172,25 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
         }
 
-        protected override bool OnHover(HoverEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
-            State = TreeContainerStatus.Onscreen;
-            return true;
-        }
+            switch (e)
+            {
+                case HoverEvent _:
+                    State = TreeContainerStatus.Onscreen;
+                    return true;
 
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            State = TreeContainerStatus.Offscreen;
-            base.OnHoverLost(e);
-        }
+                case HoverLostEvent _:
+                    State = TreeContainerStatus.Offscreen;
+                    return false;
 
-        protected override bool OnClick(ClickEvent e) => true;
+                case ClickEvent _:
+                    return true;
+
+                default:
+                    return base.Handle(e);
+            }
+        }
 
         protected override void LoadComplete()
         {
