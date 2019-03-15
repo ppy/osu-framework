@@ -12,7 +12,7 @@ using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Visual.Bindable
+namespace osu.Framework.Tests.Visual.Bindables
 {
     public class TestCaseBindableAutoUnbinding : TestCase
     {
