@@ -124,19 +124,29 @@ namespace osu.Framework.Screens
                     return;
                 }
 
-                newScreenDrawable.OnLoadComplete = _ => newScreen.OnEntering(source);
                 AddInternal(newScreenDrawable);
+                newScreen.OnEntering(source);
             }
 
             void suspend()
             {
                 var sourceDrawable = source?.AsDrawable();
+                if (sourceDrawable == null)
+                    return;
 
-                sourceDrawable?.Schedule(() =>
+                if (sourceDrawable.IsLoaded)
+                    performSuspend();
+                else
+                {
+                    // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
+                    sourceDrawable.OnLoadComplete = _ => performSuspend();
+                }
+
+                void performSuspend()
                 {
                     source.OnSuspending(newScreen);
                     sourceDrawable.Expire();
-                });
+                }
             }
         }
 
