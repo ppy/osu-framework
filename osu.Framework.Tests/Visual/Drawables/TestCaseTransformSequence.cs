@@ -152,7 +152,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
             .Finally(_ => finalizeTriggered = true);
 
-
             boxes[7].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
@@ -163,7 +162,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                 b => b.ScaleTo(0.5f, 500)
             )
             .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
-
 
             boxes[8].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,

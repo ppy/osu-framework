@@ -263,7 +263,6 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
-
         private interface IProvidedInterface1
         {
         }
