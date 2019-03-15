@@ -91,62 +91,71 @@ namespace osu.Framework.Screens
                 throw new ScreenWillBeRemovedOnPushException(newScreen.GetType());
 
             // Suspend the current screen, if there is one
-            if (source != null)
-            {
-                if (source != stack.Peek())
-                    throw new ScreenNotCurrentException(nameof(Push));
+            if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
-                if (suspendImmediately)
-                    suspend();
-            }
+            if (suspendImmediately)
+                suspend(source, newScreen);
 
-            // Push the new screen
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
             var newScreenDrawable = newScreen.AsDrawable();
 
-            if (source != null)
-                LoadScreen((CompositeDrawable)source, newScreenDrawable, finishLoad);
-            else if (LoadState >= LoadState.Ready)
-                LoadScreen(this, newScreenDrawable, finishLoad);
-            else
-                Schedule(finishLoad);
-
-            void finishLoad()
+            if (source == null)
             {
-                if (!suspendImmediately)
-                    suspend();
+                // this is the first screen to be loaded.
+                if (LoadState >= LoadState.Ready)
+                    LoadScreen(this, newScreenDrawable, () => push(null, newScreen));
+                else
+                    Schedule(() => push(null, newScreen));
+            }
+            else
+                LoadScreen((CompositeDrawable)source, newScreenDrawable, () => push(source, newScreen));
+        }
 
-                if (!newScreen.ValidForPush)
-                {
-                    exitFrom(null, shouldFireEvent: false);
-                    return;
-                }
+        /// <summary>
+        /// Complete push of a loaded screen.
+        /// </summary>
+        /// <param name="from">The screen to push to.</param>
+        /// <param name="to">The new screen being pushed.</param>
+        private void push(IScreen from, IScreen to)
+        {
+            if (!suspendImmediately)
+                suspend(from, to);
 
-                AddInternal(newScreenDrawable);
-                newScreen.OnEntering(source);
+            if (!to.ValidForPush)
+            {
+                exitFrom(null, shouldFireEvent: false);
+                return;
             }
 
-            void suspend()
+            AddInternal(to.AsDrawable());
+            to.OnEntering(from);
+        }
+
+        /// <summary>
+        /// Complete suspend of a screen in the stack.
+        /// </summary>
+        /// <param name="from">The screen being suspended.</param>
+        /// <param name="to">The screen being entered.</param>
+        private void suspend(IScreen from, IScreen to)
+        {
+            var sourceDrawable = from?.AsDrawable();
+            if (sourceDrawable == null)
+                return;
+
+            if (sourceDrawable.IsLoaded)
+                performSuspend();
+            else
             {
-                var sourceDrawable = source?.AsDrawable();
-                if (sourceDrawable == null)
-                    return;
+                // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
+                sourceDrawable.OnLoadComplete += _ => performSuspend();
+            }
 
-                if (sourceDrawable.IsLoaded)
-                    performSuspend();
-                else
-                {
-                    // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
-                    sourceDrawable.OnLoadComplete += _ => performSuspend();
-                }
-
-                void performSuspend()
-                {
-                    source.OnSuspending(newScreen);
-                    sourceDrawable.Expire();
-                }
+            void performSuspend()
+            {
+                from.OnSuspending(to);
+                sourceDrawable.Expire();
             }
         }
 
