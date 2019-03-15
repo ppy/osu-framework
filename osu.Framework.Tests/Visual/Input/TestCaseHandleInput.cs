@@ -102,7 +102,6 @@ namespace osu.Framework.Tests.Visual.Input
             public override bool HandlePositionalInput => Enabled;
         }
 
-
         private class TestContainerHandleNonPositionalInput : TestContainer
         {
             public override bool HandleNonPositionalInput => Enabled;

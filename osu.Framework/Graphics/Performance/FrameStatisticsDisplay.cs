@@ -305,7 +305,6 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             switch (e.Key)

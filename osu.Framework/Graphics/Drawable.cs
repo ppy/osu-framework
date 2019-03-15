@@ -1017,7 +1017,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Vector2 customOrigin;
 
         /// <summary>
@@ -1081,7 +1080,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Anchor anchor = Anchor.TopLeft;
 
         /// <summary>
@@ -1105,7 +1103,6 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.MiscGeometry);
             }
         }
-
 
         private Vector2 customRelativeAnchorPosition;
 
@@ -1612,7 +1609,6 @@ namespace osu.Framework.Graphics
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
         internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
-
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
