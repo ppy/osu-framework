@@ -358,14 +358,15 @@ namespace osu.Framework.Graphics
         /// <see cref="UpdateSubTree"/>. It should be used when a simple action should be performed
         /// at the end of every update call which does not warrant overriding the Drawable.
         /// </summary>
-        public Action<Drawable> OnUpdate;
+        public event Action<Drawable> OnUpdate;
 
         /// <summary>
         /// This event is fired after the <see cref="LoadComplete"/> method is called.
         /// It should be used when a simple action should be performed
         /// when the Drawable is loaded which does not warrant overriding the Drawable.
+        /// This event is automatically cleared after being invoked.
         /// </summary>
-        public Action<Drawable> OnLoadComplete;
+        public event Action<Drawable> OnLoadComplete;
 
         /// <summary>.
         /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
