@@ -86,27 +86,20 @@ namespace osu.Framework.Testing.Drawables.Steps
             Reset();
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e)
+            try
             {
-                case ClickEvent _:
-                    try
-                    {
-                        PerformStep(true);
-                    }
-                    catch (Exception exc)
-                    {
-                        if (exc.InnerException is DependencyInjectionException die)
-                            exc = die.DispatchInfo.SourceException;
-                        Logging.Logger.Error(exc, $"Step {this} triggered an error");
-                    }
-
-                    return true;
-
-                default:
-                    return base.Handle(e);
+                PerformStep(true);
             }
+            catch (Exception exc)
+            {
+                if (exc.InnerException is DependencyInjectionException die)
+                    exc = die.DispatchInfo.SourceException;
+                Logging.Logger.Error(exc, $"Step {this} triggered an error");
+            }
+
+            return true;
         }
 
         /// <summary>

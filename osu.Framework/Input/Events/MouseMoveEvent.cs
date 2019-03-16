@@ -9,7 +9,7 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// An event representing a move of the mouse cursor.
     /// </summary>
-    public class MouseMoveEvent : PositionalEvent
+    public class MouseMoveEvent : MouseEvent
     {
         /// <summary>
         /// The last mouse position before this mouse move in the screen space.

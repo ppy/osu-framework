@@ -11,7 +11,7 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// Events of a keyboard key.
     /// </summary>
-    public abstract class KeyboardEvent : NonPositionalEvent
+    public abstract class KeyboardEvent : UIEvent
     {
         public readonly Key Key;
 

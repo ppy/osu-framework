@@ -80,7 +80,7 @@ namespace osu.Framework.Input
             return pendingInputs;
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool Handle(UIEvent e)
         {
             if (!UseParentInput) return false;
 
@@ -105,17 +105,7 @@ namespace osu.Framework.Input
                 case ScrollEvent scroll:
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
                     break;
-            }
 
-            return false;
-        }
-
-        protected override bool Handle(NonPositionalEvent e)
-        {
-            if (!UseParentInput) return false;
-
-            switch (e)
-            {
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
                     SyncInputState(e.CurrentState);

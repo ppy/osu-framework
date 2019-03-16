@@ -60,36 +60,29 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            switch (e)
+            switch (e.Button)
             {
-                case MouseDownEvent mouseDownEvent:
-                    switch (mouseDownEvent.Button)
+                case MouseButton.Right:
+                    menuTarget = FindTargets().FirstOrDefault();
+
+                    if (menuTarget == null)
                     {
-                        case MouseButton.Right:
-                            menuTarget = FindTargets().FirstOrDefault();
-
-                            if (menuTarget == null)
-                            {
-                                if (menu.State == MenuState.Open)
-                                    menu.Close();
-                                return false;
-                            }
-
-                            menu.Items = menuTarget.ContextMenuItems;
-
-                            menu.Position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                            relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
-                            menu.Open();
-                            return true;
-                        default:
+                        if (menu.State == MenuState.Open)
                             menu.Close();
-                            return false;
+                        return false;
                     }
 
+                    menu.Items = menuTarget.ContextMenuItems;
+
+                    menu.Position = ToLocalSpace(e.ScreenSpaceMousePosition);
+                    relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
+                    menu.Open();
+                    return true;
                 default:
-                    return base.Handle(e);
+                    menu.Close();
+                    return false;
             }
         }
 

@@ -319,26 +319,19 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected override bool Handle(NonPositionalEvent e)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            switch (e)
+            if (!e.Repeat)
             {
-                case KeyDownEvent keyDownEvent:
-                    if (!keyDownEvent.Repeat)
-                    {
-                        switch (keyDownEvent.Key)
-                        {
-                            case Key.Escape:
-                                exit();
-                                return true;
-                        }
-                    }
-
-                    return base.Handle(keyDownEvent);
-
-                default:
-                    return base.Handle(e);
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        exit();
+                        return true;
+                }
             }
+
+            return base.OnKeyDown(e);
         }
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]

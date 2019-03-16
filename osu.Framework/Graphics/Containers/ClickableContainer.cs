@@ -23,18 +23,11 @@ namespace osu.Framework.Graphics.Containers
 
         public readonly BindableBool Enabled = new BindableBool();
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e)
-            {
-                case ClickEvent _:
-                    if (Enabled.Value)
-                        Action?.Invoke();
-                    return true;
-
-                default:
-                    return base.Handle(e);
-            }
+            if (Enabled.Value)
+                Action?.Invoke();
+            return true;
         }
     }
 }

@@ -61,22 +61,16 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnHover(HoverEvent e)
         {
-            switch (e)
-            {
-                case HoverEvent hoverEvent:
-                    Background.Colour = BackgroundColourHover;
-                    return base.Handle(hoverEvent);
+            Background.Colour = BackgroundColourHover;
+            return base.OnHover(e);
+        }
 
-                case HoverLostEvent hoverLostEvent:
-                    Background.Colour = BackgroundColour;
-                    base.Handle(hoverLostEvent);
-                    return false;
-
-                default:
-                    return base.Handle(e);
-            }
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            Background.Colour = BackgroundColour;
+            base.OnHoverLost(e);
         }
     }
 }

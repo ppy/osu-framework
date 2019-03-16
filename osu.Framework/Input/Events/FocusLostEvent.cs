@@ -8,7 +8,7 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// An event represeting that a drawable lost the focus.
     /// </summary>
-    public class FocusLostEvent : FocusEventBase
+    public class FocusLostEvent : UIEvent
     {
         public FocusLostEvent(InputState state)
             : base(state)

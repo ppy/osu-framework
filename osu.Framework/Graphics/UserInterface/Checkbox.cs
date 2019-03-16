@@ -31,20 +31,13 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e)
-            {
-                case ClickEvent clickEvent:
-                    if (!Current.Disabled)
-                        Current.Value = !Current.Value;
+            if (!Current.Disabled)
+                Current.Value = !Current.Value;
 
-                    base.Handle(clickEvent);
-                    return true;
-
-                default:
-                    return base.Handle(e);
-            }
+            base.OnClick(e);
+            return true;
         }
     }
 }

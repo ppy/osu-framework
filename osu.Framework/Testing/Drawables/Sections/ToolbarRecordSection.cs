@@ -201,38 +201,32 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             private ScheduledDelegate repeatDelegate;
 
-            protected override bool Handle(PositionalEvent e)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
-                switch (e)
+                repeatDelegate?.Cancel();
+
+                if (e.Button == MouseButton.Left)
                 {
-                    case MouseDownEvent mouseDownEvent:
-                        repeatDelegate?.Cancel();
+                    var clickEvent = new ClickEvent(e.CurrentState, e.Button, e.ScreenSpaceMouseDownPosition) { Target = this };
 
-                        if (mouseDownEvent.Button == MouseButton.Left)
-                        {
-                            var clickEvent = new ClickEvent(e.CurrentState, mouseDownEvent.Button, mouseDownEvent.ScreenSpaceMouseDownPosition) { Target = this };
-
-                            if (!base.Handle(clickEvent))
-                                return false;
-
-                            repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.Handle(clickEvent), 100, true); }, 300);
-
-                            return true;
-                        }
-
+                    if (!base.OnClick(clickEvent))
                         return false;
 
-                    case MouseUpEvent mouseUpEvent:
-                        repeatDelegate?.Cancel();
-                        return base.Handle(mouseUpEvent);
+                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(clickEvent), 100, true); }, 300);
 
-                    case ClickEvent _:
-                        return false;// Clicks aren't handled by this type of button
-
-                    default:
-                        return base.Handle(e);
+                    return true;
                 }
+
+                return false;
             }
+
+            protected override bool OnMouseUp(MouseUpEvent e)
+            {
+                repeatDelegate?.Cancel();
+                return base.OnMouseUp(e);
+            }
+
+            protected override bool OnClick(ClickEvent e) => false; // Clicks aren't handled by this type of button
         }
     }
 }

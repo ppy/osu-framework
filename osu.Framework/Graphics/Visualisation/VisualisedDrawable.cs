@@ -249,41 +249,42 @@ namespace osu.Framework.Graphics.Visualisation
             detachEvents();
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnHover(HoverEvent e)
         {
-            switch (e)
+            background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
+            return base.OnHover(e);
+        }
+
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            background.Colour = Color4.Transparent;
+            base.OnHoverLost(e);
+        }
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            if (e.Button == MouseButton.Right)
             {
-                case HoverEvent hoverEvent:
-                    background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
-                    return base.Handle(hoverEvent);
-
-                case HoverLostEvent _:
-                    background.Colour = Color4.Transparent;
-                    return false;
-
-                case MouseDownEvent mouseDownEvent:
-                    if (mouseDownEvent.Button == MouseButton.Right)
-                    {
-                        HighlightTarget?.Invoke(this);
-                        return true;
-                    }
-
-                    return false;
-
-                case ClickEvent _:
-                    if (isExpanded)
-                        Collapse();
-                    else
-                        Expand();
-                    return true;
-
-                case DoubleClickEvent _:
-                    RequestTarget?.Invoke(Target);
-                    return true;
-
-                default:
-                    return base.Handle(e);
+                HighlightTarget?.Invoke(this);
+                return true;
             }
+
+            return false;
+        }
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (isExpanded)
+                Collapse();
+            else
+                Expand();
+            return true;
+        }
+
+        protected override bool OnDoubleClick(DoubleClickEvent e)
+        {
+            RequestTarget?.Invoke(Target);
+            return true;
         }
 
         private bool isExpanded = true;

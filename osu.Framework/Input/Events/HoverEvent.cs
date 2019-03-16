@@ -9,7 +9,7 @@ namespace osu.Framework.Input.Events
     /// An event representing a mouse hover.
     /// Triggered when mouse cursor is moved onto a drawable.
     /// </summary>
-    public class HoverEvent : PositionalEvent
+    public class HoverEvent : MouseEvent
     {
         public HoverEvent(InputState state)
             : base(state)

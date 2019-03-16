@@ -67,28 +67,21 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnDragEnd(DragEndEvent e)
         {
-            switch (e)
+            var flash = new Box
             {
-                case DragEndEvent dragEndEvent:
-                    var flash = new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.RoyalBlue,
-                        Blending = BlendingMode.Additive,
-                        Alpha = 0.6f,
-                    };
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.RoyalBlue,
+                Blending = BlendingMode.Additive,
+                Alpha = 0.6f,
+            };
 
-                    Add(flash);
-                    flash.FadeOut(200).Expire();
+            Add(flash);
+            flash.FadeOut(200).Expire();
 
-                    Success();
-                    return base.Handle(dragEndEvent);
-
-                default:
-                    return base.Handle(e);
-            }
+            Success();
+            return base.OnDragEnd(e);
         }
 
         protected override void UpdateValue(float normalizedValue)

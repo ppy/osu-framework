@@ -96,24 +96,19 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected override bool Handle(NonPositionalEvent e)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            switch (e)
-            {
-                case KeyDownEvent keyDownEvent:
-                    if (!keyDownEvent.Repeat)
-                        setHoldState(keyDownEvent.Key == Key.ControlLeft || keyDownEvent.Key == Key.ControlRight);
+            if (!e.Repeat)
+                setHoldState(e.Key == Key.ControlLeft || e.Key == Key.ControlRight);
 
-                    return base.Handle(keyDownEvent);
+            return base.OnKeyDown(e);
+        }
 
-                case KeyUpEvent keyUpEvent:
-                    if (!e.ControlPressed)
-                        setHoldState(false);
-                    return base.Handle(keyUpEvent);
-
-                default:
-                    return base.Handle(e);
-            }
+        protected override bool OnKeyUp(KeyUpEvent e)
+        {
+            if (!e.ControlPressed)
+                setHoldState(false);
+            return base.OnKeyUp(e);
         }
 
         private void setHoldState(bool controlPressed)
