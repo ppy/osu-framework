@@ -1135,26 +1135,20 @@ namespace osu.Framework.Tests.Visual.Containers
 
         public bool AllowDrag = true;
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnDrag(DragEvent e)
         {
-            switch (e)
-            {
-                case DragEvent dragEvent:
-                    if (!AllowDrag) return false;
+            if (!AllowDrag) return false;
 
-                    Position += dragEvent.Delta;
-                    return true;
-
-                case DragEndEvent _:
-                    return true;
-
-                case DragStartEvent _:
-                    return AllowDrag;
-
-                default:
-                    return base.Handle(e);
-            }
+            Position += e.Delta;
+            return true;
         }
+
+        protected override bool OnDragEnd(DragEndEvent e)
+        {
+            return true;
+        }
+
+        protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
     }
 
     internal class InfofulBox : Container
@@ -1162,26 +1156,20 @@ namespace osu.Framework.Tests.Visual.Containers
         public bool Chameleon = false;
         public bool AllowDrag = true;
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnDrag(DragEvent e)
         {
-            switch (e)
-            {
-                case DragEvent dragEvent:
-                    if (!AllowDrag) return false;
+            if (!AllowDrag) return false;
 
-                    Position += dragEvent.Delta;
-                    return true;
-
-                case DragEndEvent _:
-                    return true;
-
-                case DragStartEvent _:
-                    return AllowDrag;
-
-                default:
-                    return base.Handle(e);
-            }
+            Position += e.Delta;
+            return true;
         }
+
+        protected override bool OnDragEnd(DragEndEvent e)
+        {
+            return true;
+        }
+
+        protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
 
         public InfofulBox()
         {

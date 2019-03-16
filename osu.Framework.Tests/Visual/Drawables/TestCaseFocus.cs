@@ -247,50 +247,27 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-            protected override bool Handle(PositionalEvent e)
+            protected override bool OnClick(ClickEvent e)
             {
-                switch (e)
+                if (!box.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                 {
-                    case ClickEvent clickEvent:
-                        if (!box.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
-                        {
-                            State = Visibility.Hidden;
-                            return true;
-                        }
-
-                        return base.Handle(clickEvent);
-
-                    default:
-                        return base.Handle(e);
+                    State = Visibility.Hidden;
+                    return true;
                 }
+
+                return base.OnClick(e);
             }
 
-            protected override bool Handle(FocusEventBase e)
+            protected override void OnFocus(FocusEvent e)
             {
-                switch (e)
-                {
-                    case FocusEvent focusEvent:
-                        base.Handle(focusEvent);
-                        this.FadeTo(1);
-                        return false;
-
-                    case FocusLostEvent focusLostEvent:
-                        base.Handle(focusLostEvent);
-                        this.FadeTo(0.2f);
-                        return false;
-
-                    default:
-                        return base.Handle(e);
-                }
+                base.OnFocus(e);
+                this.FadeTo(1);
             }
 
-            protected override bool Handle(NonPositionalEvent e)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                switch (e)
-                {
-                    default:
-                        return base.Handle(e);
-                }
+                base.OnFocusLost(e);
+                this.FadeTo(0.2f);
             }
         }
 
@@ -329,63 +306,46 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool Handle(PositionalEvent e)
-            {
-                switch (e)
-                {
-                    case ClickEvent _:
-                        return true;
-
-                    default:
-                        return base.Handle(e);
-                }
-            }
-
-            protected override bool Handle(FocusEventBase e)
-            {
-                switch (e)
-                {
-                    case FocusEvent focusEvent:
-                        base.Handle(focusEvent);
-                        Box.FadeTo(1);
-                        return false;
-
-                    case FocusLostEvent focusLostEvent:
-                        base.Handle(focusLostEvent);
-                        Box.FadeTo(0.5f);
-                        return false;
-
-                    default:
-                        return base.Handle(e);
-                }
-            }
-
-            protected override bool Handle(NonPositionalEvent e)
-            {
-                switch (e)
-                {
-                    case KeyDownEvent _:
-                        ++KeyDownCount;
-                        return true;
-
-                    case KeyUpEvent _:
-                        ++KeyUpCount;
-                        return true;
-
-                    case JoystickPressEvent joystickPressEvent:
-                        ++JoystickPressCount;
-                        return base.Handle(joystickPressEvent);
-
-                    case JoystickReleaseEvent joystickReleaseEvent:
-                        ++JoystickReleaseCount;
-                        return base.Handle(joystickReleaseEvent);
-
-                    default:
-                        return base.Handle(e);
-                }
-            }
+            protected override bool OnClick(ClickEvent e) => true;
 
             public override bool AcceptsFocus => true;
+
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+                Box.FadeTo(1);
+            }
+
+            protected override void OnFocusLost(FocusLostEvent e)
+            {
+                base.OnFocusLost(e);
+                Box.FadeTo(0.5f);
+            }
+
+            // only KeyDown is blocking
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                ++KeyDownCount;
+                return true;
+            }
+
+            protected override bool OnKeyUp(KeyUpEvent e)
+            {
+                ++KeyUpCount;
+                return base.OnKeyUp(e);
+            }
+
+            protected override bool OnJoystickPress(JoystickPressEvent e)
+            {
+                ++JoystickPressCount;
+                return base.OnJoystickPress(e);
+            }
+
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            {
+                ++JoystickReleaseCount;
+                return base.OnJoystickRelease(e);
+            }
         }
     }
 }

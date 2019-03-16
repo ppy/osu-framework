@@ -447,7 +447,7 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            protected override bool Handle(PositionalEvent e)
+            protected override bool Handle(UIEvent e)
             {
                 var type = e.GetType();
                 if (!counterLookup.TryGetValue(type, out var counter))
@@ -573,33 +573,31 @@ namespace osu.Framework.Tests.Visual.Input
                     };
                 }
 
-                protected override bool Handle(PositionalEvent e)
+                protected override bool OnMouseMove(MouseMoveEvent e)
                 {
-                    switch (e)
-                    {
-                        case MouseMoveEvent mouseMoveEvent:
-                            Child.MoveTo(e.MousePosition, 100, Easing.OutQuint);
-                            return base.Handle(mouseMoveEvent);
-
-                        case ScrollEvent scrollEvent:
-                            circle.MoveTo(circle.Position - scrollEvent.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
-                            return base.Handle(scrollEvent);
-
-                        case MouseDownEvent mouseDownEvent:
-                            adjustForMouseDown(e);
-                            return base.Handle(mouseDownEvent);
-
-                        case MouseUpEvent mouseUpEvent:
-                            adjustForMouseDown(e);
-                            return base.Handle(mouseUpEvent);
-
-
-                        default:
-                            return base.Handle(e);
-                    }
+                    Child.MoveTo(e.MousePosition, 100, Easing.OutQuint);
+                    return base.OnMouseMove(e);
                 }
 
-                private void adjustForMouseDown(PositionalEvent e)
+                protected override bool OnScroll(ScrollEvent e)
+                {
+                    circle.MoveTo(circle.Position - e.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+                    return base.OnScroll(e);
+                }
+
+                protected override bool OnMouseDown(MouseDownEvent e)
+                {
+                    adjustForMouseDown(e);
+                    return base.OnMouseDown(e);
+                }
+
+                protected override bool OnMouseUp(MouseUpEvent e)
+                {
+                    adjustForMouseDown(e);
+                    return base.OnMouseUp(e);
+                }
+
+                private void adjustForMouseDown(MouseEvent e)
                 {
                     circle.FadeColour(e.HasAnyButtonPressed ? Color4.Green.Lighten((e.PressedButtons.Count() - 1) * 0.3f) : Color4.White, 50);
                 }
@@ -616,7 +614,7 @@ namespace osu.Framework.Tests.Visual.Input
                 TextContainer.Add(dragStatus = new SmallText());
             }
 
-            protected override bool Handle(PositionalEvent e)
+            protected override bool Handle(UIEvent e)
             {
                 return base.Handle(e) || e is DragStartEvent;
             }

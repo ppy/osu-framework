@@ -144,24 +144,15 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            protected override bool Handle(PositionalEvent e)
+            protected override bool OnDrag(DragEvent e)
             {
-                switch (e)
-                {
-                    case DragEvent dragEvent:
-                        Position += dragEvent.Delta;
-                        return true;
-
-                    case DragEndEvent _:
-                        return true;
-
-                    case DragStartEvent _:
-                        return true;
-
-                    default:
-                        return base.Handle(e);
-                }
+                Position += e.Delta;
+                return true;
             }
+
+            protected override bool OnDragEnd(DragEndEvent e) => true;
+
+            protected override bool OnDragStart(DragStartEvent e) => true;
         }
     }
 }

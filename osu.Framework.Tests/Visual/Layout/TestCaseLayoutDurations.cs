@@ -172,17 +172,10 @@ namespace osu.Framework.Tests.Visual.Layout
             base.Update();
         }
 
-        protected override bool Handle(PositionalEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e)
-            {
-                case ClickEvent clickEvent:
-                    paused = !paused;
-                    return base.Handle(clickEvent);
-
-                default:
-                    return base.Handle(e);
-            }
+            paused = !paused;
+            return base.OnClick(e);
         }
     }
 }
