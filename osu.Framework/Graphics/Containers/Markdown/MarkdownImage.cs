@@ -30,10 +30,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
             InternalChild = new DelayedLoadWrapper(CreateImageContainer(url));
         }
 
-        protected virtual ImageContainer CreateImageContainer(string url) => new ImageContainer(url)
+        protected virtual ImageContainer CreateImageContainer(string url)
         {
-            OnLoadComplete = d => d.FadeInFromZero(300, Easing.OutQuint)
-        };
+            var converter = new ImageContainer(url);
+            converter.OnLoadComplete += d => d.FadeInFromZero(300, Easing.OutQuint);
+            return converter;
+        }
 
         protected class ImageContainer : CompositeDrawable
         {

@@ -178,7 +178,6 @@ namespace osu.Framework.Graphics.Lines
 
             addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
 
-
             foreach (Line segment in Segments)
                 addLineQuads(segment, texRect);
         }

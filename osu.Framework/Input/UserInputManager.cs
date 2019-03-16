@@ -15,8 +15,12 @@ namespace osu.Framework.Input
 
         protected override bool HandleHoverEvents => Host.Window?.CursorInWindow ?? true;
 
-        public UserInputManager()
+        protected internal override bool ShouldBeAlive => true;
+
+        protected internal UserInputManager()
         {
+            // UserInputManager is at the very top of the draw hierarchy, so it has no parnt updating its IsAlive state
+            IsAlive = true;
             UseParentInput = false;
         }
 

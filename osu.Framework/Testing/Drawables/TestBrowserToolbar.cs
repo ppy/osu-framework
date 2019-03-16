@@ -35,7 +35,7 @@ namespace osu.Framework.Testing.Drawables
                         ColumnDimensions = new[]
                         {
                             new Dimension(GridSizeMode.AutoSize),
-                            new Dimension(GridSizeMode.Distributed),
+                            new Dimension(),
                             new Dimension(GridSizeMode.AutoSize),
                         },
                         Content = new[]
