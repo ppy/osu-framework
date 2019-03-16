@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.OpenGL
             Clear(new ClearInfo
             {
                 Colour = Color4.Black,
-                Depth = 0f,
+                Depth = 1f,
                 Stencil = 0
             });
         }

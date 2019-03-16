@@ -25,9 +25,9 @@ namespace osu.Framework.Tests.Visual
 
             private class TestBoxDrawNode : BoxDrawNode
             {
-                public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref float vertexDepth)
+                public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref uint depthIndex)
                 {
-                    base.DrawHull(vertexAction, ref vertexDepth);
+                    base.DrawHull(vertexAction, ref depthIndex);
                 }
             }
         }

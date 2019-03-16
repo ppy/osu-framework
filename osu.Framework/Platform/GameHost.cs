@@ -404,17 +404,17 @@ namespace osu.Framework.Platform
 
                     if (ftbPass.Value)
                     {
-                        float depth = 1;
+                        uint depthIndex = 0;
 
                         GLWrapper.PushDepthInfo(new DepthInfo
                         {
                             DepthTest = true,
                             WriteDepth = true,
-                            Function = DepthFunction.Greater
+                            Function = DepthFunction.Lequal
                         });
 
                         // Front pass
-                        buffer.Object.DrawHull(null, ref depth);
+                        buffer.Object.DrawHull(null, ref depthIndex);
 
                         GLWrapper.PopDepthInfo();
 
@@ -423,7 +423,7 @@ namespace osu.Framework.Platform
                         {
                             DepthTest = true,
                             WriteDepth = false,
-                            Function = DepthFunction.Gequal
+                            Function = DepthFunction.Lequal
                         });
                     }
                     else
