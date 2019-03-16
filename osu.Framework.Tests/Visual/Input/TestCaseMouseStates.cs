@@ -447,7 +447,7 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            protected override bool Handle(UIEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
                 var type = e.GetType();
                 if (!counterLookup.TryGetValue(type, out var counter))
@@ -597,7 +597,7 @@ namespace osu.Framework.Tests.Visual.Input
                     return base.OnMouseUp(e);
                 }
 
-                private void adjustForMouseDown(MouseEvent e)
+                private void adjustForMouseDown(PositionalEvent e)
                 {
                     circle.FadeColour(e.HasAnyButtonPressed ? Color4.Green.Lighten((e.PressedButtons.Count() - 1) * 0.3f) : Color4.White, 50);
                 }
@@ -614,7 +614,7 @@ namespace osu.Framework.Tests.Visual.Input
                 TextContainer.Add(dragStatus = new SmallText());
             }
 
-            protected override bool Handle(UIEvent e)
+            protected override bool Handle(PositionalEvent e)
             {
                 return base.Handle(e) || e is DragStartEvent;
             }

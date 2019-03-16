@@ -99,7 +99,7 @@ namespace osu.Framework.Input.Bindings
             return true;
         }
 
-        protected override bool Handle(UIEvent e)
+        protected override bool Handle(PositionalEvent e)
         {
             var state = e.CurrentState;
             switch (e)
@@ -110,6 +110,23 @@ namespace osu.Framework.Input.Bindings
                 case MouseUpEvent mouseUp:
                     return handleNewReleased(state, KeyCombination.FromMouseButton(mouseUp.Button));
 
+                case ScrollEvent scroll:
+                {
+                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                    if (key == InputKey.None) return false;
+                    return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
+                }
+
+                default:
+                    return base.Handle(e);
+            }
+        }
+
+        protected override bool Handle(NonPositionalEvent e)
+        {
+            var state = e.CurrentState;
+            switch (e)
+            {
                 case KeyDownEvent keyDown:
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
@@ -124,15 +141,9 @@ namespace osu.Framework.Input.Bindings
                 case JoystickReleaseEvent joystickRelease:
                     return handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
 
-                case ScrollEvent scroll:
-                {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
-                    return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
-                }
+                default:
+                    return base.Handle(e);
             }
-
-            return false;
         }
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)

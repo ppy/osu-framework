@@ -1821,11 +1821,25 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Handle a UI event.
+        /// Handle focus related UI event.
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e) => false;
+        protected virtual bool Handle(FocusEventBase e) => false;
+
+        /// <summary>
+        /// Handle positional UI event.
+        /// </summary>
+        /// <param name="e">The event to be handled.</param>
+        /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
+        protected virtual bool Handle(PositionalEvent e) => false;
+
+        /// <summary>
+        /// Handle non positional UI event.
+        /// </summary>
+        /// <param name="e">The event to be handled.</param>
+        /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
+        protected virtual bool Handle(NonPositionalEvent e) => false;
 
         /// <summary>
         /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
@@ -1966,7 +1980,6 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] positional_input_methods =
             {
-                nameof(Handle),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1984,7 +1997,6 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] non_positional_input_methods =
             {
-                nameof(Handle),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2022,11 +2034,35 @@ namespace osu.Framework.Graphics
 
             private static bool compute(Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
-                foreach (var inputMethod in inputMethods)
+                // check for any input method overrides which are at a higher level than drawable.
+                var focusMethod = type.GetMethod(
+                    nameof(Handle),
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    Type.DefaultBinder,
+                    new[] { typeof(FocusEventBase) },
+                    null);
+
+                Debug.Assert(focusMethod != null);
+
+                if (focusMethod.DeclaringType != typeof(Drawable))
+                    return true;
+
+                var handleMethod = type.GetMethod(
+                    nameof(Handle),
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    Type.DefaultBinder,
+                    positional ? new[] { typeof(PositionalEvent) } : new[] { typeof(NonPositionalEvent) },
+                    null);
+
+                Debug.Assert(handleMethod != null);
+
+                if (handleMethod.DeclaringType != typeof(Drawable))
+                    return true;
+
+                var individualInputMethods = positional ? positional_input_methods : non_positional_input_methods;
+                foreach (var individualInputMethod in individualInputMethods)
                 {
-                    // check for any input method overrides which are at a higher level than drawable.
-                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
+                    var method = type.GetMethod(individualInputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
 
                     Debug.Assert(method != null);
 
