@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.UserInterface
             fillFlowContainer = CreateAndAddFillFlowContainer();
         }
 
-
         /// <summary>
         /// Override this method for customising the design of the breadcrumb.
         /// remember to set
