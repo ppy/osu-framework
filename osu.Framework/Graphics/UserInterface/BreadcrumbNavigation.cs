@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly FillFlowContainer<Breadcrumb> fillFlowContainer;
 
-        public BreadcrumbNavigation()
+        protected BreadcrumbNavigation()
         {
             fillFlowContainer = CreateAndAddFillFlowContainer();
         }
