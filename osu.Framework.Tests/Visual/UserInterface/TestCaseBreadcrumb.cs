@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             const int test_index = 2;
 
             AddStep($"Click on {testValues[test_index]} one of the elements", () => {
-                (navigation.InternalChild as CompositeDrawable).InternalChildren[test_index].Click();
+                (navigation.InternalChild as CompositeDrawable)?.InternalChildren[test_index].Click();
             });
         }
     }
