@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -37,7 +38,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             const int test_index = 2;
 
-            AddStep($"Click on {testValues[test_index]} one of the elements", () => { navigation.InternalChildren[test_index].Click(); });
+            AddStep($"Click on {testValues[test_index]} one of the elements", () => {
+                (navigation.InternalChild as CompositeDrawable).InternalChildren[test_index].Click();
+            });
         }
     }
 }
