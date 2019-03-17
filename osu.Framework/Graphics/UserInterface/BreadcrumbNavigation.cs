@@ -23,7 +23,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">The value that is supposed to be written in the breadcrumb</param>
         protected abstract Breadcrumb CreateBreadcrumb(T value);
 
-
         /// <summary>
         /// The items displayed the breadcrumb navigation.
         /// </summary>
