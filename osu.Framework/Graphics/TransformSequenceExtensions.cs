@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Threading;
 using System;
 using JetBrains.Annotations;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics

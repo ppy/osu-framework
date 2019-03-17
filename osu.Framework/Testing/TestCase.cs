@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -54,9 +54,14 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
-        protected internal override void ClearInternal(bool disposeChildren = true) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
-        protected internal override bool RemoveInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
+        protected internal override void AddInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+
+        protected internal override void ClearInternal(bool disposeChildren = true) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
+
+        protected internal override bool RemoveInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         [OneTimeTearDown]
         public void DestroyGameHost()
@@ -83,7 +88,7 @@ namespace osu.Framework.Testing
         public void SetupTest()
         {
             if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                StepsContainer.Clear();
+                Schedule(() => StepsContainer.Clear());
         }
 
         [TearDown]
@@ -173,7 +178,6 @@ namespace osu.Framework.Testing
             });
         }
 
-
         private const float steps_width = 180;
         private const float padding = 0;
 
@@ -182,9 +186,9 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null)
         {
-            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
             Schedule(() =>
             {
@@ -194,32 +198,15 @@ namespace osu.Framework.Testing
 
                 actionIndex = -1;
                 actionRepetition = 0;
-                runNextStep(onCompletion, onError);
+                runNextStep(onCompletion, onError, stopCondition);
             });
-        }
-
-        public void RunFirstStep()
-        {
-            stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
-            foreach (var step in StepsContainer.OfType<StepButton>())
-                step.Reset();
-
-            actionIndex = 0;
-            try
-            {
-                loadableStep?.PerformStep();
-            }
-            catch (Exception e)
-            {
-                Logging.Logger.Error(e, "Error on running first step");
-            }
         }
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
         protected virtual double TimePerAction => 200;
 
-        private void runNextStep(Action onCompletion, Action<Exception> onError)
+        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -254,6 +241,9 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
+                    return;
+
                 Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
@@ -266,8 +256,10 @@ namespace osu.Framework.Testing
             }
 
             if (Parent != null)
-                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
+
+        public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));
 
         public StepButton AddStep(string description, Action action)
         {
@@ -277,53 +269,64 @@ namespace osu.Framework.Testing
                 Action = action
             };
 
-            StepsContainer.Add(step);
+            AddStep(step);
 
             return step;
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount)
+        public LabelStep AddLabel(string description)
+        {
+            var step = new LabelStep
+            {
+                Text = description,
+            };
+
+            AddStep(step);
+
+            return step;
+        }
+
+        protected void AddRepeatStep(string description, Action action, int invocationCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
                 Text = description,
             });
-        }
+        });
 
-        protected void AddToggleStep(string description, Action<bool> action)
+        protected void AddToggleStep(string description, Action<bool> action) => Schedule(() =>
         {
             StepsContainer.Add(new ToggleStepButton(action)
             {
                 Text = description
             });
-        }
+        });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
                 Text = description ?? @"Until",
             });
-        }
+        });
 
-        protected void AddWaitStep(int waitCount, string description = null)
+        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
                 Text = description ?? @"Wait",
             });
-        }
+        });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged)
-            where T : struct, IComparable, IConvertible
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => Schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
                 ValueChanged = valueChanged,
             });
-        }
+        });
 
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => Schedule(() =>
         {
             StepsContainer.Add(new AssertButton
             {
@@ -332,7 +335,7 @@ namespace osu.Framework.Testing
                 CallStack = new StackTrace(1),
                 Assertion = assert,
             });
-        }
+        });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
     }

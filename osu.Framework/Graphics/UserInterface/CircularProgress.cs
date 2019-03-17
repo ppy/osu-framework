@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
@@ -12,17 +13,28 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
-        public Bindable<double> Current { get; } = new Bindable<double>();
+        private readonly Bindable<double> current = new Bindable<double>();
+
+        public Bindable<double> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         public CircularProgress()
         {
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
-        private Shader roundedTextureShader;
-        private Shader textureShader;
-
-        private readonly CircularProgressDrawNodeSharedData pathDrawNodeSharedData = new CircularProgressDrawNodeSharedData();
+        private IShader roundedTextureShader;
+        private IShader textureShader;
 
         #region Disposal
 
@@ -46,9 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
             n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
             n.Angle = (float)Current.Value * MathHelper.TwoPi;
             n.InnerRadius = innerRadius;
 
@@ -61,8 +70,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;

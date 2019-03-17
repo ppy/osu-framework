@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class WaveformGraph : Drawable
     {
-        private Shader shader;
+        private IShader shader;
         private readonly Texture texture;
 
         public WaveformGraph()
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Audio
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private float resolution = 1;
@@ -178,7 +178,6 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = null;
         }
 
-        private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -188,7 +187,6 @@ namespace osu.Framework.Graphics.Audio
             n.Shader = shader;
             n.Texture = texture;
             n.DrawSize = DrawSize;
-            n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
             n.LowColour = lowColour ?? DrawColourInfo.Colour;
@@ -204,17 +202,10 @@ namespace osu.Framework.Graphics.Audio
             cancelGeneration();
         }
 
-        private class WaveformDrawNodeSharedData
-        {
-            public readonly QuadBatch<TexturedVertex2D> VertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
-        }
-
         private class WaveformDrawNode : DrawNode
         {
-            public Shader Shader;
+            public IShader Shader;
             public Texture Texture;
-
-            public WaveformDrawNodeSharedData Shared;
 
             public Vector2 DrawSize;
             public int Channels;
@@ -244,6 +235,8 @@ namespace osu.Framework.Graphics.Audio
                     }
                 }
             }
+
+            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
@@ -289,33 +282,40 @@ namespace osu.Framework.Graphics.Audio
                     {
                         default:
                         case 2:
-                        {
-                            float height = DrawSize.Y / 2;
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
-                            );
-                        }
+                            {
+                                float height = DrawSize.Y / 2;
+                                quadToDraw = new Quad(
+                                    new Vector2(leftX, height - points[i].Amplitude[0] * height),
+                                    new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
+                                    new Vector2(leftX, height + points[i].Amplitude[1] * height),
+                                    new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                                );
+                            }
                             break;
                         case 1:
-                        {
-                            quadToDraw = new Quad(
-                                new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
-                                new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
-                                new Vector2(leftX, DrawSize.Y),
-                                new Vector2(rightX, DrawSize.Y)
-                            );
-                            break;
-                        }
+                            {
+                                quadToDraw = new Quad(
+                                    new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
+                                    new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
+                                    new Vector2(leftX, DrawSize.Y),
+                                    new Vector2(rightX, DrawSize.Y)
+                                );
+                                break;
+                            }
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    Texture.DrawQuad(quadToDraw, colour, null, Shared.VertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    Texture.DrawQuad(quadToDraw, colour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 Shader.Unbind();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                vertexBatch.Dispose();
             }
         }
     }

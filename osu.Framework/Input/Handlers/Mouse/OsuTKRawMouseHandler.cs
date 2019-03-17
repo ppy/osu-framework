@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -25,8 +26,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
-        private int mostSeenStates;
         private readonly List<OsuTKMouseState> lastEachDeviceStates = new List<OsuTKMouseState>();
+        private readonly List<MouseState> newRawStates = new List<MouseState>();
         private OsuTKMouseState lastUnfocusedState;
 
         public override bool Initialize(GameHost host)
@@ -41,9 +42,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
             }
 
-            Enabled.BindValueChanged(enabled =>
+            Enabled.BindValueChanged(e =>
             {
-                if (enabled)
+                if (e.NewValue)
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
@@ -52,17 +53,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
                         {
-                            var newRawStates = new List<MouseState>(mostSeenStates + 1);
-
-                            for (int i = 0; i <= mostSeenStates + 1; i++)
-                            {
-                                var s = osuTK.Input.Mouse.GetState(i);
-                                if (s.IsConnected || i < mostSeenStates)
-                                {
-                                    newRawStates.Add(s);
-                                    mostSeenStates = i;
-                                }
-                            }
+                            osuTK.Input.Mouse.GetStates(newRawStates);
 
                             while (lastEachDeviceStates.Count < newRawStates.Count)
                                 lastEachDeviceStates.Add(null);
@@ -81,7 +72,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 if (lastState != null && rawState.Equals(lastState.RawState))
                                     continue;
 
-                                var newState = new OsuTKPollMouseState(rawState, host.IsActive, getUpdatedPosition(rawState, lastState));
+                                var newState = new OsuTKPollMouseState(rawState, host.IsActive.Value, getUpdatedPosition(rawState, lastState));
 
                                 HandleState(newState, lastState, rawState.Flags.HasFlag(MouseStateFlags.MoveAbsolute));
 
@@ -94,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                             var state = osuTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
+                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive.Value, new Vector2(screenPoint.X, screenPoint.Y));
 
                             HandleState(newState, lastUnfocusedState, true);
 
@@ -132,7 +123,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             {
                 const int raw_input_resolution = 65536;
 
-                if (mapAbsoluteInputToWindow)
+                if (mapAbsoluteInputToWindow.Value)
                 {
                     // map directly to local window
                     currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;

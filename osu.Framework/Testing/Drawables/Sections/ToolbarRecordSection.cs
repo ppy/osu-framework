@@ -1,7 +1,8 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -32,8 +33,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             this.browser = browser;
 
-            BasicSliderBar<int> frameSliderBar;
-
             InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Y,
@@ -56,10 +55,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Text = "Playback:"
                             },
-                            frameSliderBar = new FrameSliderBar
+                            new FrameSliderBar
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 Width = 250,
+                                Current = browser.CurrentFrame
                             },
                             previousButton = new RepeatButton
                             {
@@ -88,13 +88,12 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(browser.CurrentFrame);
             browser.RecordState.BindValueChanged(updateState, true);
         }
 
         private void changeState()
         {
-            if (browser.RecordState == RecordState.Stopped)
+            if (browser.RecordState.Value == RecordState.Stopped)
                 browser.RecordState.Value = RecordState.Normal;
             else
                 browser.RecordState.Value = browser.RecordState.Value + 1;
@@ -104,9 +103,9 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
-        private void updateState(RecordState state)
+        private void updateState(ValueChangedEvent<RecordState> args)
         {
-            switch (state)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
@@ -125,7 +124,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     break;
             }
 
-            switch (state)
+            switch (args.NewValue)
             {
                 case RecordState.Normal:
                 case RecordState.Recording:
@@ -192,7 +191,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 public Label()
                 {
-                    TextSize = 18;
+                    Font = new FontUsage(size: 18);
                     Padding = new MarginPadding { Horizontal = 2 };
                 }
             }

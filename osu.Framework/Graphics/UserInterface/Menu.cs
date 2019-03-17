@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -258,6 +258,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.SetFlowDirection(Direction);
 
             ItemsContainer.Add(drawableItem);
+            sizeCache.Invalidate();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
@@ -588,8 +589,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (Content is IHasText textContent)
                 {
-                    textContent.Text = item.Text;
-                    Item.Text.ValueChanged += newText => textContent.Text = newText;
+                    textContent.Text = item.Text.Value;
+                    Item.Text.ValueChanged += e => textContent.Text = e.NewValue;
                 }
             }
 
@@ -759,7 +760,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 Padding = new MarginPadding(5),
-                TextSize = 17,
+                Font = new FontUsage(size: 17),
             };
         }
         #endregion

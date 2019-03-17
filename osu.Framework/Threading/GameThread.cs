@@ -1,11 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Threading
 {
@@ -25,19 +26,12 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
-        private readonly Action onNewFrame;
+        protected Action OnNewFrame;
 
-        private bool isActive = true;
-
-        public bool IsActive
-        {
-            get => isActive;
-            set
-            {
-                isActive = value;
-                Clock.MaximumUpdateHz = isActive ? activeHz : inactiveHz;
-            }
-        }
+        /// <summary>
+        /// Whether the game is active (in the foreground).
+        /// </summary>
+        public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
         private double activeHz = DEFAULT_ACTIVE_HZ;
 
@@ -47,8 +41,7 @@ namespace osu.Framework.Threading
             set
             {
                 activeHz = value;
-                if (IsActive)
-                    Clock.MaximumUpdateHz = activeHz;
+                updateMaximumHz();
             }
         }
 
@@ -60,8 +53,7 @@ namespace osu.Framework.Threading
             set
             {
                 inactiveHz = value;
-                if (!IsActive)
-                    Clock.MaximumUpdateHz = inactiveHz;
+                updateMaximumHz();
             }
         }
 
@@ -77,9 +69,9 @@ namespace osu.Framework.Threading
 
         public readonly string Name;
 
-        internal GameThread(Action onNewFrame, string name, bool monitorPerformance = true)
+        internal GameThread(Action onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
         {
-            this.onNewFrame = onNewFrame;
+            OnNewFrame = onNewFrame;
 
             Thread = new Thread(runWork)
             {
@@ -92,12 +84,16 @@ namespace osu.Framework.Threading
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
+
+            IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
 
         public void WaitUntilInitialized()
         {
             initializedEvent.WaitOne();
         }
+
+        private void updateMaximumHz() => Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? activeHz : inactiveHz);
 
         private void runWork()
         {
@@ -141,7 +137,7 @@ namespace osu.Framework.Threading
                 Scheduler.Update();
 
             using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
-                onNewFrame?.Invoke();
+                OnNewFrame?.Invoke();
 
             using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                 Clock.ProcessFrame();
@@ -153,7 +149,7 @@ namespace osu.Framework.Threading
         public bool Exited => exitCompleted;
 
         public void Exit() => exitRequested = true;
-        public void Start() => Thread?.Start();
+        public virtual void Start() => Thread?.Start();
 
         protected virtual void PerformExit()
         {

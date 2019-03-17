@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading.Tasks;
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
 
         private double timeVisible;
 
-        protected bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
+        protected virtual bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
 
         private Task loadTask;
 
@@ -75,7 +75,13 @@ namespace osu.Framework.Graphics.Containers
             timeVisible = 0;
             loadTask = null;
             AddInternal(content);
+            DelayedLoadComplete?.Invoke(content);
         }
+
+        /// <summary>
+        /// Fired when delayed async load completes. Should be used to perform transitions.
+        /// </summary>
+        public Action<Drawable> DelayedLoadComplete;
 
         /// <summary>
         /// True if the load task for our content has been started.

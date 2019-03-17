@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -18,11 +18,12 @@ namespace osu.Framework.Graphics.Sprites
     {
         internal class SpriteTextDrawNode : DrawNode
         {
-            internal SpriteTextDrawNodeSharedData Shared;
-
             public bool Shadow;
             public ColourInfo ShadowColour;
             public Vector2 ShadowOffset;
+
+            public IShader TextureShader;
+            public IShader RoundedTextureShader;
 
             internal readonly List<ScreenSpaceCharacterPart> Parts = new List<ScreenSpaceCharacterPart>();
 
@@ -32,7 +33,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(vertexAction);
 
-                Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
+                IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
                 shader.Bind();
 
@@ -62,12 +63,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 shader.Unbind();
             }
-        }
-
-        internal class SpriteTextDrawNodeSharedData
-        {
-            public Shader TextureShader;
-            public Shader RoundedTextureShader;
         }
 
         /// <summary>

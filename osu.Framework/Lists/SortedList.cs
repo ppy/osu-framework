@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.TypeExtensions;
 using System;
@@ -109,11 +109,7 @@ namespace osu.Framework.Lists
 
         public int BinarySearch(T value) => list.BinarySearch(value, Comparer);
 
-        public int IndexOf(T value)
-        {
-            int index = list.BinarySearch(value, Comparer);
-            return index >= 0 && list[index].Equals(value) ? index : -1;
-        }
+        public int IndexOf(T value) => list.BinarySearch(value, Comparer);
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 

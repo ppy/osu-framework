@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Graphics.Primitives;
@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class Sprite : Drawable
     {
-        private Shader textureShader;
-        private Shader roundedTextureShader;
+        private IShader textureShader;
+        private IShader roundedTextureShader;
 
         /// <summary>
         /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
@@ -59,10 +59,9 @@ namespace osu.Framework.Graphics.Sprites
             n.DrawRectangle = DrawRectangle;
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
-
+            n.InflationAmount = inflationAmount;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
-            n.InflationAmount = inflationAmount;
 
             base.ApplyDrawNode(node);
         }
@@ -70,8 +69,8 @@ namespace osu.Framework.Graphics.Sprites
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private Texture texture;
@@ -125,7 +124,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             string result = base.ToString();
             if (!string.IsNullOrEmpty(texture?.AssetName))
-                result += $" tex: {texture?.AssetName}";
+                result += $" tex: {texture.AssetName}";
             return result;
         }
     }

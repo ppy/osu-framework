@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Allocation;
@@ -19,14 +19,14 @@ namespace osu.Framework.Graphics.Lines
             validateTexture();
         }
 
-        public override float PathWidth
+        public override float PathRadius
         {
-            get => base.PathWidth;
+            get => base.PathRadius;
             set
             {
-                if (base.PathWidth == value)
+                if (base.PathRadius == value)
                     return;
-                base.PathWidth = value;
+                base.PathRadius = value;
 
                 InvalidateTexture();
             }
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Lines
             if (textureCache.IsValid)
                 return;
 
-            int textureWidth = (int)PathWidth * 2;
+            int textureWidth = (int)PathRadius * 2;
 
             var texture = new Texture(textureWidth, 1);
 

@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
 using System.Reflection;
@@ -25,8 +25,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         [BackgroundDependencyLoader]
         private void load(TestBrowser browser)
         {
-            BasicCheckbox runAllStepsCheckbox;
-
             InternalChild = new FillFlowContainer
             {
                 Spacing = new Vector2(5),
@@ -43,8 +41,9 @@ namespace osu.Framework.Testing.Drawables.Sections
                     assemblyDropdown = new AssemblyDropdown
                     {
                         Width = 250,
+                        Current = browser.Assembly
                     },
-                    runAllStepsCheckbox = new BasicCheckbox
+                    new BasicCheckbox
                     {
                         LabelText = "Run all steps",
                         LabelPadding = new MarginPadding { Left = 5, Right = 10 },
@@ -52,12 +51,10 @@ namespace osu.Framework.Testing.Drawables.Sections
                         Width = 140,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
+                        Current = browser.RunAllSteps
                     },
                 }
             };
-
-            assemblyDropdown.Current.BindTo(browser.Assembly);
-            runAllStepsCheckbox.Current.BindTo(browser.RunAllSteps);
         }
 
         public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);

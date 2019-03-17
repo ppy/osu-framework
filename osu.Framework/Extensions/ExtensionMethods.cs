@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -150,6 +150,35 @@ namespace osu.Framework.Extensions
 
             return rectangular;
         }
+
+        /// <summary>
+        /// Inverts the rows and columns of a rectangular array.
+        /// </summary>
+        /// <param name="array">The array to invert.</param>
+        /// <returns>The inverted array.</returns>
+        public static T[,] Invert<T>(this T[,] array)
+        {
+            if (array == null)
+                return null;
+
+            int rows = array.GetLength(0);
+            int cols = array.GetLength(1);
+
+            var result = new T[cols, rows];
+
+            for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                result[c, r] = array[r, c];
+
+            return result;
+        }
+
+        /// <summary>
+        /// Inverts the rows and columns of a jagged array.
+        /// </summary>
+        /// <param name="array">The array to invert.</param>
+        /// <returns>The inverted array. This is always a square array.</returns>
+        public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
         public static string ToResolutionString(this Size size)
         {

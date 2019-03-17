@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -23,9 +23,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -80,12 +81,12 @@ namespace osu.Framework.Graphics
 
         private void dispose(bool isDisposing)
         {
-            if (IsDisposed)
-                return;
-
             //we can't dispose if we are mid-load, else our children may get in a bad state.
             lock (loadLock)
             {
+                if (IsDisposed)
+                    return;
+
                 Dispose(isDisposing);
 
                 unbindAllBindables();
@@ -102,6 +103,9 @@ namespace osu.Framework.Graphics
                 OnDispose?.Invoke();
                 OnDispose = null;
 
+                for (int i = 0; i < drawNodes.Length; i++)
+                    drawNodes[i]?.Dispose();
+
                 IsDisposed = true;
             }
         }
@@ -114,43 +118,29 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        /// <summary>
-        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
-        /// </summary>
-        private void unbindAllBindables()
-        {
-            Type type = GetType();
-            do
-            {
-                unbind(type);
-                type = type.BaseType;
-            } while (type != null && type != typeof(object));
+        internal virtual void UnbindAllBindables() => unbindAllBindables();
 
-            void unbind(Type targetType)
+        private void cacheUnbindActions()
+        {
+            foreach (var type in GetType().EnumerateBaseTypes())
             {
-                if (unbind_action_cache.TryGetValue(targetType, out var existing))
-                {
-                    existing(this);
+                if (unbind_action_cache.TryGetValue(type, out _))
                     return;
-                }
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
 
                 // Generate delegates to unbind fields
-                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
-                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+                actions.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                     .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                     .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
                 // Generate delegates to unbind properties
-                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
-                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+                actions.AddRange(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                     .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                     .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                unbind_action_cache[targetType] = performUnbind;
-                performUnbind(this);
-
-                void performUnbind(object target)
+                unbind_action_cache[type] = target =>
                 {
                     foreach (var a in actions)
                     {
@@ -163,8 +153,23 @@ namespace osu.Framework.Graphics
                             // Execution should continue regardless of whether an unbind failed
                         }
                     }
-                }
+                };
             }
+        }
+
+        private bool unbindComplete;
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            if (unbindComplete) return;
+            unbindComplete = true;
+
+            foreach (var type in GetType().EnumerateBaseTypes())
+                if (unbind_action_cache.TryGetValue(type, out var existing))
+                    existing?.Invoke(this);
         }
 
         #endregion
@@ -183,6 +188,11 @@ namespace osu.Framework.Graphics
         /// Describes the current state of this Drawable within the loading pipeline.
         /// </summary>
         public LoadState LoadState => loadState;
+
+        /// <summary>
+        /// The thread on which the <see cref="Load"/> operation started, or null if <see cref="Drawable"/> has not started loading.
+        /// </summary>
+        internal Thread LoadThread { get; private set; }
 
         private readonly object loadLock = new object();
 
@@ -216,7 +226,8 @@ namespace osu.Framework.Graphics
 
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            // Blocks when loading from another thread already.
+            LoadThread = Thread.CurrentThread;
+
             double t0 = getPerfTime();
 
             double lockDuration = getPerfTime() - t0;
@@ -234,6 +245,8 @@ namespace osu.Framework.Graphics
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
+
+            cacheUnbindActions();
 
             LoadAsyncComplete();
 
@@ -345,14 +358,15 @@ namespace osu.Framework.Graphics
         /// <see cref="UpdateSubTree"/>. It should be used when a simple action should be performed
         /// at the end of every update call which does not warrant overriding the Drawable.
         /// </summary>
-        public Action<Drawable> OnUpdate;
+        public event Action<Drawable> OnUpdate;
 
         /// <summary>
         /// This event is fired after the <see cref="LoadComplete"/> method is called.
         /// It should be used when a simple action should be performed
         /// when the Drawable is loaded which does not warrant overriding the Drawable.
+        /// This event is automatically cleared after being invoked.
         /// </summary>
-        public Action<Drawable> OnLoadComplete;
+        public event Action<Drawable> OnLoadComplete;
 
         /// <summary>.
         /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
@@ -1004,7 +1018,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Vector2 customOrigin;
 
         /// <summary>
@@ -1068,7 +1081,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Anchor anchor = Anchor.TopLeft;
 
         /// <summary>
@@ -1092,7 +1104,6 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.MiscGeometry);
             }
         }
-
 
         private Vector2 customRelativeAnchorPosition;
 
@@ -1309,15 +1320,41 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool ProcessCustomClock = true;
 
+        private double lifetimeStart = double.MinValue;
+        private double lifetimeEnd = double.MaxValue;
+
+        /// <summary>
+        /// Invoked after <see cref="lifetimeStart"/> or <see cref="LifetimeEnd"/> has changed.
+        /// </summary>
+        internal event Action<Drawable> LifetimeChanged;
+
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
         /// </summary>
-        public virtual double LifetimeStart { get; set; } = double.MinValue;
+        public virtual double LifetimeStart
+        {
+            get => lifetimeStart;
+            set
+            {
+                if (lifetimeStart == value) return;
+                lifetimeStart = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// The time at which this drawable is no longer valid (and is considered for disposal).
         /// </summary>
-        public virtual double LifetimeEnd { get; set; } = double.MaxValue;
+        public virtual double LifetimeEnd
+        {
+            get => lifetimeEnd;
+            set
+            {
+                if (lifetimeEnd == value) return;
+                lifetimeEnd = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Whether this drawable should currently be alive.
@@ -1481,7 +1518,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1532,7 +1569,7 @@ namespace osu.Framework.Graphics
 
         private Vector2 computeRequiredParentSizeToFit()
         {
-            // Auxilary variables required for the computation
+            // Auxiliary variables required for the computation
             Vector2 ap = AnchorPosition;
             Vector2 rap = RelativeAnchorPosition;
 
@@ -1574,7 +1611,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
 
-
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
@@ -1584,7 +1620,7 @@ namespace osu.Framework.Graphics
         /// Invalidates draw matrix and autosize caches.
         /// <para>
         /// This does not ensure that the parent containers have been updated before us, thus operations involving
-        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overriden implementation.
+        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overridden implementation.
         /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
@@ -1650,12 +1686,12 @@ namespace osu.Framework.Graphics
 
         #region DrawNode
 
-        private readonly DrawNode[] drawNodes = new DrawNode[3];
+        private readonly DrawNode[] drawNodes = new DrawNode[GLWrapper.MAX_DRAW_NODES];
 
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.
         /// </summary>
-        /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
+        /// <param name="frame">The frame which the <see cref="DrawNode"/> sub-tree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
@@ -1851,9 +1887,15 @@ namespace osu.Framework.Graphics
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
+
         protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
         protected virtual bool OnHover(HoverEvent e) => Handle(e);
-        protected virtual void OnHoverLost(HoverLostEvent e) { Handle(e); }
+
+        protected virtual void OnHoverLost(HoverLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
         protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
@@ -1862,12 +1904,22 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDrag(DragEvent e) => Handle(e);
         protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
-        protected virtual void OnFocus(FocusEvent e) { Handle(e); }
-        protected virtual void OnFocusLost(FocusLostEvent e) { Handle(e); }
+
+        protected virtual void OnFocus(FocusEvent e)
+        {
+            Handle(e);
+        }
+
+        protected virtual void OnFocusLost(FocusLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
         protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
         #endregion
 
         /// <summary>
@@ -1964,6 +2016,7 @@ namespace osu.Framework.Graphics
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
                 }
+
                 return value;
             }
 
@@ -2012,7 +2065,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
+        /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 
@@ -2032,7 +2085,7 @@ namespace osu.Framework.Graphics
         /// given screen-space position.
         /// </summary>
         /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
-        /// <returns>True iff input is received at the given screen-space position.</returns>
+        /// <returns>True if input is received at the given screen-space position.</returns>
         public virtual bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
 
         /// <summary>

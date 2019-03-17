@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -12,21 +12,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     public class FrameBuffer : IDisposable
     {
-        private int lastFramebuffer;
         private int frameBuffer = -1;
 
         public TextureGL Texture { get; private set; }
-
-        private bool isBound => lastFramebuffer != -1;
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
         #region Disposal
 
-        ~FrameBuffer()
-        {
-            Dispose(false);
-        }
+        ~FrameBuffer() => Dispose(false);
 
         public void Dispose()
         {
@@ -36,19 +30,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private bool isDisposed;
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delegate
         {
             if (isDisposed)
                 return;
             isDisposed = true;
 
-            GLWrapper.ScheduleDisposal(delegate
-            {
-                Unbind();
-                GLWrapper.DeleteFramebuffer(frameBuffer);
-                frameBuffer = -1;
-            });
-        }
+            GLWrapper.DeleteFramebuffer(frameBuffer);
+            frameBuffer = -1;
+        });
 
         #endregion
 
@@ -114,14 +104,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public void Bind()
         {
-            if (frameBuffer == -1)
-                return;
-
-            if (lastFramebuffer == frameBuffer)
-                return;
-
-            // Bind framebuffer and all its renderbuffers
-            lastFramebuffer = GLWrapper.BindFrameBuffer(frameBuffer);
+            GLWrapper.BindFrameBuffer(frameBuffer);
             foreach (var r in attachedRenderBuffers)
             {
                 r.Size = Size;
@@ -134,14 +117,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public void Unbind()
         {
-            if (!isBound)
-                return;
-
-            GLWrapper.BindFrameBuffer(lastFramebuffer);
+            GLWrapper.UnbindFrameBuffer(frameBuffer);
             foreach (var r in attachedRenderBuffers)
                 r.Unbind();
-
-            lastFramebuffer = -1;
         }
     }
 }

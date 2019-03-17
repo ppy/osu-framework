@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -7,6 +7,7 @@ using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Timing;
 using osuTK.Input;
@@ -120,7 +121,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void load(FrameworkConfigManager config)
         {
             enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += val => State = val ? Visibility.Visible : Visibility.Hidden;
+            enabled.ValueChanged += e => State = e.NewValue ? Visibility.Visible : Visibility.Hidden;
             enabled.TriggerChange();
         }
 
@@ -184,7 +185,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Shadow = true,
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            TextSize = font_size,
+                            Font = new FontUsage(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
@@ -199,7 +200,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Child = new SpriteText
                     {
                         RelativeSizeAxes = Axes.X,
-                        TextSize = font_size,
+                        Font = new FontUsage(size: font_size),
                         Text = entry.Message
                     }
                 }
@@ -216,8 +217,6 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.BlueViolet;
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
-                case LoggingTarget.Debug:
-                    return Color4.DarkBlue;
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
                 default:

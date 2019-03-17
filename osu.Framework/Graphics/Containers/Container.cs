@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osuTK;
 using System.Collections;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -122,6 +123,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child of this container.
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public T Child
         {
             get
@@ -158,7 +160,11 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether a given child is contained within <see cref="Children"/>.
         /// </summary>
-        public bool Contains(T drawable) => IndexOf(drawable) >= 0;
+        public bool Contains(T drawable)
+        {
+            int index = IndexOf(drawable);
+            return index >= 0 && this[index] == drawable;
+        }
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
@@ -187,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void AddInternal(Drawable drawable)
         {
-            if (Content == this && !(drawable is T))
+            if (Content == this && drawable != null && !(drawable is T))
                 throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             base.AddInternal(drawable);
@@ -347,6 +353,15 @@ namespace osu.Framework.Graphics.Containers
         {
             get => base.Padding;
             set => base.Padding = value;
+        }
+
+        /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public new bool ForceLocalVertexBatch
+        {
+            get => base.ForceLocalVertexBatch;
+            set => base.ForceLocalVertexBatch = value;
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -328,8 +328,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void onDispose()
         {
-            SetContainer(null);
-            Dispose();
+            // May come from the disposal thread, in which case they won't ever be reused and the container doesn't need to be reset
+            Schedule(() => SetContainer(null));
         }
 
         private void updateSpecifics()

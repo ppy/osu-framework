@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -22,23 +22,31 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal static class GLWrapper
+    public static class GLWrapper
     {
+        /// <summary>
+        /// Maximum number of <see cref="DrawNode"/>s a <see cref="Drawable"/> can draw with.
+        /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
+        /// </summary>
+        public const int MAX_DRAW_NODES = 3;
+
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
-        public static bool UsingBackbuffer => lastFrameBuffer == 0;
+        public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
+
+        public static int DefaultFrameBuffer;
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
         /// </summary>
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
-        public static int MaxTextureSize { get; private set; }
+        public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
+        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
@@ -68,8 +76,20 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
+            int frameCount = 0;
+
             if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
+                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+
+            void scheduleNextDisposal() => reset_scheduler.Add(() =>
+            {
+                // There may be a number of DrawNodes queued to be drawn
+                // Disposal should only take place after
+                if (frameCount++ >= MAX_DRAW_NODES)
+                    disposalAction.Invoke();
+                else
+                    scheduleNextDisposal();
+            });
         }
 
         internal static void Reset(Vector2 size)
@@ -82,20 +102,20 @@ namespace osu.Framework.Graphics.OpenGL
                 action.Invoke();
 
             lastBoundTexture = null;
-
+            lastActiveBatch = null;
             lastDepthTest = null;
-
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            lastFrameBuffer = 0;
-
             viewport_stack.Clear();
             ortho_stack.Clear();
             masking_stack.Clear();
             scissor_rect_stack.Clear();
+            frame_buffer_stack.Clear();
+
+            BindFrameBuffer(DefaultFrameBuffer);
 
             scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
 
@@ -240,7 +260,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// Sets the blending function to draw with.
         /// </summary>
-        /// <param name="blendingInfo">The infor we should use to update the active state.</param>
+        /// <param name="blendingInfo">The info we should use to update the active state.</param>
         public static void SetBlend(BlendingInfo blendingInfo)
         {
             if (lastBlendingInfo.Equals(blendingInfo))
@@ -267,28 +287,6 @@ namespace osu.Framework.Graphics.OpenGL
             }
 
             lastBlendingInfo = blendingInfo;
-        }
-
-        private static int lastFrameBuffer;
-
-        /// <summary>
-        /// Binds a framebuffer.
-        /// </summary>
-        /// <param name="frameBuffer">The framebuffer to bind.</param>
-        /// <returns>The last bound framebuffer.</returns>
-        public static int BindFrameBuffer(int frameBuffer)
-        {
-            if (lastFrameBuffer == frameBuffer)
-                return lastFrameBuffer;
-
-            FlushCurrentBatch();
-
-            int last = lastFrameBuffer;
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
-            lastFrameBuffer = frameBuffer;
-
-            return last;
         }
 
         private static readonly Stack<RectangleI> viewport_stack = new Stack<RectangleI>();
@@ -392,6 +390,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
+        private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
@@ -517,6 +516,46 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void BindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            bool alreadyBound = frame_buffer_stack.Count > 0 && frame_buffer_stack.Peek() == frameBuffer;
+
+            frame_buffer_stack.Push(frameBuffer);
+
+            if (!alreadyBound)
+            {
+                FlushCurrentBatch();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            }
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+        }
+
+        /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void UnbindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            if (frame_buffer_stack.Peek() != frameBuffer)
+                return;
+
+            frame_buffer_stack.Pop();
+
+            FlushCurrentBatch();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+        }
+
+        /// <summary>
         /// Deletes a framebuffer.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to delete.</param>
@@ -524,48 +563,10 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (frameBuffer == -1) return;
 
-            //todo: don't use scheduler
+            while (frame_buffer_stack.Peek() == frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
+
             ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
-        }
-
-        /// <summary>
-        /// Deletes a buffer object.
-        /// </summary>
-        /// <param name="vboId">The buffer object to delete.</param>
-        internal static void DeleteBuffer(int vboId)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteBuffer(vboId); });
-        }
-
-        /// <summary>
-        /// Deletes textures.
-        /// </summary>
-        /// <param name="ids">An array of textures to delete.</param>
-        internal static void DeleteTextures(params int[] ids)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteTextures(ids.Length, ids); });
-        }
-
-        /// <summary>
-        /// Deletes a shader program.
-        /// </summary>
-        /// <param name="shader">The shader program to delete.</param>
-        internal static void DeleteProgram(Shader shader)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteProgram(shader); });
-        }
-
-        /// <summary>
-        /// Deletes a shader part.
-        /// </summary>
-        /// <param name="shaderPart">The shader part to delete.</param>
-        internal static void DeleteShader(ShaderPart shaderPart)
-        {
-            //todo: don't use scheduler
-            ScheduleDisposal(() => { GL.DeleteShader(shaderPart); });
         }
 
         private static int currentShader;

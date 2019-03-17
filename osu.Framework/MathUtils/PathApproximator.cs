@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -192,6 +192,38 @@ namespace osu.Framework.MathUtils
 
             foreach (var c in controlPoints)
                 result.Add(c);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a piecewise-linear approximation of a lagrange polynomial.
+        /// </summary>
+        /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        public static List<Vector2> ApproximateLagrangePolynomial(ReadOnlySpan<Vector2> controlPoints)
+        {
+            // TODO: add some smarter logic here, chebyshev nodes?
+            const int num_steps = 51;
+
+            var result = new List<Vector2>(num_steps);
+
+            double[] weights = Interpolation.BarycentricWeights(controlPoints);
+
+            float minX = controlPoints[0].X;
+            float maxX = controlPoints[0].X;
+            for (int i = 1; i < controlPoints.Length; i++)
+            {
+                minX = Math.Min(minX, controlPoints[i].X);
+                maxX = Math.Max(maxX, controlPoints[i].X);
+            }
+            float dx = maxX - minX;
+
+            for (int i = 0; i < num_steps; i++)
+            {
+                float x = minX + dx / (num_steps - 1) * i;
+                float y = (float)Interpolation.BarycentricLagrange(controlPoints, weights, x);
+                result.Add(new Vector2(x, y));
+            }
 
             return result;
         }

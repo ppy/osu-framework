@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
 using osu.Framework.Allocation;
@@ -57,10 +57,6 @@ namespace osu.Framework.Graphics.Video
 
         private volatile DecoderState state;
 
-        /// <summary>
-        /// The state the decoder is currently in.
-        /// </summary>
-
         // libav-context-related
         private AVFormatContext* formatContext;
         private AVStream* stream;
@@ -78,7 +74,7 @@ namespace osu.Framework.Graphics.Video
 
         // frame data
         private AVFrame* frame;
-        private AVFrame* frameRgb;
+        private AVFrame* ffmpegFrame;
         private IntPtr frameRgbBufferPtr;
         private int uncompressedFrameSize;
 
@@ -265,21 +261,21 @@ namespace osu.Framework.Graphics.Video
                         throw new Exception("Could not open codec.");
 
                     frame = ffmpeg.av_frame_alloc();
-                    frameRgb = ffmpeg.av_frame_alloc();
+                    ffmpegFrame = ffmpeg.av_frame_alloc();
 
                     uncompressedFrameSize = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     frameRgbBufferPtr = Marshal.AllocHGlobal(uncompressedFrameSize);
 
-                    var dataArr4 = *(byte_ptrArray4*)&frameRgb->data;
-                    var linesizeArr4 = *(int_array4*)&frameRgb->linesize;
+                    var dataArr4 = *(byte_ptrArray4*)&ffmpegFrame->data;
+                    var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;
                     var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
                         throw new Exception("Could not fill image arrays");
 
                     for (uint j = 0; j < byte_ptrArray4.Size; ++j)
                     {
-                        frameRgb->data[j] = dataArr4[j];
-                        frameRgb->linesize[j] = linesizeArr4[j];
+                        ffmpegFrame->data[j] = dataArr4[j];
+                        ffmpegFrame->linesize[j] = linesizeArr4[j];
                     }
 
                     break;
@@ -326,7 +322,7 @@ namespace osu.Framework.Graphics.Video
                                         try
                                         {
                                             swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
-                                            ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
+                                            ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, ffmpegFrame->data, ffmpegFrame->linesize);
                                         }
                                         finally
                                         {
@@ -336,13 +332,12 @@ namespace osu.Framework.Graphics.Video
                                         if (!availableTextures.TryDequeue(out var tex))
                                             tex = new Texture(codecParams.width, codecParams.height, true);
 
-                                        var rawTex = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
+                                        var upload = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
 
                                         // todo: can likely make this more efficient
-                                        var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize / 4);
-                                        videoText.CopyTo(rawTex.RawData);
+                                        new Span<Rgba32>(ffmpegFrame->data[0], uncompressedFrameSize / 4).CopyTo(upload.RawData);
 
-                                        tex.SetData(rawTex);
+                                        tex.SetData(upload);
                                         decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                                     }
 
@@ -440,9 +435,9 @@ namespace osu.Framework.Graphics.Video
                     ffmpeg.av_frame_free(ptr);
             }
 
-            if (frameRgb != null)
+            if (ffmpegFrame != null)
             {
-                fixed (AVFrame** ptr = &frameRgb)
+                fixed (AVFrame** ptr = &ffmpegFrame)
                     ffmpeg.av_frame_free(ptr);
             }
 

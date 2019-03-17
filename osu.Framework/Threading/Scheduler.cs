@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -16,7 +16,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler
     {
-        private readonly ConcurrentQueue<Action> schedulerQueue = new ConcurrentQueue<Action>();
+        private readonly ConcurrentQueue<ScheduledDelegate> runQueue = new ConcurrentQueue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
@@ -27,7 +27,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
         /// </summary>
-        public bool HasPendingTasks => !schedulerQueue.IsEmpty || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
+        public bool HasPendingTasks => !runQueue.IsEmpty || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
@@ -59,7 +59,7 @@ namespace osu.Framework.Threading
         public void UpdateClock(IClock newClock)
         {
             if (newClock == null)
-                throw new NullReferenceException($"{nameof(newClock)} may not be null.");
+                throw new ArgumentNullException(nameof(newClock));
 
             if (newClock == clock)
                 return;
@@ -82,7 +82,6 @@ namespace osu.Framework.Threading
         /// Returns whether we are on the main thread or not.
         /// </summary>
         protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
-
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
@@ -107,7 +106,7 @@ namespace osu.Framework.Threading
 
                             if (sd.Cancelled) continue;
 
-                            schedulerQueue.Enqueue(sd.RunTask);
+                            runQueue.Enqueue(sd);
 
                             if (sd.RepeatInterval >= 0)
                             {
@@ -141,15 +140,17 @@ namespace osu.Framework.Threading
                     continue;
                 }
 
-                schedulerQueue.Enqueue(task.RunTask);
+                runQueue.Enqueue(task);
             }
 
             int countRun = 0;
 
-            while (schedulerQueue.TryDequeue(out Action action))
+            while (runQueue.TryDequeue(out ScheduledDelegate sd))
             {
+                if (sd.Cancelled) continue;
+
                 //todo: error handling
-                action.Invoke();
+                sd.RunTask();
                 countRun++;
             }
 
@@ -194,7 +195,7 @@ namespace osu.Framework.Threading
                 return true;
             }
 
-            schedulerQueue.Enqueue(task);
+            runQueue.Enqueue(new ScheduledDelegate(task));
 
             return false;
         }
@@ -234,10 +235,10 @@ namespace osu.Framework.Threading
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
         {
-            if (schedulerQueue.Contains(task))
+            if (runQueue.Any(sd => sd.RunTask == task))
                 return false;
 
-            schedulerQueue.Enqueue(task);
+            runQueue.Enqueue(new ScheduledDelegate(task));
 
             return true;
         }
@@ -245,7 +246,7 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double executionTime, double repeatInterval = -1)
+        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
         {
             ExecutionTime = executionTime;
             RepeatInterval = repeatInterval;
@@ -274,6 +275,9 @@ namespace osu.Framework.Threading
 
         public void RunTask()
         {
+            if (Cancelled)
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
+
             if (!Waiting)
                 task();
             Completed = true;

@@ -1,29 +1,46 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
+using osu.Framework.Development;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     public abstract class VertexBuffer<T> : IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
-        public T[] Vertices;
-
         protected static readonly int STRIDE = VertexUtils<T>.STRIDE;
 
-        private readonly int vboId;
+        public readonly T[] Vertices;
+
         private readonly BufferUsageHint usage;
+
+        private bool isInitialised;
+        private int vboId;
 
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
             this.usage = usage;
+
+            Vertices = new T[amountVertices];
+        }
+
+        /// <summary>
+        /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
+        /// </summary>
+        protected virtual void Initialise()
+        {
+            ThreadSafety.EnsureDrawThread();
+
             GL.GenBuffers(1, out vboId);
 
-            resize(amountVertices);
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
+                VertexUtils<T>.Bind();
+
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * STRIDE), IntPtr.Zero, usage);
         }
 
         ~VertexBuffer()
@@ -39,35 +56,30 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (IsDisposed)
                 return;
 
-            Unbind();
-
-            GLWrapper.DeleteBuffer(vboId);
+            if (isInitialised)
+            {
+                Unbind();
+                GL.DeleteBuffer(vboId);
+            }
 
             IsDisposed = true;
-        }
-
-        private void resize(int amountVertices)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not resize disposed vertex buffers.");
-
-            Array.Resize(ref Vertices, amountVertices);
-
-            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                VertexUtils<T>.Bind();
-
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * STRIDE), IntPtr.Zero, usage);
-        }
+        });
 
         public virtual void Bind(bool forRendering)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
+
+            if (!isInitialised)
+            {
+                Initialise();
+                isInitialised = true;
+            }
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 VertexUtils<T>.Bind();

@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
@@ -10,6 +10,7 @@ using osuTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
@@ -37,10 +38,19 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
+        private FileCallbacks fileCallbacks;
+        private SyncCallback stopCallback;
+        private SyncCallback endCallback;
+
         private volatile bool isLoaded;
 
         public override bool IsLoaded => isLoaded;
 
+        /// <summary>
+        /// Constructs a new <see cref="TrackBass"/> from provided audio data.
+        /// </summary>
+        /// <param name="data">The sample data stream.</param>
+        /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass(Stream data, bool quick = false)
         {
             EnqueueAction(() =>
@@ -52,10 +62,10 @@ namespace osu.Framework.Audio.Track
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                var procs = new DataStreamFileProcedures(dataStream);
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
-                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 if (!Preview)
                 {
@@ -87,6 +97,16 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                     initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+
+                    stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
+                    endCallback = new SyncCallback((a, b, c, d) =>
+                    {
+                        if (!Looping)
+                            RaiseCompleted();
+                    });
+
+                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
 
                     isLoaded = true;
                 }
@@ -143,6 +163,15 @@ namespace osu.Framework.Audio.Track
 
             dataStream?.Dispose();
             dataStream = null;
+
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
+
+            stopCallback?.Dispose();
+            stopCallback = null;
+
+            endCallback?.Dispose();
+            endCallback = null;
 
             base.Dispose(disposing);
         }
@@ -223,15 +252,15 @@ namespace osu.Framework.Audio.Track
 
             setDirection(FrequencyCalculated.Value < 0);
 
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeCalculated);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceCalculated);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeCalculated.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceCalculated.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
-            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo) - 1) * 100);
+            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated), 100, 100000);
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated.Value), 100, 100000);
 
         private volatile int bitrate;
 

@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
@@ -20,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
@@ -61,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache(object)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -90,9 +91,21 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
+
+        /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// <remarks>
+        /// This is generally useful if already in an asynchronous context and requiring forcefully (pre)loading content without adding it to the hierarchy.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="component">The child or grand-child to be loaded.</param>
+        protected void LoadComponent<TLoadable>(TLoadable component) where TLoadable : Drawable
+            => LoadComponents(component.Yield());
 
         /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -107,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
@@ -124,11 +137,7 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            return Task.Factory.StartNew(() =>
-            {
-                foreach (var c in components)
-                    c.Load(Clock, deps);
-            }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
@@ -156,6 +165,32 @@ namespace osu.Framework.Graphics.Containers
             }, CancellationToken.None);
         }
 
+        /// <summary>
+        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// <remarks>
+        /// This is generally useful if already in an asynchronous context and requiring forcefully (pre)loading content without adding it to the hierarchy.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="components">The children or grand-children to be loaded.</param>
+        protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
+        {
+            if (game == null)
+                throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
+
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString());
+
+            loadComponents(components, Dependencies);
+        }
+
+        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies) where TLoadable : Drawable
+        {
+            foreach (var c in components)
+                c.Load(Clock, dependencies);
+        }
+
         [BackgroundDependencyLoader(true)]
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
@@ -179,7 +214,7 @@ namespace osu.Framework.Graphics.Containers
             // At this point we can assume that we are loaded although we're not in the "ready" state, because we'll be given
             // a "ready" state soon after this method terminates. Therefore we can perform an early check to add any alive children
             // while we're still in an asynchronous context and avoid putting pressure on the main thread during UpdateSubTree.
-            checkChildrenLife();
+            CheckChildrenLife();
         }
 
         /// <summary>
@@ -254,6 +289,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         protected internal Drawable InternalChild
         {
             get
@@ -347,7 +383,15 @@ namespace osu.Framework.Graphics.Containers
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
-        protected internal int IndexOfInternal(Drawable drawable) => internalChildren.IndexOf(drawable);
+        protected internal int IndexOfInternal(Drawable drawable)
+        {
+            int index = internalChildren.IndexOf(drawable);
+
+            if (index >= 0 && internalChildren[index].ChildID != drawable.ChildID)
+                throw new InvalidOperationException($@"A non-matching {nameof(Drawable)} was returned. Please ensure {GetType()}'s {nameof(Compare)} override implements a stable sort algorithm.");
+
+            return index;
+        }
 
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
@@ -361,6 +405,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal virtual bool RemoveInternal(Drawable drawable)
         {
+            ensureChildMutationAllowed();
+
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
 
@@ -396,6 +442,8 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
+            ensureChildMutationAllowed();
+
             if (internalChildren.Count == 0) return;
 
             foreach (Drawable t in internalChildren)
@@ -437,6 +485,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
+            ensureChildMutationAllowed();
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
@@ -484,6 +534,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
+            ensureChildMutationAllowed();
+
             if (child.Depth == newDepth) return;
 
             var index = IndexOfInternal(child);
@@ -507,6 +559,28 @@ namespace osu.Framework.Graphics.Containers
             ChildDepthChanged?.Invoke(child);
         }
 
+        private void ensureChildMutationAllowed()
+        {
+            switch (LoadState)
+            {
+                case LoadState.NotLoaded:
+                    break;
+                case LoadState.Loading:
+                    if (Thread.CurrentThread != LoadThread)
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
+                    break;
+                case LoadState.Ready:
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
+                    break;
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
+                    break;
+            }
+        }
+
         #endregion
 
         #region Updating (per-frame periodic)
@@ -526,7 +600,7 @@ namespace osu.Framework.Graphics.Containers
             if (LoadState < LoadState.Ready)
                 return false;
 
-            if (!checkChildrenLife())
+            if (!CheckChildrenLife())
                 return false;
 
             return true;
@@ -538,7 +612,7 @@ namespace osu.Framework.Graphics.Containers
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <returns>Whether any child's alive state has changed.</returns>
-        private bool checkChildrenLife()
+        protected virtual bool CheckChildrenLife()
         {
             bool anyAliveChanged = false;
 
@@ -547,6 +621,8 @@ namespace osu.Framework.Graphics.Containers
             int originalCount = internalChildren.Count;
             for (int i = 0; i < internalChildren.Count; i++)
                 anyAliveChanged |= checkChildLife(internalChildren[i + internalChildren.Count - originalCount]);
+
+            FrameStatistics.Add(StatisticsCounterType.CCL, originalCount);
 
             if (anyAliveChanged)
                 childrenSizeDependencies.Invalidate();
@@ -566,62 +642,120 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            bool changed = false;
-
             if (child.ShouldBeAlive)
             {
                 if (!child.IsAlive)
                 {
-                    // If we're already loaded, we can eagerly allow children to be loaded
-                    loadChild(child);
-
-                    if (child.LoadState >= LoadState.Ready)
+                    if (child.LoadState < LoadState.Ready)
                     {
-                        aliveInternalChildren.Add(child);
-
-                        // If the new child has the flag set, we should propagate the flag towards the root.
-                        // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
-                        if (child.RequestsNonPositionalInputSubTree)
-                        {
-                            for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.RequestsNonPositionalInputSubTree = true;
-                        }
-
-                        if (child.RequestsPositionalInputSubTree)
-                        {
-                            for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.RequestsPositionalInputSubTree = true;
-                        }
-
-                        ChildBecameAlive?.Invoke(child);
-                        child.IsAlive = true;
-                        changed = true;
+                        // If we're already loaded, we can eagerly allow children to be loaded
+                        loadChild(child);
+                        if (child.LoadState < LoadState.Ready)
+                            return false;
                     }
+
+                    MakeChildAlive(child);
+                    return true;
                 }
             }
             else
             {
                 if (child.IsAlive)
                 {
-                    aliveInternalChildren.Remove(child);
-                    ChildDied?.Invoke(child);
-                    child.IsAlive = false;
-                    changed = true;
+                    MakeChildDead(child);
+                    return true;
                 }
 
                 if (child.RemoveWhenNotAlive)
                 {
-                    RemoveInternal(child);
-
-                    if (child.DisposeOnDeathRemoval)
-                        disposeChildAsync(child);
+                    removeChildByDeath(child);
                 }
             }
 
-            return changed;
+            return false;
         }
 
-        private void disposeChildAsync(Drawable drawable) => Task.Run(() => drawable.Dispose());
+        /// <summary>
+        /// Make a child alive.
+        /// </summary>
+        /// <remarks>
+        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the child is at least <see cref="LoadState.Ready"/>.
+        /// </remarks>
+        /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make alive.</param>
+        protected void MakeChildAlive(Drawable child)
+        {
+            Debug.Assert(!child.IsAlive && child.LoadState >= LoadState.Ready);
+
+            // If the new child has the flag set, we should propagate the flag towards the root.
+            // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
+            if (child.RequestsNonPositionalInputSubTree)
+            {
+                for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
+                    ancestor.RequestsNonPositionalInputSubTree = true;
+            }
+
+            if (child.RequestsPositionalInputSubTree)
+            {
+                for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
+                    ancestor.RequestsPositionalInputSubTree = true;
+            }
+
+            aliveInternalChildren.Add(child);
+            child.IsAlive = true;
+
+            ChildBecameAlive?.Invoke(child);
+        }
+
+        /// <summary>
+        /// Make a child dead (not alive).
+        /// </summary>
+        /// <remarks>
+        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
+        /// </remarks>
+        /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make dead.</param>
+        /// <returns>Returns true if <paramref name="child"/> is removed by death.</returns>
+        protected bool MakeChildDead(Drawable child)
+        {
+            Debug.Assert(child.IsAlive);
+
+            aliveInternalChildren.Remove(child);
+            child.IsAlive = false;
+
+            ChildDied?.Invoke(child);
+
+            if (child.RemoveWhenNotAlive)
+            {
+                removeChildByDeath(child);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void removeChildByDeath(Drawable child)
+        {
+            RemoveInternal(child);
+
+            if (child.DisposeOnDeathRemoval)
+                DisposeChildAsync(child);
+        }
+
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            foreach (Drawable child in internalChildren)
+                child.UnbindAllBindables();
+        }
+
+        /// <summary>
+        /// Unbinds a child's bindings synchronously and queues an asynchronous disposal of the child.
+        /// </summary>
+        /// <param name="drawable">The child to dispose.</param>
+        internal void DisposeChildAsync(Drawable drawable)
+        {
+            drawable.UnbindAllBindables();
+            Task.Run(() => drawable.Dispose());
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
@@ -801,8 +935,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private readonly CompositeDrawNodeSharedData compositeDrawNodeSharedData = new CompositeDrawNodeSharedData();
-        private Shader shader;
+        private IShader shader;
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
@@ -833,13 +966,29 @@ namespace osu.Framework.Graphics.Containers
                 };
 
             n.EdgeEffect = EdgeEffect;
-
             n.ScreenSpaceMaskingQuad = null;
-            n.Shared = compositeDrawNodeSharedData;
-
             n.Shader = shader;
+            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
 
             base.ApplyDrawNode(node);
+        }
+
+        private bool forceLocalVertexBatch;
+
+        /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public bool ForceLocalVertexBatch
+        {
+            get => forceLocalVertexBatch;
+            protected set
+            {
+                if (forceLocalVertexBatch == value)
+                    return;
+                forceLocalVertexBatch = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
         }
 
         /// <summary>
@@ -1567,5 +1716,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
+
+        public class InvalidThreadForChildMutationException : InvalidOperationException
+        {
+            public InvalidThreadForChildMutationException(LoadState loadState, string description)
+                : base($"Cannot mutate the children of a {loadState} {nameof(CompositeDrawable)} while {description}. "
+                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
+            {
+            }
+        }
     }
 }

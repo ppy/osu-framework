@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
 using osuTK.Graphics;
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.Cursor
             if (inputManager.DraggedDrawable is IHasTooltip draggedTarget)
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
-            IHasTooltip targetCandidate = FindTargets().FirstOrDefault(t => t.TooltipText != null);
+            IHasTooltip targetCandidate = FindTargets().Find(t => t.TooltipText != null);
             // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
             if (targetCandidate != lastCandidate)
             {
@@ -298,7 +298,7 @@ namespace osu.Framework.Graphics.Cursor
                     },
                     text = new SpriteText
                     {
-                        TextSize = text_size,
+                        Font = new FontUsage(size: text_size),
                         Padding = new MarginPadding(5),
                     }
                 };

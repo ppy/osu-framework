@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Reflection;
 using osu.Framework.Allocation;
@@ -35,7 +35,7 @@ namespace osu.Framework.Testing.Drawables
                         ColumnDimensions = new[]
                         {
                             new Dimension(GridSizeMode.AutoSize),
-                            new Dimension(GridSizeMode.Distributed),
+                            new Dimension(),
                             new Dimension(GridSizeMode.AutoSize),
                         },
                         Content = new[]
