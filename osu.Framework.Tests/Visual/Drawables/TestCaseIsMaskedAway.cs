@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway);
         }
 
@@ -155,7 +155,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
             AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
             AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
             AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
@@ -265,7 +265,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
             AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
@@ -314,7 +314,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
             AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
             AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);
@@ -366,7 +366,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep(1, "Wait for UpdateSubTree");
+            AddWaitStep("Wait for UpdateSubTree", 1);
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
             AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
             AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);

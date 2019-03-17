@@ -302,7 +302,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -310,7 +310,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
+        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
