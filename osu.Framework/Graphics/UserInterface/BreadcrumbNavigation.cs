@@ -10,8 +10,16 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class BreadcrumbNavigation<T> : FillFlowContainer
+    public abstract class BreadcrumbNavigation<T> : CompositeDrawable
     {
+        private readonly FillFlowContainer<Breadcrumb> fillFlowContainer;
+
+        public BreadcrumbNavigation()
+        {
+            fillFlowContainer = CreateAndAddFillFlowContainer();
+        }
+
+
         /// <summary>
         /// Override this method for customising the design of the breadcrumb.
         /// remember to set
@@ -28,25 +36,30 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IReadOnlyList<T> Items
         {
-            get => InternalChildren.Cast<Breadcrumb>().Select(child => child.Value).ToList();
+            get => fillFlowContainer.Children.Select(child => child.Value).ToList();
             set
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                Clear();
+                fillFlowContainer.Clear();
 
-                AddRange(value.Select(str => {
+                fillFlowContainer.AddRange(value.Select(str => {
                     var breadcrumb = CreateBreadcrumb(str);
 
-                    breadcrumb.Selected += () => updateItems(InternalChildren.ToList().IndexOf(breadcrumb));
+                    breadcrumb.Selected += () => updateItems(fillFlowContainer.Children.ToList().IndexOf(breadcrumb));
 
                     return breadcrumb;
                 }));
 
-                InternalChildren.Cast<Breadcrumb>().Last().Current.Value = true;
+                fillFlowContainer.Children.Last().Current.Value = true;
             }
         }
+
+        /// <summary>
+        /// Creates and adds the fillflow container that contains all breadcrumbs.
+        /// </summary>
+        protected abstract FillFlowContainer<Breadcrumb> CreateAndAddFillFlowContainer();
 
         /// <summary>
         /// Truncates the items down to the parameter newIndex.
@@ -63,10 +76,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             Items = Items.Take(newIndex + 1).ToList();
 
-            foreach (var unselected in InternalChildren.Cast<Breadcrumb>().Take(newIndex))
+            foreach (var unselected in fillFlowContainer.Children.Take(newIndex))
                 unselected.Current.Value = false;
 
-            InternalChildren.Cast<Breadcrumb>().Last().Current.Value = true;
+            fillFlowContainer.Children.Last().Current.Value = true;
         }
 
         protected abstract class Breadcrumb : CompositeDrawable, IHasCurrentValue<bool>

@@ -1,14 +1,35 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicBreadcrumbNavigation<T> : BreadcrumbNavigation<T>
     {
+        public BasicBreadcrumbNavigation()
+        {
+            AutoSizeAxes = Axes.X;
+        }
+
+        protected override FillFlowContainer<Breadcrumb> CreateAndAddFillFlowContainer()
+        {
+            var fillflow = new FillFlowContainer<Breadcrumb>
+            {
+                AutoSizeAxes = Axes.X,
+                Spacing = new Vector2(3, 0),
+                RelativeSizeAxes = Axes.Y,
+            };
+
+            AddInternal(fillflow);
+
+            return fillflow;
+        }
+
         protected override Breadcrumb CreateBreadcrumb(T value)
         {
             return new BasicBreadcrumb(value)

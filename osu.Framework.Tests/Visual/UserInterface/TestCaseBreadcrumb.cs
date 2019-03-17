@@ -28,10 +28,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 navigation = new BasicBreadcrumbNavigation<string>
                 {
                     Height = 20,
-                    AutoSizeAxes = Axes.X,
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
-                    Spacing = new Vector2(3, 0),
                     Items = testValues
                 },
             };
