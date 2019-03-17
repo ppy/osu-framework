@@ -1,14 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BreadcrumbNavigation : FillFlowContainer<Breadcrumb>
+    public abstract class BreadcrumbNavigation<T> : FillFlowContainer
     {
         /// <summary>
         /// Override this method for customising the design of the breadcrumb.
@@ -18,36 +20,32 @@ namespace osu.Framework.Graphics.UserInterface
         ///    RelativeSizeAxes = Axes.Y,
         /// </code>
         /// </summary>
-        /// <param name="value">The text value that is supposed to be written in the breadcrumb</param>
-        /// <returns></returns>
-        protected Breadcrumb CreateBreadcrumb(string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+        /// <param name="value">The value that is supposed to be written in the breadcrumb</param>
+        protected abstract Breadcrumb CreateBreadcrumb(T value);
 
-            var breadcrumb = new Breadcrumb(value)
-            {
-                AutoSizeAxes = Axes.X,
-                RelativeSizeAxes = Axes.Y,
-            };
-            breadcrumb.Clicked += () => updateItems(InternalChildren.ToList().IndexOf(breadcrumb));
-
-            return breadcrumb;
-        }
 
         /// <summary>
         /// The items displayed the breadcrumb navigation.
         /// </summary>
-        public IReadOnlyList<string> Items
+        public IReadOnlyList<T> Items
         {
-            get => InternalChildren.Cast<Breadcrumb>().Select(child => child.Current.Value).ToList();
+            get => InternalChildren.Cast<Breadcrumb>().Select(child => child.Value).ToList();
             set
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
                 Clear();
-                AddRange(value.Select(CreateBreadcrumb));
+
+                AddRange(value.Select(str => {
+                    var breadcrumb = CreateBreadcrumb(str);
+
+                    breadcrumb.Selected += () => updateItems(InternalChildren.ToList().IndexOf(breadcrumb));
+
+                    return breadcrumb;
+                }));
+
+                InternalChildren.Cast<Breadcrumb>().Last().Current.Value = true;
             }
         }
 
@@ -65,6 +63,36 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             Items = Items.Take(newIndex + 1).ToList();
+
+            foreach (var unselected in InternalChildren.Cast<Breadcrumb>().Take(newIndex))
+                unselected.Current.Value = false;
+
+            InternalChildren.Cast<Breadcrumb>().Last().Current.Value = true;
+        }
+
+        protected abstract class Breadcrumb : CompositeDrawable, IHasCurrentValue<bool>
+        {
+            private readonly Bindable<bool> current = new Bindable<bool>();
+            public Bindable<bool> Current {
+                get => current;
+                set => current.BindTo(value);
+            }
+
+            public T Value { get; }
+
+            protected Breadcrumb(T value)
+            {
+                Value = value;
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                Selected?.Invoke();
+
+                return true;
+            }
+
+            public event Action Selected;
         }
     }
 }
