@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PopMaskingInfo();
         }
 
-        public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref uint depthIndex)
+        public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
         {
             updateVertexBatch();
 
@@ -214,14 +214,14 @@ namespace osu.Framework.Graphics.Containers
             if (vertexBatch != null)
                 vertexAction = vertexBatch.AddAction;
 
-            base.DrawHull(vertexAction, ref depthIndex);
+            base.DrawHull(vertexAction, depthValue);
 
             if (MaskingInfo != null)
                 GLWrapper.PushMaskingInfo(MaskingInfo.Value);
 
             if (Children != null)
                 for (int i = Children.Count - 1; i >= 0; i--)
-                    Children[i].DrawHull(vertexAction, ref depthIndex);
+                    Children[i].DrawHull(vertexAction, depthValue);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

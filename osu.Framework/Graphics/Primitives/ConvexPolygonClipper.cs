@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives

@@ -377,7 +377,7 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                    bool queryAvailable = false;
+                    bool queryAvailable;
 
                     if (samplesPassedQuery == -1)
                     {
@@ -404,7 +404,7 @@ namespace osu.Framework.Platform
 
                     if (ftbPass.Value)
                     {
-                        uint depthIndex = 0;
+                        var depthValue = new DepthValue();
 
                         GLWrapper.PushDepthInfo(new DepthInfo
                         {
@@ -414,7 +414,7 @@ namespace osu.Framework.Platform
                         });
 
                         // Front pass
-                        buffer.Object.DrawHull(null, ref depthIndex);
+                        buffer.Object.DrawHull(null, depthValue);
 
                         GLWrapper.PopDepthInfo();
 

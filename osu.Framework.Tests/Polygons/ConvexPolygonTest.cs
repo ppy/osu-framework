@@ -1,6 +1,5 @@
 using System;
 using NUnit.Framework;
-using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 

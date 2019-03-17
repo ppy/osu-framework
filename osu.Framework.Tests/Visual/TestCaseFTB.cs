@@ -3,9 +3,11 @@
 
 using System;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -13,9 +15,9 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseFTB()
         {
-            for (int i = 0; i < 500; i++)
+            for (int i = 0; i < 10000; i++)
             {
-                Add(new TestBox { RelativeSizeAxes = Axes.Both });
+                Add(new TestBox { Size = new Vector2(200) });
             }
         }
 
@@ -25,9 +27,9 @@ namespace osu.Framework.Tests.Visual
 
             private class TestBoxDrawNode : BoxDrawNode
             {
-                public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref uint depthIndex)
+                public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
                 {
-                    base.DrawHull(vertexAction, ref depthIndex);
+                    base.DrawHull(vertexAction, depthValue);
                 }
             }
         }

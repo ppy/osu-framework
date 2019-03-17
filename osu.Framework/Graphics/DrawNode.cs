@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.OpenGL;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osuTK;
 
 namespace osu.Framework.Graphics
 {
@@ -42,9 +41,9 @@ namespace osu.Framework.Graphics
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 
-        public virtual void DrawHull(Action<TexturedVertex2D> vertexAction, ref uint depthIndex)
+        public virtual void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
         {
-            Depth = MathHelper.Clamp(-1 + depthIndex / 16383f, -1, 1);
+            Depth = depthValue;
         }
 
         ~DrawNode()

@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Shapes
 
         private Quad conservativeScreenSpaceDrawQuad => conservativeScreenSpaceDrawQuadBacking.IsValid
             ? conservativeScreenSpaceDrawQuadBacking.Value
-            : (conservativeScreenSpaceDrawQuadBacking.Value = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix);
+            : conservativeScreenSpaceDrawQuadBacking.Value = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Shapes
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate); ;
+            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
 
             // Either ScreenSize OR ScreenPosition OR Presence
             if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
@@ -55,9 +55,9 @@ namespace osu.Framework.Graphics.Shapes
         {
             public Quad ConservativeScreenSpaceDrawQuad;
 
-            public override void DrawHull(Action<TexturedVertex2D> vertexAction, ref uint depthIndex)
+            public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {
-                base.DrawHull(vertexAction, ref depthIndex);
+                base.DrawHull(vertexAction, depthValue);
 
                 if (Texture?.Available != true)
                     return;
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Shapes
 
                 TextureShader.Unbind();
 
-                depthIndex++;
+                depthValue.Increment();
             }
         }
     }
