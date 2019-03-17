@@ -135,6 +135,7 @@ Task("PackFramework")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append($"/p:NoWarn=1591");
 
                 return args;
             }
