@@ -343,4 +343,13 @@ namespace osu.Framework.Testing
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
     }
+
+    /// <summary>
+    /// Denotes a method which adds <see cref="TestCase"/> steps.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class SetUpStepsAttribute : Attribute
+    {
+
+    }
 }
