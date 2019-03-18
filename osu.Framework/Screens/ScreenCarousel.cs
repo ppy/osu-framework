@@ -12,11 +12,11 @@ namespace osu.Framework.Screens
     /// A component that enables exiting and entering from any <see cref="IScreen"/> within it to another.
     /// </summary>
     /// <typeparam name="TKey">A type used to reference <see cref="IScreen"/>s added to this carousel.</typeparam>
-    public class ScreenCarousel<T> : CompositeDrawable
+    public class ScreenCarousel<TKey> : CompositeDrawable
     {
         private readonly CarouselScreenStack screenStack;
 
-        protected readonly Dictionary<T, IScreen> Screens = new Dictionary<T, IScreen>();
+        protected readonly Dictionary<TKey, IScreen> Screens = new Dictionary<TKey, IScreen>();
 
         public IScreen CurrentScreen => screenStack.CurrentScreen;
 
@@ -30,10 +30,10 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="key"> The key used to identify this screen </param>
         /// <param name="screen"> The <see cref="IScreen"/> to add to the carousel </param>
-        public void AddScreen(T key, IScreen screen)
+        public void AddScreen(TKey key, IScreen screen)
         {
             if (Screens.ContainsValue(screen))
-                throw new InvalidOperationException($"Cannot add an {nameof(IScreen)} that has already been added to the {nameof(ScreenCarousel<T>)}");
+                throw new InvalidOperationException($"Cannot add an {nameof(IScreen)} that has already been added to the {nameof(ScreenCarousel<TKey>)}");
 
             Screens.Add(key, screen);
         }
@@ -42,10 +42,10 @@ namespace osu.Framework.Screens
         /// Exit the current <see cref="IScreen"/> and enter a new one.
         /// </summary>
         /// <param name="key">The key of the <see cref="IScreen"/> to switch to</param>
-        public void SwitchTo(T key)
+        public void SwitchTo(TKey key)
         {
             if (!Screens.TryGetValue(key, out var screen))
-                throw new InvalidOperationException($"Key provided for {nameof(SwitchTo)} does not exist in the {nameof(ScreenCarousel<T>)}");
+                throw new InvalidOperationException($"Key provided for {nameof(SwitchTo)} does not exist in the {nameof(ScreenCarousel<TKey>)}");
 
             // We don't need to do anything if we're already on the target screen.
             if (screen == screenStack.CurrentScreen)
@@ -68,8 +68,6 @@ namespace osu.Framework.Screens
         {
             // As this component should only ever have one screen inside its stack at a time, don't allow for pushing to screens.
             protected override bool AllowPushViaScreen => false;
-
-            protected override bool InvalidateScreensOnExit => false;
 
             // Since we might need to re-use screens that have been previously exited, do not dispose screens on removal.
             protected override void Cleanup(Drawable d)
