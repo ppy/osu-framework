@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         };
 
         [SetUp]
-        public new void SetupTest() => Schedule(() =>
+        public void SetupTest() => Schedule(() =>
         {
             Clear();
             Add(stack = new ScreenStack(baseScreen = new TestScreen())

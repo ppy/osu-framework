@@ -403,10 +403,10 @@ namespace osu.Framework.Logging
 
         private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
 
-        private static readonly Timer timer;
-
         static Logger()
         {
+            Timer timer = null;
+
             // timer has a very low overhead.
             timer = new Timer(_ =>
             {
@@ -414,7 +414,8 @@ namespace osu.Framework.Logging
                     writer_idle.Set();
 
                 // reschedule every 50ms. avoids overlapping callbacks.
-                timer.Change(50, Timeout.Infinite);
+                // ReSharper disable once AccessToModifiedClosure
+                timer?.Change(50, Timeout.Infinite);
             }, null, 0, Timeout.Infinite);
         }
 
