@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             bool isValidTarget(Drawable drawable)
             {
-                if (drawable is DrawVisualiser || drawable is CursorContainer || drawable is PropertyDisplay)
+                if (drawable == this || drawable is CursorContainer)
                     return false;
 
                 if (!drawable.IsPresent)
