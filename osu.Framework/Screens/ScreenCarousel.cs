@@ -33,7 +33,7 @@ namespace osu.Framework.Screens
         public void AddScreen(T key, IScreen screen)
         {
             if (Screens.ContainsValue(screen))
-                throw new InvalidOperationException($"Cannot add a screen that has already been added to the {nameof(ScreenCarousel<T>)}");
+                throw new InvalidOperationException($"Cannot add an {nameof(IScreen)} that has already been added to the {nameof(ScreenCarousel<T>)}");
 
             Screens.Add(key, screen);
         }
@@ -69,7 +69,7 @@ namespace osu.Framework.Screens
             // As this component should only ever have one screen inside its stack at a time, don't allow for pushing to screens.
             public override bool AllowPushViaScreen => false;
 
-            // Since we might need to re-use screens that have been previously exited, do not dispose on removal.
+            // Since we might need to re-use screens that have been previously exited, do not dispose screens on removal.
             protected override void Cleanup(Drawable d)
             {
                 RemoveInternal(d);
