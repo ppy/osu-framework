@@ -40,11 +40,6 @@ namespace osu.Framework.Screens
         protected virtual bool AllowPushViaScreen => true;
 
         /// <summary>
-        /// Whether or not screens that have been exited from this stack should be not allowed to be pushed/resumed again.
-        /// </summary>
-        protected virtual bool InvalidateScreensOnExit => true;
-
-        /// <summary>
         /// Screens which are exited and require manual cleanup.
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
@@ -115,7 +110,6 @@ namespace osu.Framework.Screens
             var newScreenDrawable = newScreen.AsDrawable();
 
             if (source == null)
-
             {
                 // this is the first screen to be loaded.
                 if (LoadState >= LoadState.Ready)
@@ -250,13 +244,6 @@ namespace osu.Framework.Screens
                 return;
             }
 
-            // we will probably want to change this logic when we support returning to a screen after exiting.
-            if (InvalidateScreensOnExit)
-            {
-                toExit.ValidForResume = false;
-                toExit.ValidForPush = false;
-            }
-
             onExiting?.Invoke();
 
             if (source == null)
@@ -303,6 +290,10 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        /// <summary>
+        /// Remove a drawable from this ScreenStack's internal children and handle disposal.
+        /// </summary>
+        /// <param name="d"> The drawable to remove. </param>
         protected virtual void Cleanup(Drawable d)
         {
             RemoveInternal(d);
