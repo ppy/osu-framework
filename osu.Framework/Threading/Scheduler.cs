@@ -143,15 +143,19 @@ namespace osu.Framework.Threading
                 runQueue.Enqueue(task);
             }
 
+            int countToRun = runQueue.Count;
             int countRun = 0;
 
             while (runQueue.TryDequeue(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled) continue;
+                if (sd.Cancelled)
+                    continue;
 
                 //todo: error handling
                 sd.RunTask();
-                countRun++;
+
+                if (++countRun == countToRun)
+                    break;
             }
 
             return countRun;
