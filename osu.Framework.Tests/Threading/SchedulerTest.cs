@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Threading
         public void TestScheduleOnce([Values(false, true)] bool fromMainThread, [Values(false, true)] bool forceScheduled)
         {
             if (fromMainThread)
-                scheduler.SetCurrentThread(Thread.CurrentThread);
+                scheduler.SetCurrentThread();
 
             int invocations = 0;
 
@@ -210,28 +210,36 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void TestScheduleFromInsideDelegate()
+        public void TestScheduleFromInsideDelegate([Values(false, true)] bool forceScheduled)
         {
             const int max_reschedules = 3;
+
+            if (!forceScheduled)
+                scheduler.SetCurrentThread();
 
             int reschedules = 0;
 
             scheduleTask();
 
-            for (int i = 0; i <= max_reschedules; i++)
+            if (forceScheduled)
             {
-                scheduler.Update();
-                Assert.AreEqual(Math.Min(max_reschedules, i + 1), reschedules);
+                for (int i = 0; i <= max_reschedules; i++)
+                {
+                    scheduler.Update();
+                    Assert.AreEqual(Math.Min(max_reschedules, i + 1), reschedules);
+                }
             }
+            else
+                Assert.AreEqual(max_reschedules, reschedules);
 
             void scheduleTask() => scheduler.Add(() =>
             {
                 if (reschedules == max_reschedules)
                     return;
 
-                scheduleTask();
                 reschedules++;
-            });
+                scheduleTask();
+            }, forceScheduled);
         }
     }
 }
