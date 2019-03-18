@@ -428,44 +428,51 @@ namespace osu.Framework.Testing
 
             var methods = newTest.GetType().GetMethods();
 
-            var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+            var setUpMethods = methods.Where(m => m.Name != nameof(TestCase.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
 
-            foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
+            bool hadTestAttributeTest = false;
+
+            foreach (var m in methods.Where(m => m.Name != nameof(TestCase.TestConstructor)))
             {
                 if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
+                    hadTestAttributeTest = true;
                     CurrentTest.AddLabel(m.Name);
 
-                    if (setUpMethods.Any())
-                    {
-                        CurrentTest.AddStep(new SetUpStep
-                        {
-                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                        });
-                    }
+                    addSetUpSteps();
 
                     m.Invoke(CurrentTest, null);
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
+                    hadTestAttributeTest = true;
                     CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
 
-                    if (setUpMethods.Any())
-                    {
-                        CurrentTest.AddStep(new SetUpStep
-                        {
-                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                        });
-                    }
+                    addSetUpSteps();
 
                     m.Invoke(CurrentTest, tc.Arguments);
                 }
             }
 
+            // even if no [Test] or [TestCase] methods were found, [SetUp] steps should be added.
+            if (!hadTestAttributeTest)
+                addSetUpSteps();
+
             backgroundCompiler?.Checkpoint(CurrentTest);
             runTests(onCompletion);
             updateButtons();
+
+            void addSetUpSteps()
+            {
+                if (setUpMethods.Any())
+                {
+                    CurrentTest.AddStep(new SetUpStep
+                    {
+                        Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                    });
+                }
+            }
         }
 
         private class SetUpStep : SingleStepButton

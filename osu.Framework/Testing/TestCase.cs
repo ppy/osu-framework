@@ -80,12 +80,8 @@ namespace osu.Framework.Testing
             }
         }
 
-        /// <summary>
-        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
-        /// is reverted to a clean state for all tests.
-        /// </summary>
         [SetUp]
-        public void SetupTest()
+        public void SetUpTestForNUnit()
         {
             if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
