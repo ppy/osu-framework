@@ -358,14 +358,15 @@ namespace osu.Framework.Graphics
         /// <see cref="UpdateSubTree"/>. It should be used when a simple action should be performed
         /// at the end of every update call which does not warrant overriding the Drawable.
         /// </summary>
-        public Action<Drawable> OnUpdate;
+        public event Action<Drawable> OnUpdate;
 
         /// <summary>
         /// This event is fired after the <see cref="LoadComplete"/> method is called.
         /// It should be used when a simple action should be performed
         /// when the Drawable is loaded which does not warrant overriding the Drawable.
+        /// This event is automatically cleared after being invoked.
         /// </summary>
-        public Action<Drawable> OnLoadComplete;
+        public event Action<Drawable> OnLoadComplete;
 
         /// <summary>.
         /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
@@ -1017,7 +1018,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Vector2 customOrigin;
 
         /// <summary>
@@ -1081,7 +1081,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Anchor anchor = Anchor.TopLeft;
 
         /// <summary>
@@ -1105,7 +1104,6 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.MiscGeometry);
             }
         }
-
 
         private Vector2 customRelativeAnchorPosition;
 
@@ -1571,7 +1569,7 @@ namespace osu.Framework.Graphics
 
         private Vector2 computeRequiredParentSizeToFit()
         {
-            // Auxilary variables required for the computation
+            // Auxiliary variables required for the computation
             Vector2 ap = AnchorPosition;
             Vector2 rap = RelativeAnchorPosition;
 
@@ -1613,7 +1611,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
 
-
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
@@ -1623,7 +1620,7 @@ namespace osu.Framework.Graphics
         /// Invalidates draw matrix and autosize caches.
         /// <para>
         /// This does not ensure that the parent containers have been updated before us, thus operations involving
-        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overriden implementation.
+        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overridden implementation.
         /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
@@ -1694,7 +1691,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Generates the <see cref="DrawNode"/> for ourselves.
         /// </summary>
-        /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
+        /// <param name="frame">The frame which the <see cref="DrawNode"/> sub-tree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
@@ -2068,7 +2065,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
+        /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 
@@ -2088,7 +2085,7 @@ namespace osu.Framework.Graphics
         /// given screen-space position.
         /// </summary>
         /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
-        /// <returns>True iff input is received at the given screen-space position.</returns>
+        /// <returns>True if input is received at the given screen-space position.</returns>
         public virtual bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
 
         /// <summary>

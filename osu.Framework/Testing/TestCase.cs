@@ -178,7 +178,6 @@ namespace osu.Framework.Testing
             });
         }
 
-
         private const float steps_width = 180;
         private const float padding = 0;
 
@@ -187,9 +186,9 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null)
         {
-            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
             Schedule(() =>
             {
@@ -199,27 +198,7 @@ namespace osu.Framework.Testing
 
                 actionIndex = -1;
                 actionRepetition = 0;
-                runNextStep(onCompletion, onError);
-            });
-        }
-
-        public void RunFirstStep()
-        {
-            Schedule(() =>
-            {
-                stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
-                foreach (var step in StepsContainer.OfType<StepButton>())
-                    step.Reset();
-
-                actionIndex = 0;
-                try
-                {
-                    loadableStep?.PerformStep();
-                }
-                catch (Exception e)
-                {
-                    Logging.Logger.Error(e, "Error on running first step");
-                }
+                runNextStep(onCompletion, onError, stopCondition);
             });
         }
 
@@ -227,7 +206,7 @@ namespace osu.Framework.Testing
 
         protected virtual double TimePerAction => 200;
 
-        private void runNextStep(Action onCompletion, Action<Exception> onError)
+        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -262,6 +241,9 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
+                    return;
+
                 Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
@@ -274,8 +256,10 @@ namespace osu.Framework.Testing
             }
 
             if (Parent != null)
-                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
+
+        public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));
 
         public StepButton AddStep(string description, Action action)
         {
@@ -285,7 +269,19 @@ namespace osu.Framework.Testing
                 Action = action
             };
 
-            Schedule(() => StepsContainer.Add(step));
+            AddStep(step);
+
+            return step;
+        }
+
+        public LabelStep AddLabel(string description)
+        {
+            var step = new LabelStep
+            {
+                Text = description,
+            };
+
+            AddStep(step);
 
             return step;
         }
@@ -306,7 +302,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -314,7 +310,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
+        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {

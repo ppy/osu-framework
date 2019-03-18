@@ -44,20 +44,25 @@ namespace osu.Framework.Screens
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
 
+        private readonly bool suspendImmediately;
+
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
         /// </summary>
-        public ScreenStack()
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(bool suspendImmediately = true)
         {
+            this.suspendImmediately = suspendImmediately;
             ScreenExited += onExited;
         }
 
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/>, and immediately pushes a <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="baseScreen"></param>
-        public ScreenStack(IScreen baseScreen)
-            : this()
+        /// <param name="baseScreen">The initial <see cref="IScreen"/> to be loaded</param>
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(IScreen baseScreen, bool suspendImmediately = true)
+            : this(suspendImmediately)
         {
             Push(baseScreen);
         }
@@ -94,42 +99,77 @@ namespace osu.Framework.Screens
                 throw new ScreenWillBeRemovedOnPushException(newScreen.GetType());
 
             // Suspend the current screen, if there is one
-            if (source != null)
-            {
-                if (source != stack.Peek())
-                    throw new ScreenNotCurrentException(nameof(Push));
+            if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
-                source.OnSuspending(newScreen);
-                source.AsDrawable().Expire();
-            }
+            if (suspendImmediately)
+                suspend(source, newScreen);
 
-            // Push the new screen
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
+
 
             newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
             newScreen.ValidForPush = true;
 
-            void finishLoad()
+            var newScreenDrawable = newScreen.AsDrawable();
+
+            if (source == null)
+
             {
-                if (!newScreen.ValidForPush)
-                {
-                    exitFrom(null);
-                    return;
-                }
+                // this is the first screen to be loaded.
+                if (LoadState >= LoadState.Ready)
+                    LoadScreen(this, newScreenDrawable, () => push(null, newScreen));
+                else
+                    Schedule(() => push(null, newScreen));
+            }
+            else
+                LoadScreen((CompositeDrawable)source, newScreenDrawable, () => push(source, newScreen));
+        }
 
-                if (!ContainsInternal(newScreen.AsDrawable()))
-                    AddInternal(newScreen.AsDrawable());
+        /// <summary>
+        /// Complete push of a loaded screen.
+        /// </summary>
+        /// <param name="from">The screen to push to.</param>
+        /// <param name="to">The new screen being pushed.</param>
+        private void push(IScreen from, IScreen to)
+        {
+            if (!suspendImmediately)
+                suspend(from, to);
 
-                newScreen.OnEntering(source);
+            if (!to.ValidForPush)
+            {
+                exitFrom(null, shouldFireEvent: false);
+                return;
             }
 
-            if (source != null)
-                LoadScreen((CompositeDrawable)source, newScreen.AsDrawable(), finishLoad);
-            else if (LoadState >= LoadState.Ready)
-                LoadScreen(this, newScreen.AsDrawable(), finishLoad);
+            AddInternal(to.AsDrawable());
+            to.OnEntering(from);
+        }
+
+        /// <summary>
+        /// Complete suspend of a screen in the stack.
+        /// </summary>
+        /// <param name="from">The screen being suspended.</param>
+        /// <param name="to">The screen being entered.</param>
+        private void suspend(IScreen from, IScreen to)
+        {
+            var sourceDrawable = from?.AsDrawable();
+            if (sourceDrawable == null)
+                return;
+
+            if (sourceDrawable.IsLoaded)
+                performSuspend();
             else
-                Schedule(finishLoad);
+            {
+                // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
+                sourceDrawable.OnLoadComplete += _ => performSuspend();
+            }
+
+            void performSuspend()
+            {
+                from.OnSuspending(to);
+                sourceDrawable.Expire();
+            }
         }
 
         /// <summary>
@@ -143,7 +183,12 @@ namespace osu.Framework.Screens
             if (toLoad.LoadState >= LoadState.Ready)
                 continuation?.Invoke();
             else
-                loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+            {
+                if (loader.LoadState >= LoadState.Ready)
+                    loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+                else
+                    Schedule(() => LoadScreen(loader, toLoad, continuation));
+            }
         }
 
         internal void Exit(IScreen source)
@@ -186,7 +231,8 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
-        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null)
+        /// <param name="shouldFireEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
+        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireEvent = true)
         {
             if (stack.Count == 0)
                 return;
@@ -195,7 +241,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (toExit.OnExiting(CurrentScreen))
+            if (shouldFireEvent && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;

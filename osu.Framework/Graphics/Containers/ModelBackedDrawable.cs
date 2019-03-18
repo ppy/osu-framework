@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
                 replaceDrawable(DisplayedDrawable, placeholder, true);
             }
 
-            nextDrawable.OnLoadComplete = loadedDrawable =>
+            nextDrawable.OnLoadComplete += loadedDrawable =>
             {
                 if (loadedDrawable != nextDrawable)
                 {
