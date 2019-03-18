@@ -48,9 +48,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 fadeImmediateModelBackedDrawable.Item = null;
             });
 
-            AddUntilStep(() => modelBackedDrawable.VisibleItemId == -1 &&
-                               delayedModelBackedDrawable.VisibleItemId == -1 &&
-                               fadeImmediateModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
+            AddUntilStep("Wait until all null", () => modelBackedDrawable.VisibleItemId == -1 &&
+                                                      delayedModelBackedDrawable.VisibleItemId == -1 &&
+                                                      fadeImmediateModelBackedDrawable.VisibleItemId == -1);
 
             // try setting items and null for a regular model backed drawable
             addItemTest("Simple", modelBackedDrawable, 0);
@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             if (testNotChanged)
                 AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
 
-            AddUntilStep(() => drawable.VisibleItemId == itemNumber, $"{prefix}: Wait until changed");
+            AddUntilStep($"{prefix}: Wait until changed", () => drawable.VisibleItemId == itemNumber);
         }
 
         private class TestItem

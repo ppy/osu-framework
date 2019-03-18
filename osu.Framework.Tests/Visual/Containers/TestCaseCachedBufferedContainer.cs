@@ -63,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 boxes.Add(box);
             }
 
-            AddWaitStep(5);
+            AddWaitStep("wait for boxes", 5);
 
             // ensure uncached is always updating children.
             AddAssert("box 0 count > 0", () => boxes[0].Count > 0);
