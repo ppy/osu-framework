@@ -111,6 +111,8 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.FadeOut(100);
 
+            propertyDisplay.Hide();
+
             recycleVisualisers();
         }
 
@@ -301,6 +303,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
+            setHighlight(null);
+
             // May come from the disposal thread, in which case they won't ever be reused anyway
             Schedule(() => treeContainer.Clear());
 
