@@ -80,12 +80,8 @@ namespace osu.Framework.Testing
             }
         }
 
-        /// <summary>
-        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
-        /// is reverted to a clean state for all tests.
-        /// </summary>
         [SetUp]
-        public void SetupTest()
+        public void SetUpTestForNUnit()
         {
             if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
@@ -302,7 +298,11 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
+            => AddUntilStep(description, waitUntilTrueDelegate);
+
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -310,7 +310,11 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddWaitStep(int waitCount, string description = null)
+            => AddWaitStep(description, waitCount);
+
+        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {

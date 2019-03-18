@@ -367,7 +367,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void waitDoubleClickTime()
         {
-            AddWaitStep(2, "wait to don't double click");
+            AddWaitStep("wait to don't double click", 2);
         }
 
         private readonly Dictionary<Type, int> eventCounts1 = new Dictionary<Type, int>(),

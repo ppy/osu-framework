@@ -57,9 +57,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
-            AddWaitStep(10);
+            AddWaitStep("wait for load", 10);
             AddStep("scroll down", () => scroll.ScrollToEnd());
-            AddWaitStep(10);
+            AddWaitStep("wait more", 10);
             AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
         }
