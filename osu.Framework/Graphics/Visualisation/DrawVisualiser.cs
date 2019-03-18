@@ -111,6 +111,9 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.FadeOut(100);
 
+            setHighlight(null);
+            propertyDisplay.Hide();
+
             recycleVisualisers();
         }
 
