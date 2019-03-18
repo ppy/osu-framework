@@ -35,6 +35,11 @@ namespace osu.Framework.Screens
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
         /// <summary>
+        /// Whether or not we should allow pushing without pushing directly to a screen stack.
+        /// </summary>
+        public virtual bool AllowPushViaScreen => true;
+
+        /// <summary>
         /// Screens which are exited and require manual cleanup.
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
@@ -76,6 +81,9 @@ namespace osu.Framework.Screens
 
         internal void Push(IScreen source, IScreen newScreen)
         {
+            if (!AllowPushViaScreen && source != null)
+                throw new InvalidOperationException("Cannot push to a screen directly inside this " + nameof(ScreenStack));
+
             if (stack.Contains(newScreen))
                 throw new ScreenAlreadyEnteredException();
 
@@ -99,6 +107,9 @@ namespace osu.Framework.Screens
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
+            newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
+            newScreen.ValidForPush = true;
+
             void finishLoad()
             {
                 if (!newScreen.ValidForPush)
@@ -107,7 +118,9 @@ namespace osu.Framework.Screens
                     return;
                 }
 
-                AddInternal(newScreen.AsDrawable());
+                if (!ContainsInternal(newScreen.AsDrawable()))
+                    AddInternal(newScreen.AsDrawable());
+
                 newScreen.OnEntering(source);
             }
 
@@ -238,6 +251,12 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        protected virtual void Cleanup(Drawable d)
+        {
+            RemoveInternal(d);
+            DisposeChildAsync(d);
+        }
+
         protected override bool UpdateChildrenLife()
         {
             if (!base.UpdateChildrenLife()) return false;
@@ -247,10 +266,7 @@ namespace osu.Framework.Screens
             if (exited.FirstOrDefault()?.IsAlive == false)
             {
                 foreach (var s in exited)
-                {
-                    RemoveInternal(s);
-                    DisposeChildAsync(s);
-                }
+                    Cleanup(s);
 
                 exited.Clear();
             }
