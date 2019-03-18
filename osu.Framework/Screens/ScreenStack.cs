@@ -142,7 +142,9 @@ namespace osu.Framework.Screens
                 return;
             }
 
-            AddInternal(to.AsDrawable());
+            if (!ContainsInternal(to.AsDrawable()))
+                AddInternal(to.AsDrawable());
+
             to.OnEntering(from);
         }
 

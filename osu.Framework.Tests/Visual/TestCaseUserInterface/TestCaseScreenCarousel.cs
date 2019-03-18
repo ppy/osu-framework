@@ -6,6 +6,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
+using osu.Framework.Tests.Visual.UserInterface;
 
 namespace osu.Framework.Tests.Visual.TestCaseUserInterface
 {
