@@ -247,6 +247,26 @@ namespace osu.Framework.Threading
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
         /// <summary>
+        /// The earliest ElapsedTime value at which we can be executed.
+        /// </summary>
+        public double ExecutionTime { get; internal set; }
+
+        /// <summary>
+        /// Time in milliseconds between repeats of this task. -1 means no repeats.
+        /// </summary>
+        public readonly double RepeatInterval;
+
+        /// <summary>
+        /// Whether this task has finished running.
+        /// </summary>
+        public bool Completed { get; private set; }
+
+        /// <summary>
+        /// Whether this task has been cancelled.
+        /// </summary>
+        public bool Cancelled { get; private set; }
+
+        /// <summary>
         /// The work task.
         /// </summary>
         internal readonly Action Task;
@@ -268,28 +288,8 @@ namespace osu.Framework.Threading
             Completed = true;
         }
 
-        public bool Completed;
+        public void Cancel() => Cancelled = true;
 
-        public bool Cancelled { get; private set; }
-
-        public void Cancel()
-        {
-            Cancelled = true;
-        }
-
-        /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
-        /// </summary>
-        public double ExecutionTime;
-
-        /// <summary>
-        /// Time in milliseconds between repeats of this task. -1 means no repeats.
-        /// </summary>
-        public double RepeatInterval;
-
-        public int CompareTo(ScheduledDelegate other)
-        {
-            return ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
-        }
+        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
     }
 }
