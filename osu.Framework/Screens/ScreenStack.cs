@@ -35,7 +35,7 @@ namespace osu.Framework.Screens
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
         /// <summary>
-        /// Whether or not we should allow pushing without pushing directly to a screen stack.
+        /// Whether <see cref="IScreen"/>s can be pushed to other <see cref="IScreen"/>s directly.
         /// </summary>
         protected virtual bool AllowPushViaScreen => true;
 

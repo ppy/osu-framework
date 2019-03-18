@@ -11,7 +11,7 @@ namespace osu.Framework.Screens
     /// <summary>
     /// A component that enables exiting and entering from any <see cref="IScreen"/> inside a <see cref="ScreenStack"/> to another.
     /// </summary>
-    /// <typeparam name="T">The type of Key to identify <see cref="IScreen"/> added to this component</typeparam>
+    /// <typeparam name="TKey">A type used to reference <see cref="IScreen"/>s added to this carousel.</typeparam>
     public class ScreenCarousel<T> : CompositeDrawable
     {
         private readonly CarouselScreenStack screenStack;
