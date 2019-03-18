@@ -67,7 +67,9 @@ namespace osu.Framework.Screens
         private class CarouselScreenStack : ScreenStack
         {
             // As this component should only ever have one screen inside its stack at a time, don't allow for pushing to screens.
-            public override bool AllowPushViaScreen => false;
+            protected override bool AllowPushViaScreen => false;
+
+            protected override bool InvalidateScreensOnExit => false;
 
             // Since we might need to re-use screens that have been previously exited, do not dispose screens on removal.
             protected override void Cleanup(Drawable d)

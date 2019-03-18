@@ -37,7 +37,12 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Whether or not we should allow pushing without pushing directly to a screen stack.
         /// </summary>
-        public virtual bool AllowPushViaScreen => true;
+        protected virtual bool AllowPushViaScreen => true;
+
+        /// <summary>
+        /// Whether or not screens that have been exited from this stack should be not allowed to be pushed/resumed again.
+        /// </summary>
+        protected virtual bool InvalidateScreensOnExit => true;
 
         /// <summary>
         /// Screens which are exited and require manual cleanup.
@@ -106,10 +111,6 @@ namespace osu.Framework.Screens
 
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
-
-
-            newScreen.AsDrawable().LifetimeEnd = double.MaxValue;
-            newScreen.ValidForPush = true;
 
             var newScreenDrawable = newScreen.AsDrawable();
 
@@ -250,8 +251,11 @@ namespace osu.Framework.Screens
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.
-            toExit.ValidForResume = false;
-            toExit.ValidForPush = false;
+            if (InvalidateScreensOnExit)
+            {
+                toExit.ValidForResume = false;
+                toExit.ValidForPush = false;
+            }
 
             onExiting?.Invoke();
 
