@@ -259,28 +259,12 @@ namespace osu.Framework.Threading
             RepeatInterval = repeatInterval;
         }
 
-        /// <summary>
-        /// Set to true to skip scheduled executions until we are ready.
-        /// </summary>
-        internal bool Waiting;
-
-        public void Wait()
-        {
-            Waiting = true;
-        }
-
-        public void Continue()
-        {
-            Waiting = false;
-        }
-
         public void RunTask()
         {
             if (Cancelled)
                 throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
 
-            if (!Waiting)
-                Task();
+            Task();
             Completed = true;
         }
 
