@@ -235,7 +235,7 @@ namespace osu.Framework.Threading
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
         {
-            if (runQueue.Any(sd => sd.RunTask == task))
+            if (runQueue.Any(sd => sd.Task == task))
                 return false;
 
             runQueue.Enqueue(new ScheduledDelegate(task));
@@ -246,17 +246,18 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
-        {
-            ExecutionTime = executionTime;
-            RepeatInterval = repeatInterval;
-            this.task = task;
-        }
-
         /// <summary>
         /// The work task.
         /// </summary>
-        private readonly Action task;
+        internal readonly Action Task;
+
+        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
+        {
+            Task = task;
+
+            ExecutionTime = executionTime;
+            RepeatInterval = repeatInterval;
+        }
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.
@@ -279,7 +280,7 @@ namespace osu.Framework.Threading
                 throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
 
             if (!Waiting)
-                task();
+                Task();
             Completed = true;
         }
 
