@@ -26,24 +26,30 @@ namespace osu.Framework.Tests.Visual.Testing
 
         public TestCaseTest()
         {
-            // run before setup
-            testRunCount++;
+            Schedule(() =>
+            {
+                // [SetUp} gets run via TestConstructor() when we are running under nUnit.
+                // note that in TestBrowser's case, this does not invoke SetUp methods, so we skip this increment.
+                // schedule is required to ensure that IsNUnitRunning is initialised.
+                if (IsNUnitRunning)
+                    testRunCount++;
+            });
         }
 
         [Test]
         public void Test1()
         {
-            testRunCount++;
-            Assert.AreEqual(testRunCount, setupRun);
-            Assert.AreEqual(testRunCount, setupStepsRun);
+            AddStep("increment run count", () => testRunCount++);
+            AddAssert("correct setup run count", () => testRunCount == setupRun);
+            AddAssert("correct setup steps run count", () => (IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         [Test]
         public void Test2()
         {
-            testRunCount++;
-            Assert.AreEqual(testRunCount, setupRun);
-            Assert.AreEqual(testRunCount, setupStepsRun);
+            AddStep("increment run count", () => testRunCount++);
+            AddAssert("correct setup run count", () => testRunCount == setupRun);
+            AddAssert("correct setup steps run count", () => (IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
     }
 }
