@@ -67,14 +67,16 @@ namespace osu.Framework.Graphics.UserInterface
         private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
         private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
 
+        protected virtual Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
+
         protected virtual Color4 BackgroundFocused
         {
             get => backgroundFocused;
             set
             {
                 backgroundFocused = value;
-                if (HasFocus && Background.IsLoaded)
-                    Background.FadeColour(value, 200);
+                if (HasFocus)
+                    Background.FadeColour(value, Background.IsLoaded ? 200 : 0);
             }
         }
 
@@ -84,12 +86,10 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundUnfocused = value;
-                if (!HasFocus && Background.IsLoaded)
-                    Background.FadeColour(value, 200);
+                if (!HasFocus)
+                    Background.FadeColour(value, Background.IsLoaded ? 200 : 0);
             }
         }
-
-        protected virtual Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
 
         protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
 
