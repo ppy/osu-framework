@@ -67,9 +67,9 @@ namespace osu.Framework.Graphics.UserInterface
         private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
         private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
 
-        protected virtual Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
+        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
 
-        protected virtual Color4 BackgroundFocused
+        protected Color4 BackgroundFocused
         {
             get => backgroundFocused;
             set
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected virtual Color4 BackgroundUnfocused
+        protected Color4 BackgroundUnfocused
         {
             get => backgroundUnfocused;
             set
