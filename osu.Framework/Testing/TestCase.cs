@@ -33,12 +33,13 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestCaseTestRunner runner;
-        private bool isNUnitRunning;
+
+        internal bool IsNUnitRunning;
 
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            isNUnitRunning = true;
+            IsNUnitRunning = true;
 
             host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
@@ -83,8 +84,10 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetUpTestForNUnit()
         {
-            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+            if (IsNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
+
+            RunSetUpSteps();
         }
 
         [TearDown]
@@ -189,7 +192,7 @@ namespace osu.Framework.Testing
             Schedule(() =>
             {
                 stepRunner?.Cancel();
-                foreach (var step in StepsContainer.OfType<StepButton>())
+                foreach (var step in StepsContainer.FlowingChildren.OfType<StepButton>())
                     step.Reset();
 
                 actionIndex = -1;
@@ -342,5 +345,11 @@ namespace osu.Framework.Testing
         });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+
+        internal void RunSetUpSteps()
+        {
+            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+                method.Invoke(this, null);
+        }
     }
 }
