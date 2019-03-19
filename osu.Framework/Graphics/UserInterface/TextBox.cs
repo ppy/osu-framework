@@ -64,9 +64,32 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
-        protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
-        protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
+        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
+        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
+
+        protected virtual Color4 BackgroundFocused
+        {
+            get => backgroundFocused;
+            set
+            {
+                backgroundFocused = value;
+                if (HasFocus && Background.IsLoaded)
+                    Background.FadeColour(value, 200);
+            }
+        }
+
+        protected virtual Color4 BackgroundUnfocused
+        {
+            get => backgroundUnfocused;
+            set
+            {
+                backgroundUnfocused = value;
+                if (!HasFocus && Background.IsLoaded)
+                    Background.FadeColour(value, 200);
+            }
+        }
+
+        protected virtual Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
 
         protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
 
