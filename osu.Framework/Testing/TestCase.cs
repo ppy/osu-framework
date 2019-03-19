@@ -33,12 +33,13 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestCaseTestRunner runner;
-        private bool isNUnitRunning;
+
+        internal bool IsNUnitRunning;
 
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            isNUnitRunning = true;
+            IsNUnitRunning = true;
 
             host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
@@ -80,15 +81,13 @@ namespace osu.Framework.Testing
             }
         }
 
-        /// <summary>
-        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
-        /// is reverted to a clean state for all tests.
-        /// </summary>
         [SetUp]
-        public void SetupTest()
+        public void SetUpTestForNUnit()
         {
-            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+            if (IsNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
+
+            RunSetUpSteps();
         }
 
         [TearDown]
@@ -193,7 +192,7 @@ namespace osu.Framework.Testing
             Schedule(() =>
             {
                 stepRunner?.Cancel();
-                foreach (var step in StepsContainer.OfType<StepButton>())
+                foreach (var step in StepsContainer.FlowingChildren.OfType<StepButton>())
                     step.Reset();
 
                 actionIndex = -1;
@@ -302,6 +301,10 @@ namespace osu.Framework.Testing
             });
         });
 
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
+            => AddUntilStep(description, waitUntilTrueDelegate);
+
         protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
@@ -309,6 +312,10 @@ namespace osu.Framework.Testing
                 Text = description ?? @"Until",
             });
         });
+
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddWaitStep(int waitCount, string description = null)
+            => AddWaitStep(description, waitCount);
 
         protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
         {
@@ -338,5 +345,11 @@ namespace osu.Framework.Testing
         });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+
+        internal void RunSetUpSteps()
+        {
+            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+                method.Invoke(this, null);
+        }
     }
 }
