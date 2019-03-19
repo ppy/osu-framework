@@ -85,6 +85,8 @@ namespace osu.Framework.Testing
         {
             if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
+
+            RunSetUpSteps();
         }
 
         [TearDown]
@@ -342,5 +344,11 @@ namespace osu.Framework.Testing
         });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+
+        internal void RunSetUpSteps()
+        {
+            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+                method.Invoke(this, null);
+        }
     }
 }

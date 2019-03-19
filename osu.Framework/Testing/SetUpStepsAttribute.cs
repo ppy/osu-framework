@@ -7,6 +7,7 @@ namespace osu.Framework.Testing
 {
     /// <summary>
     /// Denotes a method which adds <see cref="TestCase"/> steps.
+    /// Invoked via <see cref="TestCase.RunSetUpSteps"/> (which is called from nUnit's [SetUp] or <see cref="TestBrowser.LoadTest"/>).
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class SetUpStepsAttribute : Attribute

@@ -473,8 +473,7 @@ namespace osu.Framework.Testing
                     });
                 }
 
-                foreach (var method in methods.Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
-                    method.Invoke(CurrentTest, null);
+                CurrentTest.RunSetUpSteps();
             }
         }
 
