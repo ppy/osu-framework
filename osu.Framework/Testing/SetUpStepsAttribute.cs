@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Testing
 {
@@ -10,6 +11,7 @@ namespace osu.Framework.Testing
     /// Invoked via <see cref="TestCase.RunSetUpSteps"/> (which is called from nUnit's [SetUp] or <see cref="TestBrowser.LoadTest"/>).
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
+    [MeansImplicitUse]
     public class SetUpStepsAttribute : Attribute
     {
     }
