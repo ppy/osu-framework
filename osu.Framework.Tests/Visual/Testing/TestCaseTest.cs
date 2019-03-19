@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.Testing
         {
             Schedule(() =>
             {
-                // [SetUp} gets run via TestConstructor() when we are running under nUnit.
+                // [SetUp] gets run via TestConstructor() when we are running under nUnit.
                 // note that in TestBrowser's case, this does not invoke SetUp methods, so we skip this increment.
                 // schedule is required to ensure that IsNUnitRunning is initialised.
                 if (IsNUnitRunning)
