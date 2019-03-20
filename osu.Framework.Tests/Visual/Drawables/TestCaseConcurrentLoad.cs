@@ -43,9 +43,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddAssert("check none loaded", () => !flow.Children.OfType<DelayedTestBox>().Any());
 
-            AddUntilStep(() => flow.Children.OfType<DelayedTestBox>().Any() && flow.Children.OfType<DelayedTestBox>().Count() < panel_count, "check not all loaded");
+            AddUntilStep("check not all loaded", () => flow.Children.OfType<DelayedTestBox>().Any() && flow.Children.OfType<DelayedTestBox>().Count() < panel_count);
 
-            AddUntilStep(() => flow.Children.Count == panel_count, "wait all loaded");
+            AddUntilStep("wait all loaded", () => flow.Children.Count == panel_count);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddAssert("check none loaded", () => !flow.Children.OfType<DelayedTestBoxAsync>().Any());
 
-            AddUntilStep(() => flow.Children.OfType<DelayedTestBoxAsync>().Any(), "wait some loaded");
+            AddUntilStep("wait some loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Any());
 
             // due to thread yielding all should be loaded straight after any are loaded.
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
