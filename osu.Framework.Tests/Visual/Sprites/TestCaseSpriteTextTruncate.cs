@@ -46,10 +46,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                 new ExampleText(text, false, true),
                 new ExampleText(text, false, true, "…"),
                 new ExampleText(text, false, true, "--"),
+                new ExampleText(text, false, true, "--", true),
                 new ExampleText(text, true, false),
                 new ExampleText(text, true, true),
                 new ExampleText(text, true, true, "…"),
                 new ExampleText(text, true, true, "--"),
+                new ExampleText(text, true, true, "--", true),
             });
 
             const float start_range = 10;
@@ -61,7 +63,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class ExampleText : Container
         {
-            public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "")
+            public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "", bool runtimeChange = false)
             {
                 AutoSizeAxes = Axes.Y;
                 RelativeSizeAxes = Axes.X;
@@ -72,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Colour = Color4.DarkMagenta,
                         RelativeSizeAxes = Axes.Both,
                     },
-                    new CustomEllipsisSpriteText(ellipsisString)
+                    new CustomEllipsisSpriteText(ellipsisString, runtimeChange)
                     {
                         Text = text,
                         Truncate = truncate,
@@ -86,9 +88,12 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class CustomEllipsisSpriteText : SpriteText
         {
-            public CustomEllipsisSpriteText(string s)
+            public CustomEllipsisSpriteText(string customEllipsis, bool runtimeChange)
             {
-                EllipsisString = s;
+                EllipsisString = customEllipsis;
+
+                if (runtimeChange)
+                    Scheduler.AddDelayed(() => EllipsisString = customEllipsis == EllipsisString ? string.Empty : customEllipsis, 500, true);
             }
         }
     }
