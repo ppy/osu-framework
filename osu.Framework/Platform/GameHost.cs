@@ -188,13 +188,11 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        private readonly ToolkitOptions toolkitOptions;
-
-        private Toolkit toolkit;
+        private readonly Toolkit toolkit;
 
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            this.toolkitOptions = toolkitOptions;
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -450,8 +448,6 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
-
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(Name));
 
