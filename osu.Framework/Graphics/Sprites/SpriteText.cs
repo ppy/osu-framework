@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -233,11 +234,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool truncate;
+        private bool truncate = true;
 
         /// <summary>
-        /// True if the text should be truncated when it exceeds <see cref="Width"/>.
-        /// Has no effect if <see cref="AllowMultiline"/> is true.
+        /// True if the text should be truncated when it exceeds a specified <see cref="Width"/>.
+        /// Has no effect if <see cref="AllowMultiline"/> is true or if no <see cref="Width"/> or custom sizing is set.
         /// </summary>
         public bool Truncate
         {
@@ -250,21 +251,16 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool truncateWithEllipsis;
+        private string ellipsisString = "…";
 
-        /// <summary>
-        /// True if the text should be truncated with ellipsis when it exceeds <see cref="Width"/>.
-        /// Overrides <see cref="Truncate"/>.
-        /// Has no effect if <see cref="AllowMultiline"/> is true.
-        /// </summary>
-        public bool TruncateWithEllipsis
+        protected string EllipsisString
         {
-            get => truncateWithEllipsis;
+            get => ellipsisString;
             set
             {
-                if (truncateWithEllipsis == value) return;
-                truncateWithEllipsis = value;
-                invalidate(true);
+                if (ellipsisString == value) return;
+                ellipsisString = value;
+                invalidate();
             }
         }
 
@@ -421,15 +417,25 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 float maxWidth = float.PositiveInfinity;
+                float ellipsisWidth = 0;
+
                 if (!requiresAutoSizedWidth)
+                {
                     maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+                    ellipsisWidth = Truncate ? EllipsisString.Sum(c => getTextureForCharacter(c).DisplayWidth * Font.Size) : 0;
+                }
 
                 float currentRowHeight = 0;
 
                 // Calculate period texture info outside the loop so that it isn't done per-character
-                float ellipsisWidth = TruncateWithEllipsis ? 3 * getTextureForCharacter('.').DisplayWidth * Font.Size : 0.0F;
+
+                float lastNonSpacePos = 0;
 
                 foreach (var character in displayedText)
+                    if (!addCharacter(character, Truncate))
+                        break;
+
+                bool addCharacter(char character, bool truncate)
                 {
                     bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
 
@@ -473,33 +479,22 @@ namespace osu.Framework.Graphics.Sprites
                         }
                     }
                     // Check if this character would take us past the max width if we were to add ellipsis
-                    else if (TruncateWithEllipsis && currentPos.X + glyphSize.X + ellipsisWidth >= maxWidth)
+                    else if (truncate && currentPos.X + glyphSize.X + ellipsisWidth >= maxWidth)
                     {
-                        Texture periodTexture = getTextureForCharacter('.');
-                        // Periods are always variable width so ignore FixedWidth when setting these
-                        textureSize = new Vector2(periodTexture.DisplayWidth, periodTexture.DisplayHeight);
-                        glyphSize = new Vector2(textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
-                        scaledTextureSize = textureSize * Font.Size;
+                        currentPos.X = lastNonSpacePos;
 
-                        // Create 3 periods
-                        for (int a = 0; a < 3; a++)
-                        {
-                            float offset = a * glyphSize.X + (glyphSize.X - scaledTextureSize.X) / 2;
-                            charactersBacking.Add(new CharacterPart
-                            {
-                                Texture = periodTexture,
-                                DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
-                            });
-                        }
-                        break;
+                        foreach (var c in EllipsisString)
+                            addCharacter(c, false);
+
+                        return false;
                     }
-                    // Check if this character would take us path the max width
-                    else if (Truncate && currentPos.X + glyphSize.X >= maxWidth) { break; }
 
                     // The height of the row depends on whether we want to use the full glyph height or not
                     currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
-                    if (!char.IsWhiteSpace(character) && texture != null)
+                    bool isSpace = char.IsWhiteSpace(character) || texture == null;
+
+                    if (!isSpace)
                     {
                         // If we have fixed width, we'll need to centre the texture to the glyph size
                         float offset = (glyphSize.X - scaledTextureSize.X) / 2;
@@ -512,6 +507,10 @@ namespace osu.Framework.Graphics.Sprites
                     }
 
                     currentPos.X += glyphSize.X + spacing.X;
+
+                    if (!isSpace)
+                        lastNonSpacePos = currentPos.X;
+                    return true;
                 }
 
                 // When we added the last character, we also added the spacing, but we should remove it to get the correct size
@@ -570,6 +569,7 @@ namespace osu.Framework.Graphics.Sprites
         private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
+
         private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
