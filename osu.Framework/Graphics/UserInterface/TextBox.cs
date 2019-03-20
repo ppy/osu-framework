@@ -75,8 +75,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundFocused = value;
-                if (HasFocus)
-                    Background.FadeColour(value, Background.IsLoaded ? 200 : 0);
+                updateFocus();
             }
         }
 
@@ -86,8 +85,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundUnfocused = value;
-                if (!HasFocus)
-                    Background.FadeColour(value, Background.IsLoaded ? 200 : 0);
+                updateFocus();
             }
         }
 
@@ -189,6 +187,8 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
         }
+
+        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
 
         protected override void Dispose(bool isDisposing)
         {
