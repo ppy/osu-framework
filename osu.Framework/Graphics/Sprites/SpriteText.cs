@@ -422,7 +422,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (!requiresAutoSizedWidth)
                 {
                     maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
-                    ellipsisWidth = Truncate ? EllipsisString.Sum(c => getTextureForCharacter(c).DisplayWidth * Font.Size) : 0;
+                    ellipsisWidth = Truncate ? EllipsisString.Sum(c => getCharacterSize(c, true, out _).X) : 0;
                 }
 
                 float currentRowHeight = 0;
@@ -437,36 +437,13 @@ namespace osu.Framework.Graphics.Sprites
 
                 bool addCharacter(char character, bool truncate)
                 {
-                    bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
+                    // don't apply fixed width as we need the raw size to compare with glyphSize below.
+                    Vector2 size = getCharacterSize(character, false, out Texture texture);
 
-                    // Unscaled size (i.e. not multiplied by Font.Size)
-                    Vector2 textureSize;
-                    Texture texture = null;
-
-                    // Retrieve the texture + size
-                    if (char.IsWhiteSpace(character))
-                    {
-                        float size = useFixedWidth ? constantWidth : spaceWidth;
-
-                        if (character == 0x3000)
-                        {
-                            // Double-width space
-                            size *= 2;
-                        }
-
-                        textureSize = new Vector2(size);
-                    }
-                    else
-                    {
-                        texture = getTextureForCharacter(character);
-                        textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
-                    }
-
-                    // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
-
-                    // Texture size scaled by Font.Size
-                    Vector2 scaledTextureSize = textureSize * Font.Size;
+                    // Scaled glyph size to be used for positioning.
+                    Vector2 glyphSize = new Vector2(
+                        useFixedWidthForCharacter(character) ? constantWidth * Font.Size : size.X,
+                        UseFullGlyphHeight ? Font.Size : size.Y);
 
                     // Check if we need to go onto the next line
                     if (AllowMultiline)
@@ -497,12 +474,12 @@ namespace osu.Framework.Graphics.Sprites
                     if (!isSpace)
                     {
                         // If we have fixed width, we'll need to centre the texture to the glyph size
-                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+                        float offset = (glyphSize.X - size.X) / 2;
 
                         charactersBacking.Add(new CharacterPart
                         {
                             Texture = texture,
-                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
+                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), size),
                         });
                     }
 
@@ -530,6 +507,46 @@ namespace osu.Framework.Graphics.Sprites
                 charactersCache.Validate();
             }
         }
+
+        /// <summary>
+        /// Get the size (and texture) for a specific character. Post-multiplied by <see cref="FontUsage.Size"/>, but not forced to fixed width.
+        /// </summary>
+        /// <param name="character">The character to look up.</param>
+        /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
+        /// <param name="tex">THe texture associated with the character. Can be null if no texture is available.</param>
+        /// <returns></returns>
+        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out Texture tex)
+        {
+            float width;
+            float height;
+
+            if (char.IsWhiteSpace(character) || (tex = getTextureForCharacter(character)) == null)
+            {
+                float size = useFixedWidthForCharacter(character) ? constantWidth : spaceWidth;
+
+                if (character == 0x3000)
+                {
+                    // Double-width space
+                    size *= 2;
+                }
+
+                tex = null;
+                width = size;
+                height = size;
+            }
+            else
+            {
+                width = tex.DisplayWidth;
+                height = tex.DisplayHeight;
+            }
+
+            if (applyFixedWidth && useFixedWidthForCharacter(character))
+                width = constantWidth;
+
+            return Font.Size * new Vector2(width, height);
+        }
+
+        private bool useFixedWidthForCharacter(char character) => Font.FixedWidth && UseFixedWidthForCharacter(character);
 
         private Cached screenSpaceCharactersCache = new Cached();
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();

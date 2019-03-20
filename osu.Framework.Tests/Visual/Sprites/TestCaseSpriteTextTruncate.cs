@@ -12,10 +12,10 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestCaseSpriteTextTruncate : TestCase
     {
+        private readonly FillFlowContainer flow;
+
         public TestCaseSpriteTextTruncate()
         {
-            FillFlowContainer flow;
-
             Children = new Drawable[]
             {
                 new ScrollContainer
@@ -27,22 +27,44 @@ namespace osu.Framework.Tests.Visual.Sprites
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Y,
-                            RelativeSizeAxes = Axes.X,
                             Direction = FillDirection.Vertical,
                         }
                     }
                 }
             };
-            AddStep(@"Variable width", () => { addText(flow); });
-            AddStep(@"Fixed width", () => { addText(flow, fixedWidth: true); });
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            const string text = "A really really really really long text passage";
+
+            flow.AddRange(new Drawable[]
+            {
+                new ExampleText(text, false, false),
+                new ExampleText(text, false, true),
+                new ExampleText(text, false, true, "…"),
+                new ExampleText(text, false, true, "--"),
+                new ExampleText(text, true, false),
+                new ExampleText(text, true, true),
+                new ExampleText(text, true, true, "…"),
+                new ExampleText(text, true, true, "--"),
+            });
+
+            const float start_range = 10;
+            const float end_range = 500;
+
+            flow.Width = start_range;
+            flow.ResizeWidthTo(end_range, 10000).Then().ResizeWidthTo(start_range, 10000).Loop();
         }
 
         private class ExampleText : Container
         {
-            public ExampleText(string text, float width, bool fixedWidth, bool truncate, string ellipsisString = "")
+            public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "")
             {
                 AutoSizeAxes = Axes.Y;
-                Width = width;
+                RelativeSizeAxes = Axes.X;
                 Children = new Drawable[]
                 {
                     new Box
@@ -59,23 +81,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                         AllowMultiline = false
                     }
                 };
-            }
-        }
-
-        private static void addText(FillFlowContainer flow, string text = "A really really really really long text passage", bool fixedWidth = false, int startWidth = 20, int endWidth = 270, int step = 10)
-        {
-            flow.Clear();
-
-            for (int width = startWidth; width < endWidth; width += step)
-            {
-                flow.AddRange(new Drawable[]
-                {
-                    new SpriteText { Text = $"width = {width}" },
-                    new ExampleText(text, width, fixedWidth, false),
-                    new ExampleText(text, width, fixedWidth, true),
-                    new ExampleText(text, width, fixedWidth, true, "…"),
-                    new ExampleText(text, width, fixedWidth, true, "--"),
-                });
             }
         }
 
