@@ -32,12 +32,12 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using osu.Framework.IO.File;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
@@ -45,8 +45,6 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public GameWindow Window { get; protected set; }
-
-        private readonly Toolkit toolkit;
 
         private FrameworkDebugConfigManager debugConfig;
 
@@ -190,9 +188,13 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
+        private readonly ToolkitOptions toolkitOptions;
+
+        private Toolkit toolkit;
+
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+            this.toolkitOptions = toolkitOptions;
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -201,9 +203,6 @@ namespace osu.Framework.Platform
             Trace.Listeners.Add(new ThrowingTraceListener());
 
             FileSafety.DeleteCleanupDirectory();
-
-            Dependencies.CacheAs(this);
-            Dependencies.CacheAs(Storage = GetStorage(gameName));
 
             string assemblyPath;
             var assembly = Assembly.GetEntryAssembly();
@@ -219,24 +218,8 @@ namespace osu.Framework.Platform
             else
                 assemblyPath = Path.GetDirectoryName(assembly.Location);
 
-            Name = gameName;
-
-            Logger.GameIdentifier = gameName;
+            Logger.GameIdentifier = Name = gameName;
             Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-            RegisterThread(DrawThread = new DrawThread(DrawFrame)
-            {
-                OnThreadStart = DrawInitialize,
-            });
-
-            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
-            {
-                OnThreadStart = UpdateInitialize,
-                Monitor = { HandleGC = true },
-            });
-
-            RegisterThread(InputThread = new InputThread());
-            RegisterThread(AudioThread = new AudioThread());
 
             if (assemblyPath != null)
                 Environment.CurrentDirectory = assemblyPath;
@@ -467,6 +450,27 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+
+            Dependencies.CacheAs(this);
+            Dependencies.CacheAs(Storage = GetStorage(Name));
+
+            RegisterThread(DrawThread = new DrawThread(DrawFrame)
+            {
+                OnThreadStart = DrawInitialize,
+            });
+
+            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+            {
+                OnThreadStart = UpdateInitialize,
+                Monitor = { HandleGC = true },
+            });
+
+            RegisterThread(InputThread = new InputThread());
+            RegisterThread(AudioThread = new AudioThread());
+
+            SetupForRun();
+
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
@@ -545,6 +549,16 @@ namespace osu.Framework.Platform
                 // Close the window and stop all threads
                 PerformExit(true);
             }
+        }
+
+        /// <summary>
+        /// Prepare this game host for <see cref="Run"/>.
+        /// <remarks>
+        /// <see cref="Storage"/> is available here.
+        /// </remarks>
+        /// </summary>
+        protected virtual void SetupForRun()
+        {
         }
 
         private void resetInputHandlers()

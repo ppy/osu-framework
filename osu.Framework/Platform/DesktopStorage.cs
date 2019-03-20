@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.Configuration;
 using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
@@ -13,10 +14,16 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public DesktopStorage(string baseName, GameHost host)
+        public DesktopStorage(string baseName, DesktopGameHost host)
             : base(baseName)
         {
             this.host = host;
+
+            if (host.IsPortableInstallation || File.Exists(FrameworkConfigManager.FILENAME))
+            {
+                BasePath = "./";
+                BaseName = string.Empty;
+            }
         }
 
         protected override string LocateBasePath() => @"./"; //use current directory by default
@@ -54,7 +61,7 @@ namespace osu.Framework.Platform
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-            var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory));
+            var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory)).TrimEnd(Path.DirectorySeparatorChar);
             var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
             if (!resolvedPath.StartsWith(basePath)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");

@@ -18,36 +18,53 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
-        private readonly TcpIpcProvider ipcProvider;
-        private readonly Thread ipcThread;
+        private readonly bool bindIPCPort;
+        private TcpIpcProvider ipcProvider;
+        private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
         {
             //todo: yeah.
             Architecture.SetIncludePath();
 
+            this.bindIPCPort = bindIPCPort;
+            IsPortableInstallation = portableInstallation;
+        }
+
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
             if (bindIPCPort)
-            {
-                ipcProvider = new TcpIpcProvider();
-                IsPrimaryInstance = ipcProvider.Bind();
-
-                if (IsPrimaryInstance)
-                {
-                    ipcProvider.MessageReceived += OnMessageReceived;
-
-                    ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
-                    {
-                        Name = "IPC",
-                        IsBackground = true
-                    };
-
-                    ipcThread.Start();
-                }
-            }
+                startIPC();
 
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
+
+        private void startIPC()
+        {
+            Debug.Assert(ipcProvider == null);
+
+            ipcProvider = new TcpIpcProvider();
+            IsPrimaryInstance = ipcProvider.Bind();
+
+            if (IsPrimaryInstance)
+            {
+                ipcProvider.MessageReceived += OnMessageReceived;
+
+                ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
+                {
+                    Name = "IPC",
+                    IsBackground = true
+                };
+
+                ipcThread.Start();
+            }
+        }
+
+        public bool IsPortableInstallation { get; }
 
         public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
 
