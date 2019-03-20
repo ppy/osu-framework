@@ -30,11 +30,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Height = 20,
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
-                    Items = testValues
                 },
             };
 
-            AddStep("Add range of values", () => navigation.Items = testValues);
+            AddStep("Add range of values", () => navigation.Items.AddRange(testValues));
 
             const int test_index = 2;
 

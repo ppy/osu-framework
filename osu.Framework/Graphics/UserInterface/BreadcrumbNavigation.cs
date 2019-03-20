@@ -14,10 +14,33 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly FillFlowContainer<Breadcrumb> fillFlowContainer;
 
+        private readonly BindableList<T> items = new BindableList<T>();
+
         protected BreadcrumbNavigation()
         {
             fillFlowContainer = CreateAndAddFillFlowContainer();
+
+            items.ItemsAdded += itemsChanged;
+            items.ItemsRemoved += itemsChanged;
         }
+
+        private void itemsChanged(IEnumerable<T> changeset)
+        {
+            fillFlowContainer.Clear();
+
+            if (items.Count == 0) return;
+
+            fillFlowContainer.AddRange(items.Select(val => {
+                var breadcrumb = CreateBreadcrumb(val);
+
+                breadcrumb.Selected += () => updateItems(fillFlowContainer.Children.ToList().IndexOf(breadcrumb));
+
+                return breadcrumb;
+            }));
+
+            fillFlowContainer.Children.Last().Current.Value = true;
+        }
+
 
         /// <summary>
         /// Override this method for customising the design of the breadcrumb.
@@ -33,26 +56,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The items displayed the breadcrumb navigation.
         /// </summary>
-        public IReadOnlyList<T> Items
+        public BindableList<T> Items
         {
-            get => fillFlowContainer.Children.Select(child => child.Value).ToList();
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                fillFlowContainer.Clear();
-
-                fillFlowContainer.AddRange(value.Select(str => {
-                    var breadcrumb = CreateBreadcrumb(str);
-
-                    breadcrumb.Selected += () => updateItems(fillFlowContainer.Children.ToList().IndexOf(breadcrumb));
-
-                    return breadcrumb;
-                }));
-
-                fillFlowContainer.Children.Last().Current.Value = true;
-            }
+            get => items;
+            set => items.BindTo(value);
         }
 
         /// <summary>
@@ -66,14 +73,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="newIndex">The index where everything after will get removed</param>
         private void updateItems(int newIndex)
         {
-            if (newIndex > Items.Count-1)
+            if (newIndex > Items.Count - 1)
                 throw new IndexOutOfRangeException($"Could not find an appropriate item for the index {newIndex}");
             if (newIndex < 0)
                 throw new IndexOutOfRangeException("The index can not be below 0.");
             if (newIndex + 1 == Items.Count)
                 return;
 
-            Items = Items.Take(newIndex + 1).ToList();
+            for (int i = Items.Count - 1; i != newIndex; i--)
+                Items.RemoveAt(i);
 
             foreach (var unselected in fillFlowContainer.Children.Take(newIndex))
                 unselected.Current.Value = false;
