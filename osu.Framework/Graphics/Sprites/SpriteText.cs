@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (ellipsisString == value) return;
                 ellipsisString = value;
-                invalidate();
+                invalidate(true);
             }
         }
 
