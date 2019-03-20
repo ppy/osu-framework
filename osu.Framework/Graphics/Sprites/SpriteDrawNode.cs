@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics.Sprites
         public Vector2 InflationAmount;
         public bool WrapTexture;
 
-        public Shader TextureShader;
-        public Shader RoundedTextureShader;
+        public IShader TextureShader;
+        public IShader RoundedTextureShader;
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 

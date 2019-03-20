@@ -16,7 +16,7 @@ namespace osu.Framework.Testing.Drawables
         {
             Add(headerSprite = new SpriteText
             {
-                TextSize = 20,
+                Font = new FontUsage(size: 20),
                 Colour = Color4.LightGray,
                 Padding = new MarginPadding { Right = 5 },
                 Anchor = Anchor.CentreRight,

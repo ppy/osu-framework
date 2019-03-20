@@ -23,7 +23,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                 ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(GridSizeMode.Distributed),
+                    new Dimension(),
                     new Dimension(GridSizeMode.AutoSize),
                 },
                 Content = new[]
@@ -49,7 +49,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            rateAdjustSlider.Current.BindValueChanged(v => rateText.Text = v.ToString("0%"), true);
+            rateAdjustSlider.Current.BindValueChanged(e => rateText.Text = e.NewValue.ToString("0%"), true);
         }
     }
 }

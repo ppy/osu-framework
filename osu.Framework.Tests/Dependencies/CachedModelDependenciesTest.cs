@@ -4,7 +4,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Dependencies
 
             public CrossDependentFieldModel()
             {
-                Bindable.BindValueChanged(v => BindableTwo.Value = v);
+                Bindable.BindValueChanged(e => BindableTwo.Value = e.NewValue);
             }
         }
 

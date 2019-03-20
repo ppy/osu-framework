@@ -1,12 +1,12 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Caching;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -38,18 +38,21 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
+        private IShader textureShader;
+        private IShader roundedTextureShader;
+
         public SpriteText()
         {
-            current.BindValueChanged(v => Text = v);
+            current.BindValueChanged(text => Text = text.NewValue);
         }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
             localisedText = localisation.GetLocalisedString(text);
-            localisedText.BindValueChanged(t =>
+            localisedText.BindValueChanged(str =>
             {
-                if (string.IsNullOrEmpty(t))
+                if (string.IsNullOrEmpty(str.NewValue))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
@@ -62,8 +65,8 @@ namespace osu.Framework.Graphics.Sprites
             }, true);
 
             spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
-            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
@@ -91,7 +94,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
 
         public Bindable<string> Current
         {
@@ -114,41 +117,47 @@ namespace osu.Framework.Graphics.Sprites
             set => Text = value;
         }
 
-        private float textSize = default_text_size;
+        private FontUsage font = FontUsage.Default;
 
         /// <summary>
-        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// Contains information on the font used to display the text.
         /// </summary>
-        public float TextSize
+        public FontUsage Font
         {
-            get => textSize;
+            get => font;
             set
             {
-                if (textSize == value)
-                    return;
-                textSize = value;
+                // The implicit operator can be used to convert strings to fonts, which discards size + fixedwidth in doing so
+                // For the time being, we'll forward those members from the original value
+                // Todo: Remove this along with all other obsolete members
+                if (value.Legacy)
+                    value = new FontUsage(value.Family, font.Size, value.Weight, value.Italics, font.FixedWidth);
+
+                font = value;
 
                 invalidate(true);
                 shadowOffsetCache.Invalidate();
             }
         }
 
-        private string font;
+        /// <summary>
+        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// </summary>
+        [Obsolete("Setting TextSize directly is deprecated. Use `Font = text.Font.With(size: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public float TextSize
+        {
+            get => Font.Size;
+            set => Font = Font.With(size: value);
+        }
 
         /// <summary>
-        /// The name of the font to use when looking up textures for the individual characters.
+        /// True if all characters should be spaced apart the same distance.
         /// </summary>
-        public string Font
+        [Obsolete("Setting FixedWidth directly is deprecated. Use `Font = text.Font.With(fixedWidth: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
+        public bool FixedWidth
         {
-            get => font;
-            set
-            {
-                if (font == value)
-                    return;
-                font = value;
-
-                invalidate(true);
-            }
+            get => Font.FixedWidth;
+            set => Font = Font.With(fixedWidth: value);
         }
 
         private bool allowMultiline = true;
@@ -208,7 +217,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool useFullGlyphHeight = true;
 
         /// <summary>
-        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
+        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="FontUsage.Size"/>  (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight
@@ -219,24 +228,6 @@ namespace osu.Framework.Graphics.Sprites
                 if (useFullGlyphHeight == value)
                     return;
                 useFullGlyphHeight = value;
-
-                invalidate(true);
-            }
-        }
-
-        private bool fixedWidth;
-
-        /// <summary>
-        /// True if all characters should be spaced apart the same distance.
-        /// </summary>
-        public bool FixedWidth
-        {
-            get => fixedWidth;
-            set
-            {
-                if (fixedWidth == value)
-                    return;
-                fixedWidth = value;
 
                 invalidate(true);
             }
@@ -436,13 +427,13 @@ namespace osu.Framework.Graphics.Sprites
                 float currentRowHeight = 0;
 
                 // Calculate period texture info outside the loop so that it isn't done per-character
-                float ellipsisWidth = TruncateWithEllipsis ? 3 * getTextureForCharacter('.').DisplayWidth * TextSize : 0.0F;
+                float ellipsisWidth = TruncateWithEllipsis ? 3 * getTextureForCharacter('.').DisplayWidth * Font.Size : 0.0F;
 
                 foreach (var character in displayedText)
                 {
-                    bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
+                    bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
 
-                    // Unscaled size (i.e. not multiplied by TextSize)
+                    // Unscaled size (i.e. not multiplied by Font.Size)
                     Vector2 textureSize;
                     Texture texture = null;
 
@@ -466,10 +457,10 @@ namespace osu.Framework.Graphics.Sprites
                     }
 
                     // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
 
-                    // Texture size scaled by TextSize
-                    Vector2 scaledTextureSize = textureSize * TextSize;
+                    // Texture size scaled by Font.Size
+                    Vector2 scaledTextureSize = textureSize * Font.Size;
 
                     // Check if we need to go onto the next line
                     if (AllowMultiline)
@@ -487,8 +478,8 @@ namespace osu.Framework.Graphics.Sprites
                         Texture periodTexture = getTextureForCharacter('.');
                         // Periods are always variable width so ignore FixedWidth when setting these
                         textureSize = new Vector2(periodTexture.DisplayWidth, periodTexture.DisplayHeight);
-                        glyphSize = new Vector2(textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
-                        scaledTextureSize = textureSize * TextSize;
+                        glyphSize = new Vector2(textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
+                        scaledTextureSize = textureSize * Font.Size;
 
                         // Create 3 periods
                         for (int a = 0; a < 3; a++)
@@ -579,7 +570,7 @@ namespace osu.Framework.Graphics.Sprites
         private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -620,8 +611,6 @@ namespace osu.Framework.Graphics.Sprites
 
         #region DrawNode
 
-        private readonly SpriteTextDrawNodeSharedData sharedData = new SpriteTextDrawNodeSharedData();
-
         protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -630,12 +619,13 @@ namespace osu.Framework.Graphics.Sprites
 
             var n = (SpriteTextDrawNode)node;
 
-            n.Shared = sharedData;
-
             n.Parts.Clear();
             n.Parts.AddRange(screenSpaceCharacters);
 
             n.Shadow = Shadow;
+
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
 
             if (Shadow)
             {
@@ -658,7 +648,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c);
+            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c);
         }
 
         /// <summary>
@@ -669,7 +659,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         /// <summary>
-        /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
+        /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.
         /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
         /// </summary>
         /// <param name="c">The character.</param>
@@ -700,14 +690,14 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font);
+                var baseHeight = store.GetBaseHeight(Font.FontName);
                 if (baseHeight.HasValue)
-                    return baseHeight.Value * TextSize;
+                    return baseHeight.Value * Font.Size;
 
                 if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
             }
         }
 

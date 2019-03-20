@@ -96,6 +96,18 @@ namespace osu.Framework.Graphics.Containers
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
 
         /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// <remarks>
+        /// This is generally useful if already in an asynchronous context and requiring forcefully (pre)loading content without adding it to the hierarchy.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="component">The child or grand-child to be loaded.</param>
+        protected void LoadComponent<TLoadable>(TLoadable component) where TLoadable : Drawable
+            => LoadComponents(component.Yield());
+
+        /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
@@ -125,11 +137,7 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            return Task.Factory.StartNew(() =>
-            {
-                foreach (var c in components)
-                    c.Load(Clock, deps);
-            }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
@@ -155,6 +163,32 @@ namespace osu.Framework.Graphics.Containers
                     }
                 });
             }, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// <remarks>
+        /// This is generally useful if already in an asynchronous context and requiring forcefully (pre)loading content without adding it to the hierarchy.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="components">The children or grand-children to be loaded.</param>
+        protected void LoadComponents<TLoadable>(IEnumerable<TLoadable> components) where TLoadable : Drawable
+        {
+            if (game == null)
+                throw new InvalidOperationException($"May not invoke {nameof(LoadComponent)} prior to this {nameof(CompositeDrawable)} being loaded.");
+
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString());
+
+            loadComponents(components, Dependencies);
+        }
+
+        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies) where TLoadable : Drawable
+        {
+            foreach (var c in components)
+                c.Load(Clock, dependencies);
         }
 
         [BackgroundDependencyLoader(true)]
@@ -631,6 +665,7 @@ namespace osu.Framework.Graphics.Containers
                     MakeChildDead(child);
                     return true;
                 }
+
                 if (child.RemoveWhenNotAlive)
                 {
                     removeChildByDeath(child);
@@ -900,8 +935,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private readonly CompositeDrawNodeSharedData compositeDrawNodeSharedData = new CompositeDrawNodeSharedData();
-        private Shader shader;
+        private IShader shader;
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
@@ -932,13 +966,29 @@ namespace osu.Framework.Graphics.Containers
                 };
 
             n.EdgeEffect = EdgeEffect;
-
             n.ScreenSpaceMaskingQuad = null;
-            n.Shared = compositeDrawNodeSharedData;
-
             n.Shader = shader;
+            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
 
             base.ApplyDrawNode(node);
+        }
+
+        private bool forceLocalVertexBatch;
+
+        /// <summary>
+        /// Whether to use a local vertex batch for rendering. If false, a parenting vertex batch will be used.
+        /// </summary>
+        public bool ForceLocalVertexBatch
+        {
+            get => forceLocalVertexBatch;
+            protected set
+            {
+                if (forceLocalVertexBatch == value)
+                    return;
+                forceLocalVertexBatch = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
         }
 
         /// <summary>

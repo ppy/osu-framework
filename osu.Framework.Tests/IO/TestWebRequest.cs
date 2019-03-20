@@ -17,6 +17,7 @@ using WebRequest = osu.Framework.IO.Network.WebRequest;
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
+    [Category("httpbin")]
     public class TestWebRequest
     {
         private const string default_protocol = "http";
@@ -27,9 +28,9 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
 
-            if (isAppveyorBuild)
+            if (localHttpBin)
             {
                 // httpbin very frequently falls over and causes random tests to fail
                 // Thus appveyor builds rely on a local httpbin instance to run the tests
@@ -473,7 +474,6 @@ namespace osu.Framework.Tests.IO
             [JsonProperty("url")]
             public string Url { get; set; }
         }
-
 
         [Serializable]
         private class HttpBinPostResponse

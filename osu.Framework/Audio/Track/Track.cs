@@ -1,14 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Configuration;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust
     {
         public event Action Completed;
         public event Action Failed;
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Track
 
         protected Track()
         {
-            Tempo.ValueChanged += InvalidateState;
+            Tempo.ValueChanged += e => InvalidateState(e.NewValue);
         }
 
         /// <summary>
@@ -117,8 +117,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get => Frequency * Tempo;
-            set => Tempo.Value = value;
+            get => Frequency.Value * Tempo.Value;
+            set => throw new InvalidOperationException($"Setting {nameof(Rate)} directly on a {nameof(Track)} is not supported. Set {nameof(IHasPitchAdjust.PitchAdjust)} or {nameof(IHasTempoAdjust.TempoAdjust)} instead.");
         }
 
         public bool IsReversed => Rate < 0;
@@ -131,6 +131,12 @@ namespace osu.Framework.Audio.Track
         /// The most recent values are returned. Synchronisation between channels should not be expected.
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
+
+        public double TempoAdjust
+        {
+            get => Tempo.Value;
+            set => Tempo.Value = value;
+        }
 
         protected override void UpdateState()
         {

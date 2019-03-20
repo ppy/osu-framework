@@ -3,7 +3,7 @@
 
 using System;
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -32,6 +32,24 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(original.Value, leased.Value);
 
             leased.Return();
+
+            Assert.AreEqual(original.Value, revert ? 1 : 2);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestLeaseReturnedOnUnbindAll(bool revert)
+        {
+            var leased = original.BeginLease(revert);
+
+            Assert.AreEqual(original.Value, leased.Value);
+
+            leased.Value = 2;
+
+            Assert.AreEqual(original.Value, 2);
+            Assert.AreEqual(original.Value, leased.Value);
+
+            original.UnbindAll();
 
             Assert.AreEqual(original.Value, revert ? 1 : 2);
         }

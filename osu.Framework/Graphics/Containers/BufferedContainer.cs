@@ -56,7 +56,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
         private Vector2 blurSigma = Vector2.Zero;
 
         /// <summary>
@@ -109,8 +108,15 @@ namespace osu.Framework.Graphics.Containers
             get => pixelSnapping;
             set
             {
-                if (sharedData.FrameBuffers[0].IsInitialized || sharedData.FrameBuffers[1].IsInitialized)
-                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                if (sharedData != null)
+                {
+                    for (int i = 0; i < sharedData.FrameBuffers.Length; i++)
+                    {
+                        if (sharedData.FrameBuffers[i].IsInitialized)
+                            throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                    }
+                }
+
                 pixelSnapping = value;
             }
         }
@@ -216,6 +222,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool CanBeFlattened => false;
 
+        private IShader blurShader;
+
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
@@ -229,21 +237,19 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            sharedData.BlurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
-
-        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
         private bool addChildDrawNodes;
         internal override bool AddChildDrawNodes => addChildDrawNodes;
+
+        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
         {
             BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
-
-            n.Shared = sharedData;
 
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
             n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
@@ -273,11 +279,15 @@ namespace osu.Framework.Graphics.Containers
             n.Formats.Clear();
             n.Formats.AddRange(attachedFormats);
 
+            n.BlurShader = blurShader;
+
+            n.SharedData = sharedData;
+
             base.ApplyDrawNode(node);
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
-            n.DrawColourInfo.Colour = base.DrawColourInfo.Colour;
+            n.DrawColourInfo = new DrawColourInfo(base.DrawColourInfo.Colour, n.DrawColourInfo.Blending);
 
             // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
             addChildDrawNodes = n.RequiresRedraw;
@@ -377,17 +387,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        //protected override void Dispose(bool isDisposing)
-        //{
-        //     right now we are relying on the finalizer for correct disposal.
-        //     correct method would be to schedule these to update thread and
-        //     then to the draw thread.
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
 
-        //    foreach (FrameBuffer frameBuffer in frameBuffers)
-        //      frameBuffer.Dispose();
-
-        //    base.Dispose(isDisposing);
-        //}
+            sharedData.Dispose();
+        }
     }
 
     public enum EffectPlacement
