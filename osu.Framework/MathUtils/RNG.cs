@@ -61,7 +61,7 @@ namespace osu.Framework.MathUtils
         /// <returns>A double-precision floating point number in the range [minValue,maxValue).</returns>
         public static double NextDouble(double minValue, double maxValue)
         {
-            if (minValue >= maxValue)
+            if (minValue > maxValue)
                 throw new ArgumentOutOfRangeException(nameof(minValue), "The given minimum value must be less than or equal to the given maximum value.");
 
             return minValue + random.NextDouble() * (maxValue - minValue);
@@ -94,7 +94,7 @@ namespace osu.Framework.MathUtils
         /// <returns>A single-precision floating point number in the range [minValue,maxValue).</returns>
         public static float NextSingle(float minValue, float maxValue)
         {
-            if (minValue >= maxValue)
+            if (minValue > maxValue)
                 throw new ArgumentOutOfRangeException(nameof(minValue), "The given minimum value must be less than or equal to the given maximum value.");
 
             return minValue + NextSingle() * (maxValue - minValue);
