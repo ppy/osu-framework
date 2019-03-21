@@ -29,8 +29,6 @@ namespace osu.Framework.Platform
             : base(gameName, bindIPC)
         {
             if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
-
-            UpdateThread.Scheduler.Update();
         }
 
         protected override void UpdateInitialize()

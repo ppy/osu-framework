@@ -197,6 +197,20 @@ namespace osu.Framework.Platform
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
 
+            RegisterThread(DrawThread = new DrawThread(DrawFrame)
+            {
+                OnThreadStart = DrawInitialize,
+            });
+
+            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+            {
+                OnThreadStart = UpdateInitialize,
+                Monitor = { HandleGC = true },
+            });
+
+            RegisterThread(InputThread = new InputThread());
+            RegisterThread(AudioThread = new AudioThread());
+
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new ThrowingTraceListener());
 
@@ -450,20 +464,6 @@ namespace osu.Framework.Platform
         {
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(Name));
-
-            RegisterThread(DrawThread = new DrawThread(DrawFrame)
-            {
-                OnThreadStart = DrawInitialize,
-            });
-
-            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
-            {
-                OnThreadStart = UpdateInitialize,
-                Monitor = { HandleGC = true },
-            });
-
-            RegisterThread(InputThread = new InputThread());
-            RegisterThread(AudioThread = new AudioThread());
 
             SetupForRun();
 
