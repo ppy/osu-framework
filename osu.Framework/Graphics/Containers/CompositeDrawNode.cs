@@ -220,8 +220,14 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PushMaskingInfo(MaskingInfo.Value);
 
             if (Children != null)
+            {
                 for (int i = Children.Count - 1; i >= 0; i--)
+                {
                     Children[i].DrawHull(vertexAction, depthValue);
+                    if (!depthValue.CanIncrement)
+                        break;
+                }
+            }
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

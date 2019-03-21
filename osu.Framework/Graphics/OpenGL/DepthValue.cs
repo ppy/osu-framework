@@ -16,8 +16,10 @@ namespace osu.Framework.Graphics.OpenGL
 
         public void Increment()
         {
-            depth = Math.Min(1, depth + 0.001f);
+            depth = Math.Min(1f, depth + 0.001f);
         }
+
+        public bool CanIncrement => depth != 1f;
 
         public static implicit operator float(DepthValue d) => d.depth;
     }
