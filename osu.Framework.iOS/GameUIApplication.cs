@@ -33,23 +33,24 @@ namespace osu.Framework.iOS
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSendSuper")]
         private static extern void send_super(IntPtr receiver, IntPtr selector, IntPtr arg1);
 
-        int lastEventFlags;
+        private int lastEventFlags;
 
         /// <summary>
         /// Is this required?
         /// </summary>
-        private readonly HashSet<int> blockKeys = new HashSet<int> {
+        private readonly HashSet<int> blockKeys = new HashSet<int>
+        {
             79, // Right
             80, // Left
             81, // Down
-            82  // Up
+            82, // Up
         };
 
         private unsafe bool decodeKeyEvent(NSObject eventMem)
         {
             if (eventMem == null) return false;
 
-            IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
+            var eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
             int eventType = (int)eventPtr[gsevent_type];
             int eventModifier = (int)eventPtr[gsevent_flags];
@@ -60,13 +61,13 @@ namespace osu.Framework.iOS
             {
                 case gsevent_type_keydown:
                 case gsevent_type_keyup:
-                        KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
-                        if (blockKeys.Contains(eventScanCode))
-                            return true;
+                    KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
+                    if (blockKeys.Contains(eventScanCode))
+                        return true;
                     break;
                 case gsevent_type_modifier:
-                        KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
-                        lastEventFlags = eventModifier;
+                    KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
+                    lastEventFlags = eventModifier;
                     break;
             }
 
