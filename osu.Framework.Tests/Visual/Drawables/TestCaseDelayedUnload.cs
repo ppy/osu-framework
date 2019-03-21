@@ -60,15 +60,15 @@ namespace osu.Framework.Tests.Visual.Drawables
             int loadedCountInitial = 0;
             int loadedCountSecondary = 0;
 
-            AddUntilStep(() => (loadedCountInitial = childrenWithAvatarsLoaded.Count()) > 5, "wait some loaded");
+            AddUntilStep("wait some loaded", () => (loadedCountInitial = childrenWithAvatarsLoaded.Count()) > 5);
 
             AddStep("scroll down", () => scroll.ScrollToEnd());
 
-            AddUntilStep(() => (loadedCountSecondary = childrenWithAvatarsLoaded.Count()) > loadedCountInitial, "wait more loaded");
+            AddUntilStep("wait more loaded", () => (loadedCountSecondary = childrenWithAvatarsLoaded.Count()) > loadedCountInitial);
 
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
 
-            AddUntilStep(() => childrenWithAvatarsLoaded.Count() < loadedCountSecondary, "wait some unloaded");
+            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded.Count() < loadedCountSecondary);
         }
 
         public class TestBox : Container
