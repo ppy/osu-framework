@@ -14,12 +14,12 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public DesktopStorage(string baseName, DesktopGameHost host)
+        public DesktopStorage(string baseName, DesktopGameHost host = null)
             : base(baseName)
         {
             this.host = host;
 
-            if (host.IsPortableInstallation || File.Exists(FrameworkConfigManager.FILENAME))
+            if (host?.IsPortableInstallation == true || File.Exists(FrameworkConfigManager.FILENAME))
             {
                 BasePath = "./";
                 BaseName = string.Empty;
@@ -70,7 +70,7 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenInNativeExplorer() => host.OpenFileExternally(GetFullPath(string.Empty));
+        public override void OpenInNativeExplorer() => host?.OpenFileExternally(GetFullPath(string.Empty));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {

@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.IO
         public void TestRelativePaths()
         {
             var guid = new Guid().ToString();
-            var storage = new DesktopStorage(guid, null);
+            var storage = new DesktopStorage(guid);
 
             var basePath = storage.GetFullPath(string.Empty);
 
