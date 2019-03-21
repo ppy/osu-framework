@@ -410,7 +410,7 @@ namespace osu.Framework.Platform
                         {
                             DepthTest = true,
                             WriteDepth = true,
-                            Function = DepthFunction.Lequal
+                            Function = DepthFunction.Less
                         });
 
                         // Front pass
