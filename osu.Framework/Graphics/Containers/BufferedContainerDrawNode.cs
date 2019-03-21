@@ -152,15 +152,20 @@ namespace osu.Framework.Graphics.Containers
                 // We need to draw children as if they were zero-based to the top-left of the texture.
                 // We can do this by adding a translation component to our (orthogonal) projection matrix.
                 GLWrapper.PushOrtho(ScreenSpaceDrawRectangle);
+                GLWrapper.PushDepthInfo(new DepthInfo
+                {
+                    Function = DepthFunction.Less
+                });
 
                 GLWrapper.Clear(new ClearInfo
                 {
                     Colour = BackgroundColour,
-                    Depth = 0f
+                    Depth = 1f
                 });
 
                 base.Draw(vertexAction);
 
+                GLWrapper.PopDepthInfo();
                 GLWrapper.PopOrtho();
             }
         }

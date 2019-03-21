@@ -192,6 +192,7 @@ namespace osu.Framework.Graphics.Lines
             GLWrapper.PushDepthInfo(new DepthInfo
             {
                 DepthTest = true,
+                WriteDepth = true,
                 Function = DepthFunction.Less
             });
 

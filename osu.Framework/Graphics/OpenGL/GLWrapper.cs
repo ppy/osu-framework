@@ -151,6 +151,13 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void Clear(ClearInfo clearInfo)
         {
+            // Required to allow depth buffer to be properly cleared
+            PushDepthInfo(new DepthInfo
+            {
+                WriteDepth = true,
+                Function = DepthFunction.Always
+            });
+
             ClearBufferMask mask = 0;
 
             if (clearInfo.Colour != null)
@@ -179,6 +186,8 @@ namespace osu.Framework.Graphics.OpenGL
             }
 
             GL.Clear(mask);
+
+            PopDepthInfo();
 
             currentClearInfo = clearInfo;
         }
@@ -379,7 +388,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
             Ortho = ortho;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, 0, -1);
+            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
@@ -401,7 +410,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
             Ortho = actualRect;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, 0, -1);
+            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();

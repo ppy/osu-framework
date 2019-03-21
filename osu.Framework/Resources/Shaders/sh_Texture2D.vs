@@ -28,5 +28,5 @@ void main(void)
 	v_BlendRange = m_BlendRange;
 
 	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
-	gl_Position.z = m_Depth;
+	gl_Position.z = m_Depth * gl_Position.w;
 }
