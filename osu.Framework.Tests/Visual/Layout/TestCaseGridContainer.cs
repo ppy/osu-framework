@@ -551,6 +551,70 @@ namespace osu.Framework.Tests.Visual.Layout
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumSize(bool row)
+        {
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, minSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, minSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox()
+                },
+            }.Invert(), dimensions, row);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumAndMaximumSize(bool row)
+        {
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, maxSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, maxSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox(),
+                    new FillBox()
+                },
+            }.Invert(), dimensions, row);
+        }
+
         private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
         {
             var content = contentFunc();

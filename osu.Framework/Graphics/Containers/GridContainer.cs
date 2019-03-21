@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -220,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                cellSize = Math.Min(d.MaxSize, cellSize);
+                cellSize = MathHelper.Clamp(cellSize, d.MinSize, d.MaxSize);
 
                 switch (axis)
                 {
@@ -247,9 +248,10 @@ namespace osu.Framework.Graphics.Containers
             if (distributionCount > 1)
             {
                 // For each distributed column, add the excess back to the distribution pool
-                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderBy(d => d.MaxSize))
+                // It's important to note that this
+                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderBy(d => -d.MinSize).ThenBy(d => d.MaxSize))
                 {
-                    if (d.MaxSize >= distributionSize)
+                    if (distributionSize <= d.MaxSize && distributionSize >= d.MinSize)
                         continue;
 
                     // Remove this cell from the distribution pool
@@ -258,8 +260,15 @@ namespace osu.Framework.Graphics.Containers
                     if (distributionCount == 0)
                         break;
 
+                    float excess = 0;
+
+                    if (distributionSize > d.MaxSize)
+                        excess = distributionSize - d.MaxSize;
+                    else if (distributionSize < d.MinSize)
+                        excess = distributionSize - d.MinSize; // Negative excess
+
                     // Redistribute the excess between all other cells, each receiving a fraction of the excess
-                    distributionSize += (distributionSize - d.MaxSize) / distributionCount;
+                    distributionSize += excess / distributionCount;
                 }
             }
 
@@ -271,8 +280,9 @@ namespace osu.Framework.Graphics.Containers
 
                 if (requiresDistribution[i])
                 {
+                    float minSize = i >= dimensions.Length ? float.MinValue : dimensions[i].MinSize;
                     float maxSize = i >= dimensions.Length ? float.MaxValue : dimensions[i].MaxSize;
-                    clampedDistributionSize = Math.Min(maxSize, clampedDistributionSize);
+                    clampedDistributionSize = MathHelper.Clamp(clampedDistributionSize, minSize, maxSize);
                 }
 
                 switch (axis)
@@ -370,8 +380,14 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
+        /// Only has an effect if <see cref="Mode"/> is not <see cref="GridSizeMode.Distributed"/>.
         /// </summary>
         public readonly float Size;
+
+        /// <summary>
+        /// The minimum size of the row or column which this <see cref="Dimension"/> applies to.
+        /// </summary>
+        public readonly float MinSize;
 
         /// <summary>
         /// The maximum size of the row or column which this <see cref="Dimension"/> applies to.
@@ -383,11 +399,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="mode">The sizing mode to use.</param>
         /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Distributed"/>.</param>
+        /// <param name="minSize">The minimum size of this row or column.</param>
         /// <param name="maxSize">The maximum size of this row or column.</param>
-        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float maxSize = float.MaxValue)
+        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = float.MinValue, float maxSize = float.MaxValue)
         {
             Mode = mode;
             Size = size;
+            MinSize = minSize;
             MaxSize = maxSize;
         }
     }
