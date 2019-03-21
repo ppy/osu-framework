@@ -219,6 +219,11 @@ namespace osu.Framework.Graphics.Containers
         // we do not want to allocate a third buffer for nothing and hence we start with 0.
         private int originalIndex => DrawOriginal && (BlurRadius.X > 0 || BlurRadius.Y > 0) ? 2 : 0;
 
+        protected override void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+        {
+            // For now, BufferedContainer only supports drawing back-to-front
+        }
+
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             currentFrameBufferIndex = originalIndex;

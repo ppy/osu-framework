@@ -208,13 +208,18 @@ namespace osu.Framework.Graphics.Containers
 
         public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
         {
+            base.DrawHull(vertexAction, depthValue);
+
+            DrawChildrenHulls(vertexAction, depthValue);
+        }
+
+        protected virtual void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+        {
             updateVertexBatch();
 
             // Prefer to use own vertex batch instead of the parent-owned one.
             if (vertexBatch != null)
                 vertexAction = vertexBatch.AddAction;
-
-            base.DrawHull(vertexAction, depthValue);
 
             if (MaskingInfo != null)
                 GLWrapper.PushMaskingInfo(MaskingInfo.Value);
