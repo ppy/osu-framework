@@ -14,12 +14,12 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public DesktopStorage(string baseName, DesktopGameHost host = null)
+        public DesktopStorage(string baseName, GameHost host = null)
             : base(baseName)
         {
             this.host = host;
 
-            if (host?.IsPortableInstallation == true || File.Exists(FrameworkConfigManager.FILENAME))
+            if ((host as DesktopGameHost)?.IsPortableInstallation == true || File.Exists(FrameworkConfigManager.FILENAME))
             {
                 BasePath = "./";
                 BaseName = string.Empty;
