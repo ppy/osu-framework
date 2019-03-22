@@ -9,7 +9,7 @@ namespace osu.Framework.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {
-        private readonly TimePeriod timePeriod;
+        private TimePeriod timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
@@ -20,6 +20,12 @@ namespace osu.Framework.Platform.Windows
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, bindIPC, toolkitOptions, portableInstallation)
         {
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 

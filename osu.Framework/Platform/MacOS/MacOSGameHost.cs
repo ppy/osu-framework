@@ -13,6 +13,11 @@ namespace osu.Framework.Platform.MacOS
         internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, bindIPC, toolkitOptions, portableInstallation)
         {
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
             Window = new MacOSGameWindow();
         }
 

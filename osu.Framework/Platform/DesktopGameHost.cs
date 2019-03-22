@@ -19,25 +19,28 @@ namespace osu.Framework.Platform
     public abstract class DesktopGameHost : GameHost
     {
         private TcpIpcProvider ipcProvider;
+        private readonly bool bindIPCPort;
         private Thread ipcThread;
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
         {
-            //todo: yeah.
-            Architecture.SetIncludePath();
-
-            if (bindIPCPort)
-                startIPC();
-
+            this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
         }
 
         protected override void SetupForRun()
         {
-            base.SetupForRun();
+            //todo: yeah.
+            Architecture.SetIncludePath();
 
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+
+            if (bindIPCPort)
+                startIPC();
+
+
+            base.SetupForRun();
         }
 
         private void startIPC()

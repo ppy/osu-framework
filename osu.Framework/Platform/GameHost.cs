@@ -188,53 +188,14 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        private readonly Toolkit toolkit;
+        private Toolkit toolkit;
+
+        private readonly ToolkitOptions toolkitOptions;
 
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
-
-            AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
-            TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
-
-            RegisterThread(DrawThread = new DrawThread(DrawFrame)
-            {
-                OnThreadStart = DrawInitialize,
-            });
-
-            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
-            {
-                OnThreadStart = UpdateInitialize,
-                Monitor = { HandleGC = true },
-            });
-
-            RegisterThread(InputThread = new InputThread());
-            RegisterThread(AudioThread = new AudioThread());
-
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ThrowingTraceListener());
-
-            FileSafety.DeleteCleanupDirectory();
-
-            string assemblyPath;
-            var assembly = Assembly.GetEntryAssembly();
-
-            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-            if (assembly == null || assembly.Location.Contains("testhost"))
-            {
-                assembly = Assembly.GetExecutingAssembly();
-
-                // From nuget, the executing assembly will also be wrong
-                assemblyPath = TestContext.CurrentContext.TestDirectory;
-            }
-            else
-                assemblyPath = Path.GetDirectoryName(assembly.Location);
-
-            Logger.GameIdentifier = Name = gameName;
-            Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-            if (assemblyPath != null)
-                Environment.CurrentDirectory = assemblyPath;
+            this.toolkitOptions = toolkitOptions;
+            Name = gameName;
         }
 
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
@@ -462,6 +423,50 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+
+            AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
+            TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
+
+            RegisterThread(DrawThread = new DrawThread(DrawFrame)
+            {
+                OnThreadStart = DrawInitialize,
+            });
+
+            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+            {
+                OnThreadStart = UpdateInitialize,
+                Monitor = { HandleGC = true },
+            });
+
+            RegisterThread(InputThread = new InputThread());
+            RegisterThread(AudioThread = new AudioThread());
+
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ThrowingTraceListener());
+
+            FileSafety.DeleteCleanupDirectory();
+
+            string assemblyPath;
+            var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            if (assembly == null || assembly.Location.Contains("testhost"))
+            {
+                assembly = Assembly.GetExecutingAssembly();
+
+                // From nuget, the executing assembly will also be wrong
+                assemblyPath = TestContext.CurrentContext.TestDirectory;
+            }
+            else
+                assemblyPath = Path.GetDirectoryName(assembly.Location);
+
+            Logger.GameIdentifier = Name;
+            Logger.VersionIdentifier = assembly.GetName().Version.ToString();
+
+            if (assemblyPath != null)
+                Environment.CurrentDirectory = assemblyPath;
+
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(Name));
 
