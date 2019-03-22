@@ -20,6 +20,11 @@ namespace osu.Framework.iOS
         public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
             IOSGameWindow.GameView = gameView;
             Window = new IOSGameWindow();
         }
