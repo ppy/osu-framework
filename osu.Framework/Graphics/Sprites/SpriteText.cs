@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private string ellipsisString = "…";
 
-        protected string EllipsisString
+        public string EllipsisString
         {
             get => ellipsisString;
             set
