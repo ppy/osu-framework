@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.IO
@@ -17,8 +16,7 @@ namespace osu.Framework.Tests.IO
         public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            // ReSharper disable once AccessToDisposedClosure
-            Task.Run(() => Run(testGame = new TestGame()));
+            new Thread(() => Run(testGame = new TestGame())).Start();
 
             while (ExecutionState != ExecutionState.Stopped && testGame?.HasProcessed != true)
                 Thread.Sleep(10);
