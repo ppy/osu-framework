@@ -201,13 +201,13 @@ namespace osu.Framework.Platform
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
-            exception.Data.Add("unhandled", "unhandled");
+            exception.Data["unhandled"] = "unhandled";
             handleException(exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            args.Exception.Data.Add("unhandled", "unobserved");
+            args.Exception.Data["unhandled"] = "unobserved";
             handleException(args.Exception);
         }
 
