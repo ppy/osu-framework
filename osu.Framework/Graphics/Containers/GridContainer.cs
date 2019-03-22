@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics.Containers
                 distributionCount--;
             }
 
-            // The distribution pool, in this case defined as the size which EACH of the distributed columns would take on
+            // The distribution pool, in this case defined as the size which EACH of the distributed cells would take on
             float distributionSize = (getSizeAlongAxis(axis) - definedSize) / distributionCount;
 
             if (distributionCount > 1)
@@ -423,6 +423,9 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maxSize">The maximum size of this row or column.</param>
         public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = float.MinValue, float maxSize = float.MaxValue)
         {
+            if (minSize > maxSize)
+                throw new ArgumentOutOfRangeException(nameof(minSize), "Minimum size must be less than the maximum size.");
+
             Mode = mode;
             Size = size;
             MinSize = minSize;
