@@ -396,17 +396,21 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool isComputingCharacters;
 
-        private void computeCharacters()
+        /// <summary>
+        /// Compute character textures and positions.
+        /// </summary>
+        /// <param name="ellipsisPass">In the case of truncation using an <see cref="EllipsisString"/>, a second pass is required to correctly fit the ellipsis.</param>
+        private void computeCharacters(bool ellipsisPass = false)
         {
             if (store == null)
                 return;
 
-            if (charactersCache.IsValid)
+            if (charactersCache.IsValid && !ellipsisPass)
                 return;
 
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
+            Debug.Assert(!isComputingCharacters || ellipsisPass, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
@@ -417,12 +421,12 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 float maxWidth = float.PositiveInfinity;
-                float ellipsisWidth = 0;
 
                 if (!requiresAutoSizedWidth)
                 {
                     maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
-                    ellipsisWidth = Truncate ? EllipsisString.Sum(c => getCharacterSize(c, true, out _).X) : 0;
+                    if (ellipsisPass)
+                        maxWidth -= EllipsisString.Sum(c => getCharacterSize(c, true, out _).X + spacing.X);
                 }
 
                 float currentRowHeight = 0;
@@ -455,10 +459,20 @@ namespace osu.Framework.Graphics.Sprites
                             currentRowHeight = 0;
                         }
                     }
-                    // Check if this character would take us past the max width if we were to add ellipsis
-                    else if (truncate && currentPos.X + glyphSize.X + ellipsisWidth >= maxWidth)
+                    // Check if this character would take us past the max width and apply truncation
+                    else if (truncate && currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = lastNonSpacePos;
+
+                        if (EllipsisString.Length == 0)
+                            return false;
+
+                        if (!ellipsisPass)
+                        {
+                            //if an ellipsis has been specified, re-run layout while considering it.
+                            computeCharacters(true);
+                            return false;
+                        }
 
                         foreach (var c in EllipsisString)
                             addCharacter(c, false);

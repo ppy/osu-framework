@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -44,14 +45,20 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 new ExampleText(text, false, false),
                 new ExampleText(text, false, true),
+                new ExampleText(text, false, true, spacing: new Vector2(30)),
                 new ExampleText(text, false, true, "…"),
+                new ExampleText(text, false, true, "…", spacing: new Vector2(30)),
                 new ExampleText(text, false, true, "--"),
                 new ExampleText(text, false, true, "--", true),
+                new ExampleText(text, false, true, "--", true, new Vector2(30)),
                 new ExampleText(text, true, false),
                 new ExampleText(text, true, true),
+                new ExampleText(text, true, true, spacing: new Vector2(30)),
                 new ExampleText(text, true, true, "…"),
+                new ExampleText(text, true, true, "…", spacing: new Vector2(30)),
                 new ExampleText(text, true, true, "--"),
                 new ExampleText(text, true, true, "--", true),
+                new ExampleText(text, true, true, "--", true, new Vector2(30)),
             });
 
             const float start_range = 10;
@@ -63,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class ExampleText : Container
         {
-            public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "", bool runtimeChange = false)
+            public ExampleText(string text, bool fixedWidth, bool truncate, string ellipsisString = "", bool runtimeChange = false, Vector2 spacing = new Vector2())
             {
                 AutoSizeAxes = Axes.Y;
                 RelativeSizeAxes = Axes.X;
@@ -78,6 +85,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         Text = text,
                         Truncate = truncate,
+                        Spacing = spacing,
                         Font = new FontUsage(size: 20, fixedWidth: fixedWidth),
                         RelativeSizeAxes = Axes.X,
                         AllowMultiline = false
