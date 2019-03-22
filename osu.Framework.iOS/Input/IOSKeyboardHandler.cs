@@ -33,6 +33,7 @@ namespace osu.Framework.iOS.Input
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                 }
+
                 return;
             }
 
@@ -40,17 +41,16 @@ namespace osu.Framework.iOS.Input
             {
                 Key? key = keyForString(char.ToString(c), out bool upper);
 
-                if (key.HasValue)
-                {
-                    if (upper)
-                        PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
+                if (!key.HasValue) continue;
 
-                    PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
-                    PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
+                if (upper)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
 
-                    if (upper)
-                        PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
-                }
+                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
+                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
+
+                if (upper)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
             }
         }
 
@@ -64,6 +64,7 @@ namespace osu.Framework.iOS.Input
         {
             Key? key;
             bool upper = false;
+
             // UIKeyCommand constants are not actually constants, so we can't use a switch
             if (cmd.Input == UIKeyCommand.LeftArrow)
                 key = Key.Left;
@@ -76,26 +77,25 @@ namespace osu.Framework.iOS.Input
             else
                 key = keyForString(cmd.Input, out upper);
 
-            if (key.HasValue)
-            {
-                bool shiftHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Shift) > 0 || upper;
-                bool superHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Command) > 0;
-                bool ctrlHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Control) > 0;
-                bool optionHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Alternate) > 0;
+            if (!key.HasValue) return;
 
-                if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
-                if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, true));
-                if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, true));
-                if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, true));
+            bool shiftHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Shift) > 0 || upper;
+            bool superHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Command) > 0;
+            bool ctrlHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Control) > 0;
+            bool optionHeld = (cmd.ModifierFlags & UIKeyModifierFlags.Alternate) > 0;
 
-                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
-                PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
+            if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, true));
+            if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, true));
+            if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, true));
+            if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, true));
 
-                if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, false));
-                if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, false));
-                if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, false));
-                if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
-            }
+            PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, true));
+            PendingInputs.Enqueue(new KeyboardKeyInput(key.Value, false));
+
+            if (optionHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LAlt, false));
+            if (ctrlHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LControl, false));
+            if (superHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LWin, false));
+            if (shiftHeld) PendingInputs.Enqueue(new KeyboardKeyInput(Key.LShift, false));
         }
 
         private Key? keyForString(string str, out bool upper)
@@ -105,7 +105,8 @@ namespace osu.Framework.iOS.Input
                 return null;
 
             char c = str[0];
-            switch(c)
+
+            switch (c)
             {
                 case '\t':
                     return Key.Tab;
@@ -222,6 +223,7 @@ namespace osu.Framework.iOS.Input
                         if (Enum.TryParse(keyName, out Key result))
                             return result;
                     }
+
                     return null;
             }
         }
