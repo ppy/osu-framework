@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.IO
@@ -16,9 +17,9 @@ namespace osu.Framework.Tests.IO
         public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            new Thread(() => Run(testGame = new TestGame())).Start();
+            Task.Run(() => Run(testGame = new TestGame()));
 
-            while (ExecutionState != ExecutionState.Stopped && testGame?.HasProcessed != true)
+            while (testGame?.HasProcessed != true)
                 Thread.Sleep(10);
         }
 
@@ -35,7 +36,8 @@ namespace osu.Framework.Tests.IO
 
         protected override void Dispose(bool isDisposing)
         {
-            Exit();
+            if (ExecutionState != ExecutionState.Stopped)
+                Exit();
             base.Dispose(isDisposing);
         }
     }
