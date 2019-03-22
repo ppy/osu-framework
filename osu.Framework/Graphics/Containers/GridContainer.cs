@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -197,7 +198,12 @@ namespace osu.Framework.Graphics.Containers
             float definedSize = 0;
             int distributionCount = axisCells;
 
-            // Compute the size of non-distributed cells
+            // Calculation of the distribution pool happens in a three-step process:
+            // 1. The initial distribution pool is calculated.
+            // 2. The maximum distribution pool is calculated by adding any excess from cells with defined MaxSizes
+            // 3. The minimum distribution pool is calculated by allocation portions of the pool to cells with unfulfilled MinSizes
+
+            // 1. Calculate the initial distribution pool
             for (int i = 0; i < dimensions.Length; i++)
             {
                 if (i >= axisCells)
@@ -241,34 +247,49 @@ namespace osu.Framework.Graphics.Containers
                 distributionCount--;
             }
 
-            // Compute the size which all distributed cells should take on
+            // The distribution pool, in this case defined as the size which EACH of the distributed columns would take on
             float distributionSize = (getSizeAlongAxis(axis) - definedSize) / distributionCount;
 
-            // Redistribute excess from distributed cells which would receive a larger size than they want
             if (distributionCount > 1)
             {
-                // For each distributed column, add the excess back to the distribution pool
-                // It's important to note that this
-                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderBy(d => -d.MinSize).ThenBy(d => d.MaxSize))
+                int excessCount = 0;
+
+                // 2. Maximize the distribution pool by maximizing the excess
+                // Ascending order increases the distribution pool by the maximal amount each iteration
+                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderBy(d => d.MaxSize))
                 {
-                    if (distributionSize <= d.MaxSize && distributionSize >= d.MinSize)
-                        continue;
-
-                    // Remove this cell from the distribution pool
-                    distributionCount--;
-
-                    if (distributionCount == 0)
+                    if (distributionSize <= d.MaxSize)
                         break;
 
-                    float excess = 0;
+                    excessCount++;
 
-                    if (distributionSize > d.MaxSize)
-                        excess = distributionSize - d.MaxSize;
-                    else if (distributionSize < d.MinSize)
-                        excess = distributionSize - d.MinSize; // Negative excess
+                    if (distributionCount == excessCount)
+                        break;
+
+                    float excess = distributionSize - d.MaxSize;
 
                     // Redistribute the excess between all other cells, each receiving a fraction of the excess
-                    distributionSize += excess / distributionCount;
+                    distributionSize += excess / (distributionCount - excessCount);
+                }
+
+                excessCount = 0;
+
+                // 3. Minimize the distribution pool by maximizing the _negative_ excess
+                // Descending order decreases the distribution pool by the maximal amount each iteration
+                foreach (var d in dimensions.Where(d => d.Mode == GridSizeMode.Distributed).OrderByDescending(d => d.MinSize))
+                {
+                    if (distributionSize >= d.MinSize)
+                        continue;
+
+                    excessCount++;
+
+                    if (distributionCount == excessCount)
+                        break;
+
+                    float excess = distributionSize - d.MinSize; // Negative excess
+
+                    // Redistribute the excess between all other cells, each receiving a fraction of the excess
+                    distributionSize += excess / (distributionCount - excessCount);
                 }
             }
 
