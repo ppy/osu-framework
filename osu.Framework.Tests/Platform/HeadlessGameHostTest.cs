@@ -12,39 +12,73 @@ namespace osu.Framework.Tests.Platform
     [TestFixture]
     public class HeadlessGameHostTest
     {
-        private class Foobar
-        {
-            public string Bar;
-        }
-
         [Test]
         public void TestIpc()
         {
             using (var server = new HeadlessGameHost(@"server", true))
             using (var client = new HeadlessGameHost(@"client", true))
             {
-                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
-                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
+                var testGame1 = new TestGame();
+                var testGame2 = new TestGame();
 
-                var serverChannel = new IpcChannel<Foobar>(server);
-                var clientChannel = new IpcChannel<Foobar>(client);
-
-                Action waitAction = () =>
+                try
                 {
-                    bool received = false;
-                    serverChannel.MessageReceived += message =>
+                    // ReSharper disable once AccessToDisposedClosure
+                    Task.Run(() => server.Run(testGame1));
+
+                    while (!testGame1.HasProcessed)
+                        Thread.Sleep(10);
+
+                    // ReSharper disable once AccessToDisposedClosure
+                    Task.Run(() => client.Run(testGame2));
+
+                    while (!testGame2.HasProcessed)
+                        Thread.Sleep(10);
+
+                    Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
+                    Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
+
+                    var serverChannel = new IpcChannel<Foobar>(server);
+                    var clientChannel = new IpcChannel<Foobar>(client);
+
+                    Action waitAction = () =>
                     {
-                        Assert.AreEqual("example", message.Bar);
-                        received = true;
+                        bool received = false;
+                        serverChannel.MessageReceived += message =>
+                        {
+                            Assert.AreEqual("example", message.Bar);
+                            received = true;
+                        };
+
+                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+
+                        while (!received)
+                            Thread.Sleep(1);
                     };
 
-                    clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                    Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
+                }
+                finally
+                {
+                    testGame1.Exit();
+                    testGame2.Exit();
+                }
+            }
+        }
 
-                    while (!received)
-                        Thread.Sleep(1);
-                };
+        private class Foobar
+        {
+            public string Bar;
+        }
 
-                Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
+        private class TestGame : Game
+        {
+            public bool HasProcessed;
+
+            protected override void Update()
+            {
+                base.Update();
+                HasProcessed = true;
             }
         }
     }
