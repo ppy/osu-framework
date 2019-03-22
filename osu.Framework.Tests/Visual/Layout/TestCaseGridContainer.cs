@@ -606,11 +606,51 @@ namespace osu.Framework.Tests.Visual.Layout
             checkClampedSizes(row, boxes, dimensions);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDistributedCellsDoNotExceedGridSize(bool row)
+        {
+            var boxes = new FillBox[3];
+
+            var dimensions = new[]
+            {
+                new Dimension(minSize: 200),
+                new Dimension(),
+                new Dimension(minSize: 200),
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                },
+            }.Invert(), dimensions, row);
+
+            AddStep("set size = (500, 0.5)", () =>
+            {
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Size = new Vector2(500, 0.5f);
+            });
+
+            checkClampedSizes(row, boxes, dimensions);
+
+            AddStep("set size = (200, 0.5)", () =>
+            {
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Size = new Vector2(200, 0.5f);
+            });
+
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
         {
             AddAssert("sizes not over/underflowed", () =>
             {
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < boxes.Length; i++)
                 {
                     if (dimensions[i].Mode != GridSizeMode.Distributed)
                         continue;
