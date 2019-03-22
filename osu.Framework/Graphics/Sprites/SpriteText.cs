@@ -438,12 +438,12 @@ namespace osu.Framework.Graphics.Sprites
                 bool addCharacter(char character, bool truncate)
                 {
                     // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                    Vector2 size = getCharacterSize(character, false, out Texture texture);
+                    Vector2 scaledTextureSize = getCharacterSize(character, false, out Texture texture);
 
                     // Scaled glyph size to be used for positioning.
                     Vector2 glyphSize = new Vector2(
-                        useFixedWidthForCharacter(character) ? constantWidth * Font.Size : size.X,
-                        UseFullGlyphHeight ? Font.Size : size.Y);
+                        useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
+                        UseFullGlyphHeight ? Font.Size : scaledTextureSize.Y);
 
                     // Check if we need to go onto the next line
                     if (AllowMultiline)
@@ -474,12 +474,12 @@ namespace osu.Framework.Graphics.Sprites
                     if (!isSpace)
                     {
                         // If we have fixed width, we'll need to centre the texture to the glyph size
-                        float offset = (glyphSize.X - size.X) / 2;
+                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
 
                         charactersBacking.Add(new CharacterPart
                         {
                             Texture = texture,
-                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), size),
+                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
                         });
                     }
 
