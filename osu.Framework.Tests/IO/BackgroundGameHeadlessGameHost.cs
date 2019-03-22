@@ -34,5 +34,11 @@ namespace osu.Framework.Tests.IO
                 HasProcessed = true;
             }
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            Exit();
+            base.Dispose(isDisposing);
+        }
     }
 }
