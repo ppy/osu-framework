@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers

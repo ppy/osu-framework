@@ -517,44 +517,19 @@ namespace osu.Framework.Tests.Visual.Layout
             }.Invert(), dimensions, row);
 
             AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
-            checkSizes();
-            AddStep("set size = (0.5f, 0.1f)", () => gridParent.Size = new Vector2(0.5f, 0.1f));
-            checkSizes();
+            checkClampedSizes(row, boxes, dimensions);
+            AddStep("set size = (1f, 0.5f)", () => gridParent.Size = new Vector2(1f, 0.25f));
+            checkClampedSizes(row, boxes, dimensions);
             AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
-            checkSizes();
-
-            void checkSizes()
-            {
-                AddAssert("max size not overflowed", () =>
-                {
-                    for (int i = 0; i < 8; i++)
-                    {
-                        if (dimensions[i].Mode != GridSizeMode.Distributed)
-                            continue;
-
-                        if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
-                            return false;
-
-                        if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
-                            return false;
-                    }
-
-                    return true;
-                });
-
-                AddAssert("column span total length", () =>
-                {
-                    return row
-                        ? Precision.AlmostEquals(grid.DrawHeight, boxes.Sum(b => b.DrawHeight))
-                        : Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth));
-                });
-            }
+            checkClampedSizes(row, boxes, dimensions);
         }
 
         [TestCase(false)]
         [TestCase(true)]
         public void TestDimensionsWithMinimumSize(bool row)
         {
+            var boxes = new FillBox[8];
+
             var dimensions = new[]
             {
                 new Dimension(),
@@ -571,22 +546,31 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 new Drawable[]
                 {
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox()
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
                 },
             }.Invert(), dimensions, row);
+
+            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
+            checkClampedSizes(row, boxes, dimensions);
+            AddStep("set size = (1f, 0.5f)", () => gridParent.Size = new Vector2(1f, 0.25f));
+            checkClampedSizes(row, boxes, dimensions);
+            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
+            checkClampedSizes(row, boxes, dimensions);
         }
 
         [TestCase(false)]
         [TestCase(true)]
         public void TestDimensionsWithMinimumAndMaximumSize(bool row)
         {
+            var boxes = new FillBox[8];
+
             var dimensions = new[]
             {
                 new Dimension(),
@@ -603,16 +587,52 @@ namespace osu.Framework.Tests.Visual.Layout
             {
                 new Drawable[]
                 {
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox(),
-                    new FillBox()
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
                 },
             }.Invert(), dimensions, row);
+
+            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
+            checkClampedSizes(row, boxes, dimensions);
+            AddStep("set size = (1f, 0.5f)", () => gridParent.Size = new Vector2(1f, 0.25f));
+            checkClampedSizes(row, boxes, dimensions);
+            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
+        private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
+        {
+            AddAssert("sizes not over/underflowed", () =>
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    if (dimensions[i].Mode != GridSizeMode.Distributed)
+                        continue;
+
+                    if (row && (boxes[i].DrawHeight > dimensions[i].MaxSize || boxes[i].DrawHeight < dimensions[i].MinSize))
+                        return false;
+
+                    if (!row && (boxes[i].DrawWidth > dimensions[i].MaxSize || boxes[i].DrawWidth < dimensions[i].MinSize))
+                        return false;
+                }
+
+                return true;
+            });
+
+            AddAssert("column span total length", () =>
+            {
+                float expectedSize = row ? grid.DrawHeight : grid.DrawWidth;
+                float totalSize = row ? boxes.Sum(b => b.DrawHeight) : boxes.Sum(b => b.DrawWidth);
+
+                // Allowed to exceed the length of the columns due to absolute sizing
+                return totalSize >= expectedSize;
+            });
         }
 
         private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
