@@ -87,6 +87,9 @@ namespace osu.Framework.Screens
             if (source == null && stack.Count > 0)
                 throw new InvalidOperationException($"A source must be provided when pushing to a non-empty {nameof(ScreenStack)}");
 
+            if (newScreen.AsDrawable().RemoveWhenNotAlive)
+                throw new ScreenWillBeRemovedOnPushException(newScreen.GetType());
+
             // Suspend the current screen, if there is one
             if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
@@ -321,6 +324,15 @@ namespace osu.Framework.Screens
         {
             public ScreenAlreadyEnteredException()
                 : base("Cannot push a screen in an entered state.")
+            {
+            }
+        }
+
+        public class ScreenWillBeRemovedOnPushException : InvalidOperationException
+        {
+            public ScreenWillBeRemovedOnPushException(Type type)
+                : base($"The pushed ({type.ReadableName()}) has {nameof(RemoveWhenNotAlive)} = true and will be removed when a child screen is pushed. "
+                       + $"Screens must set {nameof(RemoveWhenNotAlive)} to false.")
             {
             }
         }
