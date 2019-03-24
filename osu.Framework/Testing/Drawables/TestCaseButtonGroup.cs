@@ -31,10 +31,7 @@ namespace osu.Framework.Testing.Drawables
             set
             {
                 var contains = Group.TestTypes.Contains(value);
-                if (contains)
-                {
-                    Show();
-                }
+                if (contains) Show();
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
                 headerButton.Current = contains;
@@ -71,7 +68,7 @@ namespace osu.Framework.Testing.Drawables
 
                 foreach (var test in tests)
                 {
-                    buttonFlow.Add(new TestCaseButton(test)
+                    buttonFlow.Add(new TestCaseSubbutton(test)
                     {
                         Action = () => loadTest(test)
                     });

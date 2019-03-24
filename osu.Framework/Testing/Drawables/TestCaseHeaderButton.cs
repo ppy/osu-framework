@@ -71,11 +71,13 @@ namespace osu.Framework.Testing.Drawables
                 {
                     leftBoxContainer.ResizeWidthTo(1, transition_duration);
                     this.TransformTo(nameof(leftBoxContainerPadding), left_box_width, transition_duration);
+                    this.TransformTo(nameof(contentPadding), 0f, transition_duration);
                 }
                 else
                 {
                     leftBoxContainer.ResizeWidthTo(0, transition_duration);
                     this.TransformTo(nameof(leftBoxContainerPadding), -left_box_width, transition_duration);
+                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, transition_duration);
                 }
             }
         }
@@ -84,6 +86,12 @@ namespace osu.Framework.Testing.Drawables
         {
             get => leftBoxContainer.Padding.Right;
             set => leftBoxContainer.Padding = new MarginPadding { Right = value };
+        }
+
+        private float contentPadding
+        {
+            get => Content.Padding.Right;
+            set => Content.Padding = new MarginPadding { Right = value };
         }
 
         public override void Hide() => headerSprite.Text = "...";

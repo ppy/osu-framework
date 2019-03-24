@@ -68,7 +68,7 @@ namespace osu.Framework.Testing.Drawables
             };
         }
 
-        public TestCaseButton(Type test)
+        protected TestCaseButton(Type test)
             : this()
         {
             TestType = test;
@@ -119,21 +119,13 @@ namespace osu.Framework.Testing.Drawables
 
                 if (value)
                 {
-                    this.TransformTo(nameof(contentPadding), 0f, transition_duration);
                     text.FadeColour(Color4.Black, transition_duration);
                 }
                 else
                 {
-                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, transition_duration);
                     text.FadeColour(Color4.White, transition_duration);
                 }
             }
-        }
-
-        private float contentPadding
-        {
-            get => content.Padding.Right;
-            set => content.Padding = new MarginPadding { Right = value };
         }
     }
 }
