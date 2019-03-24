@@ -575,8 +575,6 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected readonly Drawable Background;
 
-            protected readonly Drawable PreselectionBackground;
-
             /// <summary>
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
             /// </summary>
@@ -589,7 +587,7 @@ namespace osu.Framework.Graphics.UserInterface
                 InternalChildren = new[]
                 {
                     Background = CreateBackground(),
-                    PreselectionBackground = CreatePreselectionBackground(),
+                    CreatePreselectionBackground(),
                     Foreground = new Container
                     {
                         AutoSizeAxes = Axes.Both,

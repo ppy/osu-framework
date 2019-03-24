@@ -6,14 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Graphics.Containers;
-using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -335,7 +335,6 @@ namespace osu.Framework.Graphics.UserInterface
                 StateChanged += clearPreselection;
             }
 
-
             private void clearPreselection(MenuState obj)
             {
                 if (obj == MenuState.Closed)
@@ -371,8 +370,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
-                    // ReSharper disable once AssignmentInConditionalExpression
-                    if (c.IsPreSelected = c.Item == item)
+                    c.IsPreSelected = c.Item == item;
+                    if (c.IsPreSelected)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -432,10 +431,7 @@ namespace osu.Framework.Graphics.UserInterface
                             return;
                         preSelected = value;
 
-                        if (value)
-                            PreselectionBackground.Show();
-                        else
-                            PreselectionBackground.Hide();
+                        OnSelectChange();
                     }
                 }
 
@@ -474,12 +470,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(IsHovered ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
+                    Background.FadeColour(IsPreSelected ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
                 }
 
                 protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
+                    Foreground.FadeColour(IsPreSelected ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
                 protected override void LoadComplete()
@@ -487,6 +483,35 @@ namespace osu.Framework.Graphics.UserInterface
                     base.LoadComplete();
                     Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
+                }
+
+                private DropdownMenu menu;
+
+                /// <summary>
+                /// Retrieve the first parent in the tree which is <see cref="DropdownMenu"/>.
+                /// As this is performing an upward tree traversal, avoid calling every frame.
+                /// </summary>
+                /// <returns>The first parent <see cref="DropdownMenu"/>.</returns>
+                private DropdownMenu getMenu()
+                {
+                    Drawable search = Parent;
+                    while (search != null)
+                    {
+                        if (search is DropdownMenu test) return test;
+
+                        search = search.Parent;
+                    }
+
+                    return null;
+                }
+
+                protected override bool OnHover(HoverEvent e)
+                {
+                    if (menu == null)
+                        menu = getMenu();
+
+                    menu.PreselectItem(Item as DropdownMenuItem<T>);
+                    return base.OnHover(e);
                 }
             }
 
