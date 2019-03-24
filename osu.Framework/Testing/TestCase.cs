@@ -33,12 +33,13 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestCaseTestRunner runner;
-        private bool isNUnitRunning;
+
+        internal bool IsNUnitRunning;
 
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            isNUnitRunning = true;
+            IsNUnitRunning = true;
 
             host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
@@ -80,15 +81,13 @@ namespace osu.Framework.Testing
             }
         }
 
-        /// <summary>
-        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
-        /// is reverted to a clean state for all tests.
-        /// </summary>
         [SetUp]
-        public void SetupTest()
+        public void SetUpTestForNUnit()
         {
-            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+            if (IsNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 Schedule(() => StepsContainer.Clear());
+
+            RunSetUpSteps();
         }
 
         [TearDown]
@@ -178,7 +177,6 @@ namespace osu.Framework.Testing
             });
         }
 
-
         private const float steps_width = 180;
         private const float padding = 0;
 
@@ -187,39 +185,19 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null)
         {
-            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
             Schedule(() =>
             {
                 stepRunner?.Cancel();
-                foreach (var step in StepsContainer.OfType<StepButton>())
+                foreach (var step in StepsContainer.FlowingChildren.OfType<StepButton>())
                     step.Reset();
 
                 actionIndex = -1;
                 actionRepetition = 0;
-                runNextStep(onCompletion, onError);
-            });
-        }
-
-        public void RunFirstStep()
-        {
-            Schedule(() =>
-            {
-                stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
-                foreach (var step in StepsContainer.OfType<StepButton>())
-                    step.Reset();
-
-                actionIndex = 0;
-                try
-                {
-                    loadableStep?.PerformStep();
-                }
-                catch (Exception e)
-                {
-                    Logging.Logger.Error(e, "Error on running first step");
-                }
+                runNextStep(onCompletion, onError, stopCondition);
             });
         }
 
@@ -227,7 +205,7 @@ namespace osu.Framework.Testing
 
         protected virtual double TimePerAction => 200;
 
-        private void runNextStep(Action onCompletion, Action<Exception> onError)
+        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -262,6 +240,9 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
+                    return;
+
                 Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
@@ -274,8 +255,10 @@ namespace osu.Framework.Testing
             }
 
             if (Parent != null)
-                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
+
+        public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));
 
         public StepButton AddStep(string description, Action action)
         {
@@ -285,7 +268,19 @@ namespace osu.Framework.Testing
                 Action = action
             };
 
-            Schedule(() => StepsContainer.Add(step));
+            AddStep(step);
+
+            return step;
+        }
+
+        public LabelStep AddLabel(string description)
+        {
+            var step = new LabelStep
+            {
+                Text = description,
+            };
+
+            AddStep(step);
 
             return step;
         }
@@ -306,7 +301,11 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
+            => AddUntilStep(description, waitUntilTrueDelegate);
+
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -314,7 +313,11 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        protected void AddWaitStep(int waitCount, string description = null)
+            => AddWaitStep(description, waitCount);
+
+        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
@@ -342,5 +345,11 @@ namespace osu.Framework.Testing
         });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+
+        internal void RunSetUpSteps()
+        {
+            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+                method.Invoke(this, null);
+        }
     }
 }

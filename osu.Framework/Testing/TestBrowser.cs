@@ -22,6 +22,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
+using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
@@ -365,8 +366,6 @@ namespace osu.Framework.Testing
 
         public bool OnReleased(TestBrowserAction action) => false;
 
-        public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
-
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
             if (testType == null && TestTypes.Count > 0)
@@ -374,86 +373,128 @@ namespace osu.Framework.Testing
 
             config.Set(TestBrowserSetting.LastTest, testType?.Name ?? string.Empty);
 
-            var lastTest = CurrentTest;
-
             if (testType == null)
                 return;
 
             var newTest = (TestCase)Activator.CreateInstance(testType);
 
-            const string dynamic = "dynamic";
+            const string dynamic_prefix = "dynamic";
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
-                toolbar.AddAssembly($"{dynamic} ({testType.Name})", testType.Assembly);
+                toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
             else
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
+                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
 
             Assembly.Value = testType.Assembly;
 
+            var lastTest = CurrentTest;
+
             CurrentTest = newTest;
+            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
 
             updateButtons();
-
-            CurrentFrame.Value = 0;
-            if (RecordState.Value == Testing.RecordState.Stopped)
-                RecordState.Value = Testing.RecordState.Normal;
+            resetRecording();
 
             testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
                 OnCaughtError = compileFailed
             });
+        }
 
-            newTest.OnLoadComplete = d => Schedule(() =>
+        private void resetRecording()
+        {
+            CurrentFrame.Value = 0;
+            if (RecordState.Value == Testing.RecordState.Stopped)
+                RecordState.Value = Testing.RecordState.Normal;
+        }
+
+        private void finishLoad(Drawable newTest, Drawable lastTest, Action onCompletion)
+        {
+            if (lastTest?.Parent != null)
             {
-                if (lastTest?.Parent != null)
+                testContentContainer.Remove(lastTest.Parent);
+                lastTest.Dispose();
+            }
+
+            if (CurrentTest != newTest)
+            {
+                // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                testContentContainer.Remove(newTest.Parent);
+                return;
+            }
+
+            updateButtons();
+
+            var methods = newTest.GetType().GetMethods();
+
+            bool hadTestAttributeTest = false;
+
+            foreach (var m in methods.Where(m => m.Name != nameof(TestCase.TestConstructor)))
+            {
+                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
-                    testContentContainer.Remove(lastTest.Parent);
-                    lastTest.Dispose();
+                    hadTestAttributeTest = true;
+                    CurrentTest.AddLabel(m.Name);
+
+                    addSetUpSteps();
+
+                    m.Invoke(CurrentTest, null);
                 }
 
-                if (CurrentTest != newTest)
+                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
-                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                    testContentContainer.Remove(newTest.Parent);
-                    return;
+                    hadTestAttributeTest = true;
+                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+
+                    addSetUpSteps();
+
+                    m.Invoke(CurrentTest, tc.Arguments);
                 }
+            }
 
-                updateButtons();
+            // even if no [Test] or [TestCase] methods were found, [SetUp] steps should be added.
+            if (!hadTestAttributeTest)
+                addSetUpSteps();
 
-                var methods = testType.GetMethods();
+            backgroundCompiler?.Checkpoint(CurrentTest);
+            runTests(onCompletion);
+            updateButtons();
 
-                var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+            void addSetUpSteps()
+            {
+                var setUpMethods = methods.Where(m => m.Name != nameof(TestCase.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
 
-                foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
+                if (setUpMethods.Any())
                 {
-                    if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                    CurrentTest.AddStep(new SetUpStep
                     {
-                        var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                        step.LightColour = Color4.Teal;
-                        m.Invoke(CurrentTest, null);
-                    }
-
-                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                    {
-                        var step = CurrentTest.AddStep($"Setup: {m.Name}({string.Join(", ", tc.Arguments)})", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                        step.LightColour = Color4.Teal;
-                        m.Invoke(CurrentTest, tc.Arguments);
-                    }
+                        Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                    });
                 }
 
-                backgroundCompiler?.Checkpoint(CurrentTest);
-                runTests(onCompletion);
-                updateButtons();
-            });
+                CurrentTest.RunSetUpSteps();
+            }
+        }
+
+        private class SetUpStep : SingleStepButton
+        {
+            public SetUpStep()
+            {
+                Text = "[SetUp]";
+                LightColour = Color4.Teal;
+            }
         }
 
         private void runTests(Action onCompletion)
         {
-            if (!interactive || RunAllSteps.Value)
-                CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
-            else
-                CurrentTest.RunFirstStep();
+            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            {
+                if (!interactive || RunAllSteps.Value)
+                    return false;
+
+                return !(s is SetUpStep) && !(s is LabelStep);
+            });
         }
 
         private void updateButtons()

@@ -20,8 +20,7 @@ namespace osu.Framework.iOS
 
         public IOSGameHost(IOSGameView gameView)
         {
-            this.gameView = gameView;
-            IOSGameWindow.GameView = gameView;
+            IOSGameWindow.GameView = this.gameView = gameView;
             Window = new IOSGameWindow();
         }
 

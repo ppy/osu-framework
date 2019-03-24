@@ -151,6 +151,35 @@ namespace osu.Framework.Extensions
             return rectangular;
         }
 
+        /// <summary>
+        /// Inverts the rows and columns of a rectangular array.
+        /// </summary>
+        /// <param name="array">The array to invert.</param>
+        /// <returns>The inverted array.</returns>
+        public static T[,] Invert<T>(this T[,] array)
+        {
+            if (array == null)
+                return null;
+
+            int rows = array.GetLength(0);
+            int cols = array.GetLength(1);
+
+            var result = new T[cols, rows];
+
+            for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                result[c, r] = array[r, c];
+
+            return result;
+        }
+
+        /// <summary>
+        /// Inverts the rows and columns of a jagged array.
+        /// </summary>
+        /// <param name="array">The array to invert.</param>
+        /// <returns>The inverted array. This is always a square array.</returns>
+        public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
+
         public static string ToResolutionString(this Size size)
         {
             return size.Width.ToString() + 'x' + size.Height;
