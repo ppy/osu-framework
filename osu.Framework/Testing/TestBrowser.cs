@@ -142,7 +142,7 @@ namespace osu.Framework.Testing
                     {
                         new Box
                         {
-                            Colour = new Color4(50, 50, 50, 255),
+                            Colour = new Color4(30, 57, 52, 255),
                             RelativeSizeAxes = Axes.Both
                         },
                         new FillFlowContainer

@@ -9,6 +9,7 @@ using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
@@ -50,7 +51,7 @@ namespace osu.Framework.Testing.Drawables
                 Show();
         }
 
-        public bool Current
+        public virtual bool Current
         {
             set
             {
@@ -58,12 +59,12 @@ namespace osu.Framework.Testing.Drawables
 
                 if (value)
                 {
-                    box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
+                    //box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
                     text.FadeColour(Color4.Black, transition_duration);
                 }
                 else
                 {
-                    box.FadeColour(new Color4(90, 90, 90, 255), transition_duration);
+                    //box.FadeColour(new Color4(90, 90, 90, 255), transition_duration);
                     text.FadeColour(Color4.White, transition_duration);
                 }
             }
@@ -76,6 +77,8 @@ namespace osu.Framework.Testing.Drawables
         private readonly TextFlowContainer text;
         public readonly Type TestType;
 
+        public const float LEFT_TEXT_PADDING = 16;
+
         private TestCaseButton()
         {
             AutoSizeAxes = Axes.Y;
@@ -85,25 +88,26 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                box = new Box
+                /*box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = new Color4(140, 140, 140, 255),
                     Alpha = 0.7f
-                },
+                },*/
                 content = new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Child = text = new TextFlowContainer
+                    Child = text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Padding = new MarginPadding
                         {
-                            Left = 4,
+                            Top = 4,
+                            Left = LEFT_TEXT_PADDING,
                             Right = 4,
-                            Bottom = 2,
+                            Bottom = 5,
                         },
                     }
                 },
@@ -132,13 +136,13 @@ namespace osu.Framework.Testing.Drawables
 
         protected override bool OnHover(HoverEvent e)
         {
-            box.FadeTo(1, 150);
+            //box.FadeTo(1, 150);
             return true;
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            box.FadeTo(0.7f, 150);
+            //box.FadeTo(0.7f, 150);
             base.OnHoverLost(e);
         }
     }
