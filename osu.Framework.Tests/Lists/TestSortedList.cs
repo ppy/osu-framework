@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Lists
                 -10
             };
             list.Remove(8);
-            Assert.That(list, Is.Not.Contains(8));
+            Assert.That(list, Does.Not.Contain(8));
             Assert.AreEqual(3, list.Count);
         }
 
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Lists
                 -10
             };
             list.RemoveAt(0);
-            Assert.That(list, Is.Not.Contains(-10));
+            Assert.That(list, Does.Not.Contain(-10));
             Assert.AreEqual(3, list.Count);
         }
 
