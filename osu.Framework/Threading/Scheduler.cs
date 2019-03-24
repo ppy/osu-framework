@@ -83,7 +83,6 @@ namespace osu.Framework.Threading
         /// </summary>
         protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
-
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
 
@@ -144,15 +143,19 @@ namespace osu.Framework.Threading
                 runQueue.Enqueue(task);
             }
 
+            int countToRun = runQueue.Count;
             int countRun = 0;
 
             while (runQueue.TryDequeue(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled) continue;
+                if (sd.Cancelled)
+                    continue;
 
                 //todo: error handling
                 sd.RunTask();
-                countRun++;
+
+                if (++countRun == countToRun)
+                    break;
             }
 
             return countRun;
@@ -236,7 +239,7 @@ namespace osu.Framework.Threading
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
         {
-            if (runQueue.Any(sd => sd.RunTask == task))
+            if (runQueue.Any(sd => sd.Task == task))
                 return false;
 
             runQueue.Enqueue(new ScheduledDelegate(task));
@@ -247,31 +250,37 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
-        {
-            ExecutionTime = executionTime;
-            RepeatInterval = repeatInterval;
-            this.task = task;
-        }
+        /// <summary>
+        /// The earliest ElapsedTime value at which we can be executed.
+        /// </summary>
+        public double ExecutionTime { get; internal set; }
+
+        /// <summary>
+        /// Time in milliseconds between repeats of this task. -1 means no repeats.
+        /// </summary>
+        public readonly double RepeatInterval;
+
+        /// <summary>
+        /// Whether this task has finished running.
+        /// </summary>
+        public bool Completed { get; private set; }
+
+        /// <summary>
+        /// Whether this task has been cancelled.
+        /// </summary>
+        public bool Cancelled { get; private set; }
 
         /// <summary>
         /// The work task.
         /// </summary>
-        private readonly Action task;
+        internal readonly Action Task;
 
-        /// <summary>
-        /// Set to true to skip scheduled executions until we are ready.
-        /// </summary>
-        internal bool Waiting;
-
-        public void Wait()
+        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
         {
-            Waiting = true;
-        }
+            Task = task;
 
-        public void Continue()
-        {
-            Waiting = false;
+            ExecutionTime = executionTime;
+            RepeatInterval = repeatInterval;
         }
 
         public void RunTask()
@@ -279,33 +288,12 @@ namespace osu.Framework.Threading
             if (Cancelled)
                 throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
 
-            if (!Waiting)
-                task();
+            Task();
             Completed = true;
         }
 
-        public bool Completed;
+        public void Cancel() => Cancelled = true;
 
-        public bool Cancelled { get; private set; }
-
-        public void Cancel()
-        {
-            Cancelled = true;
-        }
-
-        /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
-        /// </summary>
-        public double ExecutionTime;
-
-        /// <summary>
-        /// Time in milliseconds between repeats of this task. -1 means no repeats.
-        /// </summary>
-        public double RepeatInterval;
-
-        public int CompareTo(ScheduledDelegate other)
-        {
-            return ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
-        }
+        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
     }
 }

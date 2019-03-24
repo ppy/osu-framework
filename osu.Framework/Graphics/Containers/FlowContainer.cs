@@ -41,10 +41,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
-
-        protected void InvalidateLayout() => layout.Invalidate();
-
         private Vector2 maximumSize;
 
         /// <summary>
@@ -63,7 +59,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Cached layout = new Cached();
+
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
+
+        /// <summary>
+        /// Invoked when layout should be invalidated.
+        /// </summary>
+        protected virtual void InvalidateLayout() => layout.Invalidate();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {

@@ -30,7 +30,7 @@ namespace osu.Framework.iOS.Input
             return true;
         }
 
-        private Dictionary<int, Key> keyMap = new Dictionary<int, Key>
+        private readonly Dictionary<int, Key> keyMap = new Dictionary<int, Key>
         {
             { 4, Key.A },
             { 5, Key.B },

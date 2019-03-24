@@ -540,7 +540,7 @@ namespace osu.Framework.Input
                 CompositeDrawable d = FocusedDrawable.Parent;
                 while (d != null)
                 {
-                    if (!d.IsPresent)
+                    if (!d.IsPresent || !d.IsAlive)
                     {
                         stillValid = false;
                         break;
@@ -588,7 +588,6 @@ namespace osu.Framework.Input
                     }
                 }
             }
-
 
             ChangeFocus(focusTarget);
         }

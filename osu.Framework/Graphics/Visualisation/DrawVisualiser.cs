@@ -111,6 +111,9 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.FadeOut(100);
 
+            setHighlight(null);
+            propertyDisplay.Hide();
+
             recycleVisualisers();
         }
 
@@ -212,7 +215,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             bool isValidTarget(Drawable drawable)
             {
-                if (drawable is DrawVisualiser || drawable is CursorContainer || drawable is PropertyDisplay)
+                if (drawable == this || drawable is CursorContainer)
                     return false;
 
                 if (!drawable.IsPresent)
