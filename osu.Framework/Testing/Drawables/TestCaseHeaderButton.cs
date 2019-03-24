@@ -14,7 +14,6 @@ namespace osu.Framework.Testing.Drawables
     internal class TestCaseHeaderButton : TestCaseButton
     {
         private SpriteText headerSprite;
-        private Box leftBox, bgBox;
         private Container leftBoxContainer;
         private const float left_box_width = LEFT_TEXT_PADDING / 2;
 
@@ -31,7 +30,7 @@ namespace osu.Framework.Testing.Drawables
         {
             AddRange(new Drawable[]
             {
-                bgBox = new Box
+                new Box
                 {
                     Depth = 1,
                     Colour = new Color4(57, 110, 102, 255),
@@ -43,7 +42,7 @@ namespace osu.Framework.Testing.Drawables
                     Width = 0,
                     Depth = 1,
                     Padding = new MarginPadding { Right = -left_box_width },
-                    Child = leftBox = new Box
+                    Child = new Box
                     {
                         Colour = new Color4(128, 164, 108, 255),
                         RelativeSizeAxes = Axes.Both,
@@ -53,7 +52,7 @@ namespace osu.Framework.Testing.Drawables
                 {
                     Font = new FontUsage(size: 20),
                     Colour = Color4.LightGray,
-                    Padding = new MarginPadding { Left = left_box_width, Right = 5 },
+                    Padding = new MarginPadding { Left = left_box_width, Right = left_box_width + 5 },
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
                 }

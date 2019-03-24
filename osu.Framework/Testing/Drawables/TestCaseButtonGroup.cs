@@ -16,7 +16,7 @@ namespace osu.Framework.Testing.Drawables
 
         public bool MatchingFilter
         {
-            set { Alpha = value ? 1 : 0; }
+            set => Alpha = value ? 1 : 0;
         }
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
@@ -73,9 +73,6 @@ namespace osu.Framework.Testing.Drawables
                 {
                     buttonFlow.Add(new TestCaseButton(test)
                     {
-                        /*Anchor = Anchor.TopRight,
-                        Origin = Anchor.TopRight,
-                        Width = hasHeader ? 0.95f : 1,*/
                         Action = () => loadTest(test)
                     });
                 }

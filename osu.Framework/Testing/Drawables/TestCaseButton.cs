@@ -8,9 +8,7 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
@@ -30,6 +28,68 @@ namespace osu.Framework.Testing.Drawables
 
                 updateVisibility();
             }
+        }
+
+        private readonly Container content;
+        private readonly TextFlowContainer text;
+        public readonly Type TestType;
+
+        public const float LEFT_TEXT_PADDING = 16;
+
+        protected override Container<Drawable> Content => content;
+
+        private TestCaseButton()
+        {
+            AutoSizeAxes = Axes.Y;
+            RelativeSizeAxes = Axes.X;
+
+            Padding = new MarginPadding { Bottom = 3 };
+
+            InternalChildren = new Drawable[]
+            {
+                content = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
+                    Child = text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding
+                        {
+                            Top = 4,
+                            Left = LEFT_TEXT_PADDING,
+                            Right = 4,
+                            Bottom = 5,
+                        },
+                    }
+                },
+            };
+        }
+
+        public TestCaseButton(Type test)
+            : this()
+        {
+            TestType = test;
+            text.AddText(test.Name.Replace("TestCase", ""));
+
+            var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
+            if (description != null)
+            {
+                text.NewLine();
+                text.AddText(description, t =>
+                {
+                    t.Font = t.Font.With("Roboto", 11);
+                    t.Colour = new Color4(250, 221, 114, 255);
+                });
+            }
+        }
+
+        protected TestCaseButton(string header)
+            : this()
+        {
+            text.AddText(header);
         }
 
         private bool collapsed;
@@ -74,77 +134,6 @@ namespace osu.Framework.Testing.Drawables
         {
             get => content.Padding.Right;
             set => content.Padding = new MarginPadding { Right = value };
-        }
-
-        protected override Container<Drawable> Content => content;
-
-        private readonly Box box;
-        private readonly Container content;
-        private readonly TextFlowContainer text;
-        public readonly Type TestType;
-
-        public const float LEFT_TEXT_PADDING = 16;
-
-        private TestCaseButton()
-        {
-            AutoSizeAxes = Axes.Y;
-            RelativeSizeAxes = Axes.X;
-
-            Padding = new MarginPadding { Bottom = 3 };
-
-            InternalChildren = new Drawable[]
-            {
-                content = new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
-                    Child = text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Padding = new MarginPadding
-                        {
-                            Top = 4,
-                            Left = LEFT_TEXT_PADDING,
-                            Right = 4,
-                            Bottom = 5,
-                        },
-                    }
-                },
-            };
-        }
-
-        public TestCaseButton(Type test)
-            : this()
-        {
-            TestType = test;
-            text.AddText(test.Name.Replace("TestCase", ""));
-
-            var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
-            if (description != null)
-            {
-                text.NewLine();
-                text.AddText(description, t => t.Font = t.Font.With(size: 15));
-            }
-        }
-
-        protected TestCaseButton(string header)
-            : this()
-        {
-            text.AddText(header);
-        }
-
-        protected override bool OnHover(HoverEvent e)
-        {
-            //box.FadeTo(1, 150);
-            return true;
-        }
-
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            //box.FadeTo(0.7f, 150);
-            base.OnHoverLost(e);
         }
     }
 }
