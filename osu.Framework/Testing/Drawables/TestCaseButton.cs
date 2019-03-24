@@ -59,15 +59,21 @@ namespace osu.Framework.Testing.Drawables
 
                 if (value)
                 {
-                    //box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
+                    this.TransformTo(nameof(contentPadding), 0f, transition_duration);
                     text.FadeColour(Color4.Black, transition_duration);
                 }
                 else
                 {
-                    //box.FadeColour(new Color4(90, 90, 90, 255), transition_duration);
+                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, transition_duration);
                     text.FadeColour(Color4.White, transition_duration);
                 }
             }
+        }
+
+        private float contentPadding
+        {
+            get => content.Padding.Right;
+            set => content.Padding = new MarginPadding { Right = value };
         }
 
         protected override Container<Drawable> Content => content;
@@ -88,16 +94,11 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                /*box = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(140, 140, 140, 255),
-                    Alpha = 0.7f
-                },*/
                 content = new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
+                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
                     Child = text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
                     {
                         RelativeSizeAxes = Axes.X,
