@@ -32,7 +32,7 @@ namespace osu.Framework.Lists
 
         public void ForEachAlive(Action<T> action)
         {
-            list.RemoveAll(item => item.TryGetTarget(out _));
+            list.RemoveAll(item => !item.TryGetTarget(out _));
 
             foreach (var item in list)
             {
