@@ -117,14 +117,7 @@ namespace osu.Framework.Testing.Drawables
             {
                 const float transition_duration = 100;
 
-                if (value)
-                {
-                    text.FadeColour(Color4.Black, transition_duration);
-                }
-                else
-                {
-                    text.FadeColour(Color4.White, transition_duration);
-                }
+                text.FadeColour(value ? Color4.Black : Color4.White, transition_duration);
             }
         }
     }
