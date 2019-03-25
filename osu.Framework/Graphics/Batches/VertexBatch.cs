@@ -41,8 +41,6 @@ namespace osu.Framework.Graphics.Batches
             this.maxBuffers = maxBuffers;
 
             AddAction = Add;
-
-            GLWrapper.RegisterVertexBatch(this);
         }
 
         #region Disposal

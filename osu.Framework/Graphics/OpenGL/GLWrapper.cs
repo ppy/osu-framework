@@ -17,7 +17,6 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -52,6 +51,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// A queue from which a maximum of one operation is invoked per draw frame.
         /// </summary>
         private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
+
+        private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
         public static bool IsInitialized { get; private set; }
 
@@ -107,7 +108,9 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            all_batches.ForEachAlive(b => b.ResetCounters());
+            foreach (var b in batch_reset_list)
+                b.ResetCounters();
+            batch_reset_list.Clear();
 
             viewport_stack.Clear();
             ortho_stack.Clear();
@@ -191,8 +194,6 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
-        private static readonly WeakList<IVertexBatch> all_batches = new WeakList<IVertexBatch>();
-
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -203,18 +204,15 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="batch">The batch.</param>
         internal static void SetActiveBatch(IVertexBatch batch)
         {
-            if (lastActiveBatch == batch) return;
+            if (lastActiveBatch == batch)
+                return;
+
+            batch_reset_list.Add(batch);
 
             FlushCurrentBatch();
 
             lastActiveBatch = batch;
         }
-
-        /// <summary>
-        /// Begins tracking a <see cref="IVertexBatch"/>, resetting its counters every frame. This should be invoked once for every <see cref="IVertexBatch"/> in use.
-        /// </summary>
-        /// <param name="batch">The batch to register.</param>
-        internal static void RegisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Add(batch));
 
         private static TextureGL lastBoundTexture;
 
