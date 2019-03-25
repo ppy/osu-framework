@@ -142,8 +142,13 @@ namespace osu.Framework.Tests.IO
                 // needs to be in a separate method so the Task gets GC'd.
                 performTaskException();
 
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                int attemptCount = 100;
+
+                while (resolvedException == null && attemptCount-- > 0)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
             }
 
             Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
