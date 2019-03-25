@@ -32,16 +32,12 @@ namespace osu.Framework.Lists
 
         public void ForEachAlive(Action<T> action)
         {
-            int index = 0;
-            while (index < list.Count)
+            list.RemoveAll(item => item.TryGetTarget(out _));
+
+            foreach (var item in list)
             {
-                if (list[index].TryGetTarget(out T obj))
-                {
+                if (item.TryGetTarget(out T obj))
                     action(obj);
-                    index++;
-                }
-                else
-                    list.RemoveAt(index);
             }
         }
     }
