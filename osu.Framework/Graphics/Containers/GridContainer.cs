@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
             // Calculation of the distribution pool happens in a three-step process:
             // 1. The initial distribution pool is calculated.
             // 2. The maximum distribution pool is calculated by adding any excess from cells with defined MaxSizes
-            // 3. The minimum distribution pool is calculated by allocation portions of the pool to cells with unfulfilled MinSizes
+            // 3. The minimum distribution pool is calculated by allocating portions of the pool to cells with unfulfilled MinSizes
 
             // 1. Calculate the initial distribution pool
             for (int i = 0; i < dimensions.Length; i++)
