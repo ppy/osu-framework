@@ -17,7 +17,18 @@ namespace osu.Framework.Tests.IO
         public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            Task.Run(() => Run(testGame = new TestGame()));
+            Task.Run(() =>
+                {
+                    try
+                    {
+                        Run(testGame = new TestGame());
+                    }
+                    catch
+                    {
+                        // may throw an unobserved exception if we don't handle here.
+                    }
+                }
+            );
 
             while (testGame?.HasProcessed != true)
                 Thread.Sleep(10);
