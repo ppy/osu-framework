@@ -63,12 +63,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Set a specified <paramref name="child"/> on <paramref name="container"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the children of <paramref name="container"/>.</typeparam>
+        /// <typeparam name="T">The container type.</typeparam>
+        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
         /// <param name="container">The <paramref name="container"/> that will have a child set.</param>
         /// <param name="child">The <paramref name="child"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
-        public static Container<T> WithChild<T>(this Container<T> container, T child)
-            where T : Drawable
+        public static T WithChild<T, U>(this T container, U child)
+            where T : IContainer<U>
+            where U : Drawable
         {
             container.Child = child;
 
@@ -78,12 +80,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Set specified <paramref name="children"/> on <paramref name="container"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the children of <paramref name="container"/>.</typeparam>
+        /// <typeparam name="T">The container type.</typeparam>
+        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
         /// <param name="container">The <paramref name="container"/> that will have children set.</param>
         /// <param name="children">The <paramref name="children"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
-        public static Container<T> WithChildren<T>(this Container<T> container, IEnumerable<T> children)
-            where T : Drawable
+        public static T WithChildren<T, U>(this T container, IEnumerable<U> children)
+            where T : IContainer<U>
+            where U : Drawable
         {
             container.ChildrenEnumerable = children;
 
