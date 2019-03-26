@@ -16,13 +16,6 @@ namespace osu.Framework.Graphics.Containers
         Vector2 RelativeChildOffset { get; set; }
     }
 
-    public interface IContainer<in T>
-    {
-        T Child { set; }
-
-        IEnumerable<T> ChildrenEnumerable { set; }
-    }
-
     public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
@@ -35,6 +28,10 @@ namespace osu.Framework.Graphics.Containers
         where T : IDrawable
     {
         IReadOnlyList<T> Children { set; }
+
+        T Child { set; }
+
+        IEnumerable<T> ChildrenEnumerable { set; }
 
         void Add(T drawable);
         void AddRange(IEnumerable<T> collection);

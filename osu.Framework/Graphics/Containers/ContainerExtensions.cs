@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="child">The <paramref name="child"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
         public static T WithChild<T, U>(this T container, U child)
-            where T : IContainer<U>
+            where T : IContainerCollection<U>
             where U : Drawable
         {
             container.Child = child;
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="children">The <paramref name="children"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
         public static T WithChildren<T, U>(this T container, IEnumerable<U> children)
-            where T : IContainer<U>
+            where T : IContainerCollection<U>
             where U : Drawable
         {
             container.ChildrenEnumerable = children;
