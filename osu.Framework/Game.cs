@@ -26,9 +26,9 @@ namespace osu.Framework
     {
         public GameWindow Window => Host?.Window;
 
-        public ResourceStore<byte[]> Resources;
+        public ResourceStore<byte[]> Resources { get; private set; }
 
-        public TextureStore Textures;
+        public TextureStore Textures { get; private set; }
 
         protected GameHost Host { get; private set; }
 
@@ -39,17 +39,19 @@ namespace osu.Framework
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public AudioManager Audio;
+        public AudioManager Audio { get; private set; }
 
-        public ShaderManager Shaders;
+        public ShaderManager Shaders { get; private set; }
 
-        public FontStore Fonts;
+        public FontStore Fonts { get; private set; }
 
         protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
+
         private PerformanceOverlay performanceContainer;
-        internal DrawVisualiser DrawVisualiser;
+
+        private DrawVisualiser drawVisualiser;
 
         private LogOverlay logOverlay;
 
@@ -74,7 +76,7 @@ namespace osu.Framework
 
         private void addDebugTools()
         {
-            LoadComponentAsync(DrawVisualiser = new DrawVisualiser
+            LoadComponentAsync(drawVisualiser = new DrawVisualiser
             {
                 Depth = float.MinValue / 2,
             }, AddInternal);
@@ -188,9 +190,10 @@ namespace osu.Framework
                             FrameStatisticsMode = FrameStatisticsMode.None;
                             break;
                     }
+
                     return true;
                 case FrameworkAction.ToggleDrawVisualiser:
-                    DrawVisualiser.ToggleVisibility();
+                    drawVisualiser.ToggleVisibility();
                     return true;
                 case FrameworkAction.ToggleLogOverlay:
                     logOverlay.ToggleVisibility();
