@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -44,17 +44,7 @@ namespace osu.Framework.Testing.Drawables
             set
             {
                 base.Current = value;
-
-                const float transition_duration = 100;
-
-                if (value)
-                {
-                    boxContainer.FadeIn(transition_duration);
-                }
-                else
-                {
-                    boxContainer.FadeOut(transition_duration);
-                }
+                boxContainer.FadeTo(value ? 1 : 0, 100);
             }
         }
     }
