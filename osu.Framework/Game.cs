@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
@@ -148,6 +149,8 @@ namespace osu.Framework
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
+
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
@@ -216,6 +219,9 @@ namespace osu.Framework
 
         public void Exit()
         {
+            if (Host == null)
+                throw new InvalidOperationException("Attempted to exit a game which has not yet been run");
+
             Host.Exit();
         }
 

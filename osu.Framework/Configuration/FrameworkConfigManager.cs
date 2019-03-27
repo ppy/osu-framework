@@ -12,7 +12,9 @@ namespace osu.Framework.Configuration
 {
     public class FrameworkConfigManager : IniConfigManager<FrameworkSetting>
     {
-        protected override string Filename => @"framework.ini";
+        internal const string FILENAME = @"framework.ini";
+
+        protected override string Filename => FILENAME;
 
         protected override void InitialiseDefaults()
         {
