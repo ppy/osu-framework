@@ -11,8 +11,6 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public readonly struct IconUsage : IEquatable<IconUsage>
     {
-        private const float default_text_size = 20;
-
         /// <summary>
         /// The font family name.
         /// </summary>
