@@ -47,11 +47,11 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
             });
 
-            foreach (FontAwesome fa in Enum.GetValues(typeof(FontAwesome)))
+            foreach (FontAwesomeIcon fa in Enum.GetValues(typeof(FontAwesomeIcon)))
                 flow.Add(new Icon(fa));
 
             AddStep("toggle shadows", () => flow.Children.ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
-            AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = i.SpriteIcon.Icon + 1));
+            AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
         }
 
         private class Icon : Container, IHasTooltip
@@ -60,14 +60,14 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public SpriteIcon SpriteIcon { get; }
 
-            public Icon(FontAwesome fa)
+            public Icon(FontAwesomeIcon fa)
             {
                 TooltipText = fa.ToString();
 
                 AutoSizeAxes = Axes.Both;
                 Child = SpriteIcon = new SpriteIcon
                 {
-                    Icon = fa,
+                    Icon = FontAwesome.Get(fa),
                     Size = new Vector2(60),
                 };
             }
