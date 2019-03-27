@@ -10,7 +10,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
-using osu.Framework.Platform.MacOS;
 
 namespace osu.Framework.iOS
 {
@@ -20,7 +19,13 @@ namespace osu.Framework.iOS
 
         public IOSGameHost(IOSGameView gameView)
         {
-            IOSGameWindow.GameView = this.gameView = gameView;
+            this.gameView = gameView;
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+            IOSGameWindow.GameView = gameView;
             Window = new IOSGameWindow();
         }
 
@@ -38,7 +43,7 @@ namespace osu.Framework.iOS
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[] { new IOSTouchHandler(gameView), new IOSKeyboardHandler(gameView), new IOSRawKeyboardHandler() };
 
-        protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
+        protected override Storage GetStorage(string baseName) => new IOSStorage(baseName, this);
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 

@@ -754,7 +754,7 @@ namespace osu.Framework.Graphics.Containers
         internal void DisposeChildAsync(Drawable drawable)
         {
             drawable.UnbindAllBindables();
-            Task.Run(() => drawable.Dispose());
+            Task.Run(drawable.Dispose);
         }
 
         internal override void UpdateClock(IFrameBasedClock clock)

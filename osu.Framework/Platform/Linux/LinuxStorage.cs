@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxStorage : DesktopStorage
     {
-        public LinuxStorage(string baseName, GameHost host)
+        public LinuxStorage(string baseName, DesktopGameHost host)
             : base(baseName, host)
         {
         }
