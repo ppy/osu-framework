@@ -1,7 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -47,8 +47,8 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
             });
 
-            foreach (FontAwesomeIcon fa in Enum.GetValues(typeof(FontAwesomeIcon)))
-                flow.Add(new Icon(fa));
+            foreach (var p in typeof(FontAwesome).GetProperties(BindingFlags.Public | BindingFlags.Static))
+                flow.Add(new Icon((IconUsage)p.GetValue(null)));
 
             AddStep("toggle shadows", () => flow.Children.ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
             AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
@@ -60,14 +60,14 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public SpriteIcon SpriteIcon { get; }
 
-            public Icon(FontAwesomeIcon fa)
+            public Icon(IconUsage icon)
             {
-                TooltipText = fa.ToString();
+                TooltipText = icon.ToString();
 
                 AutoSizeAxes = Axes.Both;
                 Child = SpriteIcon = new SpriteIcon
                 {
-                    Icon = FontAwesome.Get(fa),
+                    Icon = icon,
                     Size = new Vector2(60),
                 };
             }
