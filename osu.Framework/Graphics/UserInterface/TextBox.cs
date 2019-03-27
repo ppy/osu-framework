@@ -91,6 +91,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
 
+        protected virtual Color4 InputErrorColour => Color4.Red;
+
         /// <summary>
         /// Check if a character can be added to this TextBox.
         /// </summary>
@@ -564,9 +566,9 @@ namespace osu.Framework.Graphics.UserInterface
         private void notifyInputError()
         {
             if (Background.Alpha > 0)
-                Background.FlashColour(Color4.Red, 200);
+                Background.FlashColour(InputErrorColour, 200);
             else
-                TextFlow.FlashColour(Color4.Red, 200);
+                TextFlow.FlashColour(InputErrorColour, 200);
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
