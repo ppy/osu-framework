@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Sprites
     /// Ues <see cref="FontStore"/> to perform character lookups.
     /// </summary>
     public class SpriteIcon<T> : CompositeDrawable
-        where T : struct, Enum
+        where T : Enum
     {
         private Sprite spriteShadow;
         private Sprite spriteMain;
