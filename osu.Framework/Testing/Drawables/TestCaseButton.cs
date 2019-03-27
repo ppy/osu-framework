@@ -22,6 +22,7 @@ namespace osu.Framework.Testing.Drawables
 
         public bool MatchingFilter
         {
+            get => matchingFilter;
             set
             {
                 matchingFilter = value;

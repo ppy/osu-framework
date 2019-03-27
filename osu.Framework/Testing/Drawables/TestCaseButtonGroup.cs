@@ -96,18 +96,5 @@ namespace osu.Framework.Testing.Drawables
             if (Group.TestTypes.Length > 1)
                 buttonFlow.ForEach(b => b.Collapsed = true);
         }
-
-        public Type SelectFirst()
-        {
-            if (Group.TestTypes.Length == 1) return Group.TestTypes[0];
-
-            for (int i = 1; i < buttonFlow.Count; i++)
-            {
-                if (buttonFlow[i].IsPresent)
-                    return Group.TestTypes[i - 1];
-            }
-
-            return Group.TestTypes[0];
-        }
     }
 }
