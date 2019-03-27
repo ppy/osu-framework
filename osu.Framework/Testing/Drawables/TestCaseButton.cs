@@ -47,22 +47,26 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                content = new Container
+                new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
-                    Child = text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Padding = new MarginPadding
+                        content = new Container { RelativeSizeAxes = Axes.Both },
+                        text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
                         {
-                            Top = 4,
-                            Left = LEFT_TEXT_PADDING,
-                            Right = 4,
-                            Bottom = 5,
-                        },
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Padding = new MarginPadding
+                            {
+                                Top = 4,
+                                Left = LEFT_TEXT_PADDING,
+                                Right = 4,
+                                Bottom = 5,
+                            },
+                        }
                     }
                 },
             };

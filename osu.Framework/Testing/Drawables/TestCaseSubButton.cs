@@ -30,7 +30,6 @@ namespace osu.Framework.Testing.Drawables
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = left_box_width, Right = left_box_width },
                     Alpha = 0,
-                    Depth = 1,
                     Child = new Box
                     {
                         Colour = new Color4(128, 164, 108, 255),
