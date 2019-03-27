@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
-        /// Contructs a <see cref="Container"/> that stores children.
+        /// Constructs a <see cref="Container"/> that stores children.
         /// </summary>
         public Container()
         {
