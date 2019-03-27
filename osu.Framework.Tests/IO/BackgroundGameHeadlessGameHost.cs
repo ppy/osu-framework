@@ -18,17 +18,16 @@ namespace osu.Framework.Tests.IO
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
             Task.Run(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        Run(testGame = new TestGame());
-                    }
-                    catch
-                    {
-                        // may throw an unobserved exception if we don't handle here.
-                    }
+                    Run(testGame = new TestGame());
                 }
-            );
+                catch
+                {
+                    // may throw an unobserved exception if we don't handle here.
+                }
+            });
 
             while (testGame?.HasProcessed != true)
                 Thread.Sleep(10);
