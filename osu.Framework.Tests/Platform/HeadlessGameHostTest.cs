@@ -6,22 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Platform;
+using osu.Framework.Tests.IO;
 
 namespace osu.Framework.Tests.Platform
 {
     [TestFixture]
     public class HeadlessGameHostTest
     {
-        private class Foobar
-        {
-            public string Bar;
-        }
-
         [Test]
         public void TestIpc()
         {
-            using (var server = new HeadlessGameHost(@"server", true))
-            using (var client = new HeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
+            using (var client = new BackgroundGameHeadlessGameHost(@"client", true))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
@@ -46,6 +42,11 @@ namespace osu.Framework.Tests.Platform
 
                 Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
             }
+        }
+
+        private class Foobar
+        {
+            public string Bar;
         }
     }
 }

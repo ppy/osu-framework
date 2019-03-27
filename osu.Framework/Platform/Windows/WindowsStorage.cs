@@ -9,7 +9,7 @@ namespace osu.Framework.Platform.Windows
 {
     public class WindowsStorage : DesktopStorage
     {
-        public WindowsStorage(string baseName, GameHost host)
+        public WindowsStorage(string baseName, DesktopGameHost host)
             : base(baseName, host)
         {
             // allows traversal of long directory/filenames beyond the standard limitations (see https://stackoverflow.com/a/5188559)
