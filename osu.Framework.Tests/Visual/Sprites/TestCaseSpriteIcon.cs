@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             foreach (var p in typeof(FontAwesome).GetProperties(BindingFlags.Public | BindingFlags.Static))
-                flow.Add(new Icon((IconUsage)p.GetValue(null)));
+                flow.Add(new Icon($"{nameof(FontAwesome)}.{p.Name}", (IconUsage)p.GetValue(null)));
 
             AddStep("toggle shadows", () => flow.Children.ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
             AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
@@ -60,9 +60,9 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public SpriteIcon SpriteIcon { get; }
 
-            public Icon(IconUsage icon)
+            public Icon(string name, IconUsage icon)
             {
-                TooltipText = icon.ToString();
+                TooltipText = name;
 
                 AutoSizeAxes = Axes.Both;
                 Child = SpriteIcon = new SpriteIcon
