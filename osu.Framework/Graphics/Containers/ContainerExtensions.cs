@@ -3,6 +3,7 @@
 
 using osuTK;
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -55,6 +56,40 @@ namespace osu.Framework.Graphics.Containers
             }
 
             container.Add(drawable);
+
+            return container;
+        }
+
+        /// <summary>
+        /// Set a specified <paramref name="child"/> on <paramref name="container"/>.
+        /// </summary>
+        /// <typeparam name="T">The container type.</typeparam>
+        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
+        /// <param name="container">The <paramref name="container"/> that will have a child set.</param>
+        /// <param name="child">The <paramref name="child"/> that should be set to the <paramref name="container"/>.</param>
+        /// <returns>The given <paramref name="container"/>.</returns>
+        public static T WithChild<T, U>(this T container, U child)
+            where T : IContainerCollection<U>
+            where U : Drawable
+        {
+            container.Child = child;
+
+            return container;
+        }
+
+        /// <summary>
+        /// Set specified <paramref name="children"/> on <paramref name="container"/>.
+        /// </summary>
+        /// <typeparam name="T">The container type.</typeparam>
+        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
+        /// <param name="container">The <paramref name="container"/> that will have children set.</param>
+        /// <param name="children">The <paramref name="children"/> that should be set to the <paramref name="container"/>.</param>
+        /// <returns>The given <paramref name="container"/>.</returns>
+        public static T WithChildren<T, U>(this T container, IEnumerable<U> children)
+            where T : IContainerCollection<U>
+            where U : Drawable
+        {
+            container.ChildrenEnumerable = children;
 
             return container;
         }
