@@ -35,7 +35,11 @@ namespace osu.Framework.IO.Stores
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
-            this.store = store;
+            this.store = new ResourceStore<byte[]>(store);
+
+            this.store.AddExtension("fnt");
+            this.store.AddExtension("bin");
+
             this.assetName = assetName;
 
             FontName = assetName?.Split('/').Last();
@@ -46,7 +50,7 @@ namespace osu.Framework.IO.Stores
             try
             {
                 BitmapFont font;
-                using (var s = store.GetStream($@"{assetName}.bin"))
+                using (var s = store.GetStream($@"{assetName}"))
                     font = BitmapFont.FromStream(s, FormatHint.Binary, false);
 
                 completionSource.SetResult(font);
