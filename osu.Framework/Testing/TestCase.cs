@@ -17,6 +17,7 @@ using osuTK;
 using osuTK.Graphics;
 using System.Threading.Tasks;
 using System.Threading;
+using NUnit.Framework.Internal;
 
 namespace osu.Framework.Testing
 {
@@ -84,8 +85,29 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetUpTestForNUnit()
         {
-            if (IsNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                Schedule(() => StepsContainer.Clear());
+            if (IsNUnitRunning)
+            {
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+                    Schedule(() => StepsContainer.Clear());
+            }
 
             RunSetUpSteps();
         }
