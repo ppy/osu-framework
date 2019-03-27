@@ -44,7 +44,7 @@ namespace osu.Framework.Testing.Drawables
             set
             {
                 base.Current = value;
-                boxContainer.FadeTo(value ? 1 : 0, 100);
+                boxContainer.FadeTo(value ? 1 : 0, TRANSITION_DURATION);
             }
         }
     }

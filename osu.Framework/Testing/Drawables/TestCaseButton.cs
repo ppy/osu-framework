@@ -36,6 +36,8 @@ namespace osu.Framework.Testing.Drawables
 
         public const float LEFT_TEXT_PADDING = 16;
 
+        protected const float TRANSITION_DURATION = 100;
+
         protected override Container<Drawable> Content => content;
 
         private TestCaseButton()
@@ -119,9 +121,7 @@ namespace osu.Framework.Testing.Drawables
         {
             set
             {
-                const float transition_duration = 100;
-
-                text.FadeColour(value ? Color4.Black : Color4.White, transition_duration);
+                text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
             }
         }
     }

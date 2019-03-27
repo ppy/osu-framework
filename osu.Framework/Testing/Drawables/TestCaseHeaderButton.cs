@@ -7,13 +7,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
     internal class TestCaseHeaderButton : TestCaseButton
     {
-        private SpriteText headerSprite;
+        private SpriteIcon icon;
         private Container leftBoxContainer;
         private const float left_box_width = LEFT_TEXT_PADDING / 2;
 
@@ -46,11 +47,13 @@ namespace osu.Framework.Testing.Drawables
                         RelativeSizeAxes = Axes.Both,
                     },
                 },
-                headerSprite = new SpriteText
+                icon = new SpriteIcon
                 {
-                    Font = new FontUsage(size: 20),
-                    Colour = Color4.LightGray,
-                    Padding = new MarginPadding { Left = left_box_width, Right = left_box_width + 5 },
+                    Size = new Vector2(10),
+                    Icon = FontAwesome.ChevronDown,
+                    Colour = Color4.White,
+                    Y = -1,
+                    Margin = new MarginPadding { Right = left_box_width + 5 },
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
                 }
@@ -63,19 +66,20 @@ namespace osu.Framework.Testing.Drawables
             {
                 base.Current = value;
 
-                const float transition_duration = 100;
+
+                icon.FadeColour(value ? Color4.Black : Color4.White, 100);
 
                 if (value)
                 {
-                    leftBoxContainer.ResizeWidthTo(1, transition_duration);
-                    this.TransformTo(nameof(leftBoxContainerPadding), left_box_width, transition_duration);
-                    this.TransformTo(nameof(contentPadding), 0f, transition_duration);
+                    leftBoxContainer.ResizeWidthTo(1, TRANSITION_DURATION);
+                    this.TransformTo(nameof(leftBoxContainerPadding), left_box_width, TRANSITION_DURATION);
+                    this.TransformTo(nameof(contentPadding), 0f, TRANSITION_DURATION);
                 }
                 else
                 {
-                    leftBoxContainer.ResizeWidthTo(0, transition_duration);
-                    this.TransformTo(nameof(leftBoxContainerPadding), -left_box_width, transition_duration);
-                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, transition_duration);
+                    leftBoxContainer.ResizeWidthTo(0, TRANSITION_DURATION);
+                    this.TransformTo(nameof(leftBoxContainerPadding), -left_box_width, TRANSITION_DURATION);
+                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, TRANSITION_DURATION);
                 }
             }
         }
@@ -92,8 +96,8 @@ namespace osu.Framework.Testing.Drawables
             set => Content.Padding = new MarginPadding { Right = value };
         }
 
-        public override void Hide() => headerSprite.Text = "...";
+        public override void Hide() => icon.Icon = FontAwesome.ChevronDown;
 
-        public override void Show() => headerSprite.Text = string.Empty;
+        public override void Show() => icon.Icon = FontAwesome.ChevronUp;
     }
 }
