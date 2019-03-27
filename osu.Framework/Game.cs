@@ -138,6 +138,8 @@ namespace osu.Framework
             Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
             Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
+
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
