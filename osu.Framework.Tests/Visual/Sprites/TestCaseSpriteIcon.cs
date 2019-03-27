@@ -51,6 +51,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 flow.Add(new Icon(fa));
 
             AddStep("toggle shadows", () => flow.Children.ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
+            AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = i.SpriteIcon.Icon + 1));
         }
 
         private class Icon : Container, IHasTooltip
