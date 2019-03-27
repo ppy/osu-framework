@@ -143,7 +143,7 @@ namespace osu.Framework.Testing
                     {
                         new Box
                         {
-                            Colour = new Color4(50, 50, 50, 255),
+                            Colour = new Color4(30, 57, 52, 255),
                             RelativeSizeAxes = Axes.Both
                         },
                         new FillFlowContainer
@@ -168,7 +168,6 @@ namespace osu.Framework.Testing
                                 {
                                     Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
-                                    ScrollbarOverlapsContent = false,
                                     Child = leftFlowContainer = new SearchContainer<TestCaseButtonGroup>
                                     {
                                         Padding = new MarginPadding(3),

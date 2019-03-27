@@ -16,12 +16,13 @@ namespace osu.Framework.Testing.Drawables
 
         public bool MatchingFilter
         {
-            set { Alpha = value ? 1 : 0; }
+            set => Alpha = value ? 1 : 0;
         }
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
         private readonly FillFlowContainer<TestCaseButton> buttonFlow;
+        private readonly TestCaseHeaderButton headerButton;
 
         public readonly TestGroup Group;
 
@@ -33,6 +34,7 @@ namespace osu.Framework.Testing.Drawables
                 if (contains) Show();
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
+                headerButton.Current = contains;
             }
         }
 
@@ -59,20 +61,24 @@ namespace osu.Framework.Testing.Drawables
 
             if (hasHeader)
             {
-                buttonFlow.Add(new TestCaseHeaderButton(group.Name.Replace("TestCase", ""))
+                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name.Replace("TestCase", ""))
                 {
                     Action = ToggleVisibility
                 });
-            }
 
-            foreach (var test in tests)
-            {
-                buttonFlow.Add(new TestCaseButton(test)
+                foreach (var test in tests)
                 {
-                    Anchor = Anchor.TopRight,
-                    Origin = Anchor.TopRight,
-                    Width = hasHeader ? 0.95f : 1,
-                    Action = () => loadTest(test)
+                    buttonFlow.Add(new TestCaseSubButton(test)
+                    {
+                        Action = () => loadTest(test)
+                    });
+                }
+            }
+            else
+            {
+                buttonFlow.Add(headerButton = new TestCaseHeaderButton(tests[0])
+                {
+                    Action = () => loadTest(tests[0]),
                 });
             }
         }
