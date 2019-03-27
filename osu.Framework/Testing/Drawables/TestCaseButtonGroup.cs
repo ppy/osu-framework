@@ -68,7 +68,7 @@ namespace osu.Framework.Testing.Drawables
 
                 foreach (var test in tests)
                 {
-                    buttonFlow.Add(new TestCaseSubbutton(test)
+                    buttonFlow.Add(new TestCaseSubButton(test)
                     {
                         Action = () => loadTest(test)
                     });
