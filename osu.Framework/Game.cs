@@ -46,6 +46,8 @@ namespace osu.Framework
 
         public FontStore Fonts { get; private set; }
 
+        private FontStore localFonts;
+
         protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
@@ -135,11 +137,17 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            // OpenSans
-            Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            // base store is for user fonts
+            Fonts = new FontStore();
+
+            // nested store for framework provided fonts.
+            // note that currently this means there could be two async font load operations.
+            Fonts.AddStore(localFonts = new FontStore());
+
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
             Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
 
