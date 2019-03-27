@@ -70,6 +70,7 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         public event Func<bool> Exiting;
+
         public event Action Exited;
 
         /// <summary>
