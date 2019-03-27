@@ -52,10 +52,12 @@ Task("DetermineAppveyorDeployProperties")
         Environment.SetEnvironmentVariable("APPVEYOR_DEPLOY", "1");
 
         if (AppVeyor.Environment.Repository.Tag.IsTag)
+        {
             AppVeyor.UpdateBuildVersion(AppVeyor.Environment.Repository.Tag.Name);
+            version = AppVeyor.Environment.Repository.Tag.Name;
+        }
 
         configuration = "Release";
-        version = AppVeyor.Environment.Repository.Tag.Name;
     });
 
 Task("Clean")
@@ -211,6 +213,7 @@ Task("Build")
     .IsDependentOn("CodeFileSanity")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
