@@ -13,8 +13,10 @@ namespace osu.Framework.Development
         public static bool IsDebugBuild => is_debug_build.Value;
 
         private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
-            // https://stackoverflow.com/a/2186634
-            (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled)
+            isDebugAssembly(typeof(DebugUtils).Assembly) || isDebugAssembly(Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
         );
+
+        // https://stackoverflow.com/a/2186634
+        private static bool isDebugAssembly(Assembly assembly) => assembly.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled);
     }
 }
