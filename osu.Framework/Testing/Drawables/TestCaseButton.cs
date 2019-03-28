@@ -140,9 +140,9 @@ namespace osu.Framework.Testing.Drawables
             {
                 if (current == value)
                     return;
-                
+
                 current = value;
-                
+
                 text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
                 updateVisibility();
             }
