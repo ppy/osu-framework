@@ -30,6 +30,8 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
+        public bool FilteringActive { get; set; }
+
         private readonly Container content;
         private readonly TextFlowContainer text;
         public readonly Type TestType;
@@ -113,7 +115,7 @@ namespace osu.Framework.Testing.Drawables
 
         private void updateVisibility()
         {
-            if (matchingFilter || !collapsed)
+            if (FilteringActive && matchingFilter || !collapsed)
                 Show();
             else
                 Hide();

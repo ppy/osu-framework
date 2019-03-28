@@ -137,6 +137,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             }
 
+            public bool FilteringActive
+            {
+                set { }
+            }
+
             public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
 
             protected override Container<Drawable> Content => flowContainer;
@@ -173,6 +178,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Hide();
                 }
             }
+
+            public bool FilteringActive
+            {
+                set { }
+            }
         }
 
         private class SearchableText : SpriteText, IFilterable
@@ -186,6 +196,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     else
                         Hide();
                 }
+            }
+
+            public bool FilteringActive
+            {
+                set { }
             }
         }
     }

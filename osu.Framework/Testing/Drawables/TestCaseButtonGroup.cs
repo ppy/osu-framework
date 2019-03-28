@@ -19,6 +19,8 @@ namespace osu.Framework.Testing.Drawables
             set => Alpha = value ? 1 : 0;
         }
 
+        public bool FilteringActive { get; set; }
+
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
         private readonly FillFlowContainer<TestCaseButton> buttonFlow;
