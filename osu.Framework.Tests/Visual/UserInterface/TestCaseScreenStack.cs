@@ -189,6 +189,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreenSlow screen1 = null;
             AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow { AllowLoad = true }));
             pushAndEnsureCurrent(() => screen1);
+
+            AddAssert("fail", () => false);
         }
 
         [Test]

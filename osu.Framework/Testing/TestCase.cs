@@ -250,11 +250,15 @@ namespace osu.Framework.Testing
             {
                 text = $"{(int)Time.Current}: ".PadLeft(7);
 
+                Console.WriteLine("A");
+
                 if (actionIndex < 0)
                     text += $"{GetType().ReadableName()}";
                 else
                     text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
             }
+
+            Console.WriteLine("B");
 
             Console.Write(text);
 
@@ -270,14 +274,24 @@ namespace osu.Framework.Testing
                 actionRepetition = 0;
             }
 
+            Console.WriteLine("C");
+
+            Console.WriteLine($"Action index: {actionIndex}, Total Count: {StepsContainer.Children.Count}");
+
             if (actionIndex > StepsContainer.Children.Count - 1)
             {
                 onCompletion?.Invoke();
                 return;
             }
 
+            Console.WriteLine("D");
+
             if (Parent != null)
-                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
+                stepRunner = Scheduler.AddDelayed(() =>
+                {
+                    Console.WriteLine("E");
+                    runNextStep(onCompletion, onError, stopCondition);
+                }, TimePerAction);
         }
 
         public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));

@@ -95,7 +95,7 @@ Task("Test")
         var testAssemblies = GetFiles(rootDirectory + $"/*.Tests/bin/{configuration}/*/*.Tests.dll");
 
         var settings = new DotNetCoreVSTestSettings {
-            Logger = AppVeyor.IsRunningOnAppVeyor ? "Appveyor" : "trx",
+            Logger = AppVeyor.IsRunningOnAppVeyor ? "Appveyor" : "trx;LogFileName=/Users/smoogipoo/Desktop/Working/logfile.trx",
             Parallel = true,
             ToolTimeout = TimeSpan.FromHours(10),
             Settings = new FilePath("vstestconfig.runsettings"),
@@ -210,15 +210,7 @@ Task("Publish")
 Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
-    .IsDependentOn("CodeFileSanity")
-    .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
-    .IsDependentOn("DetermineAppveyorDeployProperties")
-    .IsDependentOn("PackFramework")
-    .IsDependentOn("PackiOSFramework")
-    .IsDependentOn("PackAndroidFramework")
-    .IsDependentOn("PackNativeLibs")
-    .IsDependentOn("Publish");
 
 Task("DeployFramework")
     .IsDependentOn("Clean")
