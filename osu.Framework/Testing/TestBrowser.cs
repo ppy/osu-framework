@@ -156,9 +156,9 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstVisible = leftFlowContainer.FirstOrDefault(b => b.IsPresent);
-                                        if (firstVisible != null)
-                                            LoadTest(firstVisible.SelectFirst());
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestCaseSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        if (firstTest != null)
+                                            LoadTest(firstTest);
                                     },
                                     Height = 20,
                                     RelativeSizeAxes = Axes.X,

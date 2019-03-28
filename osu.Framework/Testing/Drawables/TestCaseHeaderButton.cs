@@ -20,11 +20,13 @@ namespace osu.Framework.Testing.Drawables
 
         public TestCaseHeaderButton(string header)
             : base(header)
-        { }
+        {
+        }
 
         public TestCaseHeaderButton(Type type)
             : base(type)
-        { }
+        {
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -96,8 +98,21 @@ namespace osu.Framework.Testing.Drawables
             set => Content.Padding = new MarginPadding { Right = value };
         }
 
-        public override void Hide() => icon.Icon = FontAwesome.ChevronDown;
+        public override bool Collapsed
+        {
+            set
+            {
+                icon.Icon = value ? FontAwesome.ChevronDown : FontAwesome.ChevronUp;
+                base.Collapsed = value;
+            }
+        }
 
-        public override void Show() => icon.Icon = FontAwesome.ChevronUp;
+        public override void Show()
+        {
+        }
+
+        public override void Hide()
+        {
+        }
     }
 }

@@ -14,7 +14,7 @@ using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer, IFilterable
+    internal abstract class TestCaseButton : ClickableContainer, IFilterable
     {
         public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
@@ -22,13 +22,15 @@ namespace osu.Framework.Testing.Drawables
 
         public bool MatchingFilter
         {
+            get => matchingFilter;
             set
             {
                 matchingFilter = value;
-
                 updateVisibility();
             }
         }
+
+        public bool FilteringActive { get; set; }
 
         private readonly Container content;
         private readonly TextFlowContainer text;
@@ -100,10 +102,12 @@ namespace osu.Framework.Testing.Drawables
 
         private bool collapsed;
 
-        public bool Collapsed
+        public virtual bool Collapsed
         {
             set
             {
+                if (collapsed == value) return;
+
                 collapsed = value;
                 updateVisibility();
             }
@@ -111,17 +115,36 @@ namespace osu.Framework.Testing.Drawables
 
         private void updateVisibility()
         {
-            if (collapsed || !matchingFilter)
-                Hide();
+            if (FilteringActive)
+            {
+                if (matchingFilter)
+                    Show();
+                else
+                    Hide();
+            }
             else
-                Show();
+            {
+                if (Current || !collapsed)
+                    Show();
+                else
+                    Hide();
+            }
         }
+
+        private bool current;
 
         public virtual bool Current
         {
+            get => current;
             set
             {
+                if (current == value)
+                    return;
+
+                current = value;
+
                 text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
+                updateVisibility();
             }
         }
     }
