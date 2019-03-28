@@ -41,10 +41,10 @@ namespace osu.Framework.Graphics.Containers
 
             bool matching = childTerms.Length == 0;
 
-            //We need to check the children and should any child match this matches aswell
+            //We need to check the children and should any child match this matches as well
             if (hasFilterableChildren != null)
-                foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
-                    matching |= match(searchableChildren, childTerms);
+                foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
+                    matching |= match(child, childTerms);
 
             return filterable.MatchingFilter = matching;
         }
