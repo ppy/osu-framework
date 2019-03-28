@@ -258,7 +258,7 @@ namespace osu.Framework.Testing
                 stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
 
-        public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));
+        public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
         public StepButton AddStep(string description, Action action)
         {
@@ -285,7 +285,7 @@ namespace osu.Framework.Testing
             return step;
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount) => Schedule(() =>
+        protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
@@ -293,7 +293,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddToggleStep(string description, Action<bool> action) => Schedule(() =>
+        protected void AddToggleStep(string description, Action<bool> action) => schedule(() =>
         {
             StepsContainer.Add(new ToggleStepButton(action)
             {
@@ -305,7 +305,7 @@ namespace osu.Framework.Testing
         protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
             => AddUntilStep(description, waitUntilTrueDelegate);
 
-        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -317,7 +317,7 @@ namespace osu.Framework.Testing
         protected void AddWaitStep(int waitCount, string description = null)
             => AddWaitStep(description, waitCount);
 
-        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
+        protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
@@ -325,7 +325,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => Schedule(() =>
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
@@ -333,7 +333,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => Schedule(() =>
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
         {
             StepsContainer.Add(new AssertButton
             {
@@ -343,6 +343,9 @@ namespace osu.Framework.Testing
                 Assertion = assert,
             });
         });
+
+        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
+        private void schedule(Action action) => Scheduler.Add(action, false);
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
 
