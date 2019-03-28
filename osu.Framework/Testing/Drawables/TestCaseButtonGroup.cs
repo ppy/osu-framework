@@ -34,7 +34,8 @@ namespace osu.Framework.Testing.Drawables
                 if (contains) Show();
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
-                headerButton.Current = contains;
+                if (headerButton != null)
+                    headerButton.Current = contains;
             }
         }
 
@@ -60,25 +61,16 @@ namespace osu.Framework.Testing.Drawables
             bool hasHeader = tests.Length > 1;
 
             if (hasHeader)
-            {
                 buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name.Replace("TestCase", ""))
                 {
                     Action = ToggleVisibility
                 });
 
-                foreach (var test in tests)
-                {
-                    buttonFlow.Add(new TestCaseSubButton(test)
-                    {
-                        Action = () => loadTest(test)
-                    });
-                }
-            }
-            else
+            foreach (var test in tests)
             {
-                buttonFlow.Add(headerButton = new TestCaseHeaderButton(tests[0])
+                buttonFlow.Add(new TestCaseSubButton(test, hasHeader ? 1 : 0)
                 {
-                    Action = () => loadTest(tests[0]),
+                    Action = () => loadTest(test)
                 });
             }
         }
