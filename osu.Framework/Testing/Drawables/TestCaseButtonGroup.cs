@@ -12,12 +12,14 @@ namespace osu.Framework.Testing.Drawables
 {
     internal class TestCaseButtonGroup : VisibilityContainer, IHasFilterableChildren
     {
-        public IEnumerable<string> FilterTerms => new string[0];
+        public IEnumerable<string> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<string>();
 
         public bool MatchingFilter
         {
             set => Alpha = value ? 1 : 0;
         }
+
+        public bool FilteringActive { get; set; }
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
@@ -77,29 +79,8 @@ namespace osu.Framework.Testing.Drawables
 
         public override bool PropagatePositionalInputSubTree => true;
 
-        protected override void PopIn()
-        {
-            if (Group.TestTypes.Length > 1)
-                buttonFlow.ForEach(b => b.Collapsed = false);
-        }
+        protected override void PopIn() => buttonFlow.ForEach(b => b.Collapsed = false);
 
-        protected override void PopOut()
-        {
-            if (Group.TestTypes.Length > 1)
-                buttonFlow.ForEach(b => b.Collapsed = true);
-        }
-
-        public Type SelectFirst()
-        {
-            if (Group.TestTypes.Length == 1) return Group.TestTypes[0];
-
-            for (int i = 1; i < buttonFlow.Count; i++)
-            {
-                if (buttonFlow[i].IsPresent)
-                    return Group.TestTypes[i - 1];
-            }
-
-            return Group.TestTypes[0];
-        }
+        protected override void PopOut() => buttonFlow.ForEach(b => b.Collapsed = true);
     }
 }
