@@ -117,7 +117,7 @@ namespace osu.Framework.Testing.Drawables
         {
             if (FilteringActive)
             {
-                if (FilteringActive && matchingFilter)
+                if (matchingFilter)
                     Show();
                 else
                     Hide();
@@ -138,8 +138,11 @@ namespace osu.Framework.Testing.Drawables
             get => current;
             set
             {
-                if (current == value) return;
+                if (current == value)
+                    return;
+                
                 current = value;
+                
                 text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
                 updateVisibility();
             }
