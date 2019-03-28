@@ -109,7 +109,6 @@ namespace osu.Framework.Testing.Drawables
 
         public override void Show()
         {
-
         }
 
         public override void Hide()
