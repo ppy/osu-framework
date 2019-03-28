@@ -115,15 +115,34 @@ namespace osu.Framework.Testing.Drawables
 
         private void updateVisibility()
         {
-            if (FilteringActive && matchingFilter || !collapsed)
-                Show();
+            if (FilteringActive)
+            {
+                if (FilteringActive && matchingFilter)
+                    Show();
+                else
+                    Hide();
+            }
             else
-                Hide();
+            {
+                if (Current || !collapsed)
+                    Show();
+                else
+                    Hide();
+            }
         }
+
+        private bool current;
 
         public virtual bool Current
         {
-            set => text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
+            get => current;
+            set
+            {
+                if (current == value) return;
+                current = value;
+                text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
+                updateVisibility();
+            }
         }
     }
 }
