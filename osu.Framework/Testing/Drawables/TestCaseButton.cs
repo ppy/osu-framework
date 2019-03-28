@@ -14,7 +14,7 @@ using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer, IFilterable
+    internal abstract class TestCaseButton : ClickableContainer, IFilterable
     {
         public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
@@ -26,7 +26,6 @@ namespace osu.Framework.Testing.Drawables
             set
             {
                 matchingFilter = value;
-
                 updateVisibility();
             }
         }
@@ -101,10 +100,12 @@ namespace osu.Framework.Testing.Drawables
 
         private bool collapsed;
 
-        public bool Collapsed
+        public virtual bool Collapsed
         {
             set
             {
+                if (collapsed == value) return;
+
                 collapsed = value;
                 updateVisibility();
             }
@@ -112,18 +113,15 @@ namespace osu.Framework.Testing.Drawables
 
         private void updateVisibility()
         {
-            if (collapsed || !matchingFilter)
-                Hide();
-            else
+            if (matchingFilter || !collapsed)
                 Show();
+            else
+                Hide();
         }
 
         public virtual bool Current
         {
-            set
-            {
-                text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
-            }
+            set => text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
         }
     }
 }

@@ -19,7 +19,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             SearchContainer<HeaderContainer> search;
             TextBox textBox;
 
-            Children = new Drawable[] {
+            Children = new Drawable[]
+            {
                 textBox = new TextBox
                 {
                     Size = new Vector2(300, 40),
@@ -60,7 +61,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                         {
                                             Direction = FillDirection.Horizontal,
                                             AutoSizeAxes = Axes.Both,
-                                            Children = new []
+                                            Children = new[]
                                             {
                                                 new SpriteText
                                                 {
@@ -110,7 +111,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 { "€", 1 },
                 { "èê", 1 },
                 { "321", 0 },
-                { "mul pi", 1},
+                { "mul pi", 1 },
                 { "header", 8 }
             }.ToList().ForEach(term =>
             {
