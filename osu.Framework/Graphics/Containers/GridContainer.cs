@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -182,10 +181,7 @@ namespace osu.Framework.Graphics.Containers
             for (int col = 0; col < cellColumns; col++)
             for (int row = 0; row < cellRows; row++)
             {
-                Debug.Assert(widths[col].HasValue);
-                Debug.Assert(heights[row].HasValue);
-
-                cells[row, col].Size = new Vector2(widths[col].Value, heights[row].Value);
+                cells[row, col].Size = new Vector2(widths[col], heights[row]);
 
                 if (col > 0)
                     cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
@@ -204,14 +200,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="axis">The axis span.</param>
         /// <param name="spanLength">The absolute length of the span.</param>
-        /// <returns>The size of all cells along the span of <paramref name="axis"/>. Sizes will be numeric for non-distributed cells, and null for distributed cells.</returns>
+        /// <returns>The size of all cells along the span of <paramref name="axis"/>.</returns>
         /// <exception cref="InvalidOperationException">If the <see cref="Dimension"/> for a cell is unsupported.</exception>
-        private float?[] getCellSizesAlongAxis(Axes axis, float spanLength)
+        private float[] getCellSizesAlongAxis(Axes axis, float spanLength)
         {
             var spanDimensions = axis == Axes.X ? columnDimensions : rowDimensions;
             int spanCount = axis == Axes.X ? cellColumns : cellRows;
 
-            var sizes = new float?[spanCount];
+            var sizes = new float[spanCount];
 
             for (int i = 0; i < spanCount; i++)
             {
@@ -225,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
                     default:
                         throw new InvalidOperationException($"Unsupported dimension: {dimension.Mode}.");
                     case GridSizeMode.Distributed:
-                        continue;
+                        break;
                     case GridSizeMode.Relative:
                         sizes[i] = dimension.Size * spanLength;
                         break;
@@ -252,7 +248,7 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                sizes[i] = MathHelper.Clamp(sizes[i].Value, 0, dimension.MaxSize);
+                sizes[i] = MathHelper.Clamp(sizes[i], 0, dimension.MaxSize);
             }
 
             return sizes;
@@ -265,20 +261,19 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="spanLength">The total available length.</param>
         /// <param name="cellSizes">An array containing pre-filled sizes of any non-distributed cells. This array will be mutated.</param>
         /// <returns><paramref name="cellSizes"/>.</returns>
-        private float?[] distribute(Dimension[] dimensions, float spanLength, float?[] cellSizes)
+        private float[] distribute(Dimension[] dimensions, float spanLength, float[] cellSizes)
         {
             // Indices of all distributed cells
-            // Note: The dimensions array is not used here as it can contain more or less items than the total number of cells
-            IEnumerable<int> distributedIndices = Enumerable.Range(0, cellSizes.Length).Where(i => cellSizes[i] == null);
+            int[] distributedIndices = Enumerable.Range(0, cellSizes.Length).Where(i => i >= dimensions.Length || dimensions[i].Mode == GridSizeMode.Distributed).ToArray();
 
             // The dimensions corresponding to all distributed cells
             IEnumerable<(int i, Dimension dim)> distributedDimensions = distributedIndices.Select(i => (i, i >= dimensions.Length ? new Dimension() : dimensions[i]));
 
             // Total number of distributed cells
-            int distributionCount = cellSizes.Count(s => s == null);
+            int distributionCount = distributedIndices.Length;
 
             // Non-distributed size
-            float requiredSize = cellSizes.Sum(s => s ?? 0);
+            float requiredSize = cellSizes.Sum();
 
             // Distribution size for _each_ distributed cell
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
