@@ -522,6 +522,78 @@ namespace osu.Framework.Tests.Visual.Layout
             checkClampedSizes(row, boxes, dimensions);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumSize(bool row)
+        {
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, minSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, minSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
+
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumAndMaximumSize(bool row)
+        {
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, maxSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, maxSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
+
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
         {
             AddAssert("sizes not over/underflowed", () =>
@@ -531,10 +603,10 @@ namespace osu.Framework.Tests.Visual.Layout
                     if (dimensions[i].Mode != GridSizeMode.Distributed)
                         continue;
 
-                    if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
+                    if (row && (boxes[i].DrawHeight > dimensions[i].MaxSize || boxes[i].DrawHeight < dimensions[i].MinSize))
                         return false;
 
-                    if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
+                    if (!row && (boxes[i].DrawWidth > dimensions[i].MaxSize || boxes[i].DrawWidth < dimensions[i].MinSize))
                         return false;
                 }
 
