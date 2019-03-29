@@ -18,12 +18,13 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public class TestCaseGridContainer : TestCase
     {
+        private Container gridParent;
         private GridContainer grid;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new Container
+            Child = gridParent = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -592,6 +593,64 @@ namespace osu.Framework.Tests.Visual.Layout
             }.Invert(), dimensions, row);
 
             checkClampedSizes(row, boxes, dimensions);
+        }
+
+        [Test]
+        public void TestCombinedMinimumAndMaximumSize()
+        {
+            AddStep("set content", () =>
+            {
+                gridParent.Masking = false;
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Width = 420;
+
+                grid.Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        new FillBox(),
+                        new FillBox(),
+                        new FillBox(),
+                    },
+                };
+
+                grid.ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Distributed, minSize: 180),
+                    new Dimension(GridSizeMode.Distributed, minSize: 50, maxSize: 70),
+                    new Dimension(GridSizeMode.Distributed, minSize: 40, maxSize: 70),
+                };
+            });
+
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
+        }
+
+        [Test]
+        public void TestCombinedMinimumAndMaximumSize2()
+        {
+            AddStep("set content", () =>
+            {
+                gridParent.Masking = false;
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Width = 230;
+
+                grid.Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        new FillBox(),
+                        new FillBox(),
+                    },
+                };
+
+                grid.ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Distributed, minSize: 180),
+                    new Dimension(GridSizeMode.Distributed, minSize: 40, maxSize: 70),
+                };
+            });
+
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
 
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
