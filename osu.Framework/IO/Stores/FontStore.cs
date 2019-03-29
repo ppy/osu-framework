@@ -30,6 +30,12 @@ namespace osu.Framework.IO.Stores
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
 
+        protected override IEnumerable<string> GetFilenames(string name)
+        {
+            // extensions should not be used as they interfere with character lookup.
+            yield return name;
+        }
+
         public override void AddStore(IResourceStore<TextureUpload> store)
         {
             switch (store)
