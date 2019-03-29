@@ -30,18 +30,22 @@ namespace osu.Framework.Tests.Visual.Layout
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.5f),
-                Masking = true,
-                BorderColour = Color4.White,
-                BorderThickness = 2,
                 Children = new Drawable[]
                 {
-                    new Box
+                    grid = new GridContainer { RelativeSizeAxes = Axes.Both },
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Alpha = 0,
-                        AlwaysPresent = true
-                    },
-                    grid = new GridContainer { RelativeSizeAxes = Axes.Both }
+                        Masking = true,
+                        BorderColour = Color4.White,
+                        BorderThickness = 2,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Alpha = 0,
+                            AlwaysPresent = true
+                        }
+                    }
                 }
             };
         });
