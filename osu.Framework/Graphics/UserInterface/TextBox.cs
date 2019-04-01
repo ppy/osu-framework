@@ -64,11 +64,34 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
-        protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
-        protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
+        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
+        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
+
+        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
+
+        protected Color4 BackgroundFocused
+        {
+            get => backgroundFocused;
+            set
+            {
+                backgroundFocused = value;
+                updateFocus();
+            }
+        }
+
+        protected Color4 BackgroundUnfocused
+        {
+            get => backgroundUnfocused;
+            set
+            {
+                backgroundUnfocused = value;
+                updateFocus();
+            }
+        }
 
         protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
+
+        protected virtual Color4 InputErrorColour => Color4.Red;
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -166,6 +189,8 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
         }
+
+        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
 
         protected override void Dispose(bool isDisposing)
         {
@@ -541,9 +566,9 @@ namespace osu.Framework.Graphics.UserInterface
         private void notifyInputError()
         {
             if (Background.Alpha > 0)
-                Background.FlashColour(Color4.Red, 200);
+                Background.FlashColour(InputErrorColour, 200);
             else
-                TextFlow.FlashColour(Color4.Red, 200);
+                TextFlow.FlashColour(InputErrorColour, 200);
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText

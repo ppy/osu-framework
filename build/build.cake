@@ -1,6 +1,6 @@
 using System.Threading;
 #addin "nuget:?package=CodeFileSanity&version=0.0.21"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2018.2.2"
+#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2018.3.4"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
 var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
@@ -52,10 +52,12 @@ Task("DetermineAppveyorDeployProperties")
         Environment.SetEnvironmentVariable("APPVEYOR_DEPLOY", "1");
 
         if (AppVeyor.Environment.Repository.Tag.IsTag)
+        {
             AppVeyor.UpdateBuildVersion(AppVeyor.Environment.Repository.Tag.Name);
+            version = AppVeyor.Environment.Repository.Tag.Name;
+        }
 
         configuration = "Release";
-        version = AppVeyor.Environment.Repository.Tag.Name;
     });
 
 Task("Clean")
@@ -112,6 +114,7 @@ Task("InspectCode")
         InspectCode(solution, new InspectCodeSettings {
             CachesHome = tempDirectory.Combine("inspectcode"),
             OutputFile = inspectcodereport,
+            ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
 
         StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
@@ -130,6 +133,7 @@ Task("PackFramework")
         DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
@@ -186,6 +190,7 @@ Task("PackNativeLibs")
         DotNetCorePack(nativeLibsProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
@@ -208,6 +213,7 @@ Task("Build")
     .IsDependentOn("CodeFileSanity")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")

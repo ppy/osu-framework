@@ -116,7 +116,7 @@ namespace osu.Framework.Testing
                 lastTouchedFile = e.FullPath;
 
                 isCompiling = true;
-                Task.Run((Action)recompile)
+                Task.Run(recompile)
                     .ContinueWith(_ => isCompiling = false);
             }
         }
@@ -150,7 +150,7 @@ namespace osu.Framework.Testing
                 #if RELEASE
                     "RELEASE",
                 #endif
-            }, languageVersion: LanguageVersion.CSharp7_2);
+            }, languageVersion: LanguageVersion.CSharp7_3);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))

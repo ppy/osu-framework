@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.IO
 
             Logger.NewEntry += logTest;
 
-            using (new HeadlessGameHost())
+            using (new BackgroundGameHeadlessGameHost())
             {
                 // see https://tpodolak.com/blog/2015/08/10/tpl-exception-handling-and-unobservedtaskexception-issue/
                 // needs to be in a separate method so the Task gets GC'd.

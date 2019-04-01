@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
@@ -26,9 +27,9 @@ namespace osu.Framework
     {
         public GameWindow Window => Host?.Window;
 
-        public ResourceStore<byte[]> Resources;
+        public ResourceStore<byte[]> Resources { get; private set; }
 
-        public TextureStore Textures;
+        public TextureStore Textures { get; private set; }
 
         protected GameHost Host { get; private set; }
 
@@ -39,17 +40,21 @@ namespace osu.Framework
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public AudioManager Audio;
+        public AudioManager Audio { get; private set; }
 
-        public ShaderManager Shaders;
+        public ShaderManager Shaders { get; private set; }
 
-        public FontStore Fonts;
+        public FontStore Fonts { get; private set; }
+
+        private FontStore localFonts;
 
         protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
+
         private PerformanceOverlay performanceContainer;
-        internal DrawVisualiser DrawVisualiser;
+
+        private DrawVisualiser drawVisualiser;
 
         private LogOverlay logOverlay;
 
@@ -74,7 +79,7 @@ namespace osu.Framework
 
         private void addDebugTools()
         {
-            LoadComponentAsync(DrawVisualiser = new DrawVisualiser
+            LoadComponentAsync(drawVisualiser = new DrawVisualiser
             {
                 Depth = float.MinValue / 2,
             }, AddInternal);
@@ -132,11 +137,19 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            // OpenSans
-            Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            // base store is for user fonts
+            Fonts = new FontStore();
+
+            // nested store for framework provided fonts.
+            // note that currently this means there could be two async font load operations.
+            Fonts.AddStore(localFonts = new FontStore());
+
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
+            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
 
             dependencies.Cache(Fonts);
 
@@ -186,9 +199,10 @@ namespace osu.Framework
                             FrameStatisticsMode = FrameStatisticsMode.None;
                             break;
                     }
+
                     return true;
                 case FrameworkAction.ToggleDrawVisualiser:
-                    DrawVisualiser.ToggleVisibility();
+                    drawVisualiser.ToggleVisibility();
                     return true;
                 case FrameworkAction.ToggleLogOverlay:
                     logOverlay.ToggleVisibility();
@@ -205,6 +219,9 @@ namespace osu.Framework
 
         public void Exit()
         {
+            if (Host == null)
+                throw new InvalidOperationException("Attempted to exit a game which has not yet been run");
+
             Host.Exit();
         }
 
