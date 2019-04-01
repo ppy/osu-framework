@@ -10,6 +10,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 
@@ -116,10 +117,10 @@ namespace osu.Framework.Platform
                 return;
 
             var newResolution = display.AvailableResolutions
-                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
-                                              .OrderByDescending(r => r.RefreshRate)
-                                              .ThenByDescending(r => r.BitsPerPixel)
-                                              .FirstOrDefault();
+                                       .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                       .OrderByDescending(r => r.RefreshRate)
+                                       .ThenByDescending(r => r.BitsPerPixel)
+                                       .FirstOrDefault();
 
             if (newResolution == null)
             {
@@ -143,6 +144,8 @@ namespace osu.Framework.Platform
             {
                 case Configuration.WindowMode.Windowed:
                     sizeWindowed.Value = ClientSize;
+                    if (sizeWindowed.Value != ClientSize)
+                        ClientSize = sizeWindowed.Value;
                     break;
             }
         }
@@ -264,7 +267,7 @@ namespace osu.Framework.Platform
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
-                    display.Width  > Size.Width  ? (float)relativeLocation.X / (display.Width  - Size.Width)  : 0,
+                    display.Width > Size.Width ? (float)relativeLocation.X / (display.Width - Size.Width) : 0,
                     display.Height > Size.Height ? (float)relativeLocation.Y / (display.Height - Size.Height) : 0);
             }
             set
