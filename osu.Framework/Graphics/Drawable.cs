@@ -1614,7 +1614,7 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        private long invalidationID = invalidation_counter.Increment();
+        internal long InvalidationID { get; private set; } = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
@@ -1662,7 +1662,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
-                invalidationID = invalidation_counter.Increment();
+                InvalidationID = invalidation_counter.Increment();
 
             OnInvalidate?.Invoke(this);
 
@@ -1704,24 +1704,13 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (invalidationID != node.InvalidationID)
+            if (InvalidationID != node.InvalidationID)
             {
-                ApplyDrawNode(node);
+                node.ApplyFromDrawable(this);
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
 
             return node;
-        }
-
-        /// <summary>
-        /// Fills a given draw node with all information required to draw this drawable.
-        /// </summary>
-        /// <param name="node">The node to fill with information.</param>
-        protected virtual void ApplyDrawNode(DrawNode node)
-        {
-            node.DrawInfo = DrawInfo;
-            node.DrawColourInfo = DrawColourInfo;
-            node.InvalidationID = invalidationID;
         }
 
         /// <summary>
@@ -2246,7 +2235,7 @@ namespace osu.Framework.Graphics
         Colour = 1 << 3,
 
         /// <summary>
-        /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
+        /// <see cref="Graphics.DrawNode.ApplyFromDrawable(Drawable)"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
 

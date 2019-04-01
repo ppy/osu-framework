@@ -549,27 +549,6 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode();
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            base.ApplyDrawNode(node);
-
-            var n = (SpriteTextDrawNode)node;
-
-            n.Parts.Clear();
-            n.Parts.AddRange(screenSpaceCharacters);
-
-            n.Shadow = Shadow;
-
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-
-            if (Shadow)
-            {
-                n.ShadowColour = ShadowColour;
-                n.ShadowOffset = shadowOffset;
-            }
-        }
-
         #endregion
 
         private Texture getTextureForCharacter(char c) => GetTextureForCharacter(c) ?? GetFallbackTextureForCharacter(c);

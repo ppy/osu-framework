@@ -218,11 +218,11 @@ namespace osu.Framework.Graphics.Containers
         /// When forcing a redraw we increment updateVersion, pass it into each new drawnode
         /// and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
         /// </summary>
-        private long updateVersion;
+        internal long UpdateVersion { get; private set; }
 
         protected override bool CanBeFlattened => false;
 
-        private IShader blurShader;
+        internal IShader BlurShader { get; private set; }
 
         /// <summary>
         /// Constructs an empty buffered container.
@@ -237,73 +237,14 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            BlurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
-
-        private bool addChildDrawNodes;
-        internal override bool AddChildDrawNodes => addChildDrawNodes;
 
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(sharedData);
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
-
-            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
-
-            n.UpdateVersion = updateVersion;
-            n.BackgroundColour = backgroundColour;
-
-            BlendingParameters localEffectBlending = EffectBlending;
-            if (localEffectBlending.Mode == BlendingMode.Inherit)
-                localEffectBlending.Mode = Blending.Mode;
-
-            if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                localEffectBlending.RGBEquation = Blending.RGBEquation;
-
-            if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                localEffectBlending.AlphaEquation = Blending.AlphaEquation;
-
-            n.EffectColour = effectColour;
-            n.EffectBlending = localEffectBlending;
-            n.EffectPlacement = effectPlacement;
-
-            n.DrawOriginal = drawOriginal;
-            n.BlurSigma = blurSigma;
-            n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
-            n.BlurRotation = blurRotation;
-
-            n.Formats.Clear();
-            n.Formats.AddRange(attachedFormats);
-
-            n.BlurShader = blurShader;
-
-            n.SharedData = sharedData;
-
-            base.ApplyDrawNode(node);
-
-            // Our own draw node should contain our correct color, hence we have
-            // to undo our overridden DrawInfo getter here.
-            n.DrawColourInfo = new DrawColourInfo(base.DrawColourInfo.Colour, n.DrawColourInfo.Blending);
-
-            // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
-            addChildDrawNodes = n.RequiresRedraw;
-        }
-
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
-        {
-            var result = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
-
-            // The framebuffers may be redrawn this time around, but will be cached the next time around
-            addChildDrawNodes = false;
-
-            return result;
-        }
-
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
+        internal readonly List<RenderbufferInternalFormat> AttachedFormats = new List<RenderbufferInternalFormat>();
 
         /// <summary>
         /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
@@ -312,17 +253,17 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="format">The component format to attach.</param>
         public void Attach(RenderbufferInternalFormat format)
         {
-            if (attachedFormats.Exists(f => f == format))
+            if (AttachedFormats.Exists(f => f == format))
                 return;
 
-            attachedFormats.Add(format);
+            AttachedFormats.Add(format);
         }
 
         /// <summary>
         /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
         /// </summary>
         /// <param name="format">The component format to detach.</param>
-        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
+        public void Detach(RenderbufferInternalFormat format) => AttachedFormats.Remove(format);
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
@@ -332,7 +273,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.DrawNode) > 0)
-                ++updateVersion;
+                ++UpdateVersion;
 
             // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
             if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
@@ -342,7 +283,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private long childrenUpdateVersion = -1;
-        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != UpdateVersion;
 
         protected override void Update()
         {
@@ -357,7 +298,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
                 {
-                    ++updateVersion;
+                    ++UpdateVersion;
                     lastScreenSpaceSize = screenSpaceSize;
                 }
 
@@ -369,7 +310,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateAfterChildren();
 
-            childrenUpdateVersion = updateVersion;
+            childrenUpdateVersion = UpdateVersion;
         }
 
         public override DrawColourInfo DrawColourInfo

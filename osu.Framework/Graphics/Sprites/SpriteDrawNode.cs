@@ -17,14 +17,31 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class SpriteDrawNode : DrawNode
     {
-        public Texture Texture;
-        public Quad ScreenSpaceDrawQuad;
-        public RectangleF DrawRectangle;
-        public Vector2 InflationAmount;
-        public bool WrapTexture;
+        protected Texture Texture { get; private set; }
+        protected Quad ScreenSpaceDrawQuad { get; private set; }
 
-        public IShader TextureShader;
-        public IShader RoundedTextureShader;
+        protected RectangleF DrawRectangle { get; private set; }
+        protected Vector2 InflationAmount { get; private set; }
+
+        private bool wrapTexture;
+
+        private IShader textureShader;
+        private IShader roundedTextureShader;
+
+        public override void ApplyFromDrawable(Drawable source)
+        {
+            base.ApplyFromDrawable(source);
+
+            var sprite = (Sprite)source;
+
+            ScreenSpaceDrawQuad = sprite.ScreenSpaceDrawQuad;
+            DrawRectangle = sprite.DrawRectangle;
+            Texture = sprite.Texture;
+            wrapTexture = sprite.WrapTexture;
+            InflationAmount = sprite.InflationAmount;
+            textureShader = sprite.TextureShader;
+            roundedTextureShader = sprite.RoundedTextureShader;
+        }
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
@@ -41,11 +58,11 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? roundedTextureShader : textureShader;
 
             shader.Bind();
 
-            Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+            Texture.TextureGL.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
             Blit(vertexAction);
 

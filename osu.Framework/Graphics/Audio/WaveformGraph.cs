@@ -180,22 +180,6 @@ namespace osu.Framework.Graphics.Audio
 
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode();
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            var n = (WaveformDrawNode)node;
-
-            n.Shader = shader;
-            n.Texture = texture;
-            n.DrawSize = DrawSize;
-            n.Points = generatedWaveform?.GetPoints();
-            n.Channels = generatedWaveform?.GetChannels() ?? 0;
-            n.LowColour = lowColour ?? DrawColourInfo.Colour;
-            n.MidColour = midColour ?? DrawColourInfo.Colour;
-            n.HighColour = highColour ?? DrawColourInfo.Colour;
-
-            base.ApplyDrawNode(node);
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -234,6 +218,22 @@ namespace osu.Framework.Graphics.Audio
                         lowMax = points.Max(p => p.LowIntensity);
                     }
                 }
+            }
+
+            public override void ApplyFromDrawable(Drawable source)
+            {
+                base.ApplyFromDrawable(source);
+
+                var waveform = (WaveformGraph)source;
+
+                Shader = waveform.shader;
+                Texture = waveform.texture;
+                DrawSize = waveform.DrawSize;
+                Points = waveform.generatedWaveform?.GetPoints();
+                Channels = waveform.generatedWaveform?.GetChannels() ?? 0;
+                LowColour = waveform.lowColour ?? DrawColourInfo.Colour;
+                MidColour = waveform.midColour ?? DrawColourInfo.Colour;
+                HighColour = waveform.highColour ?? DrawColourInfo.Colour;
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);

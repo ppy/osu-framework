@@ -115,6 +115,42 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private QuadBatch<TexturedVertex2D> vertexBatch;
 
+        public override void ApplyFromDrawable(Drawable source)
+        {
+            base.ApplyFromDrawable(source);
+
+            var composite = (CompositeDrawable)source;
+
+            if (!composite.Masking && (composite.BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
+                throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
+
+            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+
+            MaskingInfo = !composite.Masking
+                ? (MaskingInfo?)null
+                : new MaskingInfo
+                {
+                    ScreenSpaceAABB = composite.ScreenSpaceDrawQuad.AABB,
+                    MaskingRect = composite.DrawRectangle,
+                    ToMaskingSpace = DrawInfo.MatrixInverse,
+                    CornerRadius = composite.CornerRadius,
+                    BorderThickness = composite.BorderThickness,
+                    BorderColour = composite.BorderColour,
+                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                    // This results in the optimal trade-off between crispness and smoothness of the
+                    // edges of the masked region according to sampling theory.
+                    BlendRange = composite.MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    AlphaExponent = 1,
+                };
+
+            EdgeEffect = composite.EdgeEffect;
+            ScreenSpaceMaskingQuad = null;
+            Shader = composite.Shader;
+            ForceLocalVertexBatch = composite.ForceLocalVertexBatch;
+        }
+
+        public virtual bool AddChildDrawNodes => true;
+
         private void drawEdgeEffect()
         {
             if (MaskingInfo == null || EdgeEffect.Type == EdgeEffectType.None || EdgeEffect.Radius <= 0.0f || EdgeEffect.Colour.Linear.A <= 0.0f)

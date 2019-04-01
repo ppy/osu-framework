@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class Sprite : Drawable
     {
-        private IShader textureShader;
-        private IShader roundedTextureShader;
+        internal IShader TextureShader { get; private set; }
+        internal IShader RoundedTextureShader { get; private set; }
 
         /// <summary>
         /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
@@ -51,26 +51,11 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            SpriteDrawNode n = (SpriteDrawNode)node;
-
-            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
-            n.DrawRectangle = DrawRectangle;
-            n.Texture = Texture;
-            n.WrapTexture = WrapTexture;
-            n.InflationAmount = inflationAmount;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-
-            base.ApplyDrawNode(node);
-        }
-
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private Texture texture;
@@ -100,13 +85,13 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Vector2 inflationAmount;
+        internal Vector2 InflationAmount { get; private set; }
 
         protected override Quad ComputeScreenSpaceDrawQuad()
         {
             if (EdgeSmoothness == Vector2.Zero)
             {
-                inflationAmount = Vector2.Zero;
+                InflationAmount = Vector2.Zero;
                 return base.ComputeScreenSpaceDrawQuad();
             }
 
@@ -116,8 +101,8 @@ namespace osu.Framework.Graphics.Sprites
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
-            return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
+            InflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
+            return ToScreenSpace(DrawRectangle.Inflate(InflationAmount));
         }
 
         public override string ToString()

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osuTK;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -194,8 +193,8 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader(true)]
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
-            if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            if (Shader == null)
+                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -935,43 +934,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private IShader shader;
+        internal IShader Shader { get; private set; }
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            CompositeDrawNode n = (CompositeDrawNode)node;
-
-            if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
-                throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-
-            n.MaskingInfo = !Masking
-                ? (MaskingInfo?)null
-                : new MaskingInfo
-                {
-                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                    MaskingRect = DrawRectangle,
-                    ToMaskingSpace = DrawInfo.MatrixInverse,
-                    CornerRadius = CornerRadius,
-                    BorderThickness = BorderThickness,
-                    BorderColour = BorderColour,
-                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                    // This results in the optimal trade-off between crispness and smoothness of the
-                    // edges of the masked region according to sampling theory.
-                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                    AlphaExponent = 1,
-                };
-
-            n.EdgeEffect = EdgeEffect;
-            n.ScreenSpaceMaskingQuad = null;
-            n.Shader = shader;
-            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
-
-            base.ApplyDrawNode(node);
-        }
 
         private bool forceLocalVertexBatch;
 
@@ -1055,8 +1020,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual bool AddChildDrawNodes => true;
-
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
@@ -1069,7 +1032,7 @@ namespace osu.Framework.Graphics.Containers
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
-            if (AddChildDrawNodes)
+            if (cNode.AddChildDrawNodes)
             {
                 List<DrawNode> target = cNode.Children;
 

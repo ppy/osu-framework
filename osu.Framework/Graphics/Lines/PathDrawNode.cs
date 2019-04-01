@@ -9,6 +9,7 @@ using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
@@ -19,14 +20,14 @@ namespace osu.Framework.Graphics.Lines
     {
         public const int MAX_RES = 24;
 
-        public List<Line> Segments;
+        private List<Line> segments;
 
-        public Vector2 DrawSize;
-        public float Radius;
-        public Texture Texture;
+        private Vector2 drawSize;
+        private float radius;
+        private Texture texture;
 
-        public IShader TextureShader;
-        public IShader RoundedTextureShader;
+        private IShader textureShader;
+        private IShader roundedTextureShader;
 
         // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
         // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
@@ -36,9 +37,23 @@ namespace osu.Framework.Graphics.Lines
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
+        public override void ApplyFromDrawable(Drawable source)
+        {
+            base.ApplyFromDrawable(source);
+
+            var path = (Path)source;
+
+            texture = path.Texture;
+            textureShader = path.TextureShader;
+            roundedTextureShader = path.RoundedTextureShader;
+            radius = path.PathRadius;
+            drawSize = path.DrawSize;
+            segments = path.Segments.ToList();
+        }
+
         private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
 
-        private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
+        private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
 
         private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
             ? (Color4)DrawColourInfo.Colour
@@ -56,7 +71,7 @@ namespace osu.Framework.Graphics.Lines
             if (dir < 0)
                 theta += MathHelper.Pi;
 
-            Vector2 current = origin + pointOnCircle(theta) * Radius;
+            Vector2 current = origin + pointOnCircle(theta) * radius;
             Color4 currentColour = colourAt(current);
             current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
@@ -82,7 +97,7 @@ namespace osu.Framework.Graphics.Lines
                 });
 
                 float angularOffset = Math.Min(i * step, thetaDiff);
-                current = origin + pointOnCircle(theta + dir * angularOffset) * Radius;
+                current = origin + pointOnCircle(theta + dir * angularOffset) * radius;
                 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
@@ -99,8 +114,8 @@ namespace osu.Framework.Graphics.Lines
         private void addLineQuads(Line line, RectangleF texRect)
         {
             Vector2 ortho = line.OrthogonalDirection;
-            Line lineLeft = new Line(line.StartPoint + ortho * Radius, line.EndPoint + ortho * Radius);
-            Line lineRight = new Line(line.StartPoint - ortho * Radius, line.EndPoint - ortho * Radius);
+            Line lineLeft = new Line(line.StartPoint + ortho * radius, line.EndPoint + ortho * radius);
+            Line lineRight = new Line(line.StartPoint - ortho * radius, line.EndPoint - ortho * radius);
 
             Line screenLineLeft = new Line(Vector2Extensions.Transform(lineLeft.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineLeft.EndPoint, DrawInfo.Matrix));
             Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
@@ -159,16 +174,16 @@ namespace osu.Framework.Graphics.Lines
 
         private void updateVertexBuffer()
         {
-            Line line = Segments[0];
+            Line line = segments[0];
             float theta = line.Theta;
 
             // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
-            RectangleF texRect = Texture.GetTextureRect(new RectangleF(0.5f, 0.5f, Texture.Width - 1, Texture.Height - 1));
+            RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
             addLineCap(line.StartPoint, theta + MathHelper.Pi, MathHelper.Pi, texRect);
 
-            for (int i = 1; i < Segments.Count; ++i)
+            for (int i = 1; i < segments.Count; ++i)
             {
-                Line nextLine = Segments[i];
+                Line nextLine = segments[i];
                 float nextTheta = nextLine.Theta;
                 addLineCap(line.EndPoint, theta, nextTheta - theta, texRect);
 
@@ -178,7 +193,7 @@ namespace osu.Framework.Graphics.Lines
 
             addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
 
-            foreach (Line segment in Segments)
+            foreach (Line segment in segments)
                 addLineQuads(segment, texRect);
         }
 
@@ -186,17 +201,17 @@ namespace osu.Framework.Graphics.Lines
         {
             base.Draw(vertexAction);
 
-            if (Texture?.Available != true || Segments.Count == 0)
+            if (texture?.Available != true || segments.Count == 0)
                 return;
 
             GLWrapper.SetDepthTest(true);
 
-            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            IShader shader = needsRoundedShader ? roundedTextureShader : textureShader;
 
             shader.Bind();
 
-            Texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
-            Texture.TextureGL.Bind();
+            texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
+            texture.TextureGL.Bind();
 
             updateVertexBuffer();
 

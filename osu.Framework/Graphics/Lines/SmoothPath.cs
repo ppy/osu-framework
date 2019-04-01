@@ -68,18 +68,17 @@ namespace osu.Framework.Graphics.Lines
             textureCache.Validate();
         }
 
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
+        {
+            validateTexture();
+            return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+        }
+
         /// <summary>
         /// Retrieves the colour from a position in the texture of the <see cref="Path"/>.
         /// </summary>
         /// <param name="position">The position within the texture. 0 indicates the outermost-point of the path, 1 indicates the centre of the path.</param>
         /// <returns></returns>
         protected virtual Color4 ColourAt(float position) => Color4.White;
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            validateTexture();
-
-            base.ApplyDrawNode(node);
-        }
     }
 }

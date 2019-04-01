@@ -18,14 +18,33 @@ namespace osu.Framework.Graphics.Sprites
     {
         internal class SpriteTextDrawNode : DrawNode
         {
-            public bool Shadow;
-            public ColourInfo ShadowColour;
-            public Vector2 ShadowOffset;
+            private bool shadow;
+            private ColourInfo shadowColour;
+            private Vector2 shadowOffset;
 
-            public IShader TextureShader;
-            public IShader RoundedTextureShader;
+            private IShader textureShader;
+            private IShader roundedTextureShader;
 
-            internal readonly List<ScreenSpaceCharacterPart> Parts = new List<ScreenSpaceCharacterPart>();
+            private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
+
+            public override void ApplyFromDrawable(Drawable source)
+            {
+                base.ApplyFromDrawable(source);
+
+                var text = (SpriteText)source;
+
+                parts.Clear();
+                parts.AddRange(text.screenSpaceCharacters);
+                shadow = text.Shadow;
+                textureShader = text.textureShader;
+                roundedTextureShader = text.roundedTextureShader;
+
+                if (shadow)
+                {
+                    shadowColour = text.ShadowColour;
+                    shadowOffset = text.shadowOffset;
+                }
+            }
 
             private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
@@ -33,7 +52,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.Draw(vertexAction);
 
-                IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+                IShader shader = needsRoundedShader ? roundedTextureShader : textureShader;
 
                 shader.Bind();
 
@@ -42,23 +61,23 @@ namespace osu.Framework.Graphics.Sprites
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
                 //squared result for quadratic fall-off seems to give the best result.
-                var shadowColour = DrawColourInfo.Colour;
-                shadowColour.ApplyChild(ShadowColour.MultiplyAlpha(shadowAlpha));
+                var finalShadowColour = DrawColourInfo.Colour;
+                finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
 
-                for (int i = 0; i < Parts.Count; i++)
+                for (int i = 0; i < parts.Count; i++)
                 {
-                    if (Shadow)
+                    if (shadow)
                     {
-                        var shadowQuad = Parts[i].DrawQuad;
-                        shadowQuad.TopLeft += ShadowOffset;
-                        shadowQuad.TopRight += ShadowOffset;
-                        shadowQuad.BottomLeft += ShadowOffset;
-                        shadowQuad.BottomRight += ShadowOffset;
+                        var shadowQuad = parts[i].DrawQuad;
+                        shadowQuad.TopLeft += shadowOffset;
+                        shadowQuad.TopRight += shadowOffset;
+                        shadowQuad.BottomLeft += shadowOffset;
+                        shadowQuad.BottomRight += shadowOffset;
 
-                        Parts[i].Texture.DrawQuad(shadowQuad, shadowColour, vertexAction: vertexAction);
+                        parts[i].Texture.DrawQuad(shadowQuad, finalShadowColour, vertexAction: vertexAction);
                     }
 
-                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    parts[i].Texture.DrawQuad(parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
                 shader.Unbind();
