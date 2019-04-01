@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                sizes[i] = MathHelper.Clamp(sizes[i], 0, dimension.MaxSize);
+                sizes[i] = MathHelper.Clamp(sizes[i], dimension.MinSize, dimension.MaxSize);
             }
 
             return sizes;
@@ -279,15 +279,15 @@ namespace osu.Framework.Graphics.Containers
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
 
             // Write the sizes of distributed cells. Ordering is important to maximize excess at every step
-            foreach (var value in distributedDimensions.OrderBy(d => d.dim.MaxSize))
+            foreach (var value in distributedDimensions.OrderBy(d => d.dim.Range))
             {
-                // Clamp to the cell's maximum size
-                cellSizes[value.i] = Math.Min(value.dim.MaxSize, distributionSize);
+                // Cells start off at their minimum size, and the total size should not exceed their maximum size
+                cellSizes[value.i] = Math.Min(value.dim.MaxSize, value.dim.MinSize + distributionSize);
 
                 // If there's no excess, any further distributions are guaranteed to also have no excess, so this becomes a null-op
                 // If there is an excess, the excess should be re-distributed among all other n-1 distributed cells
                 if (--distributionCount > 0)
-                    distributionSize += Math.Max(0, distributionSize - value.dim.MaxSize) / distributionCount;
+                    distributionSize += Math.Max(0, distributionSize - value.dim.Range) / distributionCount;
             }
 
             return cellSizes;
@@ -325,6 +325,11 @@ namespace osu.Framework.Graphics.Containers
         public readonly float Size;
 
         /// <summary>
+        /// The minimum size of the row or column which this <see cref="Dimension"/> applies to.
+        /// </summary>
+        public readonly float MinSize;
+
+        /// <summary>
         /// The maximum size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
         public readonly float MaxSize;
@@ -334,13 +339,26 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="mode">The sizing mode to use.</param>
         /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Distributed"/>.</param>
+        /// <param name="minSize">The minimum size of this row or column.</param>
         /// <param name="maxSize">The maximum size of this row or column.</param>
-        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float maxSize = float.MaxValue)
+        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0, float minSize = 0, float maxSize = float.MaxValue)
         {
+            if (minSize < 0)
+                throw new ArgumentOutOfRangeException(nameof(minSize), "Must be greater than 0.");
+
+            if (minSize > maxSize)
+                throw new ArgumentOutOfRangeException(nameof(minSize), $"Must be less than {nameof(maxSize)}.");
+
             Mode = mode;
             Size = size;
+            MinSize = minSize;
             MaxSize = maxSize;
         }
+
+        /// <summary>
+        /// The range of the size of this <see cref="Dimension"/>.
+        /// </summary>
+        internal float Range => MaxSize - MinSize;
     }
 
     public enum GridSizeMode
