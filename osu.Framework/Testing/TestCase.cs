@@ -207,7 +207,7 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
             // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
@@ -217,7 +217,7 @@ namespace osu.Framework.Testing
                 foreach (var step in StepsContainer.FlowingChildren.OfType<StepButton>())
                     step.Reset();
 
-                actionIndex = -1;
+                actionIndex = startFromStep != null ? StepsContainer.IndexOf(startFromStep) + 1 : -1;
                 actionRepetition = 0;
                 runNextStep(onCompletion, onError, stopCondition);
             });
@@ -262,12 +262,12 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
-                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
-                    return;
-
-                Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
+                Console.WriteLine();
+
+                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
+                    return;
             }
 
             if (actionIndex > StepsContainer.Children.Count - 1)
@@ -300,6 +300,13 @@ namespace osu.Framework.Testing
             var step = new LabelStep
             {
                 Text = description,
+            };
+
+            step.Action = () =>
+            {
+                // kinda hacky way to avoid this doesn't get triggered by automated runs.
+                if (step.IsHovered)
+                    RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
             };
 
             AddStep(step);
