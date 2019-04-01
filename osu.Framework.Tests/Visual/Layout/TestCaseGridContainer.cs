@@ -18,30 +18,33 @@ namespace osu.Framework.Tests.Visual.Layout
 {
     public class TestCaseGridContainer : TestCase
     {
-        private Container gridParent;
         private GridContainer grid;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = gridParent = new Container
+            Child = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.5f),
-                Masking = true,
-                BorderColour = Color4.White,
-                BorderThickness = 2,
                 Children = new Drawable[]
                 {
-                    new Box
+                    grid = new GridContainer { RelativeSizeAxes = Axes.Both },
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Alpha = 0,
-                        AlwaysPresent = true
-                    },
-                    grid = new GridContainer { RelativeSizeAxes = Axes.Both }
+                        Masking = true,
+                        BorderColour = Color4.White,
+                        BorderThickness = 2,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Alpha = 0,
+                            AlwaysPresent = true
+                        }
+                    }
                 }
             };
         });
@@ -516,39 +519,36 @@ namespace osu.Framework.Tests.Visual.Layout
                 },
             }.Invert(), dimensions, row);
 
-            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
-            checkSizes();
-            AddStep("set size = (0.5f, 0.1f)", () => gridParent.Size = new Vector2(0.5f, 0.1f));
-            checkSizes();
-            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
-            checkSizes();
+            checkClampedSizes(row, boxes, dimensions);
+        }
 
-            void checkSizes()
+        private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
+        {
+            AddAssert("sizes not over/underflowed", () =>
             {
-                AddAssert("max size not overflowed", () =>
+                for (int i = 0; i < 8; i++)
                 {
-                    for (int i = 0; i < 8; i++)
-                    {
-                        if (dimensions[i].Mode != GridSizeMode.Distributed)
-                            continue;
+                    if (dimensions[i].Mode != GridSizeMode.Distributed)
+                        continue;
 
-                        if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
-                            return false;
+                    if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
+                        return false;
 
-                        if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
-                            return false;
-                    }
+                    if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
+                        return false;
+                }
 
-                    return true;
-                });
+                return true;
+            });
 
-                AddAssert("column span total length", () =>
-                {
-                    return row
-                        ? Precision.AlmostEquals(grid.DrawHeight, boxes.Sum(b => b.DrawHeight))
-                        : Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth));
-                });
-            }
+            AddAssert("column span total length", () =>
+            {
+                float expectedSize = row ? grid.DrawHeight : grid.DrawWidth;
+                float totalSize = row ? boxes.Sum(b => b.DrawHeight) : boxes.Sum(b => b.DrawWidth);
+
+                // Allowed to exceed the length of the columns due to absolute sizing
+                return totalSize >= expectedSize;
+            });
         }
 
         private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
