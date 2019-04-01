@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(sharedData);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode<T>(this, sharedData);
 
         internal readonly List<RenderbufferInternalFormat> AttachedFormats = new List<RenderbufferInternalFormat>();
 
@@ -312,6 +312,8 @@ namespace osu.Framework.Graphics.Containers
 
             childrenUpdateVersion = UpdateVersion;
         }
+
+        public DrawColourInfo BaseDrawColourInfo => new DrawColourInfo(base.DrawColourInfo.Colour, base.DrawColourInfo.Blending);
 
         public override DrawColourInfo DrawColourInfo
         {

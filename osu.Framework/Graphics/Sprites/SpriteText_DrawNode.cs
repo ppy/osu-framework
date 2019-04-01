@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics;
@@ -16,45 +14,41 @@ namespace osu.Framework.Graphics.Sprites
 {
     public partial class SpriteText
     {
-        internal class SpriteTextDrawNode : DrawNode
+        internal class SpriteTextDrawNode : TexturedShaderDrawNode
         {
+            protected new SpriteText Source => (SpriteText)base.Source;
+
             private bool shadow;
             private ColourInfo shadowColour;
             private Vector2 shadowOffset;
 
-            private IShader textureShader;
-            private IShader roundedTextureShader;
-
             private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
 
-            public override void ApplyFromDrawable(Drawable source)
+            public SpriteTextDrawNode(SpriteText source)
+                : base(source)
             {
-                base.ApplyFromDrawable(source);
+            }
 
-                var text = (SpriteText)source;
+            public override void ApplyState()
+            {
+                base.ApplyState();
 
                 parts.Clear();
-                parts.AddRange(text.screenSpaceCharacters);
-                shadow = text.Shadow;
-                textureShader = text.textureShader;
-                roundedTextureShader = text.roundedTextureShader;
+                parts.AddRange(Source.screenSpaceCharacters);
+                shadow = Source.Shadow;
 
                 if (shadow)
                 {
-                    shadowColour = text.ShadowColour;
-                    shadowOffset = text.shadowOffset;
+                    shadowColour = Source.ShadowColour;
+                    shadowOffset = Source.shadowOffset;
                 }
             }
-
-            private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
 
-                IShader shader = needsRoundedShader ? roundedTextureShader : textureShader;
-
-                shader.Bind();
+                Shader.Bind();
 
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
@@ -80,7 +74,7 @@ namespace osu.Framework.Graphics.Sprites
                     parts[i].Texture.DrawQuad(parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
-                shader.Unbind();
+                Shader.Unbind();
             }
         }
 

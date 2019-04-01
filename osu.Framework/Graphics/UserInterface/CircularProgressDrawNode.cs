@@ -1,10 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using osu.Framework.Graphics.Batches;
@@ -15,9 +13,11 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNode : DrawNode
+    public class CircularProgressDrawNode : TexturedShaderDrawNode
     {
         public const int MAX_RES = 24;
+
+        protected new CircularProgress Source => (CircularProgress)base.Source;
 
         private float angle;
         private float innerRadius = 1;
@@ -25,29 +25,25 @@ namespace osu.Framework.Graphics.UserInterface
         private Vector2 drawSize;
         private Texture texture;
 
-        private IShader textureShader;
-        private IShader roundedTextureShader;
-
-        public override void ApplyFromDrawable(Drawable source)
+        public CircularProgressDrawNode(CircularProgress source)
+            : base(source)
         {
-            base.ApplyFromDrawable(source);
+        }
 
-            var progress = (CircularProgress)source;
+        public override void ApplyState()
+        {
+            base.ApplyState();
 
-            texture = progress.Texture;
-            textureShader = progress.TextureShader;
-            roundedTextureShader = progress.RoundedTextureShader;
-            drawSize = progress.DrawSize;
-            angle = (float)progress.Current.Value * MathHelper.TwoPi;
-            innerRadius = progress.InnerRadius;
+            texture = Source.Texture;
+            drawSize = Source.DrawSize;
+            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            innerRadius = Source.InnerRadius;
         }
 
         // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
         // MAX_RES is being multiplied by 2 to account for each circle part needing 2 triangles
         // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
         private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAX_RES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
-
-        private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
         private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
         private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
@@ -141,16 +137,14 @@ namespace osu.Framework.Graphics.UserInterface
             if (texture?.Available != true)
                 return;
 
-            IShader shader = needsRoundedShader ? roundedTextureShader : textureShader;
-
-            shader.Bind();
+            Shader.Bind();
 
             texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
             texture.TextureGL.Bind();
 
             updateVertexBuffer();
 
-            shader.Unbind();
+            Shader.Unbind();
         }
 
         protected override void Dispose(bool isDisposing)

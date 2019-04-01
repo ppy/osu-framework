@@ -17,9 +17,9 @@ namespace osu.Framework.Graphics
         /// Contains a linear transformation, colour information, and blending information
         /// of this draw node.
         /// </summary>
-        protected DrawInfo DrawInfo;
+        protected DrawInfo DrawInfo { get; private set; }
 
-        protected DrawColourInfo DrawColourInfo;
+        protected internal DrawColourInfo DrawColourInfo { get; internal set; }
 
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
@@ -28,15 +28,22 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected internal long InvalidationID { get; private set; }
 
-        /// <summary>
-        /// Applies properties from a <see cref="Drawable"/> to this <see cref="DrawNode"/>.
-        /// </summary>
-        /// <param name="source">The <see cref="Drawable"/> to apply properties from.</param>
-        public virtual void ApplyFromDrawable(Drawable source)
+        protected readonly IDrawable Source;
+
+        public DrawNode(IDrawable source)
         {
-            DrawInfo = source.DrawInfo;
-            DrawColourInfo = source.DrawColourInfo;
-            InvalidationID = source.InvalidationID;
+            Source = source;
+        }
+
+        /// <summary>
+        /// Applies the state of <see cref="Source"/> to this <see cref="DrawNode"/>.
+        /// The applied state must remain immutable.
+        /// </summary>
+        public virtual void ApplyState()
+        {
+            DrawInfo = Source.DrawInfo;
+            DrawColourInfo = Source.DrawColourInfo;
+            InvalidationID = Source.InvalidationID;
         }
 
         /// <summary>

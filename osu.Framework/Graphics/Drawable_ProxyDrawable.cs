@@ -69,20 +69,20 @@ namespace osu.Framework.Graphics
                 /// </summary>
                 public ulong FrameCount;
 
-                private readonly ProxyDrawable proxyDrawable;
+                protected new ProxyDrawable Source => (ProxyDrawable)base.Source;
 
                 public ProxyDrawNode(ProxyDrawable proxyDrawable)
+                    : base(proxyDrawable)
                 {
-                    this.proxyDrawable = proxyDrawable;
                 }
 
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
                 {
-                    var target = proxyDrawable.originalDrawNodes[DrawNodeIndex];
+                    var target = Source.originalDrawNodes[DrawNodeIndex];
                     if (target == null)
                         return;
 
-                    if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
+                    if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
                         return;
 
                     target.Draw(vertexAction);

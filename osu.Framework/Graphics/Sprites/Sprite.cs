@@ -13,15 +13,16 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A sprite that displays its texture.
     /// </summary>
-    public class Sprite : Drawable
+    public class Sprite : Drawable, ITexturedDrawable
     {
-        internal IShader TextureShader { get; private set; }
-        internal IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
+
+        public IShader RoundedTextureShader { get; private set; }
 
         /// <summary>
         /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
         /// </summary>
-        public bool WrapTexture;
+        public bool WrapTexture { get; set; }
 
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
@@ -49,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
+        protected override DrawNode CreateDrawNode() => new SpriteDrawNode(this);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -85,7 +86,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        internal Vector2 InflationAmount { get; private set; }
+        public Vector2 InflationAmount { get; private set; }
 
         protected override Quad ComputeScreenSpaceDrawQuad()
         {

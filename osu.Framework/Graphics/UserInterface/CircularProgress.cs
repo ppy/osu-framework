@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, IHasCurrentValue<double>
+    public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
         private readonly Bindable<double> current = new Bindable<double>();
 
@@ -33,8 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
-        internal IShader RoundedTextureShader { get; private set; }
-        internal IShader TextureShader { get; private set; }
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
 
         #region Disposal
 
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode();
+        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
             => this.TransformBindableTo(Current, newValue, duration, easing);

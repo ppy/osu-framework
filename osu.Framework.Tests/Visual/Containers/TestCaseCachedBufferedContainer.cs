@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual.Containers
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(BufferedContainer),
-            typeof(BufferedContainerDrawNode),
+            typeof(BufferedContainerDrawNode<>),
         };
 
         public TestCaseCachedBufferedContainer()

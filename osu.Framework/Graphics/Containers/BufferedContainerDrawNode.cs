@@ -22,13 +22,13 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <summary>
         /// The <see cref="FrameBuffer"/>s to render to.
-        /// These are used in a ping-pong manner to render effects <see cref="BufferedContainerDrawNode"/>.
+        /// These are used in a ping-pong manner to render effects <see cref="BufferedContainerDrawNode{T}"/>.
         /// </summary>
         public readonly FrameBuffer[] FrameBuffers = new FrameBuffer[3];
 
         /// <summary>
         /// The version of drawn contents currently present in <see cref="FrameBuffers"/>.
-        /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
+        /// This should only be modified by <see cref="BufferedContainerDrawNode{T}"/>.
         /// </summary>
         public long DrawVersion = -1;
 
@@ -56,7 +56,8 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class BufferedContainerDrawNode : CompositeDrawNode
+    public class BufferedContainerDrawNode<T> : CompositeDrawNode
+        where T : Drawable
     {
         public bool DrawOriginal;
         public Color4 BackgroundColour;
@@ -85,46 +86,48 @@ namespace osu.Framework.Graphics.Containers
 
         public readonly BufferedContainerDrawNodeSharedData SharedData;
 
-        public BufferedContainerDrawNode(BufferedContainerDrawNodeSharedData sharedData)
+        protected new BufferedContainer<T> Source => (BufferedContainer<T>)base.Source;
+
+        public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
+            : base(source)
         {
             SharedData = sharedData;
         }
 
-        public override void ApplyFromDrawable(Drawable source)
+        public override void ApplyState()
         {
-            base.ApplyFromDrawable(source);
+            base.ApplyState();
 
-            var container = (BufferedContainer)source;
+            ScreenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
+            FilteringMode = Source.PixelSnapping ? All.Nearest : All.Linear;
 
-            ScreenSpaceDrawRectangle = source.ScreenSpaceDrawQuad.AABBFloat;
-            FilteringMode = container.PixelSnapping ? All.Nearest : All.Linear;
-
-            UpdateVersion = container.UpdateVersion;
-            BackgroundColour = container.BackgroundColour;
+            UpdateVersion = Source.UpdateVersion;
+            BackgroundColour = Source.BackgroundColour;
 
             BlendingParameters localEffectBlending = EffectBlending;
             if (localEffectBlending.Mode == BlendingMode.Inherit)
-                localEffectBlending.Mode = source.Blending.Mode;
+                localEffectBlending.Mode = Source.Blending.Mode;
 
             if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                localEffectBlending.RGBEquation = source.Blending.RGBEquation;
+                localEffectBlending.RGBEquation = Source.Blending.RGBEquation;
 
             if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                localEffectBlending.AlphaEquation = source.Blending.AlphaEquation;
+                localEffectBlending.AlphaEquation = Source.Blending.AlphaEquation;
 
-            EffectColour = container.EffectColour;
+            EffectColour = Source.EffectColour;
             EffectBlending = localEffectBlending;
-            EffectPlacement = container.EffectPlacement;
+            EffectPlacement = Source.EffectPlacement;
 
-            DrawOriginal = container.DrawOriginal;
-            BlurSigma = container.BlurSigma;
+            DrawOriginal = Source.DrawOriginal;
+            BlurSigma = Source.BlurSigma;
             BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
-            BlurRotation = container.BlurRotation;
+            BlurRotation = Source.BlurRotation;
 
             Formats.Clear();
-            Formats.AddRange(container.AttachedFormats);
+            Formats.AddRange(Source.AttachedFormats);
 
-            BlurShader = container.BlurShader;
+            BlurShader = Source.BlurShader;
+
             // BufferedContainer overrides DrawColourInfo for children, but needs to be reset to draw ourselves
             DrawColourInfo = Source.BaseDrawColourInfo;
         }
@@ -132,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool AddChildDrawNodes => RequiresRedraw;
 
         /// <summary>
-        /// Whether this <see cref="BufferedContainerDrawNode"/> should have its children re-drawn.
+        /// Whether this <see cref="BufferedContainerDrawNode{T}"/> should have its children re-drawn.
         /// </summary>
         public bool RequiresRedraw => UpdateVersion > SharedData.DrawVersion;
 

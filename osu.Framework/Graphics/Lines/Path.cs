@@ -11,10 +11,10 @@ using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class Path : Drawable
+    public partial class Path : Drawable, ITexturedShaderDrawable
     {
-        internal IShader RoundedTextureShader { get; private set; }
-        internal IShader TextureShader { get; private set; }
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Lines
             var localPos = ToLocalSpace(screenSpacePos);
             var pathRadiusSquared = PathRadius * PathRadius;
 
-            foreach (var t in Segments)
+            foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
             return false;
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Lines
 
         private readonly List<Line> segmentsBacking = new List<Line>();
         private Cached segmentsCache = new Cached();
-        internal List<Line> Segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
+        private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
 
         private List<Line> generateSegments()
         {
@@ -173,6 +173,6 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode();
+        protected override DrawNode CreateDrawNode() => new PathDrawNode(this);
     }
 }

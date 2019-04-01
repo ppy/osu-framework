@@ -936,7 +936,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IShader Shader { get; private set; }
 
-        protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
+        protected override DrawNode CreateDrawNode() => new CompositeDrawNode(this);
 
         private bool forceLocalVertexBatch;
 
@@ -1020,6 +1020,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private List<DrawNode> childDrawNodes;
+
+        internal IReadOnlyList<DrawNode> ChildDrawNodes => childDrawNodes?.AsReadOnly();
+
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
@@ -1029,18 +1033,16 @@ namespace osu.Framework.Graphics.Containers
             if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
                 return null;
 
-            if (cNode.Children == null)
-                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
-
             if (cNode.AddChildDrawNodes)
             {
-                List<DrawNode> target = cNode.Children;
+                if (childDrawNodes == null)
+                    childDrawNodes = new List<DrawNode>(aliveInternalChildren.Count);
 
                 int j = 0;
-                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, childDrawNodes);
 
-                if (j < target.Count)
-                    target.RemoveRange(j, target.Count - j);
+                if (j < childDrawNodes.Count)
+                    childDrawNodes.RemoveRange(j, childDrawNodes.Count - j);
             }
 
             return cNode;
