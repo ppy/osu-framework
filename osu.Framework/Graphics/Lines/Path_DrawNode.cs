@@ -8,7 +8,6 @@ using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
@@ -23,7 +22,8 @@ namespace osu.Framework.Graphics.Lines
 
             protected new Path Source => (Path)base.Source;
 
-            private List<Line> segments;
+            private readonly List<Line> segments = new List<Line>();
+
             private Texture texture;
             private Vector2 drawSize;
             private float radius;
@@ -43,7 +43,9 @@ namespace osu.Framework.Graphics.Lines
             {
                 base.ApplyState();
 
-                segments = Source.segments.ToList();
+                segments.Clear();
+                segments.AddRange(Source.segments);
+
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
