@@ -8,10 +8,12 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public partial class Path : Drawable, ITexturedShaderDrawable
+    public partial class Path : Drawable, IBufferedDrawable
     {
         public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
@@ -173,6 +175,12 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode(this);
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
+
+        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+
+        public DrawColourInfo? FrameBufferDrawColour => null;
     }
 }
