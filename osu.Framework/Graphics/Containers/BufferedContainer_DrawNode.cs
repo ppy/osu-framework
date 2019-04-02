@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.Containers
                 GC.SuppressFinalize(this);
             }
 
-            protected virtual void Dispose(bool isDisposing)
+            protected void Dispose(bool isDisposing)
             {
                 for (int i = 0; i < FrameBuffers.Length; i++)
                     FrameBuffers[i].Dispose();
