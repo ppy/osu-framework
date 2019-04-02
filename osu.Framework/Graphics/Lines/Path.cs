@@ -175,12 +175,22 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+        public override DrawColourInfo DrawColourInfo
+        {
+            get
+            {
+                var result = base.DrawColourInfo;
+                result.Blending = new BlendingInfo(BlendingMode.None);
+                return result;
+            }
+        }
 
-        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-        public DrawColourInfo? FrameBufferDrawColour => null;
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
     }
 }
