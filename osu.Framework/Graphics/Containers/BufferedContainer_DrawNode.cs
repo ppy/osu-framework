@@ -75,13 +75,9 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            private FrameBuffer currentEffectBuffer;
-
             protected override void DrawToFrameBuffers()
             {
                 base.DrawToFrameBuffers();
-
-                currentEffectBuffer = SharedData.GetMainBuffer();
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
@@ -104,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(currentEffectBuffer, finalEffectColour);
+                DrawFrameBuffer(SharedData.CurrentEffectBuffer, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawToBackBuffer();
@@ -112,6 +108,7 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
             {
+                FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
 
                 GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
@@ -121,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
                     blurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
 
-                    Vector2 size = currentEffectBuffer.Size;
+                    Vector2 size = current.Size;
                     blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                     float radians = -MathHelper.DegreesToRadians(blurRotation);
@@ -129,11 +126,9 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    DrawFrameBuffer(currentEffectBuffer, ColourInfo.SingleColour(Color4.White), new RectangleF(0, 0, currentEffectBuffer.Texture.Width, currentEffectBuffer.Texture.Height));
+                    DrawFrameBuffer(current, ColourInfo.SingleColour(Color4.White), new RectangleF(0, 0, current.Texture.Width, current.Texture.Height));
                     blurShader.Unbind();
                 }
-
-                currentEffectBuffer = target;
             }
 
             public List<DrawNode> Children

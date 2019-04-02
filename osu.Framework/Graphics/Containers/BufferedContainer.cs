@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
             get => pixelSnapping;
             set
             {
-                if (sharedData?.GetMainBuffer().IsInitialized == true)
+                if (sharedData?.MainBuffer.IsInitialized == true)
                     throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
 
                 pixelSnapping = value;

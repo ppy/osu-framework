@@ -15,15 +15,15 @@ namespace osu.Framework.Graphics
     public class BufferedDrawNodeSharedData : IDisposable
     {
         /// <summary>
-        /// The version of drawn contents currently present in <see cref="mainBuffer"/> and <see cref="effectBuffers"/>.
+        /// The version of drawn contents currently present in <see cref="MainBuffer"/> and <see cref="effectBuffers"/>.
         /// This should only be modified by <see cref="BufferedDrawNode"/>.
         /// </summary>
         internal long DrawVersion = -1;
 
         /// <summary>
-        /// A <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
+        /// The <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
         /// </summary>
-        private readonly FrameBuffer mainBuffer;
+        public FrameBuffer MainBuffer { get; }
 
         /// <summary>
         /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
@@ -48,19 +48,19 @@ namespace osu.Framework.Graphics
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
-            mainBuffer = new FrameBuffer();
+            MainBuffer = new FrameBuffer();
             effectBuffers = new FrameBuffer[effectBufferCount];
 
             for (int i = 0; i < effectBufferCount; i++)
                 effectBuffers[i] = new FrameBuffer();
         }
 
-        /// <summary>
-        /// Retrieves the <see cref="FrameBuffer"/> which contains the original version of the rendered <see cref="Drawable"/>.
-        /// </summary>
-        public FrameBuffer GetMainBuffer() => mainBuffer;
-
         private int currentEffectBuffer = -1;
+
+        /// <summary>
+        /// The <see cref="FrameBuffer"/> which contains the most up-to-date drawn effect.
+        /// </summary>
+        public FrameBuffer CurrentEffectBuffer => currentEffectBuffer == -1 ? MainBuffer : effectBuffers[currentEffectBuffer];
 
         /// <summary>
         /// Retrieves the next <see cref="FrameBuffer"/> which effects can be rendered to.
@@ -76,6 +76,12 @@ namespace osu.Framework.Graphics
             return effectBuffers[currentEffectBuffer];
         }
 
+        /// <summary>
+        /// Resets <see cref="CurrentEffectBuffer"/>.
+        /// This should only be called by <see cref="BufferedDrawNode"/>.
+        /// </summary>
+        internal void ResetCurrentEffectBuffer() => currentEffectBuffer = -1;
+
         ~BufferedDrawNodeSharedData()
         {
             Dispose(false);
@@ -89,7 +95,7 @@ namespace osu.Framework.Graphics
 
         protected virtual void Dispose(bool isDisposing)
         {
-            mainBuffer.Dispose();
+            MainBuffer.Dispose();
 
             for (int i = 0; i < effectBuffers.Length; i++)
                 effectBuffers[i].Dispose();
