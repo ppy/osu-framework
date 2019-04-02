@@ -51,7 +51,6 @@ namespace osu.Framework.Graphics.Textures
             isDisposed = true;
 
             base.TextureGL.Dereference();
-            if (isDisposing) GC.SuppressFinalize(this);
         }
 
         #endregion
