@@ -21,6 +21,7 @@ using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
