@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.Containers
     {
         private class BufferedContainerDrawNode : CompositeDrawableDrawNode
         {
+            protected new BufferedContainer<T> Source => (BufferedContainer<T>)base.Source;
+
             private bool drawOriginal;
             private Color4 backgroundColour;
             private ColourInfo effectColour;
@@ -37,19 +39,11 @@ namespace osu.Framework.Graphics.Containers
             private RectangleF screenSpaceDrawRectangle;
             private All filteringMode;
 
-            /// <summary>
-            /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
-            /// </summary>
             private readonly List<RenderbufferInternalFormat> formats = new List<RenderbufferInternalFormat>();
 
-            /// <summary>
-            /// The <see cref="IShader"/> to use when rendering blur effects.
-            /// </summary>
             private IShader blurShader;
 
             private readonly BufferedContainerDrawNodeSharedData sharedData;
-
-            protected new BufferedContainer<T> Source => (BufferedContainer<T>)base.Source;
 
             public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
                 : base(source)

@@ -18,15 +18,14 @@ namespace osu.Framework.Graphics.Containers
     public partial class CompositeDrawable
     {
         /// <summary>
-        /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the
-        /// <see cref="DrawNode"/>s of its children.
+        /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the <see cref="DrawNode"/>s of its children.
         /// </summary>
         protected class CompositeDrawableDrawNode : DrawNode, ICompositeDrawNode
         {
             protected new CompositeDrawable Source => (CompositeDrawable)base.Source;
 
             /// <summary>
-            /// The shader to use for rendering.
+            /// The <see cref="IShader"/> to use for rendering.
             /// </summary>
             protected IShader Shader { get; private set; }
 
