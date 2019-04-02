@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = UpdateVersion;
         }
 
-        public DrawColourInfo BaseDrawColourInfo => new DrawColourInfo(base.DrawColourInfo.Colour, base.DrawColourInfo.Blending);
+        public DrawColourInfo BaseDrawColourInfo => base.DrawColourInfo;
 
         public override DrawColourInfo DrawColourInfo
         {
