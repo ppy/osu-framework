@@ -23,10 +23,15 @@ namespace osu.Framework.Tests.Visual
 
         private class TestBox : Box
         {
-            protected override DrawNode CreateDrawNode() => new TestBoxDrawNode();
+            protected override DrawNode CreateDrawNode() => new TestBoxDrawNode(this);
 
             private class TestBoxDrawNode : BoxDrawNode
             {
+                public TestBoxDrawNode(Box source)
+                    : base(source)
+                {
+                }
+
                 public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
                 {
                     base.DrawHull(vertexAction, depthValue);

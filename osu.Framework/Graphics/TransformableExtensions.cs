@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics

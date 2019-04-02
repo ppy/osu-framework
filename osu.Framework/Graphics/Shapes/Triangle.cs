@@ -32,10 +32,15 @@ namespace osu.Framework.Graphics.Shapes
 
         public override bool Contains(Vector2 screenSpacePos) => toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
 
-        protected override DrawNode CreateDrawNode() => new TriangleDrawNode();
+        protected override DrawNode CreateDrawNode() => new TriangleDrawNode(this);
 
         private class TriangleDrawNode : SpriteDrawNode
         {
+            public TriangleDrawNode(Triangle source)
+                : base(source)
+            {
+            }
+
             protected override void Blit(Quad drawQuad, Action<TexturedVertex2D> vertexAction)
             {
                 Texture.DrawTriangle(toTriangle(drawQuad), Depth, DrawColourInfo.Colour, null, null,

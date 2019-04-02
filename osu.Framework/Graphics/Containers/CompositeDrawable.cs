@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osuTK;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -22,6 +21,7 @@ using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public abstract class CompositeDrawable : Drawable
+    public abstract partial class CompositeDrawable : Drawable
     {
         #region Contruction and disposal
 
@@ -194,8 +194,8 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader(true)]
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
-            if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            if (Shader == null)
+                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -935,50 +935,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private IShader shader;
+        internal IShader Shader { get; private set; }
 
-        protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
-
-        private static readonly float cos_45 = (float)Math.Cos(Math.PI / 4);
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            CompositeDrawNode n = (CompositeDrawNode)node;
-
-            if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
-                throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-            float blendRange = MaskingSmoothness * (scale.X + scale.Y) / 2;
-
-            float shrinkage = CornerRadius - CornerRadius * cos_45 + blendRange;
-            var shrunkDrawRectangle = DrawRectangle.Shrink(shrinkage);
-
-            n.MaskingInfo = !Masking
-                ? (MaskingInfo?)null
-                : new MaskingInfo
-                {
-                    ScreenSpaceAABB = base.ScreenSpaceDrawQuad.AABB,
-                    MaskingRect = DrawRectangle,
-                    ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * base.DrawInfo.Matrix,
-                    ToMaskingSpace = base.DrawInfo.MatrixInverse,
-                    CornerRadius = CornerRadius,
-                    BorderThickness = BorderThickness,
-                    BorderColour = BorderColour,
-                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                    // This results in the optimal trade-off between crispness and smoothness of the
-                    // edges of the masked region according to sampling theory.
-                    BlendRange = blendRange,
-                    AlphaExponent = 1,
-                };
-
-            n.EdgeEffect = EdgeEffect;
-            n.ScreenSpaceMaskingQuad = null;
-            n.Shader = shader;
-            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new CompositeDrawableDrawNode(this);
 
         private bool forceLocalVertexBatch;
 
@@ -1062,32 +1021,30 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual bool AddChildDrawNodes => true;
-
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
+            DrawNode node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
+            if (!(node is ICompositeDrawNode cNode))
                 return null;
 
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
-            if (AddChildDrawNodes)
+            if (cNode.AddChildDrawNodes)
             {
-                List<DrawNode> target = cNode.Children;
-
                 int j = 0;
-                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, cNode.Children);
 
-                if (j < target.Count)
-                    target.RemoveRange(j, target.Count - j);
+                if (j < cNode.Children.Count)
+                    cNode.Children.RemoveRange(j, cNode.Children.Count - j);
             }
 
-            return cNode;
+            return node;
         }
 
         #endregion

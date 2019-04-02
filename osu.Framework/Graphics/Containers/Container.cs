@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Colour;
 using osuTK;
 using System.Collections;
 using System.Diagnostics;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
 {

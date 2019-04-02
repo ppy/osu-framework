@@ -29,16 +29,7 @@ namespace osu.Framework.Graphics.Shapes
             ? conservativeScreenSpaceDrawQuadBacking.Value
             : conservativeScreenSpaceDrawQuadBacking.Value = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            var n = (BoxDrawNode)node;
-
-            n.ConservativeScreenSpaceDrawQuad = conservativeScreenSpaceDrawQuad;
-
-            base.ApplyDrawNode(node);
-        }
-
-        protected override DrawNode CreateDrawNode() => new BoxDrawNode();
+        protected override DrawNode CreateDrawNode() => new BoxDrawNode(this);
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -53,7 +44,21 @@ namespace osu.Framework.Graphics.Shapes
 
         protected class BoxDrawNode : SpriteDrawNode
         {
-            public Quad ConservativeScreenSpaceDrawQuad;
+            protected new Box Source => (Box)base.Source;
+
+            private Quad conservativeScreenSpaceDrawQuad;
+
+            public BoxDrawNode(Box source)
+                : base(source)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                conservativeScreenSpaceDrawQuad = Source.conservativeScreenSpaceDrawQuad;
+            }
 
             public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {
@@ -70,7 +75,7 @@ namespace osu.Framework.Graphics.Shapes
 
                 if (GLWrapper.IsMaskingActive)
                 {
-                    var clipper = new ConvexPolygonClipper(ConservativeScreenSpaceDrawQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
+                    var clipper = new ConvexPolygonClipper(conservativeScreenSpaceDrawQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
 
                     Span<Vector2> buffer = stackalloc Vector2[clipper.GetBufferSize()];
                     Span<Vector2> clippedRegion = clipper.Clip(buffer);
@@ -79,7 +84,7 @@ namespace osu.Framework.Graphics.Shapes
                         Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), Depth, DrawColourInfo.Colour);
                 }
                 else
-                    Blit(ConservativeScreenSpaceDrawQuad, vertexAction);
+                    Blit(conservativeScreenSpaceDrawQuad, vertexAction);
 
                 TextureShader.Unbind();
 
