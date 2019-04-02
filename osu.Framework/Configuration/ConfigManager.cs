@@ -42,6 +42,8 @@ namespace osu.Framework.Configuration
 
         public BindableDouble Set(T lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
+            value = getDefault(lookup, value);
+
             if (!(GetOriginalBindable<double>(lookup) is BindableDouble bindable))
             {
                 bindable = new BindableDouble(value);
@@ -52,7 +54,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = getDefault(lookup, value);
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
             if (precision.HasValue) bindable.Precision = precision.Value;
@@ -62,6 +64,8 @@ namespace osu.Framework.Configuration
 
         public BindableFloat Set(T lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
+            value = getDefault(lookup, value);
+
             if (!(GetOriginalBindable<float>(lookup) is BindableFloat bindable))
             {
                 bindable = new BindableFloat(value);
@@ -72,7 +76,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = getDefault(lookup, value);
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
             if (precision.HasValue) bindable.Precision = precision.Value;
@@ -82,6 +86,8 @@ namespace osu.Framework.Configuration
 
         public BindableInt Set(T lookup, int value, int? min = null, int? max = null)
         {
+            value = getDefault(lookup, value);
+
             if (!(GetOriginalBindable<int>(lookup) is BindableInt bindable))
             {
                 bindable = new BindableInt(value);
@@ -92,7 +98,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = getDefault(lookup, value);
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
@@ -101,6 +107,8 @@ namespace osu.Framework.Configuration
 
         public BindableBool Set(T lookup, bool value)
         {
+            value = getDefault(lookup, value);
+
             if (!(GetOriginalBindable<bool>(lookup) is BindableBool bindable))
             {
                 bindable = new BindableBool(value);
@@ -111,13 +119,15 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = getDefault(lookup, value);
+            bindable.Default = value;
 
             return bindable;
         }
 
         public BindableSize Set(T lookup, Size value, Size? min = null, Size? max = null)
         {
+            value = getDefault(lookup, value);
+
             if (!(GetOriginalBindable<Size>(lookup) is BindableSize bindable))
             {
                 bindable = new BindableSize(value);
@@ -128,11 +138,33 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = getDefault(lookup, value);
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
+        }
+
+        public Bindable<U> Set<U>(T lookup, U value)
+        {
+            value = getDefault(lookup, value);
+
+            Bindable<U> bindable = GetOriginalBindable<U>(lookup);
+
+            if (bindable == null)
+                bindable = set(lookup, value);
+            else
+                bindable.Value = value;
+
+            bindable.Default = value;
+
+            return bindable;
+        }
+
+        protected virtual void AddBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
+        {
+            ConfigStore[lookup] = bindable;
+            bindable.ValueChanged += _ => backgroundSave();
         }
 
         private TType getDefault<TType>(T lookup, TType fallback)
@@ -143,25 +175,6 @@ namespace osu.Framework.Configuration
             return fallback;
         }
 
-        public Bindable<U> Set<U>(T lookup, U value)
-        {
-            Bindable<U> bindable = GetOriginalBindable<U>(lookup);
-
-            if (bindable == null)
-                bindable = set(lookup, value);
-            else
-                bindable.Value = value;
-
-            bindable.Default = getDefault(lookup, value);
-
-            return bindable;
-        }
-
-        protected virtual void AddBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
-        {
-            ConfigStore[lookup] = bindable;
-            bindable.ValueChanged += _ => backgroundSave();
-        }
 
         private Bindable<U> set<U>(T lookup, U value)
         {
