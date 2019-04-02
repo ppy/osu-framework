@@ -363,12 +363,7 @@ namespace osu.Framework.Platform
                     {
                         var depthValue = new DepthValue();
 
-                        GLWrapper.PushDepthInfo(new DepthInfo
-                        {
-                            DepthTest = true,
-                            WriteDepth = true,
-                            Function = DepthFunction.Less
-                        });
+                        GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
                         buffer.Object.DrawHull(null, depthValue);
@@ -376,12 +371,7 @@ namespace osu.Framework.Platform
                         GLWrapper.PopDepthInfo();
 
                         // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo
-                        {
-                            DepthTest = true,
-                            WriteDepth = false,
-                            Function = DepthFunction.Lequal
-                        });
+                        GLWrapper.PushDepthInfo(new DepthInfo(true, false, DepthFunction.Lequal));
                     }
                     else
                     {

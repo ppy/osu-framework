@@ -135,19 +135,8 @@ namespace osu.Framework.Graphics.OpenGL
                 AlphaExponent = 1,
             }, true);
 
-            PushDepthInfo(new DepthInfo
-            {
-                DepthTest = true,
-                WriteDepth = true,
-                Function = DepthFunction.Always
-            });
-
-            Clear(new ClearInfo
-            {
-                Colour = Color4.Black,
-                Depth = 1f,
-                Stencil = 0
-            });
+            PushDepthInfo(DepthInfo.Default);
+            Clear(ClearInfo.Default);
         }
 
         private static ClearInfo currentClearInfo;
@@ -155,40 +144,21 @@ namespace osu.Framework.Graphics.OpenGL
         public static void Clear(ClearInfo clearInfo)
         {
             // Required to allow depth buffer to be properly cleared
-            PushDepthInfo(new DepthInfo
-            {
-                WriteDepth = true,
-                Function = DepthFunction.Always
-            });
+            PushDepthInfo(new DepthInfo(false));
 
-            ClearBufferMask mask = 0;
+            if (clearInfo.Colour != currentClearInfo.Colour)
+                GL.ClearColor(clearInfo.Colour);
 
-            if (clearInfo.Colour != null)
+            if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                if (clearInfo.Colour != currentClearInfo.Colour)
-                    GL.ClearColor(clearInfo.Colour.Value);
-                mask |= ClearBufferMask.ColorBufferBit;
+                // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
+                osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
             }
 
-            if (clearInfo.Depth != null)
-            {
-                if (clearInfo.Depth != currentClearInfo.Depth)
-                {
-                    // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
-                    osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth.Value);
-                }
+            if (clearInfo.Stencil != currentClearInfo.Stencil)
+                GL.ClearStencil(clearInfo.Stencil);
 
-                mask |= ClearBufferMask.DepthBufferBit;
-            }
-
-            if (clearInfo.Stencil != null)
-            {
-                if (clearInfo.Stencil != currentClearInfo.Stencil)
-                    GL.ClearStencil(clearInfo.Stencil.Value);
-                mask |= ClearBufferMask.StencilBufferBit;
-            }
-
-            GL.Clear(mask);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             PopDepthInfo();
 
@@ -759,23 +729,41 @@ namespace osu.Framework.Graphics.OpenGL
         }
     }
 
-    public struct DepthInfo : IEquatable<DepthInfo>
+    public readonly struct DepthInfo : IEquatable<DepthInfo>
     {
-        public bool DepthTest;
+        public readonly bool DepthTest;
 
-        public bool WriteDepth;
+        public readonly bool WriteDepth;
 
-        public DepthFunction Function;
+        public readonly DepthFunction Function;
+
+        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthFunction function = DepthFunction.Less)
+        {
+            DepthTest = depthTest;
+            WriteDepth = writeDepth;
+            Function = function;
+        }
 
         public bool Equals(DepthInfo other) => DepthTest == other.DepthTest && WriteDepth == other.WriteDepth && Function == other.Function;
+
+        public static DepthInfo Default => new DepthInfo(true);
     }
 
-    public struct ClearInfo
+    public readonly struct ClearInfo
     {
-        public Color4? Colour;
+        public readonly Color4 Colour;
 
-        public double? Depth;
+        public readonly double Depth;
 
-        public int? Stencil;
+        public readonly int Stencil;
+
+        public ClearInfo(Color4 colour = default, double depth = 1f, int stencil = 0)
+        {
+            Colour = colour;
+            Depth = depth;
+            Stencil = stencil;
+        }
+
+        public static ClearInfo Default => new ClearInfo(default);
     }
 }

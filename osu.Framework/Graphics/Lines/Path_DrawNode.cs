@@ -202,12 +202,7 @@ namespace osu.Framework.Graphics.Lines
                 if (texture?.Available != true || segments.Count == 0)
                     return;
 
-                GLWrapper.PushDepthInfo(new DepthInfo
-                {
-                    DepthTest = true,
-                    WriteDepth = true,
-                    Function = DepthFunction.Less
-                });
+                GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                 Shader.Bind();
 
