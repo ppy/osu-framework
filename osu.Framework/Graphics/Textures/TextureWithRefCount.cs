@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
@@ -30,9 +31,8 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        // Can't reference our own TextureGL here as an exception may be thrown
-        public sealed override bool Available => !isDisposed && !base.TextureGL.IsDisposed;
-        private bool isDisposed;
+        // The base property references TextureGL, but doing so may throw an exception (above)
+        public sealed override bool Available => base.TextureGL.Available;
 
         #region Disposal
 
@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.Textures
             Dispose(false);
         }
 
+        private bool isDisposed;
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -50,7 +52,7 @@ namespace osu.Framework.Graphics.Textures
                 return;
             isDisposed = true;
 
-            base.TextureGL.Dereference();
+            GLWrapper.ScheduleDisposal(() => base.TextureGL.Dereference());
         }
 
         #endregion
