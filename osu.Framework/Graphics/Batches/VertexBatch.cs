@@ -56,12 +56,12 @@ namespace osu.Framework.Graphics.Batches
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
         {
             if (disposing)
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
-        }
+        });
 
         #endregion
 
