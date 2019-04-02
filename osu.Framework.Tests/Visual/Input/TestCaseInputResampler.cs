@@ -19,7 +19,8 @@ namespace osu.Framework.Tests.Visual.Input
     [System.ComponentModel.Description("live path optimiastion")]
     public class TestCaseInputResampler : GridTestCase
     {
-        public TestCaseInputResampler() : base(3, 3)
+        public TestCaseInputResampler()
+            : base(3, 3)
         {
             const int width = 2;
             Texture gradientTexture = new Texture(width, 1, true);
@@ -150,6 +151,7 @@ namespace osu.Framework.Tests.Visual.Input
                     NumVertices++;
                     foundOne = true;
                 }
+
                 return foundOne;
             }
         }

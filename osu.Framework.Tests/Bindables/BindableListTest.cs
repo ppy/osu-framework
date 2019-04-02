@@ -242,10 +242,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Disabled = true;
 
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                bindableStringList.Add(str);
-            });
+            Assert.Throws<InvalidOperationException>(() => { bindableStringList.Add(str); });
         }
 
         [TestCase("a random string")]
@@ -944,7 +941,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithArray()
         {
-            IEnumerable<string> strings = new [] { "testA", "testB" };
+            IEnumerable<string> strings = new[] { "testA", "testB" };
 
             bindableStringList.Parse(strings);
 
@@ -959,7 +956,8 @@ namespace osu.Framework.Tests.Bindables
             Assert.Multiple(() =>
             {
                 Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(null));
-                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(new object[] {
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(new object[]
+                {
                     "test", "testabc", "asdasdasdasd"
                 }));
             });
@@ -1007,7 +1005,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("test123");
 
-            IEnumerable<string> strings = new []{ "testA", "testB" };
+            IEnumerable<string> strings = new[] { "testA", "testB" };
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
             bindableStringList.ItemsAdded += items =>
@@ -1016,7 +1014,8 @@ namespace osu.Framework.Tests.Bindables
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = false;
             };
-            bindableStringList.ItemsRemoved += items => {
+            bindableStringList.ItemsRemoved += items =>
+            {
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = true;
             };

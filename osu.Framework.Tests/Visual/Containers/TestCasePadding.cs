@@ -14,7 +14,8 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestCasePadding : GridTestCase
     {
-        public TestCasePadding() : base(2, 2)
+        public TestCasePadding()
+            : base(2, 2)
         {
             Cell(0).AddRange(new Drawable[]
             {
