@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -20,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Sprites
     {
         public TestCaseSpriteIcon()
         {
-            FillFlowContainer<Icon> flow;
+            FillFlowContainer flow;
 
             Add(new TooltipContainer
             {
@@ -35,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     new ScrollContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Child = flow = new FillFlowContainer<Icon>
+                        Child = flow = new FillFlowContainer
                         {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
@@ -47,11 +48,23 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
             });
 
-            foreach (var p in typeof(FontAwesome).GetProperties(BindingFlags.Public | BindingFlags.Static))
-                flow.Add(new Icon($"{nameof(FontAwesome)}.{p.Name}", (IconUsage)p.GetValue(null)));
+            var weights = typeof(FontAwesome).GetNestedTypes();
+            foreach (var w in weights)
+            {
+                flow.Add(new SpriteText
+                {
+                    Text = w.Name,
+                    Scale = new Vector2(4),
+                    RelativeSizeAxes = Axes.X,
+                    Padding = new MarginPadding(10),
+                });
 
-            AddStep("toggle shadows", () => flow.Children.ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
-            AddStep("change icons", () => flow.Children.ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
+                foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
+                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)p.GetValue(null)));
+            }
+
+            AddStep("toggle shadows", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
+            AddStep("change icons", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
         }
 
         private class Icon : Container, IHasTooltip

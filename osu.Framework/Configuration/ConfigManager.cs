@@ -27,7 +27,7 @@ namespace osu.Framework.Configuration
         /// Initialise a new <see cref="ConfigManager{T}"/>
         /// </summary>
         /// <param name="defaultOverrides">Dictionary of overrides which should take precedence over defaults specified by the <see cref="ConfigManager{T}"/> implementation.</param>
-        protected ConfigManager(IDictionary<T, object> defaultOverrides)
+        protected ConfigManager(IDictionary<T, object> defaultOverrides = null)
         {
             this.defaultOverrides = defaultOverrides;
         }
