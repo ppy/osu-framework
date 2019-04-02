@@ -68,9 +68,6 @@ namespace osu.Framework.Graphics.Containers
                 blurRotation = Source.BlurRotation;
 
                 blurShader = Source.blurShader;
-
-                // BufferedContainer overrides DrawColourInfo for children, but needs to be reset to draw ourselves
-                DrawColourInfo = Source.baseDrawColourInfo;
             }
 
             protected override long GetDrawVersion() => updateVersion;

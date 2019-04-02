@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected readonly BufferedDrawNodeSharedData SharedData;
 
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="DrawNode"/>.
+        /// </summary>
+        protected new DrawColourInfo DrawColourInfo { get; private set; }
+
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
 
@@ -54,6 +59,7 @@ namespace osu.Framework.Graphics
 
             backgroundColour = Source.BackgroundColour;
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
+            DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
             frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
             drawRectangle = filteringMode == All.Nearest
@@ -167,7 +173,6 @@ namespace osu.Framework.Graphics
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
             if (frameBuffer.Texture.Bind())
-                // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
                 frameBuffer.Texture.DrawQuad(drawQuad ?? drawRectangle, textureRect, colourInfo);
         }
 
