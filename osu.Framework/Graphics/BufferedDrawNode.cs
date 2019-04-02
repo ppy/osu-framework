@@ -78,14 +78,16 @@ namespace osu.Framework.Graphics
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
 
-        public override void Draw(Action<TexturedVertex2D> vertexAction)
+        public sealed override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             if (RequiresRedraw)
             {
+                SharedData.ResetCurrentEffectBuffer();
+
                 using (establishFrameBufferViewport())
                 {
                     // Fill the frame buffer with drawn children
-                    using (BindFrameBuffer(SharedData.GetMainBuffer()))
+                    using (BindFrameBuffer(SharedData.MainBuffer))
                     {
                         // We need to draw children as if they were zero-based to the top-left of the texture.
                         // We can do this by adding a translation component to our (orthogonal) projection matrix.
@@ -124,7 +126,7 @@ namespace osu.Framework.Graphics
         protected virtual void DrawToBackBuffer()
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
-            DrawFrameBuffer(SharedData.GetMainBuffer(), DrawColourInfo.Colour);
+            DrawFrameBuffer(SharedData.MainBuffer, DrawColourInfo.Colour);
         }
 
         /// <summary>
