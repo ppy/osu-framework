@@ -1020,32 +1020,30 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private List<DrawNode> childDrawNodes;
-
-        internal IReadOnlyList<DrawNode> ChildDrawNodes => childDrawNodes?.AsReadOnly();
-
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
+            DrawNode node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
+            if (!(node is ICompositeDrawNode cNode))
                 return null;
+
+            if (cNode.Children == null)
+                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
             if (cNode.AddChildDrawNodes)
             {
-                if (childDrawNodes == null)
-                    childDrawNodes = new List<DrawNode>(aliveInternalChildren.Count);
-
                 int j = 0;
-                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, childDrawNodes);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, cNode.Children);
 
-                if (j < childDrawNodes.Count)
-                    childDrawNodes.RemoveRange(j, childDrawNodes.Count - j);
+                if (j < cNode.Children.Count)
+                    cNode.Children.RemoveRange(j, cNode.Children.Count - j);
             }
 
-            return cNode;
+            return node;
         }
 
         #endregion

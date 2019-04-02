@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
     /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the
     /// <see cref="DrawNode"/>s of its children.
     /// </summary>
-    public class CompositeDrawNode : DrawNode
+    public class CompositeDrawNode : DrawNode, ICompositeDrawNode
     {
         protected new CompositeDrawable Source => (CompositeDrawable)base.Source;
 
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The <see cref="DrawNode"/>s of the children of our <see cref="CompositeDrawable"/>.
         /// </summary>
-        private IReadOnlyList<DrawNode> children;
+        public List<DrawNode> Children { get; set; }
 
         /// <summary>
         /// Information about how masking of children should be carried out.
@@ -152,8 +152,6 @@ namespace osu.Framework.Graphics.Containers
             screenSpaceMaskingQuad = null;
             Shader = Source.Shader;
             forceLocalVertexBatch = Source.ForceLocalVertexBatch;
-
-            children = Source.ChildDrawNodes;
         }
 
         public virtual bool AddChildDrawNodes => true;
@@ -212,11 +210,11 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateVertexBatch()
         {
-            if (children == null)
+            if (Children == null)
                 return;
 
             // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
-            int clampedAmountChildren = MathHelper.Clamp(children.Count, 1, 1000);
+            int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
             if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
                 vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
@@ -241,9 +239,9 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PushMaskingInfo(info);
             }
 
-            if (children != null)
-                for (int i = 0; i < children.Count; i++)
-                    children[i].Draw(vertexAction);
+            if (Children != null)
+                for (int i = 0; i < Children.Count; i++)
+                    Children[i].Draw(vertexAction);
 
             if (maskingInfo != null)
                 GLWrapper.PopMaskingInfo();
