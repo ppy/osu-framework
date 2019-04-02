@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
@@ -19,7 +20,8 @@ namespace osu.Framework.Configuration
 
         private readonly Storage storage;
 
-        public IniConfigManager(Storage storage)
+        public IniConfigManager(Storage storage, IDictionary<T, object> defaultOverrides = null)
+            : base(defaultOverrides)
         {
             this.storage = storage;
 
