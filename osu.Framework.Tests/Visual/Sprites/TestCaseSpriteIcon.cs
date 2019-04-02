@@ -58,6 +58,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     RelativeSizeAxes = Axes.X,
                     Padding = new MarginPadding(10),
                 });
+
                 foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
                     flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)p.GetValue(null)));
             }
