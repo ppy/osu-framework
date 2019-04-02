@@ -14,10 +14,28 @@ namespace osu.Framework.Configuration
     public abstract class ConfigManager<T> : ITrackableConfigManager, IDisposable
         where T : struct
     {
+        /// <summary>
+        /// Whether user specified configuration elements should be set even though a default was never specified.
+        /// </summary>
         protected virtual bool AddMissingEntries => true;
+
+        private readonly IDictionary<T, object> defaultOverrides;
 
         protected readonly Dictionary<T, IBindable> ConfigStore = new Dictionary<T, IBindable>();
 
+        /// <summary>
+        /// Initialise a new <see cref="ConfigManager{T}"/>
+        /// </summary>
+        /// <param name="defaultOverrides">Dictionary of overrides which should take precedence over defaults specified by the <see cref="ConfigManager{T}"/> implementation.</param>
+        protected ConfigManager(IDictionary<T, object> defaultOverrides)
+        {
+            this.defaultOverrides = defaultOverrides;
+        }
+
+        /// <summary>
+        /// Set all required default values via Set() calls.
+        /// Note that defaults set here may be overridden by <see cref="defaultOverrides"/> provided in the constructor.
+        /// </summary>
         protected virtual void InitialiseDefaults()
         {
         }
@@ -34,7 +52,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
             if (precision.HasValue) bindable.Precision = precision.Value;
@@ -54,7 +72,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
             if (precision.HasValue) bindable.Precision = precision.Value;
@@ -74,7 +92,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
@@ -93,7 +111,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
 
             return bindable;
         }
@@ -110,11 +128,19 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
+        }
+
+        private TType getDefault<TType>(T lookup, TType fallback)
+        {
+            if (defaultOverrides != null && defaultOverrides.TryGetValue(lookup, out object found))
+                return (TType)found;
+
+            return fallback;
         }
 
         public Bindable<U> Set<U>(T lookup, U value)
@@ -126,7 +152,7 @@ namespace osu.Framework.Configuration
             else
                 bindable.Value = value;
 
-            bindable.Default = value;
+            bindable.Default = getDefault(lookup, value);
 
             return bindable;
         }
