@@ -175,7 +175,6 @@ namespace osu.Framework.Configuration
             return fallback;
         }
 
-
         private Bindable<U> set<U>(T lookup, U value)
         {
             Bindable<U> bindable = new Bindable<U>(value);
