@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Whether <see cref="TextureGL"/> is in a usable state.
         /// </summary>
-        public virtual bool Available => !TextureGL.IsDisposed;
+        public virtual bool Available => TextureGL.Available;
 
         #region Disposal
 
@@ -143,6 +143,7 @@ namespace osu.Framework.Graphics.Textures
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
