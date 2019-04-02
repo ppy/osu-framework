@@ -13,12 +13,18 @@ namespace osu.Framework.Graphics
     {
         /// <summary>
         /// The background colour of the <see cref="FrameBuffer"/>s.
-        /// Visually changes the colour which drawn alpha is blended against.
+        /// Visually changes the colour which rendered alpha is blended against.
         /// </summary>
         /// <remarks>
         /// This should generally be transparent-black or transparent-white, but can also be used to
         /// colourise the background colour of the <see cref="FrameBuffer"/> with non-transparent colours.
         /// </remarks>
         Color4 BackgroundColour { get; }
+
+        /// <summary>
+        /// The colour with which the <see cref="FrameBuffer"/>s are rendered to the screen.
+        /// A null value implies the <see cref="FrameBuffer"/>s should be drawn as they are.
+        /// </summary>
+        DrawColourInfo? FrameBufferDrawColour { get; }
     }
 }

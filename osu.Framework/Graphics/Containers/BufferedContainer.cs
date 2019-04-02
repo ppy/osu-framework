@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        private DrawColourInfo baseDrawColourInfo => base.DrawColourInfo;
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
         public override DrawColourInfo DrawColourInfo
         {
@@ -326,6 +326,7 @@ namespace osu.Framework.Graphics.Containers
                 // since our own color will be applied on top when we render
                 // from the frame buffer to the back buffer later on.
                 result.Colour = ColourInfo.SingleColour(Color4.White);
+
                 return result;
             }
         }
