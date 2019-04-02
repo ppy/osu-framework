@@ -58,6 +58,7 @@ namespace osu.Framework.IO.Stores
             catch (Exception ex)
             {
                 Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
+                completionSource.SetResult(null);
                 throw;
             }
         }, TaskCreationOptions.PreferFairness));
