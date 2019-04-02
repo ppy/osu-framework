@@ -63,6 +63,14 @@ namespace osu.Framework
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
 
+        /// <summary>
+        /// Provide <see cref="FrameworkSetting"/> defaults which should override those provided by osu-framework.
+        /// <remarks>
+        /// Please check https://github.com/ppy/osu-framework/blob/master/osu.Framework/Configuration/FrameworkConfigManager.cs for expected types.
+        /// </remarks>
+        /// </summary>
+        protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
+
         protected Game()
         {
             RelativeSizeAxes = Axes.Both;
@@ -252,7 +260,5 @@ namespace osu.Framework
             Audio?.Dispose();
             Audio = null;
         }
-
-        protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
     }
 }
