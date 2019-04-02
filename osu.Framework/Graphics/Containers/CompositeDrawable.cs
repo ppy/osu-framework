@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public abstract class CompositeDrawable : Drawable
+    public abstract partial class CompositeDrawable : Drawable
     {
         #region Contruction and disposal
 
@@ -936,7 +936,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IShader Shader { get; private set; }
 
-        protected override DrawNode CreateDrawNode() => new CompositeDrawNode(this);
+        protected override DrawNode CreateDrawNode() => new CompositeDrawableDrawNode(this);
 
         private bool forceLocalVertexBatch;
 

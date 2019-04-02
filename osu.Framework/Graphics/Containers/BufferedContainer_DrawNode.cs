@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public partial class BufferedContainer<T>
     {
-        private class BufferedContainerDrawNode : CompositeDrawNode
+        private class BufferedContainerDrawNode : CompositeDrawableDrawNode
         {
             private bool drawOriginal;
             private Color4 backgroundColour;
