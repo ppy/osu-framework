@@ -15,9 +15,6 @@ namespace osu.Framework.Graphics.Textures
             this.prefix = prefix;
         }
 
-        public override Texture Get(string name)
-        {
-            return base.Get($@"{prefix}-{name}");
-        }
+        public override Texture Get(string name) => base.Get($@"{prefix}-{name}");
     }
 }

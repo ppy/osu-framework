@@ -164,6 +164,7 @@ namespace osu.Framework.Graphics.Cursor
         private double lastRecordedPositionTime;
 
         private IHasTooltip lastCandidate;
+
         /// <summary>
         /// Determines which drawable should currently receive a tooltip, taking into account
         /// <see cref="AppearDelay"/> and <see cref="AppearRadius"/>. Returns null if no valid
@@ -183,6 +184,7 @@ namespace osu.Framework.Graphics.Cursor
                 recentMousePositions.Clear();
                 lastCandidate = targetCandidate;
             }
+
             if (targetCandidate == null)
                 return null;
 
@@ -203,6 +205,7 @@ namespace osu.Framework.Graphics.Cursor
             // we can skip this if the appear-delay is set to 0, since then tooltips can appear instantly and we don't need to wait to record enough positions.
             if (appearDelay > 0 && (recentMousePositions.Count == 0 || lastRecordedPositionTime - recentMousePositions[0].Time < appearDelay - positionRecordInterval))
                 return null;
+
             recentMousePositions.RemoveAll(t => Time.Current - t.Time > appearDelay);
 
             // For determining whether to show a tooltip we first select only those positions
@@ -304,7 +307,9 @@ namespace osu.Framework.Graphics.Cursor
                 };
             }
 
-            public virtual void Refresh() { }
+            public virtual void Refresh()
+            {
+            }
 
             /// <summary>
             /// Called whenever the tooltip appears. When overriding do not forget to fade in.

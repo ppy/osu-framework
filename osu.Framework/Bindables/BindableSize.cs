@@ -66,12 +66,10 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private static Size clamp(Size value, Size minValue, Size maxValue)
-        {
-            return new Size(
+        private static Size clamp(Size value, Size minValue, Size maxValue) =>
+            new Size(
                 Math.Max(minValue.Width, Math.Min(value.Width, maxValue.Width)),
                 Math.Max(minValue.Height, Math.Min(value.Height, maxValue.Height))
             );
-        }
     }
 }

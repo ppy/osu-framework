@@ -37,6 +37,7 @@ namespace osu.Framework.IO.Stores
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             watcher.Dispose();

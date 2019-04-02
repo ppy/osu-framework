@@ -90,10 +90,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessageAsync(IpcMessage message)
-        {
-            throw new NotSupportedException("This platform does not implement IPC.");
-        }
+        public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
@@ -636,6 +633,7 @@ namespace osu.Framework.Platform
         {
             if (!e.Control)
                 return;
+
             switch (e.Key)
             {
                 case Key.F7:
@@ -670,6 +668,7 @@ namespace osu.Framework.Platform
             {
                 if (Window == null)
                     return;
+
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
@@ -768,6 +767,7 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             if (ExecutionState > ExecutionState.Stopping)

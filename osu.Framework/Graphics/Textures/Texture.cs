@@ -110,10 +110,7 @@ namespace osu.Framework.Graphics.Textures
             return texRect;
         }
 
-        public RectangleF GetTextureRect(RectangleF? textureRect = null)
-        {
-            return TextureGL.GetTextureRect(TextureBounds(textureRect));
-        }
+        public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
 
         public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {

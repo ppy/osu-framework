@@ -448,6 +448,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     if (screens.Last() != screen)
                         throw new InvalidOperationException("Disposal order was wrong");
+
                     screens.Remove(screen);
                 };
 
