@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Lines
 {
     public partial class Path
     {
-        public class PathDrawNode : TexturedShaderDrawNode
+        private class PathDrawNode : TexturedShaderDrawNode
         {
             public const int MAX_RES = 24;
 

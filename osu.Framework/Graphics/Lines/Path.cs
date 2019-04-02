@@ -158,10 +158,10 @@ namespace osu.Framework.Graphics.Lines
 
         private Texture texture = Texture.WhitePixel;
 
-        protected internal Texture Texture
+        protected Texture Texture
         {
             get => texture;
-            protected set
+            set
             {
                 if (texture == value)
                     return;
