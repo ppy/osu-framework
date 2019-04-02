@@ -8,24 +8,22 @@ using osuTK;
 using osuTK.Graphics.ES30;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
-using System.Diagnostics;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
     public partial class BufferedContainer<T>
     {
-        private class BufferedContainerDrawNode : CompositeDrawableDrawNode
+        private class BufferedContainerDrawNode : BufferedDrawNode, ICompositeDrawNode
         {
             protected new BufferedContainer<T> Source => (BufferedContainer<T>)base.Source;
 
+            protected new CompositeDrawableDrawNode Child => (CompositeDrawableDrawNode)base.Child;
+
             private bool drawOriginal;
-            private Color4 backgroundColour;
             private ColourInfo effectColour;
             private BlendingParameters effectBlending;
             private EffectPlacement effectPlacement;
@@ -36,30 +34,19 @@ namespace osu.Framework.Graphics.Containers
 
             private long updateVersion;
 
-            private RectangleF screenSpaceDrawRectangle;
-            private All filteringMode;
-
-            private readonly List<RenderbufferInternalFormat> formats = new List<RenderbufferInternalFormat>();
-
             private IShader blurShader;
 
-            private readonly BufferedContainerDrawNodeSharedData sharedData;
-
-            public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
-                : base(source)
+            public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData, RenderbufferInternalFormat[] formats = null,
+                                             bool pixelSnapping = false)
+                : base(source, new CompositeDrawableDrawNode(source), sharedData, formats, pixelSnapping)
             {
-                this.sharedData = sharedData;
             }
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
-                screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
-                filteringMode = Source.PixelSnapping ? All.Nearest : All.Linear;
-
                 updateVersion = Source.updateVersion;
-                backgroundColour = Source.BackgroundColour;
 
                 BlendingParameters localEffectBlending = effectBlending;
                 if (localEffectBlending.Mode == BlendingMode.Inherit)
@@ -80,107 +67,61 @@ namespace osu.Framework.Graphics.Containers
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
 
-                formats.Clear();
-                formats.AddRange(Source.attachedFormats);
-
                 blurShader = Source.blurShader;
 
                 // BufferedContainer overrides DrawColourInfo for children, but needs to be reset to draw ourselves
                 DrawColourInfo = Source.baseDrawColourInfo;
             }
 
-            public override bool AddChildDrawNodes => RequiresRedraw;
+            protected override long GetDrawVersion() => updateVersion;
 
-            /// <summary>
-            /// Whether this <see cref="BufferedContainerDrawNode"/> should have its children re-drawn.
-            /// </summary>
-            public bool RequiresRedraw => updateVersion > sharedData.DrawVersion;
+            private FrameBuffer currentEffectBuffer;
 
-            private ValueInvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
+            protected override void DrawToFrameBuffers()
             {
-                // Disable masking for generating the frame buffer since masking will be re-applied
-                // when actually drawing later on anyways. This allows more information to be captured
-                // in the frame buffer and helps with cached buffers being re-used.
-                RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(screenSpaceDrawRectangle.X), (int)Math.Floor(screenSpaceDrawRectangle.Y), (int)roundedSize.X + 1,
-                    (int)roundedSize.Y + 1);
+                base.DrawToFrameBuffers();
 
-                GLWrapper.PushMaskingInfo(new MaskingInfo
+                currentEffectBuffer = SharedData.GetMainBuffer();
+
+                if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
-                    ScreenSpaceAABB = screenSpaceMaskingRect,
-                    MaskingRect = screenSpaceDrawRectangle,
-                    ToMaskingSpace = Matrix3.Identity,
-                    BlendRange = 1,
-                    AlphaExponent = 1,
-                }, true);
+                    GL.Disable(EnableCap.ScissorTest);
 
-                // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-                GLWrapper.PushViewport(new RectangleI(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
+                    if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation);
+                    if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
-                return new ValueInvokeOnDisposal(returnViewport);
-            }
-
-            private void returnViewport()
-            {
-                GLWrapper.PopViewport();
-                GLWrapper.PopMaskingInfo();
-            }
-
-            private ValueInvokeOnDisposal bindFrameBuffer(FrameBuffer frameBuffer, Vector2 requestedSize)
-            {
-                if (!frameBuffer.IsInitialized)
-                    frameBuffer.Initialize(true, filteringMode);
-
-                // These additional render buffers are only required if e.g. depth
-                // or stencil information needs to also be stored somewhere.
-                foreach (var f in formats)
-                    frameBuffer.Attach(f);
-
-                // This setter will also take care of allocating a texture of appropriate size within the framebuffer.
-                frameBuffer.Size = requestedSize;
-
-                frameBuffer.Bind();
-
-                return new ValueInvokeOnDisposal(frameBuffer.Unbind);
-            }
-
-            private void drawFrameBufferToBackBuffer(FrameBuffer frameBuffer, RectangleF drawRectangle, ColourInfo colourInfo)
-            {
-                // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
-                RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
-                if (frameBuffer.Texture.Bind())
-                    // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
-                    frameBuffer.Texture.DrawQuad(drawRectangle, textureRect, colourInfo);
-            }
-
-            private void drawChildren(Action<TexturedVertex2D> vertexAction, Vector2 frameBufferSize)
-            {
-                // Fill the frame buffer with drawn children
-                using (bindFrameBuffer(currentFrameBuffer, frameBufferSize))
-                {
-                    // We need to draw children as if they were zero-based to the top-left of the texture.
-                    // We can do this by adding a translation component to our (orthogonal) projection matrix.
-                    GLWrapper.PushOrtho(screenSpaceDrawRectangle);
-
-                    GLWrapper.ClearColour(backgroundColour);
-                    base.Draw(vertexAction);
-
-                    GLWrapper.PopOrtho();
+                    GL.Enable(EnableCap.ScissorTest);
                 }
+            }
+
+            protected override void DrawToBackBuffer()
+            {
+                if (drawOriginal && effectPlacement == EffectPlacement.InFront)
+                    base.DrawToBackBuffer();
+
+                GLWrapper.SetBlend(new BlendingInfo(effectBlending));
+
+                ColourInfo finalEffectColour = DrawColourInfo.Colour;
+                finalEffectColour.ApplyChild(effectColour);
+
+                DrawFrameBuffer(currentEffectBuffer, finalEffectColour);
+
+                if (drawOriginal && effectPlacement == EffectPlacement.Behind)
+                    base.DrawToBackBuffer();
             }
 
             private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
             {
-                FrameBuffer source = currentFrameBuffer;
-                FrameBuffer target = advanceFrameBuffer();
+                FrameBuffer target = SharedData.GetNextEffectBuffer();
 
                 GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
 
-                using (bindFrameBuffer(target, source.Size))
+                using (BindFrameBuffer(target))
                 {
                     blurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
                     blurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
 
-                    Vector2 size = source.Size;
+                    Vector2 size = currentEffectBuffer.Size;
                     blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                     float radians = -MathHelper.DegreesToRadians(blurRotation);
@@ -188,132 +129,27 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                    DrawFrameBuffer(currentEffectBuffer, ColourInfo.SingleColour(Color4.White), new RectangleF(0, 0, currentEffectBuffer.Texture.Width, currentEffectBuffer.Texture.Height));
                     blurShader.Unbind();
                 }
+
+                currentEffectBuffer = target;
             }
 
-            private int currentFrameBufferIndex;
-            private FrameBuffer currentFrameBuffer => sharedData.FrameBuffers[currentFrameBufferIndex];
-            private FrameBuffer advanceFrameBuffer() => sharedData.FrameBuffers[currentFrameBufferIndex = (currentFrameBufferIndex + 1) % 2];
-
-            /// <summary>
-            /// Makes sure the first frame buffer is always the one we want to draw from.
-            /// This saves us the need to sync the draw indices across draw node trees
-            /// since the SharedData.FrameBuffers array is already shared.
-            /// </summary>
-            private void finalizeFrameBuffer()
+            public List<DrawNode> Children
             {
-                if (currentFrameBufferIndex != 0)
-                {
-                    Trace.Assert(currentFrameBufferIndex == 1,
-                        $"Only the first two framebuffers should be the last to be written to at the end of {nameof(Draw)}.");
-
-                    FrameBuffer temp = sharedData.FrameBuffers[0];
-                    sharedData.FrameBuffers[0] = sharedData.FrameBuffers[1];
-                    sharedData.FrameBuffers[1] = temp;
-
-                    currentFrameBufferIndex = 0;
-                }
+                get => Child.Children;
+                set => Child.Children = value;
             }
 
-            // Our effects will be drawn into framebuffers 0 and 1. If we want to preserve the originally
-            // drawn children we need to put them in a separate buffer; in this case buffer 2. Otherwise,
-            // we do not want to allocate a third buffer for nothing and hence we start with 0.
-            private int originalIndex => drawOriginal && (blurRadius.X > 0 || blurRadius.Y > 0) ? 2 : 0;
-
-            public override void Draw(Action<TexturedVertex2D> vertexAction)
-            {
-                currentFrameBufferIndex = originalIndex;
-
-                Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
-                if (RequiresRedraw)
-                {
-                    sharedData.DrawVersion = updateVersion;
-
-                    using (establishFrameBufferViewport(frameBufferSize))
-                    {
-                        drawChildren(vertexAction, frameBufferSize);
-
-                        // Blur post-processing in case a blur radius is defined.
-                        if (blurRadius.X > 0 || blurRadius.Y > 0)
-                        {
-                            GL.Disable(EnableCap.ScissorTest);
-
-                            if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation);
-                            if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90);
-
-                            GL.Enable(EnableCap.ScissorTest);
-                        }
-                    }
-
-                    finalizeFrameBuffer();
-                }
-
-                RectangleF drawRectangle = filteringMode == All.Nearest
-                    ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
-                    : screenSpaceDrawRectangle;
-
-                Shader.Bind();
-
-                if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                {
-                    GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    drawFrameBufferToBackBuffer(sharedData.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
-                }
-
-                // Blit the final framebuffer to screen.
-                GLWrapper.SetBlend(new BlendingInfo(effectBlending));
-
-                ColourInfo finalEffectColour = DrawColourInfo.Colour;
-                finalEffectColour.ApplyChild(effectColour);
-                drawFrameBufferToBackBuffer(sharedData.FrameBuffers[0], drawRectangle, finalEffectColour);
-
-                if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                {
-                    GLWrapper.SetBlend(DrawColourInfo.Blending);
-                    drawFrameBufferToBackBuffer(sharedData.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
-                }
-
-                Shader.Unbind();
-            }
+            public bool AddChildDrawNodes => RequiresRedraw;
         }
 
-        private class BufferedContainerDrawNodeSharedData : IDisposable
+        private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
-            /// <summary>
-            /// The <see cref="FrameBuffer"/>s to render to.
-            /// These are used in a ping-pong manner to render effects <see cref="BufferedContainerDrawNode"/>.
-            /// </summary>
-            public readonly FrameBuffer[] FrameBuffers = new FrameBuffer[3];
-
-            /// <summary>
-            /// The version of drawn contents currently present in <see cref="FrameBuffers"/>.
-            /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
-            /// </summary>
-            public long DrawVersion = -1;
-
             public BufferedContainerDrawNodeSharedData()
+                : base(2)
             {
-                for (int i = 0; i < FrameBuffers.Length; i++)
-                    FrameBuffers[i] = new FrameBuffer();
-            }
-
-            ~BufferedContainerDrawNodeSharedData()
-            {
-                dispose();
-            }
-
-            public void Dispose()
-            {
-                dispose();
-                GC.SuppressFinalize(this);
-            }
-
-            private void dispose()
-            {
-                for (int i = 0; i < FrameBuffers.Length; i++)
-                    FrameBuffers[i].Dispose();
             }
         }
     }
