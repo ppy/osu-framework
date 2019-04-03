@@ -25,6 +25,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Queries;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -310,6 +311,8 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
+        private readonly Query samplesPassedQuery = new Query(QueryTarget.SamplesPassed);
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -332,7 +335,11 @@ namespace osu.Framework.Platform
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
-                    buffer.Object.Draw(null);
+                    using (samplesPassedQuery.Begin())
+                        buffer.Object.Draw(null);
+
+                    FrameStatistics.Add(StatisticsCounterType.Fragments, samplesPassedQuery.Result);
+
                     lastDrawFrameId = buffer.FrameId;
                     break;
                 }
