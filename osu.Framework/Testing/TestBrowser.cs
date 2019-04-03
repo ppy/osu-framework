@@ -79,6 +79,7 @@ namespace osu.Framework.Testing
         private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
+
             //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
@@ -87,11 +88,12 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? t.Name : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? TestCase.RemovePrefix(t.Name) : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
-                                                ).Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
+                                                ).OrderBy(g => g.Name)
+                                                .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };

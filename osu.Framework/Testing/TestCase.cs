@@ -130,11 +130,6 @@ namespace osu.Framework.Testing
         }
 
         /// <summary>
-        /// Most derived usages of this start with TestCase. This will be removed for display purposes.
-        /// </summary>
-        private const string prefix = "TestCase";
-
-        /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestCase"/>.
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
@@ -145,10 +140,7 @@ namespace osu.Framework.Testing
 
         protected TestCase()
         {
-            Name = GetType().ReadableName();
-
-            // Skip the "TestCase" prefix
-            if (Name.StartsWith(prefix)) Name = Name.Replace(prefix, string.Empty);
+            Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
             Masking = true;
@@ -383,5 +375,12 @@ namespace osu.Framework.Testing
             foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
                 method.Invoke(this, null);
         }
+
+        /// <summary>
+        /// Remove the "TestCase" prefix from a name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static string RemovePrefix(string name) => name.Replace(nameof(TestCase), string.Empty);
     }
 }
