@@ -91,7 +91,8 @@ namespace osu.Framework.Testing
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
-                                                ).Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
+                                                ).OrderBy(g => g.Name)
+                                                .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
