@@ -52,7 +52,7 @@ namespace osu.Framework.Testing.Drawables
                 icon = new SpriteIcon
                 {
                     Size = new Vector2(10),
-                    Icon = FontAwesome.ChevronDown,
+                    Icon = FontAwesome.Solid.ChevronDown,
                     Colour = Color4.White,
                     Y = -1,
                     Margin = new MarginPadding { Right = left_box_width + 5 },
@@ -101,7 +101,7 @@ namespace osu.Framework.Testing.Drawables
         {
             set
             {
-                icon.Icon = value ? FontAwesome.ChevronDown : FontAwesome.ChevronUp;
+                icon.Icon = value ? FontAwesome.Solid.ChevronDown : FontAwesome.Solid.ChevronUp;
                 base.Collapsed = value;
             }
         }

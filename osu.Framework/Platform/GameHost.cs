@@ -477,7 +477,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig();
+                setupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
@@ -658,12 +658,25 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig()
+        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
+            var hostDefaults = new Dictionary<FrameworkSetting, object>
+            {
+                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
+            };
+
+            // merge defaults provided by game into host defaults.
+            if (gameDefaults != null)
+            {
+                foreach (var d in gameDefaults)
+                    hostDefaults[d.Key] = d.Value;
+            }
+
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)

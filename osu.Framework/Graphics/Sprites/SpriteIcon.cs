@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Equals(loadableIcon, loadedIcon)) return;
 
-            var texture = store.Get(loadableIcon.Icon.ToString());
+            var texture = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
 
             spriteMain.Texture = texture;
             spriteShadow.Texture = texture;
