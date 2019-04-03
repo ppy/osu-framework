@@ -145,6 +145,7 @@ namespace osu.Framework.Tests.Visual.Input
                         mode[action].Reset();
                     }
                 }
+
                 lastEventCounts.Clear();
             });
             pressedKeys.Clear();

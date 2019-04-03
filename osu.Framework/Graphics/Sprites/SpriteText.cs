@@ -86,6 +86,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (text == value)
                     return;
+
                 text = value;
 
                 current.Value = text;
@@ -173,6 +174,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (allowMultiline == value)
                     return;
+
                 allowMultiline = value;
 
                 invalidate(true);
@@ -191,6 +193,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (shadow == value)
                     return;
+
                 shadow = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -209,6 +212,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (shadowColour == value)
                     return;
+
                 shadowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -228,6 +232,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (useFullGlyphHeight == value)
                     return;
+
                 useFullGlyphHeight = value;
 
                 invalidate(true);
@@ -318,6 +323,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (spacing == value)
                     return;
+
                 spacing = value;
 
                 invalidate(true);
@@ -594,10 +600,7 @@ namespace osu.Framework.Graphics.Sprites
             return true;
         }
 
-        public override string ToString()
-        {
-            return $@"""{displayedText}"" " + base.ToString();
-        }
+        public override string ToString() => $@"""{displayedText}"" " + base.ToString();
 
         /// <summary>
         /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.

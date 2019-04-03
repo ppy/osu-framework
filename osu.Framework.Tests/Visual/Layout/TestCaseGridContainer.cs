@@ -30,18 +30,22 @@ namespace osu.Framework.Tests.Visual.Layout
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.5f),
-                Masking = true,
-                BorderColour = Color4.White,
-                BorderThickness = 2,
                 Children = new Drawable[]
                 {
-                    new Box
+                    grid = new GridContainer { RelativeSizeAxes = Axes.Both },
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Alpha = 0,
-                        AlwaysPresent = true
-                    },
-                    grid = new GridContainer { RelativeSizeAxes = Axes.Both }
+                        Masking = true,
+                        BorderColour = Color4.White,
+                        BorderThickness = 2,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Alpha = 0,
+                            AlwaysPresent = true
+                        }
+                    }
                 }
             };
         });
@@ -516,39 +520,166 @@ namespace osu.Framework.Tests.Visual.Layout
                 },
             }.Invert(), dimensions, row);
 
-            AddStep("set size = (0.5, 0.5)", () => gridParent.Size = new Vector2(0.5f));
-            checkSizes();
-            AddStep("set size = (0.5f, 0.1f)", () => gridParent.Size = new Vector2(0.5f, 0.1f));
-            checkSizes();
-            AddStep("set size = (0.1f, 0.5f)", () => gridParent.Size = new Vector2(0.1f, 0.5f));
-            checkSizes();
+            checkClampedSizes(row, boxes, dimensions);
+        }
 
-            void checkSizes()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumSize(bool row)
+        {
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
             {
-                AddAssert("max size not overflowed", () =>
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, minSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, minSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
                 {
-                    for (int i = 0; i < 8; i++)
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
+
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDimensionsWithMinimumAndMaximumSize(bool row)
+        {
+            var boxes = new FillBox[8];
+
+            var dimensions = new[]
+            {
+                new Dimension(),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 100),
+                new Dimension(),
+                new Dimension(GridSizeMode.Distributed, maxSize: 50),
+                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Distributed, minSize: 80),
+                new Dimension(GridSizeMode.Distributed, maxSize: 150)
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = new FillBox(),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox(),
+                    boxes[5] = new FillBox(),
+                    boxes[6] = new FillBox(),
+                    boxes[7] = new FillBox()
+                },
+            }.Invert(), dimensions, row);
+
+            checkClampedSizes(row, boxes, dimensions);
+        }
+
+        [Test]
+        public void TestCombinedMinimumAndMaximumSize()
+        {
+            AddStep("set content", () =>
+            {
+                gridParent.Masking = false;
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Width = 420;
+
+                grid.Content = new[]
+                {
+                    new Drawable[]
                     {
-                        if (dimensions[i].Mode != GridSizeMode.Distributed)
-                            continue;
+                        new FillBox(),
+                        new FillBox(),
+                        new FillBox(),
+                    },
+                };
 
-                        if (row && boxes[i].DrawHeight > dimensions[i].MaxSize)
-                            return false;
-
-                        if (!row && boxes[i].DrawWidth > dimensions[i].MaxSize)
-                            return false;
-                    }
-
-                    return true;
-                });
-
-                AddAssert("column span total length", () =>
+                grid.ColumnDimensions = new[]
                 {
-                    return row
-                        ? Precision.AlmostEquals(grid.DrawHeight, boxes.Sum(b => b.DrawHeight))
-                        : Precision.AlmostEquals(grid.DrawWidth, boxes.Sum(b => b.DrawWidth));
-                });
-            }
+                    new Dimension(GridSizeMode.Distributed, minSize: 180),
+                    new Dimension(GridSizeMode.Distributed, minSize: 50, maxSize: 70),
+                    new Dimension(GridSizeMode.Distributed, minSize: 40, maxSize: 70),
+                };
+            });
+
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
+        }
+
+        [Test]
+        public void TestCombinedMinimumAndMaximumSize2()
+        {
+            AddStep("set content", () =>
+            {
+                gridParent.Masking = false;
+                gridParent.RelativeSizeAxes = Axes.Y;
+                gridParent.Width = 230;
+
+                grid.Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        new FillBox(),
+                        new FillBox(),
+                    },
+                };
+
+                grid.ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Distributed, minSize: 180),
+                    new Dimension(GridSizeMode.Distributed, minSize: 40, maxSize: 70),
+                };
+            });
+
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
+        }
+
+        private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
+        {
+            AddAssert("sizes not over/underflowed", () =>
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    if (dimensions[i].Mode != GridSizeMode.Distributed)
+                        continue;
+
+                    if (row && (boxes[i].DrawHeight > dimensions[i].MaxSize || boxes[i].DrawHeight < dimensions[i].MinSize))
+                        return false;
+
+                    if (!row && (boxes[i].DrawWidth > dimensions[i].MaxSize || boxes[i].DrawWidth < dimensions[i].MinSize))
+                        return false;
+                }
+
+                return true;
+            });
+
+            AddAssert("column span total length", () =>
+            {
+                float expectedSize = row ? grid.DrawHeight : grid.DrawWidth;
+                float totalSize = row ? boxes.Sum(b => b.DrawHeight) : boxes.Sum(b => b.DrawWidth);
+
+                // Allowed to exceed the length of the columns due to absolute sizing
+                return totalSize >= expectedSize;
+            });
         }
 
         private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>

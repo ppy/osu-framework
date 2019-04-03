@@ -75,15 +75,9 @@ namespace osu.Framework.Extensions
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
         /// <returns></returns>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
-        {
-            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
-        }
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
-        public static bool IsValidIndex<T>(this List<T> list, int index)
-        {
-            return index >= 0 && index < list.Count;
-        }
+        public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
 
         /// <summary>
         /// Compares every item in list to given list.
@@ -137,16 +131,16 @@ namespace osu.Framework.Extensions
 
             var rectangular = new T[rows, cols];
             for (int r = 0; r < rows; r++)
-                for (int c = 0; c < cols; c++)
-                {
-                    if (jagged[r] == null)
-                        continue;
+            for (int c = 0; c < cols; c++)
+            {
+                if (jagged[r] == null)
+                    continue;
 
-                    if (c >= jagged[r].Length)
-                        continue;
+                if (c >= jagged[r].Length)
+                    continue;
 
-                    rectangular[r, c] = jagged[r][c];
-                }
+                rectangular[r, c] = jagged[r][c];
+            }
 
             return rectangular;
         }
@@ -180,10 +174,7 @@ namespace osu.Framework.Extensions
         /// <returns>The inverted array. This is always a square array.</returns>
         public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
-        public static string ToResolutionString(this Size size)
-        {
-            return size.Width.ToString() + 'x' + size.Height;
-        }
+        public static string ToResolutionString(this Size size) => size.Width.ToString() + 'x' + size.Height;
 
         public static void WriteLineExplicit(this Stream s, string str = @"")
         {
@@ -208,6 +199,7 @@ namespace osu.Framework.Extensions
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+
             try
             {
                 return assembly.GetTypes();
@@ -225,6 +217,7 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (!task.IsFaulted) return;
+
             throw task.Exception ?? new Exception("Task failed.");
         }
 
@@ -265,7 +258,8 @@ namespace osu.Framework.Extensions
         public static DisplayIndex GetIndex(this DisplayDevice display)
         {
             if (display == null) return DisplayIndex.Default;
-            for (int i = 0; ; i++)
+
+            for (int i = 0;; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) return DisplayIndex.Default;

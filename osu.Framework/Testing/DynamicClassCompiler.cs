@@ -140,16 +140,17 @@ namespace osu.Framework.Testing
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
-                #if DEBUG
-                    "DEBUG",
-                #endif
-                #if TRACE
-                    "TRACE",
-                #endif
-                #if RELEASE
-                    "RELEASE",
-                #endif
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+            {
+#if DEBUG
+                "DEBUG",
+#endif
+#if TRACE
+                "TRACE",
+#endif
+#if RELEASE
+                "RELEASE",
+#endif
             }, languageVersion: LanguageVersion.CSharp7_3);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 

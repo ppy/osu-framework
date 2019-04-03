@@ -39,7 +39,6 @@ namespace osu.Framework.Platform
             if (bindIPCPort)
                 startIPC();
 
-
             base.SetupForRun();
         }
 

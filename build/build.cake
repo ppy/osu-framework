@@ -72,7 +72,7 @@ Task("RunHttpBin")
         StartProcess(pythonPath, "-m pip install httpbin waitress");
 
         waitressProcess = StartAndReturnProcess(waitressPath, new ProcessSettings {
-            Arguments = "--listen=*:80 httpbin:app",
+            Arguments = "--listen=*:80 --threads=20 httpbin:app",
         });
 
         Thread.Sleep(5000); // we need to wait for httpbin to startup. :/

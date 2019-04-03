@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
     public class Counter : CompositeDrawable
     {
         private double count;
+
         /// <summary>
         /// The current count.
         /// </summary>
@@ -22,6 +23,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (count == value)
                     return;
+
                 count = value;
 
                 OnCountChanged(count);
@@ -31,7 +33,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Invoked when <see cref="Count"/> has changed.
         /// </summary>
-        protected virtual void OnCountChanged(double count) { }
+        protected virtual void OnCountChanged(double count)
+        {
+        }
 
         public TransformSequence<Counter> CountTo(double endCount, double duration = 0, Easing easing = Easing.None)
             => this.TransformTo(nameof(Count), endCount, duration, easing);

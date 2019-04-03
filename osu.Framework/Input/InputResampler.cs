@@ -64,6 +64,7 @@ namespace osu.Framework.Input
             float realMovementDistance = realDiff.Length;
             if (realMovementDistance < 1)
                 return Array.Empty<Vector2>();
+
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion

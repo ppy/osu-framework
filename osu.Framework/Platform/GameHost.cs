@@ -90,10 +90,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessageAsync(IpcMessage message)
-        {
-            throw new NotSupportedException("This platform does not implement IPC.");
-        }
+        public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
@@ -480,7 +477,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig();
+                setupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
@@ -636,6 +633,7 @@ namespace osu.Framework.Platform
         {
             if (!e.Control)
                 return;
+
             switch (e.Key)
             {
                 case Key.F7:
@@ -660,16 +658,30 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig()
+        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
+            var hostDefaults = new Dictionary<FrameworkSetting, object>
+            {
+                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
+            };
+
+            // merge defaults provided by game into host defaults.
+            if (gameDefaults != null)
+            {
+                foreach (var d in gameDefaults)
+                    hostDefaults[d.Key] = d.Value;
+            }
+
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)
                     return;
+
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
@@ -768,6 +780,7 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             if (ExecutionState > ExecutionState.Stopping)

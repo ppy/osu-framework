@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 if (state == value)
                     return;
+
                 state = value;
 
                 switch (state)

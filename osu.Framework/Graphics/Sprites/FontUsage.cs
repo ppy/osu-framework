@@ -99,14 +99,12 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}";
 
-        public bool Equals(FontUsage other)
-        {
-            return string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight) && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
-        }
+        public bool Equals(FontUsage other) => string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight) && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
+
             return obj is FontUsage other && Equals(other);
         }
 

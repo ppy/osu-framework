@@ -51,18 +51,12 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// Distance squared from an arbitrary point p to this line.
         /// </summary>
-        public float DistanceSquaredToPoint(Vector2 p)
-        {
-            return Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
-        }
+        public float DistanceSquaredToPoint(Vector2 p) => Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
 
         /// <summary>
         /// Distance from an arbitrary point to this line.
         /// </summary>
-        public float DistanceToPoint(Vector2 p)
-        {
-            return Vector2Extensions.Distance(p, ClosestPointTo(p));
-        }
+        public float DistanceToPoint(Vector2 p) => Vector2Extensions.Distance(p, ClosestPointTo(p));
 
         /// <summary>
         /// Finds the point closest to the given point on this line.
@@ -92,22 +86,13 @@ namespace osu.Framework.Graphics.Primitives
             return pB;
         }
 
-        public Matrix4 WorldMatrix()
-        {
-            return Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(StartPoint.X, StartPoint.Y, 0);
-        }
+        public Matrix4 WorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(StartPoint.X, StartPoint.Y, 0);
 
         /// <summary>
         /// It's the end of the world as we know it
         /// </summary>
-        public Matrix4 EndWorldMatrix()
-        {
-            return Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
-        }
+        public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
 
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
+        public object Clone() => MemberwiseClone();
     }
 }

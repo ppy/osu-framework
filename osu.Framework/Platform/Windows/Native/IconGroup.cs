@@ -88,11 +88,14 @@ namespace osu.Framework.Platform.Windows.Native
                 var entry = iconDir.Entries[i];
                 if (entry.Width == width && entry.Height == height)
                     return i;
+
                 if (entry.Width > requested || entry.Height > requested)
                     continue;
+
                 if (closest < 0 || entry.Width > iconDir.Entries[closest].Width || entry.Height > iconDir.Entries[closest].Height)
                     closest = i;
             }
+
             return closest;
         }
 
@@ -111,6 +114,7 @@ namespace osu.Framework.Platform.Windows.Native
 
             if (hIcon == IntPtr.Zero)
                 throw new InvalidOperationException("Couldn't create native icon handle.");
+
             return new Icon(hIcon, width, height);
         }
 

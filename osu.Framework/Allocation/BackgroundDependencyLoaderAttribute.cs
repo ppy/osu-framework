@@ -87,6 +87,7 @@ namespace osu.Framework.Allocation
             var val = dc.Get(type);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
+
             return val;
         };
     }

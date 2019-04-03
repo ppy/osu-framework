@@ -54,6 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
+
         private void updateVertexBuffer()
         {
             const float start_angle = 0;

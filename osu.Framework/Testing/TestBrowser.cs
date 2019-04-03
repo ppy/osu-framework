@@ -487,12 +487,16 @@ namespace osu.Framework.Testing
 
         private void runTests(Action onCompletion)
         {
+            int actualStepCount = 0;
             CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
 
-                return !(s is SetUpStep) && !(s is LabelStep);
+                if (!(s is SetUpStep) && !(s is LabelStep))
+                    actualStepCount++;
+
+                return actualStepCount > 1;
             });
         }
 

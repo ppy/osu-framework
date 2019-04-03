@@ -34,17 +34,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Dispose();
         }
 
-        public bool IsDisposed { get; private set; }
+        /// <summary>
+        /// Whether this <see cref="TextureGL"/> can used for drawing.
+        /// </summary>
+        public bool Available { get; private set; } = true;
 
-        protected virtual void Dispose(bool isDisposing)
-        {
-            IsDisposed = true;
-        }
+        protected bool IsDisposed { get; private set; }
+
+        protected virtual void Dispose(bool isDisposing) => GLWrapper.ScheduleDisposal(() => Available = false);
 
         public void Dispose()
         {
             if (IsDisposed)
                 return;
+
+            IsDisposed = true;
 
             Dispose(true);
             GC.SuppressFinalize(this);

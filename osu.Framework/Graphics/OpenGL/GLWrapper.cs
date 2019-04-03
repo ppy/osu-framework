@@ -315,6 +315,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Viewport == actualRect)
                 return;
+
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
@@ -336,6 +337,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Viewport == actualRect)
                 return;
+
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
@@ -356,6 +358,7 @@ namespace osu.Framework.Graphics.OpenGL
             ortho_stack.Push(ortho);
             if (Ortho == ortho)
                 return;
+
             Ortho = ortho;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
@@ -378,6 +381,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Ortho == actualRect)
                 return;
+
             Ortho = actualRect;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
@@ -664,20 +668,17 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Hollow;
         public float HollowCornerRadius;
 
-        public bool Equals(MaskingInfo other)
-        {
-            return
-                ScreenSpaceAABB == other.ScreenSpaceAABB &&
-                MaskingRect == other.MaskingRect &&
-                ToMaskingSpace == other.ToMaskingSpace &&
-                CornerRadius == other.CornerRadius &&
-                BorderThickness == other.BorderThickness &&
-                BorderColour.Equals(other.BorderColour) &&
-                BlendRange == other.BlendRange &&
-                AlphaExponent == other.AlphaExponent &&
-                EdgeOffset == other.EdgeOffset &&
-                Hollow == other.Hollow &&
-                HollowCornerRadius == other.HollowCornerRadius;
-        }
+        public bool Equals(MaskingInfo other) =>
+            ScreenSpaceAABB == other.ScreenSpaceAABB &&
+            MaskingRect == other.MaskingRect &&
+            ToMaskingSpace == other.ToMaskingSpace &&
+            CornerRadius == other.CornerRadius &&
+            BorderThickness == other.BorderThickness &&
+            BorderColour.Equals(other.BorderColour) &&
+            BlendRange == other.BlendRange &&
+            AlphaExponent == other.AlphaExponent &&
+            EdgeOffset == other.EdgeOffset &&
+            Hollow == other.Hollow &&
+            HollowCornerRadius == other.HollowCornerRadius;
     }
 }

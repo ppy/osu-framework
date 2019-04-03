@@ -70,6 +70,7 @@ namespace osu.Framework.Graphics.Colour
             {
                 if (!HasSingleColour)
                     throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
+
                 return TopLeft;
             }
 
@@ -164,10 +165,7 @@ namespace osu.Framework.Graphics.Colour
             return other.HasSingleColour && TopLeft.Equals(other.TopLeft);
         }
 
-        public bool Equals(SRGBColour other)
-        {
-            return HasSingleColour && TopLeft.Equals(other);
-        }
+        public bool Equals(SRGBColour other) => HasSingleColour && TopLeft.Equals(other);
 
         /// <summary>
         /// The average colour of all corners.
@@ -200,10 +198,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public override string ToString() =>
-            HasSingleColour ?
-            $@"{TopLeft} (Single)" :
-            $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
+        public override string ToString() => HasSingleColour ? $@"{TopLeft} (Single)" : $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;

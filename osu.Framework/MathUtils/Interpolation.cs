@@ -81,6 +81,7 @@ namespace osu.Framework.MathUtils
                         w[i] *= points[i].X - points[j].X;
                 w[i] = 1.0 / w[i];
             }
+
             return w;
         }
 
@@ -128,9 +129,8 @@ namespace osu.Framework.MathUtils
             };
         }
 
-        public static EdgeEffectParameters ValueAt(double time, EdgeEffectParameters startParams, EdgeEffectParameters endParams, double startTime, double endTime, Easing easing = Easing.None)
-        {
-            return new EdgeEffectParameters
+        public static EdgeEffectParameters ValueAt(double time, EdgeEffectParameters startParams, EdgeEffectParameters endParams, double startTime, double endTime, Easing easing = Easing.None) =>
+            new EdgeEffectParameters
             {
                 Type = startParams.Type,
                 Hollow = startParams.Hollow,
@@ -139,7 +139,6 @@ namespace osu.Framework.MathUtils
                 Radius = ValueAt(time, startParams.Radius, endParams.Radius, startTime, endTime, easing),
                 Roundness = ValueAt(time, startParams.Roundness, endParams.Roundness, startTime, endTime, easing),
             };
-        }
 
         public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, Easing easing = Easing.None) =>
             ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
@@ -263,6 +262,7 @@ namespace osu.Framework.MathUtils
                     return time * (2 - time);
                 case Easing.InOutQuad:
                     if (time < .5) return time * time * 2;
+
                     return --time * time * -2 + 1;
 
                 case Easing.InCubic:
@@ -271,6 +271,7 @@ namespace osu.Framework.MathUtils
                     return --time * time * time + 1;
                 case Easing.InOutCubic:
                     if (time < .5) return time * time * time * 4;
+
                     return --time * time * time * 4 + 1;
 
                 case Easing.InQuart:
@@ -279,6 +280,7 @@ namespace osu.Framework.MathUtils
                     return 1 - --time * time * time * time;
                 case Easing.InOutQuart:
                     if (time < .5) return time * time * time * time * 8;
+
                     return --time * time * time * time * -8 + 1;
 
                 case Easing.InQuint:
@@ -287,6 +289,7 @@ namespace osu.Framework.MathUtils
                     return --time * time * time * time * time + 1;
                 case Easing.InOutQuint:
                     if (time < .5) return time * time * time * time * time * 16;
+
                     return --time * time * time * time * time * 16 + 1;
 
                 case Easing.InSine:
@@ -302,6 +305,7 @@ namespace osu.Framework.MathUtils
                     return -Math.Pow(2, -10 * time) + 1;
                 case Easing.InOutExpo:
                     if (time < .5) return .5 * Math.Pow(2, 20 * time - 10);
+
                     return 1 - .5 * Math.Pow(2, -20 * time + 10);
 
                 case Easing.InCirc:
@@ -310,6 +314,7 @@ namespace osu.Framework.MathUtils
                     return Math.Sqrt(1 - --time * time);
                 case Easing.InOutCirc:
                     if ((time *= 2) < 1) return .5 - .5 * Math.Sqrt(1 - time * time);
+
                     return .5 * Math.Sqrt(1 - (time -= 2) * time) + .5;
 
                 case Easing.InElastic:
@@ -323,6 +328,7 @@ namespace osu.Framework.MathUtils
                 case Easing.InOutElastic:
                     if ((time *= 2) < 1)
                         return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5);
+
                     return .5 * Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5) + 1;
 
                 case Easing.InBack:
@@ -331,6 +337,7 @@ namespace osu.Framework.MathUtils
                     return --time * time * ((back_const + 1) * time + back_const) + 1;
                 case Easing.InOutBack:
                     if ((time *= 2) < 1) return .5 * time * time * ((back_const2 + 1) * time - back_const2);
+
                     return .5 * ((time -= 2) * time * ((back_const2 + 1) * time + back_const2) + 2);
 
                 case Easing.InBounce:
@@ -341,6 +348,7 @@ namespace osu.Framework.MathUtils
                         return 1 - (7.5625 * (time -= 1.5 * bounce_const) * time + .75);
                     if (time < 2.5 * bounce_const)
                         return 1 - (7.5625 * (time -= 2.25 * bounce_const) * time + .9375);
+
                     return 1 - (7.5625 * (time -= 2.625 * bounce_const) * time + .984375);
                 case Easing.OutBounce:
                     if (time < bounce_const)
@@ -349,9 +357,11 @@ namespace osu.Framework.MathUtils
                         return 7.5625 * (time -= 1.5 * bounce_const) * time + .75;
                     if (time < 2.5 * bounce_const)
                         return 7.5625 * (time -= 2.25 * bounce_const) * time + .9375;
+
                     return 7.5625 * (time -= 2.625 * bounce_const) * time + .984375;
                 case Easing.InOutBounce:
                     if (time < .5) return .5 - .5 * ApplyEasing(Easing.OutBounce, 1 - time * 2);
+
                     return ApplyEasing(Easing.OutBounce, (time - .5) * 2) * .5 + .5;
 
                 case Easing.OutPow10:
