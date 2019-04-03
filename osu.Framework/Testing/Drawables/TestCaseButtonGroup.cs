@@ -63,7 +63,7 @@ namespace osu.Framework.Testing.Drawables
             bool hasHeader = tests.Length > 1;
 
             if (hasHeader)
-                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name.Replace("TestCase", ""))
+                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name)
                 {
                     Action = ToggleVisibility
                 });
@@ -81,6 +81,10 @@ namespace osu.Framework.Testing.Drawables
 
         protected override void PopIn() => buttonFlow.ForEach(b => b.Collapsed = false);
 
-        protected override void PopOut() => buttonFlow.ForEach(b => b.Collapsed = true);
+        protected override void PopOut()
+        {
+            if (headerButton != null)
+                buttonFlow.ForEach(b => b.Collapsed = true);
+        }
     }
 }

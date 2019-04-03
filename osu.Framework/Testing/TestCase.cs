@@ -132,7 +132,7 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.
         /// </summary>
-        private const string prefix = "TestCase";
+        public const string PREFIX = "TestCase";
 
         /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestCase"/>.
@@ -148,7 +148,7 @@ namespace osu.Framework.Testing
             Name = GetType().ReadableName();
 
             // Skip the "TestCase" prefix
-            if (Name.StartsWith(prefix)) Name = Name.Replace(prefix, string.Empty);
+            if (Name.StartsWith(PREFIX)) Name = Name.Replace(PREFIX, string.Empty);
 
             RelativeSizeAxes = Axes.Both;
             Masking = true;
