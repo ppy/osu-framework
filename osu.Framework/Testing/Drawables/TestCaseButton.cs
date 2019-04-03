@@ -80,7 +80,7 @@ namespace osu.Framework.Testing.Drawables
             : this()
         {
             TestType = test;
-            text.AddText(test.Name.Replace(TestCase.PREFIX, string.Empty));
+            text.AddText(TestCase.RemovePrefix(test.Name));
 
             var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
             if (description != null)
