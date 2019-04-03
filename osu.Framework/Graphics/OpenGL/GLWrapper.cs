@@ -33,6 +33,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
+        public static DepthInfo CurrentDepthInfo { get; private set; }
 
         public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
 
@@ -67,7 +68,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             MaxTextureSize = Math.Min(4096, GL.GetInteger(GetPName.MaxTextureSize));
 
-            GL.Disable(EnableCap.DepthTest);
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
@@ -104,7 +104,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundTexture = null;
             lastActiveBatch = null;
-            lastDepthTest = null;
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
@@ -117,6 +116,7 @@ namespace osu.Framework.Graphics.OpenGL
             masking_stack.Clear();
             scissor_rect_stack.Clear();
             frame_buffer_stack.Clear();
+            depth_stack.Clear();
 
             BindFrameBuffer(DefaultFrameBuffer);
 
@@ -134,6 +134,8 @@ namespace osu.Framework.Graphics.OpenGL
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);
+
+            PushDepthInfo(new DepthInfo(false));
         }
 
         // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
@@ -233,23 +235,6 @@ namespace osu.Framework.Graphics.OpenGL
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
-        }
-
-        private static bool? lastDepthTest;
-
-        public static void SetDepthTest(bool enabled)
-        {
-            if (lastDepthTest == enabled)
-                return;
-
-            lastDepthTest = enabled;
-
-            FlushCurrentBatch();
-
-            if (enabled)
-                GL.Enable(EnableCap.DepthTest);
-            else
-                GL.Disable(EnableCap.DepthTest);
         }
 
         private static BlendingInfo lastBlendingInfo;
@@ -393,6 +378,7 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
         private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
+        private static readonly Stack<DepthInfo> depth_stack = new Stack<DepthInfo>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
@@ -515,6 +501,53 @@ namespace osu.Framework.Graphics.OpenGL
 
             CurrentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, false, true);
+        }
+
+        /// <summary>
+        /// Applies a new depth information.
+        /// </summary>
+        /// <param name="depthInfo">The depth information.</param>
+        public static void PushDepthInfo(DepthInfo depthInfo)
+        {
+            depth_stack.Push(depthInfo);
+
+            if (CurrentDepthInfo.Equals(depthInfo))
+                return;
+
+            CurrentDepthInfo = depthInfo;
+            setDepthInfo(CurrentDepthInfo);
+        }
+
+        /// <summary>
+        /// Applies the last depth information.
+        /// </summary>
+        public static void PopDepthInfo()
+        {
+            Trace.Assert(depth_stack.Count > 1);
+
+            depth_stack.Pop();
+            DepthInfo depthInfo = depth_stack.Peek();
+
+            if (CurrentDepthInfo.Equals(depthInfo))
+                return;
+
+            CurrentDepthInfo = depthInfo;
+            setDepthInfo(CurrentDepthInfo);
+        }
+
+        private static void setDepthInfo(DepthInfo depthInfo)
+        {
+            FlushCurrentBatch();
+
+            if (depthInfo.DepthTest)
+            {
+                GL.Enable(EnableCap.DepthTest);
+                GL.DepthFunc(depthInfo.Function);
+            }
+            else
+                GL.Disable(EnableCap.DepthTest);
+
+            GL.DepthMask(depthInfo.WriteDepth);
         }
 
         /// <summary>
