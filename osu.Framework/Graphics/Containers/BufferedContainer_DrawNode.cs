@@ -301,16 +301,16 @@ namespace osu.Framework.Graphics.Containers
 
             ~BufferedContainerDrawNodeSharedData()
             {
-                Dispose(false);
+                dispose();
             }
 
             public void Dispose()
             {
-                Dispose(true);
+                dispose();
                 GC.SuppressFinalize(this);
             }
 
-            protected void Dispose(bool isDisposing)
+            private void dispose()
             {
                 for (int i = 0; i < FrameBuffers.Length; i++)
                     FrameBuffers[i].Dispose();
