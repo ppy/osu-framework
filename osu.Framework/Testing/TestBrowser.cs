@@ -495,10 +495,14 @@ namespace osu.Framework.Testing
                 if (!interactive || RunAllSteps.Value)
                     return false;
 
+                if (actualStepCount > 0)
+                    // stop once one actual step has been run.
+                    return true;
+
                 if (!(s is SetUpStep) && !(s is LabelStep))
                     actualStepCount++;
 
-                return actualStepCount > 1;
+                return false;
             });
         }
 
