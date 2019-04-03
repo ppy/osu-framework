@@ -10,6 +10,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 
@@ -143,6 +144,8 @@ namespace osu.Framework.Platform
             {
                 case Configuration.WindowMode.Windowed:
                     sizeWindowed.Value = ClientSize;
+                    if (sizeWindowed.Value != ClientSize)
+                        ClientSize = sizeWindowed.Value;
                     break;
             }
         }
