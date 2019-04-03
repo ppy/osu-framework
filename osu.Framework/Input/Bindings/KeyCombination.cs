@@ -26,7 +26,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new [] { InputKey.None };
+            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new[] { InputKey.None };
         }
 
         /// <summary>
@@ -57,6 +57,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Modifiers:
                     if (Keys.Except(pressedKeys.Keys).Any())
                         return false;
+
                     var pressedModifiers = pressedKeys.Keys.Where(IsModifierKey);
                     var requiredModifiers = Keys.Where(IsModifierKey);
                     return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
@@ -70,6 +71,7 @@ namespace osu.Framework.Input.Bindings
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
+
             return Keys.SequenceEqual(other.Keys);
         }
 
@@ -78,6 +80,7 @@ namespace osu.Framework.Input.Bindings
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
+
             return Equals((KeyCombination)obj);
         }
 
@@ -257,6 +260,7 @@ namespace osu.Framework.Input.Bindings
                 return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositive);
             if (button >= JoystickButton.FirstAxisNegative)
                 return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegative);
+
             return InputKey.FirstJoystickButton + (button - JoystickButton.FirstButton);
         }
 
@@ -264,6 +268,7 @@ namespace osu.Framework.Input.Bindings
         {
             if (scrollDelta.Y > 0) return InputKey.MouseWheelUp;
             if (scrollDelta.Y < 0) return InputKey.MouseWheelDown;
+
             return InputKey.None;
         }
 

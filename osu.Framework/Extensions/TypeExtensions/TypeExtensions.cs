@@ -45,6 +45,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             while (t != null && t != typeof(object))
             {
                 yield return t;
+
                 t = t.BaseType;
             }
         }

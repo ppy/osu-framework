@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
@@ -61,6 +62,14 @@ namespace osu.Framework
         protected override Container<Drawable> Content => content;
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
+
+        /// <summary>
+        /// Provide <see cref="FrameworkSetting"/> defaults which should override those provided by osu-framework.
+        /// <remarks>
+        /// Please check https://github.com/ppy/osu-framework/blob/master/osu.Framework/Configuration/FrameworkConfigManager.cs for expected types.
+        /// </remarks>
+        /// </summary>
+        protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
 
         protected Game()
         {
@@ -149,7 +158,9 @@ namespace osu.Framework
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
 
             dependencies.Cache(Fonts);
 
@@ -225,10 +236,7 @@ namespace osu.Framework
             Host.Exit();
         }
 
-        protected virtual bool OnExiting()
-        {
-            return false;
-        }
+        protected virtual bool OnExiting() => false;
 
         /// <summary>
         /// Called before a frame cycle has started (Update and Draw).

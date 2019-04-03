@@ -48,6 +48,7 @@ namespace osu.Framework.Platform.Windows
             set
             {
                 if (value == active || !canAdjust) return;
+
                 active = value;
 
                 try

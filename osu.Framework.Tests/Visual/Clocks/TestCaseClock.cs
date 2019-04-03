@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Clocks
             private readonly Box bg;
             private readonly Box hand;
 
-            public VisualClock(IClock clock, bool processFrames = false)
+            public VisualClock(IClock clock)
             {
                 this.clock = clock;
 

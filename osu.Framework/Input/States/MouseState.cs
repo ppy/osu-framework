@@ -22,7 +22,7 @@ namespace osu.Framework.Input.States
 
         public override string ToString()
         {
-            string position = IsPositionValid ? $"({ Position.X:F0},{ Position.Y:F0})" : "(Invalid)";
+            string position = IsPositionValid ? $"({Position.X:F0},{Position.Y:F0})" : "(Invalid)";
             return $@"{GetType().ReadableName()} {position} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})";
         }
     }

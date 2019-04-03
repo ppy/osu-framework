@@ -118,7 +118,9 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="content">The content of the new frame.</param>
         /// <param name="displayDuration">The display duration of the new frame.</param>
-        protected virtual void OnFrameAdded(T content, double displayDuration) { }
+        protected virtual void OnFrameAdded(T content, double displayDuration)
+        {
+        }
 
         protected override void Update()
         {
@@ -145,6 +147,7 @@ namespace osu.Framework.Graphics.Animations
                         }
                     }
                 }
+
                 displayFrame(currentFrameIndex);
             }
         }

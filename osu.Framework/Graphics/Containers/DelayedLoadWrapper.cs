@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.Containers
         protected void BeginDelayedLoad()
         {
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
+
             loadTask = LoadComponentAsync(Content, EndDelayedLoad);
         }
 

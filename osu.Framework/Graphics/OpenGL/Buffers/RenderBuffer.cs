@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             Unbind();

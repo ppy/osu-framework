@@ -331,6 +331,7 @@ namespace osu.Framework.Graphics.Containers
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
+
             return x.ChildID.CompareTo(y.ChildID);
         }
 
@@ -347,6 +348,7 @@ namespace osu.Framework.Graphics.Containers
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
+
             return y.ChildID.CompareTo(x.ChildID);
         }
 
@@ -568,15 +570,18 @@ namespace osu.Framework.Graphics.Containers
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
+
                     break;
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
+
                     break;
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
+
                     break;
             }
         }
@@ -985,6 +990,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (forceLocalVertexBatch == value)
                     return;
+
                 forceLocalVertexBatch = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -1100,6 +1106,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (base.RemoveCompletedTransforms == value)
                     return;
+
                 base.RemoveCompletedTransforms = value;
 
                 foreach (var c in internalChildren)
@@ -1206,6 +1213,7 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
+
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
@@ -1569,6 +1577,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
                     throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Width = value;
             }
         }
@@ -1586,6 +1595,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
                     throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Height = value;
             }
         }
@@ -1605,6 +1615,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Size = value;
             }
         }

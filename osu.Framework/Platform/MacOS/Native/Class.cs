@@ -22,6 +22,7 @@ namespace osu.Framework.Platform.MacOS.Native
             var id = objc_getClass(name);
             if (id == IntPtr.Zero)
                 throw new ArgumentException("Unknown class: " + name);
+
             return id;
         }
 

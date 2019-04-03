@@ -74,11 +74,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                         AddLinkText(text, linkInline);
                                     break;
                                 }
+
                                 default:
                                     AddText(text);
                                     break;
                             }
                         }
+
                         break;
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);

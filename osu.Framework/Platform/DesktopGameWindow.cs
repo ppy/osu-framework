@@ -153,6 +153,7 @@ namespace osu.Framework.Platform
         protected void OnMove(object sender, EventArgs e)
         {
             if (inWindowModeTransition) return;
+
             if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
                 // Values are clamped to a range of [-0.5, 1.5], so if more than half of the window was

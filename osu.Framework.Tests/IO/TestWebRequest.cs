@@ -81,13 +81,14 @@ namespace osu.Framework.Tests.IO
         /// Tests async execution is correctly yielding during IO wait time.
         /// </summary>
         [Test]
-        [Ignore("failing too often on appveyor")]
         public void TestConcurrency()
         {
             const int request_count = 10;
             const int induced_delay = 5;
 
             int finished = 0;
+            int failed = 0;
+            int started = 0;
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -104,24 +105,38 @@ namespace osu.Framework.Tests.IO
                     Delay = induced_delay
                 };
 
-                request.Started += () => startTimes.Add(sw.ElapsedMilliseconds);
+                request.Started += () =>
+                {
+                    Interlocked.Increment(ref started);
+                    lock (startTimes)
+                        startTimes.Add(sw.ElapsedMilliseconds);
+                };
                 request.Finished += () => Interlocked.Increment(ref finished);
-                request.Failed += _ => Interlocked.Increment(ref finished);
+                request.Failed += _ =>
+                {
+                    Interlocked.Increment(ref failed);
+                    Interlocked.Increment(ref finished);
+                };
+
                 running.Add(request.PerformAsync());
             }
 
             Task.WaitAll(running.ToArray());
 
+            Assert.Zero(failed);
+
             // in the case threads are not yielding, the time taken will be greater than double the induced delay (after considering latency).
             Assert.Less(sw.ElapsedMilliseconds, induced_delay * 2 * 1000);
+
+            Assert.AreEqual(request_count, started);
+
+            Assert.AreEqual(request_count, finished);
 
             Assert.AreEqual(request_count, startTimes.Count);
 
             // another case would be requests starting too late into the test. just to make sure.
             for (int i = 0; i < request_count; i++)
                 Assert.Less(startTimes[i] - startTimes[0], induced_delay * 1000);
-
-            Assert.AreEqual(request_count, finished);
         }
 
         [Test, Retry(5)]
@@ -520,7 +535,7 @@ namespace osu.Framework.Tests.IO
 
             public int Delay
             {
-                get { return delay; }
+                get => delay;
                 set
                 {
                     delay = value;

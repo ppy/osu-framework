@@ -110,10 +110,7 @@ namespace osu.Framework.Graphics.Textures
             return texRect;
         }
 
-        public RectangleF GetTextureRect(RectangleF? textureRect = null)
-        {
-            return TextureGL.GetTextureRect(TextureBounds(textureRect));
-        }
+        public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
 
         public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
@@ -134,7 +131,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Whether <see cref="TextureGL"/> is in a usable state.
         /// </summary>
-        public virtual bool Available => !TextureGL.IsDisposed;
+        public virtual bool Available => TextureGL.Available;
 
         #region Disposal
 
@@ -143,6 +140,7 @@ namespace osu.Framework.Graphics.Textures
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)

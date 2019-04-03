@@ -55,6 +55,7 @@ namespace osu.Framework.Graphics.Audio
 
                 if (resolution == value)
                     return;
+
                 resolution = value;
                 generate();
             }
@@ -91,6 +92,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (lowColour == value)
                     return;
+
                 lowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -110,6 +112,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (midColour == value)
                     return;
+
                 midColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -129,6 +132,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (highColour == value)
                     return;
+
                 highColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -222,7 +226,7 @@ namespace osu.Framework.Graphics.Audio
 
             public IReadOnlyList<WaveformPoint> Points
             {
-                get { return points; }
+                get => points;
                 set
                 {
                     points = value;
@@ -264,6 +268,7 @@ namespace osu.Framework.Graphics.Audio
 
                     if (rightX < localMaskingRectangle.Left)
                         continue;
+
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
@@ -282,26 +287,26 @@ namespace osu.Framework.Graphics.Audio
                     {
                         default:
                         case 2:
-                            {
-                                float height = DrawSize.Y / 2;
-                                quadToDraw = new Quad(
-                                    new Vector2(leftX, height - points[i].Amplitude[0] * height),
-                                    new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
-                                    new Vector2(leftX, height + points[i].Amplitude[1] * height),
-                                    new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
-                                );
-                            }
+                        {
+                            float height = DrawSize.Y / 2;
+                            quadToDraw = new Quad(
+                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
+                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
+                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
+                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                            );
+                        }
                             break;
                         case 1:
-                            {
-                                quadToDraw = new Quad(
-                                    new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
-                                    new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
-                                    new Vector2(leftX, DrawSize.Y),
-                                    new Vector2(rightX, DrawSize.Y)
-                                );
-                                break;
-                            }
+                        {
+                            quadToDraw = new Quad(
+                                new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
+                                new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
+                                new Vector2(leftX, DrawSize.Y),
+                                new Vector2(rightX, DrawSize.Y)
+                            );
+                            break;
+                        }
                     }
 
                     quadToDraw *= DrawInfo.Matrix;

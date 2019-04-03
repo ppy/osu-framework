@@ -44,6 +44,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 if (!firstUpdate)
                     return true;
+
                 firstUpdate = false;
 
                 return base.UpdateSubTree();
