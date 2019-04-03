@@ -190,9 +190,9 @@ namespace osu.Framework.Graphics.Colour
             get
             {
                 float max = TopLeft.Linear.A;
-                if (TopRight.Linear.A < max) max = TopRight.Linear.A;
-                if (BottomLeft.Linear.A < max) max = BottomLeft.Linear.A;
-                if (BottomRight.Linear.A < max) max = BottomRight.Linear.A;
+                if (TopRight.Linear.A > max) max = TopRight.Linear.A;
+                if (BottomLeft.Linear.A > max) max = BottomLeft.Linear.A;
+                if (BottomRight.Linear.A > max) max = BottomRight.Linear.A;
 
                 return max;
             }
