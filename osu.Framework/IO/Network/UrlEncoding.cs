@@ -13,6 +13,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return UrlEncode(str, Encoding.UTF8, false);
         }
 
@@ -22,6 +23,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return UrlEncode(str, Encoding.UTF8, true);
         }
 
@@ -31,6 +33,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             return Encoding.ASCII.GetString(UrlEncodeToBytes(str, e, paramEncode));
         }
 
@@ -40,6 +43,7 @@ namespace osu.Framework.IO.Network
             {
                 return null;
             }
+
             byte[] bytes = e.GetBytes(str);
             return urlEncodeBytesToBytesPublic(bytes, 0, bytes.Length, false, paramEncode);
         }
@@ -60,10 +64,12 @@ namespace osu.Framework.IO.Network
                     num2++;
                 }
             }
+
             if (!alwaysCreateReturnValue && num == 0 && num2 == 0)
             {
                 return bytes;
             }
+
             byte[] buffer = new byte[count + num2 * 2];
             int num4 = 0;
             for (int j = 0; j < count; j++)
@@ -85,6 +91,7 @@ namespace osu.Framework.IO.Network
                     buffer[num4++] = (byte)IntToHex(num6 & 15);
                 }
             }
+
             return buffer;
         }
 
@@ -94,6 +101,7 @@ namespace osu.Framework.IO.Network
             {
                 return true;
             }
+
             switch (ch)
             {
                 case '\'':
@@ -106,6 +114,7 @@ namespace osu.Framework.IO.Network
                 case '!':
                     return true;
             }
+
             return false;
         }
 
@@ -115,6 +124,7 @@ namespace osu.Framework.IO.Network
             {
                 return (char)(n + 0x30);
             }
+
             return (char)(n - 10 + 0x61);
         }
     }

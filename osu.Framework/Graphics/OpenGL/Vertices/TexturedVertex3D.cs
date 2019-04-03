@@ -14,14 +14,13 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     {
         [VertexMember(3, VertexAttribPointerType.Float)]
         public Vector3 Position;
+
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
+
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 TexturePosition;
 
-        public bool Equals(TexturedVertex3D other)
-        {
-            return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
-        }
+        public bool Equals(TexturedVertex3D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
     }
 }

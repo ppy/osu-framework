@@ -151,6 +151,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable targetVisualiser;
         private Drawable target;
+
         public Drawable Target
         {
             get => target;

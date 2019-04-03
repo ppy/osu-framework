@@ -25,6 +25,7 @@ namespace osu.Framework.Audio
             EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
+
                 Items.Add(item);
             });
         }

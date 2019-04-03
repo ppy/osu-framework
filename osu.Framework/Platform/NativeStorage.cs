@@ -46,6 +46,7 @@ namespace osu.Framework.Platform
             return paths.Select(Path.GetFullPath).Select(path =>
             {
                 if (!path.StartsWith(basePath)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
+
                 return path.Substring(basePath.Length).TrimStart(Path.DirectorySeparatorChar);
             });
         }
@@ -76,16 +77,14 @@ namespace osu.Framework.Platform
             {
                 case FileAccess.Read:
                     if (!File.Exists(path)) return null;
+
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
                 default:
                     return File.Open(path, mode, access);
             }
         }
 
-        public override string GetDatabaseConnectionString(string name)
-        {
-            return string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
-        }
+        public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
     }

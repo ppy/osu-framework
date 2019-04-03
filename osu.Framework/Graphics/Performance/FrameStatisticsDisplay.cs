@@ -512,6 +512,7 @@ namespace osu.Framework.Graphics.Performance
                 set
                 {
                     if (expanded == value) return;
+
                     expanded = value;
 
                     if (expanded)

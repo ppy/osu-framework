@@ -19,9 +19,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private readonly ContextMenuBox movingBox;
 
-        private ContextMenuBox makeBox(Anchor anchor)
-        {
-            return new ContextMenuBox
+        private ContextMenuBox makeBox(Anchor anchor) =>
+            new ContextMenuBox
             {
                 Size = new Vector2(200),
                 Anchor = anchor,
@@ -35,7 +34,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             };
-        }
 
         public TestCaseContextMenu()
         {
@@ -59,10 +57,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // Move box along a square trajectory
             movingBox.MoveTo(new Vector2(0, 100), duration)
-                .Then().MoveTo(new Vector2(100, 100), duration)
-                .Then().MoveTo(new Vector2(100, 0), duration)
-                .Then().MoveTo(Vector2.Zero, duration)
-                .Loop();
+                     .Then().MoveTo(new Vector2(100, 100), duration)
+                     .Then().MoveTo(new Vector2(100, 0), duration)
+                     .Then().MoveTo(Vector2.Zero, duration)
+                     .Loop();
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

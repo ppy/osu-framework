@@ -144,10 +144,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             tableContainer.RowDimensions = rowDefinitions;
         }
 
-        protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
-        {
-            return new MarkdownTableCell(cell, definition, isHeading);
-        }
+        protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading) => new MarkdownTableCell(cell, definition);
 
         private class TableContainer : GridContainer
         {

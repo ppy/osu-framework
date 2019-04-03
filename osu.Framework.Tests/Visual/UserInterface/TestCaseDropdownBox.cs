@@ -139,8 +139,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected internal override string Label
             {
-                get { return label.Text; }
-                set { label.Text = value; }
+                get => label.Text;
+                set => label.Text = value;
             }
 
             public StyledDropdownHeader()

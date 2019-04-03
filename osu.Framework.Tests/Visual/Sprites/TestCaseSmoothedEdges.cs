@@ -12,7 +12,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestCaseSmoothedEdges : GridTestCase
     {
-        public TestCaseSmoothedEdges() : base(2, 2)
+        public TestCaseSmoothedEdges()
+            : base(2, 2)
         {
             Vector2[] smoothnesses =
             {

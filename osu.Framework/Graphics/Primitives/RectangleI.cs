@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using osuTK;
@@ -41,19 +42,13 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public Vector2I Location
-        {
-            get { return new Vector2I(X, Y); }
-        }
+        public Vector2I Location => new Vector2I(X, Y);
 
         /// <summary>Gets or sets the size of this <see cref="T:System.Drawing.RectangleI"></see>.</summary>
         /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public Vector2I Size
-        {
-            get { return new Vector2I(Width, Height); }
-        }
+        public Vector2I Size => new Vector2I(Width, Height);
 
         /// <summary>Gets the y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
         /// <returns>The y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
@@ -105,6 +100,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             if (!(obj is RectangleI))
                 return false;
+
             RectangleI ef = (RectangleI)obj;
             return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
         }
@@ -147,15 +143,8 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>Gets the hash code for this <see cref="T:System.Drawing.RectangleI"></see> structure. For information about the use of hash codes, see Object.GetHashCode.</summary>
         /// <returns>The hash code for this <see cref="T:System.Drawing.RectangleI"></see>.</returns>
         /// <filterpriority>1</filterpriority>
-        public override int GetHashCode()
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return
-                (int)((uint)X ^ (uint)Y << 13 | (uint)Y >> 0x13 ^
-                      (uint)Width << 0x1a | (uint)Width >> 6 ^
-                      (uint)Height << 7 | (uint)Height >> 0x19);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override int GetHashCode() => (int)(((uint)X ^ ((uint)Y << 13)) | (((uint)Y >> 0x13) ^ ((uint)Width << 0x1a)) | (((uint)Width >> 6) ^ ((uint)Height << 7)) | ((uint)Height >> 0x19));
 
         public int Area => Width * Height;
 
@@ -223,6 +212,7 @@ namespace osu.Framework.Graphics.Primitives
             int num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
             if (num2 >= x && num4 >= y)
                 return new RectangleI(x, y, num2 - x, num4 - y);
+
             return Empty;
         }
 
@@ -261,9 +251,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
         public override string ToString() => $"X={X.ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Y={Y.ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Width={Width.ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Height={Height.ToString(CultureInfo.CurrentCulture)}";
+                                             + $"Y={Y.ToString(CultureInfo.CurrentCulture)}, "
+                                             + $"Width={Width.ToString(CultureInfo.CurrentCulture)}, "
+                                             + $"Height={Height.ToString(CultureInfo.CurrentCulture)}";
 
         public bool Equals(RectangleI other) => X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }

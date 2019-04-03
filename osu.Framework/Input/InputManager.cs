@@ -376,13 +376,11 @@ namespace osu.Framework.Input
             hoverEventsUpdated = true;
         }
 
-        private bool isModifierKey(Key k)
-        {
-            return k == Key.LControl || k == Key.RControl
-                                     || k == Key.LAlt || k == Key.RAlt
-                                     || k == Key.LShift || k == Key.RShift
-                                     || k == Key.LWin || k == Key.RWin;
-        }
+        private bool isModifierKey(Key k) =>
+            k == Key.LControl || k == Key.RControl
+                              || k == Key.LAlt || k == Key.RAlt
+                              || k == Key.LShift || k == Key.RShift
+                              || k == Key.LWin || k == Key.RWin;
 
         protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
         {
@@ -475,35 +473,17 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition)
-        {
-            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
-        }
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise)
-        {
-            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
-        }
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
-        private bool handleKeyDown(InputState state, Key key, bool repeat)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
-        }
+        private bool handleKeyDown(InputState state, Key key, bool repeat) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
 
-        private bool handleKeyUp(InputState state, Key key)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
-        }
+        private bool handleKeyUp(InputState state, Key key) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
 
-        private bool handleJoystickPress(InputState state, JoystickButton button)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
-        }
+        private bool handleJoystickPress(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
 
-        private bool handleJoystickRelease(InputState state, JoystickButton button)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
-        }
+        private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
 
         /// <summary>
         /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.

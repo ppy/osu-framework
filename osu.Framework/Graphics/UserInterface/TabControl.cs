@@ -41,8 +41,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items {
-            get {
+        public IEnumerable<T> Items
+        {
+            get
+            {
                 var items = TabContainer.TabItems.Select(t => t.Value);
 
                 if (Dropdown != null)
@@ -158,6 +160,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
+
             tab.Pinned = true;
         }
 
@@ -169,6 +172,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
+
             tab.Pinned = false;
         }
 
@@ -336,6 +340,7 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                 }
             }
+
             return false;
         }
 
@@ -373,6 +378,7 @@ namespace osu.Framework.Graphics.UserInterface
                     updateChildIfNeeded(child, result[i].Y == 0);
                     ++i;
                 }
+
                 return result;
             }
 
