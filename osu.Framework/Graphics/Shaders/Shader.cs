@@ -90,6 +90,7 @@ namespace osu.Framework.Graphics.Shaders
                         int location = GL.GetUniformLocation(this, name);
 
                         if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+
                         return new Uniform<T>(this, name, location);
                     }
 
@@ -178,10 +179,7 @@ namespace osu.Framework.Graphics.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        public static implicit operator int(Shader shader)
-        {
-            return shader.programID;
-        }
+        public static implicit operator int(Shader shader) => shader.programID;
 
         #region Disposal
 

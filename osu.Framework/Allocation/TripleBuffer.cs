@@ -84,6 +84,7 @@ namespace osu.Framework.Allocation
                         buffers[write].Usage = UsageType.None;
                         lastWrite = write;
                     }
+
                     break;
             }
         }

@@ -535,7 +535,7 @@ namespace osu.Framework.Tests.IO
 
             public int Delay
             {
-                get { return delay; }
+                get => delay;
                 set
                 {
                     delay = value;

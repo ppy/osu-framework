@@ -57,9 +57,9 @@ namespace osu.Framework.Physics
 
             // Handle collisions between each pair of bodies.
             foreach (var d in toSimulate)
-                foreach (var other in toSimulate)
-                    if (other != d)
-                        d.CheckAndHandleCollisionWith(other);
+            foreach (var other in toSimulate)
+                if (other != d)
+                    d.CheckAndHandleCollisionWith(other);
 
             // Advance the simulation by the given time step for each body and
             // apply the state to each drawable in question.

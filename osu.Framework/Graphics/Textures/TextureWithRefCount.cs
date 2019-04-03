@@ -27,6 +27,7 @@ namespace osu.Framework.Graphics.Textures
                 var tex = base.TextureGL;
                 if (tex.ReferenceCount <= 0)
                     throw new InvalidOperationException($"Attempting to access a {nameof(TextureWithRefCount)}'s underlying texture after all references are lost.");
+
                 return tex;
             }
         }
@@ -50,6 +51,7 @@ namespace osu.Framework.Graphics.Textures
 
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             GLWrapper.ScheduleDisposal(() => base.TextureGL.Dereference());

@@ -371,7 +371,7 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         private readonly Dictionary<Type, int> eventCounts1 = new Dictionary<Type, int>(),
-                                                 eventCounts2 = new Dictionary<Type, int>();
+                                               eventCounts2 = new Dictionary<Type, int>();
 
         private void checkEventCount(Type type, int change = 0, bool outer = false)
         {
@@ -524,7 +524,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                 public int Count
                 {
-                    get { return count; }
+                    get => count;
                     set
                     {
                         count = value;
@@ -614,10 +614,7 @@ namespace osu.Framework.Tests.Visual.Input
                 TextContainer.Add(dragStatus = new SmallText());
             }
 
-            protected override bool Handle(UIEvent e)
-            {
-                return base.Handle(e) || e is DragStartEvent;
-            }
+            protected override bool Handle(UIEvent e) => base.Handle(e) || e is DragStartEvent;
 
             protected override void Update()
             {

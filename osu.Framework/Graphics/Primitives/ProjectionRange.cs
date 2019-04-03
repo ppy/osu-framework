@@ -47,9 +47,6 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="other">The other range to test against.</param>
         /// <returns>Whether the two ranges overlap.</returns>
-        public bool Overlaps(ProjectionRange other)
-        {
-            return Min <= other.Max && Max >= other.Min;
-        }
+        public bool Overlaps(ProjectionRange other) => Min <= other.Max && Max >= other.Min;
     }
 }

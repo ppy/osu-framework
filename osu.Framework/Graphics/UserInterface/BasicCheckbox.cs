@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     new Container
                     {
-                        BorderColour= Color4.White,
+                        BorderColour = Color4.White,
                         BorderThickness = 3,
                         Masking = true,
                         Size = new Vector2(20, 20),

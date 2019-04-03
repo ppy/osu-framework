@@ -629,6 +629,7 @@ namespace osu.Framework.IO.Network
         protected void Dispose(bool disposing)
         {
             if (isDisposed) return;
+
             isDisposed = true;
 
             Abort();
@@ -671,10 +672,7 @@ namespace osu.Framework.IO.Network
                 return read;
             }
 
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return baseStream.Seek(offset, origin);
-            }
+            public override long Seek(long offset, SeekOrigin origin) => baseStream.Seek(offset, origin);
 
             public override void SetLength(long value)
             {

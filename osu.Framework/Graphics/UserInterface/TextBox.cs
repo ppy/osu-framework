@@ -278,6 +278,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (index < text.Length)
                     return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
+
                 var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
@@ -294,6 +295,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
+
                 i++;
             }
 

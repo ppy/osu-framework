@@ -68,7 +68,6 @@ namespace osu.Framework.Testing.Drawables
             {
                 base.Current = value;
 
-
                 icon.FadeColour(value ? Color4.Black : Color4.White, 100);
 
                 if (value)

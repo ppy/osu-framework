@@ -59,9 +59,8 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool CacheDrawnEffect;
 
-        public BufferedContainer ApplyTo(Drawable drawable)
-        {
-            return new BufferedContainer
+        public BufferedContainer ApplyTo(Drawable drawable) =>
+            new BufferedContainer
             {
                 BlurSigma = Sigma,
                 BlurRotation = Rotation,
@@ -73,12 +72,13 @@ namespace osu.Framework.Graphics.Effects
 
                 CacheDrawnFrameBuffer = CacheDrawnEffect,
 
-                Padding = !PadExtent ? new MarginPadding() : new MarginPadding
-                {
-                    Horizontal = Blur.KernelSize(Sigma.X),
-                    Vertical = Blur.KernelSize(Sigma.Y),
-                },
+                Padding = !PadExtent
+                    ? new MarginPadding()
+                    : new MarginPadding
+                    {
+                        Horizontal = Blur.KernelSize(Sigma.X),
+                        Vertical = Blur.KernelSize(Sigma.Y),
+                    },
             }.Wrap(drawable);
-        }
     }
 }

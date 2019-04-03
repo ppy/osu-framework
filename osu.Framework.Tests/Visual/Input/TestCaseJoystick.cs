@@ -252,6 +252,7 @@ namespace osu.Framework.Tests.Visual.Input
                     background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
                 else
                     return base.OnJoystickPress(e);
+
                 return true;
             }
 
@@ -261,6 +262,7 @@ namespace osu.Framework.Tests.Visual.Input
                     background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
                     return base.OnJoystickRelease(e);
+
                 return true;
             }
         }

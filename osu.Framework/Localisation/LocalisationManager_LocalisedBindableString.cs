@@ -55,6 +55,7 @@ namespace osu.Framework.Localisation
                 {
                     if (text.Equals(value))
                         return;
+
                     text = value;
 
                     updateValue();

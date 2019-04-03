@@ -263,15 +263,33 @@ namespace osu.Framework.Tests.Visual.Layout
                     {
                         switch (RNG.Next(9))
                         {
-                            case 0: child.Origin = Anchor.TopLeft; break;
-                            case 1: child.Origin = Anchor.TopCentre; break;
-                            case 2: child.Origin = Anchor.TopRight; break;
-                            case 3: child.Origin = Anchor.CentreLeft; break;
-                            case 4: child.Origin = Anchor.Centre; break;
-                            case 5: child.Origin = Anchor.CentreRight; break;
-                            case 6: child.Origin = Anchor.BottomLeft; break;
-                            case 7: child.Origin = Anchor.BottomCentre; break;
-                            case 8: child.Origin = Anchor.BottomRight; break;
+                            case 0:
+                                child.Origin = Anchor.TopLeft;
+                                break;
+                            case 1:
+                                child.Origin = Anchor.TopCentre;
+                                break;
+                            case 2:
+                                child.Origin = Anchor.TopRight;
+                                break;
+                            case 3:
+                                child.Origin = Anchor.CentreLeft;
+                                break;
+                            case 4:
+                                child.Origin = Anchor.Centre;
+                                break;
+                            case 5:
+                                child.Origin = Anchor.CentreRight;
+                                break;
+                            case 6:
+                                child.Origin = Anchor.BottomLeft;
+                                break;
+                            case 7:
+                                child.Origin = Anchor.BottomCentre;
+                                break;
+                            case 8:
+                                child.Origin = Anchor.BottomRight;
+                                break;
                         }
                     }
                 }
@@ -355,8 +373,8 @@ namespace osu.Framework.Tests.Visual.Layout
 
             protected internal override string Label
             {
-                get { return label.Text; }
-                set { label.Text = value; }
+                get => label.Text;
+                set => label.Text = value;
             }
 
             public TestCaseDropdownHeader()

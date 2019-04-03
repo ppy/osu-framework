@@ -34,6 +34,7 @@ namespace osu.Framework.Input
             set
             {
                 if (useParentInput == value) return;
+
                 useParentInput = value;
 
                 if (UseParentInput)

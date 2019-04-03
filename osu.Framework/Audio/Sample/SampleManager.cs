@@ -65,9 +65,6 @@ namespace osu.Framework.Audio.Sample
             base.UpdateState();
         }
 
-        public Stream GetStream(string name)
-        {
-            return store.GetStream(name);
-        }
+        public Stream GetStream(string name) => store.GetStream(name);
     }
 }

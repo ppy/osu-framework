@@ -260,7 +260,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             protected override string Filename => null;
 
-            public FakeFrameworkConfigManager() : base(null) { }
+            public FakeFrameworkConfigManager()
+                : base(null)
+            {
+            }
 
             protected override void InitialiseDefaults()
             {
@@ -295,6 +298,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
                         }
+
                     default:
                         return name;
                 }

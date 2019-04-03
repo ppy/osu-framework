@@ -236,10 +236,7 @@ namespace osu.Framework
             Host.Exit();
         }
 
-        protected virtual bool OnExiting()
-        {
-            return false;
-        }
+        protected virtual bool OnExiting() => false;
 
         /// <summary>
         /// Called before a frame cycle has started (Update and Draw).

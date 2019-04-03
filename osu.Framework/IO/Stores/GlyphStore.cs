@@ -138,10 +138,7 @@ namespace osu.Framework.IO.Stores
             return t;
         }
 
-        public Stream GetStream(string name)
-        {
-            throw new NotSupportedException();
-        }
+        public Stream GetStream(string name) => throw new NotSupportedException();
 
         private int loadedPageCount;
         private int loadedGlyphCount;
