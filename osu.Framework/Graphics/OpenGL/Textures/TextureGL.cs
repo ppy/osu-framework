@@ -47,6 +47,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             if (IsDisposed)
                 return;
+
             IsDisposed = true;
 
             Dispose(true);

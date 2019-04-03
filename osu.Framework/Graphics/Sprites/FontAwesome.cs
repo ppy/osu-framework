@@ -8,6 +8,7 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable MemberHidesStaticFromOuterClass
 // ReSharper disable InvalidXmlDocComment
+
 namespace osu.Framework.Graphics.Sprites
 {
     public static class FontAwesome
