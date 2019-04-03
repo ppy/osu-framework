@@ -136,20 +136,28 @@ namespace osu.Framework.Graphics.OpenGL
             }, true);
 
             PushDepthInfo(new DepthInfo(false));
+            Clear(ClearInfo.Default);
         }
 
-        // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
-        private static Color4 clearColour = new Color4(-1, -1, -1, -1);
+        private static ClearInfo currentClearInfo;
 
-        public static void ClearColour(Color4 c)
+        public static void Clear(ClearInfo clearInfo)
         {
-            if (clearColour != c)
+            if (clearInfo.Colour != currentClearInfo.Colour)
+                GL.ClearColor(clearInfo.Colour);
+
+            if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                clearColour = c;
-                GL.ClearColor(clearColour);
+                // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
+                osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
             }
 
+            if (clearInfo.Stencil != currentClearInfo.Stencil)
+                GL.ClearStencil(clearInfo.Stencil);
+
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+            currentClearInfo = clearInfo;
         }
 
         /// <summary>
