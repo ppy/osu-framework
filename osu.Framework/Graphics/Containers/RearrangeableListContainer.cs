@@ -181,7 +181,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // Using BoundingBox here takes care of scale, paddings, etc...
                     heightAccumulator += this[dstIndex].BoundingBox.Height + Spacing.Y;
-                    if (heightAccumulator > itemsPos.Y)
+                    if (heightAccumulator - Spacing.Y / 2 > itemsPos.Y)
                         break;
                 }
 
