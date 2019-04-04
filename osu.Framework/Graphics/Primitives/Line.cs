@@ -68,7 +68,8 @@ namespace osu.Framework.Graphics.Primitives
         /// Intersects this line with another.
         /// </summary>
         /// <param name="other">The line to intersect with.</param>
-        /// <returns>Whether the two lines intersect and, if so, the parameterized position along this line at which the intersection occurs.
+        /// <returns>Whether the two lines intersect and, if so, the distance along this line at which the intersection occurs.
+        /// An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.
         /// To compute the point of intersection, <see cref="At"/>.</returns>
         public (bool success, float distance) IntersectWith(Line other)
         {
@@ -130,7 +131,5 @@ namespace osu.Framework.Graphics.Primitives
         /// It's the end of the world as we know it
         /// </summary>
         public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
-
-        public object Clone() => MemberwiseClone();
     }
 }
