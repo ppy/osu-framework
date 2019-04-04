@@ -23,6 +23,8 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestCaseRearrangeableListContainer : ManualInputManagerTestCase
     {
         private TestRearrangeableListContainer<TestDrawable> list;
+        private TestRearrangeableListContainer<TestDrawable> listWithSpacing;
+        private TestRearrangeableListContainer<TestDrawable> listWithVariableSizes;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -32,15 +34,49 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load()
         {
-            Add(list = new TestRearrangeableListContainer<TestDrawable>());
+            RelativeSizeAxes = Axes.Both;
+            Child = new GridContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                RowDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) },
+                ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) },
+                Content = new[]
+                {
+                    new Drawable[]
+                    {
+                        list = new TestRearrangeableListContainer<TestDrawable>(),
+                        listWithSpacing = new TestRearrangeableListContainer<TestDrawable>
+                        {
+                            Spacing = new Vector2(50),
+                        },
+                    },
+                    new Drawable[]
+                    {
+                        listWithVariableSizes = new TestRearrangeableListContainer<TestDrawable>(),
+                        new Box
+                        {
+                            Colour = Color4.Pink,
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                    },
+                }
+            };
+            SetUp();
         }
 
         [SetUp]
         public void SetUp()
         {
             list.Clear();
-            for (int i = 0; i < 50; i++)
+            listWithSpacing.Clear();
+            listWithVariableSizes.Clear();
+
+            for (int i = 0; i < 5; i++)
+            {
                 list.AddItem(generateItem());
+                listWithSpacing.AddItem(generateItem());
+                listWithVariableSizes.AddItem(generateItemVariableHeight());
+            }
         }
 
         [Test]
@@ -79,6 +115,16 @@ namespace osu.Framework.Tests.Visual.Containers
         private TestDrawable generateItem()
         {
             return new TestDrawable();
+        }
+
+        private TestDrawable generateItemVariableHeight()
+        {
+            var height = RNG.NextSingle(10, 100);
+
+            return new TestDrawable
+            {
+                Height = height,
+            };
         }
 
         private class TestDrawable : FillFlowContainer, IRearrangeableDrawable<TestDrawable>
