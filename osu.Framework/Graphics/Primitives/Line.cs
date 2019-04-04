@@ -31,13 +31,21 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
-        public Vector2 Direction => (EndPoint - StartPoint).Normalized();
+        /// <summary>
+        /// The direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 Direction => EndPoint - StartPoint;
+
+        /// <summary>
+        /// The normalized direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 DirectionNormalized => Direction.Normalized();
 
         public Vector2 OrthogonalDirection
         {
             get
             {
-                Vector2 dir = Direction;
+                Vector2 dir = DirectionNormalized;
                 return new Vector2(-dir.Y, dir.X);
             }
         }
