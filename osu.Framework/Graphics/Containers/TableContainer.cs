@@ -41,19 +41,19 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Column[] columns = Array.Empty<Column>();
+        private TableColumn[] columns = Array.Empty<TableColumn>();
 
         /// <summary>
         /// Describes the columns of this <see cref="TableContainer"/>.
         /// Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
         [CanBeNull]
-        public Column[] Columns
+        public TableColumn[] Columns
         {
             get => columns;
             set
             {
-                value = value ?? Array.Empty<Column>();
+                value = value ?? Array.Empty<TableColumn>();
 
                 if (columns == value)
                     return;
@@ -64,21 +64,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Dimension rowDimension;
+        private Dimension rowSize;
 
         /// <summary>
         /// Explicit dimensions for rows. The dimension is applied to every row of this <see cref="TableContainer"/>
         /// </summary>
         [CanBeNull]
-        public Dimension RowDimension
+        public Dimension RowSize
         {
-            get => rowDimension;
+            get => rowSize;
             set
             {
-                if (rowDimension == value)
+                if (rowSize == value)
                     return;
 
-                rowDimension = value;
+                rowSize = value;
 
                 updateContent();
             }
@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Containers
                 grid.Content = getContentWithHeaders().ToJagged();
 
                 grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
-                grid.RowDimensions = Enumerable.Repeat(rowDimension ?? new Dimension(), totalRows).ToArray();
+                grid.RowDimensions = Enumerable.Repeat(rowSize ?? new Dimension(), totalRows).ToArray();
             }
 
             updateAnchors();
@@ -231,10 +231,10 @@ namespace osu.Framework.Graphics.Containers
                 grid.AutoSizeAxes |= Axes.Y;
         }
 
-        protected virtual Drawable CreateHeader(int index, [CanBeNull] Column column) => new SpriteText { Text = column?.Header ?? string.Empty };
+        protected virtual Drawable CreateHeader(int index, [CanBeNull] TableColumn column) => new SpriteText { Text = column?.Header ?? string.Empty };
     }
 
-    public class Column
+    public class TableColumn
     {
         public readonly string Header;
 
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.Containers
 
         public readonly Dimension Dimension;
 
-        public Column(string header = null, Anchor anchor = Anchor.TopLeft, Dimension dimension = null)
+        public TableColumn(string header = null, Anchor anchor = Anchor.TopLeft, Dimension dimension = null)
         {
             Header = header ?? "";
             Anchor = anchor;
