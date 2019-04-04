@@ -97,7 +97,7 @@ namespace osu.Framework.Testing
                 // add ourselves as a required type.
                 reqTypes.Add(checkpointName);
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(checkpointName.Replace("TestCase", ""));
+                reqTypes.Add(TestCase.RemovePrefix(checkpointName));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
@@ -116,7 +116,7 @@ namespace osu.Framework.Testing
                 lastTouchedFile = e.FullPath;
 
                 isCompiling = true;
-                Task.Run((Action)recompile)
+                Task.Run(recompile)
                     .ContinueWith(_ => isCompiling = false);
             }
         }
@@ -140,17 +140,18 @@ namespace osu.Framework.Testing
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
-                #if DEBUG
-                    "DEBUG",
-                #endif
-                #if TRACE
-                    "TRACE",
-                #endif
-                #if RELEASE
-                    "RELEASE",
-                #endif
-            }, languageVersion: LanguageVersion.CSharp7_2);
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+            {
+#if DEBUG
+                "DEBUG",
+#endif
+#if TRACE
+                "TRACE",
+#endif
+#if RELEASE
+                "RELEASE",
+#endif
+            }, languageVersion: LanguageVersion.CSharp7_3);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))

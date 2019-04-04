@@ -32,12 +32,12 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using osu.Framework.IO.File;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
@@ -45,8 +45,6 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public GameWindow Window { get; protected set; }
-
-        private readonly Toolkit toolkit;
 
         private FrameworkDebugConfigManager debugConfig;
 
@@ -70,6 +68,7 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
 
         public event Func<bool> Exiting;
+
         public event Action Exited;
 
         /// <summary>
@@ -91,10 +90,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessageAsync(IpcMessage message)
-        {
-            throw new NotSupportedException("This platform does not implement IPC.");
-        }
+        public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
@@ -190,68 +186,26 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
+        private Toolkit toolkit;
+
+        private readonly ToolkitOptions toolkitOptions;
+
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
-
-            AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
-            TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
-
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ThrowingTraceListener());
-
-            FileSafety.DeleteCleanupDirectory();
-
-            Dependencies.CacheAs(this);
-            Dependencies.CacheAs(Storage = GetStorage(gameName));
-
-            string assemblyPath;
-            var assembly = Assembly.GetEntryAssembly();
-
-            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-            if (assembly == null || assembly.Location.Contains("testhost"))
-            {
-                assembly = Assembly.GetExecutingAssembly();
-
-                // From nuget, the executing assembly will also be wrong
-                assemblyPath = TestContext.CurrentContext.TestDirectory;
-            }
-            else
-                assemblyPath = Path.GetDirectoryName(assembly.Location);
-
+            this.toolkitOptions = toolkitOptions;
             Name = gameName;
-
-            Logger.GameIdentifier = gameName;
-            Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-            RegisterThread(DrawThread = new DrawThread(DrawFrame)
-            {
-                OnThreadStart = DrawInitialize,
-            });
-
-            RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
-            {
-                OnThreadStart = UpdateInitialize,
-                Monitor = { HandleGC = true },
-            });
-
-            RegisterThread(InputThread = new InputThread());
-            RegisterThread(AudioThread = new AudioThread());
-
-            if (assemblyPath != null)
-                Environment.CurrentDirectory = assemblyPath;
         }
 
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
-            exception.Data.Add("unhandled", "unhandled");
+            exception.Data["unhandled"] = "unhandled";
             handleException(exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            args.Exception.Data.Add("unhandled", "unobserved");
+            args.Exception.Data["unhandled"] = "unobserved";
             handleException(args.Exception);
         }
 
@@ -351,7 +305,6 @@ namespace osu.Framework.Platform
             setVSyncMode();
 
             GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-            GLWrapper.ClearColour(Color4.Black);
         }
 
         private long lastDrawFrameId;
@@ -373,10 +326,7 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    {
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-                        GLWrapper.ClearColour(Color4.Black);
-                    }
 
                     buffer.Object.Draw(null);
                     lastDrawFrameId = buffer.FrameId;
@@ -472,9 +422,58 @@ namespace osu.Framework.Platform
 
             try
             {
+                toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+
+                AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
+                TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame)
+                {
+                    OnThreadStart = DrawInitialize,
+                });
+
+                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+                {
+                    OnThreadStart = UpdateInitialize,
+                    Monitor = { HandleGC = true },
+                });
+
+                RegisterThread(InputThread = new InputThread());
+                RegisterThread(AudioThread = new AudioThread());
+
+                Trace.Listeners.Clear();
+                Trace.Listeners.Add(new ThrowingTraceListener());
+
+                FileSafety.DeleteCleanupDirectory();
+
+                string assemblyPath;
+                var assembly = Assembly.GetEntryAssembly();
+
+                // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+                if (assembly == null || assembly.Location.Contains("testhost"))
+                {
+                    assembly = Assembly.GetExecutingAssembly();
+
+                    // From nuget, the executing assembly will also be wrong
+                    assemblyPath = TestContext.CurrentContext.TestDirectory;
+                }
+                else
+                    assemblyPath = Path.GetDirectoryName(assembly.Location);
+
+                Logger.GameIdentifier = Name;
+                Logger.VersionIdentifier = assembly.GetName().Version.ToString();
+
+                if (assemblyPath != null)
+                    Environment.CurrentDirectory = assemblyPath;
+
+                Dependencies.CacheAs(this);
+                Dependencies.CacheAs(Storage = GetStorage(Name));
+
+                SetupForRun();
+
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig();
+                setupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
@@ -545,6 +544,16 @@ namespace osu.Framework.Platform
                 // Close the window and stop all threads
                 PerformExit(true);
             }
+        }
+
+        /// <summary>
+        /// Prepare this game host for <see cref="Run"/>.
+        /// <remarks>
+        /// <see cref="Storage"/> is available here.
+        /// </remarks>
+        /// </summary>
+        protected virtual void SetupForRun()
+        {
         }
 
         private void resetInputHandlers()
@@ -620,6 +629,7 @@ namespace osu.Framework.Platform
         {
             if (!e.Control)
                 return;
+
             switch (e.Key)
             {
                 case Key.F7:
@@ -644,16 +654,30 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig()
+        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
+            var hostDefaults = new Dictionary<FrameworkSetting, object>
+            {
+                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
+            };
+
+            // merge defaults provided by game into host defaults.
+            if (gameDefaults != null)
+            {
+                foreach (var d in gameDefaults)
+                    hostDefaults[d.Key] = d.Value;
+            }
+
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)
                     return;
+
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
@@ -752,6 +776,7 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             if (ExecutionState > ExecutionState.Stopping)

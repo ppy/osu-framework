@@ -110,6 +110,7 @@ namespace osu.Framework.Screens
                 case null:
                     if (onFail != null)
                         return onFail.Invoke();
+
                     return default;
                 case ScreenStack stack:
                     return onRoot(stack);

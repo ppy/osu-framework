@@ -14,9 +14,6 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 Position;
 
-        public bool Equals(UncolouredVertex2D other)
-        {
-            return Position.Equals(other.Position);
-        }
+        public bool Equals(UncolouredVertex2D other) => Position.Equals(other.Position);
     }
 }

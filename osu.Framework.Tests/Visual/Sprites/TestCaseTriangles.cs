@@ -180,10 +180,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
-        {
-            return true;
-        }
+        protected override bool OnDragEnd(DragEndEvent e) => true;
 
         protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
     }

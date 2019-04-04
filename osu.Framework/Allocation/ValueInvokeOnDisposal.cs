@@ -23,7 +23,10 @@ namespace osu.Framework.Allocation
         /// Constructs a new instance, capturing the given action to be run during disposal.
         /// </summary>
         /// <param name="action">The action to invoke during disposal.</param>
-        public ValueInvokeOnDisposal(Action action) => this.action = action ?? throw new ArgumentNullException(nameof(action));
+        public ValueInvokeOnDisposal(Action action)
+        {
+            this.action = action ?? throw new ArgumentNullException(nameof(action));
+        }
 
         #region IDisposable Support
 

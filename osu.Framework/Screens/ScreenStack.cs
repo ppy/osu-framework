@@ -213,6 +213,7 @@ namespace osu.Framework.Screens
                 {
                     if (child == source)
                         break;
+
                     child.ValidForResume = false;
                 }
             });

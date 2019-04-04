@@ -9,9 +9,15 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default)
-            : base(gameName, bindIPC, toolkitOptions)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
         {
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
             Window = new LinuxGameWindow();
 
             // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)

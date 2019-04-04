@@ -36,6 +36,7 @@ namespace osu.Framework.Input
                 if (e.KeyChar > 63000)
                     return;
             }
+
             pending += e.KeyChar;
         }
 

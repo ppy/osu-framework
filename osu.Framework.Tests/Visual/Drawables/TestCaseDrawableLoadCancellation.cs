@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("cancel", () => cancellationSource.Cancel());
 
-            AddAssert("load cancelled", () => !loader.IsLoading);
+            AddUntilStep("load cancelled", () => !loader.IsLoading);
             AddAssert("didn't callback", () => !loaded);
         }
 

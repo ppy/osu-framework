@@ -80,22 +80,17 @@ namespace osu.Framework.Graphics
             Top = Left = Bottom = Right = allSides;
         }
 
-        public bool Equals(MarginPadding other)
-        {
-            return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
-        }
+        public bool Equals(MarginPadding other) => Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
 
         public override string ToString() => $@"({Top}, {Left}, {Bottom}, {Right})";
 
-        public static MarginPadding operator -(MarginPadding mp)
-        {
-            return new MarginPadding
+        public static MarginPadding operator -(MarginPadding mp) =>
+            new MarginPadding
             {
                 Left = -mp.Left,
                 Top = -mp.Top,
                 Right = -mp.Right,
                 Bottom = -mp.Bottom,
             };
-        }
     }
 }

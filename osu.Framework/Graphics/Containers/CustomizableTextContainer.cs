@@ -144,6 +144,7 @@ namespace osu.Framework.Graphics.Containers
 
                             placeholderDrawable = (Drawable)cb.DynamicInvoke(args);
                         }
+
                         index = placeholderEnd + 1;
                     }
                 }
@@ -153,6 +154,7 @@ namespace osu.Framework.Graphics.Containers
                     strPiece = str.Substring(index);
                     index = str.Length;
                 }
+
                 // unescape stuff
                 strPiece = strPiece.Replace("[[", "[").Replace("]]", "]");
                 sprites.AddRange(AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph));
@@ -161,6 +163,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (placeholderDrawable.Parent != null)
                         throw new ArgumentException("All icons used by a customizable text container must not have a parent. If you get this error message it means one of your icon factories created a drawable that was already added to another parent, or you used a drawable as a placeholder that already has another parent or you used an index-based placeholder (like [2]) more than once.");
+
                     AddInternal(placeholderDrawable);
                 }
             }

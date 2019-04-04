@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         };
 
         [SetUp]
-        public new void SetupTest() => Schedule(() =>
+        public void SetupTest() => Schedule(() =>
         {
             Clear();
             Add(stack = new ScreenStack(baseScreen = new TestScreen())
@@ -179,7 +179,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
-            AddStep("allow load", () => screen1.AllowLoad = true);
+            AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("ensure current", () => screen1.IsCurrentScreen());
         }
 
@@ -187,7 +187,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestAsyncPreloadPush()
         {
             TestScreenSlow screen1 = null;
-            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow { AllowLoad = true }));
+            AddStep("preload slow", () =>
+            {
+                screen1 = new TestScreenSlow();
+                screen1.AllowLoad.Set();
+
+                LoadComponentAsync(screen1);
+            });
             pushAndEnsureCurrent(() => screen1);
         }
 
@@ -199,7 +205,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddStep("exit slow", () => screen1.Exit());
-            AddStep("allow load", () => screen1.AllowLoad = true);
+            AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("wait for screen to load", () => screen1.LoadState >= LoadState.Ready);
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
             AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen());
@@ -300,7 +306,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push slow", () => stack.Push(screen1));
             AddStep("push second slow", () => stack.Push(screen2));
 
-            AddStep("allow load 1", () => screen1.AllowLoad = true);
+            AddStep("allow load 1", () => screen1.AllowLoad.Set());
 
             AddUntilStep("ensure screen1 not current", () => !screen1.IsCurrentScreen());
             AddUntilStep("ensure screen2 not current", () => !screen2.IsCurrentScreen());
@@ -316,7 +322,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             if (earlyExit)
                 AddStep("early exit 2", () => screen2.Exit());
 
-            AddStep("allow load 2", () => screen2.AllowLoad = true);
+            AddStep("allow load 2", () => screen2.AllowLoad.Set());
 
             if (earlyExit)
             {
@@ -355,7 +361,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
             AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
 
-            AddStep("allow load 2", () => screen2.AllowLoad = true);
+            AddStep("allow load 2", () => screen2.AllowLoad.Set());
 
             // screen 2 won't actually be loading since the load is only triggered after screen1 is loaded.
             AddWaitStep("wait for load", 10);
@@ -366,7 +372,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo == null);
             AddAssert("screen2 not registered entered", () => screen2.EnteredFrom == null);
 
-            AddStep("allow load 1", () => screen1.AllowLoad = true);
+            AddStep("allow load 1", () => screen1.AllowLoad.Set());
             AddUntilStep("screen1 is loaded", () => screen1.LoadState == LoadState.Loaded);
             AddUntilStep("screen2 is loaded", () => screen2.LoadState == LoadState.Loaded);
 
@@ -397,7 +403,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
             AddAssert("base screen not yet registered suspend", () => baseScreen.SuspendedTo == null);
             AddAssert("ensure notcurrent", () => !screen1.IsCurrentScreen());
-            AddStep("allow load", () => screen1.AllowLoad = true);
+            AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("ensure current", () => screen1.IsCurrentScreen());
             AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo == screen1);
         }
@@ -442,6 +448,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     if (screens.Last() != screen)
                         throw new InvalidOperationException("Disposal order was wrong");
+
                     screens.Remove(screen);
                 };
 
@@ -476,13 +483,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestScreenSlow : TestScreen
         {
-            public bool AllowLoad;
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                while (!AllowLoad)
-                    Thread.Sleep(10);
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException();
             }
         }
 

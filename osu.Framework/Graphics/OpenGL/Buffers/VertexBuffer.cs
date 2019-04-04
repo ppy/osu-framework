@@ -89,15 +89,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
         }
 
-        protected virtual int ToElements(int vertices)
-        {
-            return vertices;
-        }
+        protected virtual int ToElements(int vertices) => vertices;
 
-        protected virtual int ToElementIndex(int vertexIndex)
-        {
-            return vertexIndex;
-        }
+        protected virtual int ToElementIndex(int vertexIndex) => vertexIndex;
 
         protected abstract PrimitiveType Type { get; }
 

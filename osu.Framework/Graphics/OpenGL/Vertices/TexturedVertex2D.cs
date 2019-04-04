@@ -14,22 +14,24 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     {
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 Position;
+
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
+
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 TexturePosition;
+
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Vector4 TextureRect;
+
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 BlendRange;
 
-        public bool Equals(TexturedVertex2D other)
-        {
-            return Position.Equals(other.Position)
-                   && TexturePosition.Equals(other.TexturePosition)
-                   && Colour.Equals(other.Colour)
-                   && TextureRect.Equals(other.TextureRect)
-                   && BlendRange.Equals(other.BlendRange);
-        }
+        public bool Equals(TexturedVertex2D other) =>
+            Position.Equals(other.Position)
+            && TexturePosition.Equals(other.TexturePosition)
+            && Colour.Equals(other.Colour)
+            && TextureRect.Equals(other.TextureRect)
+            && BlendRange.Equals(other.BlendRange);
     }
 }

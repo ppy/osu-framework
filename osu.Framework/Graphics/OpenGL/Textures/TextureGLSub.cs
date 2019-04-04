@@ -59,10 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return actualBounds;
         }
 
-        public override RectangleF GetTextureRect(RectangleF? textureRect)
-        {
-            return parent.GetTextureRect(boundsInParent(textureRect));
-        }
+        public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
@@ -74,11 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
-        internal override bool Upload()
-        {
-            //no upload required; our parent does this.
-            return false;
-        }
+        internal override bool Upload() => false;
 
         public override bool Bind()
         {

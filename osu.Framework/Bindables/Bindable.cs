@@ -127,6 +127,7 @@ namespace osu.Framework.Bindables
         {
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
             BindTo(tThem);
         }
 
@@ -134,6 +135,7 @@ namespace osu.Framework.Bindables
         {
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
             BindTo(tThem);
         }
 
@@ -143,7 +145,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         public Bindable<T> BindTarget
         {
-            set { BindTo(value); }
+            set => BindTo(value);
         }
 
         /// <summary>
@@ -235,6 +237,7 @@ namespace osu.Framework.Bindables
                 Bindings?.ForEachAlive(b =>
                 {
                     if (b == source) return;
+
                     b.SetValue(previousValue, value, bypassChecks, this);
                 });
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
@@ -249,6 +252,7 @@ namespace osu.Framework.Bindables
                 Bindings?.ForEachAlive(b =>
                 {
                     if (b == source) return;
+
                     b.SetDisabled(disabled, bypassChecks, this);
                 });
             if (beforePropagation == disabled)
@@ -299,10 +303,7 @@ namespace osu.Framework.Bindables
 
         public string Description { get; set; }
 
-        public override string ToString()
-        {
-            return value?.ToString() ?? string.Empty;
-        }
+        public override string ToString() => value?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Create an unbound clone of this bindable.

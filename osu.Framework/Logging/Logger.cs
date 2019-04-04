@@ -192,12 +192,7 @@ namespace osu.Framework.Logging
         /// </summary>
         /// <param name="target">The logging target.</param>
         /// <returns>The logger responsible for the given logging target.</returns>
-        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime)
-        {
-            // there can be no name conflicts between LoggingTarget-based Loggers and named loggers because
-            // every name that would coincide with a LoggingTarget-value is reserved and cannot be used (see ctor).
-            return GetLogger(target.ToString());
-        }
+        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime) => GetLogger(target.ToString());
 
         /// <summary>
         /// For classes that regularly log to the same target, this method may be preferred over the static Log method.
@@ -291,7 +286,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture)}: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -387,6 +382,7 @@ namespace osu.Framework.Logging
         private void ensureHeader()
         {
             if (headerAdded) return;
+
             headerAdded = true;
 
             add("----------------------------------------------------------", outputToListeners: false);
@@ -403,10 +399,10 @@ namespace osu.Framework.Logging
 
         private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
 
-        private static readonly Timer timer;
-
         static Logger()
         {
+            Timer timer = null;
+
             // timer has a very low overhead.
             timer = new Timer(_ =>
             {
@@ -414,7 +410,8 @@ namespace osu.Framework.Logging
                     writer_idle.Set();
 
                 // reschedule every 50ms. avoids overlapping callbacks.
-                timer.Change(50, Timeout.Infinite);
+                // ReSharper disable once AccessToModifiedClosure
+                timer?.Change(50, Timeout.Infinite);
             }, null, 0, Timeout.Infinite);
         }
 

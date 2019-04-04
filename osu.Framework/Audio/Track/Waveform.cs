@@ -27,6 +27,7 @@ namespace osu.Framework.Audio.Track
         /// The data stream is iteratively decoded to provide this many points per iteration so as to not exceed BASS's internal buffer size.
         /// </summary>
         private const int points_per_iteration = 100000;
+
         private const int bytes_per_sample = 4;
 
         /// <summary>
@@ -201,7 +202,9 @@ namespace osu.Framework.Audio.Track
                 int kernelWidth = (int)(pointsPerGeneratedPoint * kernel_width_factor) + 1;
 
                 float[] filter = new float[kernelWidth + 1];
-                for (int i = 0; i < filter.Length; ++i) {
+
+                for (int i = 0; i < filter.Length; ++i)
+                {
                     filter[i] = (float)Blur.EvalGaussian(i, pointsPerGeneratedPoint);
                 }
 
@@ -299,6 +302,7 @@ namespace osu.Framework.Audio.Track
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             cancelSource?.Cancel();

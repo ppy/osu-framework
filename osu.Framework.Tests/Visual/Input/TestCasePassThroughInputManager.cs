@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Visual.Input
         private ButtonStates<MouseButton> mouse;
         private ButtonStates<Key> keyboard;
         private ButtonStates<JoystickButton> joystick;
+
         private void addTestInputManagerStep()
         {
             AddStep("Add InputManager", () =>
@@ -117,6 +118,7 @@ namespace osu.Framework.Tests.Visual.Input
         public class TestInputManager : ManualInputManager
         {
             public readonly TestCaseInputManager.ContainingInputManagerStatusText Status;
+
             public TestInputManager()
             {
                 Size = new Vector2(0.8f);
