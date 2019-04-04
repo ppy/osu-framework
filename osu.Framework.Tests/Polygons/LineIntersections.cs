@@ -57,6 +57,9 @@ namespace osu.Framework.Tests.Polygons
             new object[] { new Line(up_1, origin), new Line(origin, up_1), false, 0f },
             new object[] { new Line(origin, up_1), new Line(up_1, origin), false, 0f },
             new object[] { new Line(up_1, origin), new Line(up_1, origin), false, 0f },
+            // Colinear touching
+            new object[] { new Line(origin, up_1), new Line(origin, down_1), false, 0f },
+            new object[] { new Line(origin, up_1), new Line(down_1, origin), false, 0f },
         };
 
         [TestCaseSource(nameof(testCases))]
