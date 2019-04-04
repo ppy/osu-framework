@@ -62,6 +62,9 @@ namespace osu.Framework.Screens
 
             // Once the screen stack is empty, we can safely push our screen.
             screenStack.Push(screen);
+
+            // Make sure the new screen gets never expires
+            screen.AsDrawable().LifetimeEnd = Double.MaxValue;
         }
 
         private class CarouselScreenStack : ScreenStack
