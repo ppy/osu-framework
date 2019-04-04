@@ -22,12 +22,13 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private int maxLayoutPosition;
+        private readonly ListScrollContainer scrollContainer;
         protected readonly ListFillFlowContainer ListContainer;
 
         public RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
-            InternalChild = new ListScrollContainer
+            InternalChild = scrollContainer = new ListScrollContainer
             {
                 Child = ListContainer = new ListFillFlowContainer
                 {
@@ -58,6 +59,7 @@ namespace osu.Framework.Graphics.Containers
         {
             ListItems.Clear();
             ListContainer.Clear();
+            scrollContainer.ScrollToStart();
         }
 
         private void itemsAdded(IEnumerable<T> items)
