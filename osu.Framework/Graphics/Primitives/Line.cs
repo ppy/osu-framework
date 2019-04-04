@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Primitives
             if (Precision.AlmostEquals(0, denom))
                 return (false, 0); // Co-linear
 
-            Vector2 d = StartPoint - other.StartPoint;
+            Vector2 d = other.StartPoint - StartPoint;
             float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
 
             return (true, t);
