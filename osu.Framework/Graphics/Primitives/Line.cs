@@ -131,5 +131,7 @@ namespace osu.Framework.Graphics.Primitives
         /// It's the end of the world as we know it
         /// </summary>
         public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
+
+        public override string ToString() => $"{StartPoint} -> {EndPoint}";
     }
 }
