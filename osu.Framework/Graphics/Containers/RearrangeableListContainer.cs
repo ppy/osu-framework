@@ -202,10 +202,5 @@ namespace osu.Framework.Graphics.Containers
             }
         }
     }
-
-    public interface IRearrangeableDrawable<T>
-    {
-        event Action<T> RequestRemoval;
-        bool IsDraggable { get; }
     }
 }
