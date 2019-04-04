@@ -7,9 +7,9 @@ using osuTK;
 namespace osu.Framework.Graphics.Primitives
 {
     /// <summary>
-    /// Represents a single line segment.  Drawing is handled by the LineManager class.
+    /// Represents a single line segment.
     /// </summary>
-    public class Line
+    public struct Line
     {
         /// <summary>
         /// Begin point of the line.
