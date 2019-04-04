@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.MathUtils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -54,6 +55,35 @@ namespace osu.Framework.Graphics.Primitives
         {
             StartPoint = p1;
             EndPoint = p2;
+        }
+
+        /// <summary>
+        /// Computes a position along this line.
+        /// </summary>
+        /// <param name="t">A parameter representing the position along the line to compute. 0 yields the start point and 1 yields the end point.</param>
+        /// <returns>The position along the line.</returns>
+        public Vector2 At(float t) => StartPoint + Direction * t;
+
+        /// <summary>
+        /// Intersects this line with another.
+        /// </summary>
+        /// <param name="other">The line to intersect with.</param>
+        /// <returns>Whether the two lines intersect and, if so, the parameterized position along this line at which the intersection occurs.
+        /// To compute the point of intersection, <see cref="At"/>.</returns>
+        public (bool success, float distance) IntersectWith(Line other)
+        {
+            Vector2 diff1 = Direction;
+            Vector2 diff2 = other.Direction;
+
+            float denom = diff1.X * diff2.Y - diff1.Y * diff2.X;
+
+            if (Precision.AlmostEquals(0, denom))
+                return (false, 0); // Co-linear
+
+            Vector2 d = StartPoint - other.StartPoint;
+            float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
+
+            return (true, t);
         }
 
         /// <summary>
