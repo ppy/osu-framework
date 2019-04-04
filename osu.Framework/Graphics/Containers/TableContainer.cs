@@ -131,16 +131,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            base.InvalidateFromChild(invalidation, source);
-
-            if ((invalidation & Invalidation.MiscGeometry) > 0)
-                updateAnchors();
-        }
-
         private int totalRows => content.GetLength(0) + (ShowHeaders ? 1 : 0);
-        private int totalColumns => content.GetLength(1);
+
+        private int totalColumns
+        {
+            get
+            {
+                if (columns == null || !showHeaders)
+                    return content.GetLength(1);
+
+                return Math.Max(columns.Length, content.GetLength(1));
+            }
+        }
 
         private void updateContent()
         {
@@ -163,20 +165,20 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The content, with headers added if required.</returns>
         private Drawable[,] getContentWithHeaders()
         {
-            if (!ShowHeaders)
+            if (!ShowHeaders || Columns == null || Columns.Length == 0)
                 return content;
 
-            int rows = totalRows;
-            int cols = totalColumns;
+            int rowCount = totalRows;
+            int columnCount = totalColumns;
 
-            var result = new Drawable[rows, cols];
+            var result = new Drawable[rowCount, columnCount];
 
-            for (int row = 0; row < rows; row++)
-            for (int col = 0; col < cols; col++)
+            for (int row = 0; row < rowCount; row++)
+            for (int col = 0; col < columnCount; col++)
             {
                 if (row == 0)
-                    result[row, col] = CreateHeader(col, Columns?[col]);
-                else
+                    result[row, col] = CreateHeader(col, col >= Columns?.Length ? null : Columns?[col]);
+                else if (col < content.GetLength(1))
                     result[row, col] = content[row - 1, col];
             }
 
@@ -191,12 +193,12 @@ namespace osu.Framework.Graphics.Containers
             if (grid.Content == null)
                 return;
 
-            int rows = totalRows;
-            int cols = totalColumns;
+            int rowCount = totalRows;
+            int columnCount = totalColumns;
 
-            for (int row = 0; row < rows; row++)
+            for (int row = 0; row < rowCount; row++)
             {
-                for (int col = 0; col < cols; col++)
+                for (int col = 0; col < columnCount; col++)
                 {
                     if (col >= columns.Length)
                         break;
