@@ -23,14 +23,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 screenCarousel.AddScreen(TestScreens.TestScreen1, new TestCaseScreenStack.TestScreen(showButtons: false));
                 screenCarousel.AddScreen(TestScreens.TestScreen2, new TestCaseScreenStack.TestScreen(showButtons: false));
             });
-
         }
 
         [Test]
         public void SwitchToNewTest()
         {
             AddStep("Switch to screen 1", () => screenCarousel.SwitchTo(TestScreens.TestScreen1));
-            AddAssert("base is current screen", () => screenCarousel.CurrentIndex == TestScreens.TestScreen1);
+            AddAssert("Screen 1 is current screen", () => screenCarousel.CurrentIndex == TestScreens.TestScreen1);
         }
 
         [Test]
