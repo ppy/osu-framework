@@ -9,6 +9,9 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container which tabulates <see cref="Drawable"/>s.
+    /// </summary>
     public class TableContainer : CompositeDrawable
     {
         private readonly GridContainer grid;
@@ -131,8 +134,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// The total number of rows in the content, including the header.
+        /// </summary>
         private int totalRows => content.GetLength(0) + (ShowHeaders ? 1 : 0);
 
+        /// <summary>
+        /// The total number of columns in the content, including the header.
+        /// </summary>
         private int totalColumns
         {
             get
@@ -144,6 +153,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Adds content to the underlying grid.
+        /// </summary>
         private void updateContent()
         {
             if (content == null)
@@ -233,17 +245,41 @@ namespace osu.Framework.Graphics.Containers
                 grid.AutoSizeAxes |= Axes.Y;
         }
 
+        /// <summary>
+        /// Creates the content for a cell in the header row of the table.
+        /// </summary>
+        /// <param name="index">The column index.</param>
+        /// <param name="column">The column definition.</param>
+        /// <returns>The cell content.</returns>
         protected virtual Drawable CreateHeader(int index, [CanBeNull] TableColumn column) => new SpriteText { Text = column?.Header ?? string.Empty };
     }
 
+    /// <summary>
+    /// Defines a column of the <see cref="TableContainer"/>.
+    /// </summary>
     public class TableColumn
     {
+        /// <summary>
+        /// The text to be displayed in the cell.
+        /// </summary>
         public readonly string Header;
 
+        /// <summary>
+        /// The anchor of all cells in this column of the <see cref="TableContainer"/>.
+        /// </summary>
         public readonly Anchor Anchor;
 
+        /// <summary>
+        /// The dimension of the column in the table.
+        /// </summary>
         public readonly Dimension Dimension;
 
+        /// <summary>
+        /// Constructs a new <see cref="TableColumn"/>.
+        /// </summary>
+        /// <param name="header">The text to be displayed in the cell.</param>
+        /// <param name="anchor">The anchor of all cells in this column of the <see cref="TableContainer"/>.</param>
+        /// <param name="dimension">The dimension of the column in the table.</param>
         public TableColumn(string header = null, Anchor anchor = Anchor.TopLeft, Dimension dimension = null)
         {
             Header = header ?? "";
