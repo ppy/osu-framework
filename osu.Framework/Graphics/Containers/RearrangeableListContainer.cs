@@ -18,6 +18,8 @@ namespace osu.Framework.Graphics.Containers
             set => ListContainer.Spacing = value;
         }
 
+        public event Action ItemsRearranged;
+
         private int maxLayoutPosition;
         private readonly ListScrollContainer scrollContainer;
         protected readonly ListFillFlowContainer ListContainer;
@@ -26,6 +28,7 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.Both;
             InternalChild = scrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
+            ListContainer.ItemsRearranged += OnRearrange;
         }
 
         public IEnumerable<T> OrderedItems => ListContainer.FlowingChildren.Cast<T>();
@@ -47,6 +50,8 @@ namespace osu.Framework.Graphics.Containers
             ListContainer.Clear();
             scrollContainer.ScrollToStart();
         }
+
+        protected virtual void OnRearrange() => ItemsRearranged?.Invoke();
 
         protected virtual ListFillFlowContainer CreateListFillFlowContainer() =>
             new ListFillFlowContainer
@@ -114,6 +119,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected class ListFillFlowContainer : FillFlowContainer<T>
         {
+            public event Action ItemsRearranged;
+
             public bool IsDragging => currentlyDraggedItem != null;
 
             private T currentlyDraggedItem;
@@ -182,6 +189,8 @@ namespace osu.Framework.Graphics.Containers
 
                 for (int i = 0; i < cachedFlowingChildren.Count; i++)
                     SetLayoutPosition(cachedFlowingChildren[i], i);
+
+                ItemsRearranged?.Invoke();
             }
         }
     }
