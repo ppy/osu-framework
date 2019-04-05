@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
@@ -22,9 +21,8 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestCaseRearrangeableListContainer : ManualInputManagerTestCase
     {
-        private TestRearrangeableListContainer<TestDrawable> list;
-        private TestRearrangeableListContainer<TestDrawable> listWithSpacing;
-        private TestRearrangeableListContainer<TestDrawable> listWithVariableSizes;
+        private TestRearrangeableListContainer<TestDrawable> list, listWithSpacing, listWithVariableSizes, listWithoutHandles, listWithoutHandlesWithSpacing, listWithoutHandlesWithVariableSizes;
+        private readonly List<TestRearrangeableListContainer<TestDrawable>> lists = new List<TestRearrangeableListContainer<TestDrawable>>();
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -39,115 +37,242 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 RelativeSizeAxes = Axes.Both,
                 RowDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) },
-                ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) },
+                ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 1f / 3f) },
                 Content = new[]
                 {
                     new Drawable[]
                     {
-                        list = new TestRearrangeableListContainer<TestDrawable>(),
-                        listWithSpacing = new TestRearrangeableListContainer<TestDrawable>
+                        new Container
                         {
-                            Spacing = new Vector2(50),
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.05f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                list = new TestRearrangeableListContainer<TestDrawable>(),
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.025f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                listWithSpacing = new TestRearrangeableListContainer<TestDrawable>
+                                {
+                                    Spacing = new Vector2(20),
+                                },
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.05f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                listWithVariableSizes = new TestRearrangeableListContainer<TestDrawable>(),
+                            }
                         },
                     },
                     new Drawable[]
                     {
-                        listWithVariableSizes = new TestRearrangeableListContainer<TestDrawable>(),
-                        new Box
+                        new Container
                         {
-                            Colour = Color4.Pink,
                             RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.025f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                listWithoutHandles = new TestRearrangeableListContainer<TestDrawable>(),
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.05f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                listWithoutHandlesWithSpacing = new TestRearrangeableListContainer<TestDrawable>
+                                {
+                                    Spacing = new Vector2(20),
+                                },
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    Colour = new Color4(1f, 1f, 1f, 0.025f),
+                                    RelativeSizeAxes = Axes.Both,
+                                },
+                                listWithoutHandlesWithVariableSizes = new TestRearrangeableListContainer<TestDrawable>(),
+                            }
                         },
                     },
                 }
             };
-            SetUp();
+
+            lists.AddRange(new[]
+            {
+                list,
+                listWithSpacing,
+                listWithVariableSizes,
+                listWithoutHandles,
+                listWithoutHandlesWithSpacing,
+                listWithoutHandlesWithVariableSizes,
+            });
+
+            Reset();
         }
 
         [SetUp]
-        public void SetUp()
+        public void Reset()
         {
-            list.Clear();
-            listWithSpacing.Clear();
-            listWithVariableSizes.Clear();
+            foreach (var l in lists)
+                l.Clear();
 
             for (int i = 0; i < 5; i++)
             {
-                list.AddItem(generateItem());
-                listWithSpacing.AddItem(generateItem());
-                listWithVariableSizes.AddItem(generateItemVariableHeight());
+                var colour = randomColour();
+                foreach (var l in lists)
+                {
+                    var variableHeight = l == listWithVariableSizes || l == listWithoutHandlesWithVariableSizes;
+                    var hideHandles = l == listWithoutHandles || l == listWithoutHandlesWithSpacing || l == listWithoutHandlesWithVariableSizes;
+                    l.AddItem(generateItem(variableHeight, !hideHandles, colour));
+                }
             }
         }
 
         [Test]
         public void SortingTests()
         {
-            AddStep("Hover item", () => { InputManager.MoveMouseTo(getFirstChild().ToScreenSpace(new Vector2(10, getChildDrawableSize().Y * 0.5f))); });
-            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
-            AddStep("Drag downward", () => { InputManager.MoveMouseTo(getFirstChild().ToScreenSpace(new Vector2(10, getChildDrawableSize().Y * 2.5f))); });
-            AddStep("Release", () => { InputManager.ReleaseButton(MouseButton.Left); });
-            AddAssert("Ensure item is now third", () => list.GetLayoutPosition(getFirstChild()) == 2);
+            foreach (var l in lists)
+            {
+                // drag item down
+                AddStep("Hover item", () => { InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, l.GetChildSize(0).Y * 0.5f))); });
+                AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+                AddStep("Drag downward", () =>
+                {
+                    var dragOffset = l.GetChildSize(0).Y + l.GetChildSize(1).Y + l.GetChildSize(2).Y * 0.75f + l.Spacing.Y * 2;
+                    InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, dragOffset)));
+                });
+                AddStep("Release", () => { InputManager.ReleaseButton(MouseButton.Left); });
+                AddAssert("Ensure item is now third", () => l.GetLayoutPosition(l.GetChild(0)) == 2);
 
-            AddStep("Hover item", () => { InputManager.MoveMouseTo(getFirstChild().ToScreenSpace(new Vector2(10, getChildDrawableSize().Y * 0.5f))); });
-            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
-            AddStep("Drag upward", () => { InputManager.MoveMouseTo(getFirstChild().ToScreenSpace(new Vector2(10, -getChildDrawableSize().Y * 1.5f))); });
-            AddStep("Release", () => { InputManager.ReleaseButton(MouseButton.Left); });
-            AddAssert("Ensure item is now first again", () => list.GetLayoutPosition(getFirstChild()) == 0);
+                // drag item back up
+                AddStep("Hover item", () => { InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, l.GetChildSize(0).Y * 0.5f))); });
+                AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+                AddStep("Drag upward", () =>
+                {
+                    var dragOffset = l.GetChildSize(1).Y + l.GetChildSize(2).Y * 0.75f + l.Spacing.Y * 2;
+                    InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, -dragOffset)));
+                });
+                AddStep("Release", () => { InputManager.ReleaseButton(MouseButton.Left); });
+                AddAssert("Ensure item is now first again", () => l.GetLayoutPosition(l.GetChild(0)) == 0);
+            }
         }
 
         [Test]
         public void AddRemoveTests()
         {
-            AddAssert("Ensure correct child count", () => getChildCount() == 50);
-            AddStep("Hover Remove Button", () => { InputManager.MoveMouseTo(getFirstChild().ToScreenSpace(getChildDrawableSize() + new Vector2(-20, -getChildDrawableSize().Y * 0.5f))); });
-            AddStep("RemoveItem", () => InputManager.Click(MouseButton.Left));
-            AddAssert("Ensure correct child count", () => getChildCount() == 49);
-            AddStep("AddItem", () => { list.AddItem(generateItem()); });
-            AddAssert("Ensure correct child count", () => getChildCount() == 50);
-        }
-
-        private int getChildCount() => list.Count;
-
-        private TestDrawable getFirstChild() => (TestDrawable)list.Children.First();
-
-        private Vector2 getChildDrawableSize() => getFirstChild().DrawSize + list.Spacing;
-
-        private TestDrawable generateItem()
-        {
-            return new TestDrawable();
-        }
-
-        private TestDrawable generateItemVariableHeight()
-        {
-            var height = RNG.NextSingle(10, 100);
-
-            return new TestDrawable
+            foreach (var l in lists)
             {
-                Height = height,
-            };
+                if (l == listWithoutHandles || l == listWithoutHandlesWithSpacing || l == listWithoutHandlesWithVariableSizes)
+                    break;
+
+                AddAssert("Ensure correct child count", () => l.Count == 5);
+                AddStep("Hover Remove Button", () => { InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(l.GetChildSize(0) + new Vector2(-10, -l.GetChildSize(0).Y * 0.5f))); });
+                AddStep("RemoveItem", () => InputManager.Click(MouseButton.Left));
+                AddAssert("Ensure correct child count", () => l.Count == 4);
+                AddStep("AddItem", () => { l.AddItem(generateItem(false, true, randomColour())); });
+                AddAssert("Ensure correct child count", () => l.Count == 5);
+            }
+        }
+
+        private TestDrawable generateItem(bool variableHeight, bool useHandles, Color4 colour)
+        {
+            if (!variableHeight)
+                return useHandles
+                    ? new TestDrawable(colour)
+                    : new TestDrawableNoHandle(colour);
+
+            return useHandles
+                ? new TestDrawable(colour)
+                {
+                    Height = RNG.NextSingle(10, 50),
+                }
+                : new TestDrawableNoHandle(colour)
+                {
+                    Height = RNG.NextSingle(10, 50),
+                };
+        }
+
+        private Color4 randomColour() => new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1);
+
+        private class TestDrawableNoHandle : TestDrawable
+        {
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                IsSelected = true;
+                return base.OnMouseDown(e);
+            }
+
+            protected override bool OnClick(ClickEvent e) => false;
+
+            public TestDrawableNoHandle(Color4 colour)
+                : base(colour)
+            {
+                Child = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 1f,
+                    Colour = colour,
+                };
+            }
         }
 
         private class TestDrawable : FillFlowContainer, IRearrangeableDrawable<TestDrawable>
         {
             public event Action<TestDrawable> RequestRemoval;
 
-            public bool IsDraggable => isSelected;
+            public bool IsDraggable => IsSelected;
 
-            private bool isSelected;
-            private readonly Button dragButton;
-            private readonly Button removeButton;
+            protected bool IsSelected;
+            protected readonly Button DragButton;
+            protected readonly Button RemoveButton;
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
-                if (dragButton.IsHovered)
-                    isSelected = true;
+                if (DragButton.IsHovered)
+                    IsSelected = true;
 
                 return base.OnMouseDown(e);
             }
 
             protected override bool OnClick(ClickEvent e)
             {
-                if (removeButton.IsHovered)
+                if (RemoveButton.IsHovered)
                 {
                     RequestRemoval?.Invoke(this);
 
@@ -159,20 +284,20 @@ namespace osu.Framework.Tests.Visual.Containers
 
             protected override bool OnMouseUp(MouseUpEvent e)
             {
-                isSelected = false;
+                IsSelected = false;
                 return base.OnMouseUp(e);
             }
 
-            public TestDrawable()
+            public TestDrawable(Color4 colour)
             {
-                Height = 30;
+                Height = 25;
                 RelativeSizeAxes = Axes.X;
                 Direction = FillDirection.Horizontal;
                 CornerRadius = 5;
                 Masking = true;
                 Children = new Drawable[]
                 {
-                    dragButton = new Button(FontAwesome.Solid.Bars, Color4.DarkSlateGray.Opacity(0.5f))
+                    DragButton = new Button(FontAwesome.Solid.Bars, Color4.DarkSlateGray.Opacity(0.5f))
                     {
                         Width = 0.05f,
                     },
@@ -180,16 +305,16 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         RelativeSizeAxes = Axes.Both,
                         Width = 0.9f,
-                        Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                        Colour = colour,
                     },
-                    removeButton = new Button(FontAwesome.Solid.MinusSquare, Color4.DarkRed.Opacity(0.5f))
+                    RemoveButton = new Button(FontAwesome.Solid.MinusSquare, Color4.DarkRed.Opacity(0.5f))
                     {
                         Width = 0.05f,
                     },
                 };
             }
 
-            private class Button : Container
+            protected class Button : Container
             {
                 public override bool HandlePositionalInput => true;
 
@@ -221,6 +346,8 @@ namespace osu.Framework.Tests.Visual.Containers
             public IReadOnlyList<Drawable> Children => ListContainer.Children;
             public int Count => ListContainer.Count;
             public float GetLayoutPosition(T d) => ListContainer.GetLayoutPosition(d);
+            public TestDrawable GetChild(int index) => (TestDrawable)Children[index];
+            public Vector2 GetChildSize(int index) => GetChild(index).DrawSize;
         }
     }
 }
