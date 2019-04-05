@@ -68,17 +68,20 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Dimension rowSize;
+        private Dimension rowSize = new Dimension();
 
         /// <summary>
         /// Explicit dimensions for rows. The dimension is applied to every row of this <see cref="TableContainer"/>
         /// </summary>
-        [CanBeNull]
         public Dimension RowSize
         {
+            [NotNull]
             get => rowSize;
+            [CanBeNull]
             set
             {
+                value = value ?? new Dimension();
+
                 if (rowSize == value)
                     return;
 
@@ -162,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
             grid.Content = getContentWithHeaders().ToJagged();
 
             grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
-            grid.RowDimensions = Enumerable.Repeat(rowSize ?? new Dimension(), totalRows).ToArray();
+            grid.RowDimensions = Enumerable.Repeat(RowSize, totalRows).ToArray();
 
             updateAnchors();
         }
