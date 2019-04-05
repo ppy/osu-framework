@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -211,6 +212,41 @@ namespace osu.Framework.Tests.Visual.Layout
         }
 
         [Test]
+        public void TestRowSize()
+        {
+            AddStep("set content", () =>
+            {
+                table.Content = createContent(2, 2);
+                table.RowSize = new Dimension(GridSizeMode.Absolute, 30f);
+            });
+
+            AddAssert("all row size = 30", () => testRows(30));
+            AddStep("add headers", () => table.Columns = new[]
+            {
+                new TableColumn("Header 1"),
+                new TableColumn("Header 2"),
+                new TableColumn("Header 3"),
+            });
+
+            AddAssert("all row size = 30", () => testRows(30));
+            AddStep("change row size", () => table.RowSize = new Dimension(GridSizeMode.Absolute, 50));
+            AddAssert("all row size = 50", () => testRows(50));
+            AddStep("change content", () => table.Content = createContent(4, 4));
+            AddAssert("all row size = 50", () => testRows(50));
+            AddStep("remove custom row size", () => table.RowSize = null);
+            AddAssert("all row size = distributed", () => testRows(table.DrawHeight / 5f));
+
+            bool testRows(float expectedHeight)
+            {
+                for (int row = 0; row < getGrid().Content.Length; row++)
+                    if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent.DrawHeight))
+                        return false;
+
+                return true;
+            }
+        }
+
+        [Test]
         public void TestClearGrid()
         {
             AddStep("set content", () =>
@@ -224,7 +260,11 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddStep("clear grid", () => table.Content = null);
+            AddStep("clear grid", () =>
+            {
+                table.Columns = null;
+                table.Content = null;
+            });
         }
 
         private Drawable[,] createContent(int rows, int columns)
