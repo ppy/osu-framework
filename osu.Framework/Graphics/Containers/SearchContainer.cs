@@ -26,11 +26,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 searchTerm = value;
                 var terms = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Children.OfType<IFilterable>().ForEach(child => match(child, terms));
+                Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0));
             }
         }
 
-        private static bool match(IFilterable filterable, IEnumerable<string> terms)
+        private static bool match(IFilterable filterable, IEnumerable<string> terms, bool searchActive)
         {
             //Words matched by parent is not needed to match children
             var childTerms = terms.Where(term =>
@@ -41,11 +41,12 @@ namespace osu.Framework.Graphics.Containers
 
             bool matching = childTerms.Length == 0;
 
-            //We need to check the children and should any child match this matches aswell
+            //We need to check the children and should any child match this matches as well
             if (hasFilterableChildren != null)
-                foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
-                    matching |= match(searchableChildren, childTerms);
+                foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
+                    matching |= match(child, childTerms, searchActive);
 
+            filterable.FilteringActive = searchActive;
             return filterable.MatchingFilter = matching;
         }
     }

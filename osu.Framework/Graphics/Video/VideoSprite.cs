@@ -52,6 +52,7 @@ namespace osu.Framework.Graphics.Video
                     return 0;
 
                 if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+
                 return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
             }
         }

@@ -17,8 +17,8 @@ namespace osu.Framework.iOS
             coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
             UIView.AnimationsEnabled = false;
             base.ViewWillTransitionToSize(toSize, coordinator);
-            var gameView = View as IOSGameView;
-            gameView?.RequestResizeFrameBuffer();
+
+            (View as IOSGameView)?.RequestResizeFrameBuffer();
         }
     }
 }

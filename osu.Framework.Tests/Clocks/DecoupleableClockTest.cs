@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ChangeSource(source);
         }
 
-#region Start/stop by decoupleable
+        #region Start/stop by decoupleable
 
         /// <summary>
         /// Tests that the source clock starts when the coupled clock starts.
@@ -72,9 +72,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.IsFalse(source.IsRunning, "Source should not be running.");
         }
 
-#endregion
+        #endregion
 
-#region Start/stop by source
+        #region Start/stop by source
 
         /// <summary>
         /// Tests that the coupled clock starts when the source clock starts.
@@ -131,9 +131,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.IsTrue(decoupleable.IsRunning, "Decoupled should be running.");
         }
 
-#endregion
+        #endregion
 
-#region Offset start
+        #region Offset start
 
         /// <summary>
         /// Tests that the coupled clock seeks to the correct position when the source clock starts.
@@ -177,9 +177,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Deoupled time should match source time.");
         }
 
-#endregion
+        #endregion
 
-#region Seeking
+        #region Seeking
 
         /// <summary>
         /// Tests that the source clock is seeked when the coupled clock is seeked.
@@ -233,7 +233,7 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should not match source time.");
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Tests that the state of the decouplable clock is preserved when it is stopped after processing a frame.

@@ -65,7 +65,8 @@ namespace osu.Framework.Tests.Visual.Platform
                                     BorderThickness = 20,
                                     Masking = true,
 
-                                    Children = new Drawable[] {
+                                    Children = new Drawable[]
+                                    {
                                         new Box
                                         {
                                             RelativeSizeAxes = Axes.Both,
@@ -104,9 +105,8 @@ namespace osu.Framework.Tests.Visual.Platform
             windowMode.TriggerChange();
         }
 
-        private Container createScreen(DisplayDevice device, string name)
-        {
-            return new Container
+        private Container createScreen(DisplayDevice device, string name) =>
+            new Container
             {
                 X = device.Bounds.X,
                 Y = device.Bounds.Y,
@@ -133,7 +133,6 @@ namespace osu.Framework.Tests.Visual.Platform
                     }
                 }
             };
-        }
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
@@ -153,10 +152,10 @@ namespace osu.Framework.Tests.Visual.Platform
             const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
-            for(int i = 0;; i++)
+            for (int i = 0;; i++)
             {
                 var display = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if(display == null) break;
+                if (display == null) break;
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
@@ -183,10 +182,10 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Clear();
             var bounds = new RectangleI();
 
-            for(int i = 0;; i++)
+            for (int i = 0;; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if(device == null) break;
+                if (device == null) break;
 
                 screenContainer.Add(createScreen(device, device.IsPrimary ? $"Screen {i} (Primary)" : $"Screen {i}"));
                 bounds = RectangleI.Union(bounds, new RectangleI(device.Bounds.X, device.Bounds.Y, device.Width, device.Height));
@@ -195,16 +194,18 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Add(windowContainer);
             screenContainerOffset = bounds.Location;
 
-            foreach(var box in screenContainer.Children)
+            foreach (var box in screenContainer.Children)
             {
                 box.Position -= bounds.Location;
             }
+
             screenContainer.Size = bounds.Size;
         }
 
         private void updateWindowContainer()
         {
-            if(window == null) return;
+            if (window == null) return;
+
             bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
 
             windowContainer.X = window.X;
@@ -219,7 +220,7 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             base.Update();
 
-            if(window == null)
+            if (window == null)
             {
                 currentDisplay.Text = "No suitable window found";
                 return;

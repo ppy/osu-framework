@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private void load()
         {
             MarkdownTextFlowContainer textFlow;
-            InternalChildren = new []
+            InternalChildren = new[]
             {
                 CreateBackground(),
                 textFlow = CreateTextFlow()

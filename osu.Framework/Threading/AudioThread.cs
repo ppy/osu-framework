@@ -45,6 +45,7 @@ namespace osu.Framework.Threading
             {
                 if (managers.Contains(manager))
                     throw new InvalidOperationException($"{manager} was already registered");
+
                 managers.Add(manager);
             }
         }

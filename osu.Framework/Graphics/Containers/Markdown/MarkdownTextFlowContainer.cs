@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                                     while (parent != null && parent is EmphasisInline e)
                                     {
-                                        emphases.Add(e.IsDouble ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
+                                        emphases.Add(e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
                                         parent = parent.Parent;
                                     }
 
@@ -74,11 +74,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                         AddLinkText(text, linkInline);
                                     break;
                                 }
+
                                 default:
                                     AddText(text);
                                     break;
                             }
                         }
+
                         break;
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);

@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddWaitStep(2, "wait for some update frames");
+            AddWaitStep("wait for some update frames", 2);
         }
 
         private class AlwaysPresentSpriteText : SpriteText

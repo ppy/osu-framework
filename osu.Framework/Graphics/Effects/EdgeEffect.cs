@@ -20,14 +20,12 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public float CornerRadius;
 
-        public Container ApplyTo(Drawable drawable)
-        {
-            return new Container
+        public Container ApplyTo(Drawable drawable) =>
+            new Container
             {
                 Masking = true,
                 EdgeEffect = Parameters,
                 CornerRadius = CornerRadius,
             }.Wrap(drawable);
-        }
     }
 }

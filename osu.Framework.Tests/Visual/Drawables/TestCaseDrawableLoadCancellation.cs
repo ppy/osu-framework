@@ -37,13 +37,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
 
-            AddUntilStep(() => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled), "all but last loader cancelled");
+            AddUntilStep("all but last loader cancelled", () => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled));
 
-            AddUntilStep(() => !loaders.Last().WasCancelled, "last loader began loading");
+            AddUntilStep("last loader began loading", () => !loaders.Last().WasCancelled);
 
             AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
 
-            AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
+            AddUntilStep("last loader loaded", () => loaders.Last().HasLoaded);
         }
 
         [Test]
@@ -56,11 +56,11 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
 
-            AddUntilStep(() => loader.IsLoading, "load started");
+            AddUntilStep("load started", () => loader.IsLoading);
 
             AddStep("cancel", () => cancellationSource.Cancel());
 
-            AddAssert("load cancelled", () => !loader.IsLoading);
+            AddUntilStep("load cancelled", () => !loader.IsLoading);
             AddAssert("didn't callback", () => !loaded);
         }
 

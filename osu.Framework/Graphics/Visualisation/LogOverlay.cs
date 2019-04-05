@@ -9,6 +9,7 @@ using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Timing;
 using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
@@ -77,10 +78,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void addEntry(LogEntry entry)
         {
-#if !DEBUG
-            if (entry.Level <= LogLevel.Verbose)
+            if (!DebugUtils.IsDebugBuild && entry.Level <= LogLevel.Verbose)
                 return;
-#endif
 
             Schedule(() =>
             {

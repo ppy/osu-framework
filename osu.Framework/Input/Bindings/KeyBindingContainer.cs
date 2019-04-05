@@ -99,9 +99,34 @@ namespace osu.Framework.Input.Bindings
             return true;
         }
 
+        protected override bool Handle(NonPositionalEvent e)
+        {
+            var state = e.CurrentState;
+            switch (e)
+            {
+                case KeyDownEvent keyDown:
+                    if (keyDown.Repeat && !SendRepeats)
+                        return pressedBindings.Count > 0;
+
+                    return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat);
+
+                case KeyUpEvent keyUp:
+                    return handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));
+
+                case JoystickPressEvent joystickPress:
+                    return handleNewPressed(state, KeyCombination.FromJoystickButton(joystickPress.Button), false);
+
+                case JoystickReleaseEvent joystickRelease:
+                    return handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
+            }
+
+            return false;
+        }
+
         protected override bool Handle(PositionalEvent e)
         {
             var state = e.CurrentState;
+
             switch (e)
             {
                 case MouseDownEvent mouseDown:
@@ -114,36 +139,12 @@ namespace osu.Framework.Input.Bindings
                 {
                     var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
                     if (key == InputKey.None) return false;
+
                     return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
                 }
-
-                default:
-                    return base.Handle(e);
             }
-        }
 
-        protected override bool Handle(NonPositionalEvent e)
-        {
-            var state = e.CurrentState;
-            switch (e)
-            {
-                case KeyDownEvent keyDown:
-                    if (keyDown.Repeat && !SendRepeats)
-                        return pressedBindings.Count > 0;
-                    return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat);
-
-                case KeyUpEvent keyUp:
-                    return handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));
-
-                case JoystickPressEvent joystickPress:
-                    return handleNewPressed(state, KeyCombination.FromJoystickButton(joystickPress.Button), false);
-
-                case JoystickReleaseEvent joystickRelease:
-                    return handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
-
-                default:
-                    return base.Handle(e);
-            }
+            return false;
         }
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)

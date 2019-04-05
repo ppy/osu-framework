@@ -15,7 +15,8 @@ namespace osu.Framework.Platform
     {
         public const double CLOCK_RATE = 1000.0 / 30;
 
-        private readonly IFrameBasedClock customClock;
+        private readonly bool realtime;
+        private IFrameBasedClock customClock;
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
 
@@ -25,12 +26,17 @@ namespace osu.Framework.Platform
 
         protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true)
-            : base(gameName, bindIPC)
+        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName, bindIPC, portableInstallation: portableInstallation)
         {
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
+            this.realtime = realtime;
+        }
 
-            UpdateThread.Scheduler.Update();
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
+
+            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
         }
 
         protected override void UpdateInitialize()

@@ -14,18 +14,19 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     {
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 Position;
+
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
+
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 TexturePosition;
+
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float Time;
+
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 Direction;
 
-        public bool Equals(ParticleVertex2D other)
-        {
-            return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time) && Direction.Equals(other.Direction);
-        }
+        public bool Equals(ParticleVertex2D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time) && Direction.Equals(other.Direction);
     }
 }

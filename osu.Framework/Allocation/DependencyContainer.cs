@@ -97,6 +97,7 @@ namespace osu.Framework.Allocation
         {
             if (instance == null)
                 return;
+
             CacheAs(instance.GetType(), info, instance, true);
         }
 
@@ -138,6 +139,7 @@ namespace osu.Framework.Allocation
             {
                 if (allowValueTypes)
                     return;
+
                 throw new ArgumentNullException(nameof(instance));
             }
 
@@ -159,7 +161,6 @@ namespace osu.Framework.Allocation
 
             cache[info] = instance;
         }
-
 
         public object Get(Type type)
             => Get(type, default);

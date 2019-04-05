@@ -300,6 +300,7 @@ namespace osu.Framework.Graphics.Transforms
         public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
             if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
+
             updateTransforms(time);
         }
 

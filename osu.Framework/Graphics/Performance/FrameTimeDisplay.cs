@@ -58,33 +58,33 @@ namespace osu.Framework.Graphics.Performance
             double lastUpdate = 0;
 
             Scheduler.AddDelayed(() =>
-            {
-                if (!Counting) return;
-
-                if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
                 {
-                    ClearTransforms();
+                    if (!Counting) return;
 
-                    if (aimWidth == 0)
-                        Size = counter.DrawSize;
-                    else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                        this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
-                    else
-                        this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                    if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
+                    {
+                        ClearTransforms();
 
-                    aimWidth = counter.DrawWidth;
-                }
+                        if (aimWidth == 0)
+                            Size = counter.DrawSize;
+                        else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
+                            this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+                        else
+                            this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
 
-                double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+                        aimWidth = counter.DrawWidth;
+                    }
 
-                displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
-                displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+                    double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
 
-                lastUpdate = clock.CurrentTime;
+                    displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
+                    displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
 
-                counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
-                               + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
-            }, 1000.0 / updates_per_second, true);
+                    lastUpdate = clock.CurrentTime;
+
+                    counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
+                                   + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                }, 1000.0 / updates_per_second, true);
         }
 
         private class CounterText : SpriteText

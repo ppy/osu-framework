@@ -79,6 +79,7 @@ namespace osu.Framework.Testing
         private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
+
             //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
@@ -87,11 +88,12 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? t.Name : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? TestCase.RemovePrefix(t.Name) : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
-                                                ).Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
+                                                ).OrderBy(g => g.Name)
+                                                .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
@@ -143,7 +145,7 @@ namespace osu.Framework.Testing
                     {
                         new Box
                         {
-                            Colour = new Color4(50, 50, 50, 255),
+                            Colour = new Color4(30, 57, 52, 255),
                             RelativeSizeAxes = Axes.Both
                         },
                         new FillFlowContainer
@@ -156,9 +158,9 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstVisible = leftFlowContainer.FirstOrDefault(b => b.IsPresent);
-                                        if (firstVisible != null)
-                                            LoadTest(firstVisible.SelectFirst());
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestCaseSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        if (firstTest != null)
+                                            LoadTest(firstTest);
                                     },
                                     Height = 20,
                                     RelativeSizeAxes = Axes.X,
@@ -168,7 +170,6 @@ namespace osu.Framework.Testing
                                 {
                                     Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
-                                    ScrollbarOverlapsContent = false,
                                     Child = leftFlowContainer = new SearchContainer<TestCaseButtonGroup>
                                     {
                                         Padding = new MarginPadding(3),
@@ -428,44 +429,53 @@ namespace osu.Framework.Testing
 
             var methods = newTest.GetType().GetMethods();
 
-            var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+            bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
+            foreach (var m in methods.Where(m => m.Name != nameof(TestCase.TestConstructor)))
             {
                 if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
+                    hadTestAttributeTest = true;
                     CurrentTest.AddLabel(m.Name);
 
-                    if (setUpMethods.Any())
-                    {
-                        CurrentTest.AddStep(new SetUpStep
-                        {
-                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                        });
-                    }
+                    addSetUpSteps();
 
                     m.Invoke(CurrentTest, null);
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
+                    hadTestAttributeTest = true;
                     CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
 
-                    if (setUpMethods.Any())
-                    {
-                        CurrentTest.AddStep(new SetUpStep
-                        {
-                            Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
-                        });
-                    }
+                    addSetUpSteps();
 
                     m.Invoke(CurrentTest, tc.Arguments);
                 }
             }
 
+            // even if no [Test] or [TestCase] methods were found, [SetUp] steps should be added.
+            if (!hadTestAttributeTest)
+                addSetUpSteps();
+
             backgroundCompiler?.Checkpoint(CurrentTest);
             runTests(onCompletion);
             updateButtons();
+
+            void addSetUpSteps()
+            {
+                var setUpMethods = methods.Where(m => m.Name != nameof(TestCase.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
+
+                if (setUpMethods.Any())
+                {
+                    CurrentTest.AddStep(new SetUpStep
+                    {
+                        Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
+                    });
+                }
+
+                CurrentTest.RunSetUpSteps();
+            }
         }
 
         private class SetUpStep : SingleStepButton
@@ -479,12 +489,20 @@ namespace osu.Framework.Testing
 
         private void runTests(Action onCompletion)
         {
+            int actualStepCount = 0;
             CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
 
-                return !(s is SetUpStep) && !(s is LabelStep);
+                if (actualStepCount > 0)
+                    // stop once one actual step has been run.
+                    return true;
+
+                if (!(s is SetUpStep) && !(s is LabelStep))
+                    actualStepCount++;
+
+                return false;
             });
         }
 

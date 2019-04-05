@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
                 Text =
-@"osu! is a freeware rhythm game developed by Dean ""peppy"" Herbert, originally for Microsoft Windows. The game has also been ported to macOS, iOS, Android, and Windows Phone.[1] Its game play is based on commercial titles including Osu! Tatakae! Ouendan, Elite Beat Agents, Taiko no Tatsujin, beatmania IIDX, O2Jam, and DJMax.
+                    @"osu! is a freeware rhythm game developed by Dean ""peppy"" Herbert, originally for Microsoft Windows. The game has also been ported to macOS, iOS, Android, and Windows Phone.[1] Its game play is based on commercial titles including Osu! Tatakae! Ouendan, Elite Beat Agents, Taiko no Tatsujin, beatmania IIDX, O2Jam, and DJMax.
 
 osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source code was open-sourced under the MIT License. [2] [3] Dubbed as ""Lazer"", the project aims to make osu! available to more platforms and transparent. [4] The community includes over 9 million registered users, with a total of 6 billion ranked plays.[5]"
             });

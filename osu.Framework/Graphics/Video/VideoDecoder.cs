@@ -369,6 +369,7 @@ namespace osu.Framework.Graphics.Video
                     {
                         if (cancellationToken.IsCancellationRequested)
                             return;
+
                         if (decoderCommands.TryDequeue(out var cmd))
                             cmd();
                     }

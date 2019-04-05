@@ -48,6 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         private Action lastStep;
+
         private Action beginStep(Action stepAction) => () =>
         {
             lastStep = stepAction;

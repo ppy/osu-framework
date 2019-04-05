@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Lines
             {
                 if (base.PathRadius == value)
                     return;
+
                 base.PathRadius = value;
 
                 InvalidateTexture();

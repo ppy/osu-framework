@@ -65,6 +65,7 @@ namespace osu.Framework.Allocation
         {
             if (!activator_cache.TryGetValue(type, out var existing))
                 return activator_cache[type] = new DependencyActivator(type);
+
             return existing;
         }
 

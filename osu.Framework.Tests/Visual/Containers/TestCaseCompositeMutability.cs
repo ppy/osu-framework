@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 });
 
-                AddUntilStep(() => container.LoadState == stateToWaitFor, $"wait for {stateToWaitFor} state");
+                AddUntilStep($"wait for {stateToWaitFor} state", () => container.LoadState == stateToWaitFor);
             }
 
             bool hasResult = false;
@@ -81,11 +81,13 @@ namespace osu.Framework.Tests.Visual.Containers
                     AddStep("run external thread", () => new Thread(tryThrow) { IsBackground = true }.Start());
                     break;
                 }
+
                 case TestThread.Update:
                 {
                     AddStep("schedule", () => Schedule(tryThrow));
                     break;
                 }
+
                 case TestThread.Load:
                 {
                     switch (expectedState)
@@ -104,7 +106,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 }
             }
 
-            AddUntilStep(() => hasResult, "wait for result");
+            AddUntilStep("wait for result", () => hasResult);
             AddAssert("thrown", () => thrown == shouldThrow);
 
             AddStep("allow load completion", () =>
