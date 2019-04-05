@@ -50,10 +50,11 @@ namespace osu.Framework.Graphics.Containers
         /// Describes the columns of this <see cref="TableContainer"/>.
         /// Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
-        [CanBeNull]
         public TableColumn[] Columns
         {
+            [NotNull]
             get => columns;
+            [CanBeNull]
             set
             {
                 value = value ?? Array.Empty<TableColumn>();
@@ -137,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The total number of rows in the content, including the header.
         /// </summary>
-        private int totalRows => content.GetLength(0) + (ShowHeaders ? 1 : 0);
+        private int totalRows => (content?.GetLength(0) ?? 0) + (ShowHeaders ? 1 : 0);
 
         /// <summary>
         /// The total number of columns in the content, including the header.
@@ -147,9 +148,9 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 if (columns == null || !showHeaders)
-                    return content.GetLength(1);
+                    return content?.GetLength(1) ?? 0;
 
-                return Math.Max(columns.Length, content.GetLength(1));
+                return Math.Max(columns.Length, content?.GetLength(1) ?? 0);
             }
         }
 
@@ -158,15 +159,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void updateContent()
         {
-            if (content == null)
-                grid.Content = null;
-            else
-            {
-                grid.Content = getContentWithHeaders().ToJagged();
+            grid.Content = getContentWithHeaders().ToJagged();
 
-                grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
-                grid.RowDimensions = Enumerable.Repeat(rowSize ?? new Dimension(), totalRows).ToArray();
-            }
+            grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
+            grid.RowDimensions = Enumerable.Repeat(rowSize ?? new Dimension(), totalRows).ToArray();
 
             updateAnchors();
         }
