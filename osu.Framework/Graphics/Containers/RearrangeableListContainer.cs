@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Containers
 
         public event Action ItemsRearranged;
 
+        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<T>();
+
         private int maxLayoutPosition;
         private readonly ListScrollContainer scrollContainer;
         protected readonly ListFillFlowContainer ListContainer;
@@ -30,8 +32,6 @@ namespace osu.Framework.Graphics.Containers
             InternalChild = scrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
             ListContainer.ItemsRearranged += OnRearrange;
         }
-
-        public IEnumerable<T> OrderedItems => ListContainer.FlowingChildren.Cast<T>();
 
         public void AddItem(T item)
         {
