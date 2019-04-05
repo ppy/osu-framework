@@ -10,22 +10,37 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A list container that enables its children to be rearranged via dragging.
+    /// </summary>
     public class RearrangeableListContainer<T> : CompositeDrawable where T : Drawable, IRearrangeableDrawable<T>
     {
+        /// <summary>
+        /// The spacing between individual elements. Default is <see cref="Vector2.Zero"/>.
+        /// </summary>
         public Vector2 Spacing
         {
             get => ListContainer.Spacing;
             set => ListContainer.Spacing = value;
         }
 
+        /// <summary>
+        /// This event is fired after a rearrangement has occurred via dragging.
+        /// </summary>
         public event Action ItemsRearranged;
 
+        /// <summary>
+        /// The list of children as they are currently arranged.
+        /// </summary>
         public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<T>();
 
         private int maxLayoutPosition;
         protected readonly ListScrollContainer ScrollContainer;
         protected readonly ListFillFlowContainer ListContainer;
 
+        /// <summary>
+        /// Creates a rearrangeable list container.
+        /// </summary>
         public RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
@@ -33,6 +48,9 @@ namespace osu.Framework.Graphics.Containers
             ListContainer.ItemsRearranged += OnRearrange;
         }
 
+        /// <summary>
+        /// Adds a child to the end of this list.
+        /// </summary>
         public void AddItem(T item)
         {
             item.RequestRemoval += RemoveItem;
@@ -40,19 +58,27 @@ namespace osu.Framework.Graphics.Containers
             ListContainer.SetLayoutPosition(item, maxLayoutPosition++);
         }
 
-        public void RemoveItem(T item)
-        {
-            ListContainer.Remove(item);
-        }
+        /// <summary>
+        /// Removes a child from this container.
+        /// </summary>
+        public void RemoveItem(T item) => ListContainer.Remove(item);
 
+        /// <summary>
+        /// Removes all <see cref="Container{T}.Children"/> from this container.
+        /// </summary>
         public void Clear()
         {
             ListContainer.Clear();
+            // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
+            // scroll position if we quickly add new items after calling a Clear().
             ScrollContainer.ScrollToStart();
         }
 
         protected virtual void OnRearrange() => ItemsRearranged?.Invoke();
 
+        /// <summary>
+        /// Allows subclasses to customise the <see cref="ListFillFlowContainer"/>.
+        /// </summary>
         protected virtual ListFillFlowContainer CreateListFillFlowContainer() =>
             new ListFillFlowContainer
             {
@@ -64,6 +90,9 @@ namespace osu.Framework.Graphics.Containers
                 Spacing = new Vector2(1),
             };
 
+        /// <summary>
+        /// Allows subclasses to customise the <see cref="ListScrollContainer"/>.
+        /// </summary>
         protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) =>
             new ListScrollContainer
             {

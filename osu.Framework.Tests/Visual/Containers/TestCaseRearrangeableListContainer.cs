@@ -143,11 +143,11 @@ namespace osu.Framework.Tests.Visual.Containers
                 listWithoutHandlesWithVariableSizes,
             });
 
-            Reset();
+            SetUp();
         }
 
         [SetUp]
-        public void Reset()
+        public override void SetUp()
         {
             foreach (var l in lists)
                 l.Clear();
@@ -159,6 +159,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 {
                     var variableHeight = l == listWithVariableSizes || l == listWithoutHandlesWithVariableSizes;
                     var hideHandles = l == listWithoutHandles || l == listWithoutHandlesWithSpacing || l == listWithoutHandlesWithVariableSizes;
+
                     l.AddItem(generateItem(variableHeight, !hideHandles, colour));
                 }
             }
@@ -174,6 +175,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
                 AddStep("Drag downward", () =>
                 {
+                    // calculate the offset based on the first 3 items in the list, plus spacing
                     var dragOffset = l.GetChildSize(0).Y + l.GetChildSize(1).Y + l.GetChildSize(2).Y * 0.75f + l.Spacing.Y * 2;
                     InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, dragOffset)));
                 });
@@ -185,6 +187,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
                 AddStep("Drag upward", () =>
                 {
+                    // calculate the offset based on the 2 items above it in the list, plus spacing
                     var dragOffset = l.GetChildSize(1).Y + l.GetChildSize(2).Y * 0.75f + l.Spacing.Y * 2;
                     InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(new Vector2(10, -dragOffset)));
                 });
@@ -201,7 +204,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 if (l == listWithoutHandles || l == listWithoutHandlesWithSpacing || l == listWithoutHandlesWithVariableSizes)
                     break;
 
-                AddAssert("Ensure correct child count", () => l.Count == 5);
+                AddAssert("Ensure correct starting count", () => l.Count == 5);
                 AddStep("Hover Remove Button", () => { InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(l.GetChildSize(0) + new Vector2(-10, -l.GetChildSize(0).Y * 0.5f))); });
                 AddStep("RemoveItem", () => InputManager.Click(MouseButton.Left));
                 AddAssert("Ensure correct child count", () => l.Count == 4);
@@ -344,9 +347,13 @@ namespace osu.Framework.Tests.Visual.Containers
         private class TestRearrangeableListContainer<T> : RearrangeableListContainer<T> where T : Drawable, IRearrangeableDrawable<T>
         {
             public IReadOnlyList<Drawable> Children => ListContainer.Children;
+
             public int Count => ListContainer.Count;
+
             public float GetLayoutPosition(T d) => ListContainer.GetLayoutPosition(d);
+
             public TestDrawable GetChild(int index) => (TestDrawable)Children[index];
+
             public Vector2 GetChildSize(int index) => GetChild(index).DrawSize;
         }
     }
