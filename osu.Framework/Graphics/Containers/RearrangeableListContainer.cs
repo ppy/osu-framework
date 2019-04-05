@@ -23,13 +23,13 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<T>();
 
         private int maxLayoutPosition;
-        private readonly ListScrollContainer scrollContainer;
+        protected readonly ListScrollContainer ScrollContainer;
         protected readonly ListFillFlowContainer ListContainer;
 
         public RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
-            InternalChild = scrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
+            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
             ListContainer.ItemsRearranged += OnRearrange;
         }
 
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
         public void Clear()
         {
             ListContainer.Clear();
-            scrollContainer.ScrollToStart();
+            ScrollContainer.ScrollToStart();
         }
 
         protected virtual void OnRearrange() => ItemsRearranged?.Invoke();
