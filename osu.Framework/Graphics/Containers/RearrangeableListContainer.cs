@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Input;
@@ -13,8 +12,6 @@ namespace osu.Framework.Graphics.Containers
 {
     public class RearrangeableListContainer<T> : CompositeDrawable where T : Drawable, IRearrangeableDrawable<T>
     {
-        public readonly BindableList<T> ListItems = new BindableList<T>();
-
         public Vector2 Spacing
         {
             get => ListContainer.Spacing;
@@ -29,24 +26,24 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.Both;
             InternalChild = scrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
-
-            ListItems.ItemsAdded += itemsAdded;
-            ListItems.ItemsRemoved += itemsRemoved;
         }
+
+        public IEnumerable<T> OrderedItems => ListContainer.FlowingChildren.Cast<T>();
 
         public void AddItem(T item)
         {
-            ListItems.Add(item);
+            item.RequestRemoval += RemoveItem;
+            ListContainer.Add(item);
+            ListContainer.SetLayoutPosition(item, maxLayoutPosition++);
         }
 
         public void RemoveItem(T item)
         {
-            ListItems.Remove(item);
+            ListContainer.Remove(item);
         }
 
         public void Clear()
         {
-            ListItems.Clear();
             ListContainer.Clear();
             scrollContainer.ScrollToStart();
         }
@@ -67,22 +64,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 Child = flowContainer,
             };
-
-        private void itemsAdded(IEnumerable<T> items)
-        {
-            foreach (var item in items)
-            {
-                item.RequestRemoval += RemoveItem;
-                ListContainer.Add(item);
-                ListContainer.SetLayoutPosition(item, maxLayoutPosition++);
-            }
-        }
-
-        private void itemsRemoved(IEnumerable<T> items)
-        {
-            foreach (var item in items)
-                ListContainer.Remove(item);
-        }
 
         protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
