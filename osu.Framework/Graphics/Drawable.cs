@@ -1956,13 +1956,13 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle(NonPositionalEvent)"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle(PositionalEvent)"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
