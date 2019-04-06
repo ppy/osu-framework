@@ -42,6 +42,9 @@ namespace osu.Framework.Extensions.PolygonExtensions
         /// <returns>The axes represented by <paramref name="vertices"/>. Returned as a slice of <paramref name="buffer"/>.</returns>
         private static Span<Vector2> getAxes(ReadOnlySpan<Vector2> vertices, Span<Vector2> buffer, bool normalize = false)
         {
+            if (buffer.Length < vertices.Length)
+                throw new ArgumentException($"Axis buffer must have a length of {vertices.Length}, but was {buffer.Length}.", nameof(buffer));
+
             for (int i = 0; i < vertices.Length; i++)
             {
                 // Construct an edge between two sequential points
