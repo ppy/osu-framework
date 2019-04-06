@@ -29,7 +29,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
         /// <param name="buffer">A buffer to be used as storage for the axes. Must have a length of at least the count of vertices in <paramref name="polygon"/>.</param>
         /// <param name="normalize">Whether the normals should be normalized. Allows computation of the exact intersection point.</param>
         /// <returns>The axes of the polygon. Returned as a slice of <paramref name="buffer"/>.</returns>
-        internal static Span<Vector2> GetAxes<TPolygon>(this TPolygon polygon, Span<Vector2> buffer, bool normalize = false)
+        public static Span<Vector2> GetAxes<TPolygon>(this TPolygon polygon, Span<Vector2> buffer, bool normalize = false)
             where TPolygon : IPolygon
             => getAxes(polygon.GetAxisVertices(), buffer, normalize);
 
