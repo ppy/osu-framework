@@ -19,10 +19,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
             where TPolygon : IPolygon
         {
             var axisVertices = polygon.GetAxisVertices();
-
-            var buffer = new Vector2[axisVertices.Length];
-
-            return getAxes(axisVertices, buffer, normalize);
+            return getAxes(axisVertices, new Vector2[axisVertices.Length], normalize);
         }
 
         /// <summary>
