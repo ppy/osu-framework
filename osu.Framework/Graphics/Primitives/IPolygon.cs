@@ -10,8 +10,6 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>
         /// The vertices for this polygon that define the axes spanned by the polygon.
-        /// <para>
-        /// </para>
         /// </summary>
         /// <remarks>
         /// Must be returned in a clockwise orientation. For best performance, colinear edges should not be included.
