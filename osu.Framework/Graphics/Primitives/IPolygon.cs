@@ -9,11 +9,14 @@ namespace osu.Framework.Graphics.Primitives
     public interface IPolygon
     {
         /// <summary>
-        /// The vertices for this polygon that define the axes spanned by the polygon.
+        /// The vertices that define the axes spanned by this polygon.
         /// </summary>
         /// <remarks>
-        /// Must be returned in a clockwise orientation. For best performance, colinear edges should not be included.
+        /// Must be returned in a clockwise orientation. For best performance, vertices that form colinear edges should not be included.
         /// </remarks>
+        /// <returns>
+        /// The vertices that define the axes spanned by this polygon.
+        /// </returns>
         ReadOnlySpan<Vector2> GetAxisVertices();
 
         /// <summary>
