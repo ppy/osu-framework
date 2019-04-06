@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.PolygonExtensions;
+using System.Runtime.CompilerServices;
 using osuTK;
 using osu.Framework.MathUtils;
 
@@ -10,10 +10,12 @@ namespace osu.Framework.Graphics.Primitives
 {
     public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
+        // Note: Vertices are clockwise-ordered
+
         public Vector2 TopLeft;
         public Vector2 TopRight;
-        public Vector2 BottomLeft;
         public Vector2 BottomRight;
+        public Vector2 BottomLeft;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -99,8 +101,15 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
-        public Vector2[] AxisVertices => Vertices;
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+
+        public ReadOnlySpan<Vector2> GetVertices()
+        {
+            unsafe
+            {
+                return new Span<Vector2>(Unsafe.AsPointer(ref this), 4);
+            }
+        }
 
         public bool Contains(Vector2 pos) =>
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
@@ -127,8 +136,6 @@ namespace osu.Framework.Graphics.Primitives
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }
         }
-
-        public bool Intersects(IConvexPolygon other) => (this as IConvexPolygon).Intersects(other);
 
         public bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&
