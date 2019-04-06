@@ -3,15 +3,16 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using osuTK;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Primitives
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
-        // Note: Vertices are clockwise-ordered
-
+        // Note: Do not change the order of vertices.
         public Vector2 TopLeft;
         public Vector2 TopRight;
         public Vector2 BottomRight;
@@ -107,7 +108,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             unsafe
             {
-                return new Span<Vector2>(Unsafe.AsPointer(ref this), 4);
+                return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 4);
             }
         }
 
