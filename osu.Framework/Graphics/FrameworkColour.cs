@@ -3,7 +3,7 @@
 
 using osuTK.Graphics;
 
-namespace osu.Framework.Graphics.UserInterface
+namespace osu.Framework.Graphics
 {
     public static class FrameworkColour
     {
