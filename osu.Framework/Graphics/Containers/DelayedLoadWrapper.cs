@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
 

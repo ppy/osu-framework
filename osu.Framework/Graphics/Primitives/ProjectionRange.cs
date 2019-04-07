@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -21,7 +22,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float Max { get; }
 
-        public ProjectionRange(Vector2 axis, Vector2[] vertices)
+        public ProjectionRange(Vector2 axis, ReadOnlySpan<Vector2> vertices)
         {
             Min = 0;
             Max = 0;
