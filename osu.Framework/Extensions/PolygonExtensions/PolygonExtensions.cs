@@ -64,6 +64,12 @@ namespace osu.Framework.Extensions.PolygonExtensions
             return buffer.Slice(0, vertices.Length);
         }
 
+        /// <summary>
+        /// Determines the minimum buffer size required to clip two polygons.
+        /// </summary>
+        /// <param name="clipPolygon">The polygon that will be used to clip.</param>
+        /// <param name="subjectPolygon">The polygon that will be clipped.</param>
+        /// <returns>The minimum buffer size required for <paramref name="clipPolygon"/> to clip <paramref name="subjectPolygon"/>.</returns>
         public static int GetClipBufferSize<TPolygon1, TPolygon2>(this TPolygon1 clipPolygon, TPolygon2 subjectPolygon)
             where TPolygon1 : IPolygon
             where TPolygon2 : IPolygon
@@ -79,11 +85,24 @@ namespace osu.Framework.Extensions.PolygonExtensions
             return clipPolygon.GetVertices().Length * subjectPolygon.GetVertices().Length;
         }
 
+        /// <summary>
+        /// Clips a polygon by another.
+        /// </summary>
+        /// <param name="clipPolygon">The polygon that will clip the subject.</param>
+        /// <param name="subjectPolygon">The polygon that will be clipped.</param>
+        /// <returns>A clockwise-ordered set of vertices representing the result of clipping <paramref name="subjectPolygon"/> by <paramref name="clipPolygon"/>.</returns>
         public static Span<Vector2> Clip<TPolygon1, TPolygon2>(this TPolygon1 clipPolygon, TPolygon2 subjectPolygon)
             where TPolygon1 : IPolygon
             where TPolygon2 : IPolygon
             => clipPolygon.Clip(subjectPolygon, new Vector2[clipPolygon.GetClipBufferSize(subjectPolygon)]);
 
+        /// <summary>
+        /// Clips a polygon by another.
+        /// </summary>
+        /// <param name="clipPolygon">The polygon that will clip the subject.</param>
+        /// <param name="subjectPolygon">The polygon that will be clipped.</param>
+        /// <param name="buffer">The buffer to contain the clipped vertices. Must have a length of <see cref="GetClipBufferSize{TPolygon1,TPolygon2}"/>.</param>
+        /// <returns>A clockwise-ordered set of vertices representing the result of clipping <paramref name="subjectPolygon"/> by <paramref name="clipPolygon"/>.</returns>
         public static Span<Vector2> Clip<TPolygon1, TPolygon2>(this TPolygon1 clipPolygon, TPolygon2 subjectPolygon, Span<Vector2> buffer)
             where TPolygon1 : IPolygon
             where TPolygon2 : IPolygon
