@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osuTK;
 using osuTK.Graphics;
 
@@ -35,7 +36,7 @@ namespace osu.Framework.Testing.Drawables
             {
                 new Box
                 {
-                    Colour = new Color4(57, 110, 102, 255),
+                    Colour = FrameworkColour.Green,
                     RelativeSizeAxes = Axes.Both
                 },
                 leftBoxContainer = new Container
@@ -45,7 +46,7 @@ namespace osu.Framework.Testing.Drawables
                     Padding = new MarginPadding { Right = -left_box_width },
                     Child = new Box
                     {
-                        Colour = new Color4(128, 164, 108, 255),
+                        Colour = FrameworkColour.YellowGreen,
                         RelativeSizeAxes = Axes.Both,
                     },
                 },

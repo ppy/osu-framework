@@ -9,6 +9,7 @@ using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
@@ -89,7 +90,7 @@ namespace osu.Framework.Testing.Drawables
                 text.AddText(description, t =>
                 {
                     t.Font = t.Font.With("Roboto", 11);
-                    t.Colour = new Color4(250, 221, 114, 255);
+                    t.Colour = FrameworkColour.Yellow;
                 });
             }
         }
