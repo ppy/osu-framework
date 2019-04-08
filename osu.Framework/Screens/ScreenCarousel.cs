@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -32,7 +33,7 @@ namespace osu.Framework.Screens
         /// <param name="screen"> The <see cref="IScreen"/> to add to the carousel </param>
         public void AddScreen(TKey key, IScreen screen)
         {
-            if (Screens.ContainsValue(screen))
+            if (Screens.ContainsKey(key))
                 throw new InvalidOperationException($"Cannot add an {nameof(IScreen)} that has already been added to the {nameof(ScreenCarousel<TKey>)}");
 
             Screens.Add(key, screen);
@@ -62,9 +63,12 @@ namespace osu.Framework.Screens
 
             // Once the screen stack is empty, we can safely push our screen.
             screenStack.Push(screen);
+        }
 
-            // Make sure the new screen gets never expires
-            screen.AsDrawable().LifetimeEnd = Double.MaxValue;
+        protected override void Dispose(bool isDisposing)
+        {
+            Screens.ForEach(s => s.Value.AsDrawable().Dispose());
+            base.Dispose(isDisposing);
         }
 
         private class CarouselScreenStack : ScreenStack
@@ -75,6 +79,7 @@ namespace osu.Framework.Screens
             // Since we might need to re-use screens that have been previously exited, do not dispose screens on removal.
             protected override void Cleanup(Drawable d)
             {
+                d.UnbindAllBindables();
                 RemoveInternal(d);
             }
         }

@@ -138,7 +138,10 @@ namespace osu.Framework.Screens
             }
 
             if (!ContainsInternal(to.AsDrawable()))
+            {
+                to.AsDrawable().LifetimeEnd = double.MaxValue;
                 AddInternal(to.AsDrawable());
+            }
 
             to.OnEntering(from);
         }
@@ -294,11 +297,10 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Remove a drawable from this ScreenStack's internal children and handle disposal.
         /// </summary>
-        /// <param name="d"> The drawable to remove. </param>
-        protected virtual void Cleanup(Drawable d)
+        /// <param name="drawable"> The drawable to remove. </param>
+        protected virtual void Cleanup(Drawable drawable)
         {
-            RemoveInternal(d);
-            DisposeChildAsync(d);
+            DisposeChildAsync(drawable);
         }
 
         protected override bool UpdateChildrenLife()
@@ -310,7 +312,10 @@ namespace osu.Framework.Screens
             if (exited.FirstOrDefault()?.IsAlive == false)
             {
                 foreach (var s in exited)
+                {
+                    RemoveInternal(s);
                     Cleanup(s);
+                }
 
                 exited.Clear();
             }
