@@ -117,7 +117,9 @@ Task("InspectCode")
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
 
-        StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+        int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+        if (returnCode != 0)
+            throw new Exception($"inspectcode failed with return code {returnCode}");
     });
 
 Task("CodeFileSanity")

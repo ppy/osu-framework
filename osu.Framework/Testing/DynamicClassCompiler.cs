@@ -64,9 +64,10 @@ namespace osu.Framework.Testing
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName,
                     };
 
+                    fsw.Renamed += onChange;
                     fsw.Changed += onChange;
                     fsw.Created += onChange;
 
@@ -97,7 +98,7 @@ namespace osu.Framework.Testing
                 // add ourselves as a required type.
                 reqTypes.Add(checkpointName);
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(checkpointName.Replace("TestCase", ""));
+                reqTypes.Add(TestCase.RemovePrefix(checkpointName));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;

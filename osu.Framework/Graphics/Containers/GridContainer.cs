@@ -15,6 +15,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class GridContainer : CompositeDrawable
     {
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            layoutContent();
+        }
+
         private Drawable[][] content;
 
         /// <summary>
@@ -80,10 +86,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="Drawable.RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Drawable.Size"/> (or <see cref="Drawable.Width"/> / <see cref="Drawable.Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public new Axes AutoSizeAxes
         {
-            layoutContent();
+            get => base.AutoSizeAxes;
+            set => base.AutoSizeAxes = value;
         }
 
         protected override void Update()

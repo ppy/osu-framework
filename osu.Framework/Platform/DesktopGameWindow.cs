@@ -143,6 +143,8 @@ namespace osu.Framework.Platform
             {
                 case Configuration.WindowMode.Windowed:
                     sizeWindowed.Value = ClientSize;
+                    if (sizeWindowed.Value != ClientSize)
+                        ClientSize = sizeWindowed.Value;
                     break;
             }
         }
