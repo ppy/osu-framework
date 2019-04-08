@@ -70,6 +70,8 @@ namespace osu.Framework.Graphics.Shapes
                 if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd || !DrawColourInfo.Colour.HasSingleColour)
                     return;
 
+                depthValue.Increment();
+
                 TextureShader.Bind();
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
@@ -81,14 +83,12 @@ namespace osu.Framework.Graphics.Shapes
                     Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
                     for (int i = 2; i < clippedRegion.Length; i++)
-                        Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), Depth, DrawColourInfo.Colour);
+                        Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), depthValue, DrawColourInfo.Colour);
                 }
                 else
-                    Blit(conservativeScreenSpaceDrawQuad, vertexAction);
+                    Blit(conservativeScreenSpaceDrawQuad, depthValue, vertexAction);
 
                 TextureShader.Unbind();
-
-                depthValue.Increment();
             }
         }
     }

@@ -371,7 +371,7 @@ namespace osu.Framework.Platform
                         GLWrapper.PopDepthInfo();
 
                         // The back pass doesn't write depth, but needs to depth test properly
-                        GLWrapper.PushDepthInfo(new DepthInfo(true, false, DepthFunction.Lequal));
+                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
                     }
                     else
                     {
