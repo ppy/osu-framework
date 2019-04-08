@@ -64,9 +64,10 @@ namespace osu.Framework.Testing
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName,
                     };
 
+                    fsw.Renamed += onChange;
                     fsw.Changed += onChange;
                     fsw.Created += onChange;
 
