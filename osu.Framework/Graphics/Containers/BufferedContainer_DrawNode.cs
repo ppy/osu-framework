@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
                 updateVersion = Source.updateVersion;
                 backgroundColour = Source.BackgroundColour;
 
-                BlendingParameters localEffectBlending = effectBlending;
+                BlendingParameters localEffectBlending = Source.EffectBlending;
                 if (localEffectBlending.Mode == BlendingMode.Inherit)
                     localEffectBlending.Mode = Source.Blending.Mode;
 
