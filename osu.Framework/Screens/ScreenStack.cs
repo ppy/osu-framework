@@ -9,6 +9,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osuTK;
 
 namespace osu.Framework.Screens
 {
@@ -301,6 +302,32 @@ namespace osu.Framework.Screens
 
                 exited.Clear();
             }
+
+            return true;
+        }
+
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        {
+            if (!PropagateNonPositionalInputSubTree)
+                return false;
+
+            if (HandleNonPositionalInput)
+                queue.Add(this);
+
+            CurrentScreen?.AsDrawable().BuildNonPositionalInputQueue(queue, allowBlocking);
+
+            return true;
+        }
+
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        {
+            if (!PropagatePositionalInputSubTree)
+                return false;
+
+            if (HandlePositionalInput && ReceivePositionalInputAt(screenSpacePos))
+                queue.Add(this);
+
+            CurrentScreen?.AsDrawable().BuildPositionalInputQueue(screenSpacePos, queue);
 
             return true;
         }

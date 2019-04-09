@@ -16,8 +16,10 @@ using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
@@ -474,6 +476,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled && !screen2.LeasedCopy.Disabled);
         }
 
+        [Test]
+        public void TestNonCurrentScreenDoesNotAcceptInput()
+        {
+            ManualInputManager inputManager = null;
+
+            AddStep("override stack", () =>
+            {
+                // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                Clear();
+
+                Add(inputManager = new ManualInputManager
+                {
+                    Child = stack = new ScreenStack(baseScreen = new TestScreen())
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                });
+            });
+
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push", () => screen1.Push(new TestScreenSlow()));
+            AddStep("click centre of screen", () =>
+            {
+                inputManager.MoveMouseTo(screen1);
+                inputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("screen 1 not clicked", () => !screen1.Clicked);
+        }
+
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
         {
             IScreen screen = null;
@@ -514,6 +548,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private const int transition_time = 500;
 
             public bool EagerFocus;
+
+            public bool Clicked { get; private set; }
 
             public override bool RequestsFocus => EagerFocus;
 
@@ -661,6 +697,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                Clicked = true;
+                return base.OnClick(e);
             }
         }
     }
