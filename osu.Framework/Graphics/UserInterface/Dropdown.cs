@@ -224,30 +224,27 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void selectionKeyPressed(DropdownHeader.SelectionChange change)
         {
+            if (!MenuItems.Any())
+                return;
             var dropdownMenuItems = MenuItems.ToList();
-            if (!dropdownMenuItems.Any()) return;
-
-            var selectedIndex = dropdownMenuItems.IndexOf(SelectedItem);
 
             switch (change)
             {
                 case DropdownHeader.SelectionChange.Previous:
-                    selectedIndex = MathHelper.Clamp(selectedIndex - 1, 0, dropdownMenuItems.Count - 1);
+                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
                     break;
                 case DropdownHeader.SelectionChange.Next:
-                    selectedIndex = MathHelper.Clamp(selectedIndex + 1, 0, dropdownMenuItems.Count - 1);
+                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
                     break;
                 case DropdownHeader.SelectionChange.First:
-                    selectedIndex = 0;
+                    SelectedItem = dropdownMenuItems[0];
                     break;
                 case DropdownHeader.SelectionChange.Last:
-                    selectedIndex = dropdownMenuItems.Count - 1;
+                    SelectedItem = dropdownMenuItems[dropdownMenuItems.Count - 1];
                     break;
                 default:
                     throw new ArgumentException("Unexpected selection change type.", nameof(change));
             }
-
-            SelectedItem = dropdownMenuItems[selectedIndex];
         }
 
         protected override void LoadComplete()
@@ -485,79 +482,71 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
-                private DropdownMenu menu;
-
                 /// <summary>
                 /// Retrieve the first parent in the tree which is <see cref="DropdownMenu"/>.
                 /// As this is performing an upward tree traversal, avoid calling every frame.
                 /// </summary>
                 /// <returns>The first parent <see cref="DropdownMenu"/>.</returns>
-                private DropdownMenu getMenu()
+                public DropdownMenu ParentMenu
                 {
-                    Drawable search = Parent;
-                    while (search != null)
+                    get
                     {
-                        if (search is DropdownMenu test) return test;
+                        var search = Parent;
+                        while (search != null)
+                        {
+                            if (search is DropdownMenu test) return test;
 
-                        search = search.Parent;
+                            search = search.Parent;
+                        }
+
+                        return null;
                     }
-
-                    return null;
                 }
 
                 protected override bool OnHover(HoverEvent e)
                 {
-                    if (menu == null)
-                        menu = getMenu();
-
-                    menu.PreselectItem(Item as DropdownMenuItem<T>);
+                    ParentMenu?.PreselectItem(Item as DropdownMenuItem<T>);
                     return base.OnHover(e);
                 }
             }
 
             #endregion
 
-            protected override bool Handle(UIEvent e)
+            protected override bool OnKeyDown(KeyDownEvent e)
             {
-                switch (e)
+                var drawableMenuItemsList = DrawableMenuItems.ToList();
+                var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
+                var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
+
+                int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
+
+                switch (e.Key)
                 {
-                    case KeyDownEvent keyDown:
-                        var drawableMenuItemsList = DrawableMenuItems.ToList();
-                        var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
-                        var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
-
-                        int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
-
-                        switch (keyDown.Key)
-                        {
-                            case Key.Up:
-                                PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
-                                return true;
-                            case Key.Down:
-                                PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
-                                return true;
-                            case Key.PageUp:
-                                var firstVisibleItem = VisibleMenuItems.First();
-                                preselectedIndex = preselectedItem == firstVisibleItem
-                                    ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
-                                    : drawableMenuItemsList.IndexOf(firstVisibleItem);
-                                PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
-                                return true;
-                            case Key.PageDown:
-                                var lastVisibleItem = VisibleMenuItems.Last();
-                                preselectedIndex = preselectedItem == lastVisibleItem
-                                    ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
-                                    : drawableMenuItemsList.IndexOf(lastVisibleItem);
-                                PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
-                                return true;
-                            case Key.Enter:
-                                ChangePreselection?.Invoke(preselectedIndex);
-                                return true;
-                            default:
-                                return base.Handle(e);
-                        }
+                    case Key.Up:
+                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
+                        return true;
+                    case Key.Down:
+                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
+                        return true;
+                    case Key.PageUp:
+                        var firstVisibleItem = VisibleMenuItems.First();
+                        preselectedIndex = preselectedItem == firstVisibleItem
+                            ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
+                            : drawableMenuItemsList.IndexOf(firstVisibleItem);
+                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        return true;
+                    case Key.PageDown:
+                        var lastVisibleItem = VisibleMenuItems.Last();
+                        preselectedIndex = preselectedItem == lastVisibleItem
+                            ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
+                            : drawableMenuItemsList.IndexOf(lastVisibleItem);
+                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        return true;
+                    case Key.Enter:
+                        ChangePreselection?.Invoke(preselectedIndex);
+                        return true;
                     default:
-                        return base.Handle(e);
+                        return base.OnKeyDown(e);
                 }
             }
 

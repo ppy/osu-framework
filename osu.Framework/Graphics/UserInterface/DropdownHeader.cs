@@ -81,23 +81,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool HandleNonPositionalInput => IsHovered;
 
-        protected override bool Handle(UIEvent e)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            switch (e)
+            switch (e.Key)
             {
-                case KeyDownEvent keyDown:
-                    switch (keyDown.Key)
-                    {
-                        case Key.Up:
-                            ChangeSelection?.Invoke(SelectionChange.Previous);
-                            return true;
-                        case Key.Down:
-                            ChangeSelection?.Invoke(SelectionChange.Next);
-                            return true;
-                        default:
-                            return base.Handle(e);
-                    }
-                default: return base.Handle(e);
+                case Key.Up:
+                    ChangeSelection?.Invoke(SelectionChange.Previous);
+                    return true;
+                case Key.Down:
+                    ChangeSelection?.Invoke(SelectionChange.Next);
+                    return true;
+                default:
+                    return base.OnKeyDown(e);
             }
         }
 
