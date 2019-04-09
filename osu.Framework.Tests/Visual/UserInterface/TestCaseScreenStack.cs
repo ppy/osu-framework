@@ -476,6 +476,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled && !screen2.LeasedCopy.Disabled);
         }
 
+        /// <summary>
+        /// Click after pushing a slow loading screen to a base screen.
+        /// Check that neither screens handle input while the pushed screen is still loading.
+        /// </summary>
         [Test]
         public void TestNonCurrentScreenDoesNotAcceptInput()
         {
@@ -496,9 +500,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             TestScreen screen1 = null;
+            TestScreen screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            AddStep("push", () => screen1.Push(new TestScreenSlow()));
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
             AddStep("click centre of screen", () =>
             {
                 inputManager.MoveMouseTo(screen1);
@@ -506,6 +511,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("screen 1 not clicked", () => !screen1.Clicked);
+            AddAssert("Screen 2 not clicked", () => !screen2.Clicked && !screen2.IsLoaded);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)

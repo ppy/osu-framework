@@ -308,6 +308,8 @@ namespace osu.Framework.Screens
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
+            // Avoids the use of CompositeDrawable.BuildNonPositionalInputQueue as any number of screens may be alive while loading/suspending.
+            // This method otherwise matches the implementation of Drawable.BuildNonPositionalInputQueue.
             if (!PropagateNonPositionalInputSubTree)
                 return false;
 
@@ -321,6 +323,8 @@ namespace osu.Framework.Screens
 
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
+            // Avoids the use of CompositeDrawable.BuildPositionalInputQueue as any number of screens may be alive while loading/suspending.
+            // This method otherwise matches the implementation of Drawable.BuildPositionalInputQueue.
             if (!PropagatePositionalInputSubTree)
                 return false;
 
