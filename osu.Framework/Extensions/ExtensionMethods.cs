@@ -233,10 +233,7 @@ namespace osu.Framework.Extensions
             stream.Seek(0, SeekOrigin.Begin);
 
             using (var alg = SHA256.Create())
-            {
-                alg.ComputeHash(stream);
-                hash = BitConverter.ToString(alg.Hash).Replace("-", "").ToLowerInvariant();
-            }
+                hash = BitConverter.ToString(alg.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
 
             stream.Seek(0, SeekOrigin.Begin);
 

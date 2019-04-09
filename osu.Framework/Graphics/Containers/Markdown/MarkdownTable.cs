@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownTable : CompositeDrawable
     {
-        private TableContainer tableContainer;
+        private GridContainer tableContainer;
 
         private readonly Table table;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 rows.Add(row);
             }
 
-            InternalChild = tableContainer = new TableContainer
+            InternalChild = tableContainer = new GridContainer
             {
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
@@ -145,13 +145,5 @@ namespace osu.Framework.Graphics.Containers.Markdown
         }
 
         protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading) => new MarkdownTableCell(cell, definition);
-
-        private class TableContainer : GridContainer
-        {
-            public new Axes AutoSizeAxes
-            {
-                set => base.AutoSizeAxes = value;
-            }
-        }
     }
 }

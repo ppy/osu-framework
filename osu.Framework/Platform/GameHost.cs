@@ -305,7 +305,6 @@ namespace osu.Framework.Platform
             setVSyncMode();
 
             GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-            GLWrapper.ClearColour(Color4.Black);
         }
 
         private long lastDrawFrameId;
@@ -327,10 +326,7 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    {
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
-                        GLWrapper.ClearColour(Color4.Black);
-                    }
 
                     buffer.Object.Draw(null);
                     lastDrawFrameId = buffer.FrameId;

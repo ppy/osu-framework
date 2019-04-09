@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Lines
                 if (texture?.Available != true || segments.Count == 0)
                     return;
 
-                GLWrapper.SetDepthTest(true);
+                GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                 Shader.Bind();
 
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Lines
 
                 Shader.Unbind();
 
-                GLWrapper.SetDepthTest(false);
+                GLWrapper.PopDepthInfo();
             }
 
             protected override void Dispose(bool isDisposing)

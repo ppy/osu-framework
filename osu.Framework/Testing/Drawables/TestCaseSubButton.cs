@@ -6,7 +6,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -33,7 +32,7 @@ namespace osu.Framework.Testing.Drawables
                 Alpha = 0,
                 Child = new Box
                 {
-                    Colour = new Color4(128, 164, 108, 255),
+                    Colour = FrameworkColour.YellowGreen,
                     RelativeSizeAxes = Axes.Both,
                 },
             });
