@@ -552,6 +552,11 @@ namespace osu.Framework.Testing
         private class TestBrowserTextBox : TextBox
         {
             protected override float LeftRightPadding => TestCaseButton.LEFT_TEXT_PADDING;
+
+            public TestBrowserTextBox()
+            {
+                TextFlow.Height = 0.75f;
+            }
         }
     }
 

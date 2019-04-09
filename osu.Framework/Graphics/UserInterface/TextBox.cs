@@ -144,7 +144,6 @@ namespace osu.Framework.Graphics.UserInterface
                             Direction = FillDirection.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
-                            Height = 0.75f
                         },
                     },
                 },
