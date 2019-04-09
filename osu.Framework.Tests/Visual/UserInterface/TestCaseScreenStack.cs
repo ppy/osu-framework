@@ -477,8 +477,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         /// <summary>
-        /// Click after pushing a slow loading screen to a base screen.
-        /// Check that neither screens handle input while the pushed screen is still loading.
+        /// Push two screens and check that neither screens handle input while the pushed screen is still loading.
         /// </summary>
         [Test]
         public void TestNonCurrentScreenDoesNotAcceptInput()
