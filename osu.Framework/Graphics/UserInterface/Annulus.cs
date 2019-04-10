@@ -6,16 +6,14 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, IHasCurrentValue<double>
+    public class Annulus : Drawable
     {
         private readonly Bindable<double> startAngle = new Bindable<double>();
-        private readonly Bindable<double> endAngle = new Bindable<double>(MathHelper.TwoPi);
-        private readonly Bindable<double> current = new Bindable<double>();
+        private readonly Bindable<double> endAngle = new Bindable<double>();
 
         public Bindable<double> StartAngle
         {
@@ -41,24 +39,11 @@ namespace osu.Framework.Graphics.UserInterface
                 endAngle.BindTo(value);
             }
         }
-        public Bindable<double> Current
-        {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
 
-                current.UnbindBindings();
-                current.BindTo(value);
-            }
-        }
-
-        public CircularProgress()
+        public Annulus()
         {
             StartAngle.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
             EndAngle.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
-            Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
         private IShader roundedTextureShader;
@@ -87,7 +72,7 @@ namespace osu.Framework.Graphics.UserInterface
             n.RoundedTextureShader = roundedTextureShader;
             n.DrawSize = DrawSize;
             n.StartAngle = (float)StartAngle.Value;
-            n.EndAngle = (float)Interpolation.Lerp(StartAngle.Value, EndAngle.Value, Current.Value);
+            n.EndAngle = (float)EndAngle.Value;
             n.InnerRadius = innerRadius;
 
             base.ApplyDrawNode(node);

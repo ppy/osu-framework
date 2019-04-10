@@ -15,10 +15,11 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNode : DrawNode
+    public class AnnularDrawNode : DrawNode
     {
         public const int MAXRES = 24;
-        public float Angle;
+        public float StartAngle;
+        public float EndAngle;
         public float InnerRadius = 1;
 
         public Vector2 DrawSize;
@@ -46,17 +47,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateVertexBuffer()
         {
-            const float start_angle = 0;
             const float step = MathHelper.Pi / MAXRES;
 
-            float dir = Math.Sign(Angle);
+            float deltaAngle = EndAngle - StartAngle;
 
-            int amountPoints = (int)Math.Ceiling(Math.Abs(Angle) / step);
+            float dir = Math.Sign(deltaAngle);
+
+            int amountPoints = (int)Math.Ceiling(Math.Abs(deltaAngle) / step);
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
-            Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
+            Vector2 current = origin + pointOnCircle(StartAngle) * 0.5f;
             Color4 currentColour = colourAt(current);
             current = Vector2Extensions.Transform(current, transformationMatrix);
 
@@ -68,27 +70,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            // First center point
-            halfCircleBatch.Add(new TexturedVertex2D
-            {
-                Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
-                Colour = originColour
-            });
-
-            // First outer point.
-            halfCircleBatch.Add(new TexturedVertex2D
-            {
-                Position = new Vector2(current.X, current.Y),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
-                Colour = currentColour
-            });
-
-            for (int i = 1; i <= amountPoints; i++)
+            for (int i = 0; i <= amountPoints; i++)
             {
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = dir * Math.Min(i * step, dir * Angle);
+                float angularOffset = dir * Math.Min(i * step, dir * deltaAngle);
                 float normalisedOffset = angularOffset / MathHelper.TwoPi;
                 if (dir < 0)
                 {
@@ -96,7 +82,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // Update `current`
-                current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
+                current = origin + pointOnCircle(StartAngle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
