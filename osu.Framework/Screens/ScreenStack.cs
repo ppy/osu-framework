@@ -35,6 +35,11 @@ namespace osu.Framework.Screens
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
         /// <summary>
+        /// Whether <see cref="IScreen"/>s can be pushed to other <see cref="IScreen"/>s directly.
+        /// </summary>
+        protected virtual bool AllowPushViaScreen => true;
+
+        /// <summary>
         /// Screens which are exited and require manual cleanup.
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
@@ -81,6 +86,9 @@ namespace osu.Framework.Screens
 
         internal void Push(IScreen source, IScreen newScreen)
         {
+            if (!AllowPushViaScreen && source != null)
+                throw new InvalidOperationException("Cannot push to a screen directly inside this " + nameof(ScreenStack));
+
             if (stack.Contains(newScreen))
                 throw new ScreenAlreadyEnteredException();
 
@@ -129,7 +137,11 @@ namespace osu.Framework.Screens
                 return;
             }
 
-            AddInternal(to.AsDrawable());
+            if (!ContainsInternal(to.AsDrawable()))
+                AddInternal(to.AsDrawable());
+
+            to.AsDrawable().LifetimeEnd = double.MaxValue;
+
             to.OnEntering(from);
         }
 
@@ -235,10 +247,6 @@ namespace osu.Framework.Screens
                 return;
             }
 
-            // we will probably want to change this logic when we support returning to a screen after exiting.
-            toExit.ValidForResume = false;
-            toExit.ValidForPush = false;
-
             onExiting?.Invoke();
 
             if (source == null)
@@ -285,6 +293,15 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        /// <summary>
+        /// Cleans up a drawable that has been removed from this <see cref="ScreenStack"/>.
+        /// </summary>
+        /// <param name="drawable"> The drawable to clean up. </param>
+        protected virtual void Cleanup(Drawable drawable)
+        {
+            DisposeChildAsync(drawable);
+        }
+
         protected override bool UpdateChildrenLife()
         {
             if (!base.UpdateChildrenLife()) return false;
@@ -296,7 +313,7 @@ namespace osu.Framework.Screens
                 foreach (var s in exited)
                 {
                     RemoveInternal(s);
-                    DisposeChildAsync(s);
+                    Cleanup(s);
                 }
 
                 exited.Clear();

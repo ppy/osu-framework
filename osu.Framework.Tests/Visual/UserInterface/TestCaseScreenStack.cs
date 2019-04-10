@@ -493,7 +493,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TestScreen : Screen
+        public class TestScreen : Screen
         {
             public Func<bool> Exiting;
 
@@ -510,6 +510,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public static int Sequence;
             private Button popButton;
+            private Button pushButton;
 
             private const int transition_time = 500;
 
@@ -528,15 +529,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private readonly bool shouldTakeOutLease;
 
+            private readonly bool showButtons;
+
             internal override void UnbindAllBindables()
             {
                 base.UnbindAllBindables();
                 OnUnbind?.Invoke();
             }
 
-            public TestScreen(bool shouldTakeOutLease = false)
+            public TestScreen(bool shouldTakeOutLease = false, bool showButtons = true)
             {
                 this.shouldTakeOutLease = shouldTakeOutLease;
+                this.showButtons = showButtons;
             }
 
             [BackgroundDependencyLoader]
@@ -574,7 +578,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Alpha = 0,
                         Action = this.Exit
                     },
-                    new Button
+                    pushButton = new Button
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,
@@ -589,7 +593,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                             });
-                        }
+                        },
                     }
                 };
 
@@ -626,6 +630,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     //only show the pop button if we are entered form another screen.
                     popButton.Alpha = 1;
+                }
+
+                if (!showButtons)
+                {
+                    popButton.Alpha = 0;
+                    pushButton.Alpha = 0;
                 }
 
                 this.MoveTo(new Vector2(0, -DrawSize.Y));
