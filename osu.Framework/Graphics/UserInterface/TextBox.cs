@@ -39,6 +39,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual float LeftRightPadding => 5;
 
+        protected virtual float CaretWidth => 3;
+
         private const float caret_move_time = 60;
 
         public int? LengthLimit;
@@ -135,7 +137,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new[]
                     {
-                        Placeholder = CreatePlaceholder(),
+                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
                         Caret = new DrawableCaret(),
                         TextFlow = new FillFlowContainer
                         {
@@ -208,17 +210,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            const float cursor_width = 3;
-
             Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
 
             textUpdateScheduler.Update();
 
-            float caretWidth = cursor_width;
+            float caretWidth = CaretWidth;
 
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
+                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
