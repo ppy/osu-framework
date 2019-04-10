@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
+using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -44,6 +45,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Transition Focus 2", delegate { rotateMode = 4; });
             AddStep("Forward/Backward", delegate { rotateMode = 0; });
 
+            AddSliderStep("Start angle", 0d, 2d, 0d, angle => clock.StartAngle.Value = MathHelper.TwoPi * angle);
+            AddSliderStep("End angle", 0d, 2d, 1d, angle => clock.EndAngle.Value = MathHelper.TwoPi * angle);
             AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
         }
 
