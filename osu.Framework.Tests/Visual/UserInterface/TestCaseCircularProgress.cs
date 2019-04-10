@@ -4,14 +4,9 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
