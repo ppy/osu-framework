@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Origin = Anchor.Centre,
                 },
             };
-            
+
             AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
             AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
             AddStep("2D Gradient Texture", delegate { setTexture(3); });
