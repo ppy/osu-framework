@@ -80,7 +80,6 @@ namespace osu.Framework.Screens
             protected override void Cleanup(Drawable d)
             {
                 d.UnbindAllBindables();
-                RemoveInternal(d);
             }
         }
     }

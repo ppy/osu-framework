@@ -138,10 +138,9 @@ namespace osu.Framework.Screens
             }
 
             if (!ContainsInternal(to.AsDrawable()))
-            {
-                to.AsDrawable().LifetimeEnd = double.MaxValue;
                 AddInternal(to.AsDrawable());
-            }
+
+            to.AsDrawable().LifetimeEnd = double.MaxValue;
 
             to.OnEntering(from);
         }
@@ -295,9 +294,9 @@ namespace osu.Framework.Screens
         }
 
         /// <summary>
-        /// Remove a drawable from this ScreenStack's internal children and handle disposal.
+        /// Cleans up a drawable that has been removed from this <see cref="ScreenStack"/>.
         /// </summary>
-        /// <param name="drawable"> The drawable to remove. </param>
+        /// <param name="drawable"> The drawable to clean up. </param>
         protected virtual void Cleanup(Drawable drawable)
         {
             DisposeChildAsync(drawable);
