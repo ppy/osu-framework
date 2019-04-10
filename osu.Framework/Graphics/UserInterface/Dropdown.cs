@@ -226,6 +226,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!MenuItems.Any())
                 return;
+
             var dropdownMenuItems = MenuItems.ToList();
 
             switch (change)
@@ -426,6 +427,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         if (preSelected == value)
                             return;
+
                         preSelected = value;
 
                         OnSelectChange();

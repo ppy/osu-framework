@@ -129,7 +129,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("clear bindable list", () => bindableList.Clear());
             AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
             AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
-            AddStep("add items to bindable", () => bindableList.AddRange(new string[] { "one", "two", "three" }));
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }));
             AddAssert("three items in dropdown", () => bindableDropdown.Items.Count() == 3);
             AddStep("select three", () => bindableDropdown.Current.Value = "three");
             AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
