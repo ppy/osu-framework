@@ -1224,7 +1224,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
-            BuildInternalNonPositionalInputQueue(queue, allowBlocking);
+            BuildNonPositionalInputQueueChildren(aliveInternalChildren, queue, allowBlocking);
 
             return true;
         }
@@ -1237,31 +1237,33 @@ namespace osu.Framework.Graphics.Containers
             if (Masking && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
-            BuildInternalPositionalInputQueue(screenSpacePos, queue);
+            BuildPositionalInputQueueChildren(aliveInternalChildren, screenSpacePos, queue);
 
             return true;
         }
 
         /// <summary>
-        /// Calls <see cref="Drawable.BuildPositionalInputQueue"/> for the internal children of this composite drawable.
+        /// Calls <see cref="Drawable.BuildPositionalInputQueue"/> for a provided list of children.
         /// </summary>
+        /// <param name="aliveChildren">The list of children that should be added to the queue.</param>
         /// <param name="screenSpacePos">The screen space position of the positional input.</param>
         /// <param name="queue">The input queue to be built.</param>
-        protected virtual void BuildInternalPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        protected virtual void BuildPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, Vector2 screenSpacePos, List<Drawable> queue)
         {
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            for (int i = 0; i < aliveChildren.Count; ++i)
+                aliveChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
         }
 
         /// <summary>
-        /// Calls <see cref="Drawable.BuildNonPositionalInputQueue"/> for the internal children of this composite drawable.
+        /// Calls <see cref="Drawable.BuildNonPositionalInputQueue"/> for a provided list of children.
         /// </summary>
+        /// <param name="aliveChildren">The list of children that should be added to the queue.</param>
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        protected virtual void BuildInternalNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        protected virtual void BuildNonPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, List<Drawable> queue, bool allowBlocking = true)
         {
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            for (int i = 0; i < aliveChildren.Count; ++i)
+                aliveChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
         }
 
         #endregion

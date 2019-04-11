@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Lists;
 using osuTK;
 
 namespace osu.Framework.Screens
@@ -307,24 +307,24 @@ namespace osu.Framework.Screens
             return true;
         }
 
-        protected override void BuildInternalPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        protected override void BuildPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, Vector2 screenSpacePos, List<Drawable> queue)
         {
             // Only allow the current screen and non-IScreen drawables to handle positional input.
-            AliveInternalChildren.ForEach(c =>
+            for (int i = 0; i < aliveChildren.Count; ++i)
             {
-                if (!(c is IScreen screen) || screen.IsCurrentScreen())
-                    c.BuildPositionalInputQueue(screenSpacePos, queue);
-            });
+                if (!(aliveChildren[i] is IScreen screen) || screen.IsCurrentScreen())
+                    aliveChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            }
         }
 
-        protected override void BuildInternalNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        protected override void BuildNonPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, List<Drawable> queue, bool allowBlocking = true)
         {
             // Only allow the current screen and non-IScreen drawables to handle non-positional input.
-            AliveInternalChildren.ForEach(c =>
+            for (int i = 0; i < aliveChildren.Count; ++i)
             {
-                if (!(c is IScreen screen) || screen.IsCurrentScreen())
-                    c.BuildNonPositionalInputQueue(queue, allowBlocking);
-            });
+                if (!(aliveChildren[i] is IScreen screen) || screen.IsCurrentScreen())
+                    aliveChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            }
         }
 
         public class ScreenNotCurrentException : InvalidOperationException
