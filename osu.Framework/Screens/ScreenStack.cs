@@ -9,8 +9,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Lists;
-using osuTK;
 
 namespace osu.Framework.Screens
 {
@@ -287,6 +285,8 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        protected override bool ShouldBeConsideredForInput(Drawable child) => !(child is IScreen screen) || screen.IsCurrentScreen();
+
         protected override bool UpdateChildrenLife()
         {
             if (!base.UpdateChildrenLife()) return false;
@@ -305,26 +305,6 @@ namespace osu.Framework.Screens
             }
 
             return true;
-        }
-
-        protected override void BuildPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, Vector2 screenSpacePos, List<Drawable> queue)
-        {
-            // Only allow the current screen and non-IScreen drawables to handle positional input.
-            for (int i = 0; i < aliveChildren.Count; ++i)
-            {
-                if (!(aliveChildren[i] is IScreen screen) || screen.IsCurrentScreen())
-                    aliveChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
-            }
-        }
-
-        protected override void BuildNonPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, List<Drawable> queue, bool allowBlocking = true)
-        {
-            // Only allow the current screen and non-IScreen drawables to handle non-positional input.
-            for (int i = 0; i < aliveChildren.Count; ++i)
-            {
-                if (!(aliveChildren[i] is IScreen screen) || screen.IsCurrentScreen())
-                    aliveChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
-            }
         }
 
         public class ScreenNotCurrentException : InvalidOperationException

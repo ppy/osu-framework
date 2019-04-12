@@ -23,7 +23,6 @@ using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Input;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -1219,12 +1218,22 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
+        /// <summary>
+        /// Evaluate a child for whether or not it should be considered when building input queues.
+        /// </summary>
+        /// <param name="child">The drawable to be evaluated</param>
+        /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
+        protected virtual bool ShouldBeConsideredForInput(Drawable child) => true;
+
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
-            BuildNonPositionalInputQueueChildren(aliveInternalChildren, queue, allowBlocking);
+            foreach (Drawable d in aliveInternalChildren.Where(ShouldBeConsideredForInput))
+            {
+                d.BuildNonPositionalInputQueue(queue, allowBlocking);
+            }
 
             return true;
         }
@@ -1237,33 +1246,12 @@ namespace osu.Framework.Graphics.Containers
             if (Masking && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
-            BuildPositionalInputQueueChildren(aliveInternalChildren, screenSpacePos, queue);
+            foreach (Drawable d in aliveInternalChildren.Where(ShouldBeConsideredForInput))
+            {
+                d.BuildPositionalInputQueue(screenSpacePos, queue);
+            }
 
             return true;
-        }
-
-        /// <summary>
-        /// Calls <see cref="Drawable.BuildPositionalInputQueue"/> for a provided list of children.
-        /// </summary>
-        /// <param name="aliveChildren">The list of children that should be added to the queue.</param>
-        /// <param name="screenSpacePos">The screen space position of the positional input.</param>
-        /// <param name="queue">The input queue to be built.</param>
-        protected virtual void BuildPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, Vector2 screenSpacePos, List<Drawable> queue)
-        {
-            for (int i = 0; i < aliveChildren.Count; ++i)
-                aliveChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
-        }
-
-        /// <summary>
-        /// Calls <see cref="Drawable.BuildNonPositionalInputQueue"/> for a provided list of children.
-        /// </summary>
-        /// <param name="aliveChildren">The list of children that should be added to the queue.</param>
-        /// <param name="queue">The input queue to be built.</param>
-        /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        protected virtual void BuildNonPositionalInputQueueChildren(SortedList<Drawable> aliveChildren, List<Drawable> queue, bool allowBlocking = true)
-        {
-            for (int i = 0; i < aliveChildren.Count; ++i)
-                aliveChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
         }
 
         #endregion
