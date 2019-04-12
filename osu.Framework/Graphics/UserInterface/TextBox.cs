@@ -66,10 +66,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        private Color4 backgroundFocused = FrameworkColour.BlueGreen;
-        private Color4 backgroundUnfocused = FrameworkColour.BlueGreenDark;
+        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
+        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
 
-        protected Color4 BackgroundCommit { get; set; } = FrameworkColour.Green;
+        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
 
         protected Color4 BackgroundFocused
         {
@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected virtual Color4 SelectionColour => FrameworkColour.YellowGreen;
+        protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
 
         protected virtual Color4 InputErrorColour => Color4.Red;
 
@@ -120,6 +120,7 @@ namespace osu.Framework.Graphics.UserInterface
         public TextBox()
         {
             Masking = true;
+            CornerRadius = 3;
 
             Children = new Drawable[]
             {
@@ -490,7 +491,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage("RobotoCondensed", CalculatedTextSize, "Regular") };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -576,10 +577,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
         {
-            Colour = FrameworkColour.YellowGreen,
-            Font = new FontUsage("RobotoCondensed", weight: "Regular"),
-            Anchor = Anchor.CentreLeft,
-            Origin = Anchor.CentreLeft,
+            Colour = Color4.Gray,
         };
 
         protected SpriteText Placeholder;

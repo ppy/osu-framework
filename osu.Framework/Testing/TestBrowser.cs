@@ -549,7 +549,7 @@ namespace osu.Framework.Testing
             protected override bool ShouldLoadContent => !hasCaught;
         }
 
-        private class TestBrowserTextBox : TextBox
+        private class TestBrowserTextBox : BasicTextBox
         {
             protected override float LeftRightPadding => TestCaseButton.LEFT_TEXT_PADDING;
 
