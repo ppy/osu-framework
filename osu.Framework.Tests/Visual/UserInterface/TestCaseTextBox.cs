@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -11,6 +13,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestCaseTextBox : TestCase
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(BasicTextBox),
+            typeof(TextBox),
+            typeof(PasswordTextBox)
+        };
+
         public TestCaseTextBox()
         {
             FillFlowContainer textBoxes = new FillFlowContainer
@@ -29,13 +38,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             Add(textBoxes);
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 Size = new Vector2(100, 16),
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 Text = @"Limited length",
                 Size = new Vector2(200, 20),
@@ -43,21 +52,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 Text = @"Box with some more text",
                 Size = new Vector2(500, 30),
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 PlaceholderText = @"Placeholder text",
                 Size = new Vector2(500, 30),
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 Text = @"prefilled placeholder",
                 PlaceholderText = @"Placeholder text",
@@ -73,7 +82,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new TextBox
+            textBoxes.Add(new BasicTextBox
             {
                 Text = "Readonly textbox",
                 Size = new Vector2(500, 30),
@@ -96,7 +105,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Size = new Vector2(0.8f, 1)
             };
 
-            otherTextBoxes.Add(new TextBox
+            otherTextBoxes.Add(new BasicTextBox
             {
                 PlaceholderText = @"Textbox in separate container",
                 Size = new Vector2(500, 30),
@@ -120,21 +129,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Size = new Vector2(0.8f, 1)
             };
 
-            nestedTextBoxes.Add(new TextBox
+            nestedTextBoxes.Add(new BasicTextBox
             {
                 PlaceholderText = @"Nested textbox 1",
                 Size = new Vector2(457, 30),
                 TabbableContentContainer = otherTextBoxes
             });
 
-            nestedTextBoxes.Add(new TextBox
+            nestedTextBoxes.Add(new BasicTextBox
             {
                 PlaceholderText = @"Nested textbox 2",
                 Size = new Vector2(457, 30),
                 TabbableContentContainer = otherTextBoxes
             });
 
-            nestedTextBoxes.Add(new TextBox
+            nestedTextBoxes.Add(new BasicTextBox
             {
                 PlaceholderText = @"Nested textbox 3",
                 Size = new Vector2(457, 30),
@@ -150,7 +159,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
-        private class NumberTextBox : TextBox
+        private class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => char.IsNumber(character);
         }
