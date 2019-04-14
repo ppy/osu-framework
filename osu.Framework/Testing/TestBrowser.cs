@@ -154,7 +154,7 @@ namespace osu.Framework.Testing
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
-                                searchTextBox = new TextBox
+                                searchTextBox = new TestBrowserTextBox
                                 {
                                     OnCommit = delegate
                                     {
@@ -162,7 +162,7 @@ namespace osu.Framework.Testing
                                         if (firstTest != null)
                                             LoadTest(firstTest);
                                     },
-                                    Height = 20,
+                                    Height = 25,
                                     RelativeSizeAxes = Axes.X,
                                     PlaceholderText = "type to search"
                                 },
@@ -545,6 +545,16 @@ namespace osu.Framework.Testing
             }
 
             protected override bool ShouldLoadContent => !hasCaught;
+        }
+
+        private class TestBrowserTextBox : BasicTextBox
+        {
+            protected override float LeftRightPadding => TestCaseButton.LEFT_TEXT_PADDING;
+
+            public TestBrowserTextBox()
+            {
+                TextFlow.Height = 0.75f;
+            }
         }
     }
 
