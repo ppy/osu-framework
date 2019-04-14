@@ -475,7 +475,10 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.Remove(d);
 
                 TextContainer.Add(d);
+
+                // account for potentially altered height of textbox
                 d.Y = TextFlow.BoundingBox.Y;
+
                 d.FadeOut(200);
                 d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();
