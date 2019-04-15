@@ -318,7 +318,9 @@ namespace osu.Framework.Graphics.Containers
             // such that the user can feel it.
             scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            offset(scrollOffset, false);
+            // We can't use the offset function here, as clamping calculations done in updatePosition ignores dragging.
+            // As a result, we need to manually clamp our target within the limits set by ClampExtension.
+            scrollTo(Clamp(target + scrollOffset, ClampExtension), false);
             return true;
         }
 
