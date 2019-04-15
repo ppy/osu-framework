@@ -506,7 +506,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen 1 clicked", () => screen1.ClickCount == 1);
 
             AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
-            AddStep("Click center of screen", () => clickScreen(inputManager, screen2));
+            AddStep("Click center of screen", () => inputManager.Click(MouseButton.Left));
             AddAssert("screen 1 not clicked", () => screen1.ClickCount == 1);
             AddAssert("Screen 2 not clicked", () => screen2.ClickCount == 0 && !screen2.IsLoaded);
 
