@@ -1230,9 +1230,10 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
-            foreach (Drawable d in aliveInternalChildren.Where(ShouldBeConsideredForInput))
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
-                d.BuildNonPositionalInputQueue(queue, allowBlocking);
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
             }
 
             return true;
@@ -1246,9 +1247,10 @@ namespace osu.Framework.Graphics.Containers
             if (Masking && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
-            foreach (Drawable d in aliveInternalChildren.Where(ShouldBeConsideredForInput))
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
-                d.BuildPositionalInputQueue(screenSpacePos, queue);
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
             }
 
             return true;
