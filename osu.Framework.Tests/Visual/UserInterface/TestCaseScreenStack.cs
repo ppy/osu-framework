@@ -477,7 +477,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         /// <summary>
-        /// Push two screens and check that neither screens handle input while the pushed screen is still loading.
+        /// Push two screens and check that they only handle input when they are respectively loaded and current.
         /// </summary>
         [Test]
         public void TestNonCurrentScreenDoesNotAcceptInput()
@@ -499,18 +499,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             TestScreen screen1 = null;
-            TestScreen screen2 = null;
+            TestScreenSlow screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
-            AddStep("click centre of screen", () =>
-            {
-                inputManager.MoveMouseTo(screen1);
-                inputManager.Click(MouseButton.Left);
-            });
+            AddStep("Click center of screen", () => clickScreen(inputManager, screen1));
+            AddAssert("screen 1 clicked", () => screen1.ClickCount == 1);
 
-            AddAssert("screen 1 not clicked", () => !screen1.Clicked);
-            AddAssert("Screen 2 not clicked", () => !screen2.Clicked && !screen2.IsLoaded);
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
+            AddStep("Click center of screen", () => clickScreen(inputManager, screen2));
+            AddAssert("screen 1 not clicked", () => screen1.ClickCount == 1);
+            AddAssert("Screen 2 not clicked", () => screen2.ClickCount == 0 && !screen2.IsLoaded);
+
+            AddStep("Allow screen to load", () => screen2.AllowLoad.Set());
+            AddUntilStep("ensure current", () => screen2.IsCurrentScreen());
+            AddStep("Click center of screen", () => clickScreen(inputManager, screen2));
+            AddAssert("screen 1 not clicked", () => screen1.ClickCount == 1);
+            AddAssert("Screen 2 clicked", () => screen2.ClickCount == 1 && screen2.IsLoaded);
+        }
+
+        private void clickScreen(ManualInputManager inputManager, TestScreen screen)
+        {
+            inputManager.MoveMouseTo(screen);
+            inputManager.Click(MouseButton.Left);
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
@@ -554,7 +564,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public bool EagerFocus;
 
-            public bool Clicked { get; private set; }
+            public int ClickCount { get; private set; }
 
             public override bool RequestsFocus => EagerFocus;
 
@@ -706,7 +716,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override bool OnClick(ClickEvent e)
             {
-                Clicked = true;
+                ClickCount++;
                 return base.OnClick(e);
             }
         }
