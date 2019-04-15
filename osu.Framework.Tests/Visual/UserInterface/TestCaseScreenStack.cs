@@ -525,7 +525,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 inputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("screen 2 is clicked", () => screen2.IsCurrentScreen() && screen2.Clicked);
+            AddAssert("screen 2 is clicked and screen 1 is not clicked", () => screen2.IsCurrentScreen() && screen2.Clicked && !screen1.Clicked);
         }
 
         private ManualInputManager createManualInputManager()
