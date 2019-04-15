@@ -1219,9 +1219,9 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Evaluate a child for whether or not it should be considered when building input queues.
+        /// Check whether a child should be considered for inclusion in <see cref="BuildNonPositionalInputQueue"/> and <see cref="BuildPositionalInputQueue"/>
         /// </summary>
-        /// <param name="child">The drawable to be evaluated</param>
+        /// <param name="child">The drawable to be evaluated.</param>
         /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
         protected virtual bool ShouldBeConsideredForInput(Drawable child) => true;
 
