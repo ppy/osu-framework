@@ -9,24 +9,13 @@ namespace osu.Framework.Graphics.Containers
 {
     public class ClickableContainer : Container
     {
-        private Action action;
-
-        public Action Action
-        {
-            get => action;
-            set
-            {
-                action = value;
-                Enabled.Value = action != null;
-            }
-        }
+        public event Action Clicked;
 
         public readonly BindableBool Enabled = new BindableBool();
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (Enabled.Value)
-                Action?.Invoke();
+            Clicked?.Invoke();
             return true;
         }
     }

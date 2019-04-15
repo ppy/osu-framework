@@ -509,7 +509,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public IScreen ResumedFrom;
 
             public static int Sequence;
-            private Button popButton;
+            private Button popButton, pushButton;
 
             private const int transition_time = 500;
 
@@ -571,30 +571,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Anchor = Anchor.TopLeft,
                         Origin = Anchor.TopLeft,
                         BackgroundColour = Color4.Red,
-                        Alpha = 0,
-                        Action = this.Exit
+                        Alpha = 0
                     },
-                    new Button
+                    pushButton=new Button
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
-                        BackgroundColour = Color4.YellowGreen,
-                        Action = delegate
-                        {
-                            this.Push(new TestScreen
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                            });
-                        }
+                        BackgroundColour = Color4.YellowGreen
                     }
                 };
 
                 BorderColour = Color4.Red;
                 Masking = true;
+
+                popButton.Clicked += this.Exit;
+                pushButton.Clicked += delegate
+                {
+                    this.Push(new TestScreen
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    });
+                };
             }
 
             protected override void OnFocus(FocusEvent e)

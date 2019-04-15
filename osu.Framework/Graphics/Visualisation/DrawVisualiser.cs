@@ -32,51 +32,50 @@ namespace osu.Framework.Graphics.Visualisation
             Children = new Drawable[]
             {
                 overlay = new InfoOverlay(),
-                treeContainer = new TreeContainer
-                {
-                    ChooseTarget = () =>
-                    {
-                        Searching = true;
-                        Target = null;
-                    },
-                    GoUpOneParent = delegate
-                    {
-                        Drawable lastHighlight = highlightedTarget?.Target;
-
-                        var parent = Target?.Parent;
-                        if (parent != null)
-                        {
-                            var lastVisualiser = targetVisualiser;
-
-                            Target = parent;
-                            lastVisualiser.SetContainer(targetVisualiser);
-
-                            targetVisualiser.Expand();
-                        }
-
-                        // Rehighlight the last highlight
-                        if (lastHighlight != null)
-                        {
-                            VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
-                            if (visualised != null)
-                            {
-                                propertyDisplay.State = Visibility.Visible;
-                                setHighlight(visualised);
-                            }
-                        }
-                    },
-                    ToggleProperties = delegate
-                    {
-                        if (targetVisualiser == null)
-                            return;
-
-                        propertyDisplay.ToggleVisibility();
-
-                        if (propertyDisplay.State == Visibility.Visible)
-                            setHighlight(targetVisualiser);
-                    },
-                },
+                treeContainer = new TreeContainer(),
                 new CursorContainer()
+            };
+
+            treeContainer.ChooseTargetButtonClicked += () =>
+            {
+                Searching = true;
+                Target = null;
+            };
+            treeContainer.GoUpOneParentButtonClicked += delegate
+            {
+                Drawable lastHighlight = highlightedTarget?.Target;
+
+                var parent = Target?.Parent;
+                if (parent != null)
+                {
+                    var lastVisualiser = targetVisualiser;
+
+                    Target = parent;
+                    lastVisualiser.SetContainer(targetVisualiser);
+
+                    targetVisualiser.Expand();
+                }
+
+                // Rehighlight the last highlight
+                if (lastHighlight != null)
+                {
+                    VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+                    if (visualised != null)
+                    {
+                        propertyDisplay.State = Visibility.Visible;
+                        setHighlight(visualised);
+                    }
+                }
+            };
+            treeContainer.TogglePropertiesButtonClicked += delegate
+            {
+                if (targetVisualiser == null)
+                    return;
+
+                propertyDisplay.ToggleVisibility();
+
+                if (propertyDisplay.State == Visibility.Visible)
+                    setHighlight(targetVisualiser);
             };
 
             propertyDisplay = treeContainer.PropertyDisplay;

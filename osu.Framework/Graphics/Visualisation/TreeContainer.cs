@@ -19,9 +19,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly SpriteText waitingText;
 
-        public Action ChooseTarget;
-        public Action GoUpOneParent;
-        public Action ToggleProperties;
+        public event Action ChooseTargetButtonClicked;
+        public event Action GoUpOneParentButtonClicked;
+        public event Action TogglePropertiesButtonClicked;
 
         protected override Container<Drawable> Content => scroll;
 
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Visualisation
             Color4 buttonBackgroundHighlighted = new Color4(80, 80, 80, 255);
             const float button_width = width / 3 - 1;
 
-            Button propertyButton;
+            Button propertyButton, chooseTargetButton, goUpOneParentButton;
 
             AddRangeInternal(new Drawable[]
             {
@@ -109,29 +109,26 @@ namespace osu.Framework.Graphics.Visualisation
                                     Spacing = new Vector2(1),
                                     Children = new Drawable[]
                                     {
-                                        new Button
+                                        chooseTargetButton=new Button
                                         {
                                             BackgroundColour = buttonBackground,
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
-                                            Text = @"choose target",
-                                            Action = delegate { ChooseTarget?.Invoke(); }
+                                            Text = @"choose target"
                                         },
-                                        new Button
+                                        goUpOneParentButton=new Button
                                         {
                                             BackgroundColour = buttonBackground,
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
-                                            Text = @"up one parent",
-                                            Action = delegate { GoUpOneParent?.Invoke(); },
+                                            Text = @"up one parent"
                                         },
                                         propertyButton = new Button
                                         {
                                             BackgroundColour = buttonBackground,
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
-                                            Text = @"view properties",
-                                            Action = delegate { ToggleProperties?.Invoke(); },
+                                            Text = @"view properties"
                                         },
                                     },
                                 },
@@ -165,6 +162,9 @@ namespace osu.Framework.Graphics.Visualisation
             });
 
             PropertyDisplay.StateChanged += v => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
+            chooseTargetButton.Clicked += delegate { ChooseTargetButtonClicked?.Invoke(); };
+            goUpOneParentButton.Clicked += delegate { GoUpOneParentButtonClicked?.Invoke(); };
+            propertyButton.Clicked += delegate { TogglePropertiesButtonClicked?.Invoke(); };
         }
 
         protected override void Update()

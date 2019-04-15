@@ -66,27 +66,28 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Width = 25,
                                 RelativeSizeAxes = Axes.Y,
                                 BackgroundColour = Color4.MediumPurple,
-                                Text = "<",
-                                Action = previousFrame
+                                Text = "<"
                             },
                             nextButton = new RepeatButton
                             {
                                 Width = 25,
                                 RelativeSizeAxes = Axes.Y,
                                 BackgroundColour = Color4.MediumPurple,
-                                Text = ">",
-                                Action = nextFrame
+                                Text = ">"
                             },
                         }
                     },
                     recordButton = new Button
                     {
                         RelativeSizeAxes = Axes.Y,
-                        Width = 100,
-                        Action = changeState
+                        Width = 100
                     },
                 }
             };
+
+            previousButton.Clicked += previousFrame;
+            nextButton.Clicked += nextFrame;
+            recordButton.Clicked += changeState;
 
             browser.RecordState.BindValueChanged(updateState, true);
         }

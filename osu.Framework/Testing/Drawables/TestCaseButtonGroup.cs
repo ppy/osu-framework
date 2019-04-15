@@ -63,17 +63,16 @@ namespace osu.Framework.Testing.Drawables
             bool hasHeader = tests.Length > 1;
 
             if (hasHeader)
-                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name)
-                {
-                    Action = ToggleVisibility
-                });
+            {
+                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name));
+                headerButton.Clicked += ToggleVisibility;
+            }
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestCaseSubButton(test, hasHeader ? 1 : 0)
-                {
-                    Action = () => loadTest(test)
-                });
+                TestCaseSubButton testCaseButton;
+                buttonFlow.Add(testCaseButton = new TestCaseSubButton(test, hasHeader ? 1 : 0));
+                testCaseButton.Clicked += () => loadTest(test);
             }
         }
 

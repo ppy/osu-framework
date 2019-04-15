@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.RelativeSizeAxes = Axes.X;
 
-            Header.Action = Menu.Toggle;
+            Header.Clicked += Menu.Toggle;
             Current.ValueChanged += selectionChanged;
 
             ItemSource.ItemsAdded += _ => setItems(ItemSource);

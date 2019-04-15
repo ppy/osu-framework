@@ -38,17 +38,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private void load(GameHost host)
         {
             SpriteText spriteText;
+            ClickableContainer clickableContainer;
             InternalChildren = new Drawable[]
             {
-                new ClickableContainer
+                clickableContainer=new ClickableContainer
                 {
                     AutoSizeAxes = Axes.Both,
-                    Child = spriteText = CreateSpriteText(),
-                    Action = () => host.OpenUrlExternally(url)
+                    Child = spriteText = CreateSpriteText()
                 }
             };
 
             spriteText.Text = text;
+            clickableContainer.Clicked += () => host.OpenUrlExternally(url);
         }
 
         public virtual SpriteText CreateSpriteText()

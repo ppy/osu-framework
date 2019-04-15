@@ -64,8 +64,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 Size = new Vector2(100, 50),
                                 BackgroundColour = Color4.DarkSlateGray,
                                 Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                Action = startStop
+                                Origin = Anchor.CentreLeft
                             },
                             new SpriteText
                             {
@@ -100,6 +99,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
             zoom.ValueChanged += e => flow.Width = track_width * e.NewValue;
+            button.Clicked += startStop;
         }
 
         private void startStop()
