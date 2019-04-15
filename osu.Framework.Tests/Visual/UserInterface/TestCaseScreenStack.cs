@@ -482,6 +482,54 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNonCurrentScreenDoesNotAcceptInput()
         {
+            ManualInputManager inputManager = createManualInputManager();
+
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
+            AddStep("click centre of screen", () =>
+            {
+                inputManager.MoveMouseTo(screen1);
+                inputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("screen 1 not clicked", () => !screen1.Clicked);
+            AddAssert("Screen 2 not clicked", () => !screen2.Clicked && !screen2.IsLoaded);
+        }
+
+        /// <summary>
+        /// Push two screens and check that both screens accept input when they are respectively current.
+        /// </summary>
+        [Test]
+        public void TestCurrentScreenAcceptsInput()
+        {
+            ManualInputManager inputManager = createManualInputManager();
+
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("click centre of screen", () =>
+            {
+                inputManager.MoveMouseTo(screen1);
+                inputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("screen 1 is clicked", () => screen1.IsCurrentScreen() && screen1.Clicked);
+            pushAndEnsureCurrent(() => screen2 = new TestScreen());
+            AddStep("click centre of screen", () =>
+            {
+                inputManager.MoveMouseTo(screen2);
+                inputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("screen 2 is clicked", () => screen2.IsCurrentScreen() && screen2.Clicked);
+        }
+
+        private ManualInputManager createManualInputManager()
+        {
             ManualInputManager inputManager = null;
 
             AddStep("override stack", () =>
@@ -498,19 +546,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            TestScreen screen1 = null;
-            TestScreen screen2 = null;
-
-            pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
-            AddStep("click centre of screen", () =>
-            {
-                inputManager.MoveMouseTo(screen1);
-                inputManager.Click(MouseButton.Left);
-            });
-
-            AddAssert("screen 1 not clicked", () => !screen1.Clicked);
-            AddAssert("Screen 2 not clicked", () => !screen2.Clicked && !screen2.IsLoaded);
+            return inputManager;
         }
 
         private void pushAndEnsureCurrent(Func<IScreen> screenCtor, Func<IScreen> target = null)
