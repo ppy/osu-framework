@@ -63,7 +63,7 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        public Action OnThreadStart;
+        public event Action ThreadStarted;
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
@@ -99,7 +99,7 @@ namespace osu.Framework.Threading
         {
             Scheduler.SetCurrentThread();
 
-            OnThreadStart?.Invoke();
+            ThreadStarted?.Invoke();
 
             initializedEvent.Set();
 

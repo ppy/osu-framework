@@ -427,16 +427,14 @@ namespace osu.Framework.Platform
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame)
-                {
-                    OnThreadStart = DrawInitialize,
-                });
+                RegisterThread(DrawThread = new DrawThread(DrawFrame));
+                DrawThread.ThreadStarted += DrawInitialize;
 
                 RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
                 {
-                    OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                 });
+                UpdateThread.ThreadStarted += UpdateInitialize;
 
                 RegisterThread(InputThread = new InputThread());
                 RegisterThread(AudioThread = new AudioThread());
