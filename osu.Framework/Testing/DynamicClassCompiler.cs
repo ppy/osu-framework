@@ -17,11 +17,11 @@ namespace osu.Framework.Testing
     public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
-        public Action CompilationStarted;
+        public event Action CompilationStarted;
 
-        public Action<Type> CompilationFinished;
+        public event Action<Type> CompilationFinished;
 
-        public Action<Exception> CompilationFailed;
+        public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 

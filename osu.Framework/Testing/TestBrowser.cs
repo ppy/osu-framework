@@ -231,12 +231,10 @@ namespace osu.Framework.Testing
 
             if (RuntimeInfo.SupportsJIT)
             {
-                backgroundCompiler = new DynamicClassCompiler<TestCase>
-                {
-                    CompilationStarted = compileStarted,
-                    CompilationFinished = compileFinished,
-                    CompilationFailed = compileFailed
-                };
+                backgroundCompiler = new DynamicClassCompiler<TestCase>();
+                backgroundCompiler.CompilationStarted += compileStarted;
+                backgroundCompiler.CompilationFinished += compileFinished;
+                backgroundCompiler.CompilationFailed += compileFailed;
                 try
                 {
                     backgroundCompiler.Start();
