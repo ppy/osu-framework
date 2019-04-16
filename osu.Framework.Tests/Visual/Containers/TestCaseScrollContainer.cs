@@ -14,6 +14,9 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestCaseScrollContainer : ManualInputManagerTestCase
     {
+        private float clampExtension = 50;
+        private ScrollContainer scrollContainer;
+
         public TestCaseScrollContainer()
         {
             AddSliderStep("Clamp extension", 0, 100, 50, c =>
@@ -24,10 +27,6 @@ namespace osu.Framework.Tests.Visual.Containers
                 clampExtension = c;
             });
         }
-
-        private float clampExtension = 50;
-
-        private ScrollContainer scrollContainer;
 
         /// <summary>
         /// Create a scroll container, attempt to scroll past its <see cref="ScrollContainer.ClampExtension"/>, and check that it does not.
