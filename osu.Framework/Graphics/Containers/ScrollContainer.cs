@@ -318,9 +318,7 @@ namespace osu.Framework.Graphics.Containers
             // such that the user can feel it.
             scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            // We can't use the offset function here, as clamping calculations done in updatePosition ignores dragging.
-            // As a result, we need to manually clamp our target within the limits set by ClampExtension.
-            scrollTo(Clamp(target + scrollOffset, ClampExtension), false);
+            offset(scrollOffset, false);
             return true;
         }
 
@@ -416,7 +414,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            target = value;
+            target = Clamp(value, ClampExtension);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
