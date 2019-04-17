@@ -541,7 +541,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 base.UnbindAllBindables();
 
-                // Don't fire for a second unbind since the second one gets blocked in Drawable.
+                // As a second unbind event would incorrectly cause TestMakeCurrentUnbindOrder check to fail, block it.
                 if (!hasUnbound)
                     OnUnbind?.Invoke();
 
