@@ -28,7 +28,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(DropdownHeader),
             typeof(DropdownMenuItem<>),
             typeof(Dropdown<>),
-            typeof(BasicDropdown<>)
+            typeof(BasicDropdown<>),
+            typeof(BasicDropdown<>.BasicDropdownHeader),
+            typeof(BasicDropdown<>.BasicDropdownMenu),
+            typeof(TestDropdown)
         };
 
         public TestCaseDropdownBox()
