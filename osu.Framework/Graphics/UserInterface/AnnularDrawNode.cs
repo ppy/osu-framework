@@ -58,10 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
             Matrix3 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
-            Vector2 current = origin + pointOnCircle(StartAngle) * 0.5f;
-            Color4 currentColour = colourAt(current);
-            current = Vector2Extensions.Transform(current, transformationMatrix);
-
             Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
@@ -82,8 +78,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // Update `current`
-                current = origin + pointOnCircle(StartAngle + angularOffset) * 0.5f;
-                currentColour = colourAt(current);
+                Vector2 current = origin + pointOnCircle(StartAngle + angularOffset) * 0.5f;
+                Color4 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // current center point

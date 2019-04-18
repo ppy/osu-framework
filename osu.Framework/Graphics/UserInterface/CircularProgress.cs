@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
                 startAngle.BindTo(value);
             }
         }
+
         public Bindable<double> EndAngle
         {
             get => endAngle;
@@ -41,6 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
                 endAngle.BindTo(value);
             }
         }
+
         public Bindable<double> Current
         {
             get => current;
