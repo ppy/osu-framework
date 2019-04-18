@@ -106,7 +106,7 @@ namespace osu.Framework.Testing
                 }
 
                 if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    Schedule(() => StepsContainer.Clear());
+                    schedule(() => StepsContainer.Clear());
             }
 
             RunSetUpSteps();
