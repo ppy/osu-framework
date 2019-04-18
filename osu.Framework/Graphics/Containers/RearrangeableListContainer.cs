@@ -81,9 +81,7 @@ namespace osu.Framework.Graphics.Containers
         private void itemsRemoved(IEnumerable<T> items)
         {
             foreach (var item in items)
-            {
                 ListContainer.Remove(item);
-            }
         }
 
         protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
@@ -139,13 +137,13 @@ namespace osu.Framework.Graphics.Containers
 
             private T currentlyDraggedItem;
             private Vector2 nativeDragPosition;
-            private List<Drawable> sortableChildList;
+            private List<Drawable> cachedFlowingChildren;
 
             protected override bool OnDragStart(DragStartEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsDraggable);
-                sortableChildList = new List<Drawable>(FlowingChildren);
+                cachedFlowingChildren = new List<Drawable>(FlowingChildren);
                 return currentlyDraggedItem != null || base.OnDragStart(e);
             }
 
@@ -160,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 var handled = currentlyDraggedItem != null || base.OnDragEnd(e);
                 currentlyDraggedItem = null;
-                sortableChildList = new List<Drawable>();
+                cachedFlowingChildren = new List<Drawable>();
                 return handled;
             }
 
@@ -168,10 +166,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Update();
 
-                if (currentlyDraggedItem == null)
-                    return;
-
-                updateDragPosition();
+                if (currentlyDraggedItem != null)
+                    updateDragPosition();
             }
 
             private void updateDragPosition()
@@ -196,17 +192,16 @@ namespace osu.Framework.Graphics.Containers
                 if (srcIndex == dstIndex)
                     return;
 
-                sortableChildList.Remove(currentlyDraggedItem);
+                cachedFlowingChildren.Remove(currentlyDraggedItem);
 
                 if (srcIndex < dstIndex - 1)
                     dstIndex--;
 
-                sortableChildList.Insert(dstIndex, currentlyDraggedItem);
+                cachedFlowingChildren.Insert(dstIndex, currentlyDraggedItem);
 
-                for (int i = 0; i < sortableChildList.Count; i++)
-                    SetLayoutPosition(sortableChildList[i], i);
+                for (int i = 0; i < cachedFlowingChildren.Count; i++)
+                    SetLayoutPosition(cachedFlowingChildren[i], i);
             }
         }
-    }
     }
 }
