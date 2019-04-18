@@ -439,23 +439,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestMakeCurrentUnbindOrder()
         {
-            List<TestScreen> screens = new List<TestScreen>();
+            List<TestScreen> screens = null;
+
+            AddStep("Setup screens", () =>
+            {
+                screens = new List<TestScreen>();
+                for (int i = 0; i < 5; i++)
+                {
+                    var screen = new TestScreen();
+
+                    screen.OnUnbind += () =>
+                    {
+                        if (screens.Last() != screen)
+                            throw new InvalidOperationException("Disposal order was wrong");
+
+                        screens.Remove(screen);
+                    };
+
+                    screens.Add(screen);
+                }
+            });
 
             for (int i = 0; i < 5; i++)
             {
-                var screen = new TestScreen();
-                var target = screens.LastOrDefault();
-
-                screen.OnUnbind += () =>
-                {
-                    if (screens.Last() != screen)
-                        throw new InvalidOperationException("Disposal order was wrong");
-
-                    screens.Remove(screen);
-                };
-
-                pushAndEnsureCurrent(() => screen, target != null ? () => target : (Func<IScreen>)null);
-                screens.Add(screen);
+                var local = i; // needed to store the correct value for our delegate
+                pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
             }
 
             AddStep("make first screen current", () => screens.First().MakeCurrent());
@@ -578,11 +586,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
             private readonly bool shouldTakeOutLease;
+            private bool hasUnbound;
 
             internal override void UnbindAllBindables()
             {
                 base.UnbindAllBindables();
-                OnUnbind?.Invoke();
+
+                // As a second unbind event would incorrectly cause TestMakeCurrentUnbindOrder check to fail, block it.
+                if (!hasUnbound)
+                    OnUnbind?.Invoke();
+
+                hasUnbound = true;
             }
 
             public TestScreen(bool shouldTakeOutLease = false)
