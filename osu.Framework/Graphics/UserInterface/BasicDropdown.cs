@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class BasicDropdownMenu : DropdownMenu
+        public class BasicDropdownMenu : DropdownMenu
         {
             public BasicDropdownMenu()
             {
