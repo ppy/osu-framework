@@ -229,7 +229,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (shouldFireEvent && toExit.OnExiting(CurrentScreen))
+            if (shouldFireEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;
