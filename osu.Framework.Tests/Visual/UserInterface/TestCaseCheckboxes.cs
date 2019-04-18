@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public TestCaseCheckboxes()
         {
-            BasicCheckbox swap;
+            BasicCheckbox swap, rotate;
 
             Children = new Drawable[]
             {
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             LabelText = @"Checkbox Position",
                         },
-                        new ActionsTestCheckbox
+                        rotate = new BasicCheckbox
                         {
                             LabelText = @"Enabled/Disabled Actions Test",
                         },
@@ -57,14 +57,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
 
             swap.Current.ValueChanged += check => swap.RightHandedCheckbox = check.NewValue;
-        }
-    }
-
-    public class ActionsTestCheckbox : BasicCheckbox
-    {
-        public ActionsTestCheckbox()
-        {
-            Current.ValueChanged += e => this.RotateTo(e.NewValue ? 45 : 0, 100);
+            rotate.Current.ValueChanged += e => rotate.RotateTo(e.NewValue ? 45 : 0, 100);
         }
     }
 }
