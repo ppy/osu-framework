@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly TestDropdown testDropdown, testDropdownMenu2, bindableDropdown;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown;
         private readonly BindableList<string> bindableList = new BindableList<string>();
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Items = testItems
             });
 
-            Add(testDropdownMenu2 = new TestDropdown
+            Add(testDropdownMenu = new TestDropdown
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
@@ -95,10 +95,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
             AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu2));
+            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu));
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
-            AddAssert("dropdown2 is open", () => testDropdownMenu2.Menu.State == MenuState.Open);
+            AddAssert("dropdown2 is open", () => testDropdownMenu.Menu.State == MenuState.Open);
 
             AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
