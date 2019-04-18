@@ -63,8 +63,18 @@ namespace osu.Framework.Android
 
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            KeyDown?.Invoke(keyCode, e);
-            return true;
+            switch(keyCode) {
+                /// Do not consume Volume keys, so the system can handle them
+                /// No need to handle in the other methods?
+                case Keycode.VolumeDown:
+                case Keycode.VolumeUp:
+                case Keycode.VolumeMute:
+                    return false;
+
+                default:
+                    KeyDown?.Invoke(keyCode, e);
+                    return true;
+            }
         }
 
         public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
