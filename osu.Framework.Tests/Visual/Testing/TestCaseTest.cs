@@ -34,6 +34,8 @@ namespace osu.Framework.Tests.Visual.Testing
                 if (IsNUnitRunning)
                     testRunCount++;
             });
+
+            AddStep("dummy step", () => { });
         }
 
         [Test]
@@ -50,6 +52,19 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("increment run count", () => testRunCount++);
             AddAssert("correct setup run count", () => testRunCount == setupRun);
             AddAssert("correct setup steps run count", () => (IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+        }
+
+        protected override ITestCaseTestRunner CreateRunner() => new TestRunner();
+
+        private class TestRunner : TestCaseTestRunner
+        {
+            public override void RunTestBlocking(TestCase test)
+            {
+                base.RunTestBlocking(test);
+
+                // This will only ever trigger via NUnit
+                Assert.That(test.StepsContainer, Has.Count.GreaterThan(0));
+            }
         }
     }
 }

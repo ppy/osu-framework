@@ -285,6 +285,8 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        protected override bool ShouldBeConsideredForInput(Drawable child) => !(child is IScreen screen) || screen.IsCurrentScreen();
+
         protected override bool UpdateChildrenLife()
         {
             if (!base.UpdateChildrenLife()) return false;
