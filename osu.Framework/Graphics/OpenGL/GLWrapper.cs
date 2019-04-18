@@ -85,6 +85,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (host != null && host.TryGetTarget(out GameHost h))
                 h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            else
+                disposalAction.Invoke();
 
             void scheduleNextDisposal() => reset_scheduler.Add(() =>
             {
