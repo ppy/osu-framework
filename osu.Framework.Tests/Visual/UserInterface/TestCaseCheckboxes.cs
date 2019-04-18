@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -11,8 +13,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestCaseCheckboxes : TestCase
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Checkbox),
+            typeof(BasicCheckbox)
+        };
+
         public TestCaseCheckboxes()
         {
+            BasicCheckbox swap, rotate;
+
             Children = new Drawable[]
             {
                 new FillFlowContainer
@@ -34,21 +44,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             LabelText = @"FadeDuration Test",
                             FadeDuration = 300
                         },
-                        new ActionsTestCheckbox
+                        swap = new BasicCheckbox
+                        {
+                            LabelText = @"Checkbox Position",
+                        },
+                        rotate = new BasicCheckbox
                         {
                             LabelText = @"Enabled/Disabled Actions Test",
                         },
                     }
                 }
             };
-        }
-    }
 
-    public class ActionsTestCheckbox : BasicCheckbox
-    {
-        public ActionsTestCheckbox()
-        {
-            Current.ValueChanged += e => this.RotateTo(e.NewValue ? 45 : 0, 100);
+            swap.Current.ValueChanged += check => swap.RightHandedCheckbox = check.NewValue;
+            rotate.Current.ValueChanged += e => rotate.RotateTo(e.NewValue ? 45 : 0, 100);
         }
     }
 }
