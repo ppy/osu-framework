@@ -484,6 +484,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Bindables have been returned by new screen", () => !screen2.DummyBindable.Disabled && !screen2.LeasedCopy.Disabled);
         }
 
+        [Test]
+        public void TestMakeCurrentDuringLoad()
+        {
+            TestScreen screen1 = null;
+            TestScreenSlow screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
+
+            AddStep("make screen1 current", () => screen1.MakeCurrent());
+            AddStep("allow load of screen2", () => screen2.AllowLoad.Set());
+            AddUntilStep("wait for screen2 to load", () => screen2.LoadState == LoadState.Ready);
+
+            AddAssert("screen2 did not receive OnEntering", () => screen2.EnteredFrom == null);
+            AddAssert("screen2 did not receive OnExiting", () => screen2.ExitedTo == null);
+        }
+
         /// <summary>
         /// Push two screens and check that they only handle input when they are respectively loaded and current.
         /// </summary>
