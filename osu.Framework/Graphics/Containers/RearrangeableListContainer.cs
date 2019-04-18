@@ -28,18 +28,7 @@ namespace osu.Framework.Graphics.Containers
         public RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
-            InternalChild = scrollContainer = new ListScrollContainer
-            {
-                Child = ListContainer = new ListFillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    LayoutDuration = 160,
-                    LayoutEasing = Easing.OutQuint,
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(1),
-                }
-            };
+            InternalChild = scrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
 
             ListItems.ItemsAdded += itemsAdded;
             ListItems.ItemsRemoved += itemsRemoved;
@@ -62,6 +51,23 @@ namespace osu.Framework.Graphics.Containers
             scrollContainer.ScrollToStart();
         }
 
+        protected virtual ListFillFlowContainer CreateListFillFlowContainer() =>
+            new ListFillFlowContainer
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                LayoutDuration = 160,
+                LayoutEasing = Easing.OutQuint,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(1),
+            };
+
+        protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) =>
+            new ListScrollContainer
+            {
+                Child = flowContainer,
+            };
+
         private void itemsAdded(IEnumerable<T> items)
         {
             foreach (var item in items)
@@ -80,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
+        protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
             public ListScrollContainer()
             {
