@@ -17,11 +17,11 @@ namespace osu.Framework.Testing
     public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
-        public Action CompilationStarted;
+        public event Action CompilationStarted;
 
-        public Action<Type> CompilationFinished;
+        public event Action<Type> CompilationFinished;
 
-        public Action<Exception> CompilationFailed;
+        public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
@@ -64,9 +64,10 @@ namespace osu.Framework.Testing
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName,
                     };
 
+                    fsw.Renamed += onChange;
                     fsw.Changed += onChange;
                     fsw.Created += onChange;
 

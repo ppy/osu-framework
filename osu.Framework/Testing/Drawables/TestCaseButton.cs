@@ -89,7 +89,7 @@ namespace osu.Framework.Testing.Drawables
                 text.AddText(description, t =>
                 {
                     t.Font = t.Font.With("Roboto", 11);
-                    t.Colour = new Color4(250, 221, 114, 255);
+                    t.Colour = FrameworkColour.Yellow;
                 });
             }
         }
