@@ -655,7 +655,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         BackgroundColour = Color4.Red,
                         Alpha = 0
                     },
-                    pushButton=new Button
+                    pushButton = new Button
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,

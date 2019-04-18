@@ -109,14 +109,14 @@ namespace osu.Framework.Graphics.Visualisation
                                     Spacing = new Vector2(1),
                                     Children = new Drawable[]
                                     {
-                                        chooseTargetButton=new Button
+                                        chooseTargetButton = new Button
                                         {
                                             BackgroundColour = buttonBackground,
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"choose target"
                                         },
-                                        goUpOneParentButton=new Button
+                                        goUpOneParentButton = new Button
                                         {
                                             BackgroundColour = buttonBackground,
                                             Size = new Vector2(button_width, 1),

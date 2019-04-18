@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             ClickableContainer clickableContainer;
             InternalChildren = new Drawable[]
             {
-                clickableContainer=new ClickableContainer
+                clickableContainer = new ClickableContainer
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText()
