@@ -2,14 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.MathUtils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
     /// <summary>
-    /// Represents a single line segment.  Drawing is handled by the LineManager class.
+    /// Represents a single line segment.
     /// </summary>
-    public class Line
+    public struct Line
     {
         /// <summary>
         /// Begin point of the line.
@@ -31,13 +32,21 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
-        public Vector2 Direction => (EndPoint - StartPoint).Normalized();
+        /// <summary>
+        /// The direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 Direction => EndPoint - StartPoint;
+
+        /// <summary>
+        /// The normalized direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 DirectionNormalized => Direction.Normalized();
 
         public Vector2 OrthogonalDirection
         {
             get
             {
-                Vector2 dir = Direction;
+                Vector2 dir = DirectionNormalized;
                 return new Vector2(-dir.Y, dir.X);
             }
         }
@@ -46,6 +55,36 @@ namespace osu.Framework.Graphics.Primitives
         {
             StartPoint = p1;
             EndPoint = p2;
+        }
+
+        /// <summary>
+        /// Computes a position along this line.
+        /// </summary>
+        /// <param name="t">A parameter representing the position along the line to compute. 0 yields the start point and 1 yields the end point.</param>
+        /// <returns>The position along the line.</returns>
+        public Vector2 At(float t) => StartPoint + Direction * t;
+
+        /// <summary>
+        /// Intersects this line with another.
+        /// </summary>
+        /// <param name="other">The line to intersect with.</param>
+        /// <returns>Whether the two lines intersect and, if so, the distance along this line at which the intersection occurs.
+        /// An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.
+        /// To compute the point of intersection, <see cref="At"/>.</returns>
+        public (bool success, float distance) IntersectWith(Line other)
+        {
+            Vector2 diff1 = Direction;
+            Vector2 diff2 = other.Direction;
+
+            float denom = diff1.X * diff2.Y - diff1.Y * diff2.X;
+
+            if (Precision.AlmostEquals(0, denom))
+                return (false, 0); // Co-linear
+
+            Vector2 d = other.StartPoint - StartPoint;
+            float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
+
+            return (true, t);
         }
 
         /// <summary>
@@ -93,6 +132,6 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
 
-        public object Clone() => MemberwiseClone();
+        public override string ToString() => $"{StartPoint} -> {EndPoint}";
     }
 }
