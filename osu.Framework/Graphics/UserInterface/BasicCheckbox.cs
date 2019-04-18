@@ -45,28 +45,30 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public string LabelText
         {
-            get => labelSpriteText?.Text;
-            set
-            {
-                if (labelSpriteText != null)
-                    labelSpriteText.Text = value;
-            }
+            get => labelSpriteText.Text;
+            set => labelSpriteText.Text = value;
         }
 
         /// <summary>
-        /// The padding of the label text.
+        /// The spacing between the checkbox and the label.
         /// </summary>
-        public MarginPadding LabelPadding
+        public float LabelSpacing
         {
-            get => labelSpriteText?.Padding ?? new MarginPadding();
-            set
-            {
-                if (labelSpriteText != null)
-                    labelSpriteText.Padding = value;
-            }
+            get => fillFlowContainer.Spacing.X;
+            set => fillFlowContainer.Spacing = new Vector2(value, 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool RightHandedCheckbox
+        {
+            get => fillFlowContainer.GetLayoutPosition(labelSpriteText) < -0.5f;
+            set => fillFlowContainer.SetLayoutPosition(labelSpriteText, value ? -1 : 1);
         }
 
         private readonly SpriteText labelSpriteText;
+        private readonly FillFlowContainer fillFlowContainer;
 
         public BasicCheckbox()
         {
@@ -74,10 +76,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             AutoSizeAxes = Axes.Both;
 
-            Child = new FillFlowContainer
+            Child = fillFlowContainer = new FillFlowContainer
             {
                 Direction = FillDirection.Horizontal,
                 AutoSizeAxes = Axes.Both,
+                Spacing = new Vector2(10, 0),
                 Children = new Drawable[]
                 {
                     new Container
@@ -93,10 +96,6 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                     labelSpriteText = new SpriteText
                     {
-                        Padding = new MarginPadding
-                        {
-                            Left = 10
-                        },
                         Depth = float.MinValue
                     },
                 }

@@ -46,7 +46,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new BasicCheckbox
                     {
                         LabelText = "Run all steps",
-                        LabelPadding = new MarginPadding { Left = 5, Right = 10 },
+                        LabelSpacing = 5,
                         AutoSizeAxes = Axes.Y,
                         Width = 140,
                         Anchor = Anchor.CentreLeft,
