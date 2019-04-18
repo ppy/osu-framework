@@ -229,7 +229,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (shouldFireEvent && toExit.OnExiting(CurrentScreen))
+            if (shouldFireEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;
@@ -284,6 +284,8 @@ namespace osu.Framework.Screens
             else
                 exitFrom(source);
         }
+
+        protected override bool ShouldBeConsideredForInput(Drawable child) => !(child is IScreen screen) || screen.IsCurrentScreen();
 
         protected override bool UpdateChildrenLife()
         {
