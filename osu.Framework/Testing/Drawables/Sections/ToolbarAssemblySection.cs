@@ -46,7 +46,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new BasicCheckbox
                     {
                         LabelText = "Run all steps",
-                        LabelSpacing = 5,
+                        RightHandedCheckbox = true,
                         AutoSizeAxes = Axes.Y,
                         Width = 140,
                         Anchor = Anchor.CentreLeft,
