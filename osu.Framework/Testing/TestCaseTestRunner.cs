@@ -27,7 +27,7 @@ namespace osu.Framework.Testing
         /// Blocks execution until a provided <see cref="TestCase"/> runs to completion.
         /// </summary>
         /// <param name="test">The <see cref="TestCase"/> to run.</param>
-        public void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
+        public virtual void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
 
         public class TestRunner : CompositeDrawable
         {
