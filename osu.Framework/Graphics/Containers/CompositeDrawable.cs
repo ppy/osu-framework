@@ -455,15 +455,10 @@ namespace osu.Framework.Graphics.Containers
                     ChildDied?.Invoke(t);
 
                 t.IsAlive = false;
+                t.Parent = null;
 
                 if (disposeChildren)
-                {
-                    //cascade disposal
-                    (t as CompositeDrawable)?.ClearInternal();
-                    t.Dispose();
-                }
-                else
-                    t.Parent = null;
+                    DisposeChildAsync(t);
 
                 Trace.Assert(t.Parent == null);
             }
