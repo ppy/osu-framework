@@ -4337,7 +4337,7 @@ namespace osu.Framework.Graphics.Sprites
             /// <summary>
             /// Equals
             /// </summary>
-            public static IconUsage Equals => Get(0xf52c);
+            public static new IconUsage Equals => Get(0xf52c);
 
             /// <summary>
             /// eraser
