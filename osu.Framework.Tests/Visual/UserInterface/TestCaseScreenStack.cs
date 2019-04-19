@@ -448,7 +448,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     var screen = new TestScreen();
 
-                    screen.OnUnbind += () =>
+                    screen.OnUnbindAllBindables += () =>
                     {
                         if (screens.Last() != screen)
                             throw new InvalidOperationException("Disposal order was wrong");
@@ -596,25 +596,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public override bool AcceptsFocus => EagerFocus;
 
             public override bool HandleNonPositionalInput => true;
-            public Action OnUnbind;
 
             public LeasedBindable<bool> LeasedCopy;
 
             public readonly Bindable<bool> DummyBindable = new Bindable<bool>();
 
             private readonly bool shouldTakeOutLease;
-            private bool hasUnbound;
-
-            internal override void UnbindAllBindables()
-            {
-                base.UnbindAllBindables();
-
-                // As a second unbind event would incorrectly cause TestMakeCurrentUnbindOrder check to fail, block it.
-                if (!hasUnbound)
-                    OnUnbind?.Invoke();
-
-                hasUnbound = true;
-            }
 
             public TestScreen(bool shouldTakeOutLease = false)
             {

@@ -3,7 +3,9 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
@@ -109,6 +111,78 @@ namespace osu.Framework.Tests.Visual.Containers
 
             Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA));
             Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB));
+        }
+
+        [Test]
+        public void TestChildrenRemovedOnClearInternal()
+        {
+            var drawableA = new Sprite();
+            var drawableB = new Sprite();
+            var drawableC = new Sprite();
+            var containerA = new Container { Child = drawableC };
+
+            var targetContainer = new Container { Children = new Drawable[] { drawableA, drawableB, containerA } };
+
+            Assert.That(targetContainer, Has.Count.Not.Zero);
+
+            targetContainer.ClearInternal();
+
+            // Immediate children removed
+            Assert.That(targetContainer, Has.Count.Zero);
+
+            // Nested container's children not removed
+            Assert.That(containerA, Has.Count.EqualTo(1));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestUnbindOnClearInternal(bool shouldDispose)
+        {
+            bool unbound = false;
+
+            var drawableA = new Sprite().With(d =>
+            {
+                d.OnUnbindAllBindables += () => unbound = true;
+            });
+
+            var container = new Container { Children = new[] { drawableA } };
+
+            container.ClearInternal(shouldDispose);
+
+            Assert.That(container, Has.Count.Zero);
+            Assert.That(unbound, Is.EqualTo(shouldDispose));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDisposeOnClearInternal(bool shouldDispose)
+        {
+            bool disposed = false;
+
+            var drawableA = new Sprite().With(d =>
+            {
+                d.OnDispose += () => disposed = true;
+            });
+
+            var container = new Container { Children = new[] { drawableA } };
+
+            Assert.That(container, Has.Count.Not.Zero);
+
+            container.ClearInternal(shouldDispose);
+
+            Assert.That(container, Has.Count.Zero);
+
+            // Disposal happens asynchronously
+            int iterations = 20;
+            while (iterations-- > 0)
+            {
+                if (disposed)
+                    break;
+
+                Thread.Sleep(100);
+            }
+
+            Assert.That(disposed, Is.EqualTo(shouldDispose));
         }
     }
 }

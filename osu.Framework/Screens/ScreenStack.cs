@@ -263,7 +263,7 @@ namespace osu.Framework.Screens
         /// leases could potentially be in a leased state during exiting transitions.
         /// This method should be called after exiting is confirmed to ensure a correct leased state before <see cref="IScreen.OnResuming"/>.
         /// </remarks>
-        private void onExited(IScreen prev, IScreen next) => (prev as CompositeDrawable)?.UnbindAllBindables();
+        private void onExited(IScreen prev, IScreen next) => (prev as CompositeDrawable)?.UnbindAllBindablesSubTree();
 
         /// <summary>
         /// Resumes the current <see cref="IScreen"/>.
