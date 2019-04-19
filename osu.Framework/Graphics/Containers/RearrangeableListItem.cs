@@ -1,13 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-
 namespace osu.Framework.Graphics.Containers
 {
-    public interface IRearrangeableDrawable<T>
+    public abstract class RearrangeableListItem
     {
-        event Action<T> RequestRemoval;
-        bool IsDraggable { get; }
     }
 }

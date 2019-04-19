@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
-    public class RearrangeableListContainer<T> : CompositeDrawable where T : Drawable, IRearrangeableDrawable<T>
+    public abstract class RearrangeableListContainer<T> : CompositeDrawable where T : RearrangeableListItem
     {
         /// <summary>
         /// The spacing between individual elements. Default is <see cref="Vector2.Zero"/>.
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The list of children as they are currently arranged.
         /// </summary>
-        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<T>();
+        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem>().Select(i => i.Model);
 
         private int maxLayoutPosition;
         protected readonly ListScrollContainer ScrollContainer;
@@ -53,15 +53,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void AddItem(T item)
         {
-            item.RequestRemoval += RemoveItem;
-            ListContainer.Add(item);
-            ListContainer.SetLayoutPosition(item, maxLayoutPosition++);
+            var drawable = CreateDrawable(item);
+            drawable.RequestRemoval += RemoveItem;
+            ListContainer.Add(drawable);
+            ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
 
         /// <summary>
         /// Removes a child from this container.
         /// </summary>
-        public void RemoveItem(T item) => ListContainer.Remove(item);
+        public void RemoveItem(DrawableRearrangeableListItem item) => ListContainer.Remove(item);
 
         /// <summary>
         /// Removes all <see cref="Container{T}.Children"/> from this container.
@@ -98,6 +99,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 Child = flowContainer,
             };
+
+        protected abstract DrawableRearrangeableListItem CreateDrawable(T item);
+
+        #region ListScrollContainer
 
         protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
@@ -146,20 +151,24 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected class ListFillFlowContainer : FillFlowContainer<T>
+        #endregion
+
+        #region ListFillFlowContainer
+
+        protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>
         {
             public event Action ItemsRearranged;
 
             public bool IsDragging => currentlyDraggedItem != null;
 
-            private T currentlyDraggedItem;
+            private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
             private List<Drawable> cachedFlowingChildren;
 
             protected override bool OnDragStart(DragStartEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
-                currentlyDraggedItem = this.FirstOrDefault(d => d.IsDraggable);
+                currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
                 cachedFlowingChildren = new List<Drawable>(FlowingChildren);
                 return currentlyDraggedItem != null || base.OnDragStart(e);
             }
@@ -222,5 +231,41 @@ namespace osu.Framework.Graphics.Containers
                 ItemsRearranged?.Invoke();
             }
         }
+
+        #endregion
+
+        #region DrawableRearrangeableListItem
+
+        public abstract class DrawableRearrangeableListItem : CompositeDrawable
+        {
+            public event Action<DrawableRearrangeableListItem> RequestRemoval;
+
+            protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
+
+            public T Model;
+
+            public bool IsBeingDragged;
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                if (IsDraggableAt(e.ScreenSpaceMousePosition))
+                    IsBeingDragged = true;
+
+                return base.OnMouseDown(e);
+            }
+
+            protected override bool OnMouseUp(MouseUpEvent e)
+            {
+                IsBeingDragged = false;
+                return base.OnMouseUp(e);
+            }
+
+            protected DrawableRearrangeableListItem(T item)
+            {
+                Model = item;
+            }
+        }
+
+        #endregion
     }
 }
