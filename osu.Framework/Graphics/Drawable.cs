@@ -171,6 +171,8 @@ namespace osu.Framework.Graphics
             foreach (var type in GetType().EnumerateBaseTypes())
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+
+            OnUnbindAllBindables?.Invoke();
         }
 
         #endregion
@@ -378,6 +380,11 @@ namespace osu.Framework.Graphics
         /// Fired after the <see cref="dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
+
+        /// <summary>
+        /// Fired after the <see cref="UnbindAllBindables"/> method is called.
+        /// </summary>
+        internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
 
