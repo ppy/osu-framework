@@ -307,12 +307,39 @@ namespace osu.Framework.Screens
             return true;
         }
 
+        internal override void UnbindAllBindablesSubTree()
+        {
+            // Suspended screens that are not part of our children won't receive unbind invocations until their disposal, which happens too late.
+            // To get around this, we unbind them ourselves in the correct order (reverse-push)
+            // Exited screens don't need to be unbound here due to being unbound when exiting
+
+            foreach (var s in stack)
+                s.AsDrawable().UnbindAllBindablesSubTree();
+
+            base.UnbindAllBindablesSubTree();
+        }
+
         public class ScreenNotCurrentException : InvalidOperationException
         {
             public ScreenNotCurrentException(string action)
                 : base($"Cannot perform {action} on a non-current screen.")
             {
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            // Correct disposal order must be enforced manually before the base disposal.
+
+            foreach (var s in exited)
+                s.Dispose();
+            exited.Clear();
+
+            foreach (var s in stack)
+                s.AsDrawable().Dispose();
+            stack.Clear();
+
+            base.Dispose(isDisposing);
         }
 
         public class ScreenHasChildException : InvalidOperationException

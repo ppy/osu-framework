@@ -451,7 +451,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     screen.OnUnbindAllBindables += () =>
                     {
                         if (screens.Last() != screen)
-                            throw new InvalidOperationException("Disposal order was wrong");
+                            throw new InvalidOperationException("Unbind order was wrong");
 
                         screens.Remove(screen);
                     };
@@ -467,7 +467,59 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             AddStep("make first screen current", () => screens.First().MakeCurrent());
-            AddUntilStep("All screens disposed in correct order", () => screens.Count == 1);
+            AddUntilStep("All screens unbound in correct order", () => screens.Count == 1);
+        }
+
+        [Test]
+        public void TestScreensUnboundAndDisposedOnStackDisposal()
+        {
+            const int screen_count = 5;
+            const int exit_count = 2;
+
+            List<TestScreen> screens = null;
+            int disposedScreens = 0;
+
+            AddStep("Setup screens", () =>
+            {
+                screens = new List<TestScreen>();
+                disposedScreens = 0;
+
+                for (int i = 0; i < screen_count; i++)
+                {
+                    var screen = new TestScreen(id: i);
+
+                    screen.OnDispose += () => disposedScreens++;
+
+                    screen.OnUnbindAllBindables += () =>
+                    {
+                        if (screens.Last() != screen)
+                            throw new InvalidOperationException("Unbind order was wrong");
+
+                        screens.Remove(screen);
+                    };
+
+                    screens.Add(screen);
+                }
+            });
+
+            for (int i = 0; i < screen_count; i++)
+            {
+                var local = i; // needed to store the correct value for our delegate
+                pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
+            }
+
+            AddStep("remove and dispose stack", () =>
+            {
+                // We must exit a few screens just before the stack is disposed, otherwise the stack will update for one more frame and dispose screens itself
+                for (int i = 0; i < exit_count; i++)
+                    stack.Exit();
+
+                Remove(stack);
+                stack.Dispose();
+            });
+
+            AddUntilStep("All screens unbound in correct order", () => screens.Count == 0);
+            AddAssert("All screens disposed", () => disposedScreens == screen_count);
         }
 
         /// <summary>
@@ -603,9 +655,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private readonly bool shouldTakeOutLease;
 
-            public TestScreen(bool shouldTakeOutLease = false)
+            public TestScreen(bool shouldTakeOutLease = false, int? id = null)
             {
                 this.shouldTakeOutLease = shouldTakeOutLease;
+
+                if (id != null)
+                    Name = id.ToString();
             }
 
             [BackgroundDependencyLoader]
