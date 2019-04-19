@@ -9,13 +9,34 @@ namespace osu.Framework.Graphics.Containers
 {
     public class ClickableContainer : Container
     {
-        public event Action Clicked;
+        private readonly object clickedLock = new object();
+        private Action _clicked;
+
+        public event Action Clicked
+        {
+            add
+            {
+                lock (clickedLock)
+                {
+                    _clicked += value;
+                    Enabled.Value = _clicked != null;
+                }
+            }
+            remove
+            {
+                lock (clickedLock)
+                {
+                    _clicked -= value;
+                    Enabled.Value = _clicked != null;
+                }
+            }
+        }
 
         public readonly BindableBool Enabled = new BindableBool();
 
         protected override bool OnClick(ClickEvent e)
         {
-            Clicked?.Invoke();
+            _clicked?.Invoke();
             return true;
         }
     }
