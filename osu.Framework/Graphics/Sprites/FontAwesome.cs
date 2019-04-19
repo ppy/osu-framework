@@ -4337,7 +4337,9 @@ namespace osu.Framework.Graphics.Sprites
             /// <summary>
             /// Equals
             /// </summary>
-            public static new IconUsage Equals => Get(0xf52c);
+#pragma warning disable 109
+            public new static IconUsage Equals => Get(0xf52c);
+#pragma warning restore 109
 
             /// <summary>
             /// eraser
