@@ -746,11 +746,12 @@ namespace osu.Framework.Graphics.Containers
                 DisposeChildAsync(child);
         }
 
-        internal override void UnbindAllBindables()
+        internal override void UnbindAllBindablesSubTree()
         {
-            base.UnbindAllBindables();
+            base.UnbindAllBindablesSubTree();
+
             foreach (Drawable child in internalChildren)
-                child.UnbindAllBindables();
+                child.UnbindAllBindablesSubTree();
         }
 
         /// <summary>
@@ -759,7 +760,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The child to dispose.</param>
         internal void DisposeChildAsync(Drawable drawable)
         {
-            drawable.UnbindAllBindables();
+            drawable.UnbindAllBindablesSubTree();
             Task.Run(drawable.Dispose);
         }
 

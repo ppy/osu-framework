@@ -605,9 +605,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private readonly bool shouldTakeOutLease;
             private bool hasUnbound;
 
-            internal override void UnbindAllBindables()
+            internal override void UnbindAllBindablesSubTree()
             {
-                base.UnbindAllBindables();
+                base.UnbindAllBindablesSubTree();
 
                 // As a second unbind event would incorrectly cause TestMakeCurrentUnbindOrder check to fail, block it.
                 if (!hasUnbound)

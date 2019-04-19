@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        internal virtual void UnbindAllBindables() => unbindAllBindables();
+        internal virtual void UnbindAllBindablesSubTree() => unbindAllBindables();
 
         private void cacheUnbindActions()
         {
