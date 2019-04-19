@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics
 
                 Dispose(isDisposing);
 
-                unbindAllBindables();
+                UnbindAllBindables();
 
                 Parent = null;
 
@@ -118,7 +118,10 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        internal virtual void UnbindAllBindablesSubTree() => unbindAllBindables();
+        /// <summary>
+        /// Recursively invokes <see cref="UnbindAllBindables"/> on this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
+        /// </summary>
+        internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
         private void cacheUnbindActions()
         {
@@ -162,9 +165,10 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
         /// </summary>
-        private void unbindAllBindables()
+        internal virtual void UnbindAllBindables()
         {
-            if (unbindComplete) return;
+            if (unbindComplete)
+                return;
 
             unbindComplete = true;
 
