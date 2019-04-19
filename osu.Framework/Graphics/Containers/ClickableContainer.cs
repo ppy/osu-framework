@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 lock (clickedLock)
                 {
+                    // see https://stackoverflow.com/a/11180128
+                    // ReSharper disable once DelegateSubtraction
                     _clicked -= value;
                     Enabled.Value = _clicked != null;
                 }
