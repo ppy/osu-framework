@@ -8,14 +8,13 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.Events;
+using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer, IFilterable
+    internal abstract class TestCaseButton : ClickableContainer, IFilterable
     {
         public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
@@ -23,58 +22,25 @@ namespace osu.Framework.Testing.Drawables
 
         public bool MatchingFilter
         {
+            get => matchingFilter;
             set
             {
                 matchingFilter = value;
-
                 updateVisibility();
             }
         }
 
-        private bool collapsed;
+        public bool FilteringActive { get; set; }
 
-        public bool Collapsed
-        {
-            set
-            {
-                collapsed = value;
-                updateVisibility();
-            }
-        }
-
-        private void updateVisibility()
-        {
-            if (collapsed || !matchingFilter)
-                Hide();
-            else
-                Show();
-        }
-
-        public bool Current
-        {
-            set
-            {
-                const float transition_duration = 100;
-
-                if (value)
-                {
-                    box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
-                    text.FadeColour(Color4.Black, transition_duration);
-                }
-                else
-                {
-                    box.FadeColour(new Color4(90, 90, 90, 255), transition_duration);
-                    text.FadeColour(Color4.White, transition_duration);
-                }
-            }
-        }
-
-        protected override Container<Drawable> Content => content;
-
-        private readonly Box box;
         private readonly Container content;
         private readonly TextFlowContainer text;
         public readonly Type TestType;
+
+        public const float LEFT_TEXT_PADDING = 16;
+
+        protected const float TRANSITION_DURATION = 100;
+
+        protected override Container<Drawable> Content => content;
 
         private TestCaseButton()
         {
@@ -85,42 +51,46 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                box = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(140, 140, 140, 255),
-                    Alpha = 0.7f
-                },
-                content = new Container
+                new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Child = text = new TextFlowContainer
+                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Padding = new MarginPadding
+                        content = new Container { RelativeSizeAxes = Axes.Both },
+                        text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
                         {
-                            Left = 4,
-                            Right = 4,
-                            Bottom = 2,
-                        },
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Padding = new MarginPadding
+                            {
+                                Top = 4,
+                                Left = LEFT_TEXT_PADDING,
+                                Right = 4,
+                                Bottom = 5,
+                            },
+                        }
                     }
                 },
             };
         }
 
-        public TestCaseButton(Type test)
+        protected TestCaseButton(Type test)
             : this()
         {
             TestType = test;
-            text.AddText(test.Name.Replace("TestCase", ""));
+            text.AddText(TestCase.RemovePrefix(test.Name));
 
             var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
             if (description != null)
             {
                 text.NewLine();
-                text.AddText(description, t => t.Font = t.Font.With(size: 15));
+                text.AddText(description, t =>
+                {
+                    t.Font = t.Font.With("Roboto", 11);
+                    t.Colour = FrameworkColour.Yellow;
+                });
             }
         }
 
@@ -130,16 +100,52 @@ namespace osu.Framework.Testing.Drawables
             text.AddText(header);
         }
 
-        protected override bool OnHover(HoverEvent e)
+        private bool collapsed;
+
+        public virtual bool Collapsed
         {
-            box.FadeTo(1, 150);
-            return true;
+            set
+            {
+                if (collapsed == value) return;
+
+                collapsed = value;
+                updateVisibility();
+            }
         }
 
-        protected override void OnHoverLost(HoverLostEvent e)
+        private void updateVisibility()
         {
-            box.FadeTo(0.7f, 150);
-            base.OnHoverLost(e);
+            if (FilteringActive)
+            {
+                if (matchingFilter)
+                    Show();
+                else
+                    Hide();
+            }
+            else
+            {
+                if (Current || !collapsed)
+                    Show();
+                else
+                    Hide();
+            }
+        }
+
+        private bool current;
+
+        public virtual bool Current
+        {
+            get => current;
+            set
+            {
+                if (current == value)
+                    return;
+
+                current = value;
+
+                text.FadeColour(value ? Color4.Black : Color4.White, TRANSITION_DURATION);
+                updateVisibility();
+            }
         }
     }
 }

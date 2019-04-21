@@ -200,15 +200,19 @@ namespace osu.Framework.Tests.Exceptions
             {
                 using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
                 {
-                    storage = host.Storage;
                     using (var game = new TestGame())
                     {
-                        game.Schedule(() => logic(game));
-                        host.UpdateThread.Scheduler.AddDelayed(() =>
+                        game.Schedule(() =>
                         {
-                            if (exitCondition?.Invoke(game) == true)
-                                host.Exit();
-                        }, 0, true);
+                            storage = host.Storage;
+                            host.UpdateThread.Scheduler.AddDelayed(() =>
+                            {
+                                if (exitCondition?.Invoke(game) == true)
+                                    host.Exit();
+                            }, 0, true);
+
+                            logic(game);
+                        });
 
                         host.Run(game);
                     }

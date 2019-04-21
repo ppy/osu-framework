@@ -54,6 +54,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         {
             if (amount == amountEnabledAttributes)
                 return;
+
             if (amount > amountEnabledAttributes)
             {
                 for (int i = amountEnabledAttributes; i < amount; ++i)

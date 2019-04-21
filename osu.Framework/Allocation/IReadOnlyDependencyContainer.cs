@@ -78,6 +78,7 @@ namespace osu.Framework.Allocation
             var result = container.Get(typeof(T), info);
             if (result == null)
                 return default;
+
             return (T)container.Get(typeof(T), info);
         }
 

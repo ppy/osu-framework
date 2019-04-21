@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -19,9 +21,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private readonly ContextMenuBox movingBox;
 
-        private ContextMenuBox makeBox(Anchor anchor)
+        public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            return new ContextMenuBox
+            typeof(Menu),
+            typeof(BasicMenu),
+            typeof(ContextMenuContainer),
+            typeof(BasicContextMenuContainer)
+        };
+
+        private ContextMenuBox makeBox(Anchor anchor) =>
+            new ContextMenuBox
             {
                 Size = new Vector2(200),
                 Anchor = anchor,
@@ -35,11 +44,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             };
-        }
 
         public TestCaseContextMenu()
         {
-            Add(new ContextMenuContainer
+            Add(new BasicContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
@@ -59,10 +67,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // Move box along a square trajectory
             movingBox.MoveTo(new Vector2(0, 100), duration)
-                .Then().MoveTo(new Vector2(100, 100), duration)
-                .Then().MoveTo(new Vector2(100, 0), duration)
-                .Then().MoveTo(Vector2.Zero, duration)
-                .Loop();
+                     .Then().MoveTo(new Vector2(100, 100), duration)
+                     .Then().MoveTo(new Vector2(100, 0), duration)
+                     .Then().MoveTo(Vector2.Zero, duration)
+                     .Loop();
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

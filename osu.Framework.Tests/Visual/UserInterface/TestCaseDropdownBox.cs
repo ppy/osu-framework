@@ -1,18 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -20,16 +20,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
-        private const float explicit_height = 120;
+        private const float explicit_height = 100;
         private float calculatedHeight;
-
-        private readonly StyledDropdown styledDropdown, styledDropdownMenu2, keyboardSelectionDropdown, keyboardPreselectionDropdown, bindableDropdown;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown;
         private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection;
         private readonly BindableList<string> bindableList = new BindableList<string>();
 
         private int previousIndex;
         private int lastVisibleIndexOnTheCurrentPage, lastVisibleIndexOnTheNextPage;
         private int firstVisibleIndexOnTheCurrentPage, firstVisibleIndexOnThePreviousPage;
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Dropdown<>),
+            typeof(DropdownHeader),
+            typeof(DropdownMenuItem<>),
+            typeof(Dropdown<>),
+            typeof(BasicDropdown<>),
+            typeof(BasicDropdown<>.BasicDropdownHeader),
+            typeof(BasicDropdown<>.BasicDropdownMenu),
+            typeof(TestDropdown)
+        };
 
         public TestCaseDropdownBox()
         {
@@ -38,45 +49,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
 
-            Add(styledDropdown = new StyledDropdown
-            {
-                Width = 150,
-                Position = new Vector2(50, 70),
-                Items = testItems
-            });
-
-            Add(styledDropdownMenu2 = new StyledDropdown
-            {
-                Width = 150,
-                Position = new Vector2(250, 70),
-                Items = testItems
-            });
-
             Add(platformActionContainerKeyboardSelection = new PlatformActionContainer
             {
-                Child = keyboardSelectionDropdown = new StyledDropdown
+                Child = testDropdown = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(450, 70),
+                    Position = new Vector2(200, 70),
                     Items = testItems
                 }
             });
 
             Add(platformActionContainerKeyboardPreselection = new PlatformActionContainer
             {
-                Child = keyboardPreselectionDropdown = new StyledDropdown
+                Child = testDropdownMenu = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(650, 70),
+                    Position = new Vector2(400, 70),
                     Items = testItems
                 }
             });
-            keyboardPreselectionDropdown.Menu.MaxHeight = explicit_height;
+            testDropdownMenu.Menu.MaxHeight = explicit_height;
 
-            Add(bindableDropdown = new StyledDropdown
+            Add(bindableDropdown = new TestDropdown
             {
                 Width = 150,
-                Position = new Vector2(850, 70),
+                Position = new Vector2(600, 70),
                 ItemSource = bindableList
             });
         }
@@ -86,45 +83,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var i = items_to_add;
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
-            AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            AddAssert("dropdown is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddRepeatStep("add item", () => styledDropdown.AddDropdownItem("test " + i++), items_to_add);
-            AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
+            AddRepeatStep("add item", () => testDropdown.AddDropdownItem("test " + i++), items_to_add);
+            AddAssert("item count is correct", () => testDropdown.Items.Count() == items_to_add * 2);
 
             AddStep($"Set dropdown1 height to {explicit_height}", () =>
             {
-                calculatedHeight = styledDropdown.Menu.Height;
-                styledDropdown.Menu.MaxHeight = explicit_height;
+                calculatedHeight = testDropdown.Menu.Height;
+                testDropdown.Menu.MaxHeight = explicit_height;
             });
-            AddAssert($"dropdown1 height is {explicit_height}", () => styledDropdown.Menu.Height == explicit_height);
+            AddAssert($"dropdown1 height is {explicit_height}", () => testDropdown.Menu.Height == explicit_height);
 
-            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => styledDropdown.Menu.MaxHeight = float.PositiveInfinity);
-            AddAssert("dropdown1 height is calculated automatically", () => styledDropdown.Menu.Height == calculatedHeight);
+            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => testDropdown.Menu.MaxHeight = float.PositiveInfinity);
+            AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height == calculatedHeight);
 
-            AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
+            AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
 
-            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(13));
+            AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
+            AddAssert("item 13 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(13));
 
-            AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(15));
+            AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(15));
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
-            AddAssert("dropdown1 is open", () => styledDropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(styledDropdownMenu2));
+            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu));
 
-            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
+            AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
+            AddAssert("dropdown2 is open", () => testDropdownMenu.Menu.State == MenuState.Open);
 
-            AddStep("select 'invalid'", () => styledDropdown.Current.Value = "invalid");
+            AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
-            AddAssert("'invalid' is selected", () => styledDropdown.Current.Value == "invalid");
-            AddAssert("label shows 'invalid'", () => styledDropdown.Header.Label == "invalid");
+            AddAssert("'invalid' is selected", () => testDropdown.Current.Value == "invalid");
+            AddAssert("label shows 'invalid'", () => testDropdown.Header.Label == "invalid");
 
-            AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(2));
+            AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));
 
             AddStep("clear bindable list", () => bindableList.Clear());
             AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
@@ -140,94 +137,94 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Select next item", () =>
             {
-                previousIndex = keyboardSelectionDropdown.SelectedIndex;
-                performKeystroke(keyboardSelectionDropdown.Header, Key.Down);
+                previousIndex = testDropdown.SelectedIndex;
+                performKeypress(testDropdown.Header, Key.Down);
             });
 
-            AddAssert("Next item is selected", () => keyboardSelectionDropdown.SelectedIndex == previousIndex + 1);
+            AddAssert("Next item is selected", () => testDropdown.SelectedIndex == previousIndex + 1);
 
             AddStep("Select previous item", () =>
             {
-                previousIndex = keyboardSelectionDropdown.SelectedIndex;
-                performKeystroke(keyboardSelectionDropdown.Header, Key.Up);
+                previousIndex = testDropdown.SelectedIndex;
+                performKeypress(testDropdown.Header, Key.Up);
             });
 
-            AddAssert("Previous item is selected", () => keyboardSelectionDropdown.SelectedIndex == previousIndex - 1);
+            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == previousIndex - 1);
 
-            AddStep("Select last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardSelection, keyboardSelectionDropdown.Header));
+            AddStep("Select last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardSelection, testDropdown.Header));
 
-            AddAssert("Last item selected", () => keyboardSelectionDropdown.SelectedItem == keyboardSelectionDropdown.Menu.DrawableMenuItems.Last().Item);
+            AddAssert("Last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardSelection, keyboardSelectionDropdown.Header));
+            AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardSelection, testDropdown.Header));
 
-            AddAssert("First item selected", () => keyboardSelectionDropdown.SelectedItem == keyboardSelectionDropdown.Menu.DrawableMenuItems.First().Item);
+            AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(keyboardPreselectionDropdown));
-            AddAssert("dropdown is open", () => keyboardPreselectionDropdown.Menu.State == MenuState.Open);
+            AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(testDropdownMenu));
+            AddAssert("dropdown is open", () => testDropdownMenu.Menu.State == MenuState.Open);
 
             AddStep("Preselect next item", () =>
             {
-                previousIndex = keyboardPreselectionDropdown.SelectedIndex;
-                performKeystroke(keyboardPreselectionDropdown.Header, Key.Down);
+                previousIndex = testDropdownMenu.SelectedIndex;
+                performKeypress(testDropdownMenu.Header, Key.Down);
             });
 
-            AddAssert("Next item is preselected", () => keyboardPreselectionDropdown.SelectedIndex == previousIndex + 1);
+            AddAssert("Next item is preselected", () => testDropdownMenu.SelectedIndex == previousIndex + 1);
 
             AddStep("Preselect previous item", () =>
             {
-                previousIndex = keyboardPreselectionDropdown.SelectedIndex;
-                performKeystroke(keyboardPreselectionDropdown.Header, Key.Up);
+                previousIndex = testDropdownMenu.SelectedIndex;
+                performKeypress(testDropdownMenu.Header, Key.Up);
             });
 
-            AddAssert("Previous item is preselected", () => keyboardPreselectionDropdown.SelectedIndex == previousIndex - 1);
+            AddAssert("Previous item is preselected", () => testDropdownMenu.SelectedIndex == previousIndex - 1);
 
             AddStep("Preselect last visible item", () =>
             {
-                lastVisibleIndexOnTheCurrentPage = keyboardPreselectionDropdown.Menu.DrawableMenuItems.ToList().IndexOf(keyboardPreselectionDropdown.Menu.VisibleMenuItems.Last());
-                performKeystroke(keyboardPreselectionDropdown.Menu, Key.PageDown);
+                lastVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.Last());
+                performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
 
-            AddAssert("Last visible item preselected", () => keyboardPreselectionDropdown.PreselectedIndex == lastVisibleIndexOnTheCurrentPage);
+            AddAssert("Last visible item preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheCurrentPage);
 
             AddStep("Preselect last visible item on the next page", () =>
             {
                 lastVisibleIndexOnTheNextPage =
-                    MathHelper.Clamp(lastVisibleIndexOnTheCurrentPage + keyboardPreselectionDropdown.Menu.VisibleMenuItems.Count(), 0, keyboardPreselectionDropdown.Menu.Items.Count - 1);
+                    MathHelper.Clamp(lastVisibleIndexOnTheCurrentPage + testDropdownMenu.Menu.VisibleMenuItems.Count(), 0, testDropdownMenu.Menu.Items.Count - 1);
 
-                performKeystroke(keyboardPreselectionDropdown.Menu, Key.PageDown);
+                performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
 
-            AddAssert("Last visible item on the next page preselected", () => keyboardPreselectionDropdown.PreselectedIndex == lastVisibleIndexOnTheNextPage);
+            AddAssert("Last visible item on the next page preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheNextPage);
 
             AddStep("Preselect first visible item", () =>
             {
-                firstVisibleIndexOnTheCurrentPage = keyboardPreselectionDropdown.Menu.DrawableMenuItems.ToList().IndexOf(keyboardPreselectionDropdown.Menu.VisibleMenuItems.First());
-                performKeystroke(keyboardPreselectionDropdown.Menu, Key.PageUp);
+                firstVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.First());
+                performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
 
-            AddAssert("First visible item preselected", () => keyboardPreselectionDropdown.PreselectedIndex == firstVisibleIndexOnTheCurrentPage);
+            AddAssert("First visible item preselected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnTheCurrentPage);
 
             AddStep("Preselect first visible item on the previous page", () =>
             {
-                firstVisibleIndexOnThePreviousPage = MathHelper.Clamp(firstVisibleIndexOnTheCurrentPage - keyboardPreselectionDropdown.Menu.VisibleMenuItems.Count(), 0,
-                    keyboardPreselectionDropdown.Menu.Items.Count - 1);
-                performKeystroke(keyboardPreselectionDropdown.Menu, Key.PageUp);
+                firstVisibleIndexOnThePreviousPage = MathHelper.Clamp(firstVisibleIndexOnTheCurrentPage - testDropdownMenu.Menu.VisibleMenuItems.Count(), 0,
+                    testDropdownMenu.Menu.Items.Count - 1);
+                performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
 
-            AddAssert("First visible item on the previous page selected", () => keyboardPreselectionDropdown.PreselectedIndex == firstVisibleIndexOnThePreviousPage);
+            AddAssert("First visible item on the previous page selected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnThePreviousPage);
 
-            AddAssert("First item is preselected", () => keyboardPreselectionDropdown.Menu.PreselectedItem.Item == keyboardPreselectionDropdown.Menu.DrawableMenuItems.First().Item);
+            AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("Preselect last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardPreselection, keyboardPreselectionDropdown));
+            AddStep("Preselect last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
-            AddAssert("Last item preselected", () => keyboardPreselectionDropdown.Menu.PreselectedItem.Item == keyboardPreselectionDropdown.Menu.DrawableMenuItems.Last().Item);
+            AddAssert("Last item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Preselect first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardPreselection, keyboardPreselectionDropdown));
+            AddStep("Preselect first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
-            AddAssert("First item preselected", () => keyboardPreselectionDropdown.Menu.PreselectedItem.Item == keyboardPreselectionDropdown.Menu.DrawableMenuItems.First().Item);
+            AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
         }
 
-        private void performKeystroke(Drawable drawable, Key key)
+        private void performKeypress(Drawable drawable, Key key)
         {
             drawable.TriggerEvent(new KeyDownEvent(new InputState(), key));
             drawable.TriggerEvent(new KeyUpEvent(new InputState(), key));
@@ -248,53 +245,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             drawable.HasFocus = tempHasFocus;
         }
 
-        private void toggleDropdownViaClick(StyledDropdown dropdown)
+        private void toggleDropdownViaClick(TestDropdown dropdown)
         {
             InputManager.MoveMouseTo(dropdown.Children.First());
             InputManager.Click(MouseButton.Left);
         }
 
-        private class StyledDropdown : BasicDropdown<string>
+        private class TestDropdown : BasicDropdown<string>
         {
             public new DropdownMenu Menu => base.Menu;
 
-            protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
+            protected override DropdownMenu CreateMenu() => new TestDropdownMenu();
 
-            protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
+            protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
 
-            public void SelectItem(MenuItem item) => ((StyledDropdownMenu)Menu).SelectItem(item);
-            internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
+            public void SelectItem(MenuItem item) => ((TestDropdownMenu)Menu).SelectItem(item);
 
-            public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
-            public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
-
-            private class StyledDropdownMenu : DropdownMenu
+            private class TestDropdownMenu : BasicDropdownMenu
             {
                 public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
                     .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
             }
-        }
 
-        private class StyledDropdownHeader : DropdownHeader
-        {
-            private readonly SpriteText label;
+            internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
 
-            protected internal override string Label
-            {
-                get { return label.Text; }
-                set { label.Text = value; }
-            }
-
-            public StyledDropdownHeader()
-            {
-                Foreground.Padding = new MarginPadding(4);
-                BackgroundColour = new Color4(255, 255, 255, 100);
-                BackgroundColourHover = Color4.HotPink;
-                Children = new[]
-                {
-                    label = new SpriteText(),
-                };
-            }
+            public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
+            public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
         }
     }
 }

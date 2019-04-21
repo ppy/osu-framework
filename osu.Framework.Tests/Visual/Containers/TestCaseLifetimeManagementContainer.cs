@@ -321,6 +321,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         c.EndDelta += d;
                     Assert.IsTrue(Math.Abs(c.StartDelta) <= 1 && Math.Abs(c.EndDelta) <= 1);
                 }
+
                 OnCrossing?.Invoke(e);
             }
         }

@@ -152,8 +152,6 @@ namespace osu.Framework.IO.Stores
         {
             yield return name;
 
-            if (name.Contains(@".")) yield break;
-
             //add file extension if it's missing.
             foreach (string ext in searchExtensions)
                 yield return $@"{name}.{ext}";

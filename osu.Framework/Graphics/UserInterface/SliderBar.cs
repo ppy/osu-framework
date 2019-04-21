@@ -172,6 +172,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
                 return commit();
+
             return false;
         }
 
@@ -191,9 +192,10 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
-            if (!currentNumberInstantaneous.Disabled)
-                currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
+            if (currentNumberInstantaneous.Disabled)
+                return;
 
+            currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
             onUserChange(currentNumberInstantaneous.Value);
         }
 

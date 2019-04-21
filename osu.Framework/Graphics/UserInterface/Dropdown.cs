@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (usingItemSource)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
+
                 setItems(value);
             }
         }
@@ -105,6 +106,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
+
             addDropdownItem(text, value);
         }
 
@@ -133,6 +135,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
+
             return removeDropdownItem(value);
         }
 
@@ -279,6 +282,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
+
             clearItems();
         }
 
@@ -412,6 +416,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         if (selected == value)
                             return;
+
                         selected = value;
 
                         OnSelectChange();

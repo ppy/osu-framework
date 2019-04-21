@@ -90,16 +90,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        [Test]
-        public void SliderBar()
+        [SetUp]
+        public override void SetUp()
         {
+            sliderBar.Current.Disabled = false;
+            sliderBar.Current.Value = 0;
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void SliderBar(bool disabled)
+        {
+            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+
             AddStep("Click at 25% mark", () =>
             {
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
-            AddAssert("Value == -5", () => Precision.AlmostEquals(sliderBarValue.Value, -5, Precision.FLOAT_EPSILON));
+            checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
                 var before = sliderBar.IsHovered;
@@ -108,7 +118,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ReleaseKey(Key.Left);
                 sliderBar.IsHovered = before;
             });
-            AddAssert("Value == -6", () => Precision.AlmostEquals(sliderBarValue.Value, -6, Precision.FLOAT_EPSILON));
+            checkValue(-6, disabled);
             AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
@@ -116,18 +126,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
                 InputManager.ReleaseKey(Key.LShift);
             });
-            AddAssert("Value == 5", () => Precision.AlmostEquals(sliderBarValue.Value, 5, Precision.FLOAT_EPSILON));
+            checkValue(5, disabled);
         }
 
-        [Test]
-        public void TransferValueOnCommit()
+        private void checkValue(int expected, bool disabled)
         {
+            if (disabled)
+                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
+            else
+                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TransferValueOnCommit(bool disabled)
+        {
+            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+
             AddStep("Click at 80% mark", () =>
             {
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.8f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("Value == 6", () => Precision.AlmostEquals(sliderBarValue.Value, 6, Precision.FLOAT_EPSILON));
+            checkValue(6, disabled);
 
             // These steps are broken up so we can see each of the steps being performed independently
             AddStep("Move Cursor",
@@ -135,9 +156,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
             AddStep("Drag",
                 () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
-            AddAssert("Value == 6 (still)", () => Precision.AlmostEquals(sliderBarValue.Value, 6, Precision.FLOAT_EPSILON));
+            checkValue(6, disabled);
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
-            AddAssert("Value == -5", () => Precision.AlmostEquals(sliderBarValue.Value, -5, Precision.FLOAT_EPSILON));
+            checkValue(-5, disabled);
         }
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)

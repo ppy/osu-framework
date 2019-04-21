@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Visualisation
             set
             {
                 if (target == value) return;
+
                 target = value;
 
                 foreach (FlashyBox c in Children)

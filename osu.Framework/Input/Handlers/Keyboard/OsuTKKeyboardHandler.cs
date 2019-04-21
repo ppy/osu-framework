@@ -47,6 +47,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
             if (lastRawState != null && rawState.Equals(lastRawState))
                 return;
+
             lastRawState = rawState;
 
             var newState = new TkKeyboardState(rawState);

@@ -10,15 +10,11 @@ namespace osu.Framework.Testing.Drawables.Steps
     {
         protected override Color4 IdleColour => Color4.RoyalBlue;
 
-        protected override Color4 RunningColour => IdleColour;
+        protected override Color4 RunningColour => Color4.RoyalBlue.Lighten(0.5f);
 
         public LabelStep()
         {
             LightColour = IdleColour.Darken(0.5f);
-        }
-
-        public override void PerformStep(bool userTriggered = false)
-        {
         }
     }
 }

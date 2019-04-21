@@ -74,6 +74,7 @@ namespace osu.Framework.Audio.Callbacks
             catch
             {
             }
+
             return false;
         }
     }

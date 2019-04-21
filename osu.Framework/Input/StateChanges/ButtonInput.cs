@@ -60,10 +60,7 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
         /// <param name="button">The <see cref="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
-        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind)
-        {
-            return new ButtonStateChangeEvent<TButton>(state, this, button, kind);
-        }
+        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {

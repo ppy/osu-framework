@@ -87,6 +87,7 @@ namespace osu.Framework.Audio.Track
             {
                 if (value < 0)
                     throw new ArgumentException("Track length must be >= 0.", nameof(value));
+
                 length = value;
             }
         }
