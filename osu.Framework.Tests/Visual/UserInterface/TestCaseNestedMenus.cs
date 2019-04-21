@@ -19,7 +19,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int max_depth = 5;
         private const int max_count = 5;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(Menu) };
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Menu),
+            typeof(BasicMenu)
+        };
 
         private Random rng;
 
@@ -58,7 +62,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         };
 
-        private class ClickOpenMenu : Menu
+        private class ClickOpenMenu : BasicMenu
         {
             protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay, false);
 
