@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
     {
         public TestCase CurrentTest { get; private set; }
 
-        private TextBox searchTextBox;
+        private BasicTextBox searchTextBox;
         private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
