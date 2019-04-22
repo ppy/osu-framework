@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private ScheduledDelegate scheduledGenerate;
 
-        private Waveform generatedWaveform;
+        protected Waveform ResampledWaveform { get; private set; }
 
         private void generate()
         {
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
-                    generatedWaveform = w.Result;
+                    ResampledWaveform = w.Result;
                     Schedule(() => Invalidate(Invalidation.DrawNode));
                 }, token);
             });
@@ -191,8 +191,8 @@ namespace osu.Framework.Graphics.Audio
             n.Shader = shader;
             n.Texture = texture;
             n.DrawSize = DrawSize;
-            n.Points = generatedWaveform?.GetPoints();
-            n.Channels = generatedWaveform?.GetChannels() ?? 0;
+            n.Points = ResampledWaveform?.GetPoints();
+            n.Channels = ResampledWaveform?.GetChannels() ?? 0;
             n.LowColour = lowColour ?? DrawColourInfo.Colour;
             n.MidColour = midColour ?? DrawColourInfo.Colour;
             n.HighColour = highColour ?? DrawColourInfo.Colour;
