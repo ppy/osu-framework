@@ -337,6 +337,14 @@ namespace osu.Framework.Graphics.UserInterface
                 StateChanged += clearPreselection;
             }
 
+            public override void Add(MenuItem item)
+            {
+                base.Add(item);
+
+                var drawableDropdownMenuItem = (DrawableDropdownMenuItem)ItemsContainer.Single(drawableItem => drawableItem.Item == item);
+                drawableDropdownMenuItem.PreselectionRequested += PreselectItem;
+            }
+
             private void clearPreselection(MenuState obj)
             {
                 if (obj == MenuState.Closed)
@@ -402,6 +410,8 @@ namespace osu.Framework.Graphics.UserInterface
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public class DrawableDropdownMenuItem : DrawableMenuItem
             {
+                public event Action<DropdownMenuItem<T>> PreselectionRequested;
+
                 public DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
@@ -489,30 +499,9 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
 
-                /// <summary>
-                /// Retrieve the first parent in the tree which is <see cref="DropdownMenu"/>.
-                /// As this is performing an upward tree traversal, avoid calling every frame.
-                /// </summary>
-                /// <returns>The first parent <see cref="DropdownMenu"/>.</returns>
-                public DropdownMenu ParentMenu
-                {
-                    get
-                    {
-                        var search = Parent;
-                        while (search != null)
-                        {
-                            if (search is DropdownMenu test) return test;
-
-                            search = search.Parent;
-                        }
-
-                        return null;
-                    }
-                }
-
                 protected override bool OnHover(HoverEvent e)
                 {
-                    ParentMenu?.PreselectItem(Item as DropdownMenuItem<T>);
+                    PreselectionRequested?.Invoke(Item as DropdownMenuItem<T>);
                     return base.OnHover(e);
                 }
             }
