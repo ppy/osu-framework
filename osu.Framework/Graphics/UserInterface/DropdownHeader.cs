@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
     {
-        public event Action<SelectionChange> ChangeSelection;
+        public event Action<DropdownSelectionAction> ChangeSelection;
 
         protected Container Background;
         protected Container Foreground;
@@ -86,10 +86,10 @@ namespace osu.Framework.Graphics.UserInterface
             switch (e.Key)
             {
                 case Key.Up:
-                    ChangeSelection?.Invoke(SelectionChange.Previous);
+                    ChangeSelection?.Invoke(DropdownSelectionAction.Previous);
                     return true;
                 case Key.Down:
-                    ChangeSelection?.Invoke(SelectionChange.Next);
+                    ChangeSelection?.Invoke(DropdownSelectionAction.Next);
                     return true;
                 default:
                     return base.OnKeyDown(e);
@@ -101,10 +101,10 @@ namespace osu.Framework.Graphics.UserInterface
             switch (action.ActionType)
             {
                 case PlatformActionType.ListStart:
-                    ChangeSelection?.Invoke(SelectionChange.First);
+                    ChangeSelection?.Invoke(DropdownSelectionAction.First);
                     return true;
                 case PlatformActionType.ListEnd:
-                    ChangeSelection?.Invoke(SelectionChange.Last);
+                    ChangeSelection?.Invoke(DropdownSelectionAction.Last);
                     return true;
                 default:
                     return false;
@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnReleased(PlatformAction action) => false;
 
-        public enum SelectionChange
+        public enum DropdownSelectionAction
         {
             Previous,
             Next,

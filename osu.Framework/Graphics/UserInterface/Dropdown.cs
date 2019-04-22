@@ -225,29 +225,29 @@ namespace osu.Framework.Graphics.UserInterface
             Menu.State = MenuState.Closed;
         }
 
-        private void selectionKeyPressed(DropdownHeader.SelectionChange change)
+        private void selectionKeyPressed(DropdownHeader.DropdownSelectionAction action)
         {
             if (!MenuItems.Any())
                 return;
 
             var dropdownMenuItems = MenuItems.ToList();
 
-            switch (change)
+            switch (action)
             {
-                case DropdownHeader.SelectionChange.Previous:
+                case DropdownHeader.DropdownSelectionAction.Previous:
                     SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
                     break;
-                case DropdownHeader.SelectionChange.Next:
+                case DropdownHeader.DropdownSelectionAction.Next:
                     SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
                     break;
-                case DropdownHeader.SelectionChange.First:
+                case DropdownHeader.DropdownSelectionAction.First:
                     SelectedItem = dropdownMenuItems[0];
                     break;
-                case DropdownHeader.SelectionChange.Last:
+                case DropdownHeader.DropdownSelectionAction.Last:
                     SelectedItem = dropdownMenuItems[dropdownMenuItems.Count - 1];
                     break;
                 default:
-                    throw new ArgumentException("Unexpected selection change type.", nameof(change));
+                    throw new ArgumentException("Unexpected selection action type.", nameof(action));
             }
         }
 
