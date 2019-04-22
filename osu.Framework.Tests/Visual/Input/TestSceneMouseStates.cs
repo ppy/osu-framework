@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual.Input
             ((Container)InputManager.Parent).Add(new StateTracker(0));
         }
 
-        private void initTestCase()
+        private void initTestScene()
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void BasicScroll()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("scroll some", () => InputManager.ScrollBy(new Vector2(-1, 1)));
             checkEventCount(move);
@@ -133,7 +133,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void BasicMovement()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             checkEventCount(move, 1);
@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void BasicButtons()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount(mouse_down, 1);
@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void Drag()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount(mouse_down, 1);
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void CombinationChanges()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount(move, 1);
@@ -262,7 +262,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void DragAndClick()
         {
-            initTestCase();
+            initTestScene();
 
             // mouseDown on a non-draggable -> mouseUp on a distant position: drag-clicking
             AddStep("move mouse", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
@@ -300,7 +300,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void ClickAndDoubleClick()
         {
-            initTestCase();
+            initTestScene();
 
             waitDoubleClickTime();
             AddStep("click", () => InputManager.Click(MouseButton.Left));
@@ -353,7 +353,7 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void SeparateMouseDown()
         {
-            initTestCase();
+            initTestScene();
 
             AddStep("right down", () => InputManager.PressButton(MouseButton.Right));
             checkEventCount(mouse_down, 1);

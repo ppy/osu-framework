@@ -367,7 +367,7 @@ namespace osu.Framework.Tests.Visual.Layout
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
-        private class TestCaseDropdownHeader : DropdownHeader
+        private class TestSceneDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
 
@@ -377,7 +377,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 set => label.Text = value;
             }
 
-            public TestCaseDropdownHeader()
+            public TestSceneDropdownHeader()
             {
                 Foreground.Padding = new MarginPadding(4);
                 BackgroundColour = new Color4(100, 100, 100, 255);
@@ -391,7 +391,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private class AnchorDropdown : BasicDropdown<Anchor>
         {
-            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+            protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
         private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
@@ -404,7 +404,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private class FillDirectionDropdown : BasicDropdown<FlowTestCase>
         {
-            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+            protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
         private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
