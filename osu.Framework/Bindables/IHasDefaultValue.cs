@@ -12,5 +12,10 @@ namespace osu.Framework.Bindables
         /// Check whether this object has its default value.
         /// </summary>
         bool IsDefault { get; }
+
+        /// <summary>
+        /// Revert this object to its default value.
+        /// </summary>
+        void SetDefault();
     }
 }

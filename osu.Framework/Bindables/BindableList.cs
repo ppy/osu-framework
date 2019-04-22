@@ -531,6 +531,14 @@ namespace osu.Framework.Bindables
                 throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
         }
 
+        /// <summary>
+        /// Checks if the list is in its default state by checking if it is empty.
+        /// </summary>
         public bool IsDefault => Count == 0;
+
+        /// <summary>
+        /// Returns the list to its default state by clearing it.
+        /// </summary>
+        public void SetDefault() => Clear();
     }
 }
