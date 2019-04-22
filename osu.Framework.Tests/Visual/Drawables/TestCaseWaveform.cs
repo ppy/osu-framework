@@ -100,26 +100,26 @@ namespace osu.Framework.Tests.Visual.Drawables
             zoom.ValueChanged += e => waveformContainer.Width = track_width * e.NewValue;
         }
 
+        [TestCase(1f)]
+        [TestCase(1f / 2)]
+        [TestCase(1f / 4)]
+        [TestCase(1f / 8)]
+        [TestCase(1f / 16)]
+        [TestCase(0)]
+        public void TestResolution(float resolution)
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
+            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+        }
+
         [Test]
         public void TestNullWaveform()
         {
             TestWaveform graph = null;
 
             AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
-            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
-        }
-
-        [TestCase(0)]
-        [TestCase(1f)]
-        [TestCase(1f / 2)]
-        [TestCase(1f / 4)]
-        [TestCase(1f / 8)]
-        [TestCase(1f / 16)]
-        public void TestResolution(float resolution)
-        {
-            TestWaveform graph = null;
-
-            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
             AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
         }
 
