@@ -33,7 +33,7 @@ namespace osu.Framework.Testing
     [Cached]
     public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>
     {
-        public TestCase CurrentTest { get; private set; }
+        public TestScene CurrentTest { get; private set; }
 
         private TextBox searchTextBox;
         private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
@@ -44,7 +44,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestCase> backgroundCompiler;
+        private DynamicClassCompiler<TestScene> backgroundCompiler;
 
         private bool interactive;
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract && t.IsPublic).ToList();
+                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic).ToList();
 
                 if (!tests.Any())
                 {
@@ -80,7 +80,7 @@ namespace osu.Framework.Testing
         {
             leftFlowContainer.Clear();
 
-            //Add buttons for each TestCase.
+            //Add buttons for each TestScene.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
@@ -88,7 +88,7 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? TestCase.RemovePrefix(t.Name) : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? TestScene.RemovePrefix(t.Name) : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
@@ -231,7 +231,7 @@ namespace osu.Framework.Testing
 
             if (RuntimeInfo.SupportsJIT)
             {
-                backgroundCompiler = new DynamicClassCompiler<TestCase>();
+                backgroundCompiler = new DynamicClassCompiler<TestScene>();
                 backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
                 backgroundCompiler.CompilationFailed += compileFailed;
@@ -375,7 +375,7 @@ namespace osu.Framework.Testing
             if (testType == null)
                 return;
 
-            var newTest = (TestCase)Activator.CreateInstance(testType);
+            var newTest = (TestScene)Activator.CreateInstance(testType);
 
             const string dynamic_prefix = "dynamic";
 
@@ -429,7 +429,7 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestCase.TestConstructor)))
+            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
                 if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
@@ -452,7 +452,7 @@ namespace osu.Framework.Testing
                 }
             }
 
-            // even if no [Test] or [TestCase] methods were found, [SetUp] steps should be added.
+            // even if no [Test] or [TestScene] methods were found, [SetUp] steps should be added.
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
@@ -462,7 +462,7 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = methods.Where(m => m.Name != nameof(TestCase.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
+                var setUpMethods = methods.Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
 
                 if (setUpMethods.Any())
                 {
