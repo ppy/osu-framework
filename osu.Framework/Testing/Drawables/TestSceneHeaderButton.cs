@@ -12,18 +12,18 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseHeaderButton : TestCaseButton
+    internal class TestSceneHeaderButton : TestSceneButton
     {
         private SpriteIcon icon;
         private Container leftBoxContainer;
         private const float left_box_width = LEFT_TEXT_PADDING / 2;
 
-        public TestCaseHeaderButton(string header)
+        public TestSceneHeaderButton(string header)
             : base(header)
         {
         }
 
-        public TestCaseHeaderButton(Type type)
+        public TestSceneHeaderButton(Type type)
             : base(type)
         {
         }

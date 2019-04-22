@@ -14,7 +14,7 @@ using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal abstract class TestCaseButton : ClickableContainer, IFilterable
+    internal abstract class TestSceneButton : ClickableContainer, IFilterable
     {
         public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
@@ -42,7 +42,7 @@ namespace osu.Framework.Testing.Drawables
 
         protected override Container<Drawable> Content => content;
 
-        private TestCaseButton()
+        private TestSceneButton()
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
@@ -76,7 +76,7 @@ namespace osu.Framework.Testing.Drawables
             };
         }
 
-        protected TestCaseButton(Type test)
+        protected TestSceneButton(Type test)
             : this()
         {
             TestType = test;
@@ -94,7 +94,7 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
-        protected TestCaseButton(string header)
+        protected TestSceneButton(string header)
             : this()
         {
             text.AddText(header);

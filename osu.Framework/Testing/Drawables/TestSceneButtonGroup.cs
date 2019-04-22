@@ -10,7 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButtonGroup : VisibilityContainer, IHasFilterableChildren
+    internal class TestSceneButtonGroup : VisibilityContainer, IHasFilterableChildren
     {
         public IEnumerable<string> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<string>();
 
@@ -23,8 +23,8 @@ namespace osu.Framework.Testing.Drawables
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
-        private readonly FillFlowContainer<TestCaseButton> buttonFlow;
-        private readonly TestCaseHeaderButton headerButton;
+        private readonly FillFlowContainer<TestSceneButton> buttonFlow;
+        private readonly TestSceneHeaderButton headerButton;
 
         public readonly TestGroup Group;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
-        public TestCaseButtonGroup(Action<Type> loadTest, TestGroup group)
+        public TestSceneButtonGroup(Action<Type> loadTest, TestGroup group)
         {
             var tests = group.TestTypes;
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Testing.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            Child = buttonFlow = new FillFlowContainer<TestCaseButton>
+            Child = buttonFlow = new FillFlowContainer<TestSceneButton>
             {
                 Direction = FillDirection.Vertical,
                 AutoSizeAxes = Axes.Y,
@@ -63,14 +63,14 @@ namespace osu.Framework.Testing.Drawables
             bool hasHeader = tests.Length > 1;
 
             if (hasHeader)
-                buttonFlow.Add(headerButton = new TestCaseHeaderButton(group.Name)
+                buttonFlow.Add(headerButton = new TestSceneHeaderButton(group.Name)
                 {
                     Action = ToggleVisibility
                 });
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestCaseSubButton(test, hasHeader ? 1 : 0)
+                buttonFlow.Add(new TestSceneSubButton(test, hasHeader ? 1 : 0)
                 {
                     Action = () => loadTest(test)
                 });

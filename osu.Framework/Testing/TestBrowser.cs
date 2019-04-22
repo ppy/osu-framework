@@ -36,7 +36,7 @@ namespace osu.Framework.Testing
         public TestScene CurrentTest { get; private set; }
 
         private TextBox searchTextBox;
-        private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
+        private SearchContainer<TestSceneButtonGroup> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Testing
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
                                                 ).OrderBy(g => g.Name)
-                                                .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
+                                                .Select(t => new TestSceneButtonGroup(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
@@ -158,7 +158,7 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestCaseSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
                                     },
@@ -170,7 +170,7 @@ namespace osu.Framework.Testing
                                 {
                                     Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
-                                    Child = leftFlowContainer = new SearchContainer<TestCaseButtonGroup>
+                                    Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
                                     {
                                         Padding = new MarginPadding(3),
                                         Direction = FillDirection.Vertical,
@@ -549,7 +549,7 @@ namespace osu.Framework.Testing
 
         private class TestBrowserTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => TestCaseButton.LEFT_TEXT_PADDING;
+            protected override float LeftRightPadding => TestSceneButton.LEFT_TEXT_PADDING;
 
             public TestBrowserTextBox()
             {
