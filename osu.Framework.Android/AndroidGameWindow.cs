@@ -16,8 +16,17 @@ namespace osu.Framework.Android
 
         internal static AndroidGameView View;
 
+        protected bool activityInForeground = true;
+        public bool ActivityInForeground {
+            get => activityInForeground;
+            set {
+                activityInForeground = value;
+                OnFocusedChanged(this, EventArgs.Empty);
+            }
+        }
+
         public override bool Focused
-            => true;
+            => ActivityInForeground;
 
         public override osuTK.WindowState WindowState {
             get => osuTK.WindowState.Normal;
@@ -32,6 +41,7 @@ namespace osu.Framework.Android
         {
             // Let's just say the cursor is always in the window.
             CursorInWindow = true;
+            OnFocusedChanged(this, EventArgs.Empty); // Ensures that the isActive is set correctly on initial setup
         }
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]

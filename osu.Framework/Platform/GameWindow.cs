@@ -84,7 +84,7 @@ namespace osu.Framework.Platform
             MouseEnter += (sender, args) => CursorInWindow = true;
             MouseLeave += (sender, args) => CursorInWindow = false;
 
-            FocusedChanged += (o, e) => isActive.Value = Focused;
+            FocusedChanged += OnFocusedChanged;
 
             SupportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
@@ -135,6 +135,10 @@ namespace osu.Framework.Platform
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
             Context.MakeCurrent(null);
+        }
+
+        protected void OnFocusedChanged(object sender, EventArgs e) {
+             isActive.Value = Focused;
         }
 
         /// <summary>

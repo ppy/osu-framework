@@ -92,5 +92,15 @@ namespace osu.Framework.Android
             host = new AndroidGameHost(this);
             host.Run(game);
         }
+
+        public override void Pause() {
+            (host.Window as AndroidGameWindow).ActivityInForeground = false;
+            base.Pause();
+        }
+
+        public override void Resume() {
+            (host.Window as AndroidGameWindow).ActivityInForeground = true;
+            base.Resume();
+        }
     }
 }
