@@ -596,7 +596,6 @@ namespace osu.Framework.Graphics.UserInterface
                 InternalChildren = new[]
                 {
                     Background = CreateBackground(),
-                    CreatePreselectionBackground(),
                     Foreground = new Container
                     {
                         AutoSizeAxes = Axes.Both,
@@ -771,8 +770,6 @@ namespace osu.Framework.Graphics.UserInterface
             /// Creates the background of this <see cref="DrawableMenuItem"/>.
             /// </summary>
             protected virtual Drawable CreateBackground() => new Box { RelativeSizeAxes = Axes.Both };
-
-            protected virtual Drawable CreatePreselectionBackground() => new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.DeepPink, Alpha = 0 };
 
             /// <summary>
             /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
