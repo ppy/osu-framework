@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
     {
         public TestScene CurrentTest { get; private set; }
 
-        private TextBox searchTextBox;
+        private BasicTextBox searchTextBox;
         private SearchContainer<TestSceneButtonGroup> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
@@ -80,7 +80,7 @@ namespace osu.Framework.Testing
         {
             leftFlowContainer.Clear();
 
-            //Add buttons for each TestScene.
+            //Add buttons for each TestCase.
             string namespacePrefix = TestTypes.Select(t => t.Namespace).GetCommonPrefix();
 
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.NewValue)
@@ -96,7 +96,7 @@ namespace osu.Framework.Testing
                                                 .Select(t => new TestSceneButtonGroup(type => LoadTest(type), t)));
         }
 
-        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
+        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
         internal readonly Bindable<Assembly> Assembly = new Bindable<Assembly>();
         internal readonly Bindable<bool> RunAllSteps = new Bindable<bool>();
         internal readonly Bindable<RecordState> RecordState = new Bindable<RecordState>();
@@ -452,7 +452,7 @@ namespace osu.Framework.Testing
                 }
             }
 
-            // even if no [Test] or [TestScene] methods were found, [SetUp] steps should be added.
+            // even if no [Test] or [TestCase] methods were found, [SetUp] steps should be added.
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 

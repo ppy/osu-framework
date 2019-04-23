@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TooltipTextbox : TextBox, IHasTooltip
+        private class TooltipTextbox : BasicTextBox, IHasTooltip
         {
             public string TooltipText => Text;
         }
