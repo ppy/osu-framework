@@ -17,11 +17,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public TestCaseSearchContainer()
         {
             SearchContainer<HeaderContainer> search;
-            TextBox textBox;
+            BasicTextBox textBox;
 
             Children = new Drawable[]
             {
-                textBox = new TextBox
+                textBox = new BasicTextBox
                 {
                     Size = new Vector2(300, 40),
                 },
