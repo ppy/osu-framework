@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing.Drawables.Sections;
-using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -23,7 +22,7 @@ namespace osu.Framework.Testing.Drawables
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(0.1f, 0.1f, 0.1f, 1),
+                    Colour = FrameworkColour.GreenDark,
                 },
                 new Container
                 {
