@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Callbacks;
@@ -31,6 +32,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private Button button;
         private TrackBass track;
+        private Waveform waveform;
+        private Container<Drawable> waveformContainer;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
 
         [BackgroundDependencyLoader]
@@ -39,9 +42,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             track = new TrackBass(game.Resources.GetStream("Tracks/sample-track.mp3"));
             audio.Track.AddItem(track);
 
-            var waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
-
-            FillFlowContainer flow;
+            waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
 
             const float track_width = 1366; // required because RelativeSizeAxes.X doesn't seem to work with horizontal scroll
 
@@ -84,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new ScrollContainer(Direction.Horizontal)
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Child = flow = new FillFlowContainer
+                        Child = waveformContainer = new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Y,
                             Width = track_width,
@@ -95,11 +96,31 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             };
 
-            for (int i = 1; i <= 16; i *= 2)
-                flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
-
-            zoom.ValueChanged += e => flow.Width = track_width * e.NewValue;
+            zoom.ValueChanged += e => waveformContainer.Width = track_width * e.NewValue;
             button.Clicked += startStop;
+        }
+
+        [TestCase(1f)]
+        [TestCase(1f / 2)]
+        [TestCase(1f / 4)]
+        [TestCase(1f / 8)]
+        [TestCase(1f / 16)]
+        [TestCase(0)]
+        public void TestResolution(float resolution)
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
+            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+        }
+
+        [Test]
+        public void TestNullWaveform()
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
+            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
         }
 
         private void startStop()
@@ -125,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private class TestWaveform : CompositeDrawable
         {
             private readonly Track track;
-            private readonly WaveformGraph graph;
+            private readonly TestWaveformGraph graph;
             private readonly Drawable marker;
 
             public TestWaveform(Track track, float resolution)
@@ -137,7 +158,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 InternalChildren = new[]
                 {
-                    graph = new WaveformGraph
+                    graph = new TestWaveformGraph
                     {
                         RelativeSizeAxes = Axes.Both,
                         Resolution = resolution,
@@ -183,6 +204,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 set => graph.Waveform = value;
             }
 
+            public Waveform ResampledWaveform => graph.ResampledWaveform;
+
             protected override void Update()
             {
                 base.Update();
@@ -221,6 +244,11 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 track.Seek(x / DrawWidth * track.Length);
             }
+        }
+
+        private class TestWaveformGraph : WaveformGraph
+        {
+            public new Waveform ResampledWaveform => base.ResampledWaveform;
         }
     }
 }

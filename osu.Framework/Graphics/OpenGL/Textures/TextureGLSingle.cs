@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                if (IsDisposed)
+                if (!Available)
                     throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
 
                 if (textureId == 0)
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                       Vector2? blendRangeOverride = null)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateWrapMode()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not update wrap mode of a disposed texture.");
 
             internalWrapMode = WrapMode;
@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(ITextureUpload upload)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
@@ -300,7 +300,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             Upload();
@@ -323,7 +323,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         internal override unsafe bool Upload()
         {
-            if (IsDisposed)
+            if (!Available)
                 return false;
 
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
