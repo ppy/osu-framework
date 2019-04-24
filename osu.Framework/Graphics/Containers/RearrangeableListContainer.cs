@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates a rearrangeable list container.
         /// </summary>
-        public RearrangeableListContainer()
+        protected RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
             InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
@@ -241,6 +241,8 @@ namespace osu.Framework.Graphics.Containers
             public event Action<DrawableRearrangeableListItem> RequestRemoval;
 
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
+
+            protected void OnRequestRemoval() => RequestRemoval?.Invoke(this);
 
             public T Model;
 
