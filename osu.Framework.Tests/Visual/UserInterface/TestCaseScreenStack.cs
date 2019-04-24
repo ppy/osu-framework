@@ -277,33 +277,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(true, true)]
         public void TestAsyncEventOrder(bool earlyExit, bool suspendImmediately)
         {
+            TestScreenSlow screen1 = null;
+            TestScreenSlow screen2 = null;
+            List<int> order = null;
+
             if (!suspendImmediately)
             {
                 AddStep("override stack", () =>
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
                     {
                         RelativeSizeAxes = Axes.Both
                     });
                 });
             }
 
-            List<int> order = new List<int>();
-
-            var screen1 = new TestScreenSlow
+            AddStep("Perform setup", () =>
             {
-                Entered = () => order.Add(1),
-                Suspended = () => order.Add(2),
-                Resumed = () => order.Add(5),
-            };
-
-            var screen2 = new TestScreenSlow
-            {
-                Entered = () => order.Add(3),
-                Exited = () => order.Add(4),
-            };
+                order = new List<int>();
+                screen1 = new TestScreenSlow
+                {
+                    Entered = () => order.Add(1),
+                    Suspended = () => order.Add(2),
+                    Resumed = () => order.Add(5),
+                };
+                screen2 = new TestScreenSlow
+                {
+                    Entered = () => order.Add(3),
+                    Exited = () => order.Add(4),
+                };
+            });
 
             AddStep("push slow", () => stack.Push(screen1));
             AddStep("push second slow", () => stack.Push(screen2));
@@ -394,7 +399,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                 Clear();
-                Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), false)
                 {
                     RelativeSizeAxes = Axes.Both
                 });
@@ -551,6 +556,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("screen2 did not receive OnEntering", () => screen2.EnteredFrom == null);
             AddAssert("screen2 did not receive OnExiting", () => screen2.ExitedTo == null);
+        }
+
+        [Test]
+        public void TestMakeCurrentDuringLoadOfMany()
+        {
+            TestScreen screen1 = null;
+            TestScreenSlow screen2 = null;
+            TestScreenSlow screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push slow screen 2", () => stack.Push(screen2 = new TestScreenSlow()));
+            AddStep("push slow screen 3", () => stack.Push(screen3 = new TestScreenSlow()));
+            AddStep("Make current the same screen", () => screen1.MakeCurrent());
+            // Allow the later pushed screen to load before the second pushed one.
+            AddStep("allow screen 3 to load", () => screen3.AllowLoad.Set());
+            AddStep("allow screen 2 to load", () => screen2.AllowLoad.Set());
+            AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
         }
 
         /// <summary>

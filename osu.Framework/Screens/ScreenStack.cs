@@ -167,6 +167,10 @@ namespace osu.Framework.Screens
         /// <param name="continuation">The <see cref="Action"/> to invoke after <paramref name="toLoad"/> has finished loading.</param>
         protected virtual void LoadScreen(CompositeDrawable loader, Drawable toLoad, Action continuation)
         {
+            // If the previous screen has already been exited, do not attempt to load the new one.
+            if (loader.IsDisposed)
+                return;
+
             if (toLoad.LoadState >= LoadState.Ready)
                 continuation?.Invoke();
             else
@@ -231,6 +235,7 @@ namespace osu.Framework.Screens
             // The next current screen will be resumed
             if (shouldFireEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
+                // If the exit event gets cancelled, add the screen back on the stack.
                 stack.Push(toExit);
                 return;
             }
