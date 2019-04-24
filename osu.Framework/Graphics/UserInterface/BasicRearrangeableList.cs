@@ -9,9 +9,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicRearrangableList : RearrangeableListContainer<RearrangeableTextListItem>
+    public class BasicRearrangableList : RearrangeableListContainer<BasicRearrangeableItem>
     {
-        protected override DrawableRearrangeableListItem CreateDrawable(RearrangeableTextListItem item) => new BasicDrawableRearrangeableListItem(item);
+        protected override DrawableRearrangeableListItem CreateDrawable(BasicRearrangeableItem item) => new BasicDrawableRearrangeableListItem(item);
 
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool IsDraggableAt(Vector2 screenSpacePos) => DragHandle.ReceivePositionalInputAt(screenSpacePos);
 
-            public BasicDrawableRearrangeableListItem(RearrangeableTextListItem item)
+            public BasicDrawableRearrangeableListItem(BasicRearrangeableItem item)
                 : base(item)
             {
                 Height = 25;
