@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using NUnit.Framework;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 
@@ -41,7 +42,10 @@ namespace osu.Framework.Tests.Clocks
                 Assert.GreaterOrEqual(interpolating.CurrentTime, source.CurrentTime, "Interpolating should not jump before source time.");
 
                 Thread.Sleep((int)(interpolating.AllowableErrorMilliseconds / 2));
+                lastValue = interpolating.CurrentTime;
             }
+
+            int interpolatingCount = 0;
 
             // test with test clock elapsing
             lastValue = interpolating.CurrentTime;
@@ -53,8 +57,46 @@ namespace osu.Framework.Tests.Clocks
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
                 Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
 
+                if (interpolating.CurrentTime != source.CurrentTime)
+                    interpolatingCount++;
+
                 Thread.Sleep((int)(interpolating.AllowableErrorMilliseconds / 2));
+                lastValue = interpolating.CurrentTime;
             }
+
+            Assert.Greater(interpolatingCount, 10);
+        }
+
+        [Test]
+        public void NeverInterpolatesBackwardsOnInterpolationFail()
+        {
+            double lastValue = interpolating.CurrentTime;
+
+            source.Start();
+            source.Rate = 10; // use a higher rate to ensure we may seek backwards.
+
+            int sleepTime = (int)(interpolating.AllowableErrorMilliseconds / 2);
+
+            int interpolatingCount = 0;
+
+            for (int i = 0; i < 200; i++)
+            {
+                if (i < 100) // stop the elapsing at some point in time. should still work as source's ElapsedTime is zero.
+                    source.CurrentTime += sleepTime * source.Rate;
+
+                interpolating.ProcessFrame();
+
+                if (interpolating.CurrentTime != source.CurrentTime)
+                    interpolatingCount++;
+
+                Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
+                Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
+
+                Thread.Sleep(sleepTime);
+                lastValue = interpolating.CurrentTime;
+            }
+
+            Assert.Greater(interpolatingCount, 10);
         }
 
         [Test]
