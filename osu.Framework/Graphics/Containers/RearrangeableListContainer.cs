@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.Both;
             InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
-            ListContainer.ItemsRearranged += OnRearrange;
+            ListContainer.ItemsRearranged += OnItemsRearranged;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
             ScrollContainer.ScrollToStart();
         }
 
-        protected virtual void OnRearrange() => ItemsRearranged?.Invoke();
+        protected virtual void OnItemsRearranged() => ItemsRearranged?.Invoke();
 
         /// <summary>
         /// Allows subclasses to customise the <see cref="ListFillFlowContainer"/>.
@@ -157,13 +157,21 @@ namespace osu.Framework.Graphics.Containers
 
         protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>
         {
+            /// <summary>
+            /// This event is fired after a rearrangement has occurred via dragging.
+            /// </summary>
             public event Action ItemsRearranged;
 
+            /// <summary>
+            /// Returns whether an item is currently being dragged.
+            /// </summary>
             public bool IsDragging => currentlyDraggedItem != null;
 
             private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
             private List<Drawable> cachedFlowingChildren;
+
+            protected void OnItemsRearranged() => ItemsRearranged?.Invoke();
 
             protected override bool OnDragStart(DragStartEvent e)
             {
@@ -238,14 +246,26 @@ namespace osu.Framework.Graphics.Containers
 
         public abstract class DrawableRearrangeableListItem : CompositeDrawable
         {
+            /// <summary>
+            /// This event is fired when a removal is requested. e.g. on item removal.
+            /// </summary>
             public event Action<DrawableRearrangeableListItem> RequestRemoval;
 
+            /// <summary>
+            /// Returns whether the item is currently able to be dragged.
+            /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
 
             protected void OnRequestRemoval() => RequestRemoval?.Invoke(this);
 
+            /// <summary>
+            /// The RearrangeableListItem backing for this Drawable.
+            /// </summary>
             public T Model;
 
+            /// <summary>
+            /// Returns whether the item is currently being dragged.
+            /// </summary>
             public bool IsBeingDragged;
 
             protected override bool OnMouseDown(MouseDownEvent e)

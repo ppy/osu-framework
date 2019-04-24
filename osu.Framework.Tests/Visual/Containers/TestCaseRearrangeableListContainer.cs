@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestItem : RearrangeableListItem
     {
         public Color4 Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1);
-        public bool VariableHeight = false;
+        public bool VariableHeight;
         public bool ShowHandles = true;
     }
 
@@ -214,14 +214,17 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             foreach (var l in lists)
             {
-                if (l == listWithoutHandles || l == listWithoutHandlesWithSpacing || l == listWithoutHandlesWithVariableSizes)
-                    break;
-
                 AddAssert("Ensure correct starting count", () => l.Count == 5);
                 AddStep("Hover Remove Button", () => { InputManager.MoveMouseTo(l.GetChild(0).ToScreenSpace(l.GetChildSize(0) + new Vector2(-10, -l.GetChildSize(0).Y * 0.5f))); });
                 AddStep("RemoveItem", () => InputManager.Click(MouseButton.Left));
                 AddAssert("Ensure correct child count", () => l.Count == 4);
-                AddStep("AddItem", () => { l.AddItem(new TestItem()); });
+                AddStep("AddItem", () =>
+                {
+                    l.AddItem(new TestItem
+                    {
+                        ShowHandles = l == list || l == listWithSpacing || l == listWithVariableSizes,
+                    });
+                });
                 AddAssert("Ensure correct child count", () => l.Count == 5);
             }
         }
@@ -236,6 +239,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             public float GetLayoutPosition(TestDrawable d) => ListContainer.GetLayoutPosition(d);
 
+            // GetChild returns the children in the order of addition, not in their rearranged order.
             public TestDrawable GetChild(int index) => (TestDrawable)Children[index];
 
             public Vector2 GetChildSize(int index) => GetChild(index).DrawSize;
