@@ -122,7 +122,9 @@ namespace osu.Framework.Screens
         {
             if (!to.ValidForPush)
             {
-                // Remove the screen if it is already on top of the stack, as it is no longer valid.
+                // Since this method gets called only after a screen has finished loading, the screen could potentially become invalid in the meantime if it gets exited.
+                // We pre-emptively added the screen to the stack in the publicly exposed Push method, so we need to remove it here if the screen is no longer valid.
+                // Additionally, MakeCurrent could have potentially also exited this screen in the meantime, so we should only exit again if the CurrentScreen is our pushed screen.
                 if (to == CurrentScreen)
                 {
                     exitFrom(to, shouldFireEvent: false);
