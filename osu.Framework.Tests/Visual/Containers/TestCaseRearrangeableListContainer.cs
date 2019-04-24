@@ -150,12 +150,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 listWithoutHandlesWithSpacing,
                 listWithoutHandlesWithVariableSizes,
             });
-
-            SetUp();
         }
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             foreach (var l in lists)
                 l.Clear();
@@ -176,7 +174,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     });
                 }
             }
-        }
+        });
 
         [Test]
         public void SortingTests()

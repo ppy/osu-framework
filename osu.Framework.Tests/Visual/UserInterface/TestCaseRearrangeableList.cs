@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
@@ -33,13 +32,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        [BackgroundDependencyLoader]
-        private void load()
+        public override void SetUp() => Schedule(() =>
         {
             list.Clear();
             for (int i = 0; i < 10; i++)
                 list.AddItem(new RearrangeableTextListItem($"test {i}"));
-        }
+        });
 
         [Test]
         public void SortingTests()
