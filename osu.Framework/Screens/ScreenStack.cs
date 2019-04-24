@@ -120,14 +120,19 @@ namespace osu.Framework.Screens
         /// <param name="to">The new screen being pushed.</param>
         private void push(IScreen from, IScreen to)
         {
-            if (!suspendImmediately)
-                suspend(from, to);
-
             if (!to.ValidForPush)
             {
-                exitFrom(null, shouldFireEvent: false);
+                // Remove the screen if it is already on top of the stack, as it is no longer valid.
+                if (to == CurrentScreen)
+                {
+                    exitFrom(to, shouldFireEvent: false);
+                }
+
                 return;
             }
+
+            if (!suspendImmediately)
+                suspend(from, to);
 
             AddInternal(to.AsDrawable());
             to.OnEntering(from);

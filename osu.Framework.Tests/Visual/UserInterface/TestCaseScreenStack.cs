@@ -549,8 +549,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("allow load of screen2", () => screen2.AllowLoad.Set());
             AddUntilStep("wait for screen2 to load", () => screen2.LoadState == LoadState.Ready);
 
+            AddAssert("screen1 is current screen", () => screen1.IsCurrentScreen());
             AddAssert("screen2 did not receive OnEntering", () => screen2.EnteredFrom == null);
             AddAssert("screen2 did not receive OnExiting", () => screen2.ExitedTo == null);
+        }
+
+        [Test]
+        public void TestMakeCurrentOnSameScreen()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("Make current the same screen", () => screen1.MakeCurrent());
+            AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
         }
 
         /// <summary>
