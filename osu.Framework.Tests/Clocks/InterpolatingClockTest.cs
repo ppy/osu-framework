@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using NUnit.Framework;
-using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 
