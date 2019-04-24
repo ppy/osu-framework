@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -20,22 +19,10 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestItem : RearrangeableListItem
-    {
-        public Color4 Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1);
-        public bool VariableHeight;
-        public bool ShowHandles = true;
-    }
-
     public class TestCaseRearrangeableListContainer : ManualInputManagerTestCase
     {
         private TestRearrangeableListContainer list, listWithSpacing, listWithVariableSizes, listWithoutHandles, listWithoutHandlesWithSpacing, listWithoutHandlesWithVariableSizes;
         private readonly List<TestRearrangeableListContainer> lists = new List<TestRearrangeableListContainer>();
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(TestRearrangeableListContainer),
-        };
 
         [BackgroundDependencyLoader]
         private void load()
@@ -229,6 +216,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private Color4 randomColour() => new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1);
 
+        #region TestRearrangeableListContainer
+
         private class TestRearrangeableListContainer : RearrangeableListContainer<TestItem>
         {
             public int Count => ListContainer.Count;
@@ -342,6 +331,15 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 }
             }
+        }
+
+        #endregion
+
+        private class TestItem : RearrangeableListItem
+        {
+            public Color4 Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1);
+            public bool VariableHeight;
+            public bool ShowHandles = true;
         }
     }
 }
