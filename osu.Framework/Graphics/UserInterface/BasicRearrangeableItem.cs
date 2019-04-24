@@ -5,11 +5,11 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class RearrangeableTextListItem : RearrangeableListItem
+    public class BasicRearrangeableItem : RearrangeableListItem
     {
         public string Text;
 
-        public RearrangeableTextListItem(string text)
+        public BasicRearrangeableItem(string text)
         {
             Text = text;
         }

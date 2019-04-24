@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             list.Clear();
             for (int i = 0; i < 10; i++)
-                list.AddItem(new RearrangeableTextListItem($"test {i}"));
+                list.AddItem(new BasicRearrangeableItem($"test {i}"));
         });
 
         [Test]
