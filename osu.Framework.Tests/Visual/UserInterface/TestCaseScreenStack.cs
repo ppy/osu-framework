@@ -564,6 +564,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
         }
 
+        [Test]
+        public void TestInvalidPushBlocksNonImmediateSuspend()
+        {
+            TestScreen screen1 = null;
+            TestScreenSlow screen2 = null;
+
+            AddStep("override stack", () =>
+            {
+                // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), false)
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
+            AddStep("exit slow", () => screen2.Exit());
+            AddStep("allow load", () => screen2.AllowLoad.Set());
+            AddUntilStep("wait for screen to load", () => screen2.LoadState >= LoadState.Ready);
+            AddAssert("basescreen did not recieve suspending", () => screen1.SuspendedTo == null);
+        }
+
         /// <summary>
         /// Push two screens and check that they only handle input when they are respectively loaded and current.
         /// </summary>
