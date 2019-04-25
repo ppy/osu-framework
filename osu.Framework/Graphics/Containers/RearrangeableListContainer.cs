@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
 
             private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
-            private List<Drawable> cachedFlowingChildren;
+            private readonly List<Drawable> cachedFlowingChildren = new List<Drawable>();
 
             protected void OnItemsRearranged() => ItemsRearranged?.Invoke();
 
@@ -177,7 +177,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
-                cachedFlowingChildren = new List<Drawable>(FlowingChildren);
+                cachedFlowingChildren.Clear();
+                cachedFlowingChildren.AddRange(FlowingChildren);
                 return currentlyDraggedItem != null || base.OnDragStart(e);
             }
 
@@ -192,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 var handled = currentlyDraggedItem != null || base.OnDragEnd(e);
                 currentlyDraggedItem = null;
-                cachedFlowingChildren = new List<Drawable>();
+                cachedFlowingChildren.Clear();
                 return handled;
             }
 
