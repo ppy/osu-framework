@@ -239,7 +239,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 protected Drawable DragHandle;
 
-                protected override bool IsDraggableAt(Vector2 screenSpacePos) => !Model.ShowHandles || DragHandle.ReceivePositionalInputAt(screenSpacePos);
+                protected override bool IsDraggableAt(Vector2 screenSpacePos) => !RemoveButton.IsHovered && (!Model.ShowHandles || DragHandle.ReceivePositionalInputAt(screenSpacePos));
 
                 protected override bool OnClick(ClickEvent e)
                 {
@@ -251,12 +251,6 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
 
                     return false;
-                }
-
-                protected override bool OnMouseUp(MouseUpEvent e)
-                {
-                    IsBeingDragged = false;
-                    return base.OnMouseUp(e);
                 }
 
                 public TestDrawable(TestItem item)

@@ -253,6 +253,11 @@ namespace osu.Framework.Graphics.Containers
             public event Action<DrawableRearrangeableListItem> RemovalRequested;
 
             /// <summary>
+            /// Returns whether the item is currently being dragged.
+            /// </summary>
+            public bool IsBeingDragged => isBeingDragged;
+
+            /// <summary>
             /// Returns whether the item is currently able to be dragged.
             /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
@@ -264,22 +269,19 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public T Model;
 
-            /// <summary>
-            /// Returns whether the item is currently being dragged.
-            /// </summary>
-            public bool IsBeingDragged;
+            private bool isBeingDragged;
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
                 if (IsDraggableAt(e.ScreenSpaceMousePosition))
-                    IsBeingDragged = true;
+                    isBeingDragged = true;
 
                 return base.OnMouseDown(e);
             }
 
             protected override bool OnMouseUp(MouseUpEvent e)
             {
-                IsBeingDragged = false;
+                isBeingDragged = false;
                 return base.OnMouseUp(e);
             }
 
