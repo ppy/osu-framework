@@ -217,10 +217,7 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
                 if (currentlyDraggedItem != null)
-                {
-                    cachedFlowingChildren.Clear();
                     DragEnd?.Invoke(e);
-                }
 
                 var handled = currentlyDraggedItem != null || base.OnDragEnd(e);
                 currentlyDraggedItem = null;
