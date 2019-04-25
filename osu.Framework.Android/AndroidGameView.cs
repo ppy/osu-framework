@@ -93,13 +93,19 @@ namespace osu.Framework.Android
             host.Run(game);
         }
 
-        public override void Pause() {
-            (host.Window as AndroidGameWindow).ActivityInForeground = false;
+        public override void Pause()
+        {
+            if (host.Window is AndroidGameWindow androidWindow)
+                androidWindow.ActivityInForeground = false;
+
             base.Pause();
         }
 
-        public override void Resume() {
-            (host.Window as AndroidGameWindow).ActivityInForeground = true;
+        public override void Resume()
+        {
+            if (host.Window is AndroidGameWindow androidWindow)
+                androidWindow.ActivityInForeground = true;
+
             base.Resume();
         }
     }

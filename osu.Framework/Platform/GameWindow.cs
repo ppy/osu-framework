@@ -137,7 +137,8 @@ namespace osu.Framework.Platform
             Context.MakeCurrent(null);
         }
 
-        protected void OnFocusedChanged(object sender, EventArgs e) {
+        protected void OnFocusedChanged(object sender, EventArgs e)
+        {
              isActive.Value = Focused;
         }
 

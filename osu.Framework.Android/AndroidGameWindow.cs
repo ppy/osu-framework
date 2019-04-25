@@ -16,8 +16,9 @@ namespace osu.Framework.Android
 
         internal static AndroidGameView View;
 
-        protected bool activityInForeground = true;
-        public bool ActivityInForeground {
+        private bool activityInForeground = true;
+        public bool ActivityInForeground
+        {
             get => activityInForeground;
             set {
                 activityInForeground = value;

@@ -16,16 +16,16 @@ namespace osu.Framework.Android
             SetContentView(new AndroidGameView(this, CreateGame()));
         }
 
-        protected override void OnResume() {
+        protected override void OnResume()
+        {
             base.OnResume();
             AndroidGameWindow.View?.Resume();
-            System.Console.WriteLine("AGA:OnResume called");
         }
 
-        protected override void OnPause() {
+        protected override void OnPause()
+        {
             base.OnPause();
             AndroidGameWindow.View?.Pause();
-            System.Console.WriteLine("AGA:OnPause called");
         }
     }
 }
