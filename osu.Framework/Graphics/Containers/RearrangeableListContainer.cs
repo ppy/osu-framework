@@ -283,7 +283,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Returns whether the item is currently being dragged.
             /// </summary>
-            public bool IsBeingDragged => isBeingDragged;
+            public bool IsBeingDragged { get; private set; }
 
             /// <summary>
             /// Returns whether the item is currently able to be dragged.
@@ -297,19 +297,17 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public T Model;
 
-            private bool isBeingDragged;
-
             protected override bool OnMouseDown(MouseDownEvent e)
             {
                 if (IsDraggableAt(e.ScreenSpaceMousePosition))
-                    isBeingDragged = true;
+                    IsBeingDragged = true;
 
                 return base.OnMouseDown(e);
             }
 
             protected override bool OnMouseUp(MouseUpEvent e)
             {
-                isBeingDragged = false;
+                IsBeingDragged = false;
                 return base.OnMouseUp(e);
             }
 
