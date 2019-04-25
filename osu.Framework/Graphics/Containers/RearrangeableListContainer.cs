@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
         public void AddItem(T item)
         {
             var drawable = CreateDrawable(item);
-            drawable.RequestRemoval += RemoveItem;
+            drawable.RemovalRequested += RemoveItem;
             ListContainer.Add(drawable);
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
@@ -250,14 +250,14 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// This event is fired when a removal is requested. e.g. on item removal.
             /// </summary>
-            public event Action<DrawableRearrangeableListItem> RequestRemoval;
+            public event Action<DrawableRearrangeableListItem> RemovalRequested;
 
             /// <summary>
             /// Returns whether the item is currently able to be dragged.
             /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
 
-            protected void OnRequestRemoval() => RequestRemoval?.Invoke(this);
+            protected void OnRequestRemoval() => RemovalRequested?.Invoke(this);
 
             /// <summary>
             /// The RearrangeableListItem backing for this Drawable.
