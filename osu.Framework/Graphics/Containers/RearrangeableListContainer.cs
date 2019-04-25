@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
 
             private void updateScrollPosition()
             {
-                if (scrollSpeed < 0 && Current > 0 || scrollSpeed > 0 && !IsScrolledToEnd())
+                if ((scrollSpeed < 0 && Current > 0) || (scrollSpeed > 0 && !IsScrolledToEnd()))
                     ScrollBy((float)scrollSpeed);
             }
         }
