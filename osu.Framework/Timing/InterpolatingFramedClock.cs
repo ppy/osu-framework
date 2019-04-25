@@ -83,8 +83,9 @@ namespace osu.Framework.Timing
 
             if (!allowInterpolation || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
             {
-                //if we've exceeded the allowable error, we should use the source clock's time value.
-                CurrentInterpolatedTime = FramedSourceClock.CurrentTime;
+                // if we've exceeded the allowable error, we should use the source clock's time value.
+                // seeking backwards should only be allowed if the source is explicitly doing that.
+                CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
 
                 // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
                 allowInterpolation = false;

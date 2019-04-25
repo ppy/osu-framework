@@ -9,24 +9,51 @@ namespace osu.Framework.Graphics
 {
     /// <summary>
     /// Contains all the information required to draw a single <see cref="Drawable"/>.
-    /// A hierarchy of DrawNodes is passed to the draw thread for rendering every frame.
+    /// A hierarchy of <see cref="DrawNode"/>s is passed to the draw thread for rendering every frame.
     /// </summary>
     public class DrawNode : IDisposable
     {
         /// <summary>
-        /// Contains a linear transformation, colour information, and blending information
-        /// of this draw node.
+        /// Contains the linear transformation of this <see cref="DrawNode"/>.
         /// </summary>
-        public DrawInfo DrawInfo { get; internal set; }
+        protected DrawInfo DrawInfo { get; private set; }
 
-        public DrawColourInfo DrawColourInfo { get; internal set; }
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="DrawNode"/>.
+        /// </summary>
+        protected internal DrawColourInfo DrawColourInfo { get; internal set; }
 
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
-        /// <see cref="Drawable"/>. Whenever the invalidation state of this draw node disagrees
-        /// with the state of its <see cref="Drawable"/> it has to be updated.
+        /// <see cref="Drawable"/>. An update is required when the invalidation state of this draw node disagrees
+        /// with the invalidation state of its <see cref="Drawable"/>.
         /// </summary>
-        public long InvalidationID { get; internal set; }
+        protected internal long InvalidationID { get; private set; }
+
+        /// <summary>
+        /// The <see cref="Drawable"/> which this <see cref="DrawNode"/> draws.
+        /// </summary>
+        protected readonly IDrawable Source;
+
+        /// <summary>
+        /// Creates a new <see cref="DrawNode"/>.
+        /// </summary>
+        /// <param name="source">The <see cref="Drawable"/> to draw with this <see cref="DrawNode"/>.</param>
+        public DrawNode(IDrawable source)
+        {
+            Source = source;
+        }
+
+        /// <summary>
+        /// Applies the state of <see cref="Source"/> to this <see cref="DrawNode"/> for use in rendering.
+        /// The applied state must remain immutable.
+        /// </summary>
+        public virtual void ApplyState()
+        {
+            DrawInfo = Source.DrawInfo;
+            DrawColourInfo = Source.DrawColourInfo;
+            InvalidationID = Source.InvalidationID;
+        }
 
         /// <summary>
         /// Draws this draw node to the screen.
