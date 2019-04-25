@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// This event is fired after a rearrangement has occurred via dragging.
         /// </summary>
-        public event Action ItemsRearranged;
+        public event Action Rearranged;
 
         /// <summary>
         /// The list of children as they are currently arranged.
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.Both;
             InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
-            ListContainer.ItemsRearranged += OnItemsRearranged;
+            ListContainer.Rearranged += OnRearrange;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
             ScrollContainer.ScrollToStart();
         }
 
-        protected virtual void OnItemsRearranged() => ItemsRearranged?.Invoke();
+        protected virtual void OnRearrange() => Rearranged?.Invoke();
 
         /// <summary>
         /// Allows subclasses to customise the <see cref="ListFillFlowContainer"/>.
@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// This event is fired after a rearrangement has occurred via dragging.
             /// </summary>
-            public event Action ItemsRearranged;
+            public event Action Rearranged;
 
             /// <summary>
             /// Returns whether an item is currently being dragged.
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
             private Vector2 nativeDragPosition;
             private readonly List<Drawable> cachedFlowingChildren = new List<Drawable>();
 
-            protected void OnItemsRearranged() => ItemsRearranged?.Invoke();
+            protected void OnRearrange() => Rearranged?.Invoke();
 
             protected override bool OnDragStart(DragStartEvent e)
             {
@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.Containers
                 for (int i = 0; i < cachedFlowingChildren.Count; i++)
                     SetLayoutPosition(cachedFlowingChildren[i], i);
 
-                ItemsRearranged?.Invoke();
+                Rearranged?.Invoke();
             }
         }
 
