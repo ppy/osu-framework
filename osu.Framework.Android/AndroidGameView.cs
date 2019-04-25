@@ -63,9 +63,9 @@ namespace osu.Framework.Android
 
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            switch(keyCode) {
-                /// Do not consume Volume keys, so the system can handle them
-                /// No need to handle in the other methods?
+            switch (keyCode)
+            {
+                // Do not consume Volume keys, so the system can handle them
                 case Keycode.VolumeDown:
                 case Keycode.VolumeUp:
                 case Keycode.VolumeMute:
