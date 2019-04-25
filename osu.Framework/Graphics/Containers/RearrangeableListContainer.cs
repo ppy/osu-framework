@@ -113,7 +113,9 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = Axes.Both;
                 ScrollbarOverlapsContent = false;
                 Padding = new MarginPadding(5);
+
                 Child = flowContainer;
+
                 flowContainer.DragStart += _ => autoScrolling = true;
                 flowContainer.Drag += updateDragPosition;
                 flowContainer.DragEnd += _ =>
@@ -134,6 +136,7 @@ namespace osu.Framework.Graphics.Containers
             private void updateDragPosition(DragEvent dragEvent)
             {
                 var localPos = ToLocalSpace(dragEvent.ScreenSpaceMousePosition);
+
                 if (localPos.Y < scroll_trigger_distance)
                 {
                     var power = Math.Min(max_power, Math.Abs(scroll_trigger_distance - localPos.Y));
@@ -193,6 +196,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
+
                 cachedFlowingChildren.Clear();
                 cachedFlowingChildren.AddRange(FlowingChildren);
 
