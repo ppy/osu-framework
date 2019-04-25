@@ -9,7 +9,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicRearrangableList : RearrangeableListContainer<BasicRearrangeableItem>
+    public class BasicRearrangeableList : RearrangeableListContainer<BasicRearrangeableItem>
     {
         protected override DrawableRearrangeableListItem CreateDrawable(BasicRearrangeableItem item) => new BasicDrawableRearrangeableListItem(item);
 

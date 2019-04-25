@@ -14,18 +14,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestCaseRearrangeableList : ManualInputManagerTestCase
     {
-        private readonly TestBasicRearrangableList list;
+        private readonly TestBasicRearrangeableList list;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(TestBasicRearrangableList),
-            typeof(BasicRearrangableList),
-            typeof(BasicRearrangableList.BasicDrawableRearrangeableListItem),
+            typeof(TestBasicRearrangeableList),
+            typeof(BasicRearrangeableList),
+            typeof(BasicRearrangeableList.BasicDrawableRearrangeableListItem),
         };
 
         public TestCaseRearrangeableList()
         {
-            Add(list = new TestBasicRearrangableList
+            Add(list = new TestBasicRearrangeableList
             {
                 Width = 0.3f,
             });
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure item is now first again", () => list.GetLayoutPosition(list.GetChild(0)) == 0);
         }
 
-        private class TestBasicRearrangableList : BasicRearrangableList
+        private class TestBasicRearrangeableList : BasicRearrangeableList
         {
             public IReadOnlyList<Drawable> Children => ListContainer.Children;
 
