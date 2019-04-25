@@ -105,38 +105,34 @@ namespace osu.Framework.Screens
             {
                 // this is the first screen to be loaded.
                 if (LoadState >= LoadState.Ready)
-                    LoadScreen(this, newScreenDrawable, () => push(null, newScreen));
+                    LoadScreen(this, newScreenDrawable, () => finishPush(null, newScreen));
                 else
-                    Schedule(() => push(null, newScreen));
+                    Schedule(() => finishPush(null, newScreen));
             }
             else
-                LoadScreen((CompositeDrawable)source, newScreenDrawable, () => push(source, newScreen));
+                LoadScreen((CompositeDrawable)source, newScreenDrawable, () => finishPush(source, newScreen));
         }
 
         /// <summary>
         /// Complete push of a loaded screen.
         /// </summary>
-        /// <param name="from">The screen to push to.</param>
-        /// <param name="to">The new screen being pushed.</param>
-        private void push(IScreen from, IScreen to)
+        /// <param name="parent">The screen to push to.</param>
+        /// <param name="child">The new screen being pushed.</param>
+        private void finishPush(IScreen parent, IScreen child)
         {
-            if (!to.ValidForPush)
+            if (!child.ValidForPush)
             {
-                // As this method is a continuation of the public Push method, remove the screen if the push was aborted in the meantime.
-                // MakeCurrent could have potentially also exited this screen in the meantime, so only attempt to remove it if the stack still has it.
-                if (to == CurrentScreen)
-                {
-                    exitFrom(to, shouldFireEvent: false);
-                }
+                if (child == CurrentScreen)
+                    exitFrom(null, shouldFireEvent: false);
 
                 return;
             }
 
             if (!suspendImmediately)
-                suspend(from, to);
+                suspend(parent, child);
 
-            AddInternal(to.AsDrawable());
-            to.OnEntering(from);
+            AddInternal(child.AsDrawable());
+            child.OnEntering(parent);
         }
 
         /// <summary>
