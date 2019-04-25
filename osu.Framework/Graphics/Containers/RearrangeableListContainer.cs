@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -94,11 +94,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Allows subclasses to customise the <see cref="ListScrollContainer"/>.
         /// </summary>
-        protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) =>
-            new ListScrollContainer
-            {
-                Child = flowContainer,
-            };
+        protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new ListScrollContainer(flowContainer);
 
         protected abstract DrawableRearrangeableListItem CreateDrawable(T item);
 
@@ -106,48 +102,58 @@ namespace osu.Framework.Graphics.Containers
 
         protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
-            public ListScrollContainer()
+            private const float scroll_trigger_distance = 10;
+            private const double max_power = 50;
+            private const double exp_base = 1.05;
+            private bool autoScrolling;
+            private double scrollSpeed;
+
+            public ListScrollContainer(ListFillFlowContainer flowContainer)
             {
                 RelativeSizeAxes = Axes.Both;
                 ScrollbarOverlapsContent = false;
                 Padding = new MarginPadding(5);
+                Child = flowContainer;
+                flowContainer.DragStart += _ => autoScrolling = true;
+                flowContainer.Drag += updateDragPosition;
+                flowContainer.DragEnd += _ =>
+                {
+                    autoScrolling = false;
+                    scrollSpeed = 0;
+                };
             }
 
             protected override void Update()
             {
                 base.Update();
-                updateScrollPosition();
+
+                if (autoScrolling)
+                    updateScrollPosition();
+            }
+
+            private void updateDragPosition(DragEvent dragEvent)
+            {
+                var localPos = ToLocalSpace(dragEvent.ScreenSpaceMousePosition);
+                if (localPos.Y < scroll_trigger_distance)
+                {
+                    var power = Math.Min(max_power, Math.Abs(scroll_trigger_distance - localPos.Y));
+                    scrollSpeed = -(float)Math.Pow(exp_base, power);
+                }
+                else if (localPos.Y > DrawHeight - scroll_trigger_distance)
+                {
+                    var power = Math.Min(max_power, Math.Abs(DrawHeight - scroll_trigger_distance - localPos.Y));
+                    scrollSpeed = (float)Math.Pow(exp_base, power);
+                }
+                else
+                {
+                    scrollSpeed = 0;
+                }
             }
 
             private void updateScrollPosition()
             {
-                const float scroll_trigger_distance = 10;
-                const double max_power = 50;
-                const double exp_base = 1.05;
-
-                var mouse = GetContainingInputManager().CurrentState.Mouse;
-
-                if (!mouse.IsPressed(MouseButton.Left) || !Child.IsDragging)
-                    return;
-
-                var localPos = ToLocalSpace(mouse.Position);
-
-                if (localPos.Y < scroll_trigger_distance)
-                {
-                    if (Current <= 0)
-                        return;
-
-                    var power = Math.Min(max_power, Math.Abs(scroll_trigger_distance - localPos.Y));
-                    ScrollBy(-(float)Math.Pow(exp_base, power));
-                }
-                else if (localPos.Y > DrawHeight - scroll_trigger_distance)
-                {
-                    if (IsScrolledToEnd())
-                        return;
-
-                    var power = Math.Min(max_power, Math.Abs(DrawHeight - scroll_trigger_distance - localPos.Y));
-                    ScrollBy((float)Math.Pow(exp_base, power));
-                }
+                if (scrollSpeed < 0 && Current > 0 || scrollSpeed > 0 && !IsScrolledToEnd())
+                    ScrollBy((float)scrollSpeed);
             }
         }
 
@@ -155,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region ListFillFlowContainer
 
-        protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>
+        protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>, IRequireHighFrequencyMousePosition
         {
             /// <summary>
             /// This event is fired after a rearrangement has occurred via dragging.
@@ -163,9 +169,19 @@ namespace osu.Framework.Graphics.Containers
             public event Action Rearranged;
 
             /// <summary>
-            /// Returns whether an item is currently being dragged.
+            /// This event is fired when a drag start occurs.
             /// </summary>
-            public bool IsDragging => currentlyDraggedItem != null;
+            public event Action<DragStartEvent> DragStart;
+
+            /// <summary>
+            /// This event is fired when a drag occurs.
+            /// </summary>
+            public event Action<DragEvent> Drag;
+
+            /// <summary>
+            /// This event is fired when a drag end occurs.
+            /// </summary>
+            public event Action<DragEndEvent> DragEnd;
 
             private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
@@ -179,21 +195,36 @@ namespace osu.Framework.Graphics.Containers
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
                 cachedFlowingChildren.Clear();
                 cachedFlowingChildren.AddRange(FlowingChildren);
+
+                if (currentlyDraggedItem != null)
+                    DragStart?.Invoke(e);
+
                 return currentlyDraggedItem != null || base.OnDragStart(e);
             }
 
             protected override bool OnDrag(DragEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
+
+                if (currentlyDraggedItem != null)
+                    Drag?.Invoke(e);
+
                 return currentlyDraggedItem != null || base.OnDrag(e);
             }
 
             protected override bool OnDragEnd(DragEndEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
+
+                if (currentlyDraggedItem != null)
+                {
+                    cachedFlowingChildren.Clear();
+                    DragEnd?.Invoke(e);
+                }
+
                 var handled = currentlyDraggedItem != null || base.OnDragEnd(e);
                 currentlyDraggedItem = null;
-                cachedFlowingChildren.Clear();
+
                 return handled;
             }
 
