@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.Color4Extensions;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// The changes done to this property are only applied when <see cref="Checkbox.Current"/>'s value changes.
         /// </remarks>
-        public Color4 CheckedColor { get; set; } = Color4.White;
+        public Color4 CheckedColor { get; set; } = FrameworkColour.YellowGreen;
 
         /// <summary>
         /// The color of the checkbox when the checkbox is not checked. Default is an white with low opacity.
@@ -29,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// The changes done to this property are only applied when <see cref="Checkbox.Current"/>'s value changes.
         /// </remarks>
-        public Color4 UncheckedColor { get; set; } = Color4.White.Opacity(0.2f);
+        public Color4 UncheckedColor { get; set; } = FrameworkColour.Green;
 
         /// <summary>
         /// The length of the duration between checked and unchecked.
@@ -45,28 +44,30 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public string LabelText
         {
-            get => labelSpriteText?.Text;
-            set
-            {
-                if (labelSpriteText != null)
-                    labelSpriteText.Text = value;
-            }
+            get => labelSpriteText.Text;
+            set => labelSpriteText.Text = value;
         }
 
         /// <summary>
-        /// The padding of the label text.
+        /// The spacing between the checkbox and the label.
         /// </summary>
-        public MarginPadding LabelPadding
+        public float LabelSpacing
         {
-            get => labelSpriteText?.Padding ?? new MarginPadding();
-            set
-            {
-                if (labelSpriteText != null)
-                    labelSpriteText.Padding = value;
-            }
+            get => fillFlowContainer.Spacing.X;
+            set => fillFlowContainer.Spacing = new Vector2(value, 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool RightHandedCheckbox
+        {
+            get => fillFlowContainer.GetLayoutPosition(labelSpriteText) < -0.5f;
+            set => fillFlowContainer.SetLayoutPosition(labelSpriteText, value ? -1 : 1);
         }
 
         private readonly SpriteText labelSpriteText;
+        private readonly FillFlowContainer fillFlowContainer;
 
         public BasicCheckbox()
         {
@@ -74,36 +75,28 @@ namespace osu.Framework.Graphics.UserInterface
 
             AutoSizeAxes = Axes.Both;
 
-            Child = new FillFlowContainer
+            Child = fillFlowContainer = new FillFlowContainer
             {
                 Direction = FillDirection.Horizontal,
                 AutoSizeAxes = Axes.Both,
+                Spacing = new Vector2(10, 0),
                 Children = new Drawable[]
                 {
-                    new Container
+                    box = new Box
                     {
-                        BorderColour = Color4.White,
-                        BorderThickness = 3,
-                        Masking = true,
-                        Size = new Vector2(20, 20),
-                        Child = box = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both
-                        }
+                        Size = new Vector2(30),
                     },
                     labelSpriteText = new SpriteText
                     {
-                        Padding = new MarginPadding
-                        {
-                            Left = 10
-                        },
-                        Depth = float.MinValue
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Depth = float.MinValue,
+                        Font = new FontUsage("RobotoCondensed", weight: "Regular")
                     },
                 }
             };
 
-            Current.ValueChanged += e => box.FadeColour(e.NewValue ? CheckedColor : UncheckedColor, FadeDuration);
-            Current.TriggerChange();
+            Current.BindValueChanged(e => box.FadeColour(e.NewValue ? CheckedColor : UncheckedColor, FadeDuration), true);
         }
     }
 }

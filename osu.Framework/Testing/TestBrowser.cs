@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
     {
         public TestCase CurrentTest { get; private set; }
 
-        private TextBox searchTextBox;
+        private BasicTextBox searchTextBox;
         private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
@@ -96,7 +96,7 @@ namespace osu.Framework.Testing
                                                 .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
         }
 
-        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
+        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
         internal readonly Bindable<Assembly> Assembly = new Bindable<Assembly>();
         internal readonly Bindable<bool> RunAllSteps = new Bindable<bool>();
         internal readonly Bindable<RecordState> RecordState = new Bindable<RecordState>();
@@ -231,12 +231,10 @@ namespace osu.Framework.Testing
 
             if (RuntimeInfo.SupportsJIT)
             {
-                backgroundCompiler = new DynamicClassCompiler<TestCase>
-                {
-                    CompilationStarted = compileStarted,
-                    CompilationFinished = compileFinished,
-                    CompilationFailed = compileFailed
-                };
+                backgroundCompiler = new DynamicClassCompiler<TestCase>();
+                backgroundCompiler.CompilationStarted += compileStarted;
+                backgroundCompiler.CompilationFinished += compileFinished;
+                backgroundCompiler.CompilationFailed += compileFailed;
                 try
                 {
                     backgroundCompiler.Start();

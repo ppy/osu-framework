@@ -45,8 +45,9 @@ namespace osu.Framework.Platform
         [CanBeNull]
         public event EventHandler<KeyboardKeyEventArgs> KeyDown;
 
-        internal Version GLVersion;
-        internal Version GLSLVersion;
+        internal readonly Version GLVersion;
+        internal readonly Version GLSLVersion;
+        internal readonly bool IsEmbedded;
 
         protected readonly IGameWindow Implementation;
 
@@ -103,8 +104,14 @@ namespace osu.Framework.Platform
 
             string version = GL.GetString(StringName.Version);
             string versionNumberSubstring = getVersionNumberSubstring(version);
+
             GLVersion = new Version(versionNumberSubstring);
+
+            // As defined by https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glGetString.xml
+            IsEmbedded = version.Contains("OpenGL ES");
+
             version = GL.GetString(StringName.ShadingLanguageVersion);
+
             if (!string.IsNullOrEmpty(version))
             {
                 try
