@@ -197,7 +197,6 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
 
-                cachedFlowingChildren.Clear();
                 cachedFlowingChildren.AddRange(FlowingChildren);
 
                 if (currentlyDraggedItem != null)
@@ -219,6 +218,8 @@ namespace osu.Framework.Graphics.Containers
             protected override bool OnDragEnd(DragEndEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
+
+                cachedFlowingChildren.Clear();
 
                 if (currentlyDraggedItem != null)
                     DragEnd?.Invoke(e);
