@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -33,11 +35,15 @@ namespace osu.Framework.Timing
         /// </summary>
         private IAdjustableClock adjustableSource => Source as IAdjustableClock;
 
-        public override double CurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+        public override double CurrentTime => currentTime;
+
+        private double currentTime;
 
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
-        public override double ElapsedFrameTime => useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+        private double elapsedFrameTime;
+
+        public override double ElapsedFrameTime => elapsedFrameTime;
 
         public override double Rate
         {
@@ -66,7 +72,7 @@ namespace osu.Framework.Timing
                 {
                     // when coupled, we want to stop when our source clock stops.
                     if (sourceRunning)
-                        decoupledStopwatch.Seek(CurrentTime);
+                        decoupledStopwatch.Seek(base.CurrentTime);
                     else
                         Stop();
                 }
@@ -84,6 +90,12 @@ namespace osu.Framework.Timing
             }
 
             decoupledClock.ProcessFrame();
+
+            double proposedTime = useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+
+            elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+
+            currentTime = elapsedFrameTime < 0 ? proposedTime : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)
