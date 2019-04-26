@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -33,7 +35,9 @@ namespace osu.Framework.Timing
         /// </summary>
         private IAdjustableClock adjustableSource => Source as IAdjustableClock;
 
-        public override double CurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+        public override double CurrentTime => currentTime;
+
+        private double currentTime;
 
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
@@ -66,7 +70,7 @@ namespace osu.Framework.Timing
                 {
                     // when coupled, we want to stop when our source clock stops.
                     if (sourceRunning)
-                        decoupledStopwatch.Seek(CurrentTime);
+                        decoupledStopwatch.Seek(base.CurrentTime);
                     else
                         Stop();
                 }
@@ -84,6 +88,8 @@ namespace osu.Framework.Timing
             }
 
             decoupledClock.ProcessFrame();
+
+            currentTime = useInterpolatedSourceTime ? Math.Max(base.CurrentTime, decoupledClock.CurrentTime) : decoupledClock.CurrentTime;
         }
 
         public override void ChangeSource(IClock source)
