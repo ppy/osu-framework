@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.OpenGL;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osu.Framework.Logging;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics
