@@ -41,7 +41,9 @@ namespace osu.Framework.Timing
 
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
-        public override double ElapsedFrameTime => useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+        private double elapsedFrameTime;
+
+        public override double ElapsedFrameTime => elapsedFrameTime;
 
         public override double Rate
         {
@@ -89,7 +91,11 @@ namespace osu.Framework.Timing
 
             decoupledClock.ProcessFrame();
 
-            currentTime = useInterpolatedSourceTime ? Math.Max(base.CurrentTime, decoupledClock.CurrentTime) : decoupledClock.CurrentTime;
+            double proposedTime = useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+
+            elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+
+            currentTime = elapsedFrameTime < 0 ? proposedTime : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)

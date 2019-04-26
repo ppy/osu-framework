@@ -42,7 +42,9 @@ namespace osu.Framework.Timing
             ChangeSource(source);
         }
 
-        public virtual double CurrentTime => sourceIsRunning ? CurrentInterpolatedTime : FramedSourceClock.CurrentTime;
+        public virtual double CurrentTime => currentTime;
+
+        private double currentTime;
 
         public double AllowableErrorMilliseconds = 1000.0 / 60 * 2;
 
@@ -71,7 +73,7 @@ namespace osu.Framework.Timing
 
             sourceIsRunning = FramedSourceClock.IsRunning;
 
-            LastInterpolatedTime = CurrentTime;
+            LastInterpolatedTime = currentTime;
 
             if (!FramedSourceClock.IsRunning)
                 return;
@@ -98,6 +100,8 @@ namespace osu.Framework.Timing
                 // limit the direction of travel to avoid seeking against the flow.
                 CurrentInterpolatedTime = Rate >= 0 ? Math.Max(LastInterpolatedTime, CurrentInterpolatedTime) : Math.Min(LastInterpolatedTime, CurrentInterpolatedTime);
             }
+
+            currentTime = sourceIsRunning ? CurrentInterpolatedTime : FramedSourceClock.CurrentTime;
         }
     }
 }
