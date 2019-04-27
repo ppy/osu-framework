@@ -139,7 +139,7 @@ namespace osu.Framework.Platform
 
         protected void OnFocusedChanged(object sender, EventArgs e)
         {
-             isActive.Value = Focused;
+            isActive.Value = Focused;
         }
 
         /// <summary>
