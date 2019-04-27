@@ -17,8 +17,6 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarRecordSection : ToolbarSection
     {
-        private Button previousButton;
-        private Button nextButton;
         private Button recordButton;
         private FillFlowContainer playbackControls;
         private TestBrowser browser;
@@ -32,13 +30,14 @@ namespace osu.Framework.Testing.Drawables.Sections
         private void load(TestBrowser browser)
         {
             this.browser = browser;
+            SpriteText maxFrameCount, currentFrame;
 
             InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Y,
                 AutoSizeAxes = Axes.X,
                 Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(5),
+                Spacing = new Vector2(10),
                 Children = new Drawable[]
                 {
                     playbackControls = new FillFlowContainer
@@ -49,33 +48,36 @@ namespace osu.Framework.Testing.Drawables.Sections
                         Direction = FillDirection.Horizontal,
                         Children = new Drawable[]
                         {
-                            new SpriteText
+                            new SpriteIcon
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Text = "Playback:"
+                                Icon = FontAwesome.Solid.Circle,
+                                Colour = Color4.Red,
+                                Size = new Vector2(20),
                             },
-                            new FrameSliderBar
+                            currentFrame = new SpriteText
                             {
-                                RelativeSizeAxes = Axes.Y,
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Colour = FrameworkColour.Yellow,
+                                Text = "0",
+                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                            },
+                            new BasicSliderBar<int>
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Height = 20,
                                 Width = 250,
                                 Current = browser.CurrentFrame
                             },
-                            previousButton = new RepeatButton
+                            maxFrameCount = new SpriteText
                             {
-                                Width = 25,
-                                RelativeSizeAxes = Axes.Y,
-                                BackgroundColour = Color4.MediumPurple,
-                                Text = "<",
-                                Action = previousFrame
-                            },
-                            nextButton = new RepeatButton
-                            {
-                                Width = 25,
-                                RelativeSizeAxes = Axes.Y,
-                                BackgroundColour = Color4.MediumPurple,
-                                Text = ">",
-                                Action = nextFrame
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Text = "0",
+                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
                             },
                         }
                     },
@@ -89,6 +91,8 @@ namespace osu.Framework.Testing.Drawables.Sections
             };
 
             browser.RecordState.BindValueChanged(updateState, true);
+            browser.CurrentFrame.ValueChanged += frame => currentFrame.Text = frame.NewValue.ToString("00000");
+            browser.CurrentFrame.MaxValueChanged += maxVal => maxFrameCount.Text = maxVal.ToString("00000");
         }
 
         private void changeState()
@@ -98,10 +102,6 @@ namespace osu.Framework.Testing.Drawables.Sections
             else
                 browser.RecordState.Value = browser.RecordState.Value + 1;
         }
-
-        private void previousFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value - 1;
-
-        private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
         private void updateState(ValueChangedEvent<RecordState> args)
         {
@@ -121,19 +121,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                     recordButton.Text = "reset";
                     recordButton.BackgroundColour = Color4.DarkSlateGray;
                     playbackControls.Show();
-                    break;
-            }
-
-            switch (args.NewValue)
-            {
-                case RecordState.Normal:
-                case RecordState.Recording:
-                    previousButton.Enabled.Value = false;
-                    nextButton.Enabled.Value = false;
-                    break;
-                case RecordState.Stopped:
-                    previousButton.Enabled.Value = true;
-                    nextButton.Enabled.Value = true;
                     break;
             }
         }
