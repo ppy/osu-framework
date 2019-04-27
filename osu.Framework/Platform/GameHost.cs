@@ -415,6 +415,8 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            DebugUtils.HostAssembly = game.GetType().Assembly;
+
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 

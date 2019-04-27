@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.MathUtils
