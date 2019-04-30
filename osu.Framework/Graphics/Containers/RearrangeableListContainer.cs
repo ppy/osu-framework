@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
         public event Action Rearranged;
 
         /// <summary>
-        /// The list of children as they are currently arranged.
+        /// Children as they are currently arranged.
         /// </summary>
         public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem>().Select(i => i.Model);
 
