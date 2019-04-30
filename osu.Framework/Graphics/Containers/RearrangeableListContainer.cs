@@ -191,8 +191,6 @@ namespace osu.Framework.Graphics.Containers
             private Vector2 nativeDragPosition;
             private readonly List<Drawable> cachedFlowingChildren = new List<Drawable>();
 
-            protected void OnRearrange() => Rearranged?.Invoke();
-
             protected override bool OnDragStart(DragStartEvent e)
             {
                 nativeDragPosition = e.ScreenSpaceMousePosition;
