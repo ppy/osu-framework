@@ -18,6 +18,7 @@ using osuTK.Graphics;
 using System.Threading.Tasks;
 using System.Threading;
 using NUnit.Framework.Internal;
+using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
@@ -35,13 +36,9 @@ namespace osu.Framework.Testing
         private Task runTask;
         private ITestCaseTestRunner runner;
 
-        internal bool IsNUnitRunning;
-
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            IsNUnitRunning = true;
-
             host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
 
@@ -85,7 +82,7 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetUpTestForNUnit()
         {
-            if (IsNUnitRunning)
+            if (DebugUtils.IsNUnitRunning)
             {
                 // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
                 // This is undesirable since each test is run using those same threads, so we must make sure the execution context
