@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
+    /// <typeparam name="T">The type of <see cref="RearrangeableListItem"/>.</typeparam>
     public abstract class RearrangeableListContainer<T> : CompositeDrawable where T : RearrangeableListItem
     {
         /// <summary>
