@@ -70,7 +70,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Height = 20,
                                 Width = 250,
-                                Current = browser.CurrentFrame
+                                Current = browser.CurrentFrame,
+                                BackgroundColour = FrameworkColour.Blue,
                             },
                             maxFrameCount = new SpriteText
                             {
@@ -81,11 +82,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                             },
                         }
                     },
-                    recordButton = new Button
+                    recordButton = new RecordButton
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100,
-                        Action = changeState
+                        Action = changeState,
                     },
                 }
             };
@@ -109,111 +110,33 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
-                    recordButton.BackgroundColour = Color4.DarkGreen;
                     playbackControls.Hide();
                     break;
                 case RecordState.Recording:
                     recordButton.Text = "stop";
-                    recordButton.BackgroundColour = Color4.DarkRed;
                     playbackControls.Hide();
                     break;
                 case RecordState.Stopped:
                     recordButton.Text = "reset";
-                    recordButton.BackgroundColour = Color4.DarkSlateGray;
                     playbackControls.Show();
                     break;
             }
         }
 
-        private class FrameSliderBar : BasicSliderBar<int>
+        private class RecordButton : Button
         {
-            private readonly SpriteText currentFrameText;
-            private readonly SpriteText maxFrameText;
-
-            public FrameSliderBar()
+            public RecordButton()
             {
-                Add(new Container
-                {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Depth = float.MinValue,
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new[]
-                    {
-                        new Label
-                        {
-                            Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft,
-                            Text = "0"
-                        },
-                        currentFrameText = new Label
-                        {
-                            Anchor = Anchor.TopLeft,
-                            Origin = Anchor.TopLeft,
-                        },
-                        maxFrameText = new Label
-                        {
-                            Anchor = Anchor.BottomRight,
-                            Origin = Anchor.BottomRight,
-                        }
-                    }
-                });
+                BackgroundColour = FrameworkColour.BlueGreen;
             }
 
-            protected override void UpdateValue(float value)
+            protected override SpriteText CreateText() => new SpriteText
             {
-                base.UpdateValue(value);
-
-                maxFrameText.Text = CurrentNumber.MaxValue.ToString();
-                currentFrameText.Text = CurrentNumber.Value.ToString();
-            }
-
-            protected override void UpdateAfterChildren()
-            {
-                base.UpdateAfterChildren();
-                currentFrameText.X = MathHelper.Clamp(SelectionBox.Scale.X * DrawWidth, 0, DrawWidth - currentFrameText.DrawWidth);
-            }
-
-            private class Label : SpriteText
-            {
-                public Label()
-                {
-                    Font = new FontUsage(size: 18);
-                    Padding = new MarginPadding { Horizontal = 2 };
-                }
-            }
-        }
-
-        private class RepeatButton : Button
-        {
-            private ScheduledDelegate repeatDelegate;
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                repeatDelegate?.Cancel();
-
-                if (e.Button == MouseButton.Left)
-                {
-                    var clickEvent = new ClickEvent(e.CurrentState, e.Button, e.ScreenSpaceMouseDownPosition) { Target = this };
-
-                    if (!base.OnClick(clickEvent))
-                        return false;
-
-                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(clickEvent), 100, true); }, 300);
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                repeatDelegate?.Cancel();
-                return base.OnMouseUp(e);
-            }
-
-            protected override bool OnClick(ClickEvent e) => false; // Clicks aren't handled by this type of button
+                Colour = FrameworkColour.Yellow,
+                Font = new FontUsage("Roboto", weight: "Regular"),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+            };
         }
     }
 }

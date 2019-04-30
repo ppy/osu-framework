@@ -49,13 +49,13 @@ namespace osu.Framework.Testing.Drawables
                                 {
                                     RelativeSizeAxes = Axes.Y,
                                     AutoSizeAxes = Axes.X,
-                                    Margin = new MarginPadding { Left = section_padding / 2 },
+                                    Margin = new MarginPadding { Left = section_padding },
                                     Children = new Drawable[]
                                     {
                                         new Container //Backdrop of the record section
                                         {
                                             RelativeSizeAxes = Axes.Both,
-                                            Padding = new MarginPadding(-section_padding) { Left = -section_padding / 2 },
+                                            Padding = new MarginPadding(-section_padding),
                                             Child = new Box
                                             {
                                                 RelativeSizeAxes = Axes.Both,
