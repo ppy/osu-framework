@@ -4,6 +4,7 @@
 using osuTK;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
 {

@@ -7,18 +7,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Events;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarRecordSection : ToolbarSection
     {
-        private Button previousButton;
-        private Button nextButton;
         private Button recordButton;
         private FillFlowContainer playbackControls;
         private TestBrowser browser;
@@ -32,13 +27,14 @@ namespace osu.Framework.Testing.Drawables.Sections
         private void load(TestBrowser browser)
         {
             this.browser = browser;
+            SpriteText maxFrameCount, currentFrame;
 
             InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Y,
                 AutoSizeAxes = Axes.X,
                 Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(5),
+                Spacing = new Vector2(10),
                 Children = new Drawable[]
                 {
                     playbackControls = new FillFlowContainer
@@ -49,35 +45,41 @@ namespace osu.Framework.Testing.Drawables.Sections
                         Direction = FillDirection.Horizontal,
                         Children = new Drawable[]
                         {
-                            new SpriteText
+                            new SpriteIcon
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Text = "Playback:"
+                                Icon = FontAwesome.Solid.Circle,
+                                Colour = Color4.Red,
+                                Size = new Vector2(20),
                             },
-                            new FrameSliderBar
+                            currentFrame = new SpriteText
                             {
-                                RelativeSizeAxes = Axes.Y,
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Colour = FrameworkColour.Yellow,
+                                Text = "0",
+                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                            },
+                            new BasicSliderBar<int>
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Height = 20,
                                 Width = 250,
-                                Current = browser.CurrentFrame
+                                Current = browser.CurrentFrame,
+                                BackgroundColour = FrameworkColour.Blue,
                             },
-                            previousButton = new RepeatButton
+                            maxFrameCount = new SpriteText
                             {
-                                Width = 25,
-                                RelativeSizeAxes = Axes.Y,
-                                BackgroundColour = Color4.MediumPurple,
-                                Text = "<"
-                            },
-                            nextButton = new RepeatButton
-                            {
-                                Width = 25,
-                                RelativeSizeAxes = Axes.Y,
-                                BackgroundColour = Color4.MediumPurple,
-                                Text = ">"
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Text = "0",
+                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
                             },
                         }
                     },
-                    recordButton = new Button
+                    recordButton = new RecordButton
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100
@@ -85,11 +87,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            previousButton.Clicked += previousFrame;
-            nextButton.Clicked += nextFrame;
-            recordButton.Clicked += changeState;
-
             browser.RecordState.BindValueChanged(updateState, true);
+            browser.CurrentFrame.ValueChanged += frame => currentFrame.Text = frame.NewValue.ToString("00000");
+            browser.CurrentFrame.MaxValueChanged += maxVal => maxFrameCount.Text = maxVal.ToString("00000");
+
+            recordButton.Clicked += changeState;
         }
 
         private void changeState()
@@ -100,134 +102,39 @@ namespace osu.Framework.Testing.Drawables.Sections
                 browser.RecordState.Value = browser.RecordState.Value + 1;
         }
 
-        private void previousFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value - 1;
-
-        private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
-
         private void updateState(ValueChangedEvent<RecordState> args)
         {
             switch (args.NewValue)
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
-                    recordButton.BackgroundColour = Color4.DarkGreen;
                     playbackControls.Hide();
                     break;
                 case RecordState.Recording:
                     recordButton.Text = "stop";
-                    recordButton.BackgroundColour = Color4.DarkRed;
                     playbackControls.Hide();
                     break;
                 case RecordState.Stopped:
                     recordButton.Text = "reset";
-                    recordButton.BackgroundColour = Color4.DarkSlateGray;
                     playbackControls.Show();
                     break;
             }
-
-            switch (args.NewValue)
-            {
-                case RecordState.Normal:
-                case RecordState.Recording:
-                    previousButton.Enabled.Value = false;
-                    nextButton.Enabled.Value = false;
-                    break;
-                case RecordState.Stopped:
-                    previousButton.Enabled.Value = true;
-                    nextButton.Enabled.Value = true;
-                    break;
-            }
         }
 
-        private class FrameSliderBar : BasicSliderBar<int>
+        private class RecordButton : Button
         {
-            private readonly SpriteText currentFrameText;
-            private readonly SpriteText maxFrameText;
-
-            public FrameSliderBar()
+            public RecordButton()
             {
-                Add(new Container
-                {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Depth = float.MinValue,
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new[]
-                    {
-                        new Label
-                        {
-                            Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft,
-                            Text = "0"
-                        },
-                        currentFrameText = new Label
-                        {
-                            Anchor = Anchor.TopLeft,
-                            Origin = Anchor.TopLeft,
-                        },
-                        maxFrameText = new Label
-                        {
-                            Anchor = Anchor.BottomRight,
-                            Origin = Anchor.BottomRight,
-                        }
-                    }
-                });
+                BackgroundColour = FrameworkColour.BlueGreen;
             }
 
-            protected override void UpdateValue(float value)
+            protected override SpriteText CreateText() => new SpriteText
             {
-                base.UpdateValue(value);
-
-                maxFrameText.Text = CurrentNumber.MaxValue.ToString();
-                currentFrameText.Text = CurrentNumber.Value.ToString();
-            }
-
-            protected override void UpdateAfterChildren()
-            {
-                base.UpdateAfterChildren();
-                currentFrameText.X = MathHelper.Clamp(SelectionBox.Scale.X * DrawWidth, 0, DrawWidth - currentFrameText.DrawWidth);
-            }
-
-            private class Label : SpriteText
-            {
-                public Label()
-                {
-                    Font = new FontUsage(size: 18);
-                    Padding = new MarginPadding { Horizontal = 2 };
-                }
-            }
-        }
-
-        private class RepeatButton : Button
-        {
-            private ScheduledDelegate repeatDelegate;
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                repeatDelegate?.Cancel();
-
-                if (e.Button == MouseButton.Left)
-                {
-                    var clickEvent = new ClickEvent(e.CurrentState, e.Button, e.ScreenSpaceMouseDownPosition) { Target = this };
-
-                    if (!base.OnClick(clickEvent))
-                        return false;
-
-                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(clickEvent), 100, true); }, 300);
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                repeatDelegate?.Cancel();
-                return base.OnMouseUp(e);
-            }
-
-            protected override bool OnClick(ClickEvent e) => false; // Clicks aren't handled by this type of button
+                Colour = FrameworkColour.Yellow,
+                Font = new FontUsage("Roboto", weight: "Regular"),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+            };
         }
     }
 }
