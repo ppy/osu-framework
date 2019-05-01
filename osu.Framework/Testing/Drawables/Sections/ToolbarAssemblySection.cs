@@ -48,8 +48,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     {
                         LabelText = "Run all steps",
                         RightHandedCheckbox = true,
-                        AutoSizeAxes = Axes.Y,
-                        Width = 140,
+                        AutoSizeAxes = Axes.Both,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Current = browser.RunAllSteps
