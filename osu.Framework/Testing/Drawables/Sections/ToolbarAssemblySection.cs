@@ -37,7 +37,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     {
                         Padding = new MarginPadding(5),
                         Font = new FontUsage("RobotoCondensed", weight: "Regular"),
-                        Text = "Current Assembly"
+                        Text = "Assembly"
                     },
                     assemblyDropdown = new AssemblyDropdown
                     {
