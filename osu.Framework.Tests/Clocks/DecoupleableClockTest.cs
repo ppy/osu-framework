@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Clocks
         [SetUp]
         public void SetUp()
         {
-            source = new TestClock();
+            source = new TestClockPositiveOnly();
 
             decoupleable = new DecoupleableInterpolatingFramedClock();
             decoupleable.ChangeSource(source);
@@ -162,6 +162,50 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should match source time.");
         }
 
+        [Test]
+        public void TestFromNegativeCoupledMode()
+        {
+            decoupleable.IsCoupled = true;
+            decoupleable.Seek(-1000);
+
+            decoupleable.ProcessFrame();
+
+            Assert.AreEqual(0, source.CurrentTime);
+            Assert.AreEqual(0, decoupleable.CurrentTime);
+        }
+
+        [Test]
+        public void TestFromNegativeDecoupledMode()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.Seek(-1000);
+
+            decoupleable.ProcessFrame();
+
+            Assert.AreEqual(0, source.CurrentTime);
+            Assert.AreEqual(-1000, decoupleable.CurrentTime);
+
+            decoupleable.Start();
+
+            double? last = null;
+
+            while (decoupleable.CurrentTime < 0)
+            {
+                decoupleable.ProcessFrame();
+                Assert.AreEqual(0, source.CurrentTime);
+
+                if (last.HasValue)
+                    Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
+
+                last = decoupleable.CurrentTime;
+            }
+
+            decoupleable.ProcessFrame();
+
+            Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
+            Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
+        }
+
         /// <summary>
         /// Tests that the decoupled clock seeks the source clock to its time when it starts.
         /// </summary>
@@ -263,6 +307,16 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.Stop();
 
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
+        }
+
+        private class TestClockPositiveOnly : TestClock
+        {
+            public override bool Seek(double position)
+            {
+                if (position < 0) return false;
+
+                return base.Seek(position);
+            }
         }
     }
 }

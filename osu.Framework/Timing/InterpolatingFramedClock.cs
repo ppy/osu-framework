@@ -42,7 +42,9 @@ namespace osu.Framework.Timing
             ChangeSource(source);
         }
 
-        public virtual double CurrentTime => sourceIsRunning ? CurrentInterpolatedTime : FramedSourceClock.CurrentTime;
+        public virtual double CurrentTime => currentTime;
+
+        private double currentTime;
 
         public double AllowableErrorMilliseconds = 1000.0 / 60 * 2;
 
@@ -71,33 +73,35 @@ namespace osu.Framework.Timing
 
             sourceIsRunning = FramedSourceClock.IsRunning;
 
-            LastInterpolatedTime = CurrentTime;
+            LastInterpolatedTime = currentTime;
 
-            if (!FramedSourceClock.IsRunning)
-                return;
-
-            if (FramedSourceClock.ElapsedFrameTime != 0)
-                allowInterpolation = true;
-
-            CurrentInterpolatedTime += clock.ElapsedFrameTime * Rate;
-
-            if (!allowInterpolation || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
+            if (FramedSourceClock.IsRunning)
             {
-                // if we've exceeded the allowable error, we should use the source clock's time value.
-                // seeking backwards should only be allowed if the source is explicitly doing that.
-                CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
+                if (FramedSourceClock.ElapsedFrameTime != 0)
+                    allowInterpolation = true;
 
-                // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
-                allowInterpolation = false;
-            }
-            else
-            {
-                //if we differ from the elapsed time of the source, let's adjust for the difference.
-                CurrentInterpolatedTime += (FramedSourceClock.CurrentTime - CurrentInterpolatedTime) / 8;
+                CurrentInterpolatedTime += clock.ElapsedFrameTime * Rate;
 
-                // limit the direction of travel to avoid seeking against the flow.
-                CurrentInterpolatedTime = Rate >= 0 ? Math.Max(LastInterpolatedTime, CurrentInterpolatedTime) : Math.Min(LastInterpolatedTime, CurrentInterpolatedTime);
+                if (!allowInterpolation || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
+                {
+                    // if we've exceeded the allowable error, we should use the source clock's time value.
+                    // seeking backwards should only be allowed if the source is explicitly doing that.
+                    CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
+
+                    // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
+                    allowInterpolation = false;
+                }
+                else
+                {
+                    //if we differ from the elapsed time of the source, let's adjust for the difference.
+                    CurrentInterpolatedTime += (FramedSourceClock.CurrentTime - CurrentInterpolatedTime) / 8;
+
+                    // limit the direction of travel to avoid seeking against the flow.
+                    CurrentInterpolatedTime = Rate >= 0 ? Math.Max(LastInterpolatedTime, CurrentInterpolatedTime) : Math.Min(LastInterpolatedTime, CurrentInterpolatedTime);
+                }
             }
+
+            currentTime = sourceIsRunning ? CurrentInterpolatedTime : FramedSourceClock.CurrentTime;
         }
     }
 }
