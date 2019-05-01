@@ -584,8 +584,34 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
             AddStep("exit slow", () => screen2.Exit());
             AddStep("allow load", () => screen2.AllowLoad.Set());
-            AddUntilStep("wait for screen to load", () => screen2.LoadState >= LoadState.Ready);
-            AddAssert("basescreen did not recieve suspending", () => screen1.SuspendedTo == null);
+            AddUntilStep("wait for screen 2 to load", () => screen2.LoadState >= LoadState.Ready);
+            AddAssert("screen 1 did not receive suspending", () => screen1.SuspendedTo == null);
+            AddAssert("screen 1 did not receive resuming", () => screen1.ResumedFrom == null);
+        }
+
+        [Test]
+        public void TestInvalidPushDoesNotBlockImmediateSuspend()
+        {
+            TestScreen screen1 = null;
+            TestScreenSlow screen2 = null;
+
+            AddStep("override stack", () =>
+            {
+                // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
+                Clear();
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), true)
+                {
+                    RelativeSizeAxes = Axes.Both
+                });
+            });
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            AddStep("push slow", () => screen1.Push(screen2 = new TestScreenSlow()));
+            AddStep("exit slow", () => screen2.Exit());
+            AddStep("allow load", () => screen2.AllowLoad.Set());
+            AddUntilStep("wait for screen 2 to load", () => screen2.LoadState >= LoadState.Ready);
+            AddAssert("screen 1 did receive suspending", () => screen1.SuspendedTo == screen2);
+            AddAssert("screen 1 did receive resumed", () => screen1.ResumedFrom == screen2);
         }
 
         /// <summary>
