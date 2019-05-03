@@ -113,7 +113,7 @@ namespace osu.Framework.Platform.MacOS
 
         private bool isCursorHidden => CursorState.HasFlag(CursorState.Hidden);
 
-        private NSApplicationPresentationOptions fullscreen_presentation_options => 
+        private NSApplicationPresentationOptions fullscreen_presentation_options =>
             default_fullscreen_presentation_options | (isCursorHidden ? NSApplicationPresentationOptions.DisableCursorLocationAssistance : 0);
 
         private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreen_presentation_options;
