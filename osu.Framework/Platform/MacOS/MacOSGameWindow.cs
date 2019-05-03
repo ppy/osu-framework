@@ -113,10 +113,10 @@ namespace osu.Framework.Platform.MacOS
 
         private bool isCursorHidden => CursorState.HasFlag(CursorState.Hidden);
 
-        private NSApplicationPresentationOptions fullscreen_presentation_options =>
+        private NSApplicationPresentationOptions fullscreenPresentationOptions =>
             default_fullscreen_presentation_options | (isCursorHidden ? NSApplicationPresentationOptions.DisableCursorLocationAssistance : 0);
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreen_presentation_options;
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreenPresentationOptions;
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
@@ -140,7 +140,7 @@ namespace osu.Framework.Platform.MacOS
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
                 else if (currentFullScreen)
-                    NSApplication.PresentationOptions = fullscreen_presentation_options;
+                    NSApplication.PresentationOptions = fullscreenPresentationOptions;
                 else if (isCursorHidden)
                     NSApplication.PresentationOptions = NSApplicationPresentationOptions.DisableCursorLocationAssistance;
 
