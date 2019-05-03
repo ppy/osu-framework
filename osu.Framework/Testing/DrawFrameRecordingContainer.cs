@@ -35,12 +35,16 @@ namespace osu.Framework.Testing
             {
                 default:
                 case RecordState.Normal:
+                    recordedFrames.ForEach(disposeRecursively);
                     recordedFrames.Clear();
+
                     currentFrame.Value = currentFrame.MaxValue = 0;
 
                     return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
                 case RecordState.Recording:
                     var node = base.GenerateDrawNodeSubtree(frame, treeIndex, true);
+
+                    referenceRecursively(node);
 
                     recordedFrames.Add(node);
                     currentFrame.Value = currentFrame.MaxValue = recordedFrames.Count - 1;
@@ -49,6 +53,28 @@ namespace osu.Framework.Testing
                 case RecordState.Stopped:
                     return recordedFrames[currentFrame.Value];
             }
+        }
+
+        private void referenceRecursively(DrawNode drawNode)
+        {
+            drawNode.Reference();
+
+            if (!(drawNode is ICompositeDrawNode composite))
+                return;
+
+            foreach (var child in composite.Children)
+                referenceRecursively(child);
+        }
+
+        private void disposeRecursively(DrawNode drawNode)
+        {
+            drawNode.Dispose();
+
+            if (!(drawNode is ICompositeDrawNode composite))
+                return;
+
+            foreach (var child in composite.Children)
+                disposeRecursively(child);
         }
     }
 }

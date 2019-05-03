@@ -5,15 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -21,6 +18,7 @@ using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -417,6 +415,8 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            DebugUtils.HostAssembly = game.GetType().Assembly;
+
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
@@ -446,19 +446,8 @@ namespace osu.Framework.Platform
 
                 FileSafety.DeleteCleanupDirectory();
 
-                string assemblyPath;
-                var assembly = Assembly.GetEntryAssembly();
-
-                // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-                if (assembly == null || assembly.Location.Contains("testhost"))
-                {
-                    assembly = Assembly.GetExecutingAssembly();
-
-                    // From nuget, the executing assembly will also be wrong
-                    assemblyPath = TestContext.CurrentContext.TestDirectory;
-                }
-                else
-                    assemblyPath = Path.GetDirectoryName(assembly.Location);
+                var assembly = DebugUtils.GetEntryAssembly();
+                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
                 Logger.VersionIdentifier = assembly.GetName().Version.ToString();

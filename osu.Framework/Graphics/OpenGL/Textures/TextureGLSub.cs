@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
