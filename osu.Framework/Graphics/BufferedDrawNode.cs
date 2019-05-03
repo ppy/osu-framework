@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics
                         GLWrapper.PopOrtho();
                     }
 
-                    DrawToFrameBuffers();
+                    PopulateContents();
                 }
 
                 SharedData.DrawVersion = GetDrawVersion();
@@ -113,23 +113,23 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
-            DrawToBackBuffer();
+            DrawContents();
 
             Shader.Unbind();
         }
 
         /// <summary>
-        /// Renders contents between the available buffers of <see cref="SharedData"/>.
+        /// Populates the contents of the effect buffers of <see cref="SharedData"/>.
         /// This is invoked after <see cref="Child"/> has been rendered to the main buffer.
         /// </summary>
-        protected virtual void DrawToFrameBuffers()
+        protected virtual void PopulateContents()
         {
         }
 
         /// <summary>
-        /// Renders all applicable <see cref="FrameBuffer"/>s to the back buffer.
+        /// Draws the applicable effect buffers of <see cref="SharedData"/> to the back buffer.
         /// </summary>
-        protected virtual void DrawToBackBuffer()
+        protected virtual void DrawContents()
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
             DrawFrameBuffer(SharedData.MainBuffer, DrawColourInfo.Colour);

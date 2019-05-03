@@ -72,9 +72,9 @@ namespace osu.Framework.Graphics.Containers
 
             protected override long GetDrawVersion() => updateVersion;
 
-            protected override void DrawToFrameBuffers()
+            protected override void PopulateContents()
             {
-                base.DrawToFrameBuffers();
+                base.PopulateContents();
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
@@ -87,10 +87,10 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            protected override void DrawToBackBuffer()
+            protected override void DrawContents()
             {
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
-                    base.DrawToBackBuffer();
+                    base.DrawContents();
 
                 GLWrapper.SetBlend(new BlendingInfo(effectBlending));
 
@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
                 DrawFrameBuffer(SharedData.CurrentEffectBuffer, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
-                    base.DrawToBackBuffer();
+                    base.DrawContents();
             }
 
             private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
