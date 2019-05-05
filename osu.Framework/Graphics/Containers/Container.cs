@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Colour;
 using osuTK;
 using System.Collections;
 using System.Diagnostics;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -34,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
-        /// Contructs a <see cref="Container"/> that stores children.
+        /// Constructs a <see cref="Container"/> that stores children.
         /// </summary>
         public Container()
         {

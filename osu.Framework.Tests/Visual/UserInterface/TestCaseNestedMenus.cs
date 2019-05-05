@@ -19,7 +19,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int max_depth = 5;
         private const int max_count = 5;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(Menu) };
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Menu),
+            typeof(BasicMenu)
+        };
 
         private Random rng;
 
@@ -58,11 +62,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         };
 
-        private class ClickOpenMenu : Menu
+        private class ClickOpenMenu : BasicMenu
         {
             protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay, false);
 
-            public ClickOpenMenu(double timePerAction, bool topLevel = true) : base(Direction.Vertical, topLevel)
+            public ClickOpenMenu(double timePerAction, bool topLevel = true)
+                : base(Direction.Vertical, topLevel)
             {
                 HoverOpenDelay = timePerAction;
             }
@@ -164,15 +169,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestHoverChange()
         {
             IReadOnlyList<MenuItem> currentItems = null;
-            AddStep("Click item", () =>
-            {
-                clickItem(0, 0);
-            });
+            AddStep("Click item", () => { clickItem(0, 0); });
 
-            AddStep("Get items", () =>
-            {
-                currentItems = menus.GetSubMenu(1).Items;
-            });
+            AddStep("Get items", () => { currentItems = menus.GetSubMenu(1).Items; });
 
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
             AddStep("Hover item", () => InputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItems()[1]));
@@ -190,6 +189,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                     if (subMenu.State == MenuState.Open)
                         return false;
+
                     currentSubMenu++;
                 }
 
@@ -209,10 +209,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
 
-            AddStep("Hover item", () =>
-            {
-                InputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]);
-            });
+            AddStep("Hover item", () => { InputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]); });
 
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
@@ -228,6 +225,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                     if (subMenu.State == MenuState.Open)
                         return false;
+
                     currentSubMenu++;
                 }
 
@@ -378,6 +376,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Close menus", () => menus.GetSubMenu(0).Close());
             AddAssert("Check selected index 4", () => menus.GetSubStructure(1).GetSelectedIndex() == -1);
         }
+
         #endregion
 
         /// <summary>

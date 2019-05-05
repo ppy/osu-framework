@@ -396,9 +396,14 @@ namespace osu.Framework.Platform.Windows.Native
     [StructLayout(LayoutKind.Explicit)]
     public struct RawInputData
     {
-        [FieldOffset(0)] public RawMouse Mouse;
-        [FieldOffset(0)] public RawKeyboard Keyboard;
-        [FieldOffset(0)] public RawInputHid HID;
+        [FieldOffset(0)]
+        public RawMouse Mouse;
+
+        [FieldOffset(0)]
+        public RawKeyboard Keyboard;
+
+        [FieldOffset(0)]
+        public RawInputHid HID;
     }
 
     //unused structs
@@ -468,39 +473,46 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>
         /// The mouse state.
         /// </summary>
-        [FieldOffset(0)] public RawMouseFlags Flags;
+        [FieldOffset(0)]
+        public RawMouseFlags Flags;
 
         /// <summary>
         /// Flags for the event.
         /// </summary>
-        [FieldOffset(4)] public RawMouseButtons ButtonFlags;
+        [FieldOffset(4)]
+        public RawMouseButtons ButtonFlags;
 
         /// <summary>
         /// If the mouse wheel is moved, this will contain the delta amount.
         /// </summary>
-        [FieldOffset(6)] public short ButtonData;
+        [FieldOffset(6)]
+        public short ButtonData;
 
         /// <summary>
         /// Raw button data.
         /// </summary>
-        [FieldOffset(8)] public uint RawButtons;
+        [FieldOffset(8)]
+        public uint RawButtons;
 
         /// <summary>
         /// The motion in the X direction. This is signed relative motion or
         /// absolute motion, depending on the value of usFlags.
         /// </summary>
-        [FieldOffset(12)] public int LastX;
+        [FieldOffset(12)]
+        public int LastX;
 
         /// <summary>
         /// The motion in the Y direction. This is signed relative motion or absolute motion,
         /// depending on the value of usFlags.
         /// </summary>
-        [FieldOffset(16)] public int LastY;
+        [FieldOffset(16)]
+        public int LastY;
 
         /// <summary>
         /// The device-specific additional information for the event.
         /// </summary>
-        [FieldOffset(20)] public uint ExtraInformation;
+        [FieldOffset(20)]
+        public uint ExtraInformation;
     }
 
     /// <summary>
@@ -1724,7 +1736,8 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>
         /// WM_COMMNOTIFY is Obsolete for Win32-Based Applications
         /// </summary>
-        [Obsolete] COMMNOTIFY = 0x0044,
+        [Obsolete]
+        COMMNOTIFY = 0x0044,
 
         /// <summary>
         /// The WM_WINDOWPOSCHANGING message is sent to a window whose size, position, or place in the Z order is about to change as a result of a call to the SetWindowPos function or another window-management function.
@@ -1740,7 +1753,8 @@ namespace osu.Framework.Platform.Windows.Native
         /// Notifies applications that the system, typically a battery-powered personal computer, is about to enter a suspended mode.
         /// Use: POWERBROADCAST
         /// </summary>
-        [Obsolete] POWER = 0x0048,
+        [Obsolete]
+        POWER = 0x0048,
 
         /// <summary>
         /// An application sends the WM_COPYDATA message to pass data to another application.

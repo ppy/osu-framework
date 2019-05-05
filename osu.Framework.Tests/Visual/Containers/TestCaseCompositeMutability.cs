@@ -81,11 +81,13 @@ namespace osu.Framework.Tests.Visual.Containers
                     AddStep("run external thread", () => new Thread(tryThrow) { IsBackground = true }.Start());
                     break;
                 }
+
                 case TestThread.Update:
                 {
                     AddStep("schedule", () => Schedule(tryThrow));
                     break;
                 }
+
                 case TestThread.Load:
                 {
                     switch (expectedState)

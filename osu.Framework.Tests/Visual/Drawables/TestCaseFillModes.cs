@@ -17,7 +17,8 @@ namespace osu.Framework.Tests.Visual.Drawables
     [System.ComponentModel.Description("sprite stretching")]
     public class TestCaseFillModes : GridTestCase
     {
-        public TestCaseFillModes() : base(3, 3)
+        public TestCaseFillModes()
+            : base(3, 3)
         {
         }
 

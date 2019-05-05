@@ -7,21 +7,20 @@ using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class Path : Drawable
+    public partial class Path : Drawable, ITexturedShaderDrawable
     {
-        private IShader roundedTextureShader;
-        private IShader textureShader;
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -72,6 +71,7 @@ namespace osu.Framework.Graphics.Lines
             foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+
             return false;
         }
 
@@ -174,21 +174,6 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            PathDrawNode n = (PathDrawNode)node;
-
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.Radius = PathRadius;
-            n.DrawSize = DrawSize;
-
-            n.Segments = segments.ToList();
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new PathDrawNode(this);
     }
 }

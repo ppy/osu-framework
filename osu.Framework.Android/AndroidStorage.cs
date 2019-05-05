@@ -7,7 +7,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Android
 {
-    public class AndroidStorage : DesktopStorage
+    public class AndroidStorage : NativeStorage
     {
         public AndroidStorage(string baseName, GameHost host)
             : base(baseName, host)

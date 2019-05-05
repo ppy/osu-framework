@@ -27,6 +27,7 @@ namespace osu.Framework.Platform
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
+
             MessageReceived?.Invoke((T)message.Value);
         }
 

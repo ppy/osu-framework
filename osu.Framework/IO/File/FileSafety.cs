@@ -82,24 +82,19 @@ namespace osu.Framework.IO.File
                     return false;
                 }
             }
+
             return true;
         }
 
         /// <summary>
         /// Converts all slashes and backslashes to OS-specific directory separator characters. Useful for sanitising user input.
         /// </summary>
-        public static string PathSanitise(string path)
-        {
-            return path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
-        }
+        public static string PathSanitise(string path) => path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
 
         /// <summary>
         /// Converts all OS-specific directory separator characters to '/'. Useful for outputting to a config file or similar.
         /// </summary>
-        public static string PathStandardise(string path)
-        {
-            return path.Replace('\\', '/');
-        }
+        public static string PathStandardise(string path) => path.Replace('\\', '/');
 
         [Flags]
         internal enum MoveFileFlags
@@ -263,6 +258,7 @@ namespace osu.Framework.IO.File
                     catch
                     {
                     }
+
                     System.IO.File.Delete(file);
                 }
             }
@@ -271,66 +267,6 @@ namespace osu.Framework.IO.File
         }
 
         public static string GetExtension(string filename) => Path.GetExtension(filename)?.Trim('.').ToLower();
-
-        //        public static FileType GetFileType(string filename)
-        //        {
-        //            try
-        //            {
-        //                string ext = GetExtension(filename);
-
-        //                switch (ext)
-        //                {
-        //                    case "osu":
-        //                        return FileType.Beatmap;
-        //                    case "rar":
-        //                        return FileType.BeatmapPack;
-        //                    case "osz":
-        //                        return FileType.BeatmapPackage;
-        //                    case "osz2":
-        //                        return FileType.BeatmapPackage2;
-        //                    case "db":
-        //                        return FileType.Database;
-        //                    case "zip":
-        //                        return FileType.Zip;
-        //#if P2P
-        //                    case "osumagnet":
-        //                        return FileType.OsuMagnet;
-        //#endif
-        //                    case "osc":
-        //                        return FileType.OsuM; //osu!stream
-        //                    case "ogg":
-        //                    case "mp3":
-        //                        return FileType.AudioTrack;
-        //                    case "osr":
-        //                        return FileType.Replay;
-        //                    case "osk":
-        //                        return FileType.Skin;
-        //                    case "osb":
-        //                        return FileType.Storyboard;
-        //                    case "avi":
-        //                    case "flv":
-        //                    case "mpg":
-        //                    case "wmv":
-        //                    case "m4v":
-        //                    case "mp4":
-        //                        return FileType.Video;
-        //                    case "jpg":
-        //                    case "jpeg":
-        //                    case "png":
-        //                        return FileType.Image;
-        //                    case "wav":
-        //                        return FileType.AudioSample;
-        //                    case "exe":
-        //                        return FileType.Exe;
-        //                    default:
-        //                        return FileType.Unknown;
-        //                }
-        //            }
-        //            catch
-        //            {
-        //                return FileType.Unknown;
-        //            }
-        //        }
 
         public static int GetMaxPathLength(string directory)
         {
@@ -352,10 +288,7 @@ namespace osu.Framework.IO.File
             return highestPathLength;
         }
 
-        public static string CleanStoryboardFilename(string filename)
-        {
-            return PathStandardise(filename.Trim('"'));
-        }
+        public static string CleanStoryboardFilename(string filename) => PathStandardise(filename.Trim('"'));
 
         //This is better than encoding as it doesn't check for origin specific data or remove invalid chars.
         public static unsafe string RawBytesToString(byte[] encoded)
@@ -376,6 +309,7 @@ namespace osu.Framework.IO.File
                     stringBytes++;
                 } while (stringBytes != stringEnd);
             }
+
             return new string(converted);
         }
 

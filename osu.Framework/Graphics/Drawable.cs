@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics
 
                 Dispose(isDisposing);
 
-                unbindAllBindables();
+                UnbindAllBindables();
 
                 Parent = null;
 
@@ -118,7 +118,10 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        internal virtual void UnbindAllBindables() => unbindAllBindables();
+        /// <summary>
+        /// Recursively invokes <see cref="UnbindAllBindables"/> on this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
+        /// </summary>
+        internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
         private void cacheUnbindActions()
         {
@@ -162,14 +165,18 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
         /// </summary>
-        private void unbindAllBindables()
+        internal virtual void UnbindAllBindables()
         {
-            if (unbindComplete) return;
+            if (unbindComplete)
+                return;
+
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+
+            OnUnbindAllBindables?.Invoke();
         }
 
         #endregion
@@ -377,6 +384,11 @@ namespace osu.Framework.Graphics
         /// Fired after the <see cref="dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
+
+        /// <summary>
+        /// Fired after the <see cref="UnbindAllBindables"/> method is called.
+        /// </summary>
+        internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
 
@@ -942,6 +954,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (fillMode == value) return;
+
                 fillMode = value;
 
                 Invalidate(Invalidation.DrawSize);
@@ -965,6 +978,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (shear == value) return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Shear)} must be finite, but is {value}.");
 
                 shear = value;
@@ -984,6 +998,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (value == rotation) return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
@@ -1274,6 +1289,7 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
+
                 blending = value;
 
                 Invalidate(Invalidation.Colour);
@@ -1337,6 +1353,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (lifetimeStart == value) return;
+
                 lifetimeStart = value;
                 LifetimeChanged?.Invoke(this);
             }
@@ -1351,6 +1368,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (lifetimeEnd == value) return;
+
                 lifetimeEnd = value;
                 LifetimeChanged?.Invoke(this);
             }
@@ -1460,6 +1478,7 @@ namespace osu.Framework.Graphics
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
+
             return proxy = new ProxyDrawable(this);
         }
 
@@ -1614,7 +1633,7 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        private long invalidationID = invalidation_counter.Increment();
+        public long InvalidationID { get; private set; } = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
@@ -1662,7 +1681,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
-                invalidationID = invalidation_counter.Increment();
+                InvalidationID = invalidation_counter.Increment();
 
             OnInvalidate?.Invoke(this);
 
@@ -1704,9 +1723,9 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (invalidationID != node.InvalidationID)
+            if (InvalidationID != node.InvalidationID)
             {
-                ApplyDrawNode(node);
+                node.ApplyState();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
 
@@ -1714,21 +1733,10 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Fills a given draw node with all information required to draw this drawable.
-        /// </summary>
-        /// <param name="node">The node to fill with information.</param>
-        protected virtual void ApplyDrawNode(DrawNode node)
-        {
-            node.DrawInfo = DrawInfo;
-            node.DrawColourInfo = DrawColourInfo;
-            node.InvalidationID = invalidationID;
-        }
-
-        /// <summary>
         /// Creates a draw node capable of containing all information required to draw this drawable.
         /// </summary>
         /// <returns>The created draw node.</returns>
-        protected virtual DrawNode CreateDrawNode() => new DrawNode();
+        protected virtual DrawNode CreateDrawNode() => new DrawNode(this);
 
         #endregion
 
@@ -1781,40 +1789,28 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in screen coordinates.</returns>
-        public Vector2 ToScreenSpace(Vector2 input)
-        {
-            return Vector2Extensions.Transform(input, DrawInfo.Matrix);
-        }
+        public Vector2 ToScreenSpace(Vector2 input) => Vector2Extensions.Transform(input, DrawInfo.Matrix);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in screen space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        public Quad ToScreenSpace(RectangleF input)
-        {
-            return Quad.FromRectangle(input) * DrawInfo.Matrix;
-        }
+        public Quad ToScreenSpace(RectangleF input) => Quad.FromRectangle(input) * DrawInfo.Matrix;
 
         /// <summary>
         /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpacePos">A vector in screen coordinates.</param>
         /// <returns>The vector in local coordinates.</returns>
-        public Vector2 ToLocalSpace(Vector2 screenSpacePos)
-        {
-            return Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
-        }
+        public Vector2 ToLocalSpace(Vector2 screenSpacePos) => Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
 
         /// <summary>
         /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpaceQuad">A quad in screen coordinates.</param>
         /// <returns>The quad in local coordinates.</returns>
-        public Quad ToLocalSpace(Quad screenSpaceQuad)
-        {
-            return screenSpaceQuad * DrawInfo.MatrixInverse;
-        }
+        public Quad ToLocalSpace(Quad screenSpaceQuad) => screenSpaceQuad * DrawInfo.MatrixInverse;
 
         #endregion
 
@@ -2246,7 +2242,7 @@ namespace osu.Framework.Graphics
         Colour = 1 << 3,
 
         /// <summary>
-        /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
+        /// <see cref="Graphics.DrawNode.ApplyState"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
 

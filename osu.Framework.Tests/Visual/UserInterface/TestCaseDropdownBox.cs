@@ -1,16 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -20,8 +19,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly StyledDropdown styledDropdown, styledDropdownMenu2, bindableDropdown;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown;
         private readonly BindableList<string> bindableList = new BindableList<string>();
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Dropdown<>),
+            typeof(DropdownHeader),
+            typeof(DropdownMenuItem<>),
+            typeof(Dropdown<>),
+            typeof(BasicDropdown<>),
+            typeof(BasicDropdown<>.BasicDropdownHeader),
+            typeof(BasicDropdown<>.BasicDropdownMenu),
+            typeof(TestDropdown)
+        };
 
         public TestCaseDropdownBox()
         {
@@ -30,21 +41,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
 
-            Add(styledDropdown = new StyledDropdown
+            Add(testDropdown = new TestDropdown
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
                 Items = testItems
             });
 
-            Add(styledDropdownMenu2 = new StyledDropdown
+            Add(testDropdownMenu = new TestDropdown
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
                 Items = testItems
             });
 
-            Add(bindableDropdown = new StyledDropdown
+            Add(bindableDropdown = new TestDropdown
             {
                 Width = 150,
                 Position = new Vector2(600, 70),
@@ -57,45 +68,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var i = items_to_add;
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
-            AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            AddAssert("dropdown is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddRepeatStep("add item", () => styledDropdown.AddDropdownItem("test " + i++), items_to_add);
-            AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
+            AddRepeatStep("add item", () => testDropdown.AddDropdownItem("test " + i++), items_to_add);
+            AddAssert("item count is correct", () => testDropdown.Items.Count() == items_to_add * 2);
 
             AddStep($"Set dropdown1 height to {explicit_height}", () =>
             {
-                calculatedHeight = styledDropdown.Menu.Height;
-                styledDropdown.Menu.MaxHeight = explicit_height;
+                calculatedHeight = testDropdown.Menu.Height;
+                testDropdown.Menu.MaxHeight = explicit_height;
             });
-            AddAssert($"dropdown1 height is {explicit_height}", () => styledDropdown.Menu.Height == explicit_height);
+            AddAssert($"dropdown1 height is {explicit_height}", () => testDropdown.Menu.Height == explicit_height);
 
-            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => styledDropdown.Menu.MaxHeight = float.PositiveInfinity);
-            AddAssert("dropdown1 height is calculated automatically", () => styledDropdown.Menu.Height == calculatedHeight);
+            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => testDropdown.Menu.MaxHeight = float.PositiveInfinity);
+            AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height == calculatedHeight);
 
-            AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
+            AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
 
-            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(13));
+            AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
+            AddAssert("item 13 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(13));
 
-            AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(15));
+            AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(15));
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
-            AddAssert("dropdown1 is open", () => styledDropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(styledDropdownMenu2));
+            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu));
 
-            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
+            AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
+            AddAssert("dropdown2 is open", () => testDropdownMenu.Menu.State == MenuState.Open);
 
-            AddStep("select 'invalid'", () => styledDropdown.Current.Value = "invalid");
+            AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
-            AddAssert("'invalid' is selected", () => styledDropdown.Current.Value == "invalid");
-            AddAssert("label shows 'invalid'", () => styledDropdown.Header.Label == "invalid");
+            AddAssert("'invalid' is selected", () => testDropdown.Current.Value == "invalid");
+            AddAssert("label shows 'invalid'", () => testDropdown.Header.Label == "invalid");
 
-            AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => styledDropdown.Current.Value == styledDropdown.Items.ElementAt(2));
+            AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));
 
             AddStep("clear bindable list", () => bindableList.Clear());
             AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
@@ -110,48 +121,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
         }
 
-        private void toggleDropdownViaClick(StyledDropdown dropdown)
+        private void toggleDropdownViaClick(TestDropdown dropdown)
         {
             InputManager.MoveMouseTo(dropdown.Children.First());
             InputManager.Click(MouseButton.Left);
         }
 
-        private class StyledDropdown : BasicDropdown<string>
+        private class TestDropdown : BasicDropdown<string>
         {
             public new DropdownMenu Menu => base.Menu;
 
-            protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
+            protected override DropdownMenu CreateMenu() => new TestDropdownMenu();
 
-            protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
+            protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
 
-            public void SelectItem(MenuItem item) => ((StyledDropdownMenu)Menu).SelectItem(item);
+            public void SelectItem(MenuItem item) => ((TestDropdownMenu)Menu).SelectItem(item);
 
-            private class StyledDropdownMenu : DropdownMenu
+            private class TestDropdownMenu : BasicDropdownMenu
             {
                 public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
                     .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
-            }
-        }
-
-        private class StyledDropdownHeader : DropdownHeader
-        {
-            private readonly SpriteText label;
-
-            protected internal override string Label
-            {
-                get { return label.Text; }
-                set { label.Text = value; }
-            }
-
-            public StyledDropdownHeader()
-            {
-                Foreground.Padding = new MarginPadding(4);
-                BackgroundColour = new Color4(255, 255, 255, 100);
-                BackgroundColourHover = Color4.HotPink;
-                Children = new[]
-                {
-                    label = new SpriteText(),
-                };
             }
         }
     }

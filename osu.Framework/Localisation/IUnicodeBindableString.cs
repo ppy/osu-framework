@@ -14,11 +14,19 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// The text to use if unicode can be displayed. Can be null, in which case <see cref="NonUnicodeText"/> will be used.
         /// </summary>
-        string UnicodeText { [CanBeNull] set; }
+        string UnicodeText
+        {
+            [CanBeNull]
+            set;
+        }
 
         /// <summary>
         /// The text to use if unicode should not be displayed. Can be null, in which case <see cref="UnicodeText"/> will be used.
         /// </summary>
-        string NonUnicodeText { [CanBeNull] set; }
+        string NonUnicodeText
+        {
+            [CanBeNull]
+            set;
+        }
     }
 }

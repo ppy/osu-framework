@@ -228,18 +228,21 @@ namespace osu.Framework.Graphics.Containers
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
                     case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
                 }
 

@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public partial class SpriteText : Drawable, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
+    public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
@@ -39,8 +39,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private IShader textureShader;
-        private IShader roundedTextureShader;
+        public IShader TextureShader { get; private set; }
+        public IShader RoundedTextureShader { get; private set; }
 
         public SpriteText()
         {
@@ -66,8 +66,9 @@ namespace osu.Framework.Graphics.Sprites
             }, true);
 
             spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
-            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
@@ -86,6 +87,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (text == value)
                     return;
+
                 text = value;
 
                 current.Value = text;
@@ -173,6 +175,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (allowMultiline == value)
                     return;
+
                 allowMultiline = value;
 
                 invalidate(true);
@@ -191,6 +194,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (shadow == value)
                     return;
+
                 shadow = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -209,6 +213,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (shadowColour == value)
                     return;
+
                 shadowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -228,6 +233,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (useFullGlyphHeight == value)
                     return;
+
                 useFullGlyphHeight = value;
 
                 invalidate(true);
@@ -348,6 +354,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (spacing == value)
                     return;
+
                 spacing = value;
 
                 invalidate(true);
@@ -642,28 +649,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region DrawNode
 
-        protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            base.ApplyDrawNode(node);
-
-            var n = (SpriteTextDrawNode)node;
-
-            n.Parts.Clear();
-            n.Parts.AddRange(screenSpaceCharacters);
-
-            n.Shadow = Shadow;
-
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-
-            if (Shadow)
-            {
-                n.ShadowColour = ShadowColour;
-                n.ShadowOffset = shadowOffset;
-            }
-        }
+        protected override DrawNode CreateDrawNode() => new SpriteTextDrawNode(this);
 
         #endregion
 
@@ -709,10 +695,7 @@ namespace osu.Framework.Graphics.Sprites
             return true;
         }
 
-        public override string ToString()
-        {
-            return $@"""{displayedText}"" " + base.ToString();
-        }
+        public override string ToString() => $@"""{displayedText}"" " + base.ToString();
 
         /// <summary>
         /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.

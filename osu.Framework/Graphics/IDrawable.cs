@@ -30,6 +30,11 @@ namespace osu.Framework.Graphics
         DrawInfo DrawInfo { get; }
 
         /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        DrawColourInfo DrawColourInfo { get; }
+
+        /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
         Quad ScreenSpaceDrawQuad { get; }
@@ -97,5 +102,11 @@ namespace osu.Framework.Graphics
         /// Hide sprite instantly.
         /// </summary>
         void Hide();
+
+        /// <summary>
+        /// The current invalidation ID of this <see cref="Drawable"/>.
+        /// Incremented every time the <see cref="DrawNode"/> should be re-validated.
+        /// </summary>
+        long InvalidationID { get; }
     }
 }

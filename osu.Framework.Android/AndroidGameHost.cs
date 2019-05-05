@@ -20,6 +20,11 @@ namespace osu.Framework.Android
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
+        }
+
+        protected override void SetupForRun()
+        {
+            base.SetupForRun();
             AndroidGameWindow.View = gameView;
             Window = new AndroidGameWindow();
         }

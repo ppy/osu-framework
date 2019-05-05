@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
@@ -13,7 +14,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestCaseHollowEdgeEffect : GridTestCase
     {
-        public TestCaseHollowEdgeEffect() : base(2, 2)
+        public TestCaseHollowEdgeEffect()
+            : base(2, 2)
         {
             const float size = 60;
 

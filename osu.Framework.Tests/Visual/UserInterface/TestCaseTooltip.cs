@@ -28,9 +28,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             generateTest(false);
         }
 
-        private TooltipBox makeBox(Anchor anchor)
-        {
-            return new TooltipBox
+        private TooltipBox makeBox(Anchor anchor) =>
+            new TooltipBox
             {
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.2f),
@@ -39,7 +38,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Colour = Color4.Blue,
                 TooltipText = $"{anchor}",
             };
-        }
 
         private void generateTest(bool cursorlessTooltip)
         {
@@ -194,7 +192,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class TooltipTextbox : TextBox, IHasTooltip
+        private class TooltipTextbox : BasicTextBox, IHasTooltip
         {
             public string TooltipText => Text;
         }

@@ -115,11 +115,13 @@ namespace osu.Framework.Allocation
 
                     break;
                 }
+
                 case FieldInfo fi:
                 {
                     var modifier = fi.GetAccessModifier();
                     if (modifier != AccessModifier.Private && !fi.IsInitOnly)
                         throw new AccessModifierNotAllowedForCachedValueException(modifier, fi);
+
                     break;
                 }
             }
@@ -140,6 +142,7 @@ namespace osu.Framework.Allocation
                     {
                         if (allowValueTypes)
                             return;
+
                         throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
                     }
 

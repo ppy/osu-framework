@@ -76,14 +76,13 @@ namespace osu.Framework.Graphics.Cursor
                 // are still our own responsibility to handle.
                 nestedTtcChildDrawables.UnionWith(
                     ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
-                    .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
+                                                               .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
 
                 // Ignore drawables whose effects are managed by a nested effect container.
                 if (nestedTtcChildDrawables.Contains(candidate))
                     continue;
 
-                TTarget target = candidate as TTarget;
-                if (target != null && target.IsHovered)
+                if (candidate is TTarget target && target.IsHovered)
                     // We found a valid candidate; keep track of it
                     targetChildren.Add(target);
             }

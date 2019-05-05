@@ -18,9 +18,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private readonly TestRigidBodySimulation sim;
 
         private float restitutionBacking;
+
         private float restitution
         {
-            get { return restitutionBacking; }
+            get => restitutionBacking;
             set
             {
                 restitutionBacking = value;
@@ -35,9 +36,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         private float frictionBacking;
+
         private float friction
         {
-            get { return frictionBacking; }
+            get => frictionBacking;
             set
             {
                 frictionBacking = value;
@@ -81,8 +83,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 do
                 {
                     d = generate();
-                }
-                while (overlapsAny(d));
+                } while (overlapsAny(d));
 
                 sim.Add(d);
             }
@@ -100,7 +101,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
                 Size = new Vector2(1, 0.1f + 0.2f * (float)random.NextDouble()) * (150 + 150 * (float)random.NextDouble()),
                 Rotation = (float)random.NextDouble() * 360,
-                Child = new TextBox
+                Child = new BasicTextBox
                 {
                     RelativeSizeAxes = Axes.Both,
                     PlaceholderText = "Text box fun!",

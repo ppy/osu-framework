@@ -17,6 +17,8 @@ using osuTK;
 using osuTK.Graphics;
 using System.Threading.Tasks;
 using System.Threading;
+using NUnit.Framework.Internal;
+using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
@@ -34,13 +36,9 @@ namespace osu.Framework.Testing
         private Task runTask;
         private ITestCaseTestRunner runner;
 
-        internal bool IsNUnitRunning;
-
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            IsNUnitRunning = true;
-
             host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
 
@@ -84,8 +82,29 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetUpTestForNUnit()
         {
-            if (IsNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                Schedule(() => StepsContainer.Clear());
+            if (DebugUtils.IsNUnitRunning)
+            {
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+                    schedule(() => StepsContainer.Clear());
+            }
 
             RunSetUpSteps();
         }
@@ -108,11 +127,6 @@ namespace osu.Framework.Testing
         }
 
         /// <summary>
-        /// Most derived usages of this start with TestCase. This will be removed for display purposes.
-        /// </summary>
-        private const string prefix = "TestCase";
-
-        /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestCase"/>.
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
@@ -123,10 +137,7 @@ namespace osu.Framework.Testing
 
         protected TestCase()
         {
-            Name = GetType().ReadableName();
-
-            // Skip the "TestCase" prefix
-            if (Name.StartsWith(prefix)) Name = Name.Replace(prefix, string.Empty);
+            Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
             Masking = true;
@@ -185,7 +196,7 @@ namespace osu.Framework.Testing
         private ScheduledDelegate stepRunner;
         private readonly ScrollContainer scroll;
 
-        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
             // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
@@ -195,7 +206,7 @@ namespace osu.Framework.Testing
                 foreach (var step in StepsContainer.FlowingChildren.OfType<StepButton>())
                     step.Reset();
 
-                actionIndex = -1;
+                actionIndex = startFromStep != null ? StepsContainer.IndexOf(startFromStep) + 1 : -1;
                 actionRepetition = 0;
                 runNextStep(onCompletion, onError, stopCondition);
             });
@@ -240,12 +251,12 @@ namespace osu.Framework.Testing
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
-                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
-                    return;
-
-                Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
+                Console.WriteLine();
+
+                if (loadableStep != null && stopCondition?.Invoke(loadableStep) == true)
+                    return;
             }
 
             if (actionIndex > StepsContainer.Children.Count - 1)
@@ -258,7 +269,7 @@ namespace osu.Framework.Testing
                 stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
 
-        public void AddStep(StepButton step) => Schedule(() => StepsContainer.Add(step));
+        public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
         public StepButton AddStep(string description, Action action)
         {
@@ -280,12 +291,19 @@ namespace osu.Framework.Testing
                 Text = description,
             };
 
+            step.Action = () =>
+            {
+                // kinda hacky way to avoid this doesn't get triggered by automated runs.
+                if (step.IsHovered)
+                    RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
+            };
+
             AddStep(step);
 
             return step;
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount) => Schedule(() =>
+        protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
@@ -293,7 +311,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddToggleStep(string description, Action<bool> action) => Schedule(() =>
+        protected void AddToggleStep(string description, Action<bool> action) => schedule(() =>
         {
             StepsContainer.Add(new ToggleStepButton(action)
             {
@@ -305,7 +323,7 @@ namespace osu.Framework.Testing
         protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
             => AddUntilStep(description, waitUntilTrueDelegate);
 
-        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Schedule(() =>
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
@@ -317,7 +335,7 @@ namespace osu.Framework.Testing
         protected void AddWaitStep(int waitCount, string description = null)
             => AddWaitStep(description, waitCount);
 
-        protected void AddWaitStep(string description, int waitCount) => Schedule(() =>
+        protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
@@ -325,7 +343,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => Schedule(() =>
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
@@ -333,7 +351,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => Schedule(() =>
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
         {
             StepsContainer.Add(new AssertButton
             {
@@ -344,6 +362,9 @@ namespace osu.Framework.Testing
             });
         });
 
+        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
+        private void schedule(Action action) => Scheduler.Add(action, false);
+
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
 
         internal void RunSetUpSteps()
@@ -351,5 +372,12 @@ namespace osu.Framework.Testing
             foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
                 method.Invoke(this, null);
         }
+
+        /// <summary>
+        /// Remove the "TestCase" prefix from a name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static string RemovePrefix(string name) => name.Replace(nameof(TestCase), string.Empty);
     }
 }

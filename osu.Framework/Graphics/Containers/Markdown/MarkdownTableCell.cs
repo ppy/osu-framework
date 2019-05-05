@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [Resolved]
         private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
 
-        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
+        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition)
         {
             this.cell = cell;
             this.definition = definition;

@@ -7,11 +7,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxClipboard : Clipboard
     {
-        public override string GetText()
-        {
-            return string.Empty;
-            // return System.Windows.Forms.Clipboard.GetText(TextDataFormat.UnicodeText);
-        }
+        public override string GetText() => string.Empty;
 
         public override void SetText(string selectedText)
         {

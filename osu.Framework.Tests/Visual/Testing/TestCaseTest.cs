@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Development;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
@@ -31,9 +32,11 @@ namespace osu.Framework.Tests.Visual.Testing
                 // [SetUp] gets run via TestConstructor() when we are running under nUnit.
                 // note that in TestBrowser's case, this does not invoke SetUp methods, so we skip this increment.
                 // schedule is required to ensure that IsNUnitRunning is initialised.
-                if (IsNUnitRunning)
+                if (DebugUtils.IsNUnitRunning)
                     testRunCount++;
             });
+
+            AddStep("dummy step", () => { });
         }
 
         [Test]
@@ -41,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Testing
         {
             AddStep("increment run count", () => testRunCount++);
             AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         [Test]
@@ -49,7 +52,20 @@ namespace osu.Framework.Tests.Visual.Testing
         {
             AddStep("increment run count", () => testRunCount++);
             AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+        }
+
+        protected override ITestCaseTestRunner CreateRunner() => new TestRunner();
+
+        private class TestRunner : TestCaseTestRunner
+        {
+            public override void RunTestBlocking(TestCase test)
+            {
+                base.RunTestBlocking(test);
+
+                // This will only ever trigger via NUnit
+                Assert.That(test.StepsContainer, Has.Count.GreaterThan(0));
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace osu.Framework.Lists
             {
                 throw new ArgumentNullException(nameof(compare));
             }
+
             comparison = new Comparison<T>(compare);
         }
 

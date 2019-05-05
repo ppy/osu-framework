@@ -9,6 +9,7 @@
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <Product>osu!framework</Product>
     <NoWarn>1591</NoWarn>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
@@ -53,6 +54,9 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Fonts\FontAwesome" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(APPVEYOR_DEPLOY)'==1">

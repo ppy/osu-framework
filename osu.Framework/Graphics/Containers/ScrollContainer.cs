@@ -414,7 +414,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            target = value;
+            target = Clamp(value, ClampExtension);
 
             if (animated)
                 this.distanceDecay = distanceDecay;

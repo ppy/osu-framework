@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
 
@@ -67,6 +68,7 @@ namespace osu.Framework.Graphics.Containers
         protected void BeginDelayedLoad()
         {
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
+
             loadTask = LoadComponentAsync(Content, EndDelayedLoad);
         }
 

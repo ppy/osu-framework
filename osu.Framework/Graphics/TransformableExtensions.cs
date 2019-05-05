@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics
@@ -125,10 +126,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> which has a delay waiting for all transforms to be completed.</returns>
         public static TransformSequence<T> DelayUntilTransformsFinished<T>(this T transformable)
-            where T : Transformable
-        {
-            return transformable.Delay(Math.Max(0, transformable.LatestTransformEndTime - transformable.Time.Current));
-        }
+            where T : Transformable =>
+            transformable.Delay(Math.Max(0, transformable.LatestTransformEndTime - transformable.Time.Current));
 
         /// <summary>
         /// Append a looping <see cref="TransformSequence{T}"/> to this <see cref="TransformSequence{T}"/>.

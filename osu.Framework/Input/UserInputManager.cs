@@ -38,6 +38,7 @@ namespace osu.Framework.Input
                 case MouseScrollChangeEvent _:
                     if (Host.Window != null && !Host.Window.CursorInWindow)
                         return;
+
                     break;
             }
 

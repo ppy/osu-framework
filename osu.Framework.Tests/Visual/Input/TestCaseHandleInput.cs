@@ -64,6 +64,7 @@ namespace osu.Framework.Tests.Visual.Input
             public override bool RequestsFocus => Enabled;
 
             private bool enabled;
+
             public bool Enabled
             {
                 protected get => enabled;
@@ -74,7 +75,8 @@ namespace osu.Framework.Tests.Visual.Input
                 }
             }
 
-            public new Color4 Colour {
+            public new Color4 Colour
+            {
                 get => box.Colour;
                 set => box.Colour = value;
             }

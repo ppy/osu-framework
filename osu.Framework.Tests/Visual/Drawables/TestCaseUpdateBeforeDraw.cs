@@ -70,6 +70,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 if (hasInvoked)
                     return;
+
                 hasInvoked = true;
 
                 OnUpdateAfterChildren?.Invoke();

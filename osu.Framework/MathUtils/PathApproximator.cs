@@ -216,6 +216,7 @@ namespace osu.Framework.MathUtils
                 minX = Math.Min(minX, controlPoints[i].X);
                 maxX = Math.Max(maxX, controlPoints[i].X);
             }
+
             float dx = maxX - minX;
 
             for (int i = 0; i < num_steps; i++)
