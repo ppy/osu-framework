@@ -252,6 +252,7 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 if (truncate == value) return;
+
                 truncate = value;
                 invalidate(true);
             }
@@ -265,6 +266,7 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 if (ellipsisString == value) return;
+
                 ellipsisString = value;
                 invalidate(true);
             }
