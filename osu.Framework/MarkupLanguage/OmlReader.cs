@@ -332,49 +332,55 @@ namespace osu.Framework.MarkupLanguage
                 return new Vector2(float.Parse(split[0], CultureInfo.InvariantCulture), float.Parse(split[1], CultureInfo.InvariantCulture));
             }
 
-            if (type == typeof(ColourInfo)) {
-                // try color code
-                if (val.StartsWith("#")) {
-                    val = val.Substring(1);
+            if (type == typeof(ColourInfo))
+                return (ColourInfo)textToColor(val);
 
-                    switch (val.Length) {
-                        case 6:
-                            return (ColourInfo)new Color4(
-                                Convert.ToByte(val.Substring(0, 2), 16),
-                                Convert.ToByte(val.Substring(2, 2), 16),
-                                Convert.ToByte(val.Substring(4, 2), 16),
-                                0xFF);
-                        case 3:
-                            return (ColourInfo)new Color4(
-                                (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
-                                (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
-                                (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
-                                0xFF);
-                        case 8:
-                            return (ColourInfo)new Color4(
-                                Convert.ToByte(val.Substring(0, 2), 16),
-                                Convert.ToByte(val.Substring(2, 2), 16),
-                                Convert.ToByte(val.Substring(4, 2), 16),
-                                Convert.ToByte(val.Substring(6, 2), 16));
-                        case 4:
-                            return (ColourInfo)new Color4(
-                                (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
-                                (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
-                                (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
-                                (byte)(Convert.ToByte(val.Substring(3, 1), 16) * 0x11));
-                    }
-                }
-
-                // try pre-defined code
-                var c = typeof(Color4).GetProperty(val, BindingFlags.Static | BindingFlags.Public);
-                if (c != null)
-                    return (ColourInfo)(Color4)c.GetValue(null);
-
-                // perhaps try osucolours in the future
-                throw new Exception("Unrecognized color: " + val);
-            }
+            if (type == typeof(Color4))
+                return textToColor(val);
 
             return null;
+        }
+
+        private static Color4 textToColor(string val)
+        {
+            // try color code
+            if (val.StartsWith("#")) {
+                val = val.Substring(1);
+
+                switch (val.Length) {
+                    case 6:
+                        return new Color4(
+                            Convert.ToByte(val.Substring(0, 2), 16),
+                            Convert.ToByte(val.Substring(2, 2), 16),
+                            Convert.ToByte(val.Substring(4, 2), 16),
+                            0xFF);
+                    case 3:
+                        return new Color4(
+                            (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
+                            (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
+                            (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
+                            0xFF);
+                    case 8:
+                        return new Color4(
+                            Convert.ToByte(val.Substring(0, 2), 16),
+                            Convert.ToByte(val.Substring(2, 2), 16),
+                            Convert.ToByte(val.Substring(4, 2), 16),
+                            Convert.ToByte(val.Substring(6, 2), 16));
+                    case 4:
+                        return new Color4(
+                            (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
+                            (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
+                            (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
+                            (byte)(Convert.ToByte(val.Substring(3, 1), 16) * 0x11));
+                }
+            }
+
+            // try pre-defined code
+            var c = typeof(Color4).GetProperty(val, BindingFlags.Static | BindingFlags.Public);
+            if (c != null)
+                return (Color4)c.GetValue(null);
+
+            throw new Exception("Unrecognized color: " + val);
         }
 
         private static Type findContainerGenericParam(object o)
