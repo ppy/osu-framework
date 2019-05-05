@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MarkupLanguage;
 using osu.Framework.Testing;
@@ -28,17 +29,20 @@ Layout:
 ";
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(OmlReader), typeof(OmlObject) };
+        private OmlReader reader;
+
+        [SetUp]
+        public void SetUp() => Schedule(() => Child = new Container());
 
         [TestCase]
         public void LoadSimpleLayout()
         {
-            var reader = new OmlReader(new Dictionary<string, Type>
+            AddStep("Create OmlReader", () => reader = new OmlReader(new Dictionary<string, Type>
             {
                 { "Box", typeof(Box) },
-            });
+            }));
 
-            var obj = reader.Load("Layout", new StringReader(simple_layout));
-            Child = obj;
+            AddStep("Load layout", () => Child = reader.Load("Layout", new StringReader(simple_layout)));
         }
     }
 }
