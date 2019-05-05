@@ -93,6 +93,17 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// </summary>
         /// <remarks>See: https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/nullable-types/how-to-identify-a-nullable-type</remarks>
         public static bool IsNullable(this Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+
+        /// <summary>
+        /// Checks if the object extends the given type (directly or indirectly). Also checks for generic types.
+        /// </summary>
+        public static bool ExtendsClass(this object obj, Type t)
+        {
+            bool isGeneric = t.IsGenericType;
+            return obj.GetType().EnumerateBaseTypes()
+                      .Where(x => x.IsGenericType == isGeneric)
+                      .Any(x => (isGeneric ? x.GetGenericTypeDefinition() : x) == t);
+        }
     }
 
     [Flags]

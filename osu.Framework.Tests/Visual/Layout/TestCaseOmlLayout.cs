@@ -16,10 +16,16 @@ namespace osu.Framework.Tests.Visual.Layout
     {
         private const string simple_layout = @"
 Layout:
-  Extends: Box
-  Width: 200
-  Height: 100
-  Colour: Red";
+  Children:
+    - Extends: Box
+      Width: 200
+      Height: 100
+      Colour: Red
+    - Extends: Box
+      Width: 100
+      Height: 200
+      Colour: '#00F7'
+";
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(OmlReader), typeof(OmlObject) };
 

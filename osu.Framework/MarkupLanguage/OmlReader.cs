@@ -8,11 +8,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
 using osuTK;
 using osuTK.Graphics;
 using YamlDotNet.Serialization;
+using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.MarkupLanguage
 {
@@ -33,14 +36,15 @@ namespace osu.Framework.MarkupLanguage
 
         public Drawable CreateDrawable(OmlObject obj)
         {
-            var type = obj.Extends;
+            var type = obj.Extends ?? typeof(Container);
             var instance = (Drawable)Activator.CreateInstance(type);
 
             applyProperties(instance, obj.GeneralProperties);
 
-            // TODO: add children
-
             // TODO: set events
+
+            if (obj.Children?.Any() == true)
+                addChildren(instance, obj.Children);
 
             return instance;
         }
@@ -296,6 +300,23 @@ namespace osu.Framework.MarkupLanguage
             }
         }
 
+        private void addChildren(Drawable d, OmlObject[] objs)
+        {
+            if (!d.ExtendsClass(typeof(Container<>)))
+                throw new InvalidOperationException($"Drawable '{d}' is not a container!");
+
+            var children = objs.Select(CreateDrawable).ToArray();
+
+            // Upcast the array so it fits the Children property of the container type (eg. RigidBodyContainer derive from Container<T>, and
+            // Children is of type IReadOnlyList<T>. Passing it a Drawable[] would cause a runtime exception)
+            Type t = findContainerGenericParam(d);
+            var newChildren = Array.CreateInstance(t, children.Length);
+            Array.Copy(children, newChildren, newChildren.Length);
+
+            // Use reflection to set the Children property (we cannot cast to a generic type without parameter)
+            d.GetType().GetProperty(nameof(Container.Children)).SetValue(d, newChildren);
+        }
+
         private static object safeConvertToObject(string val, Type type)
         {
             var conv = TypeDescriptor.GetConverter(type);
@@ -325,9 +346,9 @@ namespace osu.Framework.MarkupLanguage
                                 0xFF);
                         case 3:
                             return (ColourInfo)new Color4(
-                                Convert.ToByte(val.Substring(0, 1), 16) * 0x11,
-                                Convert.ToByte(val.Substring(1, 1), 16) * 0x11,
-                                Convert.ToByte(val.Substring(2, 1), 16) * 0x11,
+                                (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
+                                (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
+                                (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
                                 0xFF);
                         case 8:
                             return (ColourInfo)new Color4(
@@ -337,10 +358,10 @@ namespace osu.Framework.MarkupLanguage
                                 Convert.ToByte(val.Substring(6, 2), 16));
                         case 4:
                             return (ColourInfo)new Color4(
-                                Convert.ToByte(val.Substring(0, 1), 16) * 0x11,
-                                Convert.ToByte(val.Substring(1, 1), 16) * 0x11,
-                                Convert.ToByte(val.Substring(2, 1), 16) * 0x11,
-                                Convert.ToByte(val.Substring(3, 1), 16) * 0x11);
+                                (byte)(Convert.ToByte(val.Substring(0, 1), 16) * 0x11),
+                                (byte)(Convert.ToByte(val.Substring(1, 1), 16) * 0x11),
+                                (byte)(Convert.ToByte(val.Substring(2, 1), 16) * 0x11),
+                                (byte)(Convert.ToByte(val.Substring(3, 1), 16) * 0x11));
                     }
                 }
 
@@ -354,6 +375,14 @@ namespace osu.Framework.MarkupLanguage
             }
 
             return null;
+        }
+
+        private static Type findContainerGenericParam(object o)
+        {
+            var type = o.GetType();
+            var containerType = type.EnumerateBaseTypes().First(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(Container<>));
+            var genericType = containerType.GenericTypeArguments[0];
+            return genericType;
         }
 
         #endregion
