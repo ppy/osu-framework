@@ -37,7 +37,6 @@ namespace osu.Framework.Graphics.Lines
             public PathDrawNode(Path source)
                 : base(source)
             {
-                Console.WriteLine(source.Colour.HasSingleColour ? "(Color4)DrawColourInfo.Colour" : "DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear");
             }
 
             public override void ApplyState()
