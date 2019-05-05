@@ -24,7 +24,7 @@ namespace osu.Framework.Audio.Callbacks
             Seek = Seek
         };
 
-        private static FileProcedures staticProcedures = new FileProcedures
+        private static readonly FileProcedures staticProcedures = new FileProcedures
         {
             Read = readCallback,
             Close = closeCallback,
@@ -70,6 +70,7 @@ namespace osu.Framework.Audio.Callbacks
             var ptr = new ObjectHandle<FileCallbacks>(user);
             if (ptr.GetTarget(out FileCallbacks target))
                 return target.Read(buffer, length, user);
+
             return 0;
         }
 
@@ -87,6 +88,7 @@ namespace osu.Framework.Audio.Callbacks
             var ptr = new ObjectHandle<FileCallbacks>(user);
             if (ptr.GetTarget(out FileCallbacks target))
                 return target.Length(user);
+
             return 0;
         }
 
@@ -96,6 +98,7 @@ namespace osu.Framework.Audio.Callbacks
             var ptr = new ObjectHandle<FileCallbacks>(user);
             if (ptr.GetTarget(out FileCallbacks target))
                 return target.Seek(offset, user);
+
             return false;
         }
     }

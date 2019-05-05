@@ -52,7 +52,7 @@ namespace osu.Framework.Allocation
 
         /// <summary>
         /// Gets the object being referenced.
-        /// Returns true if successful and populates <paramref name="value"/> with the referenced object.
+        /// Returns true if successful and populates <paramref name="target"/> with the referenced object.
         /// Returns false If the handle is not allocated or the target is not of type <typeparamref name="T"/>.
         /// </summary>
         /// <param name="target">Populates this parameter with the targeted object.</param>
