@@ -3,23 +3,46 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
+using osuTK;
+using osuTK.Graphics;
 using YamlDotNet.Serialization;
 
 namespace osu.Framework.MarkupLanguage
 {
     public class OmlReader
     {
-        // TODO: accept a dictionary of types for Extends (ctor or dep inj)
+        private readonly Dictionary<string, Type> allowedDrawables;
+
+        public OmlReader(Dictionary<string, Type> allowedDrawables)
+        {
+            this.allowedDrawables = allowedDrawables;
+        }
+
         public Drawable Load(string objectName, TextReader text)
         {
             var obj = Parse(objectName, text);
+            return CreateDrawable(obj);
+        }
 
-            // TODO
-            return null;
+        public Drawable CreateDrawable(OmlObject obj)
+        {
+            var type = obj.Extends;
+            var instance = (Drawable)Activator.CreateInstance(type);
+
+            applyProperties(instance, obj.GeneralProperties);
+
+            // TODO: add children
+
+            // TODO: set events
+
+            return instance;
         }
 
         public OmlObject Parse(string objectName, TextReader text) => ParseAll(text)[objectName];
@@ -30,6 +53,8 @@ namespace osu.Framework.MarkupLanguage
             var bla = deserializer.Deserialize<Dictionary<string, object>>(text);
             return parseChildren(bla);
         }
+
+        #region YAML to object
 
         private Dictionary<string, OmlObject> parseChildren(Dictionary<string, object> bla)
         {
@@ -82,10 +107,7 @@ namespace osu.Framework.MarkupLanguage
             return obj;
         }
 
-        private Type resolveType(object s)
-        {
-            return typeof(object);    // TODO
-        }
+        private Type resolveType(object s) => allowedDrawables[(string)s];
 
         private Dictionary<string, OmlObject.OmlState> parseStates(object value)
         {
@@ -243,5 +265,97 @@ namespace osu.Framework.MarkupLanguage
 
             return p;
         }
+
+        #endregion
+
+        #region region populate object
+
+        private void applyProperties(Drawable d, Dictionary<string, string> properties)
+        {
+            foreach (var pair in properties) {
+                const BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                var type = d.GetType();
+
+                var prop = type.GetProperty(pair.Key, flags);
+                if (prop != null) {
+                    var value = safeConvertToObject(pair.Value, prop.PropertyType)
+                                ?? throw new Exception($"Unable to convert value {pair.Value} to type {prop.PropertyType}");
+                    prop.SetValue(d, value);
+                    continue;
+                }
+
+                var field = type.GetField(pair.Key, flags);
+                if (field != null) {
+                    var value = safeConvertToObject(pair.Value, field.FieldType)
+                                ?? throw new Exception($"Unable to convert value {pair.Value} to type {field.FieldType}");
+                    field.SetValue(d, value);
+                    continue;
+                }
+
+                throw new Exception($"Could not find property/field {pair.Key} on type {type}");
+            }
+        }
+
+        private static object safeConvertToObject(string val, Type type)
+        {
+            var conv = TypeDescriptor.GetConverter(type);
+            try {
+                return conv.ConvertFromInvariantString(val);
+            } catch (NotSupportedException) { }
+
+            if (type == typeof(Vector2)) {
+                string[] split = val.Split(',');
+                if (split.Length != 2)
+                    throw new Exception($"Passed {split.Length} numbers when 2 were expected for {nameof(Vector2)}");
+
+                return new Vector2(float.Parse(split[0], CultureInfo.InvariantCulture), float.Parse(split[1], CultureInfo.InvariantCulture));
+            }
+
+            if (type == typeof(ColourInfo)) {
+                // try color code
+                if (val.StartsWith("#")) {
+                    val = val.Substring(1);
+
+                    switch (val.Length) {
+                        case 6:
+                            return (ColourInfo)new Color4(
+                                Convert.ToByte(val.Substring(0, 2), 16),
+                                Convert.ToByte(val.Substring(2, 2), 16),
+                                Convert.ToByte(val.Substring(4, 2), 16),
+                                0xFF);
+                        case 3:
+                            return (ColourInfo)new Color4(
+                                Convert.ToByte(val.Substring(0, 1), 16) * 0x11,
+                                Convert.ToByte(val.Substring(1, 1), 16) * 0x11,
+                                Convert.ToByte(val.Substring(2, 1), 16) * 0x11,
+                                0xFF);
+                        case 8:
+                            return (ColourInfo)new Color4(
+                                Convert.ToByte(val.Substring(0, 2), 16),
+                                Convert.ToByte(val.Substring(2, 2), 16),
+                                Convert.ToByte(val.Substring(4, 2), 16),
+                                Convert.ToByte(val.Substring(6, 2), 16));
+                        case 4:
+                            return (ColourInfo)new Color4(
+                                Convert.ToByte(val.Substring(0, 1), 16) * 0x11,
+                                Convert.ToByte(val.Substring(1, 1), 16) * 0x11,
+                                Convert.ToByte(val.Substring(2, 1), 16) * 0x11,
+                                Convert.ToByte(val.Substring(3, 1), 16) * 0x11);
+                    }
+                }
+
+                // try pre-defined code
+                var c = typeof(Color4).GetProperty(val, BindingFlags.Static | BindingFlags.Public);
+                if (c != null)
+                    return (ColourInfo)(Color4)c.GetValue(null);
+
+                // perhaps try osucolours in the future
+                throw new Exception("Unrecognized color: " + val);
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }
