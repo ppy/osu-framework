@@ -24,7 +24,7 @@ namespace osu.Framework.Audio.Callbacks
             Seek = Seek
         };
 
-        private static readonly FileProcedures staticProcedures = new FileProcedures
+        private static readonly FileProcedures static_procedures = new FileProcedures
         {
             Read = readCallback,
             Close = closeCallback,
@@ -38,14 +38,14 @@ namespace osu.Framework.Audio.Callbacks
 
         public FileCallbacks(IFileProcedures implementation)
         {
-            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : staticProcedures;
+            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
             this.implementation = implementation;
             procedures = null;
         }
 
         public FileCallbacks(FileProcedures procedures)
         {
-            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : staticProcedures;
+            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
             this.procedures = procedures;
             implementation = null;
         }
