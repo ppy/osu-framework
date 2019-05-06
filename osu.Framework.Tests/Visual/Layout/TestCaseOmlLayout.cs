@@ -41,9 +41,9 @@ Layout:
 
       Events:
         - Name: BoxHover
-          AliasOf: OnBoxHover
+          AliasFor: OnBoxHover
         - Name: BoxUnHover
-          AliasOf: OnBoxUnHover
+          AliasFor: OnBoxUnHover
       Transitions:
         - Name: BoxHover
           State:
@@ -61,7 +61,7 @@ Layout:
 
       Events:
         - Name: ButtonClick
-          AliasOf: Action
+          AliasFor: Action
           Transitions:
             -
               State:
@@ -91,11 +91,17 @@ Layout:
         public void LoadEventLayout()
         {
             AddStep("Create OmlReader", () => reader = new OmlReader(new Dictionary<string, Type>
-            {
-                { "Box", typeof(Box) },
-                { "HoverBox", typeof(HoverBox) },
-                { "Button", typeof(Button) },
-            }));
+                {
+                    { "Box", typeof(Box) },
+                    { "HoverBox", typeof(HoverBox) },
+                    { "Button", typeof(Button) },
+                },
+                new Dictionary<string, Delegate>
+                {
+                    { "ButtonClick", new Action(() => { Console.WriteLine("Button click"); }) },
+                    { "BoxHover", new Action<HoverEvent>(x => { Console.WriteLine("Hover"); }) },
+                    { "BoxUnHover", new Action<HoverLostEvent>(x => { Console.WriteLine("UnHover"); }) },
+                }));
 
             AddStep("Load layout", () => Child = reader.Load("Layout", new StringReader(event_layout)));
         }

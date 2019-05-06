@@ -116,7 +116,7 @@ namespace osu.Framework.MarkupLanguage
             /// <summary>
             /// A unique alias for this event
             /// </summary>
-            public string Alias;
+            public string AliasFor;
 
             /// <summary>
             /// Transitions to be ran when this event gets triggered.

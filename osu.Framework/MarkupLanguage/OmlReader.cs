@@ -22,10 +22,12 @@ namespace osu.Framework.MarkupLanguage
     public class OmlReader
     {
         private readonly Dictionary<string, Type> allowedDrawables;
+        private readonly Dictionary<string, Delegate> events;
 
-        public OmlReader(Dictionary<string, Type> allowedDrawables)
+        public OmlReader(Dictionary<string, Type> allowedDrawables, Dictionary<string, Delegate> events = null)
         {
             this.allowedDrawables = allowedDrawables;
+            this.events = events ?? new Dictionary<string, Delegate>();
         }
 
         public Drawable Load(string objectName, TextReader text)
@@ -41,7 +43,8 @@ namespace osu.Framework.MarkupLanguage
 
             applyProperties(instance, obj.GeneralProperties);
 
-            // TODO: set events
+            if (obj.Events?.Any() == true)
+                setEvents(instance, obj);
 
             if (obj.Children?.Any() == true)
                 addChildren(instance, obj.Children);
@@ -213,6 +216,9 @@ namespace osu.Framework.MarkupLanguage
                     case "Name":
                         name = valString;
                         break;
+                    case "AliasFor":
+                        e.AliasFor = valString;
+                        break;
                     case "Transitions":
                         var objs = (List<object>)value1;
                         e.Transitions = new OmlObject.OmlTransition[objs.Count];
@@ -277,7 +283,7 @@ namespace osu.Framework.MarkupLanguage
         private void applyProperties(Drawable d, Dictionary<string, string> properties)
         {
             foreach (var pair in properties) {
-                const BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                const BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance;
                 var type = d.GetType();
 
                 var prop = type.GetProperty(pair.Key, flags);
@@ -296,7 +302,8 @@ namespace osu.Framework.MarkupLanguage
                     continue;
                 }
 
-                throw new Exception($"Could not find property/field {pair.Key} on type {type}");
+                // TODO: prob want to log this instead of throw
+                throw new Exception($"Could not find public property/field {pair.Key} on type {type}");
             }
         }
 
@@ -315,6 +322,45 @@ namespace osu.Framework.MarkupLanguage
 
             // Use reflection to set the Children property (we cannot cast to a generic type without parameter)
             d.GetType().GetProperty(nameof(Container.Children)).SetValue(d, newChildren);
+        }
+
+        private void setEvents(Drawable d, OmlObject obj)
+        {
+            const BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance;
+            var type = d.GetType();
+
+            foreach (var pair in obj.Events) {
+                Console.WriteLine(pair.Key);
+                if (!events.ContainsKey(pair.Key))
+                    continue;
+
+                if (string.IsNullOrEmpty(pair.Value.AliasFor))
+                    continue;
+
+                var ev = events[pair.Key];
+                Console.WriteLine("> " + pair.Value.AliasFor);
+
+                var prop = type.GetProperty(pair.Value.AliasFor, flags);
+                if (prop != null && prop.PropertyType == ev.GetType()) {
+                    prop.SetValue(d, ev);
+                    continue;
+                }
+
+                var field = type.GetField(pair.Value.AliasFor, flags);
+                if (field != null && field.FieldType == ev.GetType()) {
+                    field.SetValue(d, ev);
+                    continue;
+                }
+
+                var even = type.GetEvent(pair.Value.AliasFor, flags);
+                if (even != null && even.EventHandlerType == ev.GetType()) {
+                    even.AddEventHandler(d, ev);
+                    continue;
+                }
+
+                // TODO: prob want to log this instead of throw
+                throw new Exception($"Could not find public property/field/event {pair.Value.AliasFor} on type {type}");
+            }
         }
 
         private static object safeConvertToObject(string val, Type type)
