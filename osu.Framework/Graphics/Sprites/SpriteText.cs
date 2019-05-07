@@ -176,6 +176,9 @@ namespace osu.Framework.Graphics.Sprites
                 if (allowMultiline == value)
                     return;
 
+                if (value && Truncate)
+                    throw new InvalidOperationException($"Cannot use {nameof(Truncate)} and {nameof(AllowMultiline)} at the same time.");
+
                 allowMultiline = value;
 
                 invalidate(true);
@@ -252,6 +255,9 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 if (truncate == value) return;
+
+                if (value && AllowMultiline)
+                    throw new InvalidOperationException($"Cannot use {nameof(Truncate)} and {nameof(AllowMultiline)} at the same time.");
 
                 truncate = value;
                 invalidate(true);
@@ -437,6 +443,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 if (truncate)
                 {
+                    Debug.Assert(!AllowMultiline);
+
                     int displayCount = getTruncationLength();
 
                     foreach (var character in displayedText.Take(displayCount))
@@ -514,6 +522,8 @@ namespace osu.Framework.Graphics.Sprites
                 // Check if we need to go onto the next line
                 if (AllowMultiline)
                 {
+                    Debug.Assert(!Truncate);
+
                     if (currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = Padding.Left;
