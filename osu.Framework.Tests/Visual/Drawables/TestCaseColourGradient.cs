@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Shapes;
@@ -14,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     public class TestCaseColourGradient : GridTestCase
     {
         public TestCaseColourGradient()
-            : base(2, 2)
+            : base(4, 2)
         {
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
@@ -22,10 +23,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 new ColourInfo
                 {
-                    TopLeft = Color4.White,
-                    BottomLeft = Color4.Blue,
-                    TopRight = Color4.Red,
-                    BottomRight = Color4.Green,
+                    TopLeft = Color4.Pink.ToLinear(),
+                    BottomLeft = Color4.Pink.ToLinear(),
+                    TopRight = Color4.SkyBlue.ToLinear(),
+                    BottomRight = Color4.SkyBlue.ToLinear(),
+                },
+                new ColourInfo
+                {
+                    TopLeft = Color4.Pink,
+                    BottomLeft = Color4.Pink,
+                    TopRight = Color4.SkyBlue,
+                    BottomRight = Color4.SkyBlue,
+                },
+                new ColourInfo
+                {
+                    TopLeft = Color4.White.ToLinear(),
+                    BottomLeft = Color4.White.ToLinear(),
+                    TopRight = Color4.Black.ToLinear(),
+                    BottomRight = Color4.Black.ToLinear(),
                 },
                 new ColourInfo
                 {
@@ -36,10 +51,24 @@ namespace osu.Framework.Tests.Visual.Drawables
                 },
                 new ColourInfo
                 {
+                    TopLeft = Color4.White.ToLinear(),
+                    BottomLeft = Color4.White.ToLinear(),
+                    TopRight = Color4.Transparent.ToLinear(),
+                    BottomRight = Color4.Transparent.ToLinear(),
+                },
+                new ColourInfo
+                {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.White,
                     TopRight = Color4.Transparent,
                     BottomRight = Color4.Transparent,
+                },
+                new ColourInfo
+                {
+                    TopLeft = Color4.White.ToLinear(),
+                    BottomLeft = Color4.White.ToLinear(),
+                    TopRight = transparentBlack.ToLinear(),
+                    BottomRight = transparentBlack.ToLinear(),
                 },
                 new ColourInfo
                 {
@@ -52,10 +81,14 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             string[] labels =
             {
-                "Colours",
-                "White to black (linear brightness gradient)",
+                "Colours (Linear)",
+                "Colours (sRGB)",
+                "White to black (Linear brightness gradient)",
+                "White to black (sRGB brightness gradient)",
+                "White to transparent white (Linear brightness gradient)",
                 "White to transparent white (sRGB brightness gradient)",
-                "White to transparent black (mixed brightness gradient)",
+                "White to transparent black (Linear brightness gradient)",
+                "White to transparent black (sRGB brightness gradient)",
             };
 
             for (int i = 0; i < Rows * Cols; ++i)
@@ -66,9 +99,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         Text = labels[i],
                         Font = new FontUsage(size: 20),
-                        Colour = colours[0],
                     },
-                    boxes[i] = new Box
+                    new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
@@ -78,16 +110,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                     },
                 });
             }
-        }
-
-        private readonly Box[] boxes = new Box[4];
-
-        protected override void Update()
-        {
-            base.Update();
-
-            foreach (Box box in boxes)
-                box.Rotation += 0.01f;
         }
     }
 }
