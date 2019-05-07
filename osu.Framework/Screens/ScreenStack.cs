@@ -123,7 +123,7 @@ namespace osu.Framework.Screens
             if (!child.ValidForPush)
             {
                 if (child == CurrentScreen)
-                    exitFrom(null, shouldFireEvent: false);
+                    exitFrom(null, shouldFireExitEvent: false, shouldFireResumeEvent: suspendImmediately);
 
                 return;
             }
@@ -221,8 +221,9 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
-        /// <param name="shouldFireEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
-        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireEvent = true)
+        /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
+        /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
+        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
         {
             if (stack.Count == 0)
                 return;
@@ -231,7 +232,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (shouldFireEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
+            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;
@@ -254,7 +255,8 @@ namespace osu.Framework.Screens
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
             // Resume the next current screen from the exited one
-            resumeFrom(toExit);
+            if (shouldFireResumeEvent)
+                resumeFrom(toExit);
         }
 
         /// <summary>
