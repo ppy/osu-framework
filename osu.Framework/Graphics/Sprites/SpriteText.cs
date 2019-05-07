@@ -408,109 +408,48 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Compute character textures and positions.
         /// </summary>
-        /// <param name="ellipsisPass">In the case of truncation using an <see cref="EllipsisString"/>, a second pass is required to correctly fit the ellipsis.</param>
-        private void computeCharacters(bool ellipsisPass = false)
+        private void computeCharacters()
         {
             if (store == null)
                 return;
 
-            if (charactersCache.IsValid && !ellipsisPass)
+            if (charactersCache.IsValid)
                 return;
 
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters || ellipsisPass, "Cyclic invocation of computeCharacters()!");
+            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
+            float maxWidth = float.PositiveInfinity;
+            float currentRowHeight = 0;
 
             try
             {
                 if (string.IsNullOrEmpty(displayedText))
                     return;
 
-                float maxWidth = float.PositiveInfinity;
-
                 if (!requiresAutoSizedWidth)
-                {
                     maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
-                    if (ellipsisPass)
-                        maxWidth -= EllipsisString.Sum(c => getCharacterSize(c, true, out _).X + spacing.X);
-                }
-
-                float currentRowHeight = 0;
 
                 // Calculate period texture info outside the loop so that it isn't done per-character
 
-                float lastNonSpacePos = 0;
-
-                foreach (var character in displayedText)
-                    if (!addCharacter(character, Truncate))
-                        break;
-
-                bool addCharacter(char character, bool truncate)
+                if (truncate)
                 {
-                    // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                    Vector2 scaledTextureSize = getCharacterSize(character, false, out Texture texture);
+                    int displayCount = getTruncationLength();
 
-                    // Scaled glyph size to be used for positioning.
-                    Vector2 glyphSize = new Vector2(
-                        useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
-                        UseFullGlyphHeight ? Font.Size : scaledTextureSize.Y);
+                    foreach (var character in displayedText.Take(displayCount))
+                        addCharacter(character);
 
-                    // Check if we need to go onto the next line
-                    if (AllowMultiline)
-                    {
-                        if (currentPos.X + glyphSize.X >= maxWidth)
-                        {
-                            currentPos.X = Padding.Left;
-                            currentPos.Y += currentRowHeight + spacing.Y;
-                            currentRowHeight = 0;
-                        }
-                    }
-                    // Check if this character would take us past the max width and apply truncation
-                    else if (truncate && currentPos.X + glyphSize.X >= maxWidth)
-                    {
-                        currentPos.X = lastNonSpacePos;
-
-                        if (EllipsisString.Length == 0)
-                            return false;
-
-                        if (!ellipsisPass)
-                        {
-                            //if an ellipsis has been specified, re-run layout while considering it.
-                            computeCharacters(true);
-                            return false;
-                        }
-
-                        foreach (var c in EllipsisString)
-                            addCharacter(c, false);
-
-                        return false;
-                    }
-
-                    // The height of the row depends on whether we want to use the full glyph height or not
-                    currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                    bool isSpace = char.IsWhiteSpace(character) || texture == null;
-
-                    if (!isSpace)
-                    {
-                        // If we have fixed width, we'll need to centre the texture to the glyph size
-                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
-
-                        charactersBacking.Add(new CharacterPart
-                        {
-                            Texture = texture,
-                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
-                        });
-                    }
-
-                    currentPos.X += glyphSize.X + spacing.X;
-
-                    if (!isSpace)
-                        lastNonSpacePos = currentPos.X;
-                    return true;
+                    if (displayedText.Length != displayCount)
+                        foreach (var character in EllipsisString)
+                            addCharacter(character);
+                }
+                else
+                {
+                    foreach (var character in displayedText)
+                        addCharacter(character);
                 }
 
                 // When we added the last character, we also added the spacing, but we should remove it to get the correct size
@@ -528,6 +467,79 @@ namespace osu.Framework.Graphics.Sprites
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
+            }
+
+            int getTruncationLength()
+            {
+                float trackingPos = Padding.Left;
+                float availableWidth = maxWidth -= EllipsisString.Sum(c => getCharacterSize(c, true, out _).X + spacing.X);
+
+                int index = 0;
+                int lastNonSpaceIndex = 0;
+
+                foreach (var character in displayedText)
+                {
+                    // don't apply fixed width as we need the raw size to compare with glyphSize below.
+                    Vector2 scaledTextureSize = getCharacterSize(character, false, out Texture texture);
+
+                    // Scaled glyph size to be used for positioning.
+                    float glyphWidth = useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X;
+
+                    if (trackingPos + glyphWidth >= availableWidth)
+                        return lastNonSpaceIndex;
+
+                    trackingPos += glyphWidth + spacing.X;
+
+                    bool isSpace = char.IsWhiteSpace(character) || texture == null;
+
+                    index++;
+
+                    if (!isSpace)
+                        lastNonSpaceIndex = index;
+                }
+
+                return index;
+            }
+
+            void addCharacter(char character)
+            {
+                // don't apply fixed width as we need the raw size to compare with glyphSize below.
+                Vector2 scaledTextureSize = getCharacterSize(character, false, out Texture texture);
+
+                // Scaled glyph size to be used for positioning.
+                Vector2 glyphSize = new Vector2(
+                    useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
+                    UseFullGlyphHeight ? Font.Size : scaledTextureSize.Y);
+
+                // Check if we need to go onto the next line
+                if (AllowMultiline)
+                {
+                    if (currentPos.X + glyphSize.X >= maxWidth)
+                    {
+                        currentPos.X = Padding.Left;
+                        currentPos.Y += currentRowHeight + spacing.Y;
+                        currentRowHeight = 0;
+                    }
+                }
+
+                // The height of the row depends on whether we want to use the full glyph height or not
+                currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
+
+                bool isSpace = char.IsWhiteSpace(character) || texture == null;
+
+                if (!isSpace)
+                {
+                    // If we have fixed width, we'll need to centre the texture to the glyph size
+                    float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+
+                    charactersBacking.Add(new CharacterPart
+                    {
+                        Texture = texture,
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
+                    });
+                }
+
+                currentPos.X += glyphSize.X + spacing.X;
             }
         }
 
