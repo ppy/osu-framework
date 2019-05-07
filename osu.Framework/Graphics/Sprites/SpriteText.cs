@@ -243,7 +243,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool truncate = true;
+        private bool truncate;
 
         /// <summary>
         /// True if the text should be truncated when it exceeds a specified <see cref="Width"/>.
