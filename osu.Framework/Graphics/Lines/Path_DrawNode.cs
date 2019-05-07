@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -56,7 +57,7 @@ namespace osu.Framework.Graphics.Lines
             private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
 
             private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
-                ? (Color4)DrawColourInfo.Colour
+                ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
             private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
