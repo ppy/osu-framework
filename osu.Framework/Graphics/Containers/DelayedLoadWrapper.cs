@@ -49,12 +49,37 @@ namespace osu.Framework.Graphics.Containers
 
         private Task loadTask;
 
+        internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
+
+        private Cached isIntersectingCache = new Cached();
+
+        protected bool IsIntersecting { get; private set; }
+
         protected override void Update()
         {
             base.Update();
 
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
+
+            if (!isIntersectingCache.IsValid)
+            {
+                if (OptimisingContainer == null)
+                {
+                    CompositeDrawable cursor = this;
+                    while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
+                        OptimisingContainer = cursor as IOnScreenOptimisingContainer;
+                }
+
+                if (OptimisingContainer == null)
+                    IsIntersecting = true;
+                else
+                    OptimisingContainer.ScheduleCheckAction(() => IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad));
+
+                // Although the value won't be valid until the scheduled operation runs, a one-frame delay is not going to be noticeable
+                isIntersectingCache.Validate();
+                return;
+            }
 
             if (!IsIntersecting)
                 timeVisible = 0;
@@ -93,27 +118,9 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached<bool> isIntersectingBacking;
-
-        protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : isIntersectingBacking.Value = checkScrollIntersection();
-
-        internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
-
-        private bool checkScrollIntersection()
-        {
-            if (OptimisingContainer == null)
-            {
-                CompositeDrawable cursor = this;
-                while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
-                    OptimisingContainer = cursor as IOnScreenOptimisingContainer;
-            }
-
-            return OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) ?? true;
-        }
-
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            isIntersectingBacking.Invalidate();
+            isIntersectingCache.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
