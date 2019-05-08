@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool truncate;
 
         /// <summary>
-        /// True if the text should be truncated when it exceeds a specified <see cref="Width"/>.
+        /// If true, text should be truncated when it exceeds the <see cref="Drawable.DrawWidth"/> of this <see cref="SpriteText"/>.
         /// </summary>
         /// <remarks>
         /// Has no effect if no <see cref="Width"/> or custom sizing is set.
