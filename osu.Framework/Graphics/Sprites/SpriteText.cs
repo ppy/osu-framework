@@ -498,11 +498,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                    Vector2 scaledTextureSize = getCharacterSize(character, false, out Texture texture);
-
-                    // Scaled glyph size to be used for positioning.
-                    float glyphWidth = useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X;
+                    float glyphWidth = getCharacterSize(character, true, out Texture texture).X;
 
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
