@@ -269,6 +269,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private string ellipsisString = "…";
 
+        /// <summary>
+        /// When <see cref="Truncate"/> is enabled, this decides what string is used to signify that truncation has occured.
+        /// Defaults to "…".
+        /// </summary>
         public string EllipsisString
         {
             get => ellipsisString;
