@@ -12,9 +12,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestCaseColourGradient : GridTestScene
+    public class TestSceneColourGradient : GridTestScene
     {
-        public TestCaseColourGradient()
+        public TestSceneColourGradient()
             : base(4, 2)
         {
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
