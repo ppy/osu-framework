@@ -167,6 +167,9 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
         /// </summary>
+        /// <remarks>
+        /// If enabled, <see cref="Truncate"/> will be disabled.
+        /// </remarks>
         public bool AllowMultiline
         {
             get => allowMultiline;
@@ -175,8 +178,8 @@ namespace osu.Framework.Graphics.Sprites
                 if (allowMultiline == value)
                     return;
 
-                if (value && Truncate)
-                    throw new InvalidOperationException($"Cannot use {nameof(Truncate)} and {nameof(AllowMultiline)} at the same time.");
+                if (value)
+                    Truncate = false;
 
                 allowMultiline = value;
 
