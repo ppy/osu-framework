@@ -93,12 +93,12 @@ namespace osu.Framework.Testing
 
                 var checkpointName = checkpointObject.GetType().Name;
 
-                var reqTypes = checkpointObject.RequiredTypes.Select(t => t.Name).ToList();
+                var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
 
                 // add ourselves as a required type.
-                reqTypes.Add(checkpointName);
+                reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestCase.RemovePrefix(checkpointName));
+                reqTypes.Add(TestCase.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
@@ -121,6 +121,11 @@ namespace osu.Framework.Testing
                     .ContinueWith(_ => isCompiling = false);
             }
         }
+
+        /// <summary>
+        /// Removes the "`1[T]" generic specification from type name output.
+        /// </summary>
+        private string removeGenerics(string checkpointName) => checkpointName.Split('`').First();
 
         private int currentVersion;
 
