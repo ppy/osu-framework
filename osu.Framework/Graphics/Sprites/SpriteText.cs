@@ -487,7 +487,12 @@ namespace osu.Framework.Graphics.Sprites
             int getTruncationLength()
             {
                 float trackingPos = Padding.Left;
-                float availableWidth = maxWidth -= EllipsisString.Sum(c => getCharacterSize(c, true, out _).X + spacing.X);
+
+                float ellipsisLength = 0;
+                foreach (var c in EllipsisString)
+                    ellipsisLength += getCharacterSize(c, true, out _).X + spacing.X;
+
+                float availableWidth = maxWidth -= ellipsisLength;
 
                 int index = 0;
                 int lastNonSpaceIndex = 0;
