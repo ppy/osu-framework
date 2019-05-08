@@ -14,7 +14,7 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 
-namespace osu.Framework.Tests.Visual.Containers
+namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestCaseRearrangeableListContainer : ManualInputManagerTestCase
     {
