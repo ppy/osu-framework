@@ -247,11 +247,11 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// True if the text should be truncated when it exceeds a specified <see cref="Width"/>.
+        /// </summary>
         /// <remarks>
         /// Has no effect if no <see cref="Width"/> or custom sizing is set.
         /// If enabled, <see cref="AllowMultiline"/> will be disabled.
         /// </remarks>
-        /// </summary>
         public bool Truncate
         {
             get => truncate;
