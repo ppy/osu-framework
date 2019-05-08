@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -454,8 +453,8 @@ namespace osu.Framework.Graphics.Sprites
 
                     int displayCount = getTruncationLength();
 
-                    foreach (var character in displayedText.Take(displayCount))
-                        addCharacter(character);
+                    for (int i = 0; i < displayCount; i++)
+                        addCharacter(displayedText[i]);
 
                     if (displayedText.Length != displayCount)
                         foreach (var character in EllipsisString)
