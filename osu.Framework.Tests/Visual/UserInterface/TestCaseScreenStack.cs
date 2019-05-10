@@ -574,7 +574,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("allow screen 3 to load", () => screen3.AllowLoad.Set());
             AddStep("allow screen 2 to load", () => screen2.AllowLoad.Set());
             AddAssert("Screen 3 did not load", () => !screen3.IsLoaded);
-            AddAssert("Screen 2 did not load", () => !screen3.IsLoaded);
+            AddAssert("Screen 2 did not load", () => !screen2.IsLoaded);
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
         }
 
