@@ -566,15 +566,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreenSlow screen2 = null;
             TestScreenSlow screen3 = null;
 
-            pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            AddStep("push slow screen 2", () => stack.Push(screen2 = new TestScreenSlow()));
-            AddStep("push slow screen 3", () => stack.Push(screen3 = new TestScreenSlow()));
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            AddStep("push slow screen 2", () => stack.Push(screen2 = new TestScreenSlow(id: 2)));
+            AddStep("push slow screen 3", () => stack.Push(screen3 = new TestScreenSlow(id: 3)));
             AddStep("Make current screen 1", () => screen1.MakeCurrent());
-            AddWaitStep("Wait for screen disposal", 5);
             // Allow the later pushed screen to load before the second pushed one.
             AddStep("allow screen 3 to load", () => screen3.AllowLoad.Set());
             AddStep("allow screen 2 to load", () => screen2.AllowLoad.Set());
-            AddWaitStep("Wait for potential screen load", 5);
             AddAssert("Screen 3 did not load", () => !screen3.IsLoaded);
             AddAssert("Screen 2 did not load", () => !screen3.IsLoaded);
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
@@ -697,6 +695,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
+
+            public TestScreenSlow(bool shouldTakeOutLease = false, int? id = null)
+                : base(shouldTakeOutLease, id)
+            {
+            }
 
             [BackgroundDependencyLoader]
             private void load()
