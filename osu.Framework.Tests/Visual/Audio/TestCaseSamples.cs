@@ -163,9 +163,9 @@ namespace osu.Framework.Tests.Visual.Audio
             public bool Played { get; private set; }
 
             [BackgroundDependencyLoader]
-            private void load(AudioManager audio)
+            private void load(SampleStore samples)
             {
-                AddInternal(sample = new ComponentSampleChannel(audio.Sample.Get("tone.wav")));
+                AddInternal(sample = new ComponentSampleChannel(samples.Get("tone.wav")));
             }
 
             private float dragStartY;

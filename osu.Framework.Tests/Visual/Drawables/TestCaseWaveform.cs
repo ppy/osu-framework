@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private void load(Game game, AudioManager audio)
         {
             track = new TrackBass(game.Resources.GetStream("Tracks/sample-track.mp3"));
-            audio.Track.AddItem(track);
+            audio.AddItem(track);
 
             waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
 
