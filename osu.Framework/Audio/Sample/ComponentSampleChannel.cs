@@ -15,13 +15,20 @@ namespace osu.Framework.Audio.Sample
             this.channel = channel;
         }
 
+        private readonly IBindable<double> sampleVolume = new BindableDouble(1);
+
         [BackgroundDependencyLoader(true)]
-        private void load(IAudioAdjustment parentAdjustment)
+        private void load(IAudioAdjustment parentAdjustment, AudioManager manager)
         {
-            ((IBindable<double>)channel.Volume).BindTo(Volume);
-            ((IBindable<double>)channel.Balance).BindTo(Balance);
-            ((IBindable<double>)channel.Frequency).BindTo(Frequency);
+            sampleVolume.BindTo(manager.VolumeSample);
+            sampleVolume.ValueChanged += updateVolume;
+            CalculatedVolume.ValueChanged += updateVolume;
+
+            CalculatedFrequency.BindTo(channel.Frequency);
+            CalculatedBalance.BindTo(channel.Balance);
         }
+
+        private void updateVolume(ValueChangedEvent<double> obj) => channel.Volume.Value = CalculatedVolume.Value * sampleVolume.Value;
 
         public void Play() => channel.Play();
     }

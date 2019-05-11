@@ -21,11 +21,11 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentVolume = new BindableDouble(1);
 
-        IBindable<double> IAudioAdjustment.Volume => calculatedVolume;
-        IBindable<double> IAudioAdjustment.Balance => calculatedBalance;
-        IBindable<double> IAudioAdjustment.Frequency => calculatedFrequency;
+        IBindable<double> IAudioAdjustment.Volume => CalculatedVolume;
+        IBindable<double> IAudioAdjustment.Balance => CalculatedBalance;
+        IBindable<double> IAudioAdjustment.Frequency => CalculatedFrequency;
 
-        private IBindable<double> calculatedVolume { get; } = new BindableDouble(1)
+        protected IBindable<double> CalculatedVolume { get; } = new BindableDouble(1)
         {
             MinValue = 0,
             MaxValue = 1
@@ -42,7 +42,7 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentBalance = new BindableDouble();
 
-        private IBindable<double> calculatedBalance { get; } = new BindableDouble
+        protected IBindable<double> CalculatedBalance { get; } = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
@@ -55,7 +55,7 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentFrequency = new BindableDouble(1);
 
-        private IBindable<double> calculatedFrequency { get; } = new BindableDouble(1);
+        protected IBindable<double> CalculatedFrequency { get; } = new BindableDouble(1);
 
         [BackgroundDependencyLoader(true)]
         private void load(IAudioAdjustment parentAdjustment)
@@ -77,10 +77,10 @@ namespace osu.Framework.Audio
             Balance.ValueChanged += updateBalance;
         }
 
-        private void updateBalance(ValueChangedEvent<double> obj) => ((Bindable<double>)calculatedBalance).Value = Balance.Value + parentBalance.Value;
+        private void updateBalance(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedBalance).Value = Balance.Value + parentBalance.Value;
 
-        private void updateVolume(ValueChangedEvent<double> obj) => ((Bindable<double>)calculatedVolume).Value = Volume.Value * parentVolume.Value;
+        private void updateVolume(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedVolume).Value = Volume.Value * parentVolume.Value;
 
-        private void updateFrequency(ValueChangedEvent<double> obj) => ((Bindable<double>)calculatedFrequency).Value = Frequency.Value * parentFrequency.Value;
+        private void updateFrequency(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedFrequency).Value = Frequency.Value * parentFrequency.Value;
     }
 }
