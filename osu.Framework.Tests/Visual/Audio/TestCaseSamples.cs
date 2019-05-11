@@ -5,7 +5,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -19,7 +18,7 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public class TestCaseSamples : TestCase
     {
-        private readonly Container samples;
+        private readonly ComponentAudioAdjustContainer samples;
         private readonly TrackingLine tracking;
 
         private const int beats = 8;
@@ -44,7 +43,7 @@ namespace osu.Framework.Tests.Visual.Audio
                             RelativeSizeAxes = Axes.Both,
                         },
                         new Grid(beats - 1, notes),
-                        samples = new Container
+                        samples = new ComponentAudioAdjustContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             RelativeChildSize = new Vector2(beats - 1, notes),
@@ -80,6 +79,8 @@ namespace osu.Framework.Tests.Visual.Audio
                 tracking.X += (float)Clock.ElapsedFrameTime / 500;
                 samples.OfType<DraggableSample>().Where(s => !s.Played && s.X <= tracking.X).ForEach(s => s.Play());
             }
+
+            samples.Frequency.Value = 1f;
         }
 
         private class TrackingLine : CompositeDrawable
@@ -138,8 +139,6 @@ namespace osu.Framework.Tests.Visual.Audio
 
         private class DraggableSample : CompositeDrawable
         {
-            private SampleChannel sample;
-
             public DraggableSample(int beat, int pitch)
             {
                 RelativePositionAxes = Axes.Both;
@@ -151,7 +150,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
                 InternalChildren = new Drawable[]
                 {
-                    new Circle
+                    circle = new Circle
                     {
                         Colour = Color4.Yellow,
                         RelativeSizeAxes = Axes.Both,
@@ -163,16 +162,17 @@ namespace osu.Framework.Tests.Visual.Audio
 
             public bool Played { get; private set; }
 
-            private readonly BindableDouble pitch = new BindableDouble(1);
-
             [BackgroundDependencyLoader]
             private void load(AudioManager audio)
             {
-                sample = audio.Sample.Get("tone.wav");
-                sample.AddAdjustment(AdjustableProperty.Frequency, pitch);
+                AddInternal(sample = new ComponentSampleChannel(audio.Sample.Get("tone.wav")));
             }
 
             private float dragStartY;
+
+            private ComponentSampleChannel sample;
+
+            private readonly Circle circle;
 
             protected override bool OnDragStart(DragStartEvent e)
             {
@@ -194,10 +194,9 @@ namespace osu.Framework.Tests.Visual.Audio
             public void Play()
             {
                 Played = true;
-                InternalChild.ScaleTo(1.8f).ScaleTo(1, 600, Easing.OutQuint);
+                circle.ScaleTo(1.8f).ScaleTo(1, 600, Easing.OutQuint);
 
-                pitch.Value = 1 + Y / notes;
-
+                sample.Frequency.Value = 1 + Y / notes;
                 sample.Play();
             }
         }
