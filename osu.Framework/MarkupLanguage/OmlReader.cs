@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,6 @@ using osu.Framework.Graphics.Containers;
 using osuTK;
 using osuTK.Graphics;
 using YamlDotNet.Serialization;
-using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.MarkupLanguage
 {
@@ -32,8 +30,8 @@ namespace osu.Framework.MarkupLanguage
 
         public Drawable Load(string objectName, TextReader text)
         {
-            var obj = Parse(objectName, text);
-            return CreateDrawable(obj);
+            var omlObject = Parse(objectName, text);
+            return CreateDrawable(omlObject);
         }
 
         public Drawable CreateDrawable(OmlObject obj)
@@ -105,7 +103,7 @@ namespace osu.Framework.MarkupLanguage
             if (values.ContainsKey("Children"))
                 obj.Children = parseChildren((List<object>)values["Children"]);
 
-            // add all others
+            // add all others properties
             obj.GeneralProperties = new Dictionary<string, string>();
             foreach (KeyValuePair<object, object> pair in values.Where(x => !OmlObject.SPECIAL_PROPERTIES.Contains(x.Key)))
                 obj.GeneralProperties.Add((string)pair.Key, getProperty(obj, (string)pair.Value));
@@ -122,7 +120,7 @@ namespace osu.Framework.MarkupLanguage
                 var s = parseState(o, in obj, out string name);
 
                 if (name == null)
-                    throw new Exception("State had no name");
+                    throw new Exception("Found state with no name");
 
                 ret[name] = s;
             }
@@ -152,7 +150,7 @@ namespace osu.Framework.MarkupLanguage
                 var t = parseTransition(o, in obj, out string name);
 
                 if (name == null)
-                    throw new Exception("Transition had no name");
+                    throw new Exception("Found transition with no name");
 
                 ret[name] = t;
             }
@@ -196,7 +194,7 @@ namespace osu.Framework.MarkupLanguage
                 var t = parseEvent(o, in obj, out string name);
 
                 if (name == null)
-                    throw new Exception("Event had no name");
+                    throw new Exception("Found event with no name");
 
                 ret[name] = t;
             }
@@ -244,7 +242,7 @@ namespace osu.Framework.MarkupLanguage
                 var t = parseProperty(o, out string name);
 
                 if (name == null)
-                    throw new Exception("Property had no name");
+                    throw new Exception("Found property with no name");
 
                 ret[name] = t;
             }
@@ -317,7 +315,7 @@ namespace osu.Framework.MarkupLanguage
         private void addChildren(Drawable d, OmlObject[] objs)
         {
             if (!d.ExtendsClass(typeof(Container<>)))
-                throw new InvalidOperationException($"Drawable '{d}' is not a container!");
+                throw new InvalidOperationException($"Trying to add children to drawable '{d}', but it is not a container!");
 
             var children = objs.Select(CreateDrawable).ToArray();
 
@@ -328,6 +326,7 @@ namespace osu.Framework.MarkupLanguage
             Array.Copy(children, newChildren, newChildren.Length);
 
             // Use reflection to set the Children property (we cannot cast to a generic type without parameter)
+            // ReSharper disable once PossibleNullReferenceException, this should never be null
             d.GetType().GetProperty(nameof(Container.Children)).SetValue(d, newChildren);
         }
 
@@ -337,15 +336,13 @@ namespace osu.Framework.MarkupLanguage
             var type = d.GetType();
 
             foreach (var pair in obj.Events) {
-                Console.WriteLine(pair.Key);
                 if (!events.ContainsKey(pair.Key))
                     continue;
 
                 if (string.IsNullOrEmpty(pair.Value.AliasFor))
-                    continue;
+                    continue;    // TODO: remove when adding transitions
 
                 var ev = events[pair.Key];
-                Console.WriteLine("> " + pair.Value.AliasFor);
 
                 var prop = type.GetProperty(pair.Value.AliasFor, flags);
                 if (prop != null && prop.PropertyType == ev.GetType()) {
@@ -366,13 +363,13 @@ namespace osu.Framework.MarkupLanguage
                 }
 
                 // TODO: prob want to log this instead of throw
-                throw new Exception($"Could not find public property/field/event {pair.Value.AliasFor} on type {type}");
+                throw new Exception($"Could not find public property/field/event '{pair.Value.AliasFor}' on type {type}");
             }
         }
 
         private static object safeConvertToObject(string val, Type type)
         {
-            var conv = TypeDescriptor.GetConverter(type);
+            var conv = System.ComponentModel.TypeDescriptor.GetConverter(type);
             try {
                 return conv.ConvertFromInvariantString(val);
             } catch (NotSupportedException) { }
@@ -380,7 +377,7 @@ namespace osu.Framework.MarkupLanguage
             if (type == typeof(Vector2)) {
                 string[] split = val.Split(',');
                 if (split.Length != 2)
-                    throw new Exception($"Passed {split.Length} numbers when 2 were expected for {nameof(Vector2)}");
+                    throw new Exception($"Expected 2 dimensions for {nameof(Vector2)}, but received {split.Length}.");
 
                 return new Vector2(float.Parse(split[0], CultureInfo.InvariantCulture), float.Parse(split[1], CultureInfo.InvariantCulture));
             }
@@ -433,7 +430,7 @@ namespace osu.Framework.MarkupLanguage
             if (c != null)
                 return (Color4)c.GetValue(null);
 
-            throw new Exception("Unrecognized color: " + val);
+            throw new Exception($"Unable to parse color '{val}'");
         }
 
         private static Type findContainerGenericParam(object o)

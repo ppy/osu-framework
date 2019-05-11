@@ -13,7 +13,7 @@ namespace osu.Framework.MarkupLanguage
     /// </summary>
     public class OmlObject
     {
-        public static readonly string[] SPECIAL_PROPERTIES = { "Extends", "States", "Transitions", "Events", "Properties", "Children" };
+        internal static readonly string[] SPECIAL_PROPERTIES = { "Extends", "States", "Transitions", "Events", "Properties", "Children" };
 
         /// <summary>
         /// Contains general properties such as Width, Height and Colour. These are set when the <seealso cref="Drawable"/> is constructed.
@@ -108,11 +108,6 @@ namespace osu.Framework.MarkupLanguage
         /// </summary>
         public class OmlEvent
         {
-            /// <summary>
-            /// An event that propagates the trigger of the underlying even
-            /// </summary>
-            public event Action<object[]> OnTrigger;
-
             /// <summary>
             /// A unique alias for this event
             /// </summary>
