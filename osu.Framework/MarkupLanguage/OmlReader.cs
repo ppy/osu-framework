@@ -87,7 +87,6 @@ namespace osu.Framework.MarkupLanguage
         {
             var obj = new OmlObject();
 
-            // TODO: actually use these!
             if (values.ContainsKey("Properties"))
                 obj.Properties = parseProperties(values["Properties"]);
 
@@ -95,7 +94,7 @@ namespace osu.Framework.MarkupLanguage
                 obj.Extends = resolveType(values["Extends"]);
 
             if (values.ContainsKey("States"))
-                obj.States = parseStates(values["States"]);
+                obj.States = parseStates(values["States"], in obj);
 
             if (values.ContainsKey("Transitions"))
                 obj.Transitions = parseTransitions(values["Transitions"], in obj);
@@ -109,18 +108,18 @@ namespace osu.Framework.MarkupLanguage
             // add all others
             obj.GeneralProperties = new Dictionary<string, string>();
             foreach (KeyValuePair<object, object> pair in values.Where(x => !OmlObject.SPECIAL_PROPERTIES.Contains(x.Key)))
-                obj.GeneralProperties.Add((string)pair.Key, (string)pair.Value);
+                obj.GeneralProperties.Add((string)pair.Key, getProperty(obj, (string)pair.Value));
 
             return obj;
         }
 
         private Type resolveType(object s) => allowedDrawables[(string)s];
 
-        private Dictionary<string, OmlObject.OmlState> parseStates(object value)
+        private Dictionary<string, OmlObject.OmlState> parseStates(object value, in OmlObject obj)
         {
             var ret = new Dictionary<string, OmlObject.OmlState>();
             foreach (Dictionary<object, object> o in (List<object>)value) {
-                var s = parseState(o, out string name);
+                var s = parseState(o, in obj, out string name);
 
                 if (name == null)
                     throw new Exception("State had no name");
@@ -131,13 +130,13 @@ namespace osu.Framework.MarkupLanguage
             return ret;
         }
 
-        private OmlObject.OmlState parseState(Dictionary<object, object> o, out string name)
+        private OmlObject.OmlState parseState(Dictionary<object, object> o, in OmlObject obj, out string name)
         {
             var s = new OmlObject.OmlState();
             name = null;
             foreach ((string key1, string value1) in o.Select(x => ((string)x.Key, (string)x.Value))) {
                 if (key1 != "Name")
-                    s.Add(key1, value1);
+                    s.Add(key1, getProperty(obj, value1));
                 else
                     name = value1;
             }
@@ -181,7 +180,7 @@ namespace osu.Framework.MarkupLanguage
                     case "State":
                         transition.State = valString != null
                             ? obj.States[valString]
-                            : parseState((Dictionary<object, object>)value1, out _);
+                            : parseState((Dictionary<object, object>)value1, in obj, out _);
                         break;
                 }
             }
@@ -274,6 +273,14 @@ namespace osu.Framework.MarkupLanguage
             }
 
             return p;
+        }
+
+        private static string getProperty(OmlObject obj, string name)
+        {
+            if (obj.Properties?.ContainsKey(name) == true)
+                return obj.Properties[name].Value ?? name;
+
+            return name;
         }
 
         #endregion

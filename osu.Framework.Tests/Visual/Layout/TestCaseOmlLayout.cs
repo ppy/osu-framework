@@ -37,8 +37,13 @@ Layout:
       Width: 100
       Height: 100
       Position: 50, 50
-      Colour: HotPink
+      Colour: UnHoverColor
 
+      Properties:
+        - Name: HoverColor
+          Value: Orange
+        - Name: UnHoverColor
+          Value: HotPink
       Events:
         - Name: BoxHover
           AliasFor: OnBoxHover
@@ -47,10 +52,10 @@ Layout:
       Transitions:
         - Name: BoxHover
           State:
-            Colour: Orange
+            Colour: HoverColor
         - Name: BoxUnHover
           State:
-            Colour: HotPink
+            Colour: UnHoverColor
 
     - Extends: Button
       Width: 100
