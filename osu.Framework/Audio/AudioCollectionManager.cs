@@ -16,11 +16,6 @@ namespace osu.Framework.Audio
 
         public void AddItem(T item)
         {
-            AddItemToList(item);
-        }
-
-        public void AddItemToList(T item)
-        {
             EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
