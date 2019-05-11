@@ -16,7 +16,6 @@ namespace osu.Framework.Audio
 
         public void AddItem(T item)
         {
-            RegisterItem(item);
             AddItemToList(item);
         }
 
@@ -28,23 +27,6 @@ namespace osu.Framework.Audio
 
                 Items.Add(item);
             });
-        }
-
-        public void RegisterItem(T item)
-        {
-            EnqueueAction(() => item.AddAdjustmentDependency(this));
-        }
-
-        public void UnregisterItem(T item)
-        {
-            EnqueueAction(() => item.RemoveAdjustmentDependency(this));
-        }
-
-        internal override void OnStateChanged()
-        {
-            base.OnStateChanged();
-            foreach (var item in Items)
-                item.OnStateChanged();
         }
 
         public virtual void UpdateDevice(int deviceIndex)
