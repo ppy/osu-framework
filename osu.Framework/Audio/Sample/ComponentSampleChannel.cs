@@ -31,5 +31,11 @@ namespace osu.Framework.Audio.Sample
         private void updateVolume(ValueChangedEvent<double> obj) => channel.Volume.Value = CalculatedVolume.Value * sampleVolume.Value;
 
         public void Play() => channel.Play();
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            channel.Dispose();
+        }
     }
 }
