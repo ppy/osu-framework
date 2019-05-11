@@ -5,7 +5,7 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
-    public class AdjustableAudioComponent : AudioComponent
+    public class AdjustableAudioComponent : AudioComponent, IAudioAdjustment
     {
         /// <summary>
         /// Global volume of this component.
@@ -42,5 +42,9 @@ namespace osu.Framework.Audio
         internal virtual void OnStateChanged()
         {
         }
+
+        IBindable<double> IAudioAdjustment.Volume => Volume;
+        IBindable<double> IAudioAdjustment.Balance => Balance;
+        IBindable<double> IAudioAdjustment.Frequency => Frequency;
     }
 }
