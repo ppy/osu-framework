@@ -69,23 +69,23 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Cached contentCache = new Cached();
 
-        private readonly FillFlowContainer document;
+        private FillFlowContainer document;
 
         public MarkdownContainer()
         {
             InternalChildren = new Drawable[]
             {
-                new ScrollContainer
+                CreateScrollContainer().With(s =>
                 {
-                    ScrollbarOverlapsContent = false,
-                    RelativeSizeAxes = Axes.Both,
-                    Child = document = new FillFlowContainer
+                    s.ScrollbarOverlapsContent = false;
+                    s.RelativeSizeAxes = Axes.Both;
+                    s.Child = document = new FillFlowContainer
                     {
                         AutoSizeAxes = Axes.Y,
                         RelativeSizeAxes = Axes.X,
                         Direction = FillDirection.Vertical,
-                    }
-                }
+                    };
+                })
             };
 
             LineSpacing = 25;
@@ -125,6 +125,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownTextFlowContainer();
 
         public virtual SpriteText CreateSpriteText() => new SpriteText();
+
+        protected virtual ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
 
         /// <summary>
         /// Adds a component that visualises a <see cref="IMarkdownObject"/> to the document.

@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new ScrollContainer<Container<DrawableMenuItem>>(direction)
+                        ContentContainer = new BasicScrollContainer<Container<DrawableMenuItem>>(direction)
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = false,

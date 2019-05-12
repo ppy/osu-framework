@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         public TestCaseProxyDrawables()
         {
-            Child = new ScrollContainer
+            Child = new BasicScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = new FillFlowContainer

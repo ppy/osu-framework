@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
-        private readonly ScrollContainer scroll;
+        private readonly ScrollContainer<Drawable> scroll;
 
         private readonly SpriteText waitingText;
 
@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Padding = new MarginPadding { Top = 65 },
                     Children = new Drawable[]
                     {
-                        scroll = new ScrollContainer
+                        scroll = new ScrollContainer<Drawable>
                         {
                             Padding = new MarginPadding(10),
                             RelativeSizeAxes = Axes.Y,

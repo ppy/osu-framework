@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestCaseScrollContainer : ManualInputManagerTestCase
     {
         private float clampExtension = 50;
-        private ScrollContainer scrollContainer;
+        private ScrollContainer<Drawable> scrollContainer;
 
         public TestCaseScrollContainer()
         {
@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Visual.Containers
             if (scrollContainer != null)
                 InputManager.Remove(scrollContainer);
 
-            InputManager.Add(scrollContainer = new ScrollContainer
+            InputManager.Add(scrollContainer = new BasicScrollContainer
             {
                 ClampExtension = clampExtension,
                 RelativeSizeAxes = Axes.Both,

@@ -21,6 +21,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a scroll container.
         /// </summary>
         /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
+        [Obsolete("Use a BasicScrollContainer or create your own implementation of ScrollContainer<T>")]
         public ScrollContainer(Direction scrollDirection = Direction.Vertical)
             : base(scrollDirection)
         {
@@ -521,12 +522,53 @@ namespace osu.Framework.Graphics.Containers
         /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
         /// </summary>
         /// <param name="direction">The scrolling direction.</param>
-        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new ScrollbarContainer(direction);
+        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new LegacyScrollbarContainer(direction);
 
-        protected internal class ScrollbarContainer : Container
+        protected internal abstract class ScrollbarContainer : Container
         {
+            private float dragOffset;
+
             internal Action<float> Dragged;
 
+            protected readonly Direction ScrollDirection;
+
+            public float DimSize => Size[ScrollDirection == Direction.Vertical ? 0 : 1];
+
+            protected ScrollbarContainer(Direction direction)
+            {
+                ScrollDirection = direction;
+
+                RelativeSizeAxes = direction == Direction.Horizontal ? Axes.X : Axes.Y;
+            }
+
+            public abstract void ResizeTo(float val, int duration = 0, Easing easing = Easing.None);
+
+            protected override bool OnClick(ClickEvent e) => true;
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                dragOffset = e.MousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
+                return true;
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                if (e.Button != MouseButton.Left) return false;
+
+                dragOffset = Position[(int)ScrollDirection];
+                Dragged?.Invoke(dragOffset);
+                return true;
+            }
+
+            protected override bool OnDrag(DragEvent e)
+            {
+                Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
+                return true;
+            }
+        }
+
+        protected internal class LegacyScrollbarContainer : ScrollbarContainer
+        {
             private const float dim_size = 10;
 
             private readonly Color4 hoverColour = Color4.White;
@@ -535,14 +577,9 @@ namespace osu.Framework.Graphics.Containers
 
             private readonly Box box;
 
-            private float dragOffset;
-
-            private readonly int scrollDim;
-
-            public ScrollbarContainer(Direction scrollDir)
+            public LegacyScrollbarContainer(Direction scrollDir)
+                : base(scrollDir)
             {
-                scrollDim = (int)scrollDir;
-                RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
                 Colour = defaultColour;
 
                 Blending = BlendingMode.Additive;
@@ -566,18 +603,14 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(1);
             }
 
-            public float DimSize => Size[scrollDim == 1 ? 0 : 1];
-
-            public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
+            public override void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
             {
                 Vector2 size = new Vector2(dim_size)
                 {
-                    [scrollDim] = val
+                    [(int)ScrollDirection] = val
                 };
                 this.ResizeTo(size, duration, easing);
             }
-
-            protected override bool OnClick(ClickEvent e) => true;
 
             protected override bool OnHover(HoverEvent e)
             {
@@ -590,22 +623,15 @@ namespace osu.Framework.Graphics.Containers
                 this.FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
-                return true;
-            }
-
             protected override bool OnMouseDown(MouseDownEvent e)
             {
-                if (e.Button != MouseButton.Left) return false;
+                bool baseMouseDown = base.OnMouseDown(e);
 
-                //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlightColour, 100);
+                if (baseMouseDown)
+                    //note that we are changing the colour of the box here as to not interfere with the hover effect.
+                    box.FadeColour(highlightColour, 100);
 
-                dragOffset = Position[scrollDim];
-                Dragged?.Invoke(dragOffset);
-                return true;
+                return baseMouseDown;
             }
 
             protected override bool OnMouseUp(MouseUpEvent e)
@@ -615,12 +641,6 @@ namespace osu.Framework.Graphics.Containers
                 box.FadeColour(Color4.White, 100);
 
                 return base.OnMouseUp(e);
-            }
-
-            protected override bool OnDrag(DragEvent e)
-            {
-                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
-                return true;
             }
         }
 

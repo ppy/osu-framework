@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             Children = new Drawable[]
             {
-                new ScrollContainer
+                new BasicScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]

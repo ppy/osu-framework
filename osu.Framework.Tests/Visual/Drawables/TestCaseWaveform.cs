@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             },
                         },
                     },
-                    new ScrollContainer(Direction.Horizontal)
+                    new BasicScrollContainer(Direction.Horizontal)
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = waveformContainer = new FillFlowContainer
