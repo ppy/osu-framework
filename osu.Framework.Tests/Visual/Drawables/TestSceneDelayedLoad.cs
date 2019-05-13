@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,52 +19,57 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private const int panel_count = 2048;
 
-        public TestSceneDelayedLoad()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestManyChildren(bool instant)
         {
-            FillFlowContainer<Container> flow;
-            ScrollContainer scroll;
+            FillFlowContainer<Container> flow = null;
+            ScrollContainer scroll = null;
 
-            Children = new Drawable[]
+            AddStep("create children", () =>
             {
-                scroll = new ScrollContainer
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new Drawable[]
+                    scroll = new ScrollContainer
                     {
-                        flow = new FillFlowContainer<Container>
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
+                            flow = new FillFlowContainer<Container>
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                            }
                         }
                     }
-                }
-            };
+                };
 
-            for (int i = 1; i < panel_count; i++)
-                flow.Add(new Container
-                {
-                    Size = new Vector2(128),
-                    Children = new Drawable[]
+                for (int i = 1; i < panel_count; i++)
+                    flow.Add(new Container
                     {
-                        new DelayedLoadWrapper(new Container
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            new DelayedLoadWrapper(new Container
                             {
-                                new TestBox { RelativeSizeAxes = Axes.Both }
-                            }
-                        }),
-                        new SpriteText { Text = i.ToString() },
-                    }
-                });
+                                RelativeSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new TestBox { RelativeSizeAxes = Axes.Both }
+                                }
+                            }, instant ? 0 : 500),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+            });
 
-            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
+            var childrenWithAvatarsLoaded = new Func<IEnumerable<Drawable>>(() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false));
 
             AddWaitStep("wait for load", 10);
             AddStep("scroll down", () => scroll.ScrollToEnd());
             AddWaitStep("wait more", 10);
-            AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
+            AddAssert("some loaded", () => childrenWithAvatarsLoaded().Count() > 5);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
         }
 
         public class TestBox : Container
