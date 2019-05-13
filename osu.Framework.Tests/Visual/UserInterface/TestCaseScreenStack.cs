@@ -696,8 +696,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
-            public TestScreenSlow(bool shouldTakeOutLease = false, int? id = null)
-                : base(shouldTakeOutLease, id)
+            public TestScreenSlow(int? id = null)
+                : base(false, id)
             {
             }
 
