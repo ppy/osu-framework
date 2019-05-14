@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -14,18 +15,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneSearchContainer : TestScene
     {
-        public TestSceneSearchContainer()
-        {
-            SearchContainer<HeaderContainer> search;
-            BasicTextBox textBox;
+        private SearchContainer search;
+        private BasicTextBox textBox;
+        private HeaderContainer header;
 
+        [SetUp]
+        public void SetUp() => Schedule(() =>
+        {
             Children = new Drawable[]
             {
                 textBox = new BasicTextBox
                 {
                     Size = new Vector2(300, 40),
                 },
-                search = new SearchContainer<HeaderContainer>
+                search = new SearchContainer
                 {
                     AutoSizeAxes = Axes.Both,
                     Margin = new MarginPadding { Top = 40 },
@@ -41,61 +44,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                     AutoSizeAxes = Axes.Both,
                                     Children = new Drawable[]
                                     {
-                                        new SearchableText
-                                        {
-                                            Text = "test",
-                                        },
-                                        new SearchableText
-                                        {
-                                            Text = "TEST",
-                                        },
-                                        new SearchableText
-                                        {
-                                            Text = "123",
-                                        },
-                                        new SearchableText
-                                        {
-                                            Text = "444",
-                                        },
+                                        new SearchableText { Text = "test", },
+                                        new SearchableText { Text = "TEST", },
+                                        new SearchableText { Text = "123", },
+                                        new SearchableText { Text = "444", },
                                         new FilterableFlowContainer
                                         {
-                                            Direction = FillDirection.Horizontal,
-                                            AutoSizeAxes = Axes.Both,
+                                            Direction = FillDirection.Horizontal, AutoSizeAxes = Axes.Both,
                                             Children = new[]
                                             {
-                                                new SpriteText
-                                                {
-                                                    Text = "multi",
-                                                },
-                                                new SpriteText
-                                                {
-                                                    Text = "piece",
-                                                },
-                                                new SpriteText
-                                                {
-                                                    Text = "container",
-                                                },
+                                                new SpriteText { Text = "multi", },
+                                                new SpriteText { Text = "piece", },
+                                                new SpriteText { Text = "container", },
                                             }
                                         },
-                                        new SearchableText
-                                        {
-                                            Text = "öüäéèêáàâ",
-                                        }
+                                        new SearchableText { Text = "öüäéèêáàâ", }
                                     }
                                 },
-                                new HeaderContainer("Subsection 2")
+                                header = new HeaderContainer("Subsection 2")
                                 {
                                     AutoSizeAxes = Axes.Both,
                                     Children = new[]
                                     {
-                                        new SearchableText
-                                        {
-                                            Text = "?!()[]{}"
-                                        },
-                                        new SearchableText
-                                        {
-                                            Text = "@€$"
-                                        },
+                                        new SearchableText { Text = "?!()[]{}" },
+                                        new SearchableText { Text = "@€$" },
                                     },
                                 },
                             },
@@ -104,22 +76,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             };
 
-            new Dictionary<string, int>
-            {
-                { "test", 2 },
-                { "sUbSeCtIoN 1", 6 },
-                { "€", 1 },
-                { "èê", 1 },
-                { "321", 0 },
-                { "mul pi", 1 },
-                { "header", 8 }
-            }.ToList().ForEach(term =>
-            {
-                AddStep("Search term: " + term.Key, () => search.SearchTerm = term.Key);
-                AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
-            });
-
             textBox.Current.ValueChanged += e => search.SearchTerm = e.NewValue;
+        });
+
+        [TestCase("test", 2)]
+        [TestCase("sUbSeCtIoN 1", 6)]
+        [TestCase("€", 1)]
+        [TestCase("èê", 1)]
+        [TestCase("321", 0)]
+        [TestCase("mul pi", 1)]
+        [TestCase("header", 8)]
+        public void TestFiltering(string term, int count)
+        {
+            setTerm(term);
+            checkCount(count);
+        }
+
+        [TestCase]
+        public void TestRefilterAfterNewChild()
+        {
+            setTerm("multi");
+            checkCount(1);
+            AddStep("Add new filtered item", () => header.Add(new SearchableText { Text = "not visible" }));
+            checkCount(1);
+            AddStep("Add new filtered item", () => header.Add(new SearchableText { Text = "multi visible" }));
+            checkCount(2);
+        }
+
+        private void checkCount(int count)
+        {
+            AddAssert("Visible end-children: " + count, () =>
+                count == search.Children.SelectMany(child => (child as Container)?.Children.OfType<Container>())
+                               .SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
+        }
+
+        private void setTerm(string term)
+        {
+            AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
         private class HeaderContainer : Container, IHasFilterableChildren
