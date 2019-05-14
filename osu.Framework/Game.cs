@@ -53,8 +53,6 @@ namespace osu.Framework
 
         private readonly Container content;
 
-        private PerformanceOverlay performanceContainer;
-
         private DrawVisualiser drawVisualiser;
 
         private LogOverlay logOverlay;
@@ -172,7 +170,9 @@ namespace osu.Framework
         {
             base.LoadComplete();
 
-            LoadComponentAsync(performanceContainer = new PerformanceOverlay(Host.Threads.Reverse())
+            PerformanceOverlay performanceOverlay;
+
+            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads.Reverse())
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,
@@ -184,40 +184,43 @@ namespace osu.Framework
                 Depth = float.MinValue
             }, AddInternal);
 
+            FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
+
             addDebugTools();
         }
 
-        protected FrameStatisticsMode FrameStatisticsMode
-        {
-            get => performanceContainer.State;
-            set => performanceContainer.State = value;
-        }
+        protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
             {
                 case FrameworkAction.CycleFrameStatistics:
-                    switch (FrameStatisticsMode)
+                    switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
-                            FrameStatisticsMode = FrameStatisticsMode.Minimal;
+                            FrameStatistics.Value = FrameStatisticsMode.Minimal;
                             break;
+
                         case FrameStatisticsMode.Minimal:
-                            FrameStatisticsMode = FrameStatisticsMode.Full;
+                            FrameStatistics.Value = FrameStatisticsMode.Full;
                             break;
+
                         case FrameStatisticsMode.Full:
-                            FrameStatisticsMode = FrameStatisticsMode.None;
+                            FrameStatistics.Value = FrameStatisticsMode.None;
                             break;
                     }
 
                     return true;
+
                 case FrameworkAction.ToggleDrawVisualiser:
                     drawVisualiser.ToggleVisibility();
                     return true;
+
                 case FrameworkAction.ToggleLogOverlay:
                     logOverlay.ToggleVisibility();
                     return true;
+
                 case FrameworkAction.ToggleFullscreen:
                     Window?.CycleMode();
                     return true;
