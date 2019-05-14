@@ -120,7 +120,7 @@ namespace osu.Framework.Timing
         {
             if (adjustableSource?.IsRunning == false)
             {
-                if (adjustableSource.Seek(CurrentTime))
+                if (adjustableSource.Seek(IsCoupled ? CurrentTime : decoupledClock.CurrentTime))
                     //only start the source clock if our time values match.
                     //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
                     adjustableSource.Start();
