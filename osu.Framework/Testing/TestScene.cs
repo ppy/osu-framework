@@ -378,6 +378,10 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static string RemovePrefix(string name) => name.Replace(nameof(TestScene), string.Empty);
+        public static string RemovePrefix(string name)
+        {
+            return name.Replace("TestCase", string.Empty) // TestScene used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.
+                       .Replace(nameof(TestScene), string.Empty);
+        }
     }
 }
