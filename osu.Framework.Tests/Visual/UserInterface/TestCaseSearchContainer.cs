@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private HeaderContainer header;
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             Children = new Drawable[]
             {
@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
 
             textBox.Current.ValueChanged += e => search.SearchTerm = e.NewValue;
-        }
+        });
 
         [TestCase("test", 2)]
         [TestCase("sUbSeCtIoN 1", 6)]
