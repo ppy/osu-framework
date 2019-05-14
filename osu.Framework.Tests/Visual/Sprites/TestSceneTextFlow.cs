@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source code was open-sourced under the MIT License. [2] [3] Dubbed as ""Lazer"", the project aims to make osu! available to more platforms and transparent. [4] The community includes over 9 million registered users, with a total of 6 billion ranked plays.[5]"
             });
 
-            paragraphContainer.Add(new TestCaseCustomText
+            paragraphContainer.Add(new CustomText
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
@@ -186,9 +186,9 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             public float LineBaseHeight { get; set; }
         }
 
-        private class TestCaseCustomText : CustomizableTextContainer
+        private class CustomText : CustomizableTextContainer
         {
-            public TestCaseCustomText()
+            public CustomText()
             {
                 AddIconFactory("RedBox", makeRedBox);
                 AddIconFactory("GreenBox", makeGreenBox);

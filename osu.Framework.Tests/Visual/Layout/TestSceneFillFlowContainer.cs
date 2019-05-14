@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Layout
                             selectionDropdown = new FillDirectionDropdown
                             {
                                 RelativeSizeAxes = Axes.X,
-                                Items = (FlowTestCase[])Enum.GetValues(typeof(FlowTestCase)),
+                                Items = (FlowTestType[])Enum.GetValues(typeof(FlowTestType)),
                             },
                             new SpriteText { Text = @"Child anchor" },
                             anchorDropdown = new AnchorDropdown
@@ -104,8 +104,8 @@ namespace osu.Framework.Tests.Visual.Layout
 
             selectionDropdown.Current.ValueChanged += e => changeTest(e.NewValue);
             buildTest();
-            selectionDropdown.Current.Value = FlowTestCase.Full;
-            changeTest(FlowTestCase.Full);
+            selectionDropdown.Current.Value = FlowTestType.Full;
+            changeTest(FlowTestType.Full);
         }
 
         protected override void Update()
@@ -127,10 +127,10 @@ namespace osu.Framework.Tests.Visual.Layout
             }
         }
 
-        private void changeTest(FlowTestCase testCase)
+        private void changeTest(FlowTestType testType)
         {
             var method =
-                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
+                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestType == testType);
             if (method != null)
                 method.Invoke(this, new object[0]);
         }
@@ -346,21 +346,21 @@ namespace osu.Framework.Tests.Visual.Layout
             );
         }
 
-        [FlowTestCase(FlowTestCase.Full)]
+        [FlowTestCase(FlowTestType.Full)]
         private void test1()
         {
             fillContainer.Direction = FillDirection.Full;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
-        [FlowTestCase(FlowTestCase.Horizontal)]
+        [FlowTestCase(FlowTestType.Horizontal)]
         private void test2()
         {
             fillContainer.Direction = FillDirection.Horizontal;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
-        [FlowTestCase(FlowTestCase.Vertical)]
+        [FlowTestCase(FlowTestType.Vertical)]
         private void test3()
         {
             fillContainer.Direction = FillDirection.Vertical;
@@ -402,15 +402,15 @@ namespace osu.Framework.Tests.Visual.Layout
             }
         }
 
-        private class FillDirectionDropdown : BasicDropdown<FlowTestCase>
+        private class FillDirectionDropdown : BasicDropdown<FlowTestType>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
+        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestType>
         {
-            public FillDirectionDropdownMenuItem(FlowTestCase testCase)
-                : base(testCase.ToString(), testCase)
+            public FillDirectionDropdownMenuItem(FlowTestType testType)
+                : base(testType.ToString(), testType)
             {
             }
         }
@@ -418,15 +418,15 @@ namespace osu.Framework.Tests.Visual.Layout
         [AttributeUsage(AttributeTargets.Method)]
         private class FlowTestCaseAttribute : Attribute
         {
-            public FlowTestCase TestCase { get; }
+            public FlowTestType TestType { get; }
 
-            public FlowTestCaseAttribute(FlowTestCase testCase)
+            public FlowTestCaseAttribute(FlowTestType testType)
             {
-                TestCase = testCase;
+                TestType = testType;
             }
         }
 
-        private enum FlowTestCase
+        private enum FlowTestType
         {
             Full,
             Horizontal,

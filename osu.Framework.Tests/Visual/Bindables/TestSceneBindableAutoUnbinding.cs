@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.Bindables
     public class TestSceneBindableAutoUnbinding : TestScene
     {
         [Test]
-        public void TestCaseBindableAutoUnbindingAssign()
+        public void TestBindableAutoUnbindingAssign()
         {
             TestExposedBindableDrawable drawable1 = null, drawable2 = null, drawable3 = null, drawable4 = null;
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Bindables
         }
 
         [Test]
-        public void TestCaseBindableAutoUnbindingResolution()
+        public void TestBindableAutoUnbindingResolution()
         {
             TestResolvedBindableDrawable drawable1 = null, drawable2 = null, drawable3 = null, drawable4 = null;
 
