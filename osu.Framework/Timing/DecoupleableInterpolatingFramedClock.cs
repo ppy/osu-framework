@@ -35,6 +35,8 @@ namespace osu.Framework.Timing
         /// </summary>
         private IAdjustableClock adjustableSource => Source as IAdjustableClock;
 
+        internal double DecoupledTime => decoupledClock.CurrentTime;
+
         public override double CurrentTime => currentTime;
 
         private double currentTime;
@@ -120,7 +122,7 @@ namespace osu.Framework.Timing
         {
             if (adjustableSource?.IsRunning == false)
             {
-                if (adjustableSource.Seek(IsCoupled ? CurrentTime : decoupledClock.CurrentTime))
+                if (adjustableSource.Seek(IsCoupled ? CurrentTime : DecoupledTime))
                     //only start the source clock if our time values match.
                     //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
                     adjustableSource.Start();
