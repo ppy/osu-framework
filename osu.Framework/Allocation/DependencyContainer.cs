@@ -13,7 +13,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private readonly Dictionary<CacheInfo, object> cache = new Dictionary<CacheInfo, object>(new CachedObjectComparer());
+        private readonly Dictionary<CacheInfo, object> cache = new Dictionary<CacheInfo, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -186,13 +186,6 @@ namespace osu.Framework.Allocation
         public void Inject<T>(T instance)
             where T : class
             => DependencyActivator.Activate(instance, this);
-
-        // See: https://docs.microsoft.com/en-us/xamarin/ios/internals/limitations#value-types-as-dictionary-keys
-        private class CachedObjectComparer : IEqualityComparer<CacheInfo>
-        {
-            public bool Equals(CacheInfo x, CacheInfo y) => x.Equals(y);
-            public int GetHashCode(CacheInfo obj) => obj.GetHashCode();
-        }
     }
 
     public class TypeAlreadyCachedException : InvalidOperationException
