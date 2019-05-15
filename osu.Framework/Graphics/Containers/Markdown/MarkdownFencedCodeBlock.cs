@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             foreach (var line in fencedCodeBlock.Lines.Lines)
-                textFlowContainer.AddParagraph(line.ToString());
+                textFlowContainer.AddParagraph(CustomizableTextContainer.Escape(line.ToString()));
         }
 
         protected virtual Drawable CreateBackground() => new Box
