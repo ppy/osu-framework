@@ -62,6 +62,10 @@ Line below";
             AddStep("Markdown Fenced Code", () =>
             {
                 markdownContainer.Text = @"```scriban-html
+
+[Escape me]
+[[Escape me]]
+
 {{
   x = ""5""   # This assignment will not output anything
   x         # This expression will print 5
