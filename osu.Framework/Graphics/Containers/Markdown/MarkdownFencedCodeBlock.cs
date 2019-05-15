@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
-            TextFlowContainer textFlowContainer;
+            MarkdownTextFlowContainer textFlowContainer;
             InternalChildren = new[]
             {
                 CreateBackground(),
@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             foreach (var line in fencedCodeBlock.Lines.Lines)
-                textFlowContainer.AddParagraph(CustomizableTextContainer.Escape(line.ToString()));
+                textFlowContainer.AddParagraph(line.ToString());
         }
 
         protected virtual Drawable CreateBackground() => new Box
