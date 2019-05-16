@@ -574,7 +574,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Make current screen 1", () => screen1.MakeCurrent());
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
 
-            // Allow the later pushed screen to load before the second pushed one.
+            // Allow the screens to load out of order to test whether or not screen 3 tried to load.
+            // The load should be blocked since screen 2 is already exited by MakeCurrent.
             AddStep("allow screen 3 to load", () => screen3.AllowLoad.Set());
             AddStep("allow screen 2 to load", () => screen2.AllowLoad.Set());
 
