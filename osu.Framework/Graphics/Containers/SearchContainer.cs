@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
@@ -25,9 +26,33 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 searchTerm = value;
-                var terms = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0));
+                filterValid.Invalidate();
             }
+        }
+
+        protected internal override void AddInternal(Drawable drawable)
+        {
+            base.AddInternal(drawable);
+            filterValid.Invalidate();
+        }
+
+        private readonly Cached filterValid = new Cached();
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!filterValid.IsValid)
+            {
+                performFilter();
+                filterValid.Validate();
+            }
+        }
+
+        private void performFilter()
+        {
+            var terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0));
         }
 
         private static bool match(IFilterable filterable, IEnumerable<string> terms, bool searchActive)

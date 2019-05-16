@@ -11,6 +11,8 @@ namespace osu.Framework.Threading
 
         public long Increment() => Interlocked.Increment(ref count);
 
+        public long Decrement() => Interlocked.Decrement(ref count);
+
         public long Add(long value) => Interlocked.Add(ref count, value);
 
         public long Reset() => Interlocked.Exchange(ref count, 0);

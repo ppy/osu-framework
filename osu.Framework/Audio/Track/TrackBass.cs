@@ -209,6 +209,10 @@ namespace osu.Framework.Audio.Track
 
         public Task StartAsync() => EnqueueAction(() =>
         {
+            // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
+            if (CurrentTime == Length)
+                return;
+
             if (Bass.ChannelPlay(activeStream))
                 isPlayed = true;
             else

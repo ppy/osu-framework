@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, IHasCurrentValue<double>
+    public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
         private readonly Bindable<double> current = new Bindable<double>();
 
@@ -33,8 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
-        private IShader roundedTextureShader;
-        private IShader textureShader;
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
 
         #region Disposal
 
@@ -48,21 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            CircularProgressDrawNode n = (CircularProgressDrawNode)node;
-
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.DrawSize = DrawSize;
-            n.Angle = (float)Current.Value * MathHelper.TwoPi;
-            n.InnerRadius = innerRadius;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
             => this.TransformBindableTo(Current, newValue, duration, easing);
@@ -70,8 +56,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;

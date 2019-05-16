@@ -183,7 +183,7 @@ namespace osu.Framework.Audio.Track
         {
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
-            if (readTask == null)
+            if (pointCount == 0 || readTask == null)
                 return new Waveform(null);
 
             await readTask;

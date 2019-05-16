@@ -39,6 +39,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
+        private static bool isEmbedded;
+
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
         /// </summary>
@@ -63,6 +65,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
+            isEmbedded = host.Window.IsEmbedded;
+
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
 
@@ -81,6 +85,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (host != null && host.TryGetTarget(out GameHost h))
                 h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            else
+                disposalAction.Invoke();
 
             void scheduleNextDisposal() => reset_scheduler.Add(() =>
             {
@@ -148,8 +154,18 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
-                osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
+                if (isEmbedded)
+                {
+                    // GL ES only supports glClearDepthf
+                    // See: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glClearDepthf.xhtml
+                    GL.ClearDepth((float)clearInfo.Depth);
+                }
+                else
+                {
+                    // Older desktop platforms don't support glClearDepthf, so standard GL's double version is used instead
+                    // See: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearDepth.xhtml
+                    osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
+                }
             }
 
             if (clearInfo.Stencil != currentClearInfo.Stencil)

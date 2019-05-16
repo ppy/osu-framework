@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
 
@@ -44,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
 
         private double timeVisible;
 
-        protected virtual bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
+        protected virtual bool ShouldLoadContent => timeVisible > timeBeforeLoad;
 
         private Task loadTask;
 
@@ -54,6 +55,12 @@ namespace osu.Framework.Graphics.Containers
 
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
+
+            if (!isIntersectingCache.IsValid)
+            {
+                computeIsIntersecting();
+                isIntersectingCache.Validate();
+            }
 
             if (!IsIntersecting)
                 timeVisible = 0;
@@ -92,13 +99,13 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached<bool> isIntersectingBacking;
+        private Cached isIntersectingCache = new Cached();
 
-        protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : isIntersectingBacking.Value = checkScrollIntersection();
+        protected bool IsIntersecting { get; private set; }
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        private bool checkScrollIntersection()
+        private void computeIsIntersecting()
         {
             if (OptimisingContainer == null)
             {
@@ -107,12 +114,15 @@ namespace osu.Framework.Graphics.Containers
                     OptimisingContainer = cursor as IOnScreenOptimisingContainer;
             }
 
-            return OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) ?? true;
+            if (OptimisingContainer == null)
+                IsIntersecting = true;
+            else
+                OptimisingContainer.ScheduleCheckAction(() => IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad));
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            isIntersectingBacking.Invalidate();
+            isIntersectingCache.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
