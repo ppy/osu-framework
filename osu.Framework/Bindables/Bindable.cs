@@ -233,13 +233,17 @@ namespace osu.Framework.Bindables
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
-            if (propagateToBindings)
-                Bindings?.ForEachAlive(b =>
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
                 {
-                    if (b == source) return;
+                    if (b == source) break;
 
                     b.SetValue(previousValue, value, bypassChecks, this);
-                });
+                }
+            }
+
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
         }
@@ -248,13 +252,17 @@ namespace osu.Framework.Bindables
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
-            if (propagateToBindings)
-                Bindings?.ForEachAlive(b =>
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
                 {
-                    if (b == source) return;
+                    if (b == source) break;
 
                     b.SetDisabled(disabled, bypassChecks, this);
-                });
+                }
+            }
+
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
@@ -273,8 +281,13 @@ namespace osu.Framework.Bindables
         /// </summary>
         public void UnbindBindings()
         {
-            Bindings?.ForEachAlive(b => b.Unbind(this));
-            Bindings?.Clear();
+            if (Bindings == null)
+                return;
+
+            foreach (var b in Bindings)
+                b.Unbind(this);
+
+            Bindings.Clear();
         }
 
         protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
@@ -363,13 +376,19 @@ namespace osu.Framework.Bindables
 
         private bool checkForLease(Bindable<T> source)
         {
-            if (isLeased) return true;
+            if (isLeased)
+                return true;
+
+            if (Bindings == null)
+                return false;
 
             bool found = false;
-            Bindings?.ForEachAlive(b =>
+
+            foreach (var b in Bindings)
             {
-                if (b != source) found |= b.checkForLease(this);
-            });
+                if (b != source)
+                    found |= b.checkForLease(this);
+            }
 
             return found;
         }
