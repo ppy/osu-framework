@@ -13,6 +13,12 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
+    /// <summary>
+    /// A container which filters children based on a search term.
+    /// Re-filtering will only be performed when the <see cref="SearchTerm"/> changes, or
+    /// new items are added as a direct children of this container.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         private string searchTerm;
