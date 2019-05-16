@@ -349,10 +349,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        /// <summary>
-        /// Flush any unprocessed uploads without actually uploading.
-        /// </summary>
-        internal void FlushUploads()
+        internal override void FlushUploads()
         {
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();

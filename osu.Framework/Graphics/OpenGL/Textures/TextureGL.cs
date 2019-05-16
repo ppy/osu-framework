@@ -92,6 +92,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
         internal abstract bool Upload();
 
+        /// <summary>
+        /// Flush any unprocessed uploads without actually uploading.
+        /// </summary>
+        internal abstract void FlushUploads();
+
         public abstract void SetData(ITextureUpload upload);
     }
 }
