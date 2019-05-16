@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace osu.Framework.Allocation
@@ -12,31 +12,26 @@ namespace osu.Framework.Allocation
     /// </summary>
     internal static class AsyncDisposalQueue
     {
-        private static readonly ConcurrentQueue<IDisposable> disposal_queue = new ConcurrentQueue<IDisposable>();
-        private static readonly object task_lock = new object();
+        private static readonly Queue<IDisposable> disposal_queue = new Queue<IDisposable>();
 
         private static Task runTask;
 
         public static void Enqueue(IDisposable disposable)
         {
-            disposal_queue.Enqueue(disposable);
+            lock (disposal_queue)
+                disposal_queue.Enqueue(disposable);
 
-            lock (task_lock)
+            if (runTask?.Status < TaskStatus.Running)
+                return;
+
+            runTask = Task.Run(() =>
             {
-                if (runTask != null
-                    && (runTask.Status == TaskStatus.WaitingForActivation
-                        || runTask.Status == TaskStatus.WaitingToRun
-                        || runTask.Status == TaskStatus.Created))
+                lock (disposal_queue)
                 {
-                    return;
+                    while (disposal_queue.Count > 0)
+                        disposal_queue.Dequeue().Dispose();
                 }
-
-                runTask = Task.Run(() =>
-                {
-                    while (disposal_queue.TryDequeue(out var toDispose))
-                        toDispose.Dispose();
-                });
-            }
+            });
         }
     }
 }
