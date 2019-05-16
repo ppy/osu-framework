@@ -1,19 +1,23 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Buffers;
+using System.Threading;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class ArrayPoolTextureUpload : ITextureUpload
     {
-        public Rgba32[] RawData;
+        public Span<Rgba32> RawData => memoryOwner.Memory.Span;
 
         public ReadOnlySpan<Rgba32> Data => RawData;
+
+        private IMemoryOwner<Rgba32> memoryOwner;
 
         /// <summary>
         /// The target mipmap level to upload into.
@@ -37,8 +41,10 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="height">The height of the texture.</param>
         public ArrayPoolTextureUpload(int width, int height)
         {
-            RawData = ArrayPool<Rgba32>.Shared.Rent(width * height);
+            memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
         }
+
+        public bool HasBeenUploaded => disposed;
 
         #region IDisposable Support
 
@@ -49,7 +55,7 @@ namespace osu.Framework.Graphics.Textures
             if (!disposed)
             {
                 disposed = true;
-                ArrayPool<Rgba32>.Shared.Return(RawData);
+                memoryOwner.Dispose();
             }
         }
 
