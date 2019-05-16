@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -18,6 +19,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(Game game, AudioManager audio)
         {
+            // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
+            Bass.Init(0);
+
             var stream = game.Resources.GetStream("Tracks/sample-track.mp3");
             track = new TrackBass(stream);
             audio.Track.AddItem(track);
