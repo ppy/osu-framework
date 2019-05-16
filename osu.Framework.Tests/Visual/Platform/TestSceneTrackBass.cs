@@ -34,6 +34,7 @@ namespace osu.Framework.Tests.Visual.Platform
         public void SetUpSteps()
         {
             AddStep("Seek to 1 second", () => track.Seek(1000));
+            AddAssert("Initial seek was successful", () => track.CurrentTime == 1000);
         }
 
         /// <summary>
