@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             AddStep("Seek to right before end of track", () => track.Seek(track.Length - 1));
             AddStep("Play", () => track.Start());
-            AddUntilStep("Track stopped playing", () => !track.IsRunning);
+            AddUntilStep("Track stopped playing", () => !track.IsRunning && track.CurrentTime == track.Length);
             AddStep("Start track again", () => track.Start());
             AddAssert("Track did not restart", () => track.CurrentTime == track.Length);
         }
