@@ -25,6 +25,9 @@ namespace osu.Framework.Graphics.Containers
             get => searchTerm;
             set
             {
+                if (value == searchTerm)
+                    return;
+
                 searchTerm = value;
                 filterValid.Invalidate();
             }
@@ -36,7 +39,7 @@ namespace osu.Framework.Graphics.Containers
             filterValid.Invalidate();
         }
 
-        private readonly Cached filterValid = new Cached();
+        private Cached filterValid = new Cached();
 
         protected override void Update()
         {
