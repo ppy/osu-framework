@@ -209,8 +209,7 @@ namespace osu.Framework.Audio.Track
 
         public Task StartAsync() => EnqueueAction(() =>
         {
-            // A current bass issue causes the track to restart if ChannelPlay is called when the Channel has reached the end.
-            // TODO: Needs to be either removed or defined once this behavior has been verified by the maintainers of bass
+            // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
             if (CurrentTime == Length)
                 return;
 
