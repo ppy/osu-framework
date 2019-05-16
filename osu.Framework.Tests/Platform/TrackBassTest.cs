@@ -29,6 +29,7 @@ namespace osu.Framework.Tests.Platform
         {
 #pragma warning disable 4014
             track.SeekAsync(1000);
+#pragma warning restore 4014
             track.Update();
             Assert.AreEqual(track.CurrentTime, 1000);
         }
@@ -39,7 +40,9 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestTrackSeekingToEndFails()
         {
+#pragma warning disable 4014
             track.SeekAsync(track.Length);
+#pragma warning restore 4014
             track.Update();
             Assert.AreEqual(track.CurrentTime, 1000);
         }
@@ -51,6 +54,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestTrackPlaybackBlocksAtTrackEnd()
         {
+#pragma warning disable 4014
             track.SeekAsync(track.Length - 1);
 #pragma warning restore 4014
             track.StartAsync();
