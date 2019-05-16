@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T>, IBufferedContainer
+    public partial class BufferedContainer<T> : Container<T>, IBufferedContainer
         where T : Drawable
     {
         private bool drawOriginal;
@@ -240,68 +240,9 @@ namespace osu.Framework.Graphics.Containers
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
-        private bool addChildDrawNodes;
-        internal override bool AddChildDrawNodes => addChildDrawNodes;
-
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
-
-            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
-
-            n.UpdateVersion = updateVersion;
-            n.BackgroundColour = backgroundColour;
-
-            BlendingParameters localEffectBlending = EffectBlending;
-            if (localEffectBlending.Mode == BlendingMode.Inherit)
-                localEffectBlending.Mode = Blending.Mode;
-
-            if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                localEffectBlending.RGBEquation = Blending.RGBEquation;
-
-            if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                localEffectBlending.AlphaEquation = Blending.AlphaEquation;
-
-            n.EffectColour = effectColour;
-            n.EffectBlending = localEffectBlending;
-            n.EffectPlacement = effectPlacement;
-
-            n.DrawOriginal = drawOriginal;
-            n.BlurSigma = blurSigma;
-            n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
-            n.BlurRotation = blurRotation;
-
-            n.Formats.Clear();
-            n.Formats.AddRange(attachedFormats);
-
-            n.BlurShader = blurShader;
-
-            n.SharedData = sharedData;
-
-            base.ApplyDrawNode(node);
-
-            // Our own draw node should contain our correct color, hence we have
-            // to undo our overridden DrawInfo getter here.
-            n.DrawColourInfo = new DrawColourInfo(base.DrawColourInfo.Colour, n.DrawColourInfo.Blending);
-
-            // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
-            addChildDrawNodes = n.RequiresRedraw;
-        }
-
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
-        {
-            var result = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
-
-            // The framebuffers may be redrawn this time around, but will be cached the next time around
-            addChildDrawNodes = false;
-
-            return result;
-        }
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
         private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
@@ -371,6 +312,8 @@ namespace osu.Framework.Graphics.Containers
 
             childrenUpdateVersion = updateVersion;
         }
+
+        private DrawColourInfo baseDrawColourInfo => base.DrawColourInfo;
 
         public override DrawColourInfo DrawColourInfo
         {
