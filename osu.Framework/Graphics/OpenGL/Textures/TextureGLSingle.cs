@@ -283,8 +283,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
                 upload.Bounds = new RectangleI(0, 0, width, height);
-                if (width * height != upload.Data.Length)
-                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not match data length ({upload.Data.Length})");
+                if (width * height > upload.Data.Length)
+                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
             IsTransparent = false;

@@ -2,14 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
+using System.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class BufferStackTextureUpload : ITextureUpload
+    public class ArrayPoolTextureUpload : ITextureUpload
     {
         public Rgba32[] RawData;
 
@@ -30,18 +30,14 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public RectangleI Bounds { get; set; }
 
-        private readonly BufferStack<Rgba32> bufferStack;
-
         /// <summary>
-        /// Create an empty raw texture with an optional <see cref="BufferStack{T}"/>. backing.
+        /// Create an empty raw texture with an efficient shared memory backing.
         /// </summary>
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
-        /// <param name="bufferStack">The buffer stack to retrieve the Rgba32[] from.</param>
-        public BufferStackTextureUpload(int width, int height, BufferStack<Rgba32> bufferStack)
+        public ArrayPoolTextureUpload(int width, int height)
         {
-            this.bufferStack = bufferStack;
-            RawData = bufferStack.ReserveBuffer(width * height);
+            RawData = ArrayPool<Rgba32>.Shared.Rent(width * height);
         }
 
         #region IDisposable Support
@@ -53,11 +49,11 @@ namespace osu.Framework.Graphics.Textures
             if (!disposed)
             {
                 disposed = true;
-                bufferStack?.FreeBuffer(RawData);
+                ArrayPool<Rgba32>.Shared.Return(RawData);
             }
         }
 
-        ~BufferStackTextureUpload()
+        ~ArrayPoolTextureUpload()
         {
             Dispose(false);
         }
