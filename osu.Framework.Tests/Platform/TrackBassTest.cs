@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Platform
 #pragma warning disable 4014
             track.SeekAsync(1000);
             track.Update();
-            Assert.That(track.CurrentTime == 1000);
+            Assert.AreEqual(track.CurrentTime, 1000);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Platform
         {
             track.SeekAsync(track.Length);
             track.Update();
-            Assert.That(track.CurrentTime == 1000);
+            Assert.AreEqual(track.CurrentTime, 1000);
         }
 
         /// <summary>
@@ -57,10 +57,11 @@ namespace osu.Framework.Tests.Platform
             track.Update();
             Thread.Sleep(50);
             track.Update();
-            Assert.That(!track.IsRunning && track.CurrentTime == track.Length);
+            Assert.IsFalse(track.IsRunning);
+            Assert.AreEqual(track.CurrentTime, track.Length);
             track.StartAsync();
             track.Update();
-            Assert.That(track.CurrentTime == track.Length);
+            Assert.AreEqual(track.CurrentTime, track.Length);
         }
     }
 }
