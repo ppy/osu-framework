@@ -238,7 +238,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
-                    if (b == source) break;
+                    if (b == source) continue;
 
                     b.SetValue(previousValue, value, bypassChecks, this);
                 }
@@ -257,7 +257,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
-                    if (b == source) break;
+                    if (b == source) continue;
 
                     b.SetDisabled(disabled, bypassChecks, this);
                 }
