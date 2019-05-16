@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -140,7 +141,10 @@ namespace osu.Framework.Graphics.Video
         public void ReturnFrames(IEnumerable<DecodedFrame> frames)
         {
             foreach (var f in frames)
+            {
+                ((TextureGLSingle)f.Texture.TextureGL).FlushUploads();
                 availableTextures.Enqueue(f.Texture);
+            }
         }
 
         /// <summary>

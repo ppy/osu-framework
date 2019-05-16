@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -347,6 +347,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             return didUpload;
+        }
+
+        /// <summary>
+        /// Flush any unprocessed uploads without actually uploading.
+        /// </summary>
+        internal void FlushUploads()
+        {
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
         }
 
         private bool tryGetNextUpload(out ITextureUpload upload)
