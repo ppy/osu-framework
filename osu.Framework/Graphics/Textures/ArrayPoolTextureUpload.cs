@@ -3,11 +3,9 @@
 
 using System;
 using System.Buffers;
-using System.Threading;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -17,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
 
         public ReadOnlySpan<Rgba32> Data => RawData;
 
-        private IMemoryOwner<Rgba32> memoryOwner;
+        private readonly IMemoryOwner<Rgba32> memoryOwner;
 
         /// <summary>
         /// The target mipmap level to upload into.
