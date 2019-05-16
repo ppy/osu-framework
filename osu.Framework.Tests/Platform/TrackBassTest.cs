@@ -6,6 +6,7 @@ using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -16,6 +17,8 @@ namespace osu.Framework.Tests.Platform
 
         public TrackBassTest()
         {
+            Architecture.SetIncludePath();
+
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Init(0);
 
