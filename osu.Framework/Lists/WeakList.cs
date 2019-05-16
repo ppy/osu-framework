@@ -31,6 +31,7 @@ namespace osu.Framework.Lists
 
         public void Clear() => list.Clear();
 
+        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
         public void ForEachAlive(Action<T> action)
         {
             foreach (var obj in this)
