@@ -69,6 +69,21 @@ namespace osu.Framework.Tests.Platform
         }
 
         [Test]
+        public void TestStopAtEnd()
+        {
+            startPlaybackAt(track.Length - 1);
+
+            Thread.Sleep(50);
+
+            track.Update();
+            track.StopAsync();
+            track.Update();
+
+            Assert.IsFalse(track.IsRunning);
+            Assert.AreEqual(track.Length, track.CurrentTime);
+        }
+
+        [Test]
         public void TestSeek()
         {
             track.SeekAsync(1000);
