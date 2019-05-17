@@ -341,12 +341,10 @@ namespace osu.Framework.Graphics.Performance
                 addEvent(gcLevel);
         }
 
-        private readonly BufferStack<Rgba32> timeBarImages = new BufferStack<Rgba32>(100);
-
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new BufferStackTextureUpload(1, HEIGHT, timeBarImages)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
