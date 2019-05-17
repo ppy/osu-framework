@@ -143,7 +143,7 @@ namespace osu.Framework.Tests.Platform
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
-            Assert.AreEqual(0, track.CurrentTime);
+            Assert.Less(track.CurrentTime, 1000);
         }
 
         [Test]
@@ -157,7 +157,7 @@ namespace osu.Framework.Tests.Platform
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
-            Assert.AreEqual(0, track.CurrentTime);
+            Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
         [Test]
@@ -165,10 +165,12 @@ namespace osu.Framework.Tests.Platform
         {
             track.RestartPoint = 1000;
 
+            startPlaybackAt(3000);
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
-            Assert.AreEqual(1000, track.CurrentTime);
+            Assert.GreaterOrEqual(track.CurrentTime, 1000);
+            Assert.Less(track.CurrentTime, 3000);
         }
 
         [Test]
@@ -198,7 +200,7 @@ namespace osu.Framework.Tests.Platform
             track.Update();
 
             Assert.IsTrue(track.IsRunning);
-            Assert.Less(track.CurrentTime, 2000);
+            Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
         private void startPlaybackAt(double time)
@@ -215,6 +217,7 @@ namespace osu.Framework.Tests.Platform
             Task.Run(() =>
             {
                 track.Restart();
+                track.Update();
                 resetEvent.Set();
             });
 
