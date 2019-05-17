@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.IO.Network;
 using osu.Framework.Testing;
@@ -16,9 +17,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public TestSceneMarkdown()
         {
             MarkdownContainer markdownContainer;
-            Add(markdownContainer = new MarkdownContainer
+            Add(new ScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
+                Child = markdownContainer = new MarkdownContainer
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y
+                }
             });
 
             AddStep("Markdown Heading", () =>
@@ -54,10 +60,7 @@ Line below";
   - [3.4 null](#34-null)";
             });
 
-            AddStep("Markdown Quote", () =>
-            {
-                markdownContainer.Text = @"> **input**";
-            });
+            AddStep("Markdown Quote", () => { markdownContainer.Text = @"> **input**"; });
 
             AddStep("Markdown Fenced Code", () =>
             {
@@ -93,10 +96,7 @@ Line below";
 | zebra stripes | are neat        |    $1 |";
             });
 
-            AddStep("Markdown Paragraph 1", () =>
-            {
-                markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.";
-            });
+            AddStep("Markdown Paragraph 1", () => { markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine."; });
 
             AddStep("Markdown Paragraph 2", () =>
             {
@@ -104,15 +104,9 @@ Line below";
                     @"The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, including newlines Examples with the variable name = ""foo"":";
             });
 
-            AddStep("MarkdownLink", () =>
-            {
-                markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)";
-            });
+            AddStep("MarkdownLink", () => { markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)"; });
 
-            AddStep("MarkdownImage", () =>
-            {
-                markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)";
-            });
+            AddStep("MarkdownImage", () => { markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)"; });
 
             AddStep("MarkdownFromInternet", () =>
             {
