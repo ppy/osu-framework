@@ -18,14 +18,17 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
             Assert.AreEqual("default", bindable1.Value);
             Assert.AreEqual(bindable2.Value, bindable1.Value);
+            Assert.AreEqual(bindable3.Value, bindable1.Value);
 
             bindable1.Value = "new value";
 
             Assert.AreEqual("new value", bindable1.Value);
             Assert.AreEqual(bindable2.Value, bindable1.Value);
+            Assert.AreEqual(bindable3.Value, bindable1.Value);
         }
 
         [Test]
@@ -33,11 +36,13 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
             bindable1.Disabled = true;
 
             Assert.Throws<InvalidOperationException>(() => bindable1.Value = "new value");
             Assert.Throws<InvalidOperationException>(() => bindable2.Value = "new value");
+            Assert.Throws<InvalidOperationException>(() => bindable3.Value = "new value");
 
             bindable1.Disabled = false;
 
@@ -45,11 +50,13 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.AreEqual("new value", bindable1.Value);
             Assert.AreEqual("new value", bindable2.Value);
+            Assert.AreEqual("new value", bindable3.Value);
 
             bindable2.Value = "new value 2";
 
             Assert.AreEqual("new value 2", bindable1.Value);
             Assert.AreEqual("new value 2", bindable2.Value);
+            Assert.AreEqual("new value 2", bindable3.Value);
         }
 
         [Test]
@@ -57,27 +64,32 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
-            int changed1 = 0, changed2 = 0;
+            int changed1 = 0, changed2 = 0, changed3 = 0;
 
             bindable1.ValueChanged += _ => changed1++;
             bindable2.ValueChanged += _ => changed2++;
+            bindable3.ValueChanged += _ => changed3++;
 
             bindable1.Value = "new value";
 
             Assert.AreEqual(1, changed1);
             Assert.AreEqual(1, changed2);
+            Assert.AreEqual(1, changed3);
 
             bindable1.Value = "new value 2";
 
             Assert.AreEqual(2, changed1);
             Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
 
             // should not re-fire, as the value hasn't changed.
             bindable1.Value = "new value 2";
 
             Assert.AreEqual(2, changed1);
             Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
         }
 
         [Test]
@@ -110,21 +122,25 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
-            bool disabled1 = false, disabled2 = false;
+            bool disabled1 = false, disabled2 = false, disabled3 = false;
 
             bindable1.DisabledChanged += v => disabled1 = v;
             bindable2.DisabledChanged += v => disabled2 = v;
+            bindable3.DisabledChanged += v => disabled3 = v;
 
             bindable1.Disabled = true;
 
             Assert.AreEqual(true, disabled1);
             Assert.AreEqual(true, disabled2);
+            Assert.AreEqual(true, disabled3);
 
             bindable1.Disabled = false;
 
             Assert.AreEqual(false, disabled1);
             Assert.AreEqual(false, disabled2);
+            Assert.AreEqual(false, disabled3);
         }
 
         [Test]
