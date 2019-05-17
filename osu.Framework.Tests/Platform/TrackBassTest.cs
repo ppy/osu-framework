@@ -69,21 +69,6 @@ namespace osu.Framework.Tests.Platform
         }
 
         [Test]
-        public void TestStopAtEnd()
-        {
-            startPlaybackAt(track.Length - 1);
-
-            Thread.Sleep(50);
-
-            track.Update();
-            track.StopAsync();
-            track.Update();
-
-            Assert.IsFalse(track.IsRunning);
-            Assert.AreEqual(track.Length, track.CurrentTime);
-        }
-
-        [Test]
         public void TestSeek()
         {
             track.SeekAsync(1000);
@@ -159,20 +144,6 @@ namespace osu.Framework.Tests.Platform
 
             Assert.IsTrue(track.IsRunning);
             Assert.Less(track.CurrentTime, 1000);
-        }
-
-        [Test]
-        public void TestRestartAtEnd()
-        {
-            startPlaybackAt(track.Length - 1);
-
-            Thread.Sleep(50);
-
-            track.Update();
-            restartTrack();
-
-            Assert.IsTrue(track.IsRunning);
-            Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
         [Test]
