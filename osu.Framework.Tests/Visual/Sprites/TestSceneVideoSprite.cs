@@ -40,8 +40,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 Add(timeText = new SpriteText
                 {
-                    AllowMultiline = true,
-                    Font = FontUsage.Default.With(fixedWidth: true)
+                    Font = new FontUsage("RobotoCondensed", weight: "Regular", fixedWidth: true)
                 });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
