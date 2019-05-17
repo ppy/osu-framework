@@ -130,18 +130,19 @@ namespace osu.Framework.Threading
 
                     tasksToSchedule.Clear();
                 }
-            }
 
-            for (int i = 0; i < perUpdateTasks.Count; i++)
-            {
-                ScheduledDelegate task = perUpdateTasks[i];
-                if (task.Cancelled)
+                for (int i = 0; i < perUpdateTasks.Count; i++)
                 {
-                    perUpdateTasks.RemoveAt(i--);
-                    continue;
-                }
+                    ScheduledDelegate task = perUpdateTasks[i];
 
-                runQueue.Enqueue(task);
+                    if (task.Cancelled)
+                    {
+                        perUpdateTasks.RemoveAt(i--);
+                        continue;
+                    }
+
+                    runQueue.Enqueue(task);
+                }
             }
 
             int countToRun = runQueue.Count;
