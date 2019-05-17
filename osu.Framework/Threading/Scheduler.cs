@@ -166,11 +166,13 @@ namespace osu.Framework.Threading
         private bool getNextTask(out ScheduledDelegate task)
         {
             lock (queueLock)
+            {
                 if (runQueue.Count > 0)
                 {
                     task = runQueue.Dequeue();
                     return true;
                 }
+            }
 
             task = null;
             return false;
