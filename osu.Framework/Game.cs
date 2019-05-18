@@ -135,7 +135,7 @@ namespace osu.Framework
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
-            //attach our bindables to the audio subsystem.
+            // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
