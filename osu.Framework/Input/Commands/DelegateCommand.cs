@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Commands
         public DelegateCommand(Action executeMethod)
         {
             _executeMethod = executeMethod;
-            CanExecute = new Bindable<bool>();
+            CanExecute = new Bindable<bool>(executeMethod != null);
         }
 
         public void Execute()
