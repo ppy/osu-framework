@@ -117,6 +117,21 @@ namespace osu.Framework.Tests.Platform
         }
 
         [Test]
+        public void TestSeekBackToSamePosition()
+        {
+            track.SeekAsync(1000);
+            track.SeekAsync(0);
+            track.Update();
+
+            Thread.Sleep(50);
+
+            track.Update();
+
+            Assert.GreaterOrEqual(track.CurrentTime, 0);
+            Assert.Less(track.CurrentTime, 1000);
+        }
+
+        [Test]
         public void TestPlaybackToEnd()
         {
             startPlaybackAt(track.Length - 1);
