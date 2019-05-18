@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Commands;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -77,10 +78,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public MenuItem[] ContextMenuItems => new[]
             {
-                new MenuItem(@"Change width", () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height", () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change width back", () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height back", () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint)),
+                new MenuItem(@"Change width", new DelegateCommand(() => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint))),
+                new MenuItem(@"Change height", new DelegateCommand(() => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint))),
+                new MenuItem(@"Change width back", new DelegateCommand(() => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint))),
+                new MenuItem(@"Change height back", new DelegateCommand(() => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint)))
             };
         }
     }

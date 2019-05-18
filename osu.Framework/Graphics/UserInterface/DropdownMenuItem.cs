@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Input.Commands;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -17,8 +18,8 @@ namespace osu.Framework.Graphics.UserInterface
             Value = value;
         }
 
-        public DropdownMenuItem(string text, T value, Action action)
-            : base(text, action)
+        public DropdownMenuItem(string text, T value, ICommand command)
+            : base(text, command)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
+using osu.Framework.Input.Commands;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -15,9 +16,9 @@ namespace osu.Framework.Graphics.UserInterface
         public readonly Bindable<string> Text = new Bindable<string>(string.Empty);
 
         /// <summary>
-        /// The <see cref="Action"/> that is performed when this <see cref="MenuItem"/> is clicked.
+        /// The <see cref="ICommand"/> that is performed when this <see cref="MenuItem"/> is clicked.
         /// </summary>
-        public readonly Bindable<Action> Action = new Bindable<Action>();
+        public readonly Bindable<ICommand> Command = new Bindable<ICommand>();
 
         /// <summary>
         /// A list of items which are to be displayed in a sub-menu originating from this <see cref="MenuItem"/>.
@@ -37,11 +38,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// Creates a new <see cref="MenuItem"/>.
         /// </summary>
         /// <param name="text">The text to display.</param>
-        /// <param name="action">The <see cref="Action"/> to perform when clicked.</param>
-        public MenuItem(string text, Action action)
+        /// <param name="command">The <see cref="ICommand"/> to perform when clicked.</param>
+        public MenuItem(string text, ICommand command)
             : this(text)
         {
-            Action.Value = action;
+            Command.Value = command;
         }
     }
 }

@@ -112,13 +112,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
-            var newItem = new DropdownMenuItem<T>(text, value, () =>
+            var newItem = new DropdownMenuItem<T>(text, value, new DelegateCommand(() =>
             {
                 if (!Current.Disabled)
                     Current.Value = value;
 
                 Menu.State = MenuState.Closed;
-            });
+            }));
 
             Menu.Add(newItem);
             itemMap[value] = newItem;
@@ -340,7 +340,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 public bool IsSelected
                 {
-                    get => !Item.Action.Disabled && selected;
+                    get => !Item.Command.Disabled && selected;
                     set
                     {
                         if (selected == value)

@@ -552,7 +552,7 @@ namespace osu.Framework.Graphics.UserInterface
             public event Action<MenuItemState> StateChanged;
 
             /// <summary>
-            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
+            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Command"/> was
             /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
             /// </summary>
             internal Action<DrawableMenuItem> Clicked;
@@ -748,11 +748,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool OnClick(ClickEvent e)
             {
-                if (Item.Action.Disabled)
+                if (Item.Command.Disabled)
                     return true;
 
                 if (!hasSubmenu)
-                    Item.Action.Value?.Invoke();
+                    Item.Command.Value?.Execute();
 
                 Clicked?.Invoke(this);
 
