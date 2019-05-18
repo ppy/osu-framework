@@ -234,11 +234,10 @@ namespace osu.Framework.Audio.Track
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
-                if (clamped != CurrentTime)
-                {
-                    long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+
+                if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
-                }
             });
 
             return conservativeClamped == seek;
