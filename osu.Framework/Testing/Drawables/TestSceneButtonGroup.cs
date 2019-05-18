@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Input.Commands;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -65,14 +66,14 @@ namespace osu.Framework.Testing.Drawables
             if (hasHeader)
                 buttonFlow.Add(headerButton = new TestSceneHeaderButton(group.Name)
                 {
-                    Action = ToggleVisibility
+                    Command = new DelegateCommand(ToggleVisibility)
                 });
 
             foreach (var test in tests)
             {
                 buttonFlow.Add(new TestSceneSubButton(test, hasHeader ? 1 : 0)
                 {
-                    Action = () => loadTest(test)
+                    Command = new DelegateCommand(() => loadTest(test))
                 });
             }
         }

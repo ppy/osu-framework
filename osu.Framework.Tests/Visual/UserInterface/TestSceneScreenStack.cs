@@ -12,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Commands;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
@@ -757,7 +758,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Origin = Anchor.TopLeft,
                         BackgroundColour = Color4.Red,
                         Alpha = 0,
-                        Action = this.Exit
+                        Command = new DelegateCommand(this.Exit)
                     },
                     new Button
                     {
@@ -767,14 +768,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
                         BackgroundColour = Color4.YellowGreen,
-                        Action = delegate
+                        Command = new DelegateCommand(delegate
                         {
                             this.Push(new TestScreen
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                             });
-                        }
+                        })
                     }
                 };
 

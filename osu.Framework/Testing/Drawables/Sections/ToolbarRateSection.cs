@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Commands;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
@@ -60,7 +61,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             };
 
             rateAdjustSlider.Current.BindValueChanged(e => rateText.Text = e.NewValue.ToString("0%"), true);
-            clickableReset.Action = () => rateAdjustSlider.Current.SetDefault();
+            clickableReset.Command = new DelegateCommand(() => rateAdjustSlider.Current.SetDefault());
         }
     }
 }

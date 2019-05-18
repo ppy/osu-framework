@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Commands;
 using osuTK;
 using osuTK.Graphics;
 
@@ -83,7 +84,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100,
-                        Action = changeState,
+                        Command = new DelegateCommand(changeState)
                     },
                 }
             };

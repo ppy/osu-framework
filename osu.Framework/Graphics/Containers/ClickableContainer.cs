@@ -1,23 +1,25 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Bindables;
+using osu.Framework.Input.Commands;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Containers
 {
     public class ClickableContainer : Container
     {
-        private Action action;
+        private ICommand command;
 
-        public Action Action
+        public ICommand Command
         {
-            get => action;
+            get => command;
             set
             {
-                action = value;
-                Enabled.Value = action != null;
+                if (command != null)
+                    Enabled.UnbindFrom(command.CanExecute);
+
+                Enabled.BindTo((command = value).CanExecute);
             }
         }
 
@@ -26,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnClick(ClickEvent e)
         {
             if (Enabled.Value)
-                Action?.Invoke();
+                Command?.Execute();
             return true;
         }
     }

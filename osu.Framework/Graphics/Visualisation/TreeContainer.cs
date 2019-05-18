@@ -9,6 +9,7 @@ using osu.Framework.Graphics.UserInterface;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Commands;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -115,7 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"choose target",
-                                            Action = delegate { ChooseTarget?.Invoke(); }
+                                            Command = new DelegateCommand(delegate { ChooseTarget?.Invoke(); })
                                         },
                                         new Button
                                         {
@@ -123,7 +124,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"up one parent",
-                                            Action = delegate { GoUpOneParent?.Invoke(); },
+                                            Command =new DelegateCommand(delegate { GoUpOneParent?.Invoke(); })
                                         },
                                         propertyButton = new Button
                                         {
@@ -131,7 +132,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"view properties",
-                                            Action = delegate { ToggleProperties?.Invoke(); },
+                                            Command = new DelegateCommand(delegate { ToggleProperties?.Invoke(); })
                                         },
                                     },
                                 },

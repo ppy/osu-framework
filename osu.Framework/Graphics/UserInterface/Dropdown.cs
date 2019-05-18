@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Commands;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -205,7 +206,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.RelativeSizeAxes = Axes.X;
 
-            Header.Action = Menu.Toggle;
+            Header.Command = new DelegateCommand(Menu.Toggle);
             Current.ValueChanged += selectionChanged;
 
             ItemSource.ItemsAdded += _ => setItems(ItemSource);

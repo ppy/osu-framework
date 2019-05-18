@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Commands;
 using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
@@ -66,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 BackgroundColour = Color4.DarkSlateGray,
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Action = startStop
+                                Command = new DelegateCommand(startStop)
                             },
                             new SpriteText
                             {
