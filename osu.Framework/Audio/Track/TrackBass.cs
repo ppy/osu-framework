@@ -38,6 +38,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
+        private long byteLength;
+
         private FileCallbacks fileCallbacks;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
@@ -86,7 +88,7 @@ namespace osu.Framework.Audio.Track
                 }
 
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream));
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
 
                 bool success = seconds >= 0;
 
@@ -210,7 +212,7 @@ namespace osu.Framework.Audio.Track
         public Task StartAsync() => EnqueueAction(() =>
         {
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
-            if (CurrentTime == Length)
+            if (Bass.ChannelGetPosition(activeStream) == byteLength)
                 return;
 
             if (Bass.ChannelPlay(activeStream))
