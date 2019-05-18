@@ -241,20 +241,6 @@ namespace osu.Framework
 
         protected virtual bool OnExiting() => false;
 
-        /// <summary>
-        /// Called before a frame cycle has started (Update and Draw).
-        /// </summary>
-        protected virtual void PreFrame()
-        {
-        }
-
-        /// <summary>
-        /// Called after a frame cycle has been completed (Update and Draw).
-        /// </summary>
-        protected virtual void PostFrame()
-        {
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
