@@ -36,7 +36,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new SpriteText
                     {
                         Padding = new MarginPadding(5),
-                        Text = "Assembly:"
+                        Font = new FontUsage("RobotoCondensed", weight: "Regular"),
+                        Text = "Assembly"
                     },
                     assemblyDropdown = new AssemblyDropdown
                     {
@@ -47,8 +48,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     {
                         LabelText = "Run all steps",
                         RightHandedCheckbox = true,
-                        AutoSizeAxes = Axes.Y,
-                        Width = 140,
+                        AutoSizeAxes = Axes.Both,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Current = browser.RunAllSteps

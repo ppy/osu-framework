@@ -38,6 +38,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
+        private long byteLength;
+
         private FileCallbacks fileCallbacks;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
@@ -86,7 +88,7 @@ namespace osu.Framework.Audio.Track
                 }
 
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream));
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
 
                 bool success = seconds >= 0;
 
@@ -125,8 +127,7 @@ namespace osu.Framework.Audio.Track
         {
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
@@ -209,6 +210,10 @@ namespace osu.Framework.Audio.Track
 
         public Task StartAsync() => EnqueueAction(() =>
         {
+            // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
+            if (Bass.ChannelGetPosition(activeStream) == byteLength)
+                return;
+
             if (Bass.ChannelPlay(activeStream))
                 isPlayed = true;
             else
@@ -228,11 +233,10 @@ namespace osu.Framework.Audio.Track
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
-                if (clamped != CurrentTime)
-                {
-                    long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+
+                if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
-                }
             });
 
             return conservativeClamped == seek;
