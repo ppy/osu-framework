@@ -58,7 +58,12 @@ namespace osu.Framework.Testing.Drawables
                     Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
                     Children = new Drawable[]
                     {
-                        content = new Container { RelativeSizeAxes = Axes.Both },
+                        new EdgeSnappingContainer
+                        {
+                            SnappedEdges = Edges.Left,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = content = new Container { RelativeSizeAxes = Axes.Both },
+                        },
                         text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
                         {
                             RelativeSizeAxes = Axes.X,

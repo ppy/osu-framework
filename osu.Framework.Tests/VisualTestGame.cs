@@ -15,13 +15,17 @@ namespace osu.Framework.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
-            Child = new DrawSizePreservingFillContainer
+            Child = new SafeAreaContainer
             {
-                Children = new Drawable[]
+                AppliedEdges = Edges.Left | Edges.Top | Edges.Right,
+                Child = new DrawSizePreservingFillContainer
                 {
-                    new TestBrowser(),
-                    new CursorContainer(),
-                },
+                    Children = new Drawable[]
+                    {
+                        new TestBrowser(),
+                        new CursorContainer(),
+                    },
+                }
             };
         }
 
