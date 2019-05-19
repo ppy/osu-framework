@@ -19,7 +19,8 @@ namespace osu.Framework.Graphics.Containers
                 if (command != null)
                     Enabled.UnbindFrom(command.CanExecute);
 
-                Enabled.BindTo((command = value).CanExecute);
+                if ((command = value) != null)
+                    Enabled.BindTo(command.CanExecute);
             }
         }
 
