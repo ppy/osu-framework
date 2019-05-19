@@ -2333,6 +2333,22 @@ namespace osu.Framework.Graphics
         Both = X | Y,
     }
 
+    [Flags]
+    public enum Edges
+    {
+        None = 0,
+
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Bottom = 1 << 2,
+        Right = 1 << 3,
+
+        Horizontal = Left | Right,
+        Vertical = Top | Bottom,
+
+        All = Top | Left | Bottom | Right,
+    }
+
     public enum Direction
     {
         Horizontal,
