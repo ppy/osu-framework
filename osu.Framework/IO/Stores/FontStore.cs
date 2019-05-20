@@ -10,6 +10,26 @@ using System.Collections.Concurrent;
 
 namespace osu.Framework.IO.Stores
 {
+    public struct CharacterGlyph
+    {
+        public Texture Texture;
+
+        /// <summary>
+        /// The amount of space that should be given to the left of the character texture
+        /// </summary>
+        public int XOffset;
+
+        /// <summary>
+        /// The amount of space that should be given to the top of the character texture
+        /// </summary>
+        public int YOffset;
+
+        /// <summary>
+        /// The amount of space to advance the cursor by after drawing the texture
+        /// </summary>
+        public int XAdvance;
+    }
+
     public class FontStore : TextureStore
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
@@ -28,6 +48,50 @@ namespace osu.Framework.IO.Stores
             : base(store, scaleAdjust: scaleAdjust)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
+        }
+
+        /// <summary>
+        /// Get the texture of a character from a specified font and its associated spacing information.
+        /// </summary>
+        /// <param name="charName">The character to look up</param>
+        /// <param name="fontName">The font look for the character in</param>
+        /// <returns>The texture and the spacing information associated with the character and font. Returns null if no texture is found</returns>
+        public CharacterGlyph? GetCharacter(string fontName, char charName)
+        {
+            var texture = namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
+
+            if (texture == null)
+                return null;
+
+            var info = getGlyphInfo(fontName, charName) ?? new CharacterGlyph();
+
+            info.Texture = texture;
+            return info;
+        }
+
+        /// <summary>
+        /// Gets the spacing information for a character in a specified font
+        /// </summary>
+        /// <param name="charName">The character to look up</param>
+        /// <param name="fontName">The font look for the character in</param>
+        /// <returns>The associated spacing information for the character and font. Returns null if not found</returns>
+        private CharacterGlyph? getGlyphInfo(string fontName, char charName)
+        {
+            foreach (var store in glyphStores)
+            {
+                // Return the default (first available) glyph if fontName is default
+                if (store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""))
+                    return store.GetGlyphInfo(charName);
+            }
+
+            foreach (var store in nestedFontStores)
+            {
+                var glyph = store.getGlyphInfo(fontName, charName);
+                if (glyph != null)
+                    return glyph;
+            }
+
+            return null;
         }
 
         protected override IEnumerable<string> GetFilenames(string name)
@@ -149,7 +213,5 @@ namespace osu.Framework.IO.Stores
             base.Dispose(disposing);
             glyphStores.ForEach(g => g.Dispose());
         }
-
-        public Texture GetCharacter(string fontName, char charName) => namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
     }
 }

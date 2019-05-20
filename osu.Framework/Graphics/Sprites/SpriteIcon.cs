@@ -43,7 +43,6 @@ namespace osu.Framework.Graphics.Sprites
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
                         FillMode = FillMode.Fit,
-                        Y = 2,
                         Colour = new Color4(0f, 0f, 0f, 0.2f),
                     },
                     Alpha = shadow ? 1 : 0,
@@ -74,13 +73,13 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Equals(loadableIcon, loadedIcon)) return;
 
-            var texture = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
+            var glyph = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
 
-            spriteMain.Texture = texture;
-            spriteShadow.Texture = texture;
+            spriteMain.Texture = glyph?.Texture;
+            spriteShadow.Texture = glyph?.Texture;
 
             if (Size == Vector2.Zero)
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                Size = new Vector2(glyph?.Texture.DisplayWidth ?? 0, glyph?.Texture.DisplayHeight ?? 0);
 
             loadedIcon = loadableIcon;
         }

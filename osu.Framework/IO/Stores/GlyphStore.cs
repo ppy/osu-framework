@@ -65,6 +65,27 @@ namespace osu.Framework.IO.Stores
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
 
+        /// <summary>
+        /// Gets the spacing information for the specified character
+        /// </summary>
+        /// <param name="c">The character to retrieve spacing information for</param>
+        /// <returns>The spacing information for the specified character, or null if the character is not found</returns>
+        public CharacterGlyph? GetGlyphInfo(char c)
+        {
+            Character character = Font.GetCharacter(c);
+            if (character != null)
+            {
+                return new CharacterGlyph
+                {
+                    XOffset = character.XOffset,
+                    YOffset = character.YOffset,
+                    XAdvance = character.XAdvance
+                };
+            }
+
+            return null;
+        }
+
         public int GetBaseHeight() => Font.Common.Base;
 
         public int? GetBaseHeight(string name)
@@ -102,8 +123,8 @@ namespace osu.Framework.IO.Stores
             var page = getTexturePage(c.Page);
             loadedGlyphCount++;
 
-            int width = c.Width + c.XOffset + 1;
-            int height = c.Height + c.YOffset + 1;
+            int width = c.Width;
+            int height = c.Height;
 
             var image = new Image<Rgba32>(width, height);
 
@@ -115,11 +136,7 @@ namespace osu.Framework.IO.Stores
                 for (int x = 0; x < width; x++)
                 {
                     int dest = y * width + x;
-
-                    if (x >= c.XOffset && y >= c.YOffset && x - c.XOffset < c.Width && y - c.YOffset < c.Height)
-                        pixels[dest] = span[(c.Y + y - c.YOffset) * page.Width + (c.X + x - c.XOffset)];
-                    else
-                        pixels[dest] = new Rgba32(255, 255, 255, 0);
+                    pixels[dest] = span[(c.Y + y) * page.Width + c.X + x];
                 }
             }
 
