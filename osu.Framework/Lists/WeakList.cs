@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -22,7 +22,17 @@ namespace osu.Framework.Lists
 
         public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference<T>(weakReference));
 
-        public void Remove(T item) => list.Where(t => t.Reference.TryGetTarget(out var obj) && obj == item).ForEach(t => t.Invalidate());
+        public void Remove(T item)
+        {
+            foreach (var i in list)
+            {
+                if (i.Reference.TryGetTarget(out var obj) && obj == item)
+                {
+                    i.Invalidate();
+                    return;
+                }
+            }
+        }
 
         public bool Remove(WeakReference<T> weakReference)
         {
