@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The <see cref="Edges"/> that should be snapped to the nearest <see cref="ISnapTargetContainer"/>.
+        /// Defaults to <see cref="Edges.None"/>.
         /// </summary>
         public Edges SnappedEdges
         {

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Containers
@@ -13,8 +15,7 @@ namespace osu.Framework.Graphics.Containers
 
     /// <summary>
     /// A <see cref="SnapTargetContainer{T}"/> that will dynamically apply a padding based on the current <see cref="GameWindow.SafeAreaPadding"/> value.
-    /// It should only be used near the top of the scene graph such that its <see cref="Drawable.DrawRectangle"/> fills the screen,
-    /// otherwise the applied padding will be inaccurate for the host device.
+    /// Padding will only be applied if the contents of the container would otherwise intersect the safe area margins of the host <see cref="GameWindow"/>.
     /// Padding may be applied to individual edges by setting the <see cref="AppliedEdges"/> property.
     /// </summary>
     public class SafeAreaContainer<T> : SnapTargetContainer<T>
@@ -29,6 +30,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The <see cref="Edges"/> that should be automatically padded based on the current <see cref="GameWindow.SafeAreaPadding"/>.
+        /// Defaults to <see cref="Edges.All"/>.
         /// </summary>
         public Edges AppliedEdges
         {
@@ -40,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
 
                 appliedEdges = value;
 
-                updatePadding(safeAreaPadding.Value);
+                updatePadding();
             }
         }
 
@@ -53,17 +55,31 @@ namespace osu.Framework.Graphics.Containers
         public SafeAreaContainer()
         {
             RelativeSizeAxes = Axes.Both;
-            safeAreaPadding.ValueChanged += args => updatePadding(args.NewValue);
+            safeAreaPadding.ValueChanged += _ => updatePadding();
         }
 
-        private void updatePadding(MarginPadding padding)
+        protected override void UpdateAfterChildren()
         {
+            base.UpdateAfterChildren();
+            updatePadding();
+        }
+
+        private void updatePadding()
+        {
+            if (host?.Window == null)
+                return;
+
+            var clientRect = host.Window.ClientRectangle;
+            var safeArea = safeAreaPadding.Value;
+            var paddedRect = new Quad(clientRect.X + safeArea.Left, clientRect.Y + safeArea.Top, clientRect.Width - safeArea.TotalHorizontal, clientRect.Height - safeArea.TotalVertical);
+            var localRect = ToLocalSpace(paddedRect);
+
             Padding = new MarginPadding
             {
-                Left = AppliedEdges.HasFlag(Edges.Left) ? padding.Left : 0,
-                Right = AppliedEdges.HasFlag(Edges.Right) ? padding.Right : 0,
-                Top = AppliedEdges.HasFlag(Edges.Top) ? padding.Top : 0,
-                Bottom = AppliedEdges.HasFlag(Edges.Bottom) ? padding.Bottom : 0
+                Left = AppliedEdges.HasFlag(Edges.Left) ? Math.Max(0, localRect.TopLeft.X) : 0,
+                Right = AppliedEdges.HasFlag(Edges.Right) ? Math.Max(0, DrawSize.X - localRect.BottomRight.X) : 0,
+                Top = AppliedEdges.HasFlag(Edges.Top) ? Math.Max(0, localRect.TopLeft.Y) : 0,
+                Bottom = AppliedEdges.HasFlag(Edges.Bottom) ? Math.Max(0, DrawSize.Y - localRect.BottomRight.Y) : 0
             };
         }
     }
