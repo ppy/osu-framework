@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Lists
 {
@@ -15,19 +16,27 @@ namespace osu.Framework.Lists
     public class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
-        private readonly List<WeakReference<T>> list = new List<WeakReference<T>>();
+        private readonly List<InvalidatableWeakReference<T>> list = new List<InvalidatableWeakReference<T>>();
 
-        public void Add(T obj) => Add(new WeakReference<T>(obj));
+        public void Add(T obj) => list.Add(new InvalidatableWeakReference<T>(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(weakReference);
+        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference<T>(weakReference));
 
-        public void Remove(T item) => list.RemoveAll(t => t.TryGetTarget(out var obj) && obj == item);
+        public void Remove(T item) => list.Where(t => t.Reference.TryGetTarget(out var obj) && obj == item).ForEach(t => t.Invalidate());
 
-        public bool Remove(WeakReference<T> weakReference) => list.Remove(weakReference);
+        public bool Remove(WeakReference<T> weakReference)
+        {
+            var matches = list.FindAll(t => t.Reference == weakReference);
+            if (matches.Count == 0) return false;
 
-        public bool Contains(T item) => list.Any(t => t.TryGetTarget(out var obj) && obj == item);
+            foreach (var m in matches)
+                m.Invalidate();
+            return true;
+        }
 
-        public bool Contains(WeakReference<T> weakReference) => list.Contains(weakReference);
+        public bool Contains(T item) => list.Any(t => t.Reference.TryGetTarget(out var obj) && obj == item);
+
+        public bool Contains(WeakReference<T> weakReference) => list.Any(t => t.Reference == weakReference);
 
         public void Clear() => list.Clear();
 
@@ -40,7 +49,7 @@ namespace osu.Framework.Lists
 
         public Enumerator GetEnumerator()
         {
-            list.RemoveAll(item => !item.TryGetTarget(out _));
+            list.RemoveAll(item => item.Invalid || !item.Reference.TryGetTarget(out _));
 
             return new Enumerator(list);
         }
@@ -51,12 +60,12 @@ namespace osu.Framework.Lists
 
         public struct Enumerator : IEnumerator<T>
         {
-            private List<WeakReference<T>> list;
+            private List<InvalidatableWeakReference<T>> list;
 
             private int currentIndex;
             private T currentObject;
 
-            internal Enumerator(List<WeakReference<T>> list)
+            internal Enumerator(List<InvalidatableWeakReference<T>> list)
             {
                 this.list = list;
 
@@ -68,7 +77,7 @@ namespace osu.Framework.Lists
             {
                 while (++currentIndex < list.Count)
                 {
-                    if (!list[currentIndex].TryGetTarget(out currentObject))
+                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject))
                         continue;
 
                     return true;
@@ -92,6 +101,26 @@ namespace osu.Framework.Lists
                 list = null;
                 currentObject = null;
             }
+        }
+
+        internal class InvalidatableWeakReference<U>
+            where U : class
+        {
+            public readonly WeakReference<U> Reference;
+
+            public bool Invalid { get; private set; }
+
+            public InvalidatableWeakReference(U reference)
+                : this(new WeakReference<U>(reference))
+            {
+            }
+
+            public InvalidatableWeakReference(WeakReference<U> weakReference)
+            {
+                Reference = weakReference;
+            }
+
+            public void Invalidate() => Invalid = true;
         }
     }
 }

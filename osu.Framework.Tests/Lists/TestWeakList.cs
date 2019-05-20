@@ -39,6 +39,49 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestIterateWithRemove()
+        {
+            var obj = new object();
+            var obj2 = new object();
+            var obj3 = new object();
+
+            var list = new WeakList<object> { obj, obj2, obj3 };
+
+            int count = 0;
+            foreach (var item in list)
+            {
+                if (count == 1)
+                    list.Remove(item);
+                count++;
+            }
+
+            Assert.AreEqual(3, count);
+        }
+
+        [Test]
+        public void TestIterateWithRemoveSkipsInvalidated()
+        {
+            var obj = new object();
+            var obj2 = new object();
+            var obj3 = new object();
+
+            var list = new WeakList<object> { obj, obj2, obj3 };
+
+            int count = 0;
+            foreach (var item in list)
+            {
+                if (count == 0)
+                    list.Remove(obj2);
+
+                Assert.AreNotEqual(obj2, item);
+
+                count++;
+            }
+
+            Assert.AreEqual(2, count);
+        }
+
+        [Test]
         public void TestDeadObjectsAreSkipped()
         {
             var (list, alive) = generateWeakObjects();
