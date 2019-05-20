@@ -446,7 +446,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class TestButton : Button, IKeyBindingHandler<TestAction>
         {
-            public new readonly TestAction Action;
+            public readonly TestAction Action;
             public readonly SimultaneousBindingMode Concurrency;
             public int OnPressedCount { get; protected set; }
             public int OnReleasedCount { get; protected set; }

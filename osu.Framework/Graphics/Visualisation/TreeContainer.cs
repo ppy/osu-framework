@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"up one parent",
-                                            Command =new DelegateCommand(delegate { GoUpOneParent?.Invoke(); })
+                                            Command = new DelegateCommand(delegate { GoUpOneParent?.Invoke(); })
                                         },
                                         propertyButton = new Button
                                         {
