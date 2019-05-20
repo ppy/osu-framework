@@ -26,12 +26,18 @@ namespace osu.Framework.Lists
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            var matches = list.FindAll(t => t.Reference == weakReference);
-            if (matches.Count == 0) return false;
+            bool found = false;
 
-            foreach (var m in matches)
-                m.Invalidate();
-            return true;
+            foreach (var item in list)
+            {
+                if (item.Reference == weakReference)
+                {
+                    item.Invalidate();
+                    found = true;
+                }
+            }
+
+            return found;
         }
 
         public bool Contains(T item) => list.Any(t => t.Reference.TryGetTarget(out var obj) && obj == item);
