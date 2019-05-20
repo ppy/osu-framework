@@ -1,11 +1,10 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Lists
 {
@@ -54,7 +53,11 @@ namespace osu.Framework.Lists
 
         public bool Contains(WeakReference<T> weakReference) => list.Any(t => t.Reference == weakReference);
 
-        public void Clear() => list.Clear();
+        public void Clear()
+        {
+            foreach (var item in list)
+                item.Invalidate();
+        }
 
         [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
         public void ForEachAlive(Action<T> action)
