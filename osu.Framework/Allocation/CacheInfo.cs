@@ -6,7 +6,7 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
-    public struct CacheInfo
+    public readonly struct CacheInfo
     {
         /// <summary>
         /// The name of the cached member.
@@ -21,14 +21,21 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// The type of the cached member.
         /// </summary>
-        internal Type Type;
+        internal readonly Type Type;
 
         public CacheInfo(string name = null, Type parent = null)
+            : this(null, name, parent)
         {
-            Type = null;
+        }
+
+        private CacheInfo(Type type, string name, Type parent)
+        {
+            Type = type;
             Name = name;
             Parent = parent;
         }
+
+        internal CacheInfo WithType(Type type) => new CacheInfo(type, Name, Parent);
 
         public override string ToString() => $"{nameof(Type)} = {Type?.ReadableName()}, {nameof(Name)} = {Name}, {nameof(Parent)} = {Parent?.ReadableName()}";
     }
