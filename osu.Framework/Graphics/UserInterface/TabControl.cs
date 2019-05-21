@@ -237,7 +237,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
-            if (!tab.IsRemovable) return;
+            if (!tab.IsRemovable)
+                throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
             if (tab == SelectedTab)
                 SelectedTab = null;

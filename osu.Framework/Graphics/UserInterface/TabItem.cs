@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool IsPresent => base.IsPresent && Y == 0;
 
-        public override bool IsRemovable => false;
+        public override bool IsRemovable => true;
 
         /// <summary>
         /// When true, this tab can be switched to using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext. Otherwise, it will be skipped.
