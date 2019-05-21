@@ -64,14 +64,14 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            spaceWidth = getCharacterGlyph('.')?.Texture.DisplayWidth * 2 ?? 1;
+            spaceWidth = getCharacter('.')?.Texture.DisplayWidth * 2 ?? 1;
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
-                getCharacterGlyph(character);
+                getCharacter(character);
         }
 
         private LocalisedString text = string.Empty;
@@ -581,14 +581,14 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="character">The character to look up.</param>
         /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
-        /// <param name="glyph">The texture associated with the character. Can be null if no texture is available.</param>
+        /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available</param>
         /// <returns></returns>
         private Vector2 getCharacterSize(char character, bool applyFixedWidth, out CharacterGlyph? glyph)
         {
             float width;
             float height;
 
-            if (char.IsWhiteSpace(character) || (glyph = getCharacterGlyph(character)) == null)
+            if (char.IsWhiteSpace(character) || (glyph = getCharacter(character)) == null)
             {
                 float size = useFixedWidthForCharacter(character) ? constantWidth : spaceWidth;
 
@@ -655,7 +655,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The width to be used for characters with fixed-width spacing.
         /// </summary>
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacterGlyph('m')?.Texture.DisplayWidth ?? 0;
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacter('m')?.Texture.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
 
@@ -704,14 +704,14 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        private CharacterGlyph? getCharacterGlyph(char c) => GetCharacterGlyph(c) ?? GetFallbackCharacterGlyph(c);
+        private CharacterGlyph? getCharacter(char c) => GetCharacter(c) ?? GetFallbackCharacter(c);
 
         /// <summary>
-        /// Gets the texture for the given character.
+        /// Gets the texture and its associated spacing information for the specified character
         /// </summary>
-        /// <param name="c">The character to get the texture for.</param>
-        /// <returns>The texture for the given character.</returns>
-        protected virtual CharacterGlyph? GetCharacterGlyph(char c)
+        /// <param name="c">The character to lookup</param>
+        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available.</returns>
+        protected virtual CharacterGlyph? GetCharacter(char c)
         {
             if (store == null)
                 return null;
@@ -724,7 +724,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character.</returns>
-        protected virtual CharacterGlyph? GetFallbackCharacterGlyph(char c) => GetCharacterGlyph('?');
+        protected virtual CharacterGlyph? GetFallbackCharacter(char c) => GetCharacter('?');
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.

@@ -55,7 +55,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="charName">The character to look up</param>
         /// <param name="fontName">The font look for the character in</param>
-        /// <returns>The texture and the spacing information associated with the character and font. Returns null if no texture is found</returns>
+        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if no texture is found</returns>
         public CharacterGlyph? GetCharacter(string fontName, char charName)
         {
             var texture = namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
