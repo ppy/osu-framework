@@ -66,25 +66,11 @@ namespace osu.Framework.IO.Stores
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
 
         /// <summary>
-        /// Gets the spacing information for the specified character
+        /// Gets the Character information for the specified character
         /// </summary>
-        /// <param name="c">The character to retrieve spacing information for</param>
-        /// <returns>The spacing information for the specified character, or null if the character is not found</returns>
-        public CharacterGlyph? GetGlyphInfo(char c)
-        {
-            Character character = Font.GetCharacter(c);
-            if (character != null)
-            {
-                return new CharacterGlyph
-                {
-                    XOffset = character.XOffset,
-                    YOffset = character.YOffset,
-                    XAdvance = character.XAdvance
-                };
-            }
-
-            return null;
-        }
+        /// <param name="c">The character to retrieve information for</param>
+        /// <returns>The information for the specified character</returns>
+        public Character GetCharacterInfo(char c) => Font.GetCharacter(c);
 
         public int GetBaseHeight() => Font.Common.Base;
 

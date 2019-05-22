@@ -7,29 +7,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using osu.Framework.Graphics.Sprites;
+using SharpFNT;
 
 namespace osu.Framework.IO.Stores
 {
-    public struct CharacterGlyph
-    {
-        public Texture Texture;
-
-        /// <summary>
-        /// The amount of space that should be given to the left of the character texture
-        /// </summary>
-        public int XOffset;
-
-        /// <summary>
-        /// The amount of space that should be given to the top of the character texture
-        /// </summary>
-        public int YOffset;
-
-        /// <summary>
-        /// The amount of space to advance the cursor by after drawing the texture
-        /// </summary>
-        public int XAdvance;
-    }
-
     public class FontStore : TextureStore
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
@@ -63,30 +45,35 @@ namespace osu.Framework.IO.Stores
             if (texture == null)
                 return null;
 
-            var info = getGlyphInfo(fontName, charName) ?? new CharacterGlyph();
+            var info = getCharacterInfo(fontName, charName);
 
-            info.Texture = texture;
-            return info;
+            return new CharacterGlyph
+            {
+                Texture = texture,
+                XAdvance = info.XAdvance / ScaleAdjust,
+                XOffset = info.XOffset / ScaleAdjust,
+                YOffset = info.YOffset / ScaleAdjust,
+            };
         }
 
         /// <summary>
-        /// Gets the spacing information for a character in a specified font
+        /// Looks for and gets the Character information from this store's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s.
         /// </summary>
         /// <param name="charName">The character to look up</param>
-        /// <param name="fontName">The font look for the character in</param>
-        /// <returns>The associated spacing information for the character and font. Returns null if not found</returns>
-        private CharacterGlyph? getGlyphInfo(string fontName, char charName)
+        /// <param name="fontName">The font look in for the character</param>
+        /// <returns>The associated character information for the character and font. Returns null if not found</returns>
+        private Character getCharacterInfo(string fontName, char charName)
         {
             foreach (var store in glyphStores)
             {
-                // Return the default (first available) glyph if fontName is default
+                // Return the default (first available) character if fontName is default
                 if (store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""))
-                    return store.GetGlyphInfo(charName);
+                    return store.GetCharacterInfo(charName);
             }
 
             foreach (var store in nestedFontStores)
             {
-                var glyph = store.getGlyphInfo(fontName, charName);
+                var glyph = store.getCharacterInfo(fontName, charName);
                 if (glyph != null)
                     return glyph;
             }

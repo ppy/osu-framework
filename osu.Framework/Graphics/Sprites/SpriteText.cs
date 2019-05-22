@@ -492,7 +492,7 @@ namespace osu.Framework.Graphics.Sprites
                 float ellipsisLength = 0;
                 foreach (var c in EllipsisString)
                 {
-                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + applyFontScale(glyph?.XOffset ?? 0);
+                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + Font.Size * glyph?.XOffset ?? 0;
                 }
 
                 float availableWidth = maxWidth -= ellipsisLength;
@@ -502,7 +502,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    float glyphWidth = getCharacterSize(character, true, out var glyph).X + applyFontScale(glyph?.XOffset ?? 0);
+                    float glyphWidth = getCharacterSize(character, true, out var glyph).X + Font.Size * glyph?.XOffset ?? 0;
 
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
@@ -543,11 +543,8 @@ namespace osu.Framework.Graphics.Sprites
                     }
                 }
 
-                // Apply glyph-defined spacing offsets
                 if (!useFixedWidthForCharacter(character))
-                    currentPos.X += applyFontScale(glyph?.XOffset ?? 0);
-
-                currentPos.Y += applyFontScale(glyph?.YOffset ?? 0);
+                    currentPos.X += Font.Size * glyph?.XOffset ?? 0;
 
                 // The height of the row depends on whether we want to use the full glyph height or not
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
@@ -561,19 +558,14 @@ namespace osu.Framework.Graphics.Sprites
 
                     charactersBacking.Add(new CharacterPart
                     {
-                        Texture = ((CharacterGlyph)glyph).Texture,
-                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
+                        Texture = glyph.Value.Texture,
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y + Font.Size * glyph.Value.YOffset), scaledTextureSize),
                     });
                 }
 
                 currentPos.X += glyphSize.X + spacing.X;
-
-                // Once done with the current character, return the Y offset in preparation for next character
-                currentPos.Y -= applyFontScale(glyph?.YOffset ?? 0);
             }
         }
-
-        private float applyFontScale(float toScale) => toScale / store.ScaleAdjust * Font.Size;
 
         /// <summary>
         /// Get the size (and texture) for a specific character. Post-multiplied by <see cref="FontUsage.Size"/>, but not forced to fixed width.
