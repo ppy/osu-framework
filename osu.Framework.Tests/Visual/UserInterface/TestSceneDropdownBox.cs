@@ -121,6 +121,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
         }
 
+        [Test]
+        public void SelectNull()
+        {
+            AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(1));
+            AddStep("select item null", () => testDropdown.Current.Value = null);
+            AddAssert("null is selected", () => testDropdown.Current.Value == null);
+        }
+
         private void toggleDropdownViaClick(TestDropdown dropdown)
         {
             InputManager.MoveMouseTo(dropdown.Children.First());
