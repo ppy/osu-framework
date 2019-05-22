@@ -595,8 +595,8 @@ namespace osu.Framework.Graphics.Sprites
             }
             else
             {
-                width = ((CharacterGlyph)glyph).Texture.DisplayWidth;
-                height = ((CharacterGlyph)glyph).Texture.DisplayHeight;
+                width = glyph.Value.Texture.DisplayWidth;
+                height = glyph.Value.Texture.DisplayHeight;
             }
 
             if (applyFixedWidth && useFixedWidthForCharacter(character))
