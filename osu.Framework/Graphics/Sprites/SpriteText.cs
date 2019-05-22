@@ -720,10 +720,10 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         /// <summary>
-        /// Gets a <see cref="Texture"/> that represents a character which doesn't exist in the current font.
+        /// Gets a <see cref="CharacterGlyph"/> that represents a character which doesn't exist in the current font.
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
-        /// <returns>The texture for the given character.</returns>
+        /// <returns>The texture for the given character and its associated spacing information.</returns>
         protected virtual CharacterGlyph? GetFallbackCharacter(char c) => GetCharacter('?');
 
         /// <summary>
