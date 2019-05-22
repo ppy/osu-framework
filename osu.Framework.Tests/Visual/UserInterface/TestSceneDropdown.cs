@@ -14,7 +14,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdownBox : ManualInputManagerTestScene
+    public class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
         private const float explicit_height = 100;
@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(TestDropdown)
         };
 
-        public TestSceneDropdownBox()
+        public TestSceneDropdown()
         {
             var testItems = new string[10];
             int i = 0;
