@@ -10,7 +10,6 @@ using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
