@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -18,7 +17,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : TestScene
     {
-        private readonly List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
+        private readonly IEnumerable<TestEnum> items;
 
         private readonly StyledTabControl pinnedAndAutoSort;
         private readonly StyledTabControl switchingTabControl;
@@ -30,8 +29,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             StyledTabControl simpleTabcontrol;
 
-            foreach (var val in (TestEnum[])Enum.GetValues(typeof(TestEnum)))
-                items.Add(new KeyValuePair<string, TestEnum>(val.GetDescription(), val));
+            items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
 
             AddRange(new Drawable[]
             {
@@ -66,19 +64,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 },
             });
 
-            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
-            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
+            foreach (var item in items)
+            {
+                simpleTabcontrol.AddItem(item);
+                switchingTabControl.AddItem(item);
+                withoutDropdownTabControl.AddItem(item);
+            }
+
+            items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
             pinnedAndAutoSort.PinItem(TestEnum.Test5);
-            items.AsEnumerable().ForEach(item => switchingTabControl.AddItem(item.Value));
-            items.AsEnumerable().ForEach(item => withoutDropdownTabControl.AddItem(item.Value));
         }
 
         [Test]
         public void Basic()
         {
-            var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
-                                                         .Select(item => item.Value)
-                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
+            var nextTest = new Func<TestEnum>(() => items.FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
             Stack<TestEnum> pinned = new Stack<TestEnum>();
 
@@ -127,8 +127,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
-            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item.Value)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count);
+            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count());
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
