@@ -50,9 +50,9 @@ namespace osu.Framework.IO.Stores
             return new CharacterGlyph
             {
                 Texture = texture,
-                XAdvance = info.XAdvance / ScaleAdjust,
-                XOffset = info.XOffset / ScaleAdjust,
-                YOffset = info.YOffset / ScaleAdjust,
+                XAdvance = (info?.XAdvance ?? 0) / ScaleAdjust,
+                XOffset = (info?.XOffset ?? 0) / ScaleAdjust,
+                YOffset = (info?.YOffset ?? 0) / ScaleAdjust,
             };
         }
 
