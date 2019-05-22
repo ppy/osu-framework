@@ -523,7 +523,7 @@ namespace osu.Framework.Graphics.Sprites
             void addCharacter(char character)
             {
                 // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                Vector2 scaledTextureSize = getCharacterSize(character, false, out CharacterGlyph? glyph);
+                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph? glyph);
 
                 // Scaled glyph size to be used for positioning.
                 Vector2 glyphSize = new Vector2(
@@ -574,7 +574,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
         /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available</param>
         /// <returns></returns>
-        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out CharacterGlyph? glyph)
+        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out FontStore.CharacterGlyph? glyph)
         {
             float width;
             float height;
@@ -695,14 +695,14 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        private CharacterGlyph? getCharacter(char c) => GetCharacter(c) ?? GetFallbackCharacter(c);
+        private FontStore.CharacterGlyph? getCharacter(char c) => GetCharacter(c) ?? GetFallbackCharacter(c);
 
         /// <summary>
         /// Gets the texture and its associated spacing information for the specified character
         /// </summary>
         /// <param name="c">The character to lookup</param>
         /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available.</returns>
-        protected virtual CharacterGlyph? GetCharacter(char c)
+        protected virtual FontStore.CharacterGlyph? GetCharacter(char c)
         {
             if (store == null)
                 return null;
@@ -711,11 +711,11 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         /// <summary>
-        /// Gets a <see cref="CharacterGlyph"/> that represents a character which doesn't exist in the current font.
+        /// Gets a <see cref="FontStore.CharacterGlyph"/> that represents a character which doesn't exist in the current font.
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character and its associated spacing information.</returns>
-        protected virtual CharacterGlyph? GetFallbackCharacter(char c) => GetCharacter('?');
+        protected virtual FontStore.CharacterGlyph? GetFallbackCharacter(char c) => GetCharacter('?');
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.

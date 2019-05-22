@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
-using osu.Framework.Graphics.Sprites;
 using SharpFNT;
 
 namespace osu.Framework.IO.Stores
@@ -56,6 +55,20 @@ namespace osu.Framework.IO.Stores
             };
         }
 
+        public float? GetBaseHeight(char c)
+        {
+            var glyphStore = getGlyphStore(store => store.HasGlyph(c));
+
+            return glyphStore?.GetBaseHeight() / ScaleAdjust;
+        }
+
+        public float? GetBaseHeight(string fontName)
+        {
+            var glyphStore = getGlyphStore(store => store.FontName == fontName);
+
+            return glyphStore?.GetBaseHeight() / ScaleAdjust;
+        }
+
         /// <summary>
         /// Looks for and gets the Character information from this store's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s.
         /// </summary>
@@ -64,18 +77,29 @@ namespace osu.Framework.IO.Stores
         /// <returns>The associated character information for the character and font. Returns null if not found</returns>
         private Character getCharacterInfo(string fontName, char charName)
         {
+            var glyphStore = getGlyphStore(store => store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""));
+
+            return glyphStore?.GetCharacterInfo(charName);
+        }
+
+        /// <summary>
+        /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
+        /// </summary>
+        /// <param name="searchCondition">The condition to evaluate the <see cref="GlyphStore"/> for</param>
+        /// <returns>The first available <see cref="GlyphStore"/> that matches the provided condition</returns>
+        private GlyphStore getGlyphStore(Func<GlyphStore, bool> searchCondition)
+        {
             foreach (var store in glyphStores)
             {
-                // Return the default (first available) character if fontName is default
-                if (store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""))
-                    return store.GetCharacterInfo(charName);
+                if (searchCondition(store))
+                    return store;
             }
 
             foreach (var store in nestedFontStores)
             {
-                var glyph = store.getCharacterInfo(fontName, charName);
-                if (glyph != null)
-                    return glyph;
+                var nestedStore = store.getGlyphStore(searchCondition);
+                if (nestedStore != null)
+                    return nestedStore;
             }
 
             return null;
@@ -158,47 +182,36 @@ namespace osu.Framework.IO.Stores
             return found;
         }
 
-        public float? GetBaseHeight(char c)
-        {
-            foreach (var store in glyphStores)
-            {
-                if (store.HasGlyph(c))
-                    return store.GetBaseHeight() / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(c);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
-
-        public float? GetBaseHeight(string fontName)
-        {
-            foreach (var store in glyphStores)
-            {
-                var bh = store.GetBaseHeight(fontName);
-                if (bh.HasValue)
-                    return bh.Value / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(fontName);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             glyphStores.ForEach(g => g.Dispose());
+        }
+
+        /// <summary>
+        /// Contains the texture and associated spacing information for a Character
+        /// </summary>
+        public struct CharacterGlyph
+        {
+            /// <summary>
+            /// The texture for this character
+            /// </summary>
+            public Texture Texture;
+
+            /// <summary>
+            /// The amount of space that should be given to the left of the character texture
+            /// </summary>
+            public float XOffset;
+
+            /// <summary>
+            /// The amount of space that should be given to the top of the character texture
+            /// </summary>
+            public float YOffset;
+
+            /// <summary>
+            /// The amount of space to advance the cursor by after drawing the texture
+            /// </summary>
+            public float XAdvance;
         }
     }
 }

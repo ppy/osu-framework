@@ -74,14 +74,6 @@ namespace osu.Framework.IO.Stores
 
         public int GetBaseHeight() => Font.Common.Base;
 
-        public int? GetBaseHeight(string name)
-        {
-            if (name != FontName)
-                return null;
-
-            return Font.Common.Base;
-        }
-
         public TextureUpload Get(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
