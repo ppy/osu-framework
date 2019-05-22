@@ -77,6 +77,7 @@ namespace osu.Framework.IO.Stores
         /// <returns>The associated character information for the character and font. Returns null if not found</returns>
         private Character getCharacterInfo(string fontName, char charName)
         {
+            // Return the default (first available) character if fontName is default
             var glyphStore = getGlyphStore(store => store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""));
 
             return glyphStore?.GetCharacterInfo(charName);

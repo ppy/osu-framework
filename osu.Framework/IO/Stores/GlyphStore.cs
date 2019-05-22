@@ -113,7 +113,6 @@ namespace osu.Framework.IO.Stores
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int dest = y * width + x;
                     pixels[y * width + x] =
                         span[(c.Y + y) * page.Width + c.X + x];
                 }
