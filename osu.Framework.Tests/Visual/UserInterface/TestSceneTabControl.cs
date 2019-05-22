@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -17,58 +18,64 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : TestScene
     {
+        private readonly List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
+
+        private readonly StyledTabControl pinnedAndAutoSort;
+        private readonly StyledTabControl switchingTabControl;
+        private readonly PlatformActionContainer platformActionContainer;
+        private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
+        private readonly StyledTabControl removeAllTabControl;
+
         public TestSceneTabControl()
         {
-            List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
+            StyledTabControl simpleTabcontrol;
+
             foreach (var val in (TestEnum[])Enum.GetValues(typeof(TestEnum)))
                 items.Add(new KeyValuePair<string, TestEnum>(val.GetDescription(), val));
 
-            StyledTabControl simpleTabcontrol = new StyledTabControl
+            AddRange(new Drawable[]
             {
-                Position = new Vector2(200, 50),
-                Size = new Vector2(200, 30),
-            };
-            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
+                simpleTabcontrol = new StyledTabControl
+                {
+                    Position = new Vector2(200, 50),
+                    Size = new Vector2(200, 30),
+                },
+                pinnedAndAutoSort = new StyledTabControl
+                {
+                    Position = new Vector2(200, 150),
+                    Size = new Vector2(200, 30),
+                    AutoSort = true
+                },
+                platformActionContainer = new PlatformActionContainer
+                {
+                    Child = switchingTabControl = new StyledTabControl
+                    {
+                        Position = new Vector2(200, 250),
+                        Size = new Vector2(200, 30),
+                    }
+                },
+                removeAllTabControl = new StyledTabControl
+                {
+                    Position = new Vector2(200, 350),
+                    Size = new Vector2(200, 30)
+                },
+                withoutDropdownTabControl = new StyledTabControlWithoutDropdown
+                {
+                    Position = new Vector2(200, 450),
+                    Size = new Vector2(200, 30)
+                },
+            });
 
-            StyledTabControl pinnedAndAutoSort = new StyledTabControl
-            {
-                Position = new Vector2(200, 150),
-                Size = new Vector2(200, 30),
-                AutoSort = true
-            };
+            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
             items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
             pinnedAndAutoSort.PinItem(TestEnum.Test5);
-
-            StyledTabControl switchingTabControl;
-            PlatformActionContainer platformActionContainer = new PlatformActionContainer
-            {
-                Child = switchingTabControl = new StyledTabControl
-                {
-                    Position = new Vector2(200, 250),
-                    Size = new Vector2(200, 30),
-                }
-            };
             items.AsEnumerable().ForEach(item => switchingTabControl.AddItem(item.Value));
-
-            StyledTabControl removeAllTabControl = new StyledTabControl
-            {
-                Position = new Vector2(200, 350),
-                Size = new Vector2(200, 30)
-            };
-
-            var withoutDropdownTabControl = new StyledTabControlWithoutDropdown
-            {
-                Position = new Vector2(200, 450),
-                Size = new Vector2(200, 30)
-            };
             items.AsEnumerable().ForEach(item => withoutDropdownTabControl.AddItem(item.Value));
+        }
 
-            Add(simpleTabcontrol);
-            Add(pinnedAndAutoSort);
-            Add(platformActionContainer);
-            Add(removeAllTabControl);
-            Add(withoutDropdownTabControl);
-
+        [Test]
+        public void Basic()
+        {
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
                                                          .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
