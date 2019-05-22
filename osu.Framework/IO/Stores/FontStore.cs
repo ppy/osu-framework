@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Stores
         public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
             : base(store, scaleAdjust: scaleAdjust)
         {
-            cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
+            cachedTextureLookup = t => Get(getTextureName(t.Item1, t.Item2));
         }
 
         /// <summary>
@@ -78,10 +78,12 @@ namespace osu.Framework.IO.Stores
         private Character getCharacterInfo(string fontName, char charName)
         {
             // Return the default (first available) character if fontName is default
-            var glyphStore = getGlyphStore(store => store.HasGlyph(charName) && (fontName == store.FontName || fontName == ""));
+            var glyphStore = getGlyphStore(store => store.Get(getTextureName(fontName, charName)) != null);
 
             return glyphStore?.GetCharacterInfo(charName);
         }
+
+        private string getTextureName(string fontName, char charName) => string.IsNullOrEmpty(fontName) ? charName.ToString() : fontName + "/" + charName;
 
         /// <summary>
         /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
