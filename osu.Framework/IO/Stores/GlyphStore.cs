@@ -72,9 +72,12 @@ namespace osu.Framework.IO.Stores
 
         public int GetBaseHeight() => Font.Common.Base;
 
+        public bool ContainsTexture(string name) => (name.Length <= 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+                                                    && Font.Characters.ContainsKey(name.Last());
+
         public TextureUpload Get(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            if (!ContainsTexture(name))
                 return null;
 
             if (!Font.Characters.TryGetValue(name.Last(), out Character c))
@@ -82,9 +85,6 @@ namespace osu.Framework.IO.Stores
 
             return loadCharacter(c);
         }
-
-        public bool ContainsTexture(string name) => (name.Length <= 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
-                                                    && Font.Characters.ContainsKey(name.Last());
 
         public virtual async Task<TextureUpload> GetAsync(string name)
         {
