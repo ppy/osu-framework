@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Sprites
             spriteShadow.Texture = glyph?.Texture;
 
             if (Size == Vector2.Zero)
-                Size = new Vector2(glyph?.Texture.DisplayWidth ?? 0, glyph?.Texture.DisplayHeight ?? 0);
+                Size = new Vector2(glyph?.Width ?? 0, glyph?.Height ?? 0);
 
             loadedIcon = loadableIcon;
         }
