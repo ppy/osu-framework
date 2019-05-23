@@ -73,28 +73,16 @@ namespace osu.Framework.Testing.Drawables
                 if (value)
                 {
                     leftBoxContainer.ResizeWidthTo(1, TRANSITION_DURATION);
-                    this.TransformTo(nameof(leftBoxContainerPadding), left_box_width, TRANSITION_DURATION);
-                    this.TransformTo(nameof(contentPadding), 0f, TRANSITION_DURATION);
+                    leftBoxContainer.TransformTo(nameof(Padding), new MarginPadding { Right = left_box_width }, TRANSITION_DURATION);
+                    Content.TransformTo(nameof(Padding), new MarginPadding { Right = 0f }, TRANSITION_DURATION);
                 }
                 else
                 {
                     leftBoxContainer.ResizeWidthTo(0, TRANSITION_DURATION);
-                    this.TransformTo(nameof(leftBoxContainerPadding), -left_box_width, TRANSITION_DURATION);
-                    this.TransformTo(nameof(contentPadding), LEFT_TEXT_PADDING, TRANSITION_DURATION);
+                    leftBoxContainer.TransformTo(nameof(Padding), new MarginPadding { Right = -left_box_width }, TRANSITION_DURATION);
+                    Content.TransformTo(nameof(Padding), new MarginPadding { Right = LEFT_TEXT_PADDING }, TRANSITION_DURATION);
                 }
             }
-        }
-
-        private float leftBoxContainerPadding
-        {
-            get => leftBoxContainer.Padding.Right;
-            set => leftBoxContainer.Padding = new MarginPadding { Right = value };
-        }
-
-        private float contentPadding
-        {
-            get => Content.Padding.Right;
-            set => Content.Padding = new MarginPadding { Right = value };
         }
 
         public override bool Collapsed

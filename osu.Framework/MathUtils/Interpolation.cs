@@ -376,20 +376,24 @@ namespace osu.Framework.MathUtils
 
         static Interpolation()
         {
+            const string interpolation_method = nameof(Interpolation.ValueAt);
+
+            var parameters = typeof(InterpolationFunc<TValue>)
+                             .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
+                             ?.GetParameters().Select(p => p.ParameterType).ToArray();
+
             interpolation_func =
-                (InterpolationFunc<TValue>)typeof(Interpolation).GetMethod(
-                    nameof(Interpolation.ValueAt),
-                    typeof(InterpolationFunc<TValue>)
-                        .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                        ?.GetParameters().Select(p => p.ParameterType).ToArray()
+                (InterpolationFunc<TValue>)(
+                    typeof(Interpolation).GetMethod(interpolation_method, parameters)
+                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
 
             if (interpolation_func == null)
-                throw new InvalidOperationException($"Type {typeof(TValue)} has no automatic interpolation function. The value must be interpolated manually.");
+                throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
         }
 
-        public static TValue ValueAt(double time, TValue val1, TValue val2, double startTime, double endTime, Easing easing = Easing.None)
-            => interpolation_func(time, val1, val2, startTime, endTime, easing);
+        public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
+            => interpolation_func(time, startValue, endValue, startTime, endTime, easing);
     }
 
     public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
