@@ -23,6 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BasicDropdownHeader()
             {
+                var font = new FontUsage("RobotoCondensed", weight: "Regular");
+
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
                 BackgroundColourHover = FrameworkColour.YellowGreen;
@@ -30,7 +32,9 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     label = new SpriteText
                     {
-                        Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                        AlwaysPresent = true,
+                        Font = font,
+                        Height = font.Size,
                     },
                 };
             }
