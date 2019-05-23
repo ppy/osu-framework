@@ -125,11 +125,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             Current.ValueChanged += newSelection =>
             {
+                var newTab = Current.Value != null ? tabMap[Current.Value] : null;
+
                 if (IsLoaded)
-                    SelectTab(tabMap[Current.Value]);
+                    SelectTab(newTab);
                 else
                     //will be handled in LoadComplete
-                    SelectedTab = tabMap[Current.Value];
+                    SelectedTab = newTab;
             };
         }
 
@@ -274,9 +276,16 @@ namespace osu.Framework.Graphics.UserInterface
             if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
 
             SelectedTab = tab;
-            SelectedTab.Active.Value = true;
 
-            Current.Value = SelectedTab.Value;
+            if (SelectedTab != null)
+            {
+                SelectedTab.Active.Value = true;
+                Current.Value = SelectedTab.Value;
+            }
+            else
+            {
+                Current.Value = default;
+            }
         }
 
         /// <summary>

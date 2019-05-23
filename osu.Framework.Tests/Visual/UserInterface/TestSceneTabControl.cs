@@ -150,6 +150,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Count());
         }
 
+        [Test]
+        public void SelectNull()
+        {
+            AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
+            AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
+            AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
@@ -168,15 +177,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
-        private class StyledTabControl : TabControl<TestEnum>
+        private class StyledTabControl : TabControl<TestEnum?>
         {
-            protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
+            protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
-                => new BasicTabControl<TestEnum>.BasicTabItem(value);
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
+                => new BasicTabControl<TestEnum?>.BasicTabItem(value);
         }
 
-        private class StyledDropdown : Dropdown<TestEnum>
+        private class StyledDropdown : Dropdown<TestEnum?>
         {
             protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
