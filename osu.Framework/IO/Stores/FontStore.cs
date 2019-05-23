@@ -217,16 +217,22 @@ namespace osu.Framework.IO.Stores
             /// </summary>
             public float XAdvance { get; }
 
+            /// <summary>
+            /// The scale-adjusted width of the texture associated with this character.
+            /// </summary>
             public float Width => Texture.DisplayWidth;
 
+            /// <summary>
+            /// The scale-adjusted height of the texture associated with this character.
+            /// </summary>
             public float Height => Texture.DisplayHeight;
 
-            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float fontScale = 1)
+            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float scaleAdjust = 1)
             {
                 Texture = texture;
-                XOffset = xOffset / fontScale;
-                YOffset = yOffset / fontScale;
-                XAdvance = xAdvance / fontScale;
+                XOffset = xOffset / scaleAdjust;
+                YOffset = yOffset / scaleAdjust;
+                XAdvance = xAdvance / scaleAdjust;
             }
 
             public CharacterGlyph With([CanBeNull] Texture texture = null, [CanBeNull] float? xOffset = null, [CanBeNull] float? yOffset = null, [CanBeNull] float? xAdvance = null,
