@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     },
                     multilineTabControl = new StyledMultilineTabControl
                     {
-                        Size = new Vector2(200, 30),
+                        Size = new Vector2(200, 60),
                     },
                     pinnedAndAutoSort = new StyledTabControl
                     {
