@@ -213,11 +213,11 @@ namespace osu.Framework.Graphics
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
             lock (loadLock)
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
                 if (loadState == LoadState.NotLoaded)
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
