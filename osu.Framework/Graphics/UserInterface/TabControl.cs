@@ -100,6 +100,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected TabControl()
         {
             Dropdown = CreateDropdown();
+
             if (Dropdown != null)
             {
                 Dropdown.RelativeSizeAxes = Axes.X;
@@ -366,6 +367,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
+            private bool allowMultiline;
+
+            public bool AllowMultiline
+            {
+                get => allowMultiline;
+                set
+                {
+                    if (value == allowMultiline)
+                        return;
+
+                    allowMultiline = value;
+                    InvalidateLayout();
+                }
+            }
+
             /// <summary>
             /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
             /// </summary>
@@ -383,13 +399,17 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
+
                 foreach (var child in FlowingChildren.OfType<TabItem<T>>())
                 {
-                    updateChildIfNeeded(child, result[i].Y == 0);
-                    ++i;
-                }
+                    bool isVisible = allowMultiline || result[i].Y == 0;
+                    updateChildIfNeeded(child, isVisible);
 
-                return result;
+                    if (isVisible)
+                        yield return result[i];
+
+                    i++;
+                }
             }
 
             private readonly Dictionary<TabItem<T>, bool> tabVisibility = new Dictionary<TabItem<T>, bool>();
@@ -400,6 +420,11 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     TabVisibilityChanged?.Invoke(child, isVisible);
                     tabVisibility[child] = isVisible;
+
+                    if (isVisible)
+                        child.Show();
+                    else
+                        child.Hide();
                 }
             }
         }

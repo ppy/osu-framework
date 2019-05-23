@@ -7,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -24,48 +25,57 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private readonly PlatformActionContainer platformActionContainer;
         private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
         private readonly StyledTabControl removeAllTabControl;
+        private readonly StyledMultilineTabControl multilineTabControl;
         private readonly StyledTabControl simpleTabcontrol;
 
         public TestSceneTabControl()
         {
             items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
 
-            AddRange(new Drawable[]
+            Add(new FillFlowContainer
             {
-                simpleTabcontrol = new StyledTabControl
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Full,
+                Spacing = new Vector2(50),
+                Children = new Drawable[]
                 {
-                    Position = new Vector2(200, 50),
-                    Size = new Vector2(200, 30),
-                },
-                pinnedAndAutoSort = new StyledTabControl
-                {
-                    Position = new Vector2(200, 150),
-                    Size = new Vector2(200, 30),
-                    AutoSort = true
-                },
-                platformActionContainer = new PlatformActionContainer
-                {
-                    Child = switchingTabControl = new StyledTabControl
+                    simpleTabcontrol = new StyledTabControl
                     {
-                        Position = new Vector2(200, 250),
                         Size = new Vector2(200, 30),
-                    }
-                },
-                removeAllTabControl = new StyledTabControl
-                {
-                    Position = new Vector2(200, 350),
-                    Size = new Vector2(200, 30)
-                },
-                withoutDropdownTabControl = new StyledTabControlWithoutDropdown
-                {
-                    Position = new Vector2(200, 450),
-                    Size = new Vector2(200, 30)
-                },
+                    },
+                    multilineTabControl = new StyledMultilineTabControl
+                    {
+                        Size = new Vector2(200, 60),
+                    },
+                    pinnedAndAutoSort = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30),
+                        AutoSort = true
+                    },
+                    platformActionContainer = new PlatformActionContainer
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Size = new Vector2(200, 30),
+                        Child = switchingTabControl = new StyledTabControl
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    },
+                    removeAllTabControl = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30)
+                    },
+                    withoutDropdownTabControl = new StyledTabControlWithoutDropdown
+                    {
+                        Size = new Vector2(200, 30)
+                    },
+                }
             });
 
             foreach (var item in items)
             {
                 simpleTabcontrol.AddItem(item);
+                multilineTabControl.AddItem(item);
                 switchingTabControl.AddItem(item);
                 withoutDropdownTabControl.AddItem(item);
             }
@@ -135,6 +145,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Any());
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
+
+            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Count());
+            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Count());
         }
 
         [Test]
@@ -152,6 +165,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
+        }
+
+        private class StyledMultilineTabControl : TabControl<TestEnum>
+        {
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
+
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
+                => new BasicTabControl<TestEnum>.BasicTabItem(value);
+
+            protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
         private class StyledTabControl : TabControl<TestEnum?>
