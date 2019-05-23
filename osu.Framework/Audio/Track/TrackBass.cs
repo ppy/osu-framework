@@ -55,12 +55,13 @@ namespace osu.Framework.Audio.Track
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass(Stream data, bool quick = false)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
             EnqueueAction(() =>
             {
                 Preview = quick;
 
-                if (data == null)
-                    throw new ArgumentNullException(nameof(data));
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
