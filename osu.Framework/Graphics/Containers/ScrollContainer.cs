@@ -508,12 +508,12 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal)
             {
                 Scrollbar.X = Current * Scrollbar.Size.X;
-                content.X = -Current;
+                content.X = -Current + scrollableExtent * Content.RelativeAnchorPosition.X;
             }
             else
             {
                 Scrollbar.Y = Current * Scrollbar.Size.Y;
-                content.Y = -Current;
+                content.Y = -Current + scrollableExtent * Content.RelativeAnchorPosition.Y;
             }
         }
 
