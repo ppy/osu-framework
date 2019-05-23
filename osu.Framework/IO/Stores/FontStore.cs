@@ -34,9 +34,9 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Get the texture of a character from a specified font and its associated spacing information.
         /// </summary>
-        /// <param name="charName">The character to look up</param>
-        /// <param name="fontName">The font look for the character in</param>
-        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if no texture is found</returns>
+        /// <param name="charName">The character to look up.</param>
+        /// <param name="fontName">The font look for the character in.</param>
+        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if no texture is found.</returns>
         public CharacterGlyph? GetCharacter(string fontName, char charName)
         {
             var texture = namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
@@ -64,9 +64,9 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Looks for and gets the Character information from this store's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s.
         /// </summary>
-        /// <param name="charName">The character to look up</param>
-        /// <param name="fontName">The font look in for the character</param>
-        /// <returns>The associated character information for the character and font. Returns null if not found</returns>
+        /// <param name="charName">The character to look up.</param>
+        /// <param name="fontName">The font look in for the character.</param>
+        /// <returns>The associated character information for the character and font. Returns null if not found.</returns>
         private CharacterGlyph? getCharacterInfo(string fontName, char charName)
         {
             // Return the default (first available) character if fontName is default
@@ -80,7 +80,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
         /// </summary>
-        /// <param name="fontName">The font to look up the <see cref="GlyphStore"/> for</param>
+        /// <param name="fontName">The font to look up the <see cref="GlyphStore"/> for.</param>
         /// <param name="charName">A character to look up in the <see cref="GlyphStore"/>.</param>
         /// <returns>The first available <see cref="GlyphStore"/> matches the name and contains the specified character. Null if not available.</returns>
         private GlyphStore getGlyphStore(string fontName, char? charName = null)
@@ -193,33 +193,33 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Contains the texture and associated spacing information for a Character
+        /// Contains the texture and associated spacing information for a Character.
         /// </summary>
         public readonly struct CharacterGlyph
         {
             /// <summary>
-            /// The texture for this character
+            /// The texture for this character.
             /// </summary>
             public Texture Texture { get; }
 
             /// <summary>
-            /// The amount of space that should be given to the left of the character texture
+            /// The amount of space that should be given to the left of the character texture.
             /// </summary>
             public float XOffset { get; }
 
             /// <summary>
-            /// The amount of space that should be given to the top of the character texture
+            /// The amount of space that should be given to the top of the character texture.
             /// </summary>
             public float YOffset { get; }
 
             /// <summary>
-            /// The amount of space to advance the cursor by after drawing the texture
+            /// The amount of space to advance the cursor by after drawing the texture.
             /// </summary>
             public float XAdvance { get; }
 
-            public float DisplayWidth => Texture.DisplayWidth;
+            public float Width => Texture.DisplayWidth;
 
-            public float DisplayHeight => Texture.DisplayHeight;
+            public float Height => Texture.DisplayHeight;
 
             public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float fontScale = 1)
             {

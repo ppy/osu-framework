@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            spaceWidth = getCharacter('.')?.DisplayWidth * 2 ?? 1;
+            spaceWidth = getCharacter('.')?.Width * 2 ?? 1;
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -595,8 +595,8 @@ namespace osu.Framework.Graphics.Sprites
             }
             else
             {
-                width = glyph.Value.DisplayWidth;
-                height = glyph.Value.DisplayHeight;
+                width = glyph.Value.Width;
+                height = glyph.Value.Height;
             }
 
             if (applyFixedWidth && useFixedWidthForCharacter(character))
@@ -646,7 +646,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The width to be used for characters with fixed-width spacing.
         /// </summary>
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacter('m')?.DisplayWidth ?? 0;
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacter('m')?.Width ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
 

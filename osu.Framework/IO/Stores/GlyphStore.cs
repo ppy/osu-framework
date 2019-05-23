@@ -64,10 +64,10 @@ namespace osu.Framework.IO.Stores
         }, TaskCreationOptions.PreferFairness));
 
         /// <summary>
-        /// Gets the Character information for the specified character
+        /// Gets the Character information for the specified character.
         /// </summary>
-        /// <param name="c">The character to retrieve information for</param>
-        /// <returns>The information for the specified character</returns>
+        /// <param name="c">The character to retrieve information for.</param>
+        /// <returns>The information for the specified character, without the texture.</returns>
         public FontStore.CharacterGlyph GetCharacterInfo(char c)
         {
             var character = Font.GetCharacter(c);
@@ -77,10 +77,10 @@ namespace osu.Framework.IO.Stores
         public int GetBaseHeight() => Font.Common.Base;
 
         /// <summary>
-        /// Gets whether or not the specified texture is contained inside this GlyphStore
+        /// Gets whether or not the specified texture is contained inside this GlyphStore.
         /// </summary>
-        /// <param name="name">The name of the texture to look up</param>
-        /// <returns>Whether or not the specified texture is contained inside this GlyphStore</returns>
+        /// <param name="name">The name of the texture to look up.</param>
+        /// <returns>Whether or not the specified texture is contained inside this GlyphStore.</returns>
         public bool ContainsTexture(string name) => (name.Length == 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                                                     && Font.Characters.ContainsKey(name.Last());
 
