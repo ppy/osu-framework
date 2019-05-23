@@ -1,7 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,106 +18,226 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneModelBackedDrawable : TestScene
     {
-        public TestSceneModelBackedDrawable()
-        {
-            TestModelBackedDrawable modelBackedDrawable;
-            DelayedTestModelBackedDrawable delayedModelBackedDrawable;
-            FadeImmediateTestModelBackedDrawable fadeImmediateModelBackedDrawable;
+        private TestModelBackedDrawable2 backedDrawable;
 
-            AddRange(new Drawable[]
+        [SetUp]
+        public void Setup() => Schedule(() =>
+        {
+            Child = backedDrawable = new TestModelBackedDrawable2
             {
-                modelBackedDrawable = new TestModelBackedDrawable
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(200)
+            };
+        });
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDefaultState(bool withPlaceholder)
+        {
+            // Need a local MDB, otherwise the fade out immediately flag is not set prior to load
+            AddStep("setup", () =>
+            {
+                Child = backedDrawable = new TestModelBackedDrawable2
                 {
-                    Position = new Vector2(50, 50),
-                    Size = new Vector2(100, 100)
-                },
-                delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 200),
-                    Size = new Vector2(100, 100)
-                },
-                fadeImmediateModelBackedDrawable = new FadeImmediateTestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 350),
-                    Size = new Vector2(100, 100)
-                }
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    InternalFadeOutImmediately = withPlaceholder
+                };
             });
 
-            // make sure the items are null before we begin the tests
-            AddStep("Set all null", () =>
-            {
-                modelBackedDrawable.Item = null;
-                delayedModelBackedDrawable.Item = null;
-                fadeImmediateModelBackedDrawable.Item = null;
-            });
-
-            AddUntilStep("Wait until all null", () => modelBackedDrawable.VisibleItemId == -1 &&
-                                                      delayedModelBackedDrawable.VisibleItemId == -1 &&
-                                                      fadeImmediateModelBackedDrawable.VisibleItemId == -1);
-
-            // try setting items and null for a regular model backed drawable
-            addItemTest("Simple", modelBackedDrawable, 0);
-            addItemTest("Simple", modelBackedDrawable, 1);
-            addItemTest("Simple", modelBackedDrawable, -1);
-
-            // try setting items and null for a model backed drawable with a loading delay
-            addItemTest("Delay", delayedModelBackedDrawable, 0);
-            addItemTest("Delay", delayedModelBackedDrawable, 1);
-            addItemTest("Delay", delayedModelBackedDrawable, -1);
-
-            // try setting an item and checking that the placeholder is visible during the transition
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 0, false);
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 1, false);
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, -1, false);
-        }
-
-        private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber, bool testNotChanged = true)
-        {
-            if (itemNumber < 0)
-                AddStep($"{prefix}: Set null", () => drawable.Item = null);
+            if (withPlaceholder)
+                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
             else
-                AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
-
-            if (testNotChanged)
-                AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
-
-            AddUntilStep($"{prefix}: Wait until changed", () => drawable.VisibleItemId == itemNumber);
+                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
         }
 
-        private class TestItem
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSingleDelayedLoad(bool withPlaceholder)
         {
-            public readonly int ItemId;
+            TestDrawableModel2 drawableModel = null;
 
-            public TestItem(int itemId)
+            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
+            AddStep("set model", () => backedDrawable.Model = new TestModel2(drawableModel = new TestDrawableModel2(1)));
+
+            if (withPlaceholder)
+                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+            else
+                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+
+            AddStep("allow load", () => drawableModel.AllowLoad.Set());
+            AddUntilStep("wait for model to be loaded", () => drawableModel.IsLoaded);
+
+            AddAssert("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
+        }
+
+        [Test]
+        public void TestMultipleLoadDisplaysSinglePlaceholder()
+        {
+            TestDrawableModel2 firstModel = null;
+            TestDrawableModel2 secondModel = null;
+            Drawable placeholder = null;
+
+            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = true);
+            AddStep("set first model", () =>
             {
-                ItemId = itemId;
+                backedDrawable.Model = new TestModel2(firstModel = new TestDrawableModel2(1));
+                placeholder = backedDrawable.DisplayedDrawable;
+            });
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel2(secondModel = new TestDrawableModel2(2)));
+            AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
+
+            AddStep("allow models to load", () =>
+            {
+                firstModel.AllowLoad.Set();
+                secondModel.AllowLoad.Set();
+            });
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSequentialDelayedLoad(bool withPlaceholder)
+        {
+            const int model_count = 3;
+
+            var drawableModels = new List<TestDrawableModel2>(model_count);
+
+            AddStep("setup", () =>
+            {
+                drawableModels.Clear();
+                backedDrawable.InternalFadeOutImmediately = withPlaceholder;
+            });
+
+            for (int i = 0; i < model_count; i++)
+            {
+                int localI = i;
+                AddStep($"set model {i}", () =>
+                {
+                    var model = new TestDrawableModel2(localI + 1);
+                    drawableModels.Add(model);
+
+                    backedDrawable.Model = new TestModel2(model);
+                });
+            }
+
+            // Due to potential left-over threading from elsewhere, we may have to wait for all models to get into a loading state
+            AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
+
+            for (int i = 0; i < model_count - 1; i++)
+            {
+                int localI = i;
+                AddStep($"allow model {i} to load", () => drawableModels[localI].AllowLoad.Set());
+                AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null || backedDrawable.DisplayedDrawable is TestPlaceholder);
+                AddWaitStep("wait for potential load", 5);
+                AddAssert($"model {i} not loaded", () => !drawableModels[localI].IsLoaded);
+            }
+
+            AddStep($"allow model {model_count - 1} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
+            AddUntilStep($"model {model_count - 1} not loaded", () => drawableModels[model_count - 1].IsLoaded);
+            AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestOutOfOrderDelayedLoad(bool withPlaceholder)
+        {
+            const int model_count = 3;
+
+            var drawableModels = new List<TestDrawableModel2>(model_count);
+
+            AddStep("setup", () =>
+            {
+                drawableModels.Clear();
+                backedDrawable.InternalFadeOutImmediately = withPlaceholder;
+            });
+
+            for (int i = 0; i < model_count; i++)
+            {
+                int localI = i;
+                AddStep($"set model {i}", () =>
+                {
+                    var model = new TestDrawableModel2(localI + 1);
+                    drawableModels.Add(model);
+
+                    backedDrawable.Model = new TestModel2(model);
+                });
+            }
+
+            // Due to potential left-over threading from elsewhere, we may have to wait for all models to get into a loading state
+            AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
+
+            AddStep($"allow model {model_count - 1} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
+            AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+
+            for (int i = model_count - 2; i >= 0; i--)
+            {
+                int localI = i;
+                AddStep($"allow model {i} to load", () => drawableModels[localI].AllowLoad.Set());
+                AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
             }
         }
 
-        private class TestItemDrawable : CompositeDrawable
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSetNullModel(bool withPlaceholder)
         {
-            public readonly int ItemId;
-            private readonly bool delay;
+            TestDrawableModel2 drawableModel = null;
 
-            public TestItemDrawable(TestItem item, bool delay = true)
+            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
+            AddStep("set model", () =>
             {
-                this.delay = delay && item != null;
-                ItemId = item?.ItemId ?? -1;
+                backedDrawable.Model = new TestModel2(drawableModel = new TestDrawableModel2(1));
+                drawableModel.AllowLoad.Set();
+            });
 
+            AddUntilStep("model is displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
+
+            AddStep("set null model", () => backedDrawable.Model = null);
+
+            if (withPlaceholder)
+                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+            else
+                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+        }
+
+        private class TestModel2
+        {
+            public readonly TestDrawableModel2 DrawableModel;
+
+            public TestModel2(TestDrawableModel2 drawableModel)
+            {
+                DrawableModel = drawableModel;
+            }
+        }
+
+        private class TestDrawableModel2 : CompositeDrawable
+        {
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
+
+            public TestDrawableModel2(int id)
+                : this($"Model {id}")
+            {
+            }
+
+            protected TestDrawableModel2(string text)
+            {
                 RelativeSizeAxes = Axes.Both;
 
                 InternalChildren = new Drawable[]
                 {
                     new Box
                     {
-                        Colour = Color4.DarkGoldenrod,
-                        RelativeSizeAxes = Axes.Both
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.SkyBlue
                     },
                     new SpriteText
                     {
-                        Text = item == null ? "No Item" : $"Item {item.ItemId}",
                         Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre
+                        Origin = Anchor.Centre,
+                        Text = text
                     }
                 };
             }
@@ -122,53 +245,41 @@ namespace osu.Framework.Tests.Visual.Drawables
             [BackgroundDependencyLoader]
             private void load()
             {
-                if (delay)
-                    Thread.Sleep((int)(500 / Clock.Rate));
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException();
             }
         }
 
-        private class TestModelBackedDrawable : ModelBackedDrawable<TestItem>
+        private class TestPlaceholder : TestDrawableModel2
         {
-            public TestItem Item
+            public TestPlaceholder()
+                : base("Placeholder")
             {
-                get => Model;
-                set => Model = value;
+                AllowLoad.Set();
             }
+        }
 
-            public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
+        private class TestModelBackedDrawable2 : ModelBackedDrawable<TestModel2>
+        {
+            protected override Drawable CreateDrawable(TestModel2 model)
+            {
+                if (model == null)
+                    return FadeOutImmediately ? new TestPlaceholder() : null;
+
+                return model.DrawableModel;
+            }
 
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
-            public TestModelBackedDrawable()
-                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId)
+            public new TestModel2 Model
             {
-                AddInternal(new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Alpha = 0,
-                    AlwaysPresent = true
-                });
-
-                BorderColour = Color4.White;
-                BorderThickness = 2;
-                Masking = true;
+                get => base.Model;
+                set => base.Model = value;
             }
 
-            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model);
-        }
+            public bool InternalFadeOutImmediately;
 
-        private class FadeImmediateTestModelBackedDrawable : TestModelBackedDrawable
-        {
-            protected override bool FadeOutImmediately => true;
-
-            protected override double FadeDuration => 0;
-        }
-
-        private class DelayedTestModelBackedDrawable : TestModelBackedDrawable
-        {
-            protected override double LoadDelay => 1000 / Clock.Rate;
-
-            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model, false);
+            protected override bool FadeOutImmediately => InternalFadeOutImmediately;
         }
     }
 }
