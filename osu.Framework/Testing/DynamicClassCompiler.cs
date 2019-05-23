@@ -58,7 +58,8 @@ namespace osu.Framework.Testing
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
 
-                    validDirectories.Add(dir);
+                    lock (compileLock) // enumeration over this list occurs during compilation
+                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
