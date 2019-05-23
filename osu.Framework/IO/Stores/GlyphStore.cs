@@ -68,11 +68,20 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="c">The character to retrieve information for</param>
         /// <returns>The information for the specified character</returns>
-        public Character GetCharacterInfo(char c) => Font.GetCharacter(c);
+        public FontStore.CharacterGlyph GetCharacterInfo(char c)
+        {
+            var character = Font.GetCharacter(c);
+            return new FontStore.CharacterGlyph(xOffset: character.XOffset, yOffset: character.YOffset, xAdvance: character.XAdvance);
+        }
 
         public int GetBaseHeight() => Font.Common.Base;
 
-        public bool ContainsTexture(string name) => (name.Length <= 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+        /// <summary>
+        /// Gets whether or not the specified texture is contained inside this GlyphStore
+        /// </summary>
+        /// <param name="name">The name of the texture to look up</param>
+        /// <returns>Whether or not the specified texture is contained inside this GlyphStore</returns>
+        public bool ContainsTexture(string name) => (name.Length == 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                                                     && Font.Characters.ContainsKey(name.Last());
 
         public TextureUpload Get(string name)
@@ -114,8 +123,7 @@ namespace osu.Framework.IO.Stores
             {
                 for (int x = 0; x < width; x++)
                 {
-                    pixels[y * width + x] =
-                        span[(c.Y + y) * page.Width + c.X + x];
+                    pixels[y * width + x] = span[(c.Y + y) * page.Width + c.X + x];
                 }
             }
 

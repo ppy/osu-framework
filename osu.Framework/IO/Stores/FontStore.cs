@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
-using SharpFNT;
+using JetBrains.Annotations;
 
 namespace osu.Framework.IO.Stores
 {
@@ -44,15 +44,7 @@ namespace osu.Framework.IO.Stores
             if (texture == null)
                 return null;
 
-            var info = getCharacterInfo(fontName, charName);
-
-            return new CharacterGlyph
-            {
-                Texture = texture,
-                XAdvance = (info?.XAdvance ?? 0) / ScaleAdjust,
-                XOffset = (info?.XOffset ?? 0) / ScaleAdjust,
-                YOffset = (info?.YOffset ?? 0) / ScaleAdjust,
-            };
+            return getCharacterInfo(fontName, charName)?.With(texture: texture, scaleAdjust: ScaleAdjust);
         }
 
         public float? GetBaseHeight(char c)
@@ -75,7 +67,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="charName">The character to look up</param>
         /// <param name="fontName">The font look in for the character</param>
         /// <returns>The associated character information for the character and font. Returns null if not found</returns>
-        private Character getCharacterInfo(string fontName, char charName)
+        private CharacterGlyph? getCharacterInfo(string fontName, char charName)
         {
             // Return the default (first available) character if fontName is default
             var glyphStore = getGlyphStore(fontName, charName);
@@ -203,27 +195,43 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Contains the texture and associated spacing information for a Character
         /// </summary>
-        public struct CharacterGlyph
+        public readonly struct CharacterGlyph
         {
             /// <summary>
             /// The texture for this character
             /// </summary>
-            public Texture Texture;
+            public Texture Texture { get; }
 
             /// <summary>
             /// The amount of space that should be given to the left of the character texture
             /// </summary>
-            public float XOffset;
+            public float XOffset { get; }
 
             /// <summary>
             /// The amount of space that should be given to the top of the character texture
             /// </summary>
-            public float YOffset;
+            public float YOffset { get; }
 
             /// <summary>
             /// The amount of space to advance the cursor by after drawing the texture
             /// </summary>
-            public float XAdvance;
+            public float XAdvance { get; }
+
+            public float DisplayWidth => Texture.DisplayWidth;
+
+            public float DisplayHeight => Texture.DisplayHeight;
+
+            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float fontScale = 1)
+            {
+                Texture = texture;
+                XOffset = xOffset / fontScale;
+                YOffset = yOffset / fontScale;
+                XAdvance = xAdvance / fontScale;
+            }
+
+            public CharacterGlyph With([CanBeNull] Texture texture = null, [CanBeNull] float? xOffset = null, [CanBeNull] float? yOffset = null, [CanBeNull] float? xAdvance = null,
+                                       float scaleAdjust = 1)
+                => new CharacterGlyph(texture ?? Texture, xOffset ?? XOffset, yOffset ?? YOffset, xAdvance ?? XAdvance, scaleAdjust);
         }
     }
 }
