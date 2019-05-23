@@ -64,7 +64,7 @@ namespace osu.Framework.IO.Stores
 
         public float? GetBaseHeight(string fontName)
         {
-            var glyphStore = getGlyphStore(fontName, null);
+            var glyphStore = getGlyphStore(fontName);
 
             return glyphStore?.GetBaseHeight() / ScaleAdjust;
         }
@@ -88,10 +88,10 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
         /// </summary>
-        /// <param name="fontName">The condition to evaluate the <see cref="GlyphStore"/> for</param>
-        /// <param name="charName">The condition to evaluate the <see cref="GlyphStore"/> for</param>
-        /// <returns>The first available <see cref="GlyphStore"/> that matches the provided condition</returns>
-        private GlyphStore getGlyphStore(string fontName, char? charName)
+        /// <param name="fontName">The font to look up the <see cref="GlyphStore"/> for</param>
+        /// <param name="charName">A character to look up in the <see cref="GlyphStore"/>.</param>
+        /// <returns>The first available <see cref="GlyphStore"/> matches the name and contains the specified character. Null if not available.</returns>
+        private GlyphStore getGlyphStore(string fontName, char? charName = null)
         {
             foreach (var store in glyphStores)
             {
