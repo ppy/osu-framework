@@ -18,12 +18,12 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneModelBackedDrawable : TestScene
     {
-        private TestModelBackedDrawable2 backedDrawable;
+        private TestModelBackedDrawable backedDrawable;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = backedDrawable = new TestModelBackedDrawable2
+            Child = backedDrawable = new TestModelBackedDrawable
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             // Need a local MDB, otherwise the fade out immediately flag is not set prior to load
             AddStep("setup", () =>
             {
-                Child = backedDrawable = new TestModelBackedDrawable2
+                Child = backedDrawable = new TestModelBackedDrawable
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -57,10 +57,10 @@ namespace osu.Framework.Tests.Visual.Drawables
         [TestCase(true)]
         public void TestSingleDelayedLoad(bool withPlaceholder)
         {
-            TestDrawableModel2 drawableModel = null;
+            TestDrawableModel drawableModel = null;
 
             AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
-            AddStep("set model", () => backedDrawable.Model = new TestModel2(drawableModel = new TestDrawableModel2(1)));
+            AddStep("set model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1)));
 
             if (withPlaceholder)
                 AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
@@ -76,18 +76,18 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestMultipleLoadDisplaysSinglePlaceholder()
         {
-            TestDrawableModel2 firstModel = null;
-            TestDrawableModel2 secondModel = null;
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
             Drawable placeholder = null;
 
             AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = true);
             AddStep("set first model", () =>
             {
-                backedDrawable.Model = new TestModel2(firstModel = new TestDrawableModel2(1));
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1));
                 placeholder = backedDrawable.DisplayedDrawable;
             });
 
-            AddStep("set second model", () => backedDrawable.Model = new TestModel2(secondModel = new TestDrawableModel2(2)));
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
             AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
 
             AddStep("allow models to load", () =>
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             const int model_count = 3;
 
-            var drawableModels = new List<TestDrawableModel2>(model_count);
+            var drawableModels = new List<TestDrawableModel>(model_count);
 
             AddStep("setup", () =>
             {
@@ -116,10 +116,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 int localI = i;
                 AddStep($"set model {i + 1}", () =>
                 {
-                    var model = new TestDrawableModel2(localI + 1);
+                    var model = new TestDrawableModel(localI + 1);
                     drawableModels.Add(model);
 
-                    backedDrawable.Model = new TestModel2(model);
+                    backedDrawable.Model = new TestModel(model);
                 });
             }
 
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             const int model_count = 3;
 
-            var drawableModels = new List<TestDrawableModel2>(model_count);
+            var drawableModels = new List<TestDrawableModel>(model_count);
 
             AddStep("setup", () =>
             {
@@ -159,10 +159,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 int localI = i;
                 AddStep($"set model {i + 1}", () =>
                 {
-                    var model = new TestDrawableModel2(localI + 1);
+                    var model = new TestDrawableModel(localI + 1);
                     drawableModels.Add(model);
 
-                    backedDrawable.Model = new TestModel2(model);
+                    backedDrawable.Model = new TestModel(model);
                 });
             }
 
@@ -184,12 +184,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         [TestCase(true)]
         public void TestSetNullModel(bool withPlaceholder)
         {
-            TestDrawableModel2 drawableModel = null;
+            TestDrawableModel drawableModel = null;
 
             AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
             AddStep("set model", () =>
             {
-                backedDrawable.Model = new TestModel2(drawableModel = new TestDrawableModel2(1));
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1));
                 drawableModel.AllowLoad.Set();
             });
 
@@ -203,26 +203,26 @@ namespace osu.Framework.Tests.Visual.Drawables
                 AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
         }
 
-        private class TestModel2
+        private class TestModel
         {
-            public readonly TestDrawableModel2 DrawableModel;
+            public readonly TestDrawableModel DrawableModel;
 
-            public TestModel2(TestDrawableModel2 drawableModel)
+            public TestModel(TestDrawableModel drawableModel)
             {
                 DrawableModel = drawableModel;
             }
         }
 
-        private class TestDrawableModel2 : CompositeDrawable
+        private class TestDrawableModel : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
 
-            public TestDrawableModel2(int id)
+            public TestDrawableModel(int id)
                 : this($"Model {id}")
             {
             }
 
-            protected TestDrawableModel2(string text)
+            protected TestDrawableModel(string text)
             {
                 RelativeSizeAxes = Axes.Both;
 
@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestPlaceholder : TestDrawableModel2
+        private class TestPlaceholder : TestDrawableModel
         {
             public TestPlaceholder()
                 : base("Placeholder")
@@ -259,9 +259,9 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        private class TestModelBackedDrawable2 : ModelBackedDrawable<TestModel2>
+        private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
-            protected override Drawable CreateDrawable(TestModel2 model)
+            protected override Drawable CreateDrawable(TestModel model)
             {
                 if (model == null)
                     return FadeOutImmediately ? new TestPlaceholder() : null;
@@ -271,7 +271,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
-            public new TestModel2 Model
+            public new TestModel Model
             {
                 get => base.Model;
                 set => base.Model = value;
