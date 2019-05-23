@@ -57,14 +57,14 @@ namespace osu.Framework.IO.Stores
 
         public float? GetBaseHeight(char c)
         {
-            var glyphStore = getGlyphStore(store => store.HasGlyph(c));
+            var glyphStore = getGlyphStore("", c);
 
             return glyphStore?.GetBaseHeight() / ScaleAdjust;
         }
 
         public float? GetBaseHeight(string fontName)
         {
-            var glyphStore = getGlyphStore(store => store.FontName == fontName);
+            var glyphStore = getGlyphStore(fontName, null);
 
             return glyphStore?.GetBaseHeight() / ScaleAdjust;
         }
@@ -78,7 +78,7 @@ namespace osu.Framework.IO.Stores
         private Character getCharacterInfo(string fontName, char charName)
         {
             // Return the default (first available) character if fontName is default
-            var glyphStore = getGlyphStore(store => store.Get(getTextureName(fontName, charName)) != null);
+            var glyphStore = getGlyphStore(fontName, charName);
 
             return glyphStore?.GetCharacterInfo(charName);
         }
@@ -88,19 +88,28 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
         /// </summary>
-        /// <param name="searchCondition">The condition to evaluate the <see cref="GlyphStore"/> for</param>
+        /// <param name="fontName">The condition to evaluate the <see cref="GlyphStore"/> for</param>
+        /// <param name="charName">The condition to evaluate the <see cref="GlyphStore"/> for</param>
         /// <returns>The first available <see cref="GlyphStore"/> that matches the provided condition</returns>
-        private GlyphStore getGlyphStore(Func<GlyphStore, bool> searchCondition)
+        private GlyphStore getGlyphStore(string fontName, char? charName)
         {
             foreach (var store in glyphStores)
             {
-                if (searchCondition(store))
-                    return store;
+                if (charName == null)
+                {
+                    if (store.FontName == fontName)
+                        return store;
+                }
+                else
+                {
+                    if (store.ContainsTexture(getTextureName(fontName, charName.Value)))
+                        return store;
+                }
             }
 
             foreach (var store in nestedFontStores)
             {
-                var nestedStore = store.getGlyphStore(searchCondition);
+                var nestedStore = store.getGlyphStore(fontName, charName);
                 if (nestedStore != null)
                     return nestedStore;
             }

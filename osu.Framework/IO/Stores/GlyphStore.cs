@@ -63,8 +63,6 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness));
 
-        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
-
         /// <summary>
         /// Gets the Character information for the specified character
         /// </summary>
@@ -85,9 +83,12 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
+        public bool ContainsTexture(string name) => (name.Length <= 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+                                                    && Font.Characters.ContainsKey(name.Last());
+
         public virtual async Task<TextureUpload> GetAsync(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+            if (!ContainsTexture(name))
                 return null;
 
             if (!(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c))
