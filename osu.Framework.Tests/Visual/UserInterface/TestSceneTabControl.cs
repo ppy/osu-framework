@@ -24,11 +24,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private readonly PlatformActionContainer platformActionContainer;
         private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
         private readonly StyledTabControl removeAllTabControl;
+        private readonly StyledTabControl simpleTabcontrol;
 
         public TestSceneTabControl()
         {
-            StyledTabControl simpleTabcontrol;
-
             items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
 
             AddRange(new Drawable[]
@@ -138,6 +137,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
         }
 
+        [Test]
+        public void SelectNull()
+        {
+            AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
+            AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
+            AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
@@ -146,15 +154,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
-        private class StyledTabControl : TabControl<TestEnum>
+        private class StyledTabControl : TabControl<TestEnum?>
         {
-            protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
+            protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
-                => new BasicTabControl<TestEnum>.BasicTabItem(value);
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
+                => new BasicTabControl<TestEnum?>.BasicTabItem(value);
         }
 
-        private class StyledDropdown : Dropdown<TestEnum>
+        private class StyledDropdown : Dropdown<TestEnum?>
         {
             protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
