@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             for (int i = 0; i < model_count; i++)
             {
                 int localI = i;
-                AddStep($"set model {i}", () =>
+                AddStep($"set model {i + 1}", () =>
                 {
                     var model = new TestDrawableModel2(localI + 1);
                     drawableModels.Add(model);
@@ -129,15 +129,15 @@ namespace osu.Framework.Tests.Visual.Drawables
             for (int i = 0; i < model_count - 1; i++)
             {
                 int localI = i;
-                AddStep($"allow model {i} to load", () => drawableModels[localI].AllowLoad.Set());
+                AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
                 AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null || backedDrawable.DisplayedDrawable is TestPlaceholder);
                 AddWaitStep("wait for potential load", 5);
-                AddAssert($"model {i} not loaded", () => !drawableModels[localI].IsLoaded);
+                AddAssert($"model {i + 1} not loaded", () => !drawableModels[localI].IsLoaded);
             }
 
-            AddStep($"allow model {model_count - 1} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddUntilStep($"model {model_count - 1} not loaded", () => drawableModels[model_count - 1].IsLoaded);
-            AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+            AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
+            AddUntilStep($"model {model_count} not loaded", () => drawableModels[model_count - 1].IsLoaded);
+            AddAssert($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
         }
 
         [TestCase(false)]
@@ -157,7 +157,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             for (int i = 0; i < model_count; i++)
             {
                 int localI = i;
-                AddStep($"set model {i}", () =>
+                AddStep($"set model {i + 1}", () =>
                 {
                     var model = new TestDrawableModel2(localI + 1);
                     drawableModels.Add(model);
@@ -169,14 +169,14 @@ namespace osu.Framework.Tests.Visual.Drawables
             // Due to potential left-over threading from elsewhere, we may have to wait for all models to get into a loading state
             AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
 
-            AddStep($"allow model {model_count - 1} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+            AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
+            AddAssert($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
 
             for (int i = model_count - 2; i >= 0; i--)
             {
                 int localI = i;
-                AddStep($"allow model {i} to load", () => drawableModels[localI].AllowLoad.Set());
-                AddAssert($"model {model_count - 1} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+                AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
+                AddAssert($"model {model_count} still displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
             }
         }
 
