@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 
@@ -116,12 +117,8 @@ namespace osu.Framework.Graphics
         /// <returns>Whether <paramref name="point"/> is in the right half-plane of <paramref name="line"/>.
         /// If the point is colinear to the line, it is said to be in the right half-plane of the line.
         /// </returns>
-        public static bool InRightHalfPlaneOf(this Vector2 point, Line line)
-        {
-            var diff1 = line.Direction;
-            var diff2 = point - line.StartPoint;
-
-            return diff1.X * diff2.Y - diff1.Y * diff2.X <= 0;
-        }
+        public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
+            => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
+               - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) <= 0;
     }
 }
