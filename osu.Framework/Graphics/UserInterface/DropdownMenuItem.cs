@@ -12,16 +12,12 @@ namespace osu.Framework.Graphics.UserInterface
         public DropdownMenuItem(string text, T value)
             : base(text)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-
             Value = value;
         }
 
         public DropdownMenuItem(string text, T value, Action action)
             : base(text, action)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-
             Value = value;
         }
     }

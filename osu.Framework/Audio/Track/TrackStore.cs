@@ -20,7 +20,12 @@ namespace osu.Framework.Audio.Track
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            Track track = new TrackBass(store.GetStream(name));
+            var dataStream = store.GetStream(name);
+
+            if (dataStream == null)
+                return null;
+
+            Track track = new TrackBass(dataStream);
             AddItem(track);
             return track;
         }
