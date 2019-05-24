@@ -42,7 +42,7 @@ namespace osu.Framework.Platform.MacOS
             // capslock is not correctly handled by osuTK, so force uppercase if capslock is on
             if (isCapsLockOn)
                 e = new osuTK.KeyPressEventArgs(char.ToUpper(e.KeyChar));
-            
+
             base.HandleKeyPress(sender, e);
         }
     }
