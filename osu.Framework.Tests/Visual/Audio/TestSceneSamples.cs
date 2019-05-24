@@ -64,7 +64,14 @@ namespace osu.Framework.Tests.Visual.Audio
                 },
             };
 
-            AddStep("adjust volume", () => samples.Volume.Value -= 0.1f);
+            AddStep("reduce volume", () => samples.Volume.Value -= 0.1f);
+            AddStep("increase volume", () => samples.Volume.Value += 0.1f);
+
+            AddStep("reduce frequency", () => samples.Frequency.Value -= 0.1f);
+            AddStep("increase frequency", () => samples.Frequency.Value += 0.1f);
+
+            AddStep("left balance", () => samples.Balance.Value -= 0.1f);
+            AddStep("right balance", () => samples.Balance.Value += 0.1f);
         }
 
         protected override void Update()
