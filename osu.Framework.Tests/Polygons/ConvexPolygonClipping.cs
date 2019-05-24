@@ -3,8 +3,9 @@
 
 using System;
 using NUnit.Framework;
-using osu.Framework.Extensions.PolygonExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.MathUtils.Clipping;
 using osuTK;
 
 namespace osu.Framework.Tests.Polygons
@@ -46,14 +47,14 @@ namespace osu.Framework.Tests.Polygons
             var poly1 = new SimpleConvexPolygon(polygonVertices1);
             var poly2 = new SimpleConvexPolygon(polygonVertices2);
 
-            Assert.That(poly1.Clip(poly2).Length, Is.Zero);
-            Assert.That(poly2.Clip(poly1).Length, Is.Zero);
+            Assert.That(clip(poly1, poly2).Length, Is.Zero);
+            Assert.That(clip(poly2, poly1).Length, Is.Zero);
 
             Array.Reverse(polygonVertices1);
             Array.Reverse(polygonVertices2);
 
-            Assert.That(poly1.Clip(poly2).Length, Is.Zero);
-            Assert.That(poly2.Clip(poly1).Length, Is.Zero);
+            Assert.That(clip(poly1, poly2).Length, Is.Zero);
+            Assert.That(clip(poly2, poly1).Length, Is.Zero);
         }
 
         private static object[] subjectFullyContainedTestCases => new object[]
@@ -86,12 +87,12 @@ namespace osu.Framework.Tests.Polygons
             var clipPolygon = new SimpleConvexPolygon(clipVertices);
             var subjectPolygon = new SimpleConvexPolygon(subjectVertices);
 
-            assertPolygonEquals(subjectPolygon, new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), false);
+            assertPolygonEquals(subjectPolygon, new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
 
             Array.Reverse(clipVertices);
             Array.Reverse(subjectVertices);
 
-            assertPolygonEquals(subjectPolygon, new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), true);
+            assertPolygonEquals(subjectPolygon, new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), true);
         }
 
         [TestCaseSource(nameof(subjectFullyContainedTestCases))]
@@ -100,12 +101,12 @@ namespace osu.Framework.Tests.Polygons
             var clipPolygon = new SimpleConvexPolygon(clipVertices);
             var subjectPolygon = new SimpleConvexPolygon(subjectVertices);
 
-            assertPolygonEquals(clipPolygon, new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), false);
+            assertPolygonEquals(clipPolygon, new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
 
             Array.Reverse(clipVertices);
             Array.Reverse(subjectVertices);
 
-            assertPolygonEquals(clipPolygon, new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), true);
+            assertPolygonEquals(clipPolygon, new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), true);
         }
 
         private static object[] generalClippingTestCases => new object[]
@@ -181,19 +182,22 @@ namespace osu.Framework.Tests.Polygons
             var clipPolygon = new SimpleConvexPolygon(clipVertices);
             var subjectPolygon = new SimpleConvexPolygon(subjectVertices);
 
-            assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), false);
+            assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
 
             Array.Reverse(clipVertices);
             Array.Reverse(subjectVertices);
 
             // The expected polygon is never reversed
-            assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clipPolygon.Clip(subjectPolygon).ToArray()), false);
+            assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
         }
 
+        private Span<Vector2> clip(SimpleConvexPolygon clipPolygon, SimpleConvexPolygon subjectPolygon)
+            => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(clipPolygon, subjectPolygon).Clip();
+
         private void assertPolygonEquals(IPolygon expected, IPolygon actual, bool reverse)
-            => Assert.That(PolygonExtensions.GetRotation(actual.GetVertices()),
+            => Assert.That(Vector2Extensions.GetRotation(actual.GetVertices()),
                 reverse
-                    ? Is.EqualTo(-PolygonExtensions.GetRotation(expected.GetVertices()))
-                    : Is.EqualTo(PolygonExtensions.GetRotation(expected.GetVertices())));
+                    ? Is.EqualTo(-Vector2Extensions.GetRotation(expected.GetVertices()))
+                    : Is.EqualTo(Vector2Extensions.GetRotation(expected.GetVertices())));
     }
 }
