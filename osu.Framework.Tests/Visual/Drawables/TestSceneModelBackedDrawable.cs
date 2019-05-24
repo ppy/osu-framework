@@ -20,32 +20,23 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private TestModelBackedDrawable backedDrawable;
 
-        [SetUp]
-        public void Setup() => Schedule(() =>
-        {
+        private void createModelBackedDrawable(bool withPlaceholder, bool fadeOutImmediately) =>
             Child = backedDrawable = new TestModelBackedDrawable
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(200)
+                Size = new Vector2(200),
+                InternalFadeOutImmediately = fadeOutImmediately,
+                HasPlaceholder = withPlaceholder
             };
-        });
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestDefaultState(bool withPlaceholder)
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestDefaultState(bool withPlaceholder, bool fadeOutImmediately)
         {
-            // Need a local MDB, otherwise the fade out immediately flag is not set prior to load
-            AddStep("setup", () =>
-            {
-                Child = backedDrawable = new TestModelBackedDrawable
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(200),
-                    InternalFadeOutImmediately = withPlaceholder
-                };
-            });
+            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
 
             if (withPlaceholder)
                 AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
@@ -53,13 +44,16 @@ namespace osu.Framework.Tests.Visual.Drawables
                 AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestSingleDelayedLoad(bool withPlaceholder)
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestSingleDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
+            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+
             AddStep("set model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1)));
 
             if (withPlaceholder)
@@ -73,14 +67,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
         }
 
-        [Test]
-        public void TestMultipleLoadDisplaysSinglePlaceholder()
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestMultipleLoadDisplaysSinglePlaceholder(bool withPlaceholder, bool fadeOutImmediately)
         {
             TestDrawableModel firstModel = null;
             TestDrawableModel secondModel = null;
             Drawable placeholder = null;
 
-            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = true);
+            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+
             AddStep("set first model", () =>
             {
                 backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1));
@@ -90,16 +88,59 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
             AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
 
-            AddStep("allow models to load", () =>
-            {
-                firstModel.AllowLoad.Set();
-                secondModel.AllowLoad.Set();
-            });
+            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
+            AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            AddAssert("placeholder is not displayed", () => backedDrawable.DisplayedDrawable != placeholder);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestSequentialDelayedLoad(bool withPlaceholder)
+        /// <summary>
+        /// Covers <see cref="ModelBackedDrawable{T}.FadeOutImmediately"/> usage.
+        /// </summary>
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestIntermediaryPlaceholder(bool withPlaceholder, bool fadeOutImmediately)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+
+            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+
+            AddStep("set first model", () => backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1)));
+
+            if (withPlaceholder)
+                AddAssert("placeholder is displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+            else
+                AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
+
+            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
+            AddAssert("first model's drawable is displayed", () => backedDrawable.DisplayedDrawable == firstModel);
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+
+            if (fadeOutImmediately)
+            {
+                if (withPlaceholder)
+                    AddAssert("placeholder is displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+                else
+                    AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
+            }
+            else
+                AddAssert("first model's drawable is displayed", () => backedDrawable.DisplayedDrawable == firstModel);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+
+            AddAssert("second model's drawable is displayed", () => backedDrawable.DisplayedDrawable == secondModel);
+        }
+
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestSequentialDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
         {
             const int model_count = 3;
 
@@ -108,7 +149,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("setup", () =>
             {
                 drawableModels.Clear();
-                backedDrawable.InternalFadeOutImmediately = withPlaceholder;
+                createModelBackedDrawable(withPlaceholder, fadeOutImmediately);
             });
 
             for (int i = 0; i < model_count; i++)
@@ -130,7 +171,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 int localI = i;
                 AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
-                AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null || backedDrawable.DisplayedDrawable is TestPlaceholder);
+                if (withPlaceholder)
+                    AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+                else
+                    AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null);
                 AddWaitStep("wait for potential load", 5);
                 AddAssert($"model {i + 1} not loaded", () => !drawableModels[localI].IsLoaded);
             }
@@ -140,9 +184,11 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestOutOfOrderDelayedLoad(bool withPlaceholder)
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestOutOfOrderDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
         {
             const int model_count = 3;
 
@@ -151,7 +197,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("setup", () =>
             {
                 drawableModels.Clear();
-                backedDrawable.InternalFadeOutImmediately = withPlaceholder;
+                createModelBackedDrawable(withPlaceholder, fadeOutImmediately);
             });
 
             for (int i = 0; i < model_count; i++)
@@ -180,13 +226,16 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestSetNullModel(bool withPlaceholder)
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestSetNullModel(bool withPlaceholder, bool fadeOutImmediately)
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () => backedDrawable.InternalFadeOutImmediately = withPlaceholder);
+            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+
             AddStep("set model", () =>
             {
                 backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1));
@@ -246,7 +295,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             private void load()
             {
                 if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
-                    throw new TimeoutException();
+                {
+                }
             }
         }
 
@@ -264,7 +314,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             protected override Drawable CreateDrawable(TestModel model)
             {
                 if (model == null)
-                    return FadeOutImmediately ? new TestPlaceholder() : null;
+                    return HasPlaceholder ? new TestPlaceholder() : null;
 
                 return model.DrawableModel;
             }
@@ -278,6 +328,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
 
             public bool InternalFadeOutImmediately;
+
+            public bool HasPlaceholder;
 
             protected override bool FadeOutImmediately => InternalFadeOutImmediately;
         }

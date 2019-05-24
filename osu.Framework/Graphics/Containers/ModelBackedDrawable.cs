@@ -85,18 +85,30 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateDrawable()
         {
-            var drawable = CreateDrawable(model);
-
-            if (drawable == null)
+            if (model == null)
+                loadPlaceholder();
+            else
             {
-                loadDrawable(null, true, false);
-                return;
+                if (FadeOutImmediately) loadPlaceholder();
+                loadDrawable(CreateDrawable(model), false);
             }
-
-            loadDrawable(drawable, false, FadeOutImmediately);
         }
 
-        private void loadDrawable(Drawable newDrawable, bool instant, bool withPlaceholder)
+        private void loadPlaceholder()
+        {
+            if (placeholderDisplayed)
+                return;
+
+            var placeholder = CreateDrawable(null);
+
+            loadDrawable(placeholder, true);
+
+            // in the case a placeholder has not been specified, this should not be set as to allow for a potential runtime change
+            // of placeholder logic on a future load operation.
+            placeholderDisplayed = placeholder != null;
+        }
+
+        private void loadDrawable(Drawable newDrawable, bool isPlaceholder)
         {
             // Remove the previous wrapper if the inner drawable hasn't finished loading.
             // We check IsLoaded on the content rather than DelayedLoadCompleted so that we can ensure that finishLoad() has not been called and DisplayedDrawable hasn't been updated
@@ -109,22 +121,11 @@ namespace osu.Framework.Graphics.Containers
 
             currentWrapper = null;
 
-            if (withPlaceholder && !placeholderDisplayed)
-            {
-                var placeholder = CreateDrawable(null);
-
-                if (placeholder != null)
-                {
-                    loadDrawable(placeholder, true, false);
-                    placeholderDisplayed = true;
-                }
-            }
-
             if (newDrawable != null)
             {
-                AddInternal(instant ? newDrawable : currentWrapper = CreateDelayedLoadWrapper(newDrawable, LoadDelay));
+                AddInternal(isPlaceholder ? newDrawable : currentWrapper = CreateDelayedLoadWrapper(newDrawable, LoadDelay));
 
-                if (instant)
+                if (isPlaceholder)
                 {
                     // Although the drawable is technically not loaded, it does have a clock and we need DisplayedDrawable to be updated instantly
                     finishLoad();
@@ -143,7 +144,7 @@ namespace osu.Framework.Graphics.Containers
                 transform?.OnComplete(_ => currentDrawable?.Expire());
 
                 DisplayedDrawable = newDrawable;
-                placeholderDisplayed = false;
+                placeholderDisplayed = isPlaceholder;
             }
         }
 
