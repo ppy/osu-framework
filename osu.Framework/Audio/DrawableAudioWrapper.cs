@@ -3,12 +3,13 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Audio
 {
     [Cached(typeof(IAudioAdjustment))]
-    public class ComponentAudioAdjustContainer : Container, IAudioAdjustment
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAudioAdjustment
     {
         /// <summary>
         /// Global volume of this component.
@@ -57,24 +58,36 @@ namespace osu.Framework.Audio
 
         protected IBindable<double> CalculatedFrequency { get; } = new BindableDouble(1);
 
+        /// <summary>
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
+        /// </summary>
+        /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
+        protected DrawableAudioWrapper(Drawable content)
+            : this()
+        {
+            AddInternal(content);
+        }
+
+        protected DrawableAudioWrapper()
+        {
+            Frequency.ValueChanged += updateFrequency;
+            Volume.ValueChanged += updateVolume;
+            Balance.ValueChanged += updateBalance;
+        }
+
         [BackgroundDependencyLoader(true)]
         private void load(IAudioAdjustment parentAdjustment)
         {
             if (parentAdjustment != null)
             {
+                parentFrequency.ValueChanged += updateFrequency;
+                parentVolume.ValueChanged += updateVolume;
+                parentBalance.ValueChanged += updateBalance;
+
                 parentFrequency.BindTo(parentAdjustment.Frequency);
                 parentVolume.BindTo(parentAdjustment.Volume);
                 parentBalance.BindTo(parentAdjustment.Balance);
             }
-
-            parentFrequency.ValueChanged += updateFrequency;
-            Frequency.ValueChanged += updateFrequency;
-
-            parentVolume.ValueChanged += updateVolume;
-            Volume.ValueChanged += updateVolume;
-
-            parentBalance.ValueChanged += updateBalance;
-            Balance.ValueChanged += updateBalance;
         }
 
         private void updateBalance(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedBalance).Value = Balance.Value + parentBalance.Value;

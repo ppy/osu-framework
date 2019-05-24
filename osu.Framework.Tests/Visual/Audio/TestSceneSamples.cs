@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public class TestSceneSamples : TestScene
     {
-        private readonly ComponentAudioAdjustContainer samples;
+        private readonly AudioContainer samples;
         private readonly TrackingLine tracking;
 
         private const int beats = 8;
@@ -43,26 +43,28 @@ namespace osu.Framework.Tests.Visual.Audio
                             RelativeSizeAxes = Axes.Both,
                         },
                         new Grid(beats - 1, notes),
-                        samples = new ComponentAudioAdjustContainer
+                        samples = new AudioContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             RelativeChildSize = new Vector2(beats - 1, notes),
                             Children = new Drawable[]
                             {
                                 new DraggableSample(0, 0),
-                                new DraggableSample(1, 1),
-                                new DraggableSample(2, 2),
-                                new DraggableSample(3, 3),
-                                new DraggableSample(4, 4),
-                                new DraggableSample(5, 5),
-                                new DraggableSample(6, 6),
-                                new DraggableSample(7, 7),
+                                new DraggableSample(1, 2),
+                                new DraggableSample(2, 4),
+                                new DraggableSample(3, 5),
+                                new DraggableSample(4, 8),
+                                new DraggableSample(5, 11),
+                                new DraggableSample(6, 14),
+                                new DraggableSample(7, 16),
                                 tracking = new TrackingLine()
                             }
                         },
                     }
                 },
             };
+
+            AddStep("adjust volume", () => samples.Volume.Value -= 0.1f);
         }
 
         protected override void Update()
@@ -79,8 +81,6 @@ namespace osu.Framework.Tests.Visual.Audio
                 tracking.X += (float)Clock.ElapsedFrameTime / 500;
                 samples.OfType<DraggableSample>().Where(s => !s.Played && s.X <= tracking.X).ForEach(s => s.Play());
             }
-
-            samples.Frequency.Value = 1f;
         }
 
         private class TrackingLine : CompositeDrawable
@@ -165,12 +165,12 @@ namespace osu.Framework.Tests.Visual.Audio
             [BackgroundDependencyLoader]
             private void load(SampleStore samples)
             {
-                AddInternal(sample = new ComponentSampleChannel(samples.Get("tone.wav")));
+                AddInternal(sample = new DrawableSampleChannel(samples.Get("tone.wav")));
             }
 
             private float dragStartY;
 
-            private ComponentSampleChannel sample;
+            private DrawableSampleChannel sample;
 
             private readonly Circle circle;
 
