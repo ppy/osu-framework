@@ -5,6 +5,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
@@ -85,5 +86,9 @@ namespace osu.Framework.Graphics.Textures
                 return tex;
             }
         }
+
+        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Concat(textureCache.Keys);
     }
 }
+
+

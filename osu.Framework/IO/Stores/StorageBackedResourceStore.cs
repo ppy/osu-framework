@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
@@ -45,6 +46,19 @@ namespace osu.Framework.IO.Stores
         }
 
         public Stream GetStream(string name) => storage.GetStream(name);
+
+        public IEnumerable<string> GetAvailableResources()
+        {
+            var directories = storage.GetDirectories(string.Empty);
+
+            foreach (var directory in directories)
+            {
+                foreach (var file in storage.GetFiles(directory))
+                {
+                    yield return $"{directory}/{file}";
+                }
+            }
+        }
 
         #region IDisposable Support
 

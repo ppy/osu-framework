@@ -54,7 +54,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Retrieve a list of available resources provided by this store.
         /// </summary>
-        public IEnumerable<string> AvailableResources =>
+        public IEnumerable<string> GetAvailableResources() =>
             assembly.GetManifestResourceNames().Select(n =>
             {
                 var chars = n.ToCharArray();

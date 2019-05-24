@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -144,6 +145,8 @@ namespace osu.Framework.IO.Stores
         private int loadedGlyphCount;
 
         public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
+
+        public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
 
         #region IDisposable Support
 

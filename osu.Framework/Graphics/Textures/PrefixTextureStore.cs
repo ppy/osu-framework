@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
@@ -16,5 +18,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override Texture Get(string name) => base.Get($@"{prefix}-{name}");
+
+        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Select(name => $"{prefix}-{name}");
     }
 }
