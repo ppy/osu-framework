@@ -143,7 +143,7 @@ namespace osu.Framework.Allocation
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            info.Type = Nullable.GetUnderlyingType(type) ?? type;
+            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
 
             var instanceType = instance.GetType();
             instanceType = Nullable.GetUnderlyingType(instanceType) ?? instanceType;
@@ -167,7 +167,7 @@ namespace osu.Framework.Allocation
 
         public object Get(Type type, CacheInfo info)
         {
-            info.Type = Nullable.GetUnderlyingType(type) ?? type;
+            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
 
             if (cache.TryGetValue(info, out var existing))
                 return existing;

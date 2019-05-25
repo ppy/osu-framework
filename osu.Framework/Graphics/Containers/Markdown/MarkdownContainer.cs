@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
@@ -20,6 +21,26 @@ namespace osu.Framework.Graphics.Containers.Markdown
     public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         private const int root_level = 0;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="Drawable.RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Drawable.Size"/> (or <see cref="Drawable.Width"/> / <see cref="Drawable.Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public new Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set
+            {
+                if (value.HasFlag(Axes.X))
+                    throw new ArgumentException($"{nameof(MarkdownContainer)} does not support an {nameof(AutoSizeAxes)} of {value}");
+
+                base.AutoSizeAxes = value;
+            }
+        }
 
         private string text = string.Empty;
 
@@ -73,19 +94,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         public MarkdownContainer()
         {
-            InternalChildren = new Drawable[]
+            InternalChild = document = new FillFlowContainer
             {
-                new ScrollContainer
-                {
-                    ScrollbarOverlapsContent = false,
-                    RelativeSizeAxes = Axes.Both,
-                    Child = document = new FillFlowContainer
-                    {
-                        AutoSizeAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
-                    }
-                }
+                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.X,
+                Direction = FillDirection.Vertical,
             };
 
             LineSpacing = 25;

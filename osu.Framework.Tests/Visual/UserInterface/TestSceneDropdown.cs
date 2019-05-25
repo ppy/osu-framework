@@ -17,7 +17,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdownBox : ManualInputManagerTestScene
+    public class TestSceneDropdown : ManualInputManagerTestScene
     {
         private const int items_to_add = 10;
         private const float explicit_height = 100;
@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(TestDropdown)
         };
 
-        public TestSceneDropdownBox()
+        public TestSceneDropdown()
         {
             var testItems = new string[10];
             int i = 0;
@@ -243,6 +243,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             drawable.IsHovered = tempIsHovered;
             drawable.HasFocus = tempHasFocus;
+        }
+
+        [Test]
+        public void SelectNull()
+        {
+            AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(1));
+            AddStep("select item null", () => testDropdown.Current.Value = null);
+            AddAssert("null is selected", () => testDropdown.Current.Value == null);
         }
 
         private void toggleDropdownViaClick(TestDropdown dropdown)

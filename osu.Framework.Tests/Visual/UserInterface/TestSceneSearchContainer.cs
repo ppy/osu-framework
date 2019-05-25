@@ -17,7 +17,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private SearchContainer search;
         private BasicTextBox textBox;
-        private HeaderContainer header;
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -61,7 +60,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                         new SearchableText { Text = "öüäéèêáàâ", }
                                     }
                                 },
-                                header = new HeaderContainer("Subsection 2")
+                                new HeaderContainer("Subsection 2")
                                 {
                                     AutoSizeAxes = Axes.Both,
                                     Children = new[]
@@ -97,17 +96,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             setTerm("multi");
             checkCount(1);
-            AddStep("Add new filtered item", () => header.Add(new SearchableText { Text = "not visible" }));
+            AddStep("Add new filtered item", () => search.Add(new SearchableText { Text = "not visible" }));
             checkCount(1);
-            AddStep("Add new filtered item", () => header.Add(new SearchableText { Text = "multi visible" }));
+            AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
             checkCount(2);
         }
 
         private void checkCount(int count)
         {
-            AddAssert("Visible end-children: " + count, () =>
-                count == search.Children.SelectMany(child => (child as Container)?.Children.OfType<Container>())
-                               .SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
+            AddAssert("Visible children: " + count, () => count == countSearchableText(search));
+        }
+
+        private int countSearchableText(CompositeDrawable container)
+        {
+            return container.InternalChildren.Where(t => t is SearchableText || t is FilterableFlowContainer).Count(c => c.IsPresent)
+                   + container.InternalChildren.Where(c => c.IsPresent).OfType<CompositeDrawable>().Sum(countSearchableText);
         }
 
         private void setTerm(string term)
@@ -139,12 +142,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override Container<Drawable> Content => flowContainer;
 
-            private readonly SearchableText header;
+            private readonly HeaderText header;
             private readonly FillFlowContainer flowContainer;
 
             public HeaderContainer(string headerText = "Header")
             {
-                AddInternal(header = new SearchableText
+                AddInternal(header = new HeaderText
                 {
                     Text = headerText,
                 });
@@ -161,6 +164,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public IEnumerable<string> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
+            public bool MatchingFilter
+            {
+                set
+                {
+                    if (value)
+                        Show();
+                    else
+                        Hide();
+                }
+            }
+
+            public bool FilteringActive
+            {
+                set { }
+            }
+        }
+
+        private class HeaderText : SpriteText, IFilterable
+        {
             public bool MatchingFilter
             {
                 set

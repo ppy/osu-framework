@@ -72,6 +72,9 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
         public static extern bool CGCursorIsVisible();
 
+        [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGEventSourceFlagsState")]
+        public static extern ulong CGEventSourceFlagsState(int stateID);
+
         static Cocoa()
         {
             AppKitLibrary = (IntPtr)type_cocoa.GetField("AppKitLibrary").GetValue(null);

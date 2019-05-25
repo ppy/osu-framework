@@ -135,7 +135,7 @@ namespace osu.Framework
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
-            //attach our bindables to the audio subsystem.
+            // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
@@ -240,20 +240,6 @@ namespace osu.Framework
         }
 
         protected virtual bool OnExiting() => false;
-
-        /// <summary>
-        /// Called before a frame cycle has started (Update and Draw).
-        /// </summary>
-        protected virtual void PreFrame()
-        {
-        }
-
-        /// <summary>
-        /// Called after a frame cycle has been completed (Update and Draw).
-        /// </summary>
-        protected virtual void PostFrame()
-        {
-        }
 
         protected override void Dispose(bool isDisposing)
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -283,8 +283,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
                 upload.Bounds = new RectangleI(0, 0, width, height);
-                if (width * height != upload.Data.Length)
-                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not match data length ({upload.Data.Length})");
+                if (width * height > upload.Data.Length)
+                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
             IsTransparent = false;
@@ -347,6 +347,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             return didUpload;
+        }
+
+        internal override void FlushUploads()
+        {
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
         }
 
         private bool tryGetNextUpload(out ITextureUpload upload)
