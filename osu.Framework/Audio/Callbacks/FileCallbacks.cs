@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Callbacks
     /// </summary>
     public class FileCallbacks : BassCallback
     {
-        public FileProcedures Callbacks => RuntimeInfo.SupportsJIT ? instanceProcedures : staticProcedures;
+        public FileProcedures Callbacks { get; private set; }
 
         private FileProcedures instanceProcedures => new FileProcedures
         {
@@ -24,7 +24,7 @@ namespace osu.Framework.Audio.Callbacks
             Seek = Seek
         };
 
-        private FileProcedures staticProcedures => new FileProcedures
+        private static readonly FileProcedures static_procedures = new FileProcedures
         {
             Read = readCallback,
             Close = closeCallback,
@@ -38,12 +38,14 @@ namespace osu.Framework.Audio.Callbacks
 
         public FileCallbacks(IFileProcedures implementation)
         {
+            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
             this.implementation = implementation;
             procedures = null;
         }
 
         public FileCallbacks(FileProcedures procedures)
         {
+            Callbacks = RuntimeInfo.SupportsJIT ? instanceProcedures : static_procedures;
             this.procedures = procedures;
             implementation = null;
         }
@@ -66,28 +68,38 @@ namespace osu.Framework.Audio.Callbacks
         private static int readCallback(IntPtr buffer, int length, IntPtr user)
         {
             var ptr = new ObjectHandle<FileCallbacks>(user);
-            return ptr.Target.Read(buffer, length, user);
+            if (ptr.GetTarget(out FileCallbacks target))
+                return target.Read(buffer, length, user);
+
+            return 0;
         }
 
         [MonoPInvokeCallback(typeof(FileCloseProcedure))]
         private static void closeCallback(IntPtr user)
         {
             var ptr = new ObjectHandle<FileCallbacks>(user);
-            ptr.Target.Close(user);
+            if (ptr.GetTarget(out FileCallbacks target))
+                target.Close(user);
         }
 
         [MonoPInvokeCallback(typeof(FileLengthProcedure))]
         private static long lengthCallback(IntPtr user)
         {
             var ptr = new ObjectHandle<FileCallbacks>(user);
-            return ptr.Target.Length(user);
+            if (ptr.GetTarget(out FileCallbacks target))
+                return target.Length(user);
+
+            return 0;
         }
 
         [MonoPInvokeCallback(typeof(FileSeekProcedure))]
         private static bool seekCallback(long offset, IntPtr user)
         {
             var ptr = new ObjectHandle<FileCallbacks>(user);
-            return ptr.Target.Seek(offset, user);
+            if (ptr.GetTarget(out FileCallbacks target))
+                return target.Seek(offset, user);
+
+            return false;
         }
     }
 }

@@ -58,7 +58,8 @@ namespace osu.Framework.Testing
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
 
-                    validDirectories.Add(dir);
+                    lock (compileLock) // enumeration over this list occurs during compilation
+                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
@@ -98,7 +99,7 @@ namespace osu.Framework.Testing
                 // add ourselves as a required type.
                 reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestCase.RemovePrefix(removeGenerics(checkpointName)));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
