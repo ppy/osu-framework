@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -141,7 +141,10 @@ namespace osu.Framework.Graphics.Video
         public void ReturnFrames(IEnumerable<DecodedFrame> frames)
         {
             foreach (var f in frames)
+            {
+                ((TextureGLSingle)f.Texture.TextureGL).FlushUploads();
                 availableTextures.Enqueue(f.Texture);
+            }
         }
 
         /// <summary>
@@ -154,7 +157,7 @@ namespace osu.Framework.Graphics.Video
                 prepareDecoding();
 
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
-            decodingTask = Task.Run(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token);
+            decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         /// <summary>
@@ -289,8 +292,6 @@ namespace osu.Framework.Graphics.Video
 
             const int max_pending_frames = 3;
 
-            var bufferStack = new BufferStack<Rgba32>(max_pending_frames * 2);
-
             try
             {
                 while (true)
@@ -298,7 +299,7 @@ namespace osu.Framework.Graphics.Video
                     if (cancellationToken.IsCancellationRequested)
                         return;
 
-                    if (decodedFrames.Count < max_pending_frames && bufferStack.BuffersInUse < max_pending_frames * 2)
+                    if (decodedFrames.Count < max_pending_frames)
                     {
                         int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
 
@@ -332,7 +333,7 @@ namespace osu.Framework.Graphics.Video
                                         if (!availableTextures.TryDequeue(out var tex))
                                             tex = new Texture(codecParams.width, codecParams.height, true);
 
-                                        var upload = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
+                                        var upload = new ArrayPoolTextureUpload(tex.Width, tex.Height);
 
                                         // todo: can likely make this more efficient
                                         new Span<Rgba32>(ffmpegFrame->data[0], uncompressedFrameSize / 4).CopyTo(upload.RawData);
