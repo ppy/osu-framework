@@ -10,17 +10,17 @@ namespace osu.Framework.Graphics.Primitives
     /// <summary>
     /// Represents a single line segment.
     /// </summary>
-    public struct Line
+    public readonly struct Line
     {
         /// <summary>
         /// Begin point of the line.
         /// </summary>
-        public Vector2 StartPoint;
+        public readonly Vector2 StartPoint;
 
         /// <summary>
         /// End point of the line.
         /// </summary>
-        public Vector2 EndPoint;
+        public readonly Vector2 EndPoint;
 
         /// <summary>
         /// The length of the line.
