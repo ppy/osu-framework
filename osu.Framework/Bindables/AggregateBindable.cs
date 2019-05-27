@@ -26,11 +26,11 @@ namespace osu.Framework.Bindables
         /// Create a new aggregate bindable.
         /// </summary>
         /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <see cref="T"/> values and returning one output.</param>
-        /// <param name="defaultValue">The value used for the initial <see cref="Result"/> and for the first step of aggregation.</param>
-        public AggregateBindable(Func<T, T, T> aggregateFunction, T defaultValue = default)
+        /// <param name="resultBindable">An optional newly constructed bindable type to use for <see cref="Result"/> aggregation.</param>
+        public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
         {
             this.aggregateFunction = aggregateFunction;
-            result = new Bindable<T>(defaultValue) { Default = defaultValue };
+            result = resultBindable ?? new Bindable<T>();
         }
 
         private readonly Dictionary<WeakReference, IBindable<T>> sourceMapping = new Dictionary<WeakReference, IBindable<T>>();
