@@ -26,7 +26,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public SampleStore Sample => GetSampleStore();
+        public SampleStore Samples => GetSampleStore();
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -291,7 +291,7 @@ namespace osu.Framework.Audio
 
         public override void UpdateDevice(int deviceIndex)
         {
-            Sample.UpdateDevice(deviceIndex);
+            Samples.UpdateDevice(deviceIndex);
             Tracks.UpdateDevice(deviceIndex);
         }
 

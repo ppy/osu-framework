@@ -137,7 +137,7 @@ namespace osu.Framework
             dependencies.CacheAs<IAudioAdjustment>(Audio);
 
             dependencies.Cache(Audio.Tracks);
-            dependencies.Cache(Audio.Sample);
+            dependencies.Cache(Audio.Samples);
 
             // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);

@@ -449,7 +449,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                audio.Sample.Get(@"Keyboard/key-movement")?.Play();
+                audio.Samples.Get(@"Keyboard/key-movement")?.Play();
                 cursorAndLayout.Invalidate();
             }
         }
@@ -468,7 +468,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (count == 0) return false;
 
             if (sound)
-                audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -677,9 +677,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
                 if (pendingText.Any(char.IsUpper))
-                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-caps")?.Play();
                 else
-                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                    audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
                 insertString(pendingText);
             }
@@ -736,7 +736,7 @@ namespace osu.Framework.Graphics.UserInterface
             Background.ClearTransforms();
             Background.FlashColour(BackgroundCommit, 400);
 
-            audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+            audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
             OnCommit?.Invoke(this, true);
         }
 
@@ -949,7 +949,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 
@@ -965,7 +965,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion
