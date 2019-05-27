@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
@@ -104,8 +103,6 @@ namespace osu.Framework.IO.Stores
         {
             cache.Clear();
         }
-
-        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Concat(cache.Keys);
 
         protected override void Dispose(bool disposing)
         {

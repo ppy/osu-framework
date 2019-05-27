@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.IO.Stores
 {
@@ -20,8 +19,6 @@ namespace osu.Framework.IO.Stores
         {
             Namespace = ns;
         }
-
-        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Select(name => $"{Namespace}/{name}");
 
         protected override IEnumerable<string> GetFilenames(string name) => base.GetFilenames($@"{Namespace}/{name}");
     }

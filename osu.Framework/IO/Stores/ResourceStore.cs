@@ -191,7 +191,7 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (var store in stores)
                 {
-                    var contents = store.GetAvailableResources()?.ToList() ?? new List<string>();
+                    var contents = store.GetAvailableResources();
 
                     foreach (string str in contents.Select(x => $"{store}/{x}"))
                         yield return str;

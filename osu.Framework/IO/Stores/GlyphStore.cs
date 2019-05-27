@@ -141,12 +141,12 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
+        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => ((char)k).ToString());
+
         private int loadedPageCount;
         private int loadedGlyphCount;
 
         public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
-
-        public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
 
         #region IDisposable Support
 

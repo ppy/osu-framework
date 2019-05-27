@@ -68,6 +68,6 @@ namespace osu.Framework.Audio.Sample
 
         public Stream GetStream(string name) => store.GetStream(name);
 
-        public IEnumerable<string> GetAvailableResources() => sampleCache.Keys;
+        public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
     }
 }
