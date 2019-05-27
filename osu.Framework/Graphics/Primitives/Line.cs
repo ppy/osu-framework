@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using osu.Framework.MathUtils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -62,6 +63,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="t">A parameter representing the position along the line to compute. 0 yields the start point and 1 yields the end point.</param>
         /// <returns>The position along the line.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 At(float t) => new Vector2(StartPoint.X + (EndPoint.X - StartPoint.X) * t, StartPoint.Y + (EndPoint.Y - StartPoint.Y) * t);
 
         /// <summary>
@@ -71,16 +73,51 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>Whether the two lines intersect and, if so, the distance along this line at which the intersection occurs.
         /// An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.
         /// To compute the point of intersection, <see cref="At"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public (bool success, float distance) IntersectWith(in Line other)
         {
-            float denom = (EndPoint.X - StartPoint.X) * (other.EndPoint.Y - other.StartPoint.Y)
-                          - (EndPoint.Y - StartPoint.Y) * (other.EndPoint.X - other.StartPoint.X);
+            bool success = TryIntersectWith(other, out var distance);
+            return (success, distance);
+        }
 
-            float t = ((other.StartPoint.X - StartPoint.X) * (other.EndPoint.Y - other.StartPoint.Y)
-                       - (other.StartPoint.Y - StartPoint.Y) * (other.EndPoint.X - other.StartPoint.X))
-                      / denom;
+        /// <summary>
+        /// Intersects this line with another.
+        /// </summary>
+        /// <param name="other">The line to intersect with.</param>
+        /// <param name="distance">The distance along this line at which the intersection occurs. To compute the point of intersection, <see cref="At"/>.</param>
+        /// <returns>Whether the two lines intersect. An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryIntersectWith(in Line other, out float distance)
+        {
+            var startPoint = other.StartPoint;
+            var endPoint = other.EndPoint;
 
-            return (true, t);
+            return TryIntersectWith(ref startPoint, ref endPoint, out distance);
+        }
+
+        /// <summary>
+        /// Intersects this line with another.
+        /// </summary>
+        /// <param name="otherStart">The start point of the other line to intsersect with.</param>
+        /// <param name="otherEnd">The end point of the other line to intersect with.</param>
+        /// <param name="distance">The distance along this line at which the intersection occurs. To compute the point of intersection, <see cref="At"/>.</param>
+        /// <returns>Whether the two lines intersect. An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryIntersectWith(ref Vector2 otherStart, ref Vector2 otherEnd, out float distance)
+        {
+            float otherYDist = otherEnd.Y - otherStart.Y;
+            float otherXDist = otherEnd.X - otherStart.X;
+
+            float denom = (EndPoint.X - StartPoint.X) * otherYDist - (EndPoint.Y - StartPoint.Y) * otherXDist;
+
+            if (Precision.AlmostEquals(denom, 0))
+            {
+                distance = 0;
+                return false;
+            }
+
+            distance = ((otherStart.X - StartPoint.X) * otherYDist - (otherStart.Y - StartPoint.Y) * otherXDist) / denom;
+            return true;
         }
 
         /// <summary>
