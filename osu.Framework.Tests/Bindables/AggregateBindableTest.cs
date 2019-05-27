@@ -27,6 +27,27 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestResultBounds()
+        {
+            var aggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1)
+            {
+                Default = 1,
+                MinValue = 0,
+                MaxValue = 2
+            });
+
+            Assert.AreEqual(1, aggregate.Result.Value);
+
+            var bindable1 = new BindableDouble(-1);
+            aggregate.AddSource(bindable1);
+            Assert.AreEqual(0, aggregate.Result.Value);
+
+            var bindable2 = new BindableDouble(-4);
+            aggregate.AddSource(bindable2);
+            Assert.AreEqual(2, aggregate.Result.Value);
+        }
+
+        [Test]
         public void TestClassAggregate()
         {
             var aggregate = new AggregateBindable<BoxedInt>((a, b) => new BoxedInt((a?.Value ?? 0) + (b?.Value ?? 0)));
