@@ -9,9 +9,9 @@ using osuTK;
 
 namespace osu.Framework.MathUtils.Clipping
 {
-    public readonly ref struct ConvexPolygonClipper<TSubject, TClip>
-        where TSubject : IConvexPolygon
+    public readonly ref struct ConvexPolygonClipper<TClip, TSubject>
         where TClip : IConvexPolygon
+        where TSubject : IConvexPolygon
     {
         private readonly TClip clipPolygon;
         private readonly TSubject subjectPolygon;
