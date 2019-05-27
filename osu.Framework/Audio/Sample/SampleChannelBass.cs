@@ -35,9 +35,9 @@ namespace osu.Framework.Audio.Sample
 
             if (channel != 0)
             {
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, Volume.Value);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, Balance.Value);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * Frequency.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * FrequencyCalculated.Value);
             }
         }
 
