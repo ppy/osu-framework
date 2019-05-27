@@ -90,5 +90,3 @@ namespace osu.Framework.Graphics.Textures
         public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Concat(textureCache.Keys);
     }
 }
-
-
