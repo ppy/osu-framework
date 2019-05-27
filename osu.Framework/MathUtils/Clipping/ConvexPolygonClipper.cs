@@ -53,8 +53,15 @@ namespace osu.Framework.MathUtils.Clipping
                                             + "Use GetClipBufferSize() to calculate the size of the buffer.", nameof(buffer));
             }
 
-            ReadOnlySpan<Vector2> subjectVertices = subjectPolygon.GetVertices();
             ReadOnlySpan<Vector2> clipVertices = clipPolygon.GetVertices();
+
+            if (clipVertices.Length == 0)
+                return Span<Vector2>.Empty;
+
+            ReadOnlySpan<Vector2> subjectVertices = subjectPolygon.GetVertices();
+
+            if (subjectVertices.Length == 0)
+                return Span<Vector2>.Empty;
 
             // Buffer is initially filled with the all of the subject's vertices
             subjectVertices.CopyTo(buffer);

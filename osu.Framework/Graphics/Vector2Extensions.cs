@@ -86,6 +86,9 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetRotation(in ReadOnlySpan<Vector2> vertices)
         {
+            if (vertices.Length == 0)
+                return 0;
+
             float rotation = 0;
             for (int i = 0; i < vertices.Length - 1; ++i)
                 rotation += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y);

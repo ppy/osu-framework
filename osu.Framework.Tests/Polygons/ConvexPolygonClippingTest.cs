@@ -191,8 +191,35 @@ namespace osu.Framework.Tests.Polygons
             assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
         }
 
+        [Test]
+        public void TestEmptyClip()
+        {
+            var quad = new Quad(0, 0, 1, 1);
+
+            assertPolygonEquals(
+                new SimpleConvexPolygon(Array.Empty<Vector2>()),
+                new SimpleConvexPolygon(clip(new SimpleConvexPolygon(Array.Empty<Vector2>()), quad).ToArray()),
+                false);
+        }
+
+        [Test]
+        public void TestEmptySubject()
+        {
+            var quad = new Quad(0, 0, 1, 1);
+
+            assertPolygonEquals(
+                new SimpleConvexPolygon(Array.Empty<Vector2>()),
+                new SimpleConvexPolygon(clip(quad, new SimpleConvexPolygon(Array.Empty<Vector2>())).ToArray()),
+                false);
+        }
+
         private Span<Vector2> clip(SimpleConvexPolygon clipPolygon, SimpleConvexPolygon subjectPolygon)
             => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(ref clipPolygon, ref subjectPolygon).Clip();
+
+        private Span<Vector2> clip<TClip, TSubject>(TClip clipPolygon, TSubject subjectPolygon)
+            where TClip : IConvexPolygon
+            where TSubject : IConvexPolygon
+            => new ConvexPolygonClipper<TClip, TSubject>(ref clipPolygon, ref subjectPolygon).Clip();
 
         private void assertPolygonEquals(IPolygon expected, IPolygon actual, bool reverse)
             => Assert.That(Vector2Extensions.GetRotation(actual.GetVertices()),
