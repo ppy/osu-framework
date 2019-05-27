@@ -329,31 +329,6 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                    bool queryAvailable;
-
-                    if (samplesPassedQuery == -1)
-                    {
-                        samplesPassedQuery = GL.GenQuery();
-                        queryAvailable = true;
-                    }
-                    else
-                    {
-                        GL.GetQueryObject(samplesPassedQuery, GetQueryObjectParam.QueryResultAvailable, out int queryResult);
-                        queryAvailable = queryResult == 1;
-                    }
-
-                    if (queryAvailable)
-                    {
-                        GL.GetQueryObject(samplesPassedQuery, GetQueryObjectParam.QueryResult, out int queryResult);
-                        FrameStatistics.Add(StatisticsCounterType.Fragments, queryResult);
-
-                        lastSamplesPassed = queryResult;
-
-                        GL.BeginQuery(QueryTarget.SamplesPassed, samplesPassedQuery);
-                    }
-                    else
-                        FrameStatistics.Add(StatisticsCounterType.Fragments, lastSamplesPassed);
-
                     if (ftbPass.Value)
                     {
                         var depthValue = new DepthValue();
@@ -378,9 +353,6 @@ namespace osu.Framework.Platform
                     buffer.Object.Draw(null);
 
                     GLWrapper.PopDepthInfo();
-
-                    if (queryAvailable)
-                        GL.EndQuery(QueryTarget.SamplesPassed);
 
                     lastDrawFrameId = buffer.FrameId;
                     break;
