@@ -83,30 +83,16 @@ namespace osu.Framework.Graphics
         /// <returns>Twice the area enclosed by the vertices.
         /// The vertices are in clockwise order if the value is positive.
         /// The vertices are in counter-clockwise order if the value is negative.</returns>
-        public static float GetRotation(ReadOnlySpan<Vector2> vertices)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetRotation(in ReadOnlySpan<Vector2> vertices)
         {
             float rotation = 0;
             for (int i = 0; i < vertices.Length - 1; ++i)
-            {
-                var vi = vertices[i];
-                var vj = vertices[i + 1];
-
-                rotation += (vj.X - vi.X) * (vj.Y + vi.Y);
-            }
+                rotation += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y);
 
             rotation += (vertices[0].X - vertices[vertices.Length - 1].X) * (vertices[0].Y + vertices[vertices.Length - 1].Y);
 
             return rotation;
-        }
-
-        /// <summary>
-        /// Sorts a set of vertices in clockwise order.
-        /// </summary>
-        /// <param name="vertices">The vertices to sort.</param>
-        public static void ClockwiseSort(Span<Vector2> vertices)
-        {
-            if (GetRotation(vertices) < 0)
-                vertices.Reverse();
         }
 
         /// <summary>
@@ -117,6 +103,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether <paramref name="point"/> is in the right half-plane of <paramref name="line"/>.
         /// If the point is colinear to the line, it is said to be in the right half-plane of the line.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool InRightHalfPlaneOf(this Vector2 point, in Line line)
             => (line.EndPoint.X - line.StartPoint.X) * (point.Y - line.StartPoint.Y)
                - (line.EndPoint.Y - line.StartPoint.Y) * (point.X - line.StartPoint.X) <= 0;
