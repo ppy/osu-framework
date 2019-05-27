@@ -16,7 +16,7 @@ namespace osu.Framework.MathUtils.Clipping
         private readonly TClip clipPolygon;
         private readonly TSubject subjectPolygon;
 
-        public ConvexPolygonClipper(TClip clipPolygon, TSubject subjectPolygon)
+        public ConvexPolygonClipper(ref TClip clipPolygon, ref TSubject subjectPolygon)
         {
             this.clipPolygon = clipPolygon;
             this.subjectPolygon = subjectPolygon;
@@ -45,7 +45,7 @@ namespace osu.Framework.MathUtils.Clipping
         /// </summary>
         /// <param name="buffer">The buffer to contain the clipped vertices. Must have a length of <see cref="GetClipBufferSize"/>.</param>
         /// <returns>A clockwise-ordered set of vertices representing the result of clipping <see cref="subjectPolygon"/> by <see cref="clipPolygon"/>.</returns>
-        public Span<Vector2> Clip(Span<Vector2> buffer)
+        public Span<Vector2> Clip(in Span<Vector2> buffer)
         {
             if (buffer.Length < GetClipBufferSize())
             {
