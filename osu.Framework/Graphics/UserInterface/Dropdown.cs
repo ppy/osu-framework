@@ -45,6 +45,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (usingItemSource)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
+
                 setItems(value);
             }
         }
@@ -101,6 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
+
             addDropdownItem(text, value);
         }
 
@@ -129,6 +131,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
+
             return removeDropdownItem(value);
         }
 
@@ -220,8 +223,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
-                && args.NewValue != null)
+            if (args.NewValue == null && SelectedItem != null)
+            {
+                selectedItem = new DropdownMenuItem<T>(null, default);
+            }
+            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
@@ -240,6 +246,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (usingItemSource)
                 throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
+
             clearItems();
         }
 
@@ -340,6 +347,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         if (selected == value)
                             return;
+
                         selected = value;
 
                         OnSelectChange();

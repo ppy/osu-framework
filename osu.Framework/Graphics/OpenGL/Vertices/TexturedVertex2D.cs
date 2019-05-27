@@ -30,14 +30,12 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float Depth;
 
-        public bool Equals(TexturedVertex2D other)
-        {
-            return Position.Equals(other.Position)
-                   && TexturePosition.Equals(other.TexturePosition)
-                   && Colour.Equals(other.Colour)
-                   && TextureRect.Equals(other.TextureRect)
-                   && BlendRange.Equals(other.BlendRange)
-                   && Depth.Equals(other.Depth);
-        }
+        public bool Equals(TexturedVertex2D other) =>
+            Position.Equals(other.Position)
+            && TexturePosition.Equals(other.TexturePosition)
+            && Colour.Equals(other.Colour)
+            && TextureRect.Equals(other.TextureRect)
+            && BlendRange.Equals(other.BlendRange);
+            && Depth.Equals(other.Depth);
     }
 }

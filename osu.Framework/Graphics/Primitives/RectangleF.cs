@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using osuTK;
@@ -134,6 +135,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             if (!(obj is RectangleF))
                 return false;
+
             RectangleF ef = (RectangleF)obj;
             return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
         }
@@ -186,15 +188,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>Gets the hash code for this <see cref="T:System.Drawing.RectangleF"></see> structure. For information about the use of hash codes, see Object.GetHashCode.</summary>
         /// <returns>The hash code for this <see cref="T:System.Drawing.RectangleF"></see>.</returns>
         /// <filterpriority>1</filterpriority>
-        public override int GetHashCode()
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return
-                (int)((uint)X ^ (uint)Y << 13 | (uint)Y >> 0x13 ^
-                      (uint)Width << 0x1a | (uint)Width >> 6 ^
-                      (uint)Height << 7 | (uint)Height >> 0x19);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override int GetHashCode() =>
+            (int)(((uint)X ^ ((uint)Y << 13)) | (((uint)Y >> 0x13) ^ ((uint)Width << 0x1a)) | (((uint)Width >> 6) ^ ((uint)Height << 7)) | ((uint)Height >> 0x19));
 
         /// <summary>Gets the Area of this <see cref="RectangleF"/>.</summary>
         public float Area => Width * Height;
@@ -294,6 +290,7 @@ namespace osu.Framework.Graphics.Primitives
             float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
             if (num2 >= x && num4 >= y)
                 return new RectangleF(x, y, num2 - x, num4 - y);
+
             return Empty;
         }
 
@@ -374,9 +371,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
         public override string ToString() => $"X={Math.Round(X, 3).ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Y={Math.Round(Y, 3).ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Width={Math.Round(Width, 3).ToString(CultureInfo.CurrentCulture)}, "
-                                           + $"Height={Math.Round(Height, 3).ToString(CultureInfo.CurrentCulture)}";
+                                             + $"Y={Math.Round(Y, 3).ToString(CultureInfo.CurrentCulture)}, "
+                                             + $"Width={Math.Round(Width, 3).ToString(CultureInfo.CurrentCulture)}, "
+                                             + $"Height={Math.Round(Height, 3).ToString(CultureInfo.CurrentCulture)}";
 
         public bool Equals(RectangleF other) => X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }

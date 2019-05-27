@@ -5,15 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -21,6 +18,7 @@ using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -90,10 +88,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessageAsync(IpcMessage message)
-        {
-            throw new NotSupportedException("This platform does not implement IPC.");
-        }
+        public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
@@ -509,6 +504,8 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            DebugUtils.HostAssembly = game.GetType().Assembly;
+
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
@@ -538,19 +535,8 @@ namespace osu.Framework.Platform
 
                 FileSafety.DeleteCleanupDirectory();
 
-                string assemblyPath;
-                var assembly = Assembly.GetEntryAssembly();
-
-                // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-                if (assembly == null || assembly.Location.Contains("testhost"))
-                {
-                    assembly = Assembly.GetExecutingAssembly();
-
-                    // From nuget, the executing assembly will also be wrong
-                    assemblyPath = TestContext.CurrentContext.TestDirectory;
-                }
-                else
-                    assemblyPath = Path.GetDirectoryName(assembly.Location);
+                var assembly = DebugUtils.GetEntryAssembly();
+                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
                 Logger.VersionIdentifier = assembly.GetName().Version.ToString();
@@ -565,7 +551,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig();
+                setupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
@@ -721,6 +707,7 @@ namespace osu.Framework.Platform
         {
             if (!e.Control)
                 return;
+
             switch (e.Key)
             {
                 case Key.F7:
@@ -747,16 +734,30 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig()
+        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
+            var hostDefaults = new Dictionary<FrameworkSetting, object>
+            {
+                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
+            };
+
+            // merge defaults provided by game into host defaults.
+            if (gameDefaults != null)
+            {
+                foreach (var d in gameDefaults)
+                    hostDefaults[d.Key] = d.Value;
+            }
+
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)
                     return;
+
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
@@ -857,6 +858,7 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             if (ExecutionState > ExecutionState.Stopping)

@@ -9,28 +9,23 @@ namespace osu.Framework.Graphics.Primitives
     public interface IPolygon
     {
         /// <summary>
-        /// The vertices for this polygon.
+        /// The vertices that define the axes spanned by this polygon.
         /// </summary>
-        Vector2[] Vertices { get; }
+        /// <remarks>
+        /// Must be returned in a clockwise orientation. For best performance, vertices that form colinear edges should not be included.
+        /// </remarks>
+        /// <returns>
+        /// The vertices that define the axes spanned by this polygon.
+        /// </returns>
+        ReadOnlySpan<Vector2> GetAxisVertices();
 
         /// <summary>
-        /// The vertices for this polygon that are used to compute the axes of the polygon.
-        /// <para>
-        /// Optimisation: Edges that would form duplicate normals as other edges
-        /// in the polygon do not need their vertices added to this array.
-        /// </para>
+        /// Retrieves the vertices of this polygon.
         /// </summary>
-        Vector2[] AxisVertices { get; }
-
-        /// <summary>
-        /// Retrieves the vertices for this polygon in clockwise order.
-        /// </summary>
-        /// <returns>The vertices of this polygon in clockwise order.</returns>
+        /// <remarks>
+        /// Must be returned in a clockwise orientation.
+        /// </remarks>
+        /// <returns>The vertices of this polygon.</returns>
         ReadOnlySpan<Vector2> GetVertices();
-
-        /// <summary>
-        /// Whether the polygon contains a given vertex.
-        /// </summary>
-        bool Contains(Vector2 v);
     }
 }

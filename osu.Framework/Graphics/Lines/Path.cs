@@ -73,6 +73,7 @@ namespace osu.Framework.Graphics.Lines
             foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+
             return false;
         }
 

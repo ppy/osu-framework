@@ -4,6 +4,7 @@
 using osu.Framework.Graphics.OpenGL;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics
 {
@@ -36,6 +37,7 @@ namespace osu.Framework.Graphics
         protected readonly IDrawable Source;
 
         public float Depth;
+        private readonly AtomicCounter referenceCount = new AtomicCounter();
 
         /// <summary>
         /// Creates a new <see cref="DrawNode"/>.
@@ -44,6 +46,8 @@ namespace osu.Framework.Graphics
         public DrawNode(IDrawable source)
         {
             Source = source;
+
+            Reference();
         }
 
         /// <summary>
@@ -73,6 +77,15 @@ namespace osu.Framework.Graphics
             Depth = depthValue;
         }
 
+        /// <summary>
+        /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.
+        /// Invoke <see cref="Dispose"/> to remove the reference.
+        /// </summary>
+        /// <remarks>
+        /// All <see cref="DrawNode"/>s start with a reference count of 1.
+        /// </remarks>
+        internal void Reference() => referenceCount.Increment();
+
         ~DrawNode()
         {
             Dispose(false);
@@ -80,6 +93,9 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
+            if (referenceCount.Decrement() != 0)
+                return;
+
             Dispose(true);
             GC.SuppressFinalize(this);
         }

@@ -58,6 +58,7 @@ namespace osu.Framework.IO.Stores
             catch (Exception ex)
             {
                 Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
+                completionSource.SetResult(null);
                 throw;
             }
         }, TaskCreationOptions.PreferFairness));
@@ -137,10 +138,7 @@ namespace osu.Framework.IO.Stores
             return t;
         }
 
-        public Stream GetStream(string name)
-        {
-            throw new NotSupportedException();
-        }
+        public Stream GetStream(string name) => throw new NotSupportedException();
 
         private int loadedPageCount;
         private int loadedGlyphCount;

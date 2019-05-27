@@ -23,6 +23,8 @@ namespace osu.Framework.Platform.MacOS
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
+        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
+
         public override Clipboard GetClipboard() => new MacOSClipboard();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
@@ -41,7 +43,7 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Delete }), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.BackSpace}), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.BackSpace }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Delete }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Shift, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Select)),

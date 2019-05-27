@@ -32,15 +32,21 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
-        public Vector2 Difference => EndPoint - StartPoint;
+        /// <summary>
+        /// The direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 Direction => EndPoint - StartPoint;
 
-        public Vector2 Direction => Difference.Normalized();
+        /// <summary>
+        /// The normalized direction of this <see cref="Line"/>.
+        /// </summary>
+        public Vector2 DirectionNormalized => Direction.Normalized();
 
         public Vector2 OrthogonalDirection
         {
             get
             {
-                Vector2 dir = Direction;
+                Vector2 dir = DirectionNormalized;
                 return new Vector2(-dir.Y, dir.X);
             }
         }
@@ -52,69 +58,44 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>
-        /// Computes a position along the line.
+        /// Computes a position along this line.
         /// </summary>
-        /// <param name="t">Parameterizes the position along the line to compute. t is in [0, 1], where 0 yields the
-        /// start point and 1 yields the end point.</param>
+        /// <param name="t">A parameter representing the position along the line to compute. 0 yields the start point and 1 yields the end point.</param>
         /// <returns>The position along the line.</returns>
-        public Vector2 At(float t) => StartPoint + Difference * t;
+        public Vector2 At(float t) => StartPoint + Direction * t;
 
         /// <summary>
-        /// Intersects 2 lines.
+        /// Intersects this line with another.
         /// </summary>
-        /// <param name="other">Other line to intersect this with.</param>
-        /// <returns>Whether the two lines intersect and, if so, the normalized distance along the line (i.e. distance
-        /// divided by length of line). To compute the point of intersection, use `StartPoint + Difference * t`.</returns>
-        public (bool success, float distance) Intersect(Line other)
+        /// <param name="other">The line to intersect with.</param>
+        /// <returns>Whether the two lines intersect and, if so, the distance along this line at which the intersection occurs.
+        /// An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.
+        /// To compute the point of intersection, <see cref="At"/>.</returns>
+        public (bool success, float distance) IntersectWith(Line other)
         {
-            Vector2 diff1 = StartPoint - EndPoint;
-            Vector2 diff2 = other.StartPoint - other.EndPoint;
+            Vector2 diff1 = Direction;
+            Vector2 diff2 = other.Direction;
 
             float denom = diff1.X * diff2.Y - diff1.Y * diff2.X;
+
             if (Precision.AlmostEquals(0, denom))
-                return (false, 0); // Colinear
+                return (false, 0); // Co-linear
 
-            Vector2 d = StartPoint - other.StartPoint;
-
+            Vector2 d = other.StartPoint - StartPoint;
             float t = (d.X * diff2.Y - d.Y * diff2.X) / denom;
 
             return (true, t);
         }
 
-        public bool IsInside(Vector2 point)
-        {
-            var diff1 = Difference;
-            var diff2 = point - StartPoint;
-
-            // Cross product
-            var c = diff1.X * diff2.Y - diff1.Y * diff2.X;
-
-            return c <= 0;
-        }
-
-        public float Cross(Line other)
-        {
-            Vector2 diff1 = Difference;
-            Vector2 diff2 = other.Difference;
-
-            return diff1.X * diff2.Y - diff1.Y * diff2.X;
-        }
-
         /// <summary>
         /// Distance squared from an arbitrary point p to this line.
         /// </summary>
-        public float DistanceSquaredToPoint(Vector2 p)
-        {
-            return Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
-        }
+        public float DistanceSquaredToPoint(Vector2 p) => Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
 
         /// <summary>
         /// Distance from an arbitrary point to this line.
         /// </summary>
-        public float DistanceToPoint(Vector2 p)
-        {
-            return Vector2Extensions.Distance(p, ClosestPointTo(p));
-        }
+        public float DistanceToPoint(Vector2 p) => Vector2Extensions.Distance(p, ClosestPointTo(p));
 
         /// <summary>
         /// Finds the point closest to the given point on this line.
@@ -144,22 +125,13 @@ namespace osu.Framework.Graphics.Primitives
             return pB;
         }
 
-        public Matrix4 WorldMatrix()
-        {
-            return Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(StartPoint.X, StartPoint.Y, 0);
-        }
+        public Matrix4 WorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(StartPoint.X, StartPoint.Y, 0);
 
         /// <summary>
         /// It's the end of the world as we know it
         /// </summary>
-        public Matrix4 EndWorldMatrix()
-        {
-            return Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
-        }
+        public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
 
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
+        public override string ToString() => $"{StartPoint} -> {EndPoint}";
     }
 }

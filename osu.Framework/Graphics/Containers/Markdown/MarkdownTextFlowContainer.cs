@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
             => base.AddText("[" + AddPlaceholder(drawable) + "]");
 
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
-            => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+            => base.AddText(Escape(text), creationParameters);
 
         public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
-            => base.AddParagraph(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+            => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
         {
@@ -74,11 +74,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                         AddLinkText(text, linkInline);
                                     break;
                                 }
+
                                 default:
                                     AddText(text);
                                     break;
                             }
                         }
+
                         break;
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);

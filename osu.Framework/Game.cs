@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
@@ -52,8 +53,6 @@ namespace osu.Framework
 
         private readonly Container content;
 
-        private PerformanceOverlay performanceContainer;
-
         private DrawVisualiser drawVisualiser;
 
         private LogOverlay logOverlay;
@@ -61,6 +60,14 @@ namespace osu.Framework
         protected override Container<Drawable> Content => content;
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
+
+        /// <summary>
+        /// Provide <see cref="FrameworkSetting"/> defaults which should override those provided by osu-framework.
+        /// <remarks>
+        /// Please check https://github.com/ppy/osu-framework/blob/master/osu.Framework/Configuration/FrameworkConfigManager.cs for expected types.
+        /// </remarks>
+        /// </summary>
+        protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
 
         protected Game()
         {
@@ -128,7 +135,7 @@ namespace osu.Framework
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
-            //attach our bindables to the audio subsystem.
+            // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
@@ -149,7 +156,9 @@ namespace osu.Framework
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome/FontAwesome"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
 
             dependencies.Cache(Fonts);
 
@@ -161,7 +170,9 @@ namespace osu.Framework
         {
             base.LoadComplete();
 
-            LoadComponentAsync(performanceContainer = new PerformanceOverlay(Host.Threads.Reverse())
+            PerformanceOverlay performanceOverlay;
+
+            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads.Reverse())
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,
@@ -173,40 +184,43 @@ namespace osu.Framework
                 Depth = float.MinValue
             }, AddInternal);
 
+            FrameStatistics.BindValueChanged(e => performanceOverlay.State = e.NewValue, true);
+
             addDebugTools();
         }
 
-        protected FrameStatisticsMode FrameStatisticsMode
-        {
-            get => performanceContainer.State;
-            set => performanceContainer.State = value;
-        }
+        protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
             {
                 case FrameworkAction.CycleFrameStatistics:
-                    switch (FrameStatisticsMode)
+                    switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
-                            FrameStatisticsMode = FrameStatisticsMode.Minimal;
+                            FrameStatistics.Value = FrameStatisticsMode.Minimal;
                             break;
+
                         case FrameStatisticsMode.Minimal:
-                            FrameStatisticsMode = FrameStatisticsMode.Full;
+                            FrameStatistics.Value = FrameStatisticsMode.Full;
                             break;
+
                         case FrameStatisticsMode.Full:
-                            FrameStatisticsMode = FrameStatisticsMode.None;
+                            FrameStatistics.Value = FrameStatisticsMode.None;
                             break;
                     }
 
                     return true;
+
                 case FrameworkAction.ToggleDrawVisualiser:
                     drawVisualiser.ToggleVisibility();
                     return true;
+
                 case FrameworkAction.ToggleLogOverlay:
                     logOverlay.ToggleVisibility();
                     return true;
+
                 case FrameworkAction.ToggleFullscreen:
                     Window?.CycleMode();
                     return true;
@@ -225,24 +239,7 @@ namespace osu.Framework
             Host.Exit();
         }
 
-        protected virtual bool OnExiting()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Called before a frame cycle has started (Update and Draw).
-        /// </summary>
-        protected virtual void PreFrame()
-        {
-        }
-
-        /// <summary>
-        /// Called after a frame cycle has been completed (Update and Draw).
-        /// </summary>
-        protected virtual void PostFrame()
-        {
-        }
+        protected virtual bool OnExiting() => false;
 
         protected override void Dispose(bool isDisposing)
         {

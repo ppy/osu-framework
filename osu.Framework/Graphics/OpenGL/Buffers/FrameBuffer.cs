@@ -20,7 +20,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #region Disposal
 
-        ~FrameBuffer() => Dispose(false);
+        ~FrameBuffer()
+        {
+            Dispose(false);
+        }
 
         public void Dispose()
         {
@@ -34,6 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             GLWrapper.DeleteFramebuffer(frameBuffer);
@@ -77,6 +81,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 if (value == size)
                     return;
+
                 size = value;
 
                 Texture.Width = (int)Math.Ceiling(size.X);

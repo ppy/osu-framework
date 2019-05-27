@@ -72,25 +72,19 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
         public static extern bool CGCursorIsVisible();
 
+        [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGEventSourceFlagsState")]
+        public static extern ulong CGEventSourceFlagsState(int stateID);
+
         static Cocoa()
         {
             AppKitLibrary = (IntPtr)type_cocoa.GetField("AppKitLibrary").GetValue(null);
             FoundationLibrary = (IntPtr)type_cocoa.GetField("FoundationLibrary").GetValue(null);
         }
 
-        public static string FromNSString(IntPtr handle)
-        {
-            return (string)method_cocoa_from_ns_string.Invoke(null, new object[] { handle });
-        }
+        public static string FromNSString(IntPtr handle) => (string)method_cocoa_from_ns_string.Invoke(null, new object[] { handle });
 
-        public static IntPtr ToNSString(string str)
-        {
-            return (IntPtr)method_cocoa_to_ns_string.Invoke(null, new object[] { str });
-        }
+        public static IntPtr ToNSString(string str) => (IntPtr)method_cocoa_to_ns_string.Invoke(null, new object[] { str });
 
-        public static IntPtr GetStringConstant(IntPtr handle, string symbol)
-        {
-            return (IntPtr)method_cocoa_get_string_constant.Invoke(null, new object[] { handle, symbol });
-        }
+        public static IntPtr GetStringConstant(IntPtr handle, string symbol) => (IntPtr)method_cocoa_get_string_constant.Invoke(null, new object[] { handle, symbol });
     }
 }

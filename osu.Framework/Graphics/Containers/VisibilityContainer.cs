@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == state) return;
+
                 state = value;
 
                 if (!IsLoaded) return;

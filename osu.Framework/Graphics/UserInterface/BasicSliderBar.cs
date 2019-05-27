@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.Color4Extensions;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -29,20 +28,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BasicSliderBar()
         {
-            CornerRadius = 4;
-            Masking = true;
-
             Children = new Drawable[]
             {
                 Box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.MediumPurple.Darken(0.5f),
+                    Colour = FrameworkColour.Green,
                 },
                 SelectionBox = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.MediumPurple.Lighten(0.1f),
+                    Colour = FrameworkColour.Yellow,
                 }
             };
         }

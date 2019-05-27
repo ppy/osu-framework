@@ -18,9 +18,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             private readonly SpriteText text;
 
-            public override bool IsRemovable => true;
-
-            public BasicTabItem(T value) : base(value)
+            public BasicTabItem(T value)
+                : base(value)
             {
                 AutoSizeAxes = Axes.Both;
 

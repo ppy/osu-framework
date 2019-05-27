@@ -153,7 +153,10 @@ namespace osu.Framework.Tests.Localisation
         {
             protected override string Filename => null;
 
-            public FakeFrameworkConfigManager() : base(null) { }
+            public FakeFrameworkConfigManager()
+                : base(null)
+            {
+            }
 
             protected override void InitialiseDefaults()
             {
@@ -193,6 +196,7 @@ namespace osu.Framework.Tests.Localisation
                             case "ja-JP":
                                 return LOCALISABLE_STRING_JA_JP;
                         }
+
                     case LOCALISABLE_FORMAT_STRING_EN:
                         switch (locale)
                         {
@@ -201,6 +205,7 @@ namespace osu.Framework.Tests.Localisation
                             case "ja":
                                 return LOCALISABLE_FORMAT_STRING_JA;
                         }
+
                     default:
                         return name;
                 }

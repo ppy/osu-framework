@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                if (IsDisposed)
+                if (!Available)
                     throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
 
                 if (textureId == 0)
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                       Vector2? blendRangeOverride = null)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateWrapMode()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not update wrap mode of a disposed texture.");
 
             internalWrapMode = WrapMode;
@@ -287,14 +287,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(ITextureUpload upload)
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
                 upload.Bounds = new RectangleI(0, 0, width, height);
-                if (width * height != upload.Data.Length)
-                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not match data length ({upload.Data.Length})");
+                if (width * height > upload.Data.Length)
+                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
             IsTransparent = false;
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             Upload();
@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         internal override unsafe bool Upload()
         {
-            if (IsDisposed)
+            if (!Available)
                 return false;
 
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
@@ -357,6 +357,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             return didUpload;
+        }
+
+        internal override void FlushUploads()
+        {
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
         }
 
         private bool tryGetNextUpload(out ITextureUpload upload)

@@ -39,6 +39,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual float LeftRightPadding => 5;
 
+        protected virtual float CaretWidth => 3;
+
         private const float caret_move_time = 60;
 
         public int? LengthLimit;
@@ -136,10 +138,12 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new[]
                     {
-                        Placeholder = CreatePlaceholder(),
+                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
                         Caret = new DrawableCaret(),
                         TextFlow = new FillFlowContainer
                         {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
                             Direction = FillDirection.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
@@ -207,17 +211,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            const float cursor_width = 3;
-
             Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
 
             textUpdateScheduler.Update();
 
-            float caretWidth = cursor_width;
+            float caretWidth = CaretWidth;
 
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
+                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
@@ -278,6 +280,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (index < text.Length)
                     return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
+
                 var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
@@ -294,6 +297,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
+
                 i++;
             }
 
@@ -471,6 +475,10 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.Remove(d);
 
                 TextContainer.Add(d);
+
+                // account for potentially altered height of textbox
+                d.Y = TextFlow.BoundingBox.Y;
+
                 d.FadeOut(200);
                 d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();

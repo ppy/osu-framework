@@ -14,12 +14,10 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     {
         [VertexMember(2, VertexAttribPointerType.Float)]
         public Vector2 Position;
+
         [VertexMember(4, VertexAttribPointerType.Float)]
         public Color4 Colour;
 
-        public bool Equals(Vertex2D other)
-        {
-            return Position.Equals(other.Position) && Colour.Equals(other.Colour);
-        }
+        public bool Equals(Vertex2D other) => Position.Equals(other.Position) && Colour.Equals(other.Colour);
     }
 }

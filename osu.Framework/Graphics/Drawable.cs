@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics
 
                 Dispose(isDisposing);
 
-                unbindAllBindables();
+                UnbindAllBindables();
 
                 Parent = null;
 
@@ -118,7 +118,10 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        internal virtual void UnbindAllBindables() => unbindAllBindables();
+        /// <summary>
+        /// Recursively invokes <see cref="UnbindAllBindables"/> on this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
+        /// </summary>
+        internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
         private void cacheUnbindActions()
         {
@@ -162,14 +165,18 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
         /// </summary>
-        private void unbindAllBindables()
+        internal virtual void UnbindAllBindables()
         {
-            if (unbindComplete) return;
+            if (unbindComplete)
+                return;
+
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+
+            OnUnbindAllBindables?.Invoke();
         }
 
         #endregion
@@ -206,11 +213,11 @@ namespace osu.Framework.Graphics
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
             lock (loadLock)
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
                 if (loadState == LoadState.NotLoaded)
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
@@ -377,6 +384,11 @@ namespace osu.Framework.Graphics
         /// Fired after the <see cref="dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
+
+        /// <summary>
+        /// Fired after the <see cref="UnbindAllBindables"/> method is called.
+        /// </summary>
+        internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
 
@@ -942,6 +954,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (fillMode == value) return;
+
                 fillMode = value;
 
                 Invalidate(Invalidation.DrawSize);
@@ -965,6 +978,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (shear == value) return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Shear)} must be finite, but is {value}.");
 
                 shear = value;
@@ -984,6 +998,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (value == rotation) return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
@@ -1274,6 +1289,7 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
+
                 blending = value;
 
                 Invalidate(Invalidation.Colour);
@@ -1337,6 +1353,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (lifetimeStart == value) return;
+
                 lifetimeStart = value;
                 LifetimeChanged?.Invoke(this);
             }
@@ -1351,6 +1368,7 @@ namespace osu.Framework.Graphics
             set
             {
                 if (lifetimeEnd == value) return;
+
                 lifetimeEnd = value;
                 LifetimeChanged?.Invoke(this);
             }
@@ -1460,6 +1478,7 @@ namespace osu.Framework.Graphics
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
+
             return proxy = new ProxyDrawable(this);
         }
 
@@ -1770,40 +1789,28 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in screen coordinates.</returns>
-        public Vector2 ToScreenSpace(Vector2 input)
-        {
-            return Vector2Extensions.Transform(input, DrawInfo.Matrix);
-        }
+        public Vector2 ToScreenSpace(Vector2 input) => Vector2Extensions.Transform(input, DrawInfo.Matrix);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in screen space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        public Quad ToScreenSpace(RectangleF input)
-        {
-            return Quad.FromRectangle(input) * DrawInfo.Matrix;
-        }
+        public Quad ToScreenSpace(RectangleF input) => Quad.FromRectangle(input) * DrawInfo.Matrix;
 
         /// <summary>
         /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpacePos">A vector in screen coordinates.</param>
         /// <returns>The vector in local coordinates.</returns>
-        public Vector2 ToLocalSpace(Vector2 screenSpacePos)
-        {
-            return Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
-        }
+        public Vector2 ToLocalSpace(Vector2 screenSpacePos) => Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
 
         /// <summary>
         /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpaceQuad">A quad in screen coordinates.</param>
         /// <returns>The quad in local coordinates.</returns>
-        public Quad ToLocalSpace(Quad screenSpaceQuad)
-        {
-            return screenSpaceQuad * DrawInfo.MatrixInverse;
-        }
+        public Quad ToLocalSpace(Quad screenSpaceQuad) => screenSpaceQuad * DrawInfo.MatrixInverse;
 
         #endregion
 

@@ -120,7 +120,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default,
+                                                               Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
@@ -331,6 +332,7 @@ namespace osu.Framework.Graphics.Containers
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
+
             return x.ChildID.CompareTo(y.ChildID);
         }
 
@@ -347,6 +349,7 @@ namespace osu.Framework.Graphics.Containers
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
+
             return y.ChildID.CompareTo(x.ChildID);
         }
 
@@ -452,15 +455,10 @@ namespace osu.Framework.Graphics.Containers
                     ChildDied?.Invoke(t);
 
                 t.IsAlive = false;
+                t.Parent = null;
 
                 if (disposeChildren)
-                {
-                    //cascade disposal
-                    (t as CompositeDrawable)?.ClearInternal();
-                    t.Dispose();
-                }
-                else
-                    t.Parent = null;
+                    DisposeChildAsync(t);
 
                 Trace.Assert(t.Parent == null);
             }
@@ -568,15 +566,18 @@ namespace osu.Framework.Graphics.Containers
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
+
                     break;
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
+
                     break;
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
+
                     break;
             }
         }
@@ -740,11 +741,12 @@ namespace osu.Framework.Graphics.Containers
                 DisposeChildAsync(child);
         }
 
-        internal override void UnbindAllBindables()
+        internal override void UnbindAllBindablesSubTree()
         {
-            base.UnbindAllBindables();
+            base.UnbindAllBindablesSubTree();
+
             foreach (Drawable child in internalChildren)
-                child.UnbindAllBindables();
+                child.UnbindAllBindablesSubTree();
         }
 
         /// <summary>
@@ -753,8 +755,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The child to dispose.</param>
         internal void DisposeChildAsync(Drawable drawable)
         {
-            drawable.UnbindAllBindables();
-            Task.Run(drawable.Dispose);
+            drawable.UnbindAllBindablesSubTree();
+            AsyncDisposalQueue.Enqueue(drawable);
         }
 
         internal override void UpdateClock(IFrameBasedClock clock)
@@ -951,6 +953,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (forceLocalVertexBatch == value)
                     return;
+
                 forceLocalVertexBatch = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -1064,6 +1067,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (base.RemoveCompletedTransforms == value)
                     return;
+
                 base.RemoveCompletedTransforms = value;
 
                 foreach (var c in internalChildren)
@@ -1170,8 +1174,16 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
+
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
+
+        /// <summary>
+        /// Check whether a child should be considered for inclusion in <see cref="BuildNonPositionalInputQueue"/> and <see cref="BuildPositionalInputQueue"/>
+        /// </summary>
+        /// <param name="child">The drawable to be evaluated.</param>
+        /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
+        protected virtual bool ShouldBeConsideredForInput(Drawable child) => true;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
@@ -1179,7 +1191,10 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            {
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            }
 
             return true;
         }
@@ -1193,7 +1208,10 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            {
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            }
 
             return true;
         }
@@ -1533,6 +1551,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
                     throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Width = value;
             }
         }
@@ -1550,6 +1569,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
                     throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Height = value;
             }
         }
@@ -1569,6 +1589,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Size = value;
             }
         }

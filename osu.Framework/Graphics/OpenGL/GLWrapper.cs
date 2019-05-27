@@ -39,6 +39,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
+        private static bool isEmbedded;
+
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
         /// </summary>
@@ -63,6 +65,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
+            isEmbedded = host.Window.IsEmbedded;
+
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
 
@@ -81,6 +85,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (host != null && host.TryGetTarget(out GameHost h))
                 h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            else
+                disposalAction.Invoke();
 
             void scheduleNextDisposal() => reset_scheduler.Add(() =>
             {
@@ -143,24 +149,29 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void Clear(ClearInfo clearInfo)
         {
-            // Required to allow depth buffer to be properly cleared
-            PushDepthInfo(new DepthInfo(false));
-
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                // Todo: Wtf. osuTK's bindings are broken for glClearDepthf(). Using glClearDepth() for now
-                osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
+                if (isEmbedded)
+                {
+                    // GL ES only supports glClearDepthf
+                    // See: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glClearDepthf.xhtml
+                    GL.ClearDepth((float)clearInfo.Depth);
+                }
+                else
+                {
+                    // Older desktop platforms don't support glClearDepthf, so standard GL's double version is used instead
+                    // See: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearDepth.xhtml
+                    osuTK.Graphics.OpenGL.GL.ClearDepth(clearInfo.Depth);
+                }
             }
 
             if (clearInfo.Stencil != currentClearInfo.Stencil)
                 GL.ClearStencil(clearInfo.Stencil);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-            PopDepthInfo();
 
             currentClearInfo = clearInfo;
         }
@@ -313,6 +324,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Viewport == actualRect)
                 return;
+
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
@@ -334,6 +346,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Viewport == actualRect)
                 return;
+
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
@@ -354,6 +367,7 @@ namespace osu.Framework.Graphics.OpenGL
             ortho_stack.Push(ortho);
             if (Ortho == ortho)
                 return;
+
             Ortho = ortho;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
@@ -376,6 +390,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (Ortho == actualRect)
                 return;
+
             Ortho = actualRect;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
@@ -712,58 +727,17 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Hollow;
         public float HollowCornerRadius;
 
-        public bool Equals(MaskingInfo other)
-        {
-            return
-                ScreenSpaceAABB == other.ScreenSpaceAABB &&
-                MaskingRect == other.MaskingRect &&
-                ToMaskingSpace == other.ToMaskingSpace &&
-                CornerRadius == other.CornerRadius &&
-                BorderThickness == other.BorderThickness &&
-                BorderColour.Equals(other.BorderColour) &&
-                BlendRange == other.BlendRange &&
-                AlphaExponent == other.AlphaExponent &&
-                EdgeOffset == other.EdgeOffset &&
-                Hollow == other.Hollow &&
-                HollowCornerRadius == other.HollowCornerRadius;
-        }
-    }
-
-    public readonly struct DepthInfo : IEquatable<DepthInfo>
-    {
-        public readonly bool DepthTest;
-
-        public readonly bool WriteDepth;
-
-        public readonly DepthFunction Function;
-
-        public DepthInfo(bool depthTest = true, bool writeDepth = true, DepthFunction function = DepthFunction.Less)
-        {
-            DepthTest = depthTest;
-            WriteDepth = writeDepth;
-            Function = function;
-        }
-
-        public bool Equals(DepthInfo other) => DepthTest == other.DepthTest && WriteDepth == other.WriteDepth && Function == other.Function;
-
-        public static DepthInfo Default => new DepthInfo(true);
-    }
-
-    public readonly struct ClearInfo
-    {
-        public readonly Color4 Colour;
-
-        public readonly double Depth;
-
-        public readonly int Stencil;
-
-        public ClearInfo(Color4 colour = default, double depth = 1f, int stencil = 0)
-        {
-            Colour = colour;
-            Depth = depth;
-            Stencil = stencil;
-        }
-
-        public static ClearInfo Default => new ClearInfo(default);
+        public bool Equals(MaskingInfo other) =>
+            ScreenSpaceAABB == other.ScreenSpaceAABB &&
+            MaskingRect == other.MaskingRect &&
+            ToMaskingSpace == other.ToMaskingSpace &&
+            CornerRadius == other.CornerRadius &&
+            BorderThickness == other.BorderThickness &&
+            BorderColour.Equals(other.BorderColour) &&
+            BlendRange == other.BlendRange &&
+            AlphaExponent == other.AlphaExponent &&
+            EdgeOffset == other.EdgeOffset &&
+            Hollow == other.Hollow &&
+            HollowCornerRadius == other.HollowCornerRadius;
     }
 }

@@ -59,10 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return actualBounds;
         }
 
-        public override RectangleF GetTextureRect(RectangleF? textureRect)
-        {
-            return parent.GetTextureRect(boundsInParent(textureRect));
-        }
+        public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
         public override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
@@ -74,15 +71,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawQuad(vertexQuad, depth, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
-        internal override bool Upload()
+        internal override bool Upload() => false;
+
+        internal override void FlushUploads()
         {
-            //no upload required; our parent does this.
-            return false;
         }
 
         public override bool Bind()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();

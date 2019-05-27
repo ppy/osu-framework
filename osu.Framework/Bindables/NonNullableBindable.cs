@@ -14,6 +14,7 @@ namespace osu.Framework.Bindables
 
             Value = Default = defaultValue;
         }
+
         public override T Value
         {
             get => base.Value;
