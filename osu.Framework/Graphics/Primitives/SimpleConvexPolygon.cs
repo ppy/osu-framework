@@ -1,14 +1,13 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct SimpleConvexPolygon : IConvexPolygon
+    public class SimpleConvexPolygon : IConvexPolygon
     {
-        public Vector2[] Vertices => vertices;
-
-        public Vector2[] AxisVertices => vertices;
-
         private readonly Vector2[] vertices;
 
         public SimpleConvexPolygon(Vector2[] vertices)
@@ -16,8 +15,10 @@ namespace osu.Framework.Graphics.Primitives
             this.vertices = vertices;
         }
 
-        public bool Contains(Vector2 v) => false;
+        public ReadOnlySpan<Vector2> GetAxisVertices() => vertices;
 
         public ReadOnlySpan<Vector2> GetVertices() => vertices;
+
+        public int MaxClipVertices => vertices.Length * 2;
     }
 }
