@@ -11,7 +11,7 @@ using osuTK;
 namespace osu.Framework.Tests.Polygons
 {
     [TestFixture]
-    public class ConvexPolygonClipping
+    public class ConvexPolygonClippingTest
     {
         private static readonly Vector2 origin = Vector2.Zero;
         private static readonly Vector2 up_1 = new Vector2(0, 1);
