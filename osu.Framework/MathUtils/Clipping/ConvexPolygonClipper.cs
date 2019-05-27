@@ -67,7 +67,7 @@ namespace osu.Framework.MathUtils.Clipping
             subjectVertices.CopyTo(buffer);
 
             // Make sure that the subject vertices are ordered clockwise
-            if (Vector2Extensions.GetRotation(subjectVertices) < 0)
+            if (Vector2Extensions.GetOrientation(subjectVertices) < 0)
                 buffer.Slice(0, subjectVertices.Length).Reverse();
 
             // Number of vertices in the buffer that need to be tested against
@@ -75,7 +75,7 @@ namespace osu.Framework.MathUtils.Clipping
             int inputCount = subjectVertices.Length;
 
             // It's unnecessary to construct + store all the clip edges in a separate array, so only the direction is checked
-            if (Vector2Extensions.GetRotation(clipVertices) >= 0)
+            if (Vector2Extensions.GetOrientation(clipVertices) >= 0)
             {
                 // Process the clip edge connecting the last vertex to the first vertex
                 inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);

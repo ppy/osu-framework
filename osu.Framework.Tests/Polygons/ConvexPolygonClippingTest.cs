@@ -222,9 +222,9 @@ namespace osu.Framework.Tests.Polygons
             => new ConvexPolygonClipper<TClip, TSubject>(ref clipPolygon, ref subjectPolygon).Clip();
 
         private void assertPolygonEquals(IPolygon expected, IPolygon actual, bool reverse)
-            => Assert.That(Vector2Extensions.GetRotation(actual.GetVertices()),
+            => Assert.That(Vector2Extensions.GetOrientation(actual.GetVertices()),
                 reverse
-                    ? Is.EqualTo(-Vector2Extensions.GetRotation(expected.GetVertices()))
-                    : Is.EqualTo(Vector2Extensions.GetRotation(expected.GetVertices())));
+                    ? Is.EqualTo(-Vector2Extensions.GetOrientation(expected.GetVertices()))
+                    : Is.EqualTo(Vector2Extensions.GetOrientation(expected.GetVertices())));
     }
 }
