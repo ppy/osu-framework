@@ -26,7 +26,7 @@ namespace osu.Framework.Audio
         IBindable<double> IAudioAdjustment.Balance => CalculatedBalance;
         IBindable<double> IAudioAdjustment.Frequency => CalculatedFrequency;
 
-        protected IBindable<double> CalculatedVolume { get; } = new BindableDouble(1)
+        protected BindableDouble CalculatedVolume { get; } = new BindableDouble(1)
         {
             MinValue = 0,
             MaxValue = 1
@@ -43,7 +43,7 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentBalance = new BindableDouble();
 
-        protected IBindable<double> CalculatedBalance { get; } = new BindableDouble
+        protected BindableDouble CalculatedBalance { get; } = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
@@ -56,7 +56,7 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentFrequency = new BindableDouble(1);
 
-        protected IBindable<double> CalculatedFrequency { get; } = new BindableDouble(1);
+        protected BindableDouble CalculatedFrequency { get; } = new BindableDouble(1);
 
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
@@ -68,7 +68,15 @@ namespace osu.Framework.Audio
             AddInternal(content);
         }
 
-        protected DrawableAudioWrapper()
+        protected DrawableAudioWrapper(AdjustableAudioComponent component)
+            : this()
+        {
+            component.AddAdjustment(AdjustableProperty.Volume, CalculatedVolume);
+            component.AddAdjustment(AdjustableProperty.Balance, CalculatedBalance);
+            component.AddAdjustment(AdjustableProperty.Frequency, CalculatedFrequency);
+        }
+
+        private DrawableAudioWrapper()
         {
             Frequency.ValueChanged += updateFrequency;
             Volume.ValueChanged += updateVolume;
@@ -90,10 +98,10 @@ namespace osu.Framework.Audio
             }
         }
 
-        private void updateBalance(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedBalance).Value = Balance.Value + parentBalance.Value;
+        private void updateBalance(ValueChangedEvent<double> obj) => CalculatedBalance.Value = Balance.Value + parentBalance.Value;
 
-        private void updateVolume(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedVolume).Value = Volume.Value * parentVolume.Value;
+        private void updateVolume(ValueChangedEvent<double> obj) => CalculatedVolume.Value = Volume.Value * parentVolume.Value;
 
-        private void updateFrequency(ValueChangedEvent<double> obj) => ((Bindable<double>)CalculatedFrequency).Value = Frequency.Value * parentFrequency.Value;
+        private void updateFrequency(ValueChangedEvent<double> obj) => CalculatedFrequency.Value = Frequency.Value * parentFrequency.Value;
     }
 }

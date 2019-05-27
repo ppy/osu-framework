@@ -16,11 +16,11 @@ namespace osu.Framework.Audio
 
         public void AddItem(T item)
         {
-            RegisterItem(item);
             EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
 
+                RegisterItem(item);
                 Items.Add(item);
             });
         }
