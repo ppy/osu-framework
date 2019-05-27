@@ -1,8 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Primitives;
 using osuTK;
 
 namespace osu.Framework.Tests.Primitives
@@ -10,8 +12,9 @@ namespace osu.Framework.Tests.Primitives
     [TestFixture]
     public class Vector2ExtensionsTest
     {
-        [Test]
-        public void TestClockwiseOrientation()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestArrayOrientation(bool clockwise)
         {
             var vertices = new[]
             {
@@ -21,25 +24,25 @@ namespace osu.Framework.Tests.Primitives
                 Vector2.Zero
             };
 
+            if (!clockwise)
+                Array.Reverse(vertices);
+
             float orientation = Vector2Extensions.GetOrientation(vertices);
 
-            Assert.That(orientation, Is.EqualTo(2).Within(0.001));
+            Assert.That(orientation, Is.EqualTo(clockwise ? 2 : -2).Within(0.001));
         }
 
-        [Test]
-        public void TestCounterClockwiseOrientation()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestQuadOrientation(bool clockwise)
         {
-            var vertices = new[]
-            {
-                Vector2.Zero,
-                new Vector2(1, 0),
-                Vector2.One,
-                new Vector2(0, 1),
-            };
+            Quad quad = clockwise
+                ? new Quad(new Vector2(0, 1), Vector2.One, Vector2.Zero, new Vector2(1, 0))
+                : new Quad(Vector2.Zero, new Vector2(1, 0), new Vector2(0, 1), Vector2.One);
 
-            float orientation = Vector2Extensions.GetOrientation(vertices);
+            float orientation = Vector2Extensions.GetOrientation(quad.GetVertices());
 
-            Assert.That(orientation, Is.EqualTo(-2).Within(0.001));
+            Assert.That(orientation, Is.EqualTo(clockwise ? 2 : -2).Within(0.001));
         }
     }
 }
