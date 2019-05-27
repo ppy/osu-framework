@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
             && TexturePosition.Equals(other.TexturePosition)
             && Colour.Equals(other.Colour)
             && TextureRect.Equals(other.TextureRect)
-            && BlendRange.Equals(other.BlendRange);
+            && BlendRange.Equals(other.BlendRange)
             && Depth.Equals(other.Depth);
     }
 }

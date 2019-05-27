@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.MathUtils.Clipping;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -77,9 +78,10 @@ namespace osu.Framework.Graphics.Shapes
 
                 if (GLWrapper.IsMaskingActive)
                 {
-                    var clipper = new ConvexPolygonClipper(conservativeScreenSpaceDrawQuad, GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad);
+                    var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
 
-                    Span<Vector2> buffer = stackalloc Vector2[clipper.GetBufferSize()];
+                    var clipper = new ConvexPolygonClipper<Quad, Quad>(ref conservativeScreenSpaceDrawQuad, ref maskingQuad);
+                    Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
                     Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
                     for (int i = 2; i < clippedRegion.Length; i++)

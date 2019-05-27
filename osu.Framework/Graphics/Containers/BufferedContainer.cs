@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public partial class BufferedContainer<T> : Container<T>, IBufferedContainer, IBufferedDrawable
+    public partial class BufferedContainer<T> : Container<T>, IBufferedContainer
         where T : Drawable
     {
         private bool drawOriginal;
@@ -108,8 +108,14 @@ namespace osu.Framework.Graphics.Containers
             get => pixelSnapping;
             set
             {
-                if (sharedData?.MainBuffer.IsInitialized == true)
-                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                if (sharedData != null)
+                {
+                    for (int i = 0; i < sharedData.FrameBuffers.Length; i++)
+                    {
+                        if (sharedData.FrameBuffers[i].IsInitialized)
+                            throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                    }
+                }
 
                 pixelSnapping = value;
             }
@@ -216,10 +222,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool CanBeFlattened => false;
 
-        public IShader TextureShader { get; private set; }
-
-        public IShader RoundedTextureShader { get; private set; }
-
         private IShader blurShader;
 
         /// <summary>
@@ -235,14 +237,12 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData, attachedFormats.ToArray(), PixelSnapping);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
         private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
+        private DrawColourInfo baseDrawColourInfo => base.DrawColourInfo;
 
         public override DrawColourInfo DrawColourInfo
         {
@@ -326,7 +326,6 @@ namespace osu.Framework.Graphics.Containers
                 // since our own color will be applied on top when we render
                 // from the frame buffer to the back buffer later on.
                 result.Colour = ColourInfo.SingleColour(Color4.White);
-
                 return result;
             }
         }

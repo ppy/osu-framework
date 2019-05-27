@@ -11,9 +11,9 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseFTB : TestCase
+    public class TestSceneFTB : TestScene
     {
-        public TestCaseFTB()
+        public TestSceneFTB()
         {
             for (int i = 0; i < 10000; i++)
             {

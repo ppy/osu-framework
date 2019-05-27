@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Polygons
         }
 
         private Span<Vector2> clip(SimpleConvexPolygon clipPolygon, SimpleConvexPolygon subjectPolygon)
-            => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(clipPolygon, subjectPolygon).Clip();
+            => new ConvexPolygonClipper<SimpleConvexPolygon, SimpleConvexPolygon>(ref clipPolygon, ref subjectPolygon).Clip();
 
         private void assertPolygonEquals(IPolygon expected, IPolygon actual, bool reverse)
             => Assert.That(Vector2Extensions.GetRotation(actual.GetVertices()),
