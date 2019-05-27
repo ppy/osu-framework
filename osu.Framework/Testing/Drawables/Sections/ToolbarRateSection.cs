@@ -14,8 +14,11 @@ namespace osu.Framework.Testing.Drawables.Sections
         [BackgroundDependencyLoader]
         private void load(TestBrowser browser)
         {
+            Padding = new MarginPadding { Horizontal = 5 };
+
             BasicSliderBar<double> rateAdjustSlider;
             SpriteText rateText;
+            ClickableContainer clickableReset;
 
             InternalChild = new GridContainer
             {
@@ -23,8 +26,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                 ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
-                    new Dimension(),
                     new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(),
                 },
                 Content = new[]
                 {
@@ -32,24 +35,32 @@ namespace osu.Framework.Testing.Drawables.Sections
                     {
                         new SpriteText
                         {
-                            Padding = new MarginPadding(5),
-                            Text = "Rate:"
+                            Padding = new MarginPadding(5) { Right = 0 },
+                            Text = "Rate:",
+                            Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                        },
+                        clickableReset = new ClickableContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Child = rateText = new SpriteText
+                            {
+                                Padding = new MarginPadding(5),
+                                Width = 45,
+                                Colour = FrameworkColour.Yellow,
+                                Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                            },
                         },
                         rateAdjustSlider = new BasicSliderBar<double>
                         {
                             RelativeSizeAxes = Axes.Both,
                             Current = browser.PlaybackRate
                         },
-                        rateText = new SpriteText
-                        {
-                            Padding = new MarginPadding(5),
-                            Width = 60,
-                        },
                     }
                 }
             };
 
             rateAdjustSlider.Current.BindValueChanged(e => rateText.Text = e.NewValue.ToString("0%"), true);
+            clickableReset.Action = () => rateAdjustSlider.Current.SetDefault();
         }
     }
 }

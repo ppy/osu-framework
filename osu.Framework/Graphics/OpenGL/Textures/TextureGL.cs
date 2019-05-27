@@ -39,16 +39,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public bool Available { get; private set; } = true;
 
-        protected bool IsDisposed { get; private set; }
+        private bool isDisposed;
 
         protected virtual void Dispose(bool isDisposing) => GLWrapper.ScheduleDisposal(() => Available = false);
 
         public void Dispose()
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
 
-            IsDisposed = true;
+            isDisposed = true;
 
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -91,6 +91,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
         internal abstract bool Upload();
+
+        /// <summary>
+        /// Flush any unprocessed uploads without actually uploading.
+        /// </summary>
+        internal abstract void FlushUploads();
 
         public abstract void SetData(ITextureUpload upload);
     }

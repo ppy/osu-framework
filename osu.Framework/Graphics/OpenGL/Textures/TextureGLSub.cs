@@ -73,9 +73,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         internal override bool Upload() => false;
 
+        internal override void FlushUploads()
+        {
+        }
+
         public override bool Bind()
         {
-            if (IsDisposed)
+            if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();

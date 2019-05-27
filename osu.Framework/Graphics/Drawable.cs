@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics
 
                 Dispose(isDisposing);
 
-                unbindAllBindables();
+                UnbindAllBindables();
 
                 Parent = null;
 
@@ -118,7 +118,10 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
-        internal virtual void UnbindAllBindables() => unbindAllBindables();
+        /// <summary>
+        /// Recursively invokes <see cref="UnbindAllBindables"/> on this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
+        /// </summary>
+        internal virtual void UnbindAllBindablesSubTree() => UnbindAllBindables();
 
         private void cacheUnbindActions()
         {
@@ -162,15 +165,18 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
         /// </summary>
-        private void unbindAllBindables()
+        internal virtual void UnbindAllBindables()
         {
-            if (unbindComplete) return;
+            if (unbindComplete)
+                return;
 
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+
+            OnUnbindAllBindables?.Invoke();
         }
 
         #endregion
@@ -207,11 +213,11 @@ namespace osu.Framework.Graphics
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
             lock (loadLock)
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
                 if (loadState == LoadState.NotLoaded)
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
@@ -378,6 +384,11 @@ namespace osu.Framework.Graphics
         /// Fired after the <see cref="dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
+
+        /// <summary>
+        /// Fired after the <see cref="UnbindAllBindables"/> method is called.
+        /// </summary>
+        internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
 
@@ -1622,7 +1633,7 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        private long invalidationID = invalidation_counter.Increment();
+        public long InvalidationID { get; private set; } = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
@@ -1670,7 +1681,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
-                invalidationID = invalidation_counter.Increment();
+                InvalidationID = invalidation_counter.Increment();
 
             OnInvalidate?.Invoke(this);
 
@@ -1712,9 +1723,9 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (invalidationID != node.InvalidationID)
+            if (InvalidationID != node.InvalidationID)
             {
-                ApplyDrawNode(node);
+                node.ApplyState();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
 
@@ -1722,21 +1733,10 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Fills a given draw node with all information required to draw this drawable.
-        /// </summary>
-        /// <param name="node">The node to fill with information.</param>
-        protected virtual void ApplyDrawNode(DrawNode node)
-        {
-            node.DrawInfo = DrawInfo;
-            node.DrawColourInfo = DrawColourInfo;
-            node.InvalidationID = invalidationID;
-        }
-
-        /// <summary>
         /// Creates a draw node capable of containing all information required to draw this drawable.
         /// </summary>
         /// <returns>The created draw node.</returns>
-        protected virtual DrawNode CreateDrawNode() => new DrawNode();
+        protected virtual DrawNode CreateDrawNode() => new DrawNode(this);
 
         #endregion
 
@@ -2242,7 +2242,7 @@ namespace osu.Framework.Graphics
         Colour = 1 << 3,
 
         /// <summary>
-        /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
+        /// <see cref="Graphics.DrawNode.ApplyState"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
 

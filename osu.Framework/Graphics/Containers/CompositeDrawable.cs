@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osuTK;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -22,6 +21,7 @@ using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public abstract class CompositeDrawable : Drawable
+    public abstract partial class CompositeDrawable : Drawable
     {
         #region Contruction and disposal
 
@@ -120,7 +120,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default,
+                                                               Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
@@ -194,8 +195,8 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader(true)]
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
-            if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            if (Shader == null)
+                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -454,15 +455,10 @@ namespace osu.Framework.Graphics.Containers
                     ChildDied?.Invoke(t);
 
                 t.IsAlive = false;
+                t.Parent = null;
 
                 if (disposeChildren)
-                {
-                    //cascade disposal
-                    (t as CompositeDrawable)?.ClearInternal();
-                    t.Dispose();
-                }
-                else
-                    t.Parent = null;
+                    DisposeChildAsync(t);
 
                 Trace.Assert(t.Parent == null);
             }
@@ -745,11 +741,12 @@ namespace osu.Framework.Graphics.Containers
                 DisposeChildAsync(child);
         }
 
-        internal override void UnbindAllBindables()
+        internal override void UnbindAllBindablesSubTree()
         {
-            base.UnbindAllBindables();
+            base.UnbindAllBindablesSubTree();
+
             foreach (Drawable child in internalChildren)
-                child.UnbindAllBindables();
+                child.UnbindAllBindablesSubTree();
         }
 
         /// <summary>
@@ -758,8 +755,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The child to dispose.</param>
         internal void DisposeChildAsync(Drawable drawable)
         {
-            drawable.UnbindAllBindables();
-            Task.Run(drawable.Dispose);
+            drawable.UnbindAllBindablesSubTree();
+            AsyncDisposalQueue.Enqueue(drawable);
         }
 
         internal override void UpdateClock(IFrameBasedClock clock)
@@ -940,43 +937,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private IShader shader;
+        internal IShader Shader { get; private set; }
 
-        protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            CompositeDrawNode n = (CompositeDrawNode)node;
-
-            if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
-                throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-
-            n.MaskingInfo = !Masking
-                ? (MaskingInfo?)null
-                : new MaskingInfo
-                {
-                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                    MaskingRect = DrawRectangle,
-                    ToMaskingSpace = DrawInfo.MatrixInverse,
-                    CornerRadius = CornerRadius,
-                    BorderThickness = BorderThickness,
-                    BorderColour = BorderColour,
-                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                    // This results in the optimal trade-off between crispness and smoothness of the
-                    // edges of the masked region according to sampling theory.
-                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                    AlphaExponent = 1,
-                };
-
-            n.EdgeEffect = EdgeEffect;
-            n.ScreenSpaceMaskingQuad = null;
-            n.Shader = shader;
-            n.ForceLocalVertexBatch = ForceLocalVertexBatch;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new CompositeDrawableDrawNode(this);
 
         private bool forceLocalVertexBatch;
 
@@ -1061,32 +1024,30 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual bool AddChildDrawNodes => true;
-
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
+            DrawNode node = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
+            if (!(node is ICompositeDrawNode cNode))
                 return null;
 
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
-            if (AddChildDrawNodes)
+            if (cNode.AddChildDrawNodes)
             {
-                List<DrawNode> target = cNode.Children;
-
                 int j = 0;
-                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, cNode.Children);
 
-                if (j < target.Count)
-                    target.RemoveRange(j, target.Count - j);
+                if (j < cNode.Children.Count)
+                    cNode.Children.RemoveRange(j, cNode.Children.Count - j);
             }
 
-            return cNode;
+            return node;
         }
 
         #endregion
@@ -1217,13 +1178,23 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
+        /// <summary>
+        /// Check whether a child should be considered for inclusion in <see cref="BuildNonPositionalInputQueue"/> and <see cref="BuildPositionalInputQueue"/>
+        /// </summary>
+        /// <param name="child">The drawable to be evaluated.</param>
+        /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
+        protected virtual bool ShouldBeConsideredForInput(Drawable child) => true;
+
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            {
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
+            }
 
             return true;
         }
@@ -1237,7 +1208,10 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            {
+                if (ShouldBeConsideredForInput(aliveInternalChildren[i]))
+                    aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
+            }
 
             return true;
         }
