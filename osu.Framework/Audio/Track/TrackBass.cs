@@ -255,17 +255,17 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
-            setDirection(FrequencyCalculated.Value < 0);
+            setDirection(FrequencyAggregate.Result.Value < 0);
 
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeCalculated.Value);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceCalculated.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeAggregate.Result.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceAggregate.Result.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated.Value), 100, 100000);
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyAggregate.Result.Value), 100, 100000);
 
         private volatile int bitrate;
 

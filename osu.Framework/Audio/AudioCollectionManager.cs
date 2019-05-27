@@ -40,13 +40,6 @@ namespace osu.Framework.Audio
             EnqueueAction(() => item.RemoveAdjustmentDependency(this));
         }
 
-        internal override void OnStateChanged()
-        {
-            base.OnStateChanged();
-            foreach (var item in Items)
-                item.OnStateChanged();
-        }
-
         public virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())

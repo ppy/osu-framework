@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Track
 
         protected Track()
         {
-            Tempo.ValueChanged += e => InvalidateState(e.NewValue);
+            Tempo.ValueChanged += InvalidateState;
         }
 
         /// <summary>
