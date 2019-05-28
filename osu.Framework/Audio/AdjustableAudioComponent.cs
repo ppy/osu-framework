@@ -50,13 +50,13 @@ namespace osu.Framework.Audio
         /// Bind all adjustments to another component's aggregated results.
         /// </summary>
         /// <param name="component">The other component (generally a direct parent).</param>
-        internal void BindAdjustments(AdjustableAudioComponent component) => adjustments.BindAdjustments(component);
+        internal void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
 
         /// <summary>
         /// Unbind all adjustments from another component's aggregated results.
         /// </summary>
         /// <param name="component">The other component (generally a direct parent).</param>
-        internal void UnbindAdjustments(AdjustableAudioComponent component) => adjustments.UnbindAdjustments(component);
+        internal void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
 
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 

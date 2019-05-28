@@ -11,97 +11,48 @@ namespace osu.Framework.Audio
     [Cached(typeof(IAggregateAudioAdjustment))]
     public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
     {
-        /// <summary>
-        /// Global volume of this component.
-        /// </summary>
-        public readonly BindableDouble Volume = new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        };
-
-        private readonly IBindable<double> parentVolume = new BindableDouble(1);
-
-        IBindable<double> IAggregateAudioAdjustment.AggregateVolume => CalculatedVolume;
-        IBindable<double> IAggregateAudioAdjustment.AggregateBalance => CalculatedBalance;
-        IBindable<double> IAggregateAudioAdjustment.AggregateFrequency => CalculatedFrequency;
-
-        protected BindableDouble CalculatedVolume { get; } = new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        };
+        private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
         /// <summary>
-        /// Playback balance of this sample (-1 .. 1 where 0 is centered)
+        /// The volume of this component.
         /// </summary>
-        public readonly BindableDouble Balance = new BindableDouble
-        {
-            MinValue = -1,
-            MaxValue = 1
-        };
+        public BindableDouble Volume => adjustments.Volume;
 
-        private readonly IBindable<double> parentBalance = new BindableDouble();
-
-        protected BindableDouble CalculatedBalance { get; } = new BindableDouble
-        {
-            MinValue = -1,
-            MaxValue = 1
-        };
+        /// <summary>
+        /// The playback balance of this sample (-1 .. 1 where 0 is centered)
+        /// </summary>
+        public BindableDouble Balance => adjustments.Balance;
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public readonly BindableDouble Frequency = new BindableDouble(1);
-
-        private readonly IBindable<double> parentFrequency = new BindableDouble(1);
-
-        protected BindableDouble CalculatedFrequency { get; } = new BindableDouble(1);
+        public BindableDouble Frequency => adjustments.Frequency;
 
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
         /// </summary>
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
         protected DrawableAudioWrapper(Drawable content)
-            : this()
         {
             AddInternal(content);
         }
 
         protected DrawableAudioWrapper(AdjustableAudioComponent component)
-            : this()
         {
-            component.AddAdjustment(AdjustableProperty.Volume, CalculatedVolume);
-            component.AddAdjustment(AdjustableProperty.Balance, CalculatedBalance);
-            component.AddAdjustment(AdjustableProperty.Frequency, CalculatedFrequency);
-        }
-
-        private DrawableAudioWrapper()
-        {
-            Frequency.ValueChanged += updateFrequency;
-            Volume.ValueChanged += updateVolume;
-            Balance.ValueChanged += updateBalance;
+            component.BindAdjustments(adjustments);
         }
 
         [BackgroundDependencyLoader(true)]
         private void load(IAggregateAudioAdjustment parentAdjustment)
         {
             if (parentAdjustment != null)
-            {
-                parentFrequency.ValueChanged += updateFrequency;
-                parentVolume.ValueChanged += updateVolume;
-                parentBalance.ValueChanged += updateBalance;
-
-                parentFrequency.BindTo(parentAdjustment.AggregateFrequency);
-                parentVolume.BindTo(parentAdjustment.AggregateVolume);
-                parentBalance.BindTo(parentAdjustment.AggregateBalance);
-            }
+                adjustments.BindAdjustments(parentAdjustment);
         }
 
-        private void updateBalance(ValueChangedEvent<double> obj) => CalculatedBalance.Value = Balance.Value + parentBalance.Value;
+        public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 
-        private void updateVolume(ValueChangedEvent<double> obj) => CalculatedVolume.Value = Volume.Value * parentVolume.Value;
+        public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
 
-        private void updateFrequency(ValueChangedEvent<double> obj) => CalculatedFrequency.Value = Frequency.Value * parentFrequency.Value;
+        public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
     }
 }
