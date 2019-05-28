@@ -8,8 +8,8 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Audio
 {
-    [Cached(typeof(IAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAudioAdjustment
+    [Cached(typeof(IAggregateAudioAdjustment))]
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
     {
         /// <summary>
         /// Global volume of this component.
@@ -22,9 +22,9 @@ namespace osu.Framework.Audio
 
         private readonly IBindable<double> parentVolume = new BindableDouble(1);
 
-        IBindable<double> IAudioAdjustment.Volume => CalculatedVolume;
-        IBindable<double> IAudioAdjustment.Balance => CalculatedBalance;
-        IBindable<double> IAudioAdjustment.Frequency => CalculatedFrequency;
+        IBindable<double> IAggregateAudioAdjustment.AggregateVolume => CalculatedVolume;
+        IBindable<double> IAggregateAudioAdjustment.AggregateBalance => CalculatedBalance;
+        IBindable<double> IAggregateAudioAdjustment.AggregateFrequency => CalculatedFrequency;
 
         protected BindableDouble CalculatedVolume { get; } = new BindableDouble(1)
         {
@@ -84,7 +84,7 @@ namespace osu.Framework.Audio
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(IAudioAdjustment parentAdjustment)
+        private void load(IAggregateAudioAdjustment parentAdjustment)
         {
             if (parentAdjustment != null)
             {
@@ -92,9 +92,9 @@ namespace osu.Framework.Audio
                 parentVolume.ValueChanged += updateVolume;
                 parentBalance.ValueChanged += updateBalance;
 
-                parentFrequency.BindTo(parentAdjustment.Frequency);
-                parentVolume.BindTo(parentAdjustment.Volume);
-                parentBalance.BindTo(parentAdjustment.Balance);
+                parentFrequency.BindTo(parentAdjustment.AggregateFrequency);
+                parentVolume.BindTo(parentAdjustment.AggregateVolume);
+                parentBalance.BindTo(parentAdjustment.AggregateBalance);
             }
         }
 
