@@ -1,21 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
+    /// <summary>
+    /// An audio component which allows for basic bindable adjustments to be applied.
+    /// </summary>
     public class AdjustableAudioComponent : AudioComponent
     {
-        private readonly HashSet<BindableDouble> volumeAdjustments = new HashSet<BindableDouble>();
-        private readonly HashSet<BindableDouble> balanceAdjustments = new HashSet<BindableDouble>();
-        private readonly HashSet<BindableDouble> frequencyAdjustments = new HashSet<BindableDouble>();
-
         /// <summary>
-        /// Global volume of this component.
+        /// The volume of this component.
         /// </summary>
         public readonly BindableDouble Volume = new BindableDouble(1)
         {
@@ -23,22 +19,10 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        protected readonly BindableDouble VolumeCalculated = new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        };
-
         /// <summary>
-        /// Playback balance of this sample (-1 .. 1 where 0 is centered)
+        /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
         public readonly BindableDouble Balance = new BindableDouble
-        {
-            MinValue = -1,
-            MaxValue = 1
-        };
-
-        protected readonly BindableDouble BalanceCalculated = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
@@ -49,36 +33,23 @@ namespace osu.Framework.Audio
         /// </summary>
         public readonly BindableDouble Frequency = new BindableDouble(1);
 
-        protected readonly BindableDouble FrequencyCalculated = new BindableDouble(1);
+        protected readonly AggregateBindable<double> VolumeAggregate;
+        protected readonly AggregateBindable<double> BalanceAggregate;
+        protected readonly AggregateBindable<double> FrequencyAggregate;
 
         protected AdjustableAudioComponent()
         {
-            Volume.ValueChanged += e => InvalidateState(e.NewValue);
-            Balance.ValueChanged += e => InvalidateState(e.NewValue);
-            Frequency.ValueChanged += e => InvalidateState(e.NewValue);
-        }
+            VolumeAggregate = new AggregateBindable<double>((a, b) => a * b, Volume.GetUnboundCopy());
+            VolumeAggregate.AddSource(Volume);
+            VolumeAggregate.Result.ValueChanged += InvalidateState;
 
-        internal void InvalidateState(double newValue = 0) => EnqueueAction(OnStateChanged);
+            BalanceAggregate = new AggregateBindable<double>((a, b) => a + b, Balance.GetUnboundCopy());
+            BalanceAggregate.AddSource(Balance);
+            BalanceAggregate.Result.ValueChanged += InvalidateState;
 
-        internal virtual void OnStateChanged()
-        {
-            VolumeCalculated.Value = volumeAdjustments.Aggregate(Volume.Value, (current, adj) => current * adj.Value);
-            BalanceCalculated.Value = balanceAdjustments.Aggregate(Balance.Value, (current, adj) => current + adj.Value);
-            FrequencyCalculated.Value = frequencyAdjustments.Aggregate(Frequency.Value, (current, adj) => current * adj.Value);
-        }
-
-        public void AddAdjustmentDependency(AdjustableAudioComponent component)
-        {
-            AddAdjustment(AdjustableProperty.Balance, component.BalanceCalculated);
-            AddAdjustment(AdjustableProperty.Frequency, component.FrequencyCalculated);
-            AddAdjustment(AdjustableProperty.Volume, component.VolumeCalculated);
-        }
-
-        public void RemoveAdjustmentDependency(AdjustableAudioComponent component)
-        {
-            RemoveAdjustment(AdjustableProperty.Balance, component.BalanceCalculated);
-            RemoveAdjustment(AdjustableProperty.Frequency, component.FrequencyCalculated);
-            RemoveAdjustment(AdjustableProperty.Volume, component.VolumeCalculated);
+            FrequencyAggregate = new AggregateBindable<double>((a, b) => a * b, Frequency.GetUnboundCopy());
+            FrequencyAggregate.AddSource(Frequency);
+            FrequencyAggregate.Result.ValueChanged += InvalidateState;
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable) => EnqueueAction(() =>
@@ -86,26 +57,17 @@ namespace osu.Framework.Audio
             switch (type)
             {
                 case AdjustableProperty.Balance:
-                    if (balanceAdjustments.Contains(adjustBindable))
-                        throw new ArgumentException("An adjustable binding may only be registered once.");
-
-                    balanceAdjustments.Add(adjustBindable);
+                    BalanceAggregate.AddSource(adjustBindable);
                     break;
+
                 case AdjustableProperty.Frequency:
-                    if (frequencyAdjustments.Contains(adjustBindable))
-                        throw new ArgumentException("An adjustable binding may only be registered once.");
-
-                    frequencyAdjustments.Add(adjustBindable);
+                    FrequencyAggregate.AddSource(adjustBindable);
                     break;
-                case AdjustableProperty.Volume:
-                    if (volumeAdjustments.Contains(adjustBindable))
-                        throw new ArgumentException("An adjustable binding may only be registered once.");
 
-                    volumeAdjustments.Add(adjustBindable);
+                case AdjustableProperty.Volume:
+                    VolumeAggregate.AddSource(adjustBindable);
                     break;
             }
-
-            InvalidateState();
         });
 
         public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable) => EnqueueAction(() =>
@@ -113,26 +75,45 @@ namespace osu.Framework.Audio
             switch (type)
             {
                 case AdjustableProperty.Balance:
-                    balanceAdjustments.Remove(adjustBindable);
+                    BalanceAggregate.RemoveSource(adjustBindable);
                     break;
+
                 case AdjustableProperty.Frequency:
-                    frequencyAdjustments.Remove(adjustBindable);
+                    FrequencyAggregate.RemoveSource(adjustBindable);
                     break;
+
                 case AdjustableProperty.Volume:
-                    volumeAdjustments.Remove(adjustBindable);
+                    VolumeAggregate.RemoveSource(adjustBindable);
                     break;
             }
-
-            InvalidateState();
         });
 
-        protected override void Dispose(bool disposing)
-        {
-            volumeAdjustments.Clear();
-            balanceAdjustments.Clear();
-            frequencyAdjustments.Clear();
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
 
-            base.Dispose(disposing);
+        internal virtual void OnStateChanged()
+        {
+        }
+
+        /// <summary>
+        /// Bind all adjustments to another component's aggregated results.
+        /// </summary>
+        /// <param name="component">The other component (generally a direct parent).</param>
+        internal void BindAdjustments(AdjustableAudioComponent component)
+        {
+            VolumeAggregate.AddSource(component.VolumeAggregate.Result);
+            BalanceAggregate.AddSource(component.BalanceAggregate.Result);
+            FrequencyAggregate.AddSource(component.FrequencyAggregate.Result);
+        }
+
+        /// <summary>
+        /// Unbind all adjustments from another component's aggregated results.
+        /// </summary>
+        /// <param name="component">The other component (generally a direct parent).</param>
+        internal void UnbindAdjustments(AdjustableAudioComponent component)
+        {
+            VolumeAggregate.RemoveSource(component.VolumeAggregate.Result);
+            BalanceAggregate.RemoveSource(component.BalanceAggregate.Result);
+            FrequencyAggregate.RemoveSource(component.FrequencyAggregate.Result);
         }
     }
 
