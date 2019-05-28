@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public TrackManager Track => GetTrackManager();
+        public TrackStore Tracks => GetTrackStore();
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public SampleManager Sample => GetSampleManager();
+        public SampleStore Samples => GetSampleStore();
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -86,8 +86,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<TrackManager> globalTrackManager;
-        private readonly Lazy<SampleManager> globalSampleManager;
+        private readonly Lazy<TrackStore> globalTrackManager;
+        private readonly Lazy<SampleStore> globalSampleManager;
 
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
@@ -108,8 +108,8 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
-            globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
+            globalTrackManager = new Lazy<TrackStore>(() => GetTrackStore(trackStore));
+            globalSampleManager = new Lazy<SampleStore>(() => GetSampleStore(sampleStore));
 
             scheduler.Add(() =>
             {
@@ -155,15 +155,15 @@ namespace osu.Framework.Audio
         private IEnumerable<string> getDeviceNames(List<DeviceInfo> devices) => devices.Skip(1).Select(d => d.Name);
 
         /// <summary>
-        /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
-        /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
+        /// Obtains the <see cref="TrackStore"/> corresponding to a given resource store.
+        /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
+        public TrackStore GetTrackStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
-            TrackManager tm = new TrackManager(store);
+            TrackStore tm = new TrackStore(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
             VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
@@ -172,15 +172,15 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
-        /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
+        /// Obtains the <see cref="SampleStore"/> corresponding to a given resource store.
+        /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
-        public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
+        public SampleStore GetSampleStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
-            SampleManager sm = new SampleManager(store);
+            SampleStore sm = new SampleStore(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
             VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
@@ -291,8 +291,8 @@ namespace osu.Framework.Audio
 
         public override void UpdateDevice(int deviceIndex)
         {
-            Sample.UpdateDevice(deviceIndex);
-            Track.UpdateDevice(deviceIndex);
+            Samples.UpdateDevice(deviceIndex);
+            Tracks.UpdateDevice(deviceIndex);
         }
 
         private void updateAvailableAudioDevices()
