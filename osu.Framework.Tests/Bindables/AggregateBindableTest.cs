@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestMultiplicationAggregate()
         {
-            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1) { Default = 1 });
+            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1));
 
             Assert.AreEqual(1, aggregate.Result.Value);
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestSourceChanged()
         {
-            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1) { Default = 1 });
+            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1));
 
             var bindable1 = new BindableDouble(0.5);
             aggregate.AddSource(bindable1);
@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestSourceRemoved()
         {
-            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1) { Default = 1 });
+            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1));
 
             var bindable1 = new BindableDouble(0.5);
             aggregate.AddSource(bindable1);
@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Bindables
         {
             int aggregateResultFireCount = 0, bindable1FireCount = 0, bindable2FireCount = 0;
 
-            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1) { Default = 1 });
+            var aggregate = new AggregateBindable<double>((a, b) => a * b, new Bindable<double>(1));
             aggregate.Result.BindValueChanged(_ => Interlocked.Increment(ref aggregateResultFireCount));
 
             Assert.AreEqual(0, aggregateResultFireCount);
