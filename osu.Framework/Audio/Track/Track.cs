@@ -8,7 +8,7 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust, ITrack
     {
         public event Action Completed;
         public event Action Failed;
