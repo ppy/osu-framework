@@ -1,13 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using System;
 using System.Linq;
+using System.Numerics;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Effects;

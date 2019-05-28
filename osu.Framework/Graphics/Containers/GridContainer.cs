@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Containers
 {

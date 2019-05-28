@@ -5,8 +5,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.InteropServices;
-using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {

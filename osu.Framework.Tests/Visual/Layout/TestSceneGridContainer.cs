@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -11,7 +12,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout

@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Colour;
 using System;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Containers
 {

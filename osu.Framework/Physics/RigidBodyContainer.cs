@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Physics
 {

@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Sprites
 {

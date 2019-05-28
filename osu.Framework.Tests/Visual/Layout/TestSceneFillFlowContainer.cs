@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,7 +13,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout

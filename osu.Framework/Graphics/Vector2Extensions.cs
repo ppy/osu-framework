@@ -3,6 +3,7 @@
 
 using System;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics
 {

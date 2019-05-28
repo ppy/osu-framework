@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.MathUtils;
-using osuTK;
 
 namespace osu.Framework.Tests.MathUtils
 {

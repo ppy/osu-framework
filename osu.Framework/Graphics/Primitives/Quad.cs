@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osuTK;
 using osu.Framework.MathUtils;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Primitives
 {

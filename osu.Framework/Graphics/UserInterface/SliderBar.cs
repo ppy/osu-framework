@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osuTK.Input;
-using osuTK;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface

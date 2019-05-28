@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables

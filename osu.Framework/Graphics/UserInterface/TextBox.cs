@@ -22,6 +22,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {

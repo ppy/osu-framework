@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -11,7 +12,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites

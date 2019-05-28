@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites

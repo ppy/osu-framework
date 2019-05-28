@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,7 +15,6 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables

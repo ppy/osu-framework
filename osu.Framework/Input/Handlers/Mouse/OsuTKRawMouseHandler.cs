@@ -11,6 +11,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {

@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics.Primitives;
-using osuTK;
 
 namespace osu.Framework.Tests.Polygons
 {

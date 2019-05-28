@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Framework.MathUtils
 {

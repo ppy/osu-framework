@@ -2,13 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {

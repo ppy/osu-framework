@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 

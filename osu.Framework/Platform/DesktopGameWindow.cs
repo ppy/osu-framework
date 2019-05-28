@@ -12,6 +12,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osuTK;
 using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Platform
 {

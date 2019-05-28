@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
@@ -15,7 +16,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites

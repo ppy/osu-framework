@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Input;
-using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

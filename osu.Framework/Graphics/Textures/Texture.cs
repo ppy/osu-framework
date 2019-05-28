@@ -3,9 +3,9 @@
 
 using System;
 using System.IO;
+using System.Numerics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
-using osuTK;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;

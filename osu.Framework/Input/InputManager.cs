@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -16,7 +17,6 @@ using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using osuTK;
 using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
 using KeyboardState = osu.Framework.Input.States.KeyboardState;

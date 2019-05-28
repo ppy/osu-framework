@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -11,7 +12,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
-using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 

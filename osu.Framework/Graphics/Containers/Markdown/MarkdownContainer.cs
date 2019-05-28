@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
@@ -9,7 +10,6 @@ using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

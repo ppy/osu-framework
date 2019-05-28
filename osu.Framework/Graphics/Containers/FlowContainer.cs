@@ -1,11 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
 using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers

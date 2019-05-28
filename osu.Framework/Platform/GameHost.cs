@@ -37,6 +37,7 @@ using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Platform
 {

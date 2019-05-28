@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Lines
 {

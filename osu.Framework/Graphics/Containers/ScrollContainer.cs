@@ -12,6 +12,7 @@ using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Containers
 {

@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using osuTK;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers

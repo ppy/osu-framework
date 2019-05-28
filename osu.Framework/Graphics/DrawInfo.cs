@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics
 {

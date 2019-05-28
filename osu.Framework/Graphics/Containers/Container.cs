@@ -4,9 +4,9 @@
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
+using System.Numerics;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
-using osuTK;
 using System.Collections;
 using System.Diagnostics;
 using osu.Framework.Graphics.Effects;

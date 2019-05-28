@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.UserInterface
 {

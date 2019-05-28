@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Input.States;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Input.Bindings
