@@ -8,7 +8,7 @@ using System.Linq;
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// Combine multiple bindables into one aggregate bindable result.
+    /// Combines multiple bindables into one aggregate bindable result.
     /// </summary>
     /// <typeparam name="T">The type of values.</typeparam>
     public class AggregateBindable<T>
@@ -16,7 +16,7 @@ namespace osu.Framework.Bindables
         private readonly Func<T, T, T> aggregateFunction;
 
         /// <summary>
-        /// THe final result after aggregating all added sources..
+        /// The final result after aggregating all added sources.
         /// </summary>
         public IBindable<T> Result => result;
 
@@ -28,7 +28,7 @@ namespace osu.Framework.Bindables
         /// Create a new aggregate bindable.
         /// </summary>
         /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <see cref="T"/> values and returning one output.</param>
-        /// <param name="resultBindable">An optional newly constructed bindable type to use for <see cref="Result"/> aggregation. The initial value of this bindable is used as the first value for aggregation logic.</param>
+        /// <param name="resultBindable">An optional newly constructed bindable to use for <see cref="Result"/>. The initial value of this bindable is used as the initial value for the aggregate.</param>
         public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
         {
             this.aggregateFunction = aggregateFunction;
