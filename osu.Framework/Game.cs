@@ -134,7 +134,6 @@ namespace osu.Framework
 
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
-            dependencies.CacheAs<IAudioAdjustment>(Audio);
 
             dependencies.Cache(Audio.Tracks);
             dependencies.Cache(Audio.Samples);

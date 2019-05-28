@@ -166,7 +166,6 @@ namespace osu.Framework.Audio
             TrackStore tm = new TrackStore(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
 
             return tm;
         }
@@ -183,7 +182,6 @@ namespace osu.Framework.Audio
             SampleStore sm = new SampleStore(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
 
             return sm;
         }
