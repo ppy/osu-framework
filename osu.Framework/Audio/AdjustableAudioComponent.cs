@@ -12,14 +12,12 @@ namespace osu.Framework.Audio
         /// </summary>
         public readonly BindableDouble Volume = new BindableDouble(1)
         {
-            Default = 1,
             MinValue = 0,
             MaxValue = 1
         };
 
         protected readonly AggregateBindable<double> VolumeAggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1)
         {
-            Default = 1,
             MinValue = 0,
             MaxValue = 1
         });
@@ -44,10 +42,7 @@ namespace osu.Framework.Audio
         /// </summary>
         public readonly BindableDouble Frequency = new BindableDouble(1);
 
-        protected readonly AggregateBindable<double> FrequencyAggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1)
-        {
-            Default = 1
-        });
+        protected readonly AggregateBindable<double> FrequencyAggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1));
 
         internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
 
