@@ -5,10 +5,13 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
 {
+    /// <summary>
+    /// An audio component which allows for basic bindable adjustments to be applied.
+    /// </summary>
     public class AdjustableAudioComponent : AudioComponent
     {
         /// <summary>
-        /// Global volume of this component.
+        /// The volume of this component.
         /// </summary>
         public readonly BindableDouble Volume = new BindableDouble(1)
         {
@@ -16,14 +19,8 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        protected readonly AggregateBindable<double> VolumeAggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1)
-        {
-            MinValue = 0,
-            MaxValue = 1
-        });
-
         /// <summary>
-        /// Playback balance of this sample (-1 .. 1 where 0 is centered)
+        /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
         public readonly BindableDouble Balance = new BindableDouble
         {
@@ -31,48 +28,28 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        protected readonly AggregateBindable<double> BalanceAggregate = new AggregateBindable<double>((a, b) => a + b, new BindableDouble
-        {
-            MinValue = -1,
-            MaxValue = 1
-        });
-
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
         public readonly BindableDouble Frequency = new BindableDouble(1);
 
-        protected readonly AggregateBindable<double> FrequencyAggregate = new AggregateBindable<double>((a, b) => a * b, new BindableDouble(1));
-
-        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
-
-        internal virtual void OnStateChanged()
-        {
-        }
+        protected readonly AggregateBindable<double> VolumeAggregate;
+        protected readonly AggregateBindable<double> BalanceAggregate;
+        protected readonly AggregateBindable<double> FrequencyAggregate;
 
         protected AdjustableAudioComponent()
         {
+            VolumeAggregate = new AggregateBindable<double>((a, b) => a * b, Volume.GetUnboundCopy());
             VolumeAggregate.AddSource(Volume);
-            BalanceAggregate.AddSource(Balance);
-            FrequencyAggregate.AddSource(Frequency);
-
             VolumeAggregate.Result.ValueChanged += InvalidateState;
+
+            BalanceAggregate = new AggregateBindable<double>((a, b) => a + b, Balance.GetUnboundCopy());
+            BalanceAggregate.AddSource(Balance);
             BalanceAggregate.Result.ValueChanged += InvalidateState;
+
+            FrequencyAggregate = new AggregateBindable<double>((a, b) => a * b, Frequency.GetUnboundCopy());
+            FrequencyAggregate.AddSource(Frequency);
             FrequencyAggregate.Result.ValueChanged += InvalidateState;
-        }
-
-        public void AddAdjustmentDependency(AdjustableAudioComponent component)
-        {
-            VolumeAggregate.AddSource(component.VolumeAggregate.Result);
-            BalanceAggregate.AddSource(component.BalanceAggregate.Result);
-            FrequencyAggregate.AddSource(component.FrequencyAggregate.Result);
-        }
-
-        public void RemoveAdjustmentDependency(AdjustableAudioComponent component)
-        {
-            VolumeAggregate.RemoveSource(component.VolumeAggregate.Result);
-            BalanceAggregate.RemoveSource(component.BalanceAggregate.Result);
-            FrequencyAggregate.RemoveSource(component.FrequencyAggregate.Result);
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable) => EnqueueAction(() =>
@@ -110,6 +87,34 @@ namespace osu.Framework.Audio
                     break;
             }
         });
+
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
+
+        internal virtual void OnStateChanged()
+        {
+        }
+
+        /// <summary>
+        /// Bind all adjustments to another component's aggregated results.
+        /// </summary>
+        /// <param name="component">The other component (generally a direct parent).</param>
+        internal void BindAdjustments(AdjustableAudioComponent component)
+        {
+            VolumeAggregate.AddSource(component.VolumeAggregate.Result);
+            BalanceAggregate.AddSource(component.BalanceAggregate.Result);
+            FrequencyAggregate.AddSource(component.FrequencyAggregate.Result);
+        }
+
+        /// <summary>
+        /// Unbind all adjustments from another component's aggregated results.
+        /// </summary>
+        /// <param name="component">The other component (generally a direct parent).</param>
+        internal void RemoveAdjustmentDependency(AdjustableAudioComponent component)
+        {
+            VolumeAggregate.RemoveSource(component.VolumeAggregate.Result);
+            BalanceAggregate.RemoveSource(component.BalanceAggregate.Result);
+            FrequencyAggregate.RemoveSource(component.FrequencyAggregate.Result);
+        }
     }
 
     public enum AdjustableProperty

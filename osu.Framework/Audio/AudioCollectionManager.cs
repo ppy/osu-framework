@@ -32,7 +32,7 @@ namespace osu.Framework.Audio
 
         public void RegisterItem(T item)
         {
-            EnqueueAction(() => item.AddAdjustmentDependency(this));
+            EnqueueAction(() => item.BindAdjustments(this));
         }
 
         public void UnregisterItem(T item)
