@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Sample
 
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
-        internal override void UpdateDevice(int deviceIndex)
+        public override void UpdateDevice(int deviceIndex)
         {
             foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
                 sample.UpdateDevice(deviceIndex);

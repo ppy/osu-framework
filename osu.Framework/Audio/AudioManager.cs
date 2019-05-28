@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public TrackStore Tracks => GetTrackStore();
+        public IResourceStore<Track.Track> Tracks => GetTrackStore();
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public SampleStore Samples => GetSampleStore();
+        public IResourceStore<SampleChannel> Samples => GetSampleStore();
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -86,8 +86,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<TrackStore> globalTrackManager;
-        private readonly Lazy<SampleStore> globalSampleManager;
+        private readonly Lazy<IResourceStore<Track.Track>> globalTrackManager;
+        private readonly Lazy<IResourceStore<SampleChannel>> globalSampleManager;
 
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
@@ -108,8 +108,8 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackManager = new Lazy<TrackStore>(() => GetTrackStore(trackStore));
-            globalSampleManager = new Lazy<SampleStore>(() => GetSampleStore(sampleStore));
+            globalTrackManager = new Lazy<IResourceStore<Track.Track>>(() => GetTrackStore(trackStore));
+            globalSampleManager = new Lazy<IResourceStore<SampleChannel>>(() => GetSampleStore(sampleStore));
 
             scheduler.Add(() =>
             {
@@ -159,7 +159,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        public TrackStore GetTrackStore(IResourceStore<byte[]> store = null)
+        public IResourceStore<Track.Track> GetTrackStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
@@ -175,7 +175,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
-        public SampleStore GetSampleStore(IResourceStore<byte[]> store = null)
+        public IResourceStore<SampleChannel> GetSampleStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
@@ -285,12 +285,6 @@ namespace osu.Framework.Audio
             Bass.UpdatePeriod = 5;
 
             return true;
-        }
-
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            Samples.UpdateDevice(deviceIndex);
-            Tracks.UpdateDevice(deviceIndex);
         }
 
         private void updateAvailableAudioDevices()

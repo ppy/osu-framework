@@ -9,7 +9,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// A collection of audio components which need central property control.
     /// </summary>
-    public class AudioCollectionManager<T> : AdjustableAudioComponent
+    public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
         where T : AdjustableAudioComponent
     {
         protected List<T> Items = new List<T>();
@@ -40,7 +40,7 @@ namespace osu.Framework.Audio
             EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
-        internal virtual void UpdateDevice(int deviceIndex)
+        public virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
                 item.UpdateDevice(deviceIndex);
