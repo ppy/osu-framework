@@ -141,7 +141,7 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
-        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => ((char)k).ToString());
+        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
 
         private int loadedPageCount;
         private int loadedGlyphCount;

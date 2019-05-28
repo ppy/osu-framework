@@ -55,7 +55,7 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (var file in storage.GetFiles(directory))
                 {
-                    yield return $"{directory}/{file}";
+                    yield return $"{file}";
                 }
             }
         }

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -45,15 +44,15 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         [Test]
-        public void TestGetAvailableResources()
+        public void TestGetFontStoreResources()
         {
-            AddStep("get resources", () => populateText(fontStore.GetAvailableResources().ToArray()));
+            AddStep("Print resources in font store", () => populateText(fontStore.GetAvailableResources()));
         }
 
         [Test]
         public void TestGetStorageBackedResources()
         {
-            AddStep("get storage backed resources", () => populateText(new StorageBackedResourceStore(storage).GetAvailableResources()));
+            AddStep("Print storage backed resources", () => populateText(new StorageBackedResourceStore(storage).GetAvailableResources()));
         }
 
         private void populateText(IEnumerable<string> lines)

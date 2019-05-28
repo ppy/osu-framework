@@ -193,7 +193,7 @@ namespace osu.Framework.IO.Stores
                 {
                     var contents = store.GetAvailableResources();
 
-                    foreach (string str in contents.Select(x => $"{store}/{x}"))
+                    foreach (string str in contents)
                         yield return str;
                 }
             }
