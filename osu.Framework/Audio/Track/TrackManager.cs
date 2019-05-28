@@ -1,11 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.IO;
+using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackManager : AudioCollectionManager<Track>
+    public class TrackManager : AudioCollectionManager<Track>, IResourceStore<Track>
     {
         private readonly IResourceStore<byte[]> store;
 
@@ -27,5 +29,9 @@ namespace osu.Framework.Audio.Track
             AddItem(track);
             return track;
         }
+
+        public Task<Track> GetAsync(string name) => Task.Run(() => Get(name));
+
+        public Stream GetStream(string name) => store.GetStream(name);
     }
 }
