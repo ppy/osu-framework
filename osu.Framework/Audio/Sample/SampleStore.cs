@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleStore : AudioCollectionManager<SampleChannel>, IResourceStore<SampleChannel>
+    public class SampleStore : AudioCollectionManager<SampleChannel>, IAdjustableResourceStore<SampleChannel>
     {
         private readonly IResourceStore<byte[]> store;
 

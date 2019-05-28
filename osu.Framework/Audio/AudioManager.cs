@@ -86,8 +86,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<IResourceStore<Track.Track>> globalTrackManager;
-        private readonly Lazy<IResourceStore<SampleChannel>> globalSampleManager;
+        private readonly Lazy<IAdjustableResourceStore<Track.Track>> globalTrackManager;
+        private readonly Lazy<IAdjustableResourceStore<SampleChannel>> globalSampleManager;
 
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
@@ -108,8 +108,8 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackManager = new Lazy<IResourceStore<Track.Track>>(() => GetTrackStore(trackStore));
-            globalSampleManager = new Lazy<IResourceStore<SampleChannel>>(() => GetSampleStore(sampleStore));
+            globalTrackManager = new Lazy<IAdjustableResourceStore<Track.Track>>(() => GetTrackStore(trackStore));
+            globalSampleManager = new Lazy<IAdjustableResourceStore<SampleChannel>>(() => GetSampleStore(sampleStore));
 
             scheduler.Add(() =>
             {
@@ -159,7 +159,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        public IResourceStore<Track.Track> GetTrackStore(IResourceStore<byte[]> store = null)
+        public IAdjustableResourceStore<Track.Track> GetTrackStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
@@ -175,7 +175,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
-        public IResourceStore<SampleChannel> GetSampleStore(IResourceStore<byte[]> store = null)
+        public IAdjustableResourceStore<SampleChannel> GetSampleStore(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
