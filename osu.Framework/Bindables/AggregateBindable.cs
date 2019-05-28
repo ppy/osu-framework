@@ -22,15 +22,18 @@ namespace osu.Framework.Bindables
 
         private readonly Bindable<T> result;
 
+        private readonly T initialValue;
+
         /// <summary>
         /// Create a new aggregate bindable.
         /// </summary>
         /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <see cref="T"/> values and returning one output.</param>
-        /// <param name="resultBindable">An optional newly constructed bindable type to use for <see cref="Result"/> aggregation.</param>
+        /// <param name="resultBindable">An optional newly constructed bindable type to use for <see cref="Result"/> aggregation. The initial value of this bindable is used as the first value for aggregation logic.</param>
         public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
         {
             this.aggregateFunction = aggregateFunction;
             result = resultBindable ?? new Bindable<T>();
+            initialValue = result.Value;
         }
 
         private readonly Dictionary<WeakReference, IBindable<T>> sourceMapping = new Dictionary<WeakReference, IBindable<T>>();
@@ -61,7 +64,7 @@ namespace osu.Framework.Bindables
 
         private void recalculateAggregate(ValueChangedEvent<T> obj = null)
         {
-            T calculated = result.Default;
+            T calculated = initialValue;
 
             foreach (var dead in sourceMapping.Keys.Where(k => !k.IsAlive).ToArray())
                 sourceMapping.Remove(dead);
