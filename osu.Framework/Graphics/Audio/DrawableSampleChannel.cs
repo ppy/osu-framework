@@ -9,18 +9,12 @@ namespace osu.Framework.Graphics.Audio
     {
         private readonly SampleChannel channel;
 
-        public DrawableSampleChannel(SampleChannel channel)
-            : base(channel)
+        public DrawableSampleChannel(SampleChannel channel, bool disposeSampleOnDisposal = true)
+            : base(channel, disposeSampleOnDisposal)
         {
             this.channel = channel;
         }
 
         public void Play() => channel.Play();
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            channel.Dispose();
-        }
     }
 }

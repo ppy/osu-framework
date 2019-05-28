@@ -11,8 +11,6 @@ namespace osu.Framework.Graphics.Audio
     [Cached(typeof(IAggregateAudioAdjustment))]
     public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
     {
-        private readonly AudioAdjustments adjustments = new AudioAdjustments();
-
         /// <summary>
         /// The volume of this component.
         /// </summary>
@@ -26,7 +24,14 @@ namespace osu.Framework.Graphics.Audio
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
+
         public BindableDouble Frequency => adjustments.Frequency;
+
+        private readonly AdjustableAudioComponent component;
+
+        private readonly bool disposeUnderlyingComponentOnDispose;
+
+        private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
@@ -37,8 +42,11 @@ namespace osu.Framework.Graphics.Audio
             AddInternal(content);
         }
 
-        protected DrawableAudioWrapper(AdjustableAudioComponent component)
+        protected DrawableAudioWrapper(AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
         {
+            this.component = component;
+            this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
+
             component.BindAdjustments(adjustments);
         }
 
@@ -47,6 +55,15 @@ namespace osu.Framework.Graphics.Audio
         {
             if (parentAdjustment != null)
                 adjustments.BindAdjustments(parentAdjustment);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            component?.UnbindAdjustments(adjustments);
+
+            if (disposeUnderlyingComponentOnDispose)
+                component?.Dispose();
         }
 
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
