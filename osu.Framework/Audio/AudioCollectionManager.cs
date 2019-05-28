@@ -37,7 +37,7 @@ namespace osu.Framework.Audio
 
         public void UnregisterItem(T item)
         {
-            EnqueueAction(() => item.RemoveAdjustmentDependency(this));
+            EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
         public virtual void UpdateDevice(int deviceIndex)

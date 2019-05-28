@@ -109,7 +109,7 @@ namespace osu.Framework.Audio
         /// Unbind all adjustments from another component's aggregated results.
         /// </summary>
         /// <param name="component">The other component (generally a direct parent).</param>
-        internal void RemoveAdjustmentDependency(AdjustableAudioComponent component)
+        internal void UnbindAdjustments(AdjustableAudioComponent component)
         {
             VolumeAggregate.RemoveSource(component.VolumeAggregate.Result);
             BalanceAggregate.RemoveSource(component.BalanceAggregate.Result);
