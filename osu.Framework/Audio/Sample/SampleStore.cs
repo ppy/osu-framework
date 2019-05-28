@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        public SampleStore(IResourceStore<byte[]> store)
+        internal SampleStore(IResourceStore<byte[]> store)
         {
             this.store = store;
         }
@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Sample
 
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
-        public override void UpdateDevice(int deviceIndex)
+        internal override void UpdateDevice(int deviceIndex)
         {
             foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
                 sample.UpdateDevice(deviceIndex);

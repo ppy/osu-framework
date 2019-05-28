@@ -289,7 +289,7 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        public override void UpdateDevice(int deviceIndex)
+        internal override void UpdateDevice(int deviceIndex)
         {
             Samples.UpdateDevice(deviceIndex);
             Tracks.UpdateDevice(deviceIndex);

@@ -47,7 +47,7 @@ namespace osu.Framework.Audio
                 item.OnStateChanged();
         }
 
-        public virtual void UpdateDevice(int deviceIndex)
+        internal virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
                 item.UpdateDevice(deviceIndex);
