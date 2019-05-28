@@ -5,7 +5,7 @@ using osu.Framework.Audio.Sample;
 
 namespace osu.Framework.Graphics.Audio
 {
-    public class DrawableSampleChannel : DrawableAudioWrapper
+    public class DrawableSampleChannel : DrawableAudioWrapper, ISampleChannel
     {
         private readonly SampleChannel channel;
 
@@ -15,6 +15,12 @@ namespace osu.Framework.Graphics.Audio
             this.channel = channel;
         }
 
-        public void Play() => channel.Play();
+        public void Play(bool restart = true) => channel.Play(restart);
+
+        public void Stop() => channel.Stop();
+
+        public bool Playing => channel.Playing;
+
+        public bool Played => channel.Played;
     }
 }
