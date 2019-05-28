@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
@@ -41,5 +43,7 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
             => Image.Load<TPixel>(stream);
+
+        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Concat(store.GetAvailableResources());
     }
 }

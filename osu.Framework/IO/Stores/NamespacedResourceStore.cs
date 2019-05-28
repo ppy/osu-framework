@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -21,5 +23,7 @@ namespace osu.Framework.IO.Stores
         }
 
         protected override IEnumerable<string> GetFilenames(string name) => base.GetFilenames($@"{Namespace}/{name}");
+
+        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Where(x => Regex.IsMatch(x, $@".*{Namespace}/.*"));
     }
 }

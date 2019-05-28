@@ -187,16 +187,7 @@ namespace osu.Framework.IO.Stores
 
         public virtual IEnumerable<string> GetAvailableResources()
         {
-            lock (stores)
-            {
-                foreach (var store in stores)
-                {
-                    var contents = store.GetAvailableResources();
-
-                    foreach (string str in contents)
-                        yield return str;
-                }
-            }
+            lock (stores) return stores.SelectMany(s => s.GetAvailableResources());
         }
 
         #region IDisposable Support

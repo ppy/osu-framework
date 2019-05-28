@@ -4,12 +4,13 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -18,9 +19,10 @@ namespace osu.Framework.Tests.Visual.Platform
         private FontStore fontStore;
         private FillFlowContainer textContainer;
         private Storage storage;
+        private TextureStore textureStore;
 
         [BackgroundDependencyLoader]
-        private void load(FontStore fontStore, Storage storage)
+        private void load(FontStore fontStore, Storage storage, AudioManager audioManager, TextureStore textureStore)
         {
             Child = new ScrollContainer
             {
@@ -35,12 +37,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             this.fontStore = fontStore;
             this.storage = storage;
-        }
-
-        [SetUpSteps]
-        public void SetUpSteps()
-        {
-            AddStep("Clear text container", () => textContainer.Clear());
+            this.textureStore = textureStore;
         }
 
         [Test]
@@ -55,8 +52,15 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("Print storage backed resources", () => populateText(new StorageBackedResourceStore(storage).GetAvailableResources()));
         }
 
+        [Test]
+        public void TestGetTextureStore()
+        {
+            AddStep("Print texture store", () => populateText(textureStore.GetAvailableResources()));
+        }
+
         private void populateText(IEnumerable<string> lines)
         {
+            textContainer.Clear();
             foreach (var text in lines)
             {
                 textContainer.Add(new SpriteText
