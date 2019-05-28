@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public IResourceStore<Track.Track> Tracks => GetTrackStore();
+        public IAdjustableResourceStore<Track.Track> Tracks => GetTrackStore();
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public IResourceStore<SampleChannel> Samples => GetSampleStore();
+        public IAdjustableResourceStore<SampleChannel> Samples => GetSampleStore();
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
