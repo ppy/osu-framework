@@ -4,12 +4,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
 using osuTK;
 
-namespace osu.Framework.Audio
+namespace osu.Framework.Graphics.Containers
 {
     public class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable

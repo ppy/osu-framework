@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
-namespace osu.Framework.Audio
+namespace osu.Framework.Graphics.Audio
 {
     [Cached(typeof(IAggregateAudioAdjustment))]
     public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
