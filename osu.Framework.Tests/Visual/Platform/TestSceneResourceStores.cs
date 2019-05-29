@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private FillFlowContainer textContainer;
         private TextureStore textureStore;
         private StorageBackedResourceStore storageStore;
-        private TrackStore trackManager;
+        private TrackStore trackStore;
 
         [BackgroundDependencyLoader]
         private void load(FontStore fontStore, Storage storage, TextureStore textureStore, AudioManager audioManager)
@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             this.fontStore = fontStore;
             this.textureStore = textureStore;
-            trackManager = (TrackStore)audioManager.GetTrackStore();
+            trackStore = (TrackStore)audioManager.GetTrackStore();
             storageStore = new StorageBackedResourceStore(storage);
         }
 
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestGetTrackManager()
         {
-            AddStep("Print track manager", () => populateText(trackManager.GetAvailableResources()));
+            AddStep("Print track manager", () => populateText(trackStore.GetAvailableResources()));
         }
 
         [Test]
@@ -88,12 +88,12 @@ namespace osu.Framework.Tests.Visual.Platform
                 var glyphs = fontStore.GetAvailableResources();
                 var storage = storageStore.GetAvailableResources();
                 var textures = textureStore.GetAvailableResources();
-                var tracks = trackManager.GetAvailableResources();
+                var tracks = trackStore.GetAvailableResources();
 
                 glyph = fontStore.Get(glyphs.First());
                 file = storageStore.Get(storage.First());
                 texture = textureStore.Get(textures.First());
-                track = trackManager.Get(tracks.First());
+                track = trackStore.Get(tracks.First());
 
                 textContainer.Clear();
                 textContainer.Add(new Box
