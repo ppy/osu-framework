@@ -178,7 +178,7 @@ namespace osu.Framework.Physics
             for (int i = 0; i < Vertices.Count; ++i)
             {
                 Vertices[i] = Vector2Extensions.Transform(Vertices[i], mat);
-                Normals[i] = (Vector2Extensions.Transform(Normals[i], normMat) - translation).Normalized();
+                Normals[i] = Vector2.Normalize(Vector2Extensions.Transform(Normals[i], normMat) - translation);
             }
         }
 

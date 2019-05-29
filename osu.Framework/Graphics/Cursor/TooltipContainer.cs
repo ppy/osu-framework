@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.Cursor
                     (cursorQuad.TopRight - cursorCentre).Length());
             }
 
-            Vector2 southEast = new Vector2(1).Normalized();
+            Vector2 southEast = Vector2.Normalize(new Vector2(1));
             Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
             // Clamp position to tooltip container

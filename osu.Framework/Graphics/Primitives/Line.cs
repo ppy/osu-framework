@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// The normalized direction of this <see cref="Line"/>.
         /// </summary>
-        public Vector2 DirectionNormalized => Direction.Normalized();
+        public Vector2 DirectionNormalized => Vector2.Normalize(Direction);
 
         public Vector2 OrthogonalDirection
         {
