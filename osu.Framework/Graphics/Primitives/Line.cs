@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// The length of the line.
         /// </summary>
-        public float Rho => (EndPoint - StartPoint).Length;
+        public float Rho => (EndPoint - StartPoint).Length();
 
         /// <summary>
         /// The direction of the second point from the first.

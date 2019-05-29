@@ -117,9 +117,9 @@ namespace osu.Framework.MathUtils
             Vector2 b = controlPoints[1];
             Vector2 c = controlPoints[2];
 
-            float aSq = (b - c).LengthSquared;
-            float bSq = (a - c).LengthSquared;
-            float cSq = (a - b).LengthSquared;
+            float aSq = (b - c).LengthSquared();
+            float bSq = (a - c).LengthSquared();
+            float cSq = (a - b).LengthSquared();
 
             // If we have a degenerate triangle where a side-length is almost zero, then give up and fall
             // back to a more numerically stable method.
@@ -141,7 +141,7 @@ namespace osu.Framework.MathUtils
             Vector2 dA = a - centre;
             Vector2 dC = c - centre;
 
-            float r = dA.Length;
+            float r = dA.Length();
 
             double thetaStart = Math.Atan2(dA.Y, dA.X);
             double thetaEnd = Math.Atan2(dC.Y, dC.X);
@@ -243,7 +243,7 @@ namespace osu.Framework.MathUtils
         private static bool bezierIsFlatEnough(Vector2[] controlPoints)
         {
             for (int i = 1; i < controlPoints.Length - 1; i++)
-                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > bezier_tolerance * bezier_tolerance * 4)
+                if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared() > bezier_tolerance * bezier_tolerance * 4)
                     return false;
 
             return true;

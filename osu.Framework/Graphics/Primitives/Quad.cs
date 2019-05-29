@@ -60,10 +60,10 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2 row1 = BottomLeft - TopLeft;
 
                 if (row0 != Vector2.Zero)
-                    row0 /= row0.LengthSquared;
+                    row0 /= row0.LengthSquared();
 
                 if (row1 != Vector2.Zero)
-                    row1 /= row1.LengthSquared;
+                    row1 /= row1.LengthSquared();
 
                 return new Matrix2(
                     row0.X, row0.Y,
@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Primitives
                 //return Math.Sqrt(Vector2Extensions.DistanceSquared(TopLeft, TopRight) * Vector2Extensions.DistanceSquared(TopLeft, BottomLeft));
 
                 Vector2 d1 = TopLeft - TopRight;
-                float lsq1 = d1.LengthSquared;
+                float lsq1 = d1.LengthSquared();
 
                 Vector2 d2 = TopLeft - BottomLeft;
                 float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));

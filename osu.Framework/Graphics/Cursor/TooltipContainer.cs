@@ -109,8 +109,8 @@ namespace osu.Framework.Graphics.Cursor
                 // We only need to check 2 of the 4 vertices, because we only allow affine transformations
                 // and the quad is therefore symmetric around the centre.
                 boundingRadius = Math.Max(
-                    (cursorQuad.TopLeft - cursorCentre).Length,
-                    (cursorQuad.TopRight - cursorCentre).Length);
+                    (cursorQuad.TopLeft - cursorCentre).Length(),
+                    (cursorQuad.TopRight - cursorCentre).Length());
             }
 
             Vector2 southEast = new Vector2(1).Normalized();

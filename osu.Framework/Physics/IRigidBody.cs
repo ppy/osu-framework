@@ -123,7 +123,7 @@ namespace osu.Framework.Physics
 
             // Add "friction" to the impulse. We arbitrarily reduce the planar velocity relative to the impulse magnitude.
             Vector2 vrelPlanar = vrel + vrelOrtho * normal;
-            float vrelPlanarLength = vrelPlanar.Length;
+            float vrelPlanarLength = vrelPlanar.Length();
             if (vrelPlanarLength > 0)
                 impulse -= vrelPlanar * Math.Min(impulseMagnitude * 0.05f * body.FrictionCoefficient * other.FrictionCoefficient / vrelPlanarLength, body.Mass);
 

@@ -122,7 +122,7 @@ namespace osu.Framework.Physics
                 Vector2 a = corners[i];
                 Vector2 b = corners[(i + 1) % 4];
                 Vector2 diff = b - a;
-                float length = diff.Length;
+                float length = diff.Length();
                 Vector2 dir = diff / length;
 
                 float usableLength = Math.Max(length - 2 * cornerRadius, 0);

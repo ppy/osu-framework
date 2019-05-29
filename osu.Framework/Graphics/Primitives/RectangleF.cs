@@ -342,7 +342,7 @@ namespace osu.Framework.Graphics.Primitives
                 Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y))
             );
 
-            return dist.LengthSquared;
+            return dist.LengthSquared();
         }
 
         // This could be optimized further in the future, but made for a simple implementation right now.
