@@ -16,28 +16,13 @@ namespace osu.Framework.Audio
 
         public void AddItem(T item)
         {
-            RegisterItem(item);
-            AddItemToList(item);
-        }
-
-        public void AddItemToList(T item)
-        {
             EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
 
+                item.BindAdjustments(this);
                 Items.Add(item);
             });
-        }
-
-        public void RegisterItem(T item)
-        {
-            EnqueueAction(() => item.BindAdjustments(this));
-        }
-
-        public void UnregisterItem(T item)
-        {
-            EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
         public virtual void UpdateDevice(int deviceIndex)

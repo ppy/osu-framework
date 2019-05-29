@@ -41,8 +41,7 @@ namespace osu.Framework.Audio.Sample
 
                 if (sample != null)
                 {
-                    channel = new SampleChannelBass(sample, AddItemToList);
-                    RegisterItem(channel);
+                    AddItem(channel = new SampleChannelBass(sample, AddItem));
                 }
 
                 return channel;
