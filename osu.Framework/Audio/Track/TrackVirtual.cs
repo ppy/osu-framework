@@ -6,7 +6,7 @@ using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackVirtual : Track
+    public sealed class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
