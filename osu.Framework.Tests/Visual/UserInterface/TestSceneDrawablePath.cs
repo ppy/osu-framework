@@ -148,7 +148,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Vector2 pos = e.MousePosition;
 
-                if ((pos - oldPos).Length > 10)
+                if ((pos - oldPos).Length() > 10)
                 {
                     AddVertex(pos);
                     oldPos = pos;

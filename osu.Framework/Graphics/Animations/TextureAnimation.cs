@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Animations
         {
             base.OnFrameAdded(content, displayDuration);
 
-            maxTextureSize = Vector2.ComponentMax(new Vector2(content?.DisplayWidth ?? 0, content?.DisplayHeight ?? 0), maxTextureSize);
+            maxTextureSize = Vector2.Max(new Vector2(content?.DisplayWidth ?? 0, content?.DisplayHeight ?? 0), maxTextureSize);
         }
 
         protected override void DisplayFrame(Texture content)

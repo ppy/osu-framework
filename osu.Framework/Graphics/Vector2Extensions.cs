@@ -76,5 +76,9 @@ namespace osu.Framework.Graphics
         }
 
         public static float Element(this Vector2 vec, int index) => index == 0 ? vec.X : index == 1 ? vec.Y : throw new IndexOutOfRangeException();
+
+        public static Vector2 PerpendicularLeft(this Vector2 vec) => new Vector2(-vec.Y, vec.X);
+
+        public static Vector2 PerpendicularRight(this Vector2 vec) => new Vector2(vec.Y, -vec.X);
     }
 }

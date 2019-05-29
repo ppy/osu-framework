@@ -96,7 +96,7 @@ namespace osu.Framework.Physics
         public static float ImpulseDenominator(this IRigidBody body, Vector2 pos, Vector2 normal)
         {
             Vector2 diff = pos - body.Centre;
-            float perpDot = Vector2.Dot(normal, diff.PerpendicularRight);
+            float perpDot = Vector2.Dot(normal, diff.PerpendicularRight());
             return 1.0f / body.Mass + perpDot * perpDot / body.MomentOfInertia;
         }
 

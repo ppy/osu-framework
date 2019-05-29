@@ -279,7 +279,7 @@ namespace osu.Framework.Platform
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
-            Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
+            Root.Size = Vector2.Max(Vector2.One, Root.Size);
 
             try
             {

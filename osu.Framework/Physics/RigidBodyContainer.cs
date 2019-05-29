@@ -71,7 +71,7 @@ namespace osu.Framework.Physics
 
             // Add orthogonal direction to rotation, scaled by distance from centre
             // to the velocity of our centre of mass.
-            return Velocity + diff.PerpendicularLeft * AngularVelocity;
+            return Velocity + diff.PerpendicularLeft() * AngularVelocity;
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace osu.Framework.Physics
 
                 float usableLength = Math.Max(length - 2 * cornerRadius, 0);
 
-                Vector2 normal = (b - a).PerpendicularRight.Normalized();
+                Vector2 normal = Vector2.Normalize((b - a).PerpendicularRight());
 
                 for (int j = 0; j < amount_side_steps; ++j)
                 {
