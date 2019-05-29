@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
             // null is not a valid value for Dictionary, so neither here
             if (args.NewValue == null && SelectedItem != null)
             {
-                selectedItem = new DropdownMenuItem<T>(string.Empty, default);
+                selectedItem = new DropdownMenuItem<T>(null, default);
             }
             else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
             {

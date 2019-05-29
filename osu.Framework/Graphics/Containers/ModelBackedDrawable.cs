@@ -48,8 +48,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Drawable nextDrawable;
-
         /// <summary>
         /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> equality comparer.
         /// </summary>
@@ -82,57 +80,72 @@ namespace osu.Framework.Graphics.Containers
             updateDrawable();
         }
 
-        private void replaceDrawable(Drawable source, Drawable target, bool placeholder = false)
-        {
-            // we need to make sure we definitely get a transform so that we can fire off OnComplete
-            var transform = ReplaceDrawable(source, target) ?? (source ?? target)?.DelayUntilTransformsFinished();
-            transform?.OnComplete(d =>
-            {
-                if (!placeholder)
-                {
-                    if (target != nextDrawable)
-                    {
-                        target?.Expire();
-                        return;
-                    }
-
-                    nextDrawable = null;
-                }
-
-                DisplayedDrawable = target;
-                source?.Expire();
-            });
-        }
+        private DelayedLoadWrapper currentWrapper;
+        private bool placeholderDisplayed;
 
         private void updateDrawable()
         {
-            nextDrawable = CreateDrawable(model);
-
-            if (nextDrawable == null)
+            if (model == null)
+                loadPlaceholder();
+            else
             {
-                replaceDrawable(DisplayedDrawable, null);
+                if (FadeOutImmediately) loadPlaceholder();
+                loadDrawable(CreateDrawable(model), false);
+            }
+        }
+
+        private void loadPlaceholder()
+        {
+            if (placeholderDisplayed)
                 return;
+
+            var placeholder = CreateDrawable(null);
+
+            loadDrawable(placeholder, true);
+
+            // in the case a placeholder has not been specified, this should not be set as to allow for a potential runtime change
+            // of placeholder logic on a future load operation.
+            placeholderDisplayed = placeholder != null;
+        }
+
+        private void loadDrawable(Drawable newDrawable, bool isPlaceholder)
+        {
+            // Remove the previous wrapper if the inner drawable hasn't finished loading.
+            // We check IsLoaded on the content rather than DelayedLoadCompleted so that we can ensure that finishLoad() has not been called and DisplayedDrawable hasn't been updated
+            if (currentWrapper?.Content.IsLoaded == false)
+            {
+                // Using .Expire() will be one frame too late, since children's lifetime has already been updated this frame
+                RemoveInternal(currentWrapper);
+                DisposeChildAsync(currentWrapper);
             }
 
-            if (FadeOutImmediately)
-            {
-                var placeholder = CreateDrawable(null);
-                AddInternal(placeholder);
-                replaceDrawable(DisplayedDrawable, placeholder, true);
-            }
+            currentWrapper = null;
 
-            nextDrawable.OnLoadComplete += loadedDrawable =>
+            if (newDrawable != null)
             {
-                if (loadedDrawable != nextDrawable)
+                AddInternal(isPlaceholder ? newDrawable : currentWrapper = CreateDelayedLoadWrapper(newDrawable, LoadDelay));
+
+                if (isPlaceholder)
                 {
-                    loadedDrawable.Expire();
-                    return;
+                    // Although the drawable is technically not loaded, it does have a clock and we need DisplayedDrawable to be updated instantly
+                    finishLoad();
                 }
+                else
+                    newDrawable.OnLoadComplete += _ => finishLoad();
+            }
+            else
+                finishLoad();
 
-                replaceDrawable(DisplayedDrawable, loadedDrawable);
-            };
+            void finishLoad()
+            {
+                var currentDrawable = DisplayedDrawable;
 
-            AddInternal(CreateDelayedLoadWrapper(nextDrawable, LoadDelay));
+                var transform = ReplaceDrawable(currentDrawable, newDrawable) ?? (currentDrawable ?? newDrawable)?.DelayUntilTransformsFinished();
+                transform?.OnComplete(_ => currentDrawable?.Expire());
+
+                DisplayedDrawable = newDrawable;
+                placeholderDisplayed = isPlaceholder;
+            }
         }
 
         /// <summary>
