@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
@@ -15,6 +16,8 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestVirtualTrack()
         {
+            Architecture.SetIncludePath();
+
             var thread = new AudioThread();
             var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
 
