@@ -40,24 +40,30 @@ namespace osu.Framework.Bindables
 
         public void AddSource(IBindable<T> bindable)
         {
-            if (findExistingWeak(bindable) != null)
-                return;
+            lock (sourceMapping)
+            {
+                if (findExistingWeak(bindable) != null)
+                    return;
 
-            var boundCopy = bindable.GetBoundCopy();
-            sourceMapping.Add(new WeakReference(bindable), boundCopy);
-            boundCopy.BindValueChanged(recalculateAggregate, true);
+                var boundCopy = bindable.GetBoundCopy();
+                sourceMapping.Add(new WeakReference(bindable), boundCopy);
+                boundCopy.BindValueChanged(recalculateAggregate, true);
+            }
         }
 
         public void RemoveSource(IBindable<T> bindable)
         {
-            var weak = findExistingWeak(bindable);
-            if (weak != null)
+            lock (sourceMapping)
             {
-                sourceMapping[weak].UnbindAll();
-                sourceMapping.Remove(weak);
-            }
+                var weak = findExistingWeak(bindable);
+                if (weak != null)
+                {
+                    sourceMapping[weak].UnbindAll();
+                    sourceMapping.Remove(weak);
+                }
 
-            recalculateAggregate();
+                recalculateAggregate();
+            }
         }
 
         private WeakReference findExistingWeak(IBindable<T> bindable) => sourceMapping.Keys.FirstOrDefault(k => k.Target == bindable);
@@ -66,11 +72,14 @@ namespace osu.Framework.Bindables
         {
             T calculated = initialValue;
 
-            foreach (var dead in sourceMapping.Keys.Where(k => !k.IsAlive).ToArray())
-                sourceMapping.Remove(dead);
+            lock (sourceMapping)
+            {
+                foreach (var dead in sourceMapping.Keys.Where(k => !k.IsAlive).ToArray())
+                    sourceMapping.Remove(dead);
 
-            foreach (var s in sourceMapping.Values)
-                calculated = aggregateFunction(calculated, s.Value);
+                foreach (var s in sourceMapping.Values)
+                    calculated = aggregateFunction(calculated, s.Value);
+            }
 
             result.Value = calculated;
         }

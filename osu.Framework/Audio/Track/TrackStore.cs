@@ -7,11 +7,11 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackStore : AudioCollectionManager<Track>, IResourceStore<Track>
+    public class TrackStore : AudioCollectionManager<Track>, IAdjustableResourceStore<Track>
     {
         private readonly IResourceStore<byte[]> store;
 
-        public TrackStore(IResourceStore<byte[]> store)
+        internal TrackStore(IResourceStore<byte[]> store)
         {
             this.store = store;
         }
