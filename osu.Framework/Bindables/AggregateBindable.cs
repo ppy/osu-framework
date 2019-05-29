@@ -38,6 +38,10 @@ namespace osu.Framework.Bindables
 
         private readonly Dictionary<WeakReference, IBindable<T>> sourceMapping = new Dictionary<WeakReference, IBindable<T>>();
 
+        /// <summary>
+        /// Add a new source to be included in aggregation.
+        /// </summary>
+        /// <param name="bindable">The bindable to add.</param>
         public void AddSource(IBindable<T> bindable)
         {
             lock (sourceMapping)
@@ -51,6 +55,10 @@ namespace osu.Framework.Bindables
             }
         }
 
+        /// <summary>
+        /// Remove a source from being included in aggregation.
+        /// </summary>
+        /// <param name="bindable">The bindable to remove.</param>
         public void RemoveSource(IBindable<T> bindable)
         {
             lock (sourceMapping)
