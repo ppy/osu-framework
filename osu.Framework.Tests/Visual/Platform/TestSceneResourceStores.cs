@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private FillFlowContainer textContainer;
         private TextureStore textureStore;
         private StorageBackedResourceStore storageStore;
-        private TrackManager trackManager;
+        private TrackStore trackManager;
 
         [BackgroundDependencyLoader]
         private void load(FontStore fontStore, Storage storage, TextureStore textureStore, AudioManager audioManager)
@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             this.fontStore = fontStore;
             this.textureStore = textureStore;
-            trackManager = audioManager.GetTrackManager();
+            trackManager = (TrackStore)audioManager.GetTrackStore();
             storageStore = new StorageBackedResourceStore(storage);
         }
 
