@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleManager : AudioCollectionManager<SampleChannel>, IResourceStore<SampleChannel>
+    public class SampleStore : AudioCollectionManager<SampleChannel>, IAdjustableResourceStore<SampleChannel>
     {
         private readonly IResourceStore<byte[]> store;
 
@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        public SampleManager(IResourceStore<byte[]> store)
+        internal SampleStore(IResourceStore<byte[]> store)
         {
             this.store = store;
         }
