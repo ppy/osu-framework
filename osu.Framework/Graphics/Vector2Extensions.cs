@@ -74,5 +74,7 @@ namespace osu.Framework.Graphics
         {
             result = (vec2.X - vec1.X) * (vec2.X - vec1.X) + (vec2.Y - vec1.Y) * (vec2.Y - vec1.Y);
         }
+
+        public static float Element(this Vector2 vec, int index) => index == 0 ? vec.X : index == 1 ? vec.Y : throw new IndexOutOfRangeException();
     }
 }

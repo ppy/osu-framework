@@ -82,12 +82,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
-        private float availableContent => content.DrawSize[ScrollDim];
+        private float availableContent => content.DrawSize.Element(ScrollDim);
 
         /// <summary>
         /// Size of the viewport in the scroll direction.
         /// </summary>
-        private float displayableContent => ChildSize[ScrollDim];
+        private float displayableContent => ChildSize.Element(ScrollDim);
 
         /// <summary>
         /// Controls the distance scrolled per unit of mouse scroll.
@@ -305,13 +305,13 @@ namespace osu.Framework.Graphics.Containers
             double decay = Math.Pow(0.95, timeDelta);
 
             averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - e.Delta[ScrollDim];
+            averageDragDelta = averageDragDelta * decay - e.Delta.Element(ScrollDim);
 
             lastDragTime = currentTime;
 
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
-            float scrollOffset = -childDelta[ScrollDim];
+            float scrollOffset = -childDelta.Element(ScrollDim);
             float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
 
             Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
@@ -363,7 +363,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(Clamp(value / Scrollbar.Size[ScrollDim]), false);
+        private void onScrollbarMovement(float value) => scrollTo(Clamp(value / Scrollbar.Size.Element(ScrollDim)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -456,7 +456,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="d">The child to get the position from.</param>
         /// <param name="offset">Positional offset in the child's space.</param>
         /// <returns>The position of the child.</returns>
-        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, content)[ScrollDim];
+        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, content).Element(ScrollDim);
 
         /// <summary>
         /// Determines the position of a child in the content.
@@ -568,14 +568,11 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(1);
             }
 
-            public float DimSize => Size[scrollDim == 1 ? 0 : 1];
+            public float DimSize => Size.Element(scrollDim == 1 ? 0 : 1);
 
             public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
             {
-                Vector2 size = new Vector2(dim_size)
-                {
-                    [scrollDim] = val
-                };
+                Vector2 size = new Vector2(scrollDim == 0 ? val : dim_size, scrollDim == 1 ? val : dim_size);
                 this.ResizeTo(size, duration, easing);
             }
 
@@ -594,7 +591,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDragStart(DragStartEvent e)
             {
-                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
+                dragOffset = e.MousePosition.Element(scrollDim) - Position.Element(scrollDim);
                 return true;
             }
 
@@ -605,7 +602,7 @@ namespace osu.Framework.Graphics.Containers
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlightColour, 100);
 
-                dragOffset = Position[scrollDim];
+                dragOffset = Position.Element(scrollDim);
                 Dragged?.Invoke(dragOffset);
                 return true;
             }
@@ -621,7 +618,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(DragEvent e)
             {
-                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
+                Dragged?.Invoke(e.MousePosition.Element(scrollDim) - dragOffset);
                 return true;
             }
         }
