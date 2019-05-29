@@ -12,9 +12,9 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
-        public TrackVirtual()
+        public TrackVirtual(double length)
         {
-            Length = double.PositiveInfinity;
+            Length = length;
         }
 
         public override bool Seek(double seek)
