@@ -44,7 +44,13 @@ namespace osu.Framework.IO.Stores
             if (texture == null)
                 return null;
 
-            return getCharacterInfo(fontName, charName)?.With(texture: texture, scaleAdjust: ScaleAdjust);
+            if (!getCharacterInfo(fontName, charName, out var info))
+                return null;
+
+            info.Texture = texture;
+            info.ApplyScaleAdjust(1 / ScaleAdjust);
+
+            return info;
         }
 
         public float? GetBaseHeight(char c)
@@ -66,13 +72,21 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look in for the character.</param>
+        /// <param name="glyph">The found glyph.</param>
         /// <returns>The associated character information for the character and font. Returns null if not found.</returns>
-        private CharacterGlyph? getCharacterInfo(string fontName, char charName)
+        private bool getCharacterInfo(string fontName, char charName, out CharacterGlyph glyph)
         {
             // Return the default (first available) character if fontName is default
             var glyphStore = getGlyphStore(fontName, charName);
 
-            return glyphStore?.GetCharacterInfo(charName);
+            if (glyphStore == null)
+            {
+                glyph = default;
+                return false;
+            }
+
+            glyph = glyphStore.GetCharacterInfo(charName);
+            return true;
         }
 
         private string getTextureName(string fontName, char charName) => string.IsNullOrEmpty(fontName) ? charName.ToString() : fontName + "/" + charName;
@@ -195,27 +209,27 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Contains the texture and associated spacing information for a Character.
         /// </summary>
-        public readonly struct CharacterGlyph
+        public struct CharacterGlyph
         {
             /// <summary>
             /// The texture for this character.
             /// </summary>
-            public Texture Texture { get; }
+            public Texture Texture { get; set; }
 
             /// <summary>
             /// The amount of space that should be given to the left of the character texture.
             /// </summary>
-            public float XOffset { get; }
+            public float XOffset { get; set; }
 
             /// <summary>
             /// The amount of space that should be given to the top of the character texture.
             /// </summary>
-            public float YOffset { get; }
+            public float YOffset { get; set; }
 
             /// <summary>
             /// The amount of space to advance the cursor by after drawing the texture.
             /// </summary>
-            public float XAdvance { get; }
+            public float XAdvance { get; set; }
 
             /// <summary>
             /// The scale-adjusted width of the texture associated with this character.
@@ -227,17 +241,24 @@ namespace osu.Framework.IO.Stores
             /// </summary>
             public float Height => Texture.DisplayHeight;
 
-            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, float scaleAdjust = 1)
+            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0)
             {
                 Texture = texture;
-                XOffset = xOffset / scaleAdjust;
-                YOffset = yOffset / scaleAdjust;
-                XAdvance = xAdvance / scaleAdjust;
+                XOffset = xOffset;
+                YOffset = yOffset;
+                XAdvance = xAdvance;
             }
 
-            public CharacterGlyph With([CanBeNull] Texture texture = null, [CanBeNull] float? xOffset = null, [CanBeNull] float? yOffset = null, [CanBeNull] float? xAdvance = null,
-                                       float scaleAdjust = 1)
-                => new CharacterGlyph(texture ?? Texture, xOffset ?? XOffset, yOffset ?? YOffset, xAdvance ?? XAdvance, scaleAdjust);
+            /// <summary>
+            /// Apply a scale adjust to metrics of this glyph.
+            /// </summary>
+            /// <param name="scaleAdjust">The adjustment to multiply all metrics by.</param>
+            public void ApplyScaleAdjust(float scaleAdjust)
+            {
+                XOffset *= scaleAdjust;
+                YOffset *= scaleAdjust;
+                XAdvance *= scaleAdjust;
+            }
         }
     }
 }
