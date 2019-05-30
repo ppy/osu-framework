@@ -44,6 +44,6 @@ namespace osu.Framework.Graphics.Textures
         protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
             => Image.Load<TPixel>(stream);
 
-        public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources().Concat(store.GetAvailableResources());
+        public override IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
     }
 }
