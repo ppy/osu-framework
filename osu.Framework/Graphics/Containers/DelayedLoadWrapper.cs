@@ -32,9 +32,17 @@ namespace osu.Framework.Graphics.Containers
             AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
-        public override double LifetimeStart => Content.LifetimeStart;
+        public override double LifetimeStart
+        {
+            get => Content.LifetimeStart;
+            set => Content.LifetimeStart = value;
+        }
 
-        public override double LifetimeEnd => Content.LifetimeEnd;
+        public override double LifetimeEnd
+        {
+            get => Content.LifetimeEnd;
+            set => Content.LifetimeEnd = value;
+        }
 
         public virtual Drawable Content { get; protected set; }
 
