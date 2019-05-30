@@ -318,6 +318,7 @@ namespace osu.Framework.Graphics
             {
                 case Direction.Horizontal:
                     return drawable.MoveToX(destination, duration, easing);
+
                 case Direction.Vertical:
                     return drawable.MoveToY(destination, duration, easing);
             }

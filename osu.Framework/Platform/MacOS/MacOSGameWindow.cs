@@ -108,10 +108,15 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private const NSApplicationPresentationOptions fullscreen_presentation_options =
+        private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
             NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreen_presentation_options;
+        private bool isCursorHidden => CursorState.HasFlag(CursorState.Hidden);
+
+        private NSApplicationPresentationOptions fullscreenPresentationOptions =>
+            default_fullscreen_presentation_options | (isCursorHidden ? NSApplicationPresentationOptions.DisableCursorLocationAssistance : 0);
+
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreenPresentationOptions;
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
@@ -125,6 +130,7 @@ namespace osu.Framework.Platform.MacOS
         {
             // update the window mode if we have an update queued
             WindowMode? mode = pendingWindowMode;
+
             if (mode.HasValue)
             {
                 pendingWindowMode = null;
@@ -135,14 +141,16 @@ namespace osu.Framework.Platform.MacOS
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
                 else if (currentFullScreen)
-                    NSApplication.PresentationOptions = fullscreen_presentation_options;
+                    NSApplication.PresentationOptions = fullscreenPresentationOptions;
+                else if (isCursorHidden)
+                    NSApplication.PresentationOptions = NSApplicationPresentationOptions.DisableCursorLocationAssistance;
 
                 WindowMode.Value = mode.Value;
             }
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
             // invalidate the cursor rects to hide it.  osuTK has a private function that does this.
-            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible() && !menuBarVisible)
+            if (isCursorHidden && Cocoa.CGCursorIsVisible() && !menuBarVisible)
                 methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
 
@@ -289,6 +297,7 @@ namespace osu.Framework.Platform.MacOS
         DisableHideApplication = 1 << 8,
         DisableMenuBarTransparency = 1 << 9,
         FullScreen = 1 << 10,
-        AutoHideToolbar = 1 << 11
+        AutoHideToolbar = 1 << 11,
+        DisableCursorLocationAssistance = 1 << 12
     }
 }

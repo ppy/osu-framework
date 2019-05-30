@@ -34,6 +34,7 @@ namespace osu.Framework.Tests.Clocks
 
             // test with test clock not elapsing
             double lastValue = interpolating.CurrentTime;
+
             for (int i = 0; i < 100; i++)
             {
                 interpolating.ProcessFrame();
@@ -48,6 +49,7 @@ namespace osu.Framework.Tests.Clocks
 
             // test with test clock elapsing
             lastValue = interpolating.CurrentTime;
+
             for (int i = 0; i < 100; i++)
             {
                 source.CurrentTime += 50;

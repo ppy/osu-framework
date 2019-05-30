@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -141,7 +141,10 @@ namespace osu.Framework.Graphics.Video
         public void ReturnFrames(IEnumerable<DecodedFrame> frames)
         {
             foreach (var f in frames)
+            {
+                ((TextureGLSingle)f.Texture.TextureGL).FlushUploads();
                 availableTextures.Enqueue(f.Texture);
+            }
         }
 
         /// <summary>
@@ -154,7 +157,7 @@ namespace osu.Framework.Graphics.Video
                 prepareDecoding();
 
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
-            decodingTask = Task.Run(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token);
+            decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         /// <summary>
@@ -211,14 +214,18 @@ namespace osu.Framework.Graphics.Video
                 case StdIo.SEEK_CUR:
                     videoStream.Seek(offset, SeekOrigin.Current);
                     break;
+
                 case StdIo.SEEK_END:
                     videoStream.Seek(offset, SeekOrigin.End);
                     break;
+
                 case StdIo.SEEK_SET:
                     videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
+
                 case ffmpeg.AVSEEK_SIZE:
                     return videoStream.Length;
+
                 default:
                     return -1;
             }
@@ -245,11 +252,13 @@ namespace osu.Framework.Graphics.Video
                 throw new Exception("Could not find stream info.");
 
             var nStreams = formatContext->nb_streams;
+
             for (var i = 0; i < nStreams; ++i)
             {
                 stream = formatContext->streams[i];
 
                 codecParams = *stream->codecpar;
+
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
                     timeBaseInSeconds = stream->time_base.GetValue();
@@ -289,8 +298,6 @@ namespace osu.Framework.Graphics.Video
 
             const int max_pending_frames = 3;
 
-            var bufferStack = new BufferStack<Rgba32>(max_pending_frames * 2);
-
             try
             {
                 while (true)
@@ -298,27 +305,31 @@ namespace osu.Framework.Graphics.Video
                     if (cancellationToken.IsCancellationRequested)
                         return;
 
-                    if (decodedFrames.Count < max_pending_frames && bufferStack.BuffersInUse < max_pending_frames * 2)
+                    if (decodedFrames.Count < max_pending_frames)
                     {
                         int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
 
                         if (readFrameResult >= 0)
                         {
                             state = DecoderState.Running;
+
                             if (packet->stream_index == stream->index)
                             {
                                 if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
                                     throw new Exception("Error sending packet.");
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+
                                 if (result == 0)
                                 {
                                     var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+
                                     if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
                                     {
                                         skipOutputUntilTime = null;
 
                                         SwsContext* swsCtx = null;
+
                                         try
                                         {
                                             swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
@@ -332,7 +343,7 @@ namespace osu.Framework.Graphics.Video
                                         if (!availableTextures.TryDequeue(out var tex))
                                             tex = new Texture(codecParams.width, codecParams.height, true);
 
-                                        var upload = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
+                                        var upload = new ArrayPoolTextureUpload(tex.Width, tex.Height);
 
                                         // todo: can likely make this more efficient
                                         new Span<Rgba32>(ffmpegFrame->data[0], uncompressedFrameSize / 4).CopyTo(upload.RawData);

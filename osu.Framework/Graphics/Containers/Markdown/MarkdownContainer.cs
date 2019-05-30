@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
@@ -20,6 +21,26 @@ namespace osu.Framework.Graphics.Containers.Markdown
     public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         private const int root_level = 0;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="Drawable.RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Drawable.Size"/> (or <see cref="Drawable.Width"/> / <see cref="Drawable.Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public new Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set
+            {
+                if (value.HasFlag(Axes.X))
+                    throw new ArgumentException($"{nameof(MarkdownContainer)} does not support an {nameof(AutoSizeAxes)} of {value}");
+
+                base.AutoSizeAxes = value;
+            }
+        }
 
         private string text = string.Empty;
 
@@ -73,19 +94,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         public MarkdownContainer()
         {
-            InternalChildren = new Drawable[]
+            InternalChild = document = new FillFlowContainer
             {
-                CreateScrollContainer().With(s =>
-                {
-                    s.ScrollbarOverlapsContent = false;
-                    s.RelativeSizeAxes = Axes.Both;
-                    s.Child = document = new FillFlowContainer
-                    {
-                        AutoSizeAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
-                    };
-                })
+                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.X,
+                Direction = FillDirection.Vertical,
             };
 
             LineSpacing = 25;
@@ -126,8 +139,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         public virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        protected virtual ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
-
         /// <summary>
         /// Adds a component that visualises a <see cref="IMarkdownObject"/> to the document.
         /// </summary>
@@ -142,37 +153,47 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case ThematicBreakBlock thematicBlock:
                     container.Add(CreateSeparator(thematicBlock));
                     break;
+
                 case HeadingBlock headingBlock:
                     container.Add(CreateHeading(headingBlock));
                     break;
+
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateParagraph(paragraphBlock, level));
                     break;
+
                 case QuoteBlock quoteBlock:
                     container.Add(CreateQuoteBlock(quoteBlock));
                     break;
+
                 case FencedCodeBlock fencedCodeBlock:
                     container.Add(CreateFencedCodeBlock(fencedCodeBlock));
                     break;
+
                 case Table table:
                     container.Add(CreateTable(table));
                     break;
+
                 case ListBlock listBlock:
                     var childContainer = CreateList(listBlock);
                     container.Add(childContainer);
                     foreach (var single in listBlock)
                         AddMarkdownComponent(single, childContainer, level + 1);
                     break;
+
                 case ListItemBlock listItemBlock:
                     foreach (var single in listItemBlock)
                         AddMarkdownComponent(single, container, level);
                     break;
+
                 case HtmlBlock _:
                     // HTML is not supported
                     break;
+
                 case LinkReferenceDefinitionGroup _:
                     // Link reference doesn't need to be displayed.
                     break;
+
                 default:
                     container.Add(CreateNotImplemented(markdownObject));
                     break;

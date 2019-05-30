@@ -76,6 +76,7 @@ namespace osu.Framework.Graphics.Shaders
                     }
 
                     Match includeMatch = includeRegex.Match(line);
+
                     if (includeMatch.Success)
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
@@ -93,6 +94,7 @@ namespace osu.Framework.Graphics.Shaders
                     if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
                     {
                         Match inputMatch = shaderInputRegex.Match(line);
+
                         if (inputMatch.Success)
                         {
                             ShaderInputs.Add(new ShaderInputInfo
@@ -130,6 +132,7 @@ namespace osu.Framework.Graphics.Shaders
             string compileLog = GL.GetShaderInfoLog(this);
             Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
             Log.AppendLine($"\tCompiled: {Compiled}");
+
             if (!Compiled)
             {
                 Log.AppendLine("\tLog:");

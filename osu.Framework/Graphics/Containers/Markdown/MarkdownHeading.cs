@@ -48,12 +48,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 case 1:
                     return 2.7f;
+
                 case 2:
                     return 2;
+
                 case 3:
                     return 1.5f;
+
                 case 4:
                     return 1.3f;
+
                 default:
                     return 1;
             }

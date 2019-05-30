@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics.Visualisation
             public PropertyItem(MemberInfo info, IDrawable d)
             {
                 Type type;
+
                 switch (info.MemberType)
                 {
                     case MemberTypes.Property:
@@ -164,6 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
             private void updateValue()
             {
                 object value;
+
                 try
                 {
                     value = getValue() ?? "<null>";

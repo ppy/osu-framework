@@ -209,11 +209,16 @@ namespace osu.Framework.Bindables
                 case T t:
                     Value = t;
                     break;
+
                 case string s:
-                    Value = typeof(T).IsEnum
-                        ? (T)Enum.Parse(typeof(T), s)
-                        : (T)Convert.ChangeType(s, typeof(T), CultureInfo.InvariantCulture);
+                    var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+                    if (underlyingType.IsEnum)
+                        Value = (T)Enum.Parse(underlyingType, s);
+                    else
+                        Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
                     break;
+
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
             }
@@ -233,13 +238,17 @@ namespace osu.Framework.Bindables
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
-            if (propagateToBindings)
-                Bindings?.ForEachAlive(b =>
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
                 {
-                    if (b == source) return;
+                    if (b == source) continue;
 
                     b.SetValue(previousValue, value, bypassChecks, this);
-                });
+                }
+            }
+
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
         }
@@ -248,13 +257,17 @@ namespace osu.Framework.Bindables
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
-            if (propagateToBindings)
-                Bindings?.ForEachAlive(b =>
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
                 {
-                    if (b == source) return;
+                    if (b == source) continue;
 
                     b.SetDisabled(disabled, bypassChecks, this);
-                });
+                }
+            }
+
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
@@ -273,8 +286,13 @@ namespace osu.Framework.Bindables
         /// </summary>
         public void UnbindBindings()
         {
-            Bindings?.ForEachAlive(b => b.Unbind(this));
-            Bindings?.Clear();
+            if (Bindings == null)
+                return;
+
+            foreach (var b in Bindings)
+                b.Unbind(this);
+
+            Bindings.Clear();
         }
 
         protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
@@ -363,13 +381,19 @@ namespace osu.Framework.Bindables
 
         private bool checkForLease(Bindable<T> source)
         {
-            if (isLeased) return true;
+            if (isLeased)
+                return true;
+
+            if (Bindings == null)
+                return false;
 
             bool found = false;
-            Bindings?.ForEachAlive(b =>
+
+            foreach (var b in Bindings)
             {
-                if (b != source) found |= b.checkForLease(this);
-            });
+                if (b != source)
+                    found |= b.checkForLease(this);
+            }
 
             return found;
         }

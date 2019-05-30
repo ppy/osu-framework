@@ -13,7 +13,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private readonly Dictionary<CacheInfo, object> cache = new Dictionary<CacheInfo, object>(new CachedObjectComparer());
+        private readonly Dictionary<CacheInfo, object> cache = new Dictionary<CacheInfo, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -143,7 +143,7 @@ namespace osu.Framework.Allocation
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            info.Type = Nullable.GetUnderlyingType(type) ?? type;
+            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
 
             var instanceType = instance.GetType();
             instanceType = Nullable.GetUnderlyingType(instanceType) ?? instanceType;
@@ -167,7 +167,7 @@ namespace osu.Framework.Allocation
 
         public object Get(Type type, CacheInfo info)
         {
-            info.Type = Nullable.GetUnderlyingType(type) ?? type;
+            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
 
             if (cache.TryGetValue(info, out var existing))
                 return existing;
@@ -186,13 +186,6 @@ namespace osu.Framework.Allocation
         public void Inject<T>(T instance)
             where T : class
             => DependencyActivator.Activate(instance, this);
-
-        // See: https://docs.microsoft.com/en-us/xamarin/ios/internals/limitations#value-types-as-dictionary-keys
-        private class CachedObjectComparer : IEqualityComparer<CacheInfo>
-        {
-            public bool Equals(CacheInfo x, CacheInfo y) => x.Equals(y);
-            public int GetHashCode(CacheInfo obj) => obj.GetHashCode();
-        }
     }
 
     public class TypeAlreadyCachedException : InvalidOperationException
