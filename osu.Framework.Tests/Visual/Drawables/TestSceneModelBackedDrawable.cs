@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(200),
-                InternalFadeOutImmediately = fadeOutImmediately,
+                InternalTransformImmediately = fadeOutImmediately,
                 HasPlaceholder = withPlaceholder
             };
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
 
             if (withPlaceholder)
-                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
+                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable == null && backedDrawable.PlaceholderDrawable is TestPlaceholder);
             else
                 AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
         }
@@ -56,10 +56,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("set model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1)));
 
-            if (withPlaceholder)
-                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
-            else
-                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
 
             AddStep("allow load", () => drawableModel.AllowLoad.Set());
             AddUntilStep("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
@@ -94,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         /// <summary>
-        /// Covers <see cref="ModelBackedDrawable{T}.FadeOutImmediately"/> usage.
+        /// Covers <see cref="ModelBackedDrawable{T}.TransformImmediately"/> usage.
         /// </summary>
         [TestCase(false, false)]
         [TestCase(false, true)]
@@ -109,10 +106,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("set first model", () => backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1)));
 
-            if (withPlaceholder)
-                AddAssert("placeholder is displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
-            else
-                AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
 
             AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
             AddUntilStep("first model displayed", () => backedDrawable.DisplayedDrawable == firstModel);
@@ -120,12 +114,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
 
             if (fadeOutImmediately)
-            {
-                if (withPlaceholder)
-                    AddAssert("placeholder is displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
-                else
-                    AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
-            }
+                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
             else
                 AddAssert("first model still displayed", () => backedDrawable.DisplayedDrawable == firstModel);
 
@@ -170,10 +159,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
                 AddWaitStep("wait for potential load", 5);
 
-                if (withPlaceholder)
-                    AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
-                else
-                    AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null);
+                AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null);
 
                 AddAssert($"model {i + 1} not loaded", () => !drawableModels[localI].IsLoaded);
             }
@@ -245,10 +231,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("set null model", () => backedDrawable.Model = null);
 
-            if (withPlaceholder)
-                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
-            else
-                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
         }
 
         private class TestModel
@@ -318,6 +301,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return model.DrawableModel;
             }
 
+            public Drawable PlaceholderDrawable => HasPlaceholder ? ((DelayedLoadWrapper)InternalChildren[0]).Content : null;
+
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
             public new TestModel Model
@@ -326,11 +311,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 set => base.Model = value;
             }
 
-            public bool InternalFadeOutImmediately;
+            public bool InternalTransformImmediately;
 
             public bool HasPlaceholder;
 
-            protected override bool FadeOutImmediately => InternalFadeOutImmediately;
+            protected override bool TransformImmediately => InternalTransformImmediately;
         }
     }
 }
