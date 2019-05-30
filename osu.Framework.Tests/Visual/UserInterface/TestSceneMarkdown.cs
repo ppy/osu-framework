@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public TestSceneMarkdown()
         {
             MarkdownContainer markdownContainer;
-            Add(new ScrollContainer
+            Add(new BasicScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = markdownContainer = new MarkdownContainer

@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FontStore fontStore, Storage storage, TextureStore textureStore, AudioManager audioManager)
         {
-            Child = new ScrollContainer
+            Child = new BasicScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = flow = new FillFlowContainer<ResourceDisplay>

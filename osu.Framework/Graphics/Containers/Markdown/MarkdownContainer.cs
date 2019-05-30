@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Cached contentCache = new Cached();
 
-        private FillFlowContainer document;
+        private readonly FillFlowContainer document;
 
         public MarkdownContainer()
         {
