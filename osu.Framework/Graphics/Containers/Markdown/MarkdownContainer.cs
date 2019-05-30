@@ -153,37 +153,47 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case ThematicBreakBlock thematicBlock:
                     container.Add(CreateSeparator(thematicBlock));
                     break;
+
                 case HeadingBlock headingBlock:
                     container.Add(CreateHeading(headingBlock));
                     break;
+
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateParagraph(paragraphBlock, level));
                     break;
+
                 case QuoteBlock quoteBlock:
                     container.Add(CreateQuoteBlock(quoteBlock));
                     break;
+
                 case FencedCodeBlock fencedCodeBlock:
                     container.Add(CreateFencedCodeBlock(fencedCodeBlock));
                     break;
+
                 case Table table:
                     container.Add(CreateTable(table));
                     break;
+
                 case ListBlock listBlock:
                     var childContainer = CreateList(listBlock);
                     container.Add(childContainer);
                     foreach (var single in listBlock)
                         AddMarkdownComponent(single, childContainer, level + 1);
                     break;
+
                 case ListItemBlock listItemBlock:
                     foreach (var single in listItemBlock)
                         AddMarkdownComponent(single, container, level);
                     break;
+
                 case HtmlBlock _:
                     // HTML is not supported
                     break;
+
                 case LinkReferenceDefinitionGroup _:
                     // Link reference doesn't need to be displayed.
                     break;
+
                 default:
                     container.Add(CreateNotImplemented(markdownObject));
                     break;

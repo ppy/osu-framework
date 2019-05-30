@@ -214,14 +214,18 @@ namespace osu.Framework.Graphics.Video
                 case StdIo.SEEK_CUR:
                     videoStream.Seek(offset, SeekOrigin.Current);
                     break;
+
                 case StdIo.SEEK_END:
                     videoStream.Seek(offset, SeekOrigin.End);
                     break;
+
                 case StdIo.SEEK_SET:
                     videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
+
                 case ffmpeg.AVSEEK_SIZE:
                     return videoStream.Length;
+
                 default:
                     return -1;
             }
@@ -248,11 +252,13 @@ namespace osu.Framework.Graphics.Video
                 throw new Exception("Could not find stream info.");
 
             var nStreams = formatContext->nb_streams;
+
             for (var i = 0; i < nStreams; ++i)
             {
                 stream = formatContext->streams[i];
 
                 codecParams = *stream->codecpar;
+
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
                     timeBaseInSeconds = stream->time_base.GetValue();
@@ -306,20 +312,24 @@ namespace osu.Framework.Graphics.Video
                         if (readFrameResult >= 0)
                         {
                             state = DecoderState.Running;
+
                             if (packet->stream_index == stream->index)
                             {
                                 if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
                                     throw new Exception("Error sending packet.");
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+
                                 if (result == 0)
                                 {
                                     var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+
                                     if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
                                     {
                                         skipOutputUntilTime = null;
 
                                         SwsContext* swsCtx = null;
+
                                         try
                                         {
                                             swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);

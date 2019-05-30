@@ -176,6 +176,7 @@ namespace osu.Framework.Platform
                 case Input.ConfineMouseMode.Fullscreen:
                     confine = WindowMode.Value != Configuration.WindowMode.Windowed;
                     break;
+
                 case Input.ConfineMouseMode.Always:
                     confine = true;
                     break;
@@ -202,6 +203,7 @@ namespace osu.Framework.Platform
             try
             {
                 inWindowModeTransition = true;
+
                 switch (newMode)
                 {
                     case Configuration.WindowMode.Fullscreen:
@@ -210,6 +212,7 @@ namespace osu.Framework.Platform
 
                         WindowState = WindowState.Fullscreen;
                         break;
+
                     case Configuration.WindowMode.Borderless:
                         if (lastFullscreenDisplay != null)
                             RestoreResolution(lastFullscreenDisplay);
@@ -222,6 +225,7 @@ namespace osu.Framework.Platform
                         ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
                         Location = currentDisplay.Bounds.Location;
                         break;
+
                     case Configuration.WindowMode.Windowed:
                         if (lastFullscreenDisplay != null)
                             RestoreResolution(lastFullscreenDisplay);

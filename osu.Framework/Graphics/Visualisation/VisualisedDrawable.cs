@@ -335,6 +335,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void updateSpecifics()
         {
             Vector2 posInTree = ToSpaceOfOtherDrawable(Vector2.Zero, tree);
+
             if (posInTree.Y < -previewBox.DrawHeight || posInTree.Y > tree.Height)
             {
                 text.Text = string.Empty;
