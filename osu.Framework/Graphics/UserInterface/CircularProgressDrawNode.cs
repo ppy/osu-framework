@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -65,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             int amountPoints = (int)Math.Ceiling(Math.Abs(angle) / step);
 
-            Matrix3 transformationMatrix = DrawInfo.Matrix;
+            Matrix4x4 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;

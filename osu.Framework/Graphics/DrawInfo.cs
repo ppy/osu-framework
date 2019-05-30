@@ -5,19 +5,18 @@ using System;
 using System.Numerics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Extensions.TypeExtensions;
-using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics
 {
     public struct DrawInfo : IEquatable<DrawInfo>
     {
-        public Matrix3 Matrix;
-        public Matrix3 MatrixInverse;
+        public Matrix4x4 Matrix;
+        public Matrix4x4 MatrixInverse;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null)
+        public DrawInfo(Matrix4x4? matrix = null, Matrix4x4? matrixInverse = null)
         {
-            Matrix = matrix ?? Matrix3.Identity;
-            MatrixInverse = matrixInverse ?? Matrix3.Identity;
+            Matrix = matrix ?? Matrix4x4.Identity;
+            MatrixInverse = matrixInverse ?? Matrix4x4.Identity;
         }
 
         /// <summary>

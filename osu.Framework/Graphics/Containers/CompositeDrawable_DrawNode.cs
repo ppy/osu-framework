@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -73,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!Source.Masking && (Source.BorderThickness != 0.0f || edgeEffect.Type != EdgeEffectType.None))
                     throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
-                osuTK.Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null

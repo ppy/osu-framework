@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
-using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Sprites
 {

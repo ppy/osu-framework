@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using System.Diagnostics;
 using osu.Framework.MathUtils;
-using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -109,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     ScreenSpaceAABB = screenSpaceMaskingRect,
                     MaskingRect = screenSpaceDrawRectangle,
-                    ToMaskingSpace = Matrix3.Identity,
+                    ToMaskingSpace = Matrix4x4.Identity,
                     BlendRange = 1,
                     AlphaExponent = 1,
                 }, true);

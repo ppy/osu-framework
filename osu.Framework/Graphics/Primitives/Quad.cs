@@ -2,11 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using osuTK;
 using osu.Framework.MathUtils;
-using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -45,14 +44,14 @@ namespace osu.Framework.Graphics.Primitives
                 new Vector2(rectangle.Left, rectangle.Bottom),
                 new Vector2(rectangle.Right, rectangle.Bottom));
 
-        public static Quad operator *(Quad r, Matrix3 m) =>
+        public static Quad operator *(Quad r, Matrix4x4 m) =>
             new Quad(
                 Vector2Extensions.Transform(r.TopLeft, m),
                 Vector2Extensions.Transform(r.TopRight, m),
                 Vector2Extensions.Transform(r.BottomLeft, m),
                 Vector2Extensions.Transform(r.BottomRight, m));
 
-        public Matrix2 BasisTransform
+        public osuTK.Matrix2 BasisTransform
         {
             get
             {
@@ -65,7 +64,7 @@ namespace osu.Framework.Graphics.Primitives
                 if (row1 != Vector2.Zero)
                     row1 /= row1.LengthSquared();
 
-                return new Matrix2(
+                return new osuTK.Matrix2(
                     row0.X, row0.Y,
                     row1.X, row1.Y);
             }
@@ -133,7 +132,7 @@ namespace osu.Framework.Graphics.Primitives
                 float lsq1 = d1.LengthSquared();
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
+                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * osuTK.MathHelper.InverseSqrtFast(lsq1)));
 
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }

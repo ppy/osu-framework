@@ -1,13 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using Vector2 = System.Numerics.Vector2;
+using osu.Framework.Extensions.MatrixExtensions;
 
 namespace osu.Framework.Physics
 {
@@ -85,16 +85,16 @@ namespace osu.Framework.Physics
         /// </summary>
         protected List<Vector2> Normals = new List<Vector2>();
 
-        protected Matrix3 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
+        protected Matrix4x4 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
 
-        protected Matrix3 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
+        protected Matrix4x4 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
 
         /// <summary>
         /// Computes the moment of inertia.
         /// </summary>
         protected float ComputeI()
         {
-            Matrix3 mat = DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse;
+            Matrix4x4 mat = DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse;
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -167,9 +167,9 @@ namespace osu.Framework.Physics
             }
 
             // To simulation space
-            Matrix3 mat = DrawInfo.Matrix * ScreenToSimulationSpace;
-            Matrix3 normMat = mat.Inverted();
-            normMat.Transpose();
+            Matrix4x4 mat = DrawInfo.Matrix * ScreenToSimulationSpace;
+            MatrixExtensions.FastInvert(ref mat);
+            var normMat = Matrix4x4.Transpose(mat);
 
             // Remove translation
             normMat.M31 = normMat.M32 = normMat.M13 = normMat.M23 = 0;
@@ -254,9 +254,9 @@ namespace osu.Framework.Physics
         /// </summary>
         public void ReadState()
         {
-            Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix4x4 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
-            RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
+            RotationRadians = osuTK.MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
             UpdateVertices();
@@ -267,9 +267,9 @@ namespace osu.Framework.Physics
         /// </summary>
         public virtual void ApplyState()
         {
-            Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
+            Matrix4x4 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
-            Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
+            Rotation = osuTK.MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -248,7 +249,8 @@ namespace osu.Framework.Graphics.Audio
                 shader.Bind();
                 texture.TextureGL.Bind();
 
-                osuTK.Vector2 localInflationAmount = new osuTK.Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
+                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                Vector2 localInflationAmount = new Vector2(0, 1) * new Vector2(scale.X, scale.Y);
 
                 // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
                 // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
@@ -307,7 +309,7 @@ namespace osu.Framework.Graphics.Audio
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    texture.DrawQuad(quadToDraw, colour, null, vertexBatch.AddAction, Vector2.Divide(new Vector2(localInflationAmount.X, localInflationAmount.Y), quadToDraw.Size));
+                    texture.DrawQuad(quadToDraw, colour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 shader.Unbind();
