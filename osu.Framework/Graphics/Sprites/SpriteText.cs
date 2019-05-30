@@ -63,7 +63,8 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            spaceWidth = getCharacter('.')?.Width * 2 ?? 1;
+            var space = getCharacter('.');
+            spaceWidth = space.Width == default ? 1 : space.Width * 2;
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -492,9 +493,7 @@ namespace osu.Framework.Graphics.Sprites
                 float ellipsisLength = 0;
                 foreach (var c in EllipsisString)
                 {
-                    // Apply spacing offsets to length, if fixed with should be used.
-                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X +
-                                      (useFixedWidthForCharacter(c) ? 0 : glyph?.XOffset * Font.Size ?? 0);
+                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + glyph.XOffset * Font.Size;
                 }
 
                 float availableWidth = maxWidth -= ellipsisLength;
@@ -504,15 +503,14 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    float glyphWidth = getCharacterSize(character, true, out var glyph).X +
-                                       (useFixedWidthForCharacter(character) ? 0 : glyph?.XOffset * Font.Size ?? 0);
+                    float glyphWidth = getCharacterSize(character, true, out var glyph).X + glyph.XOffset * Font.Size;
 
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
 
                     trackingPos += glyphWidth + spacing.X;
 
-                    bool isSpace = char.IsWhiteSpace(character) || glyph == null;
+                    bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
 
                     index++;
 
@@ -526,7 +524,7 @@ namespace osu.Framework.Graphics.Sprites
             void addCharacter(char character)
             {
                 // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph? glyph);
+                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph glyph);
 
                 // Scaled glyph size to be used for positioning.
                 Vector2 glyphSize = new Vector2(
@@ -547,12 +545,12 @@ namespace osu.Framework.Graphics.Sprites
                 }
 
                 if (!useFixedWidthForCharacter(character))
-                    currentPos.X += Font.Size * glyph?.XOffset ?? 0;
+                    currentPos.X += Font.Size * glyph.XOffset;
 
                 // The height of the row depends on whether we want to use the full glyph height or not
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
-                bool isSpace = char.IsWhiteSpace(character) || glyph == null;
+                bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
 
                 if (!isSpace)
                 {
@@ -561,8 +559,8 @@ namespace osu.Framework.Graphics.Sprites
 
                     charactersBacking.Add(new CharacterPart
                     {
-                        Texture = glyph.Value.Texture,
-                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y + Font.Size * glyph.Value.YOffset), scaledTextureSize),
+                        Texture = glyph.Texture,
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y + Font.Size * glyph.YOffset), scaledTextureSize),
                     });
                 }
 
@@ -577,12 +575,14 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
         /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available</param>
         /// <returns></returns>
-        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out FontStore.CharacterGlyph? glyph)
+        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out FontStore.CharacterGlyph glyph)
         {
             float width;
             float height;
 
-            if (char.IsWhiteSpace(character) || (glyph = getCharacter(character)) == null)
+            glyph = getCharacter(character);
+
+            if (char.IsWhiteSpace(character) || glyph.Texture == null)
             {
                 float size = useFixedWidthForCharacter(character) ? constantWidth : spaceWidth;
 
@@ -592,18 +592,23 @@ namespace osu.Framework.Graphics.Sprites
                     size *= 2;
                 }
 
-                glyph = null;
+                glyph.Texture = null;
                 width = size;
                 height = size;
             }
             else
             {
-                width = glyph.Value.Width;
-                height = glyph.Value.Height;
+                width = glyph.Width;
+                height = glyph.Height;
             }
 
             if (applyFixedWidth && useFixedWidthForCharacter(character))
+            {
                 width = constantWidth;
+
+                // Fixed with characters should not have additional XOffsets
+                glyph.XOffset = 0;
+            }
 
             return Font.Size * new Vector2(width, height);
         }
@@ -649,7 +654,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The width to be used for characters with fixed-width spacing.
         /// </summary>
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacter('m')?.Width ?? 0;
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getCharacter('m').Width;
 
         private Cached<Vector2> shadowOffsetCache;
 
@@ -698,19 +703,23 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        private FontStore.CharacterGlyph? getCharacter(char c) => GetCharacter(c) ?? GetFallbackCharacter(c);
+        private FontStore.CharacterGlyph getCharacter(char c) => TryGetCharacter(c, out var glyph) ? glyph : GetFallbackCharacter(c);
 
         /// <summary>
-        /// Gets the texture and its associated spacing information for the specified character
+        /// Gets the texture and its associated spacing information for the specified character.
         /// </summary>
-        /// <param name="c">The character to lookup</param>
-        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available.</returns>
-        protected virtual FontStore.CharacterGlyph? GetCharacter(char c)
+        /// <param name="c">The character to lookup.</param>
+        /// <param name="glyph">The <see cref="FontStore.CharacterGlyph"/> for the character, if found.</param>
+        /// <returns>Whether or not the lookup was successful.</returns>
+        protected virtual bool TryGetCharacter(char c, out FontStore.CharacterGlyph glyph)
         {
-            if (store == null)
-                return null;
+            if (store.TryGetCharacter(Font.FontName, c, out glyph))
+                return true;
 
-            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c);
+            if (store.TryGetCharacter(null, c, out glyph))
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -718,7 +727,11 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character and its associated spacing information.</returns>
-        protected virtual FontStore.CharacterGlyph? GetFallbackCharacter(char c) => GetCharacter('?');
+        protected virtual FontStore.CharacterGlyph GetFallbackCharacter(char c)
+        {
+            TryGetCharacter('?', out var glyph);
+            return glyph;
+        }
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.

@@ -32,25 +32,29 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Get the texture of a character from a specified font and its associated spacing information.
+        /// Attempt to get the texture of a character from a specified font and its associated spacing information.
         /// </summary>
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look for the character in.</param>
-        /// <returns>A struct containing the texture and its associated spacing information for the specified character. Null if no texture is found.</returns>
-        public CharacterGlyph? GetCharacter(string fontName, char charName)
+        /// <param name="glyph">The glyph retrieved, if it exists</param>
+        /// <returns>Whether or not a <see cref="CharacterGlyph"/> was able to be retrieved</returns>
+        public bool TryGetCharacter(string fontName, char charName, out CharacterGlyph glyph)
         {
             var texture = namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
 
             if (texture == null)
-                return null;
+            {
+                glyph = default;
+                return false;
+            }
 
-            if (!getCharacterInfo(fontName, charName, out var info))
-                return null;
+            if (!tryGetCharacterGlyph(fontName, charName, out glyph))
+                return false;
 
-            info.Texture = texture;
-            info.ApplyScaleAdjust(1 / ScaleAdjust);
+            glyph.Texture = texture;
+            glyph.ApplyScaleAdjust(1 / ScaleAdjust);
 
-            return info;
+            return true;
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="fontName">The font look in for the character.</param>
         /// <param name="glyph">The found glyph.</param>
         /// <returns>Whether a matching <see cref="CharacterGlyph"/> was found.</returns>
-        private bool getCharacterInfo(string fontName, char charName, out CharacterGlyph glyph)
+        private bool tryGetCharacterGlyph(string fontName, char charName, out CharacterGlyph glyph)
         {
             // Return the default (first available) character if fontName is default
             var glyphStore = getGlyphStore(fontName, charName);
