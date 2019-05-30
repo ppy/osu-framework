@@ -492,7 +492,9 @@ namespace osu.Framework.Graphics.Sprites
                 float ellipsisLength = 0;
                 foreach (var c in EllipsisString)
                 {
-                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + Font.Size * glyph?.XOffset ?? 0;
+                    // Apply spacing offsets to length, if fixed with should be used.
+                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X +
+                                      (useFixedWidthForCharacter(c) ? 0 : glyph?.XOffset * Font.Size ?? 0);
                 }
 
                 float availableWidth = maxWidth -= ellipsisLength;
@@ -502,7 +504,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    float glyphWidth = getCharacterSize(character, true, out var glyph).X + Font.Size * glyph?.XOffset ?? 0;
+                    float glyphWidth = getCharacterSize(character, true, out var glyph).X +
+                                       (useFixedWidthForCharacter(character) ? 0 : glyph?.XOffset * Font.Size ?? 0);
 
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
