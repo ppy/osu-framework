@@ -3,14 +3,14 @@
 
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
-using osuTK;
 using System;
+using System.Numerics;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using Vector2 = System.Numerics.Vector2;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             texture = Source.Texture;
             drawSize = Source.DrawSize;
-            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            angle = (float)Source.Current.Value * osuTK.MathHelper.TwoPi;
             innerRadius = Source.InnerRadius;
         }
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAX_RES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
 
         private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
-        private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
+        private float angleToUnitInterval(float angle) => angle / osuTK.MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
         private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateVertexBuffer()
         {
             const float start_angle = 0;
-            const float step = MathHelper.Pi / MAX_RES;
+            const float step = osuTK.MathHelper.Pi / MAX_RES;
 
             float dir = Math.Sign(angle);
 
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = dir * Math.Min(i * step, dir * angle);
-                float normalisedOffset = angularOffset / MathHelper.TwoPi;
+                float normalisedOffset = angularOffset / osuTK.MathHelper.TwoPi;
 
                 if (dir < 0)
                 {

@@ -5,14 +5,13 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
-using osuTK;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
-using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -63,7 +62,7 @@ namespace osu.Framework.Graphics.Lines
 
             private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
-                const float step = MathHelper.Pi / MAX_RES;
+                const float step = osuTK.MathHelper.Pi / MAX_RES;
 
                 float dir = Math.Sign(thetaDiff);
                 thetaDiff = dir * thetaDiff;
@@ -71,7 +70,7 @@ namespace osu.Framework.Graphics.Lines
                 int amountPoints = (int)Math.Ceiling(thetaDiff / step);
 
                 if (dir < 0)
-                    theta += MathHelper.Pi;
+                    theta += osuTK.MathHelper.Pi;
 
                 Vector2 current = origin + pointOnCircle(theta) * radius;
                 Color4 currentColour = colourAt(current);
@@ -181,7 +180,7 @@ namespace osu.Framework.Graphics.Lines
 
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
-                addLineCap(line.StartPoint, theta + MathHelper.Pi, MathHelper.Pi, texRect);
+                addLineCap(line.StartPoint, theta + osuTK.MathHelper.Pi, osuTK.MathHelper.Pi, texRect);
 
                 for (int i = 1; i < segments.Count; ++i)
                 {
@@ -193,7 +192,7 @@ namespace osu.Framework.Graphics.Lines
                     theta = nextTheta;
                 }
 
-                addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
+                addLineCap(line.EndPoint, theta, osuTK.MathHelper.Pi, texRect);
 
                 foreach (Line segment in segments)
                     addLineQuads(segment, texRect);

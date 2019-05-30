@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Extensions.MatrixExtensions;
-using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
-using Vector2 = System.Numerics.Vector2;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics
 {
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                float radians = MathHelper.DegreesToRadians(rotation);
+                float radians = osuTK.MathHelper.DegreesToRadians(rotation);
                 MatrixExtensions.RotateFromLeft(ref Matrix, radians);
                 MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }

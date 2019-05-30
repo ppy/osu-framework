@@ -6,13 +6,12 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Batches;
-using osuTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using System.Numerics;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -74,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!Source.Masking && (Source.BorderThickness != 0.0f || edgeEffect.Type != EdgeEffectType.None))
                     throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
-                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                osuTK.Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null
@@ -159,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
-                int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
+                int clampedAmountChildren = osuTK.MathHelper.Clamp(Children.Count, 1, 1000);
                 if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
                     vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
             }

@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osuTK;
-using Vector2 = System.Numerics.Vector2;
+using System.Numerics;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Shaders
 
             global_properties = new IUniformMapping[values.Length];
 
-            global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4>("g_ProjMatrix");
+            global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4x4>("g_ProjMatrix");
             global_properties[(int)GlobalProperty.MaskingRect] = new UniformMapping<Vector4>("g_MaskingRect");
             global_properties[(int)GlobalProperty.ToMaskingSpace] = new UniformMapping<Matrix3>("g_ToMaskingSpace");
             global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");

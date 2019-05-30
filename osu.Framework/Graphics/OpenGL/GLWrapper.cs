@@ -5,12 +5,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
-using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
@@ -18,6 +18,8 @@ using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
+using Matrix2 = osuTK.Matrix2;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -32,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
-        public static Matrix4 ProjectionMatrix { get; private set; }
+        public static Matrix4x4 ProjectionMatrix { get; private set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
 
         public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
@@ -370,7 +372,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             Ortho = ortho;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
+            ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
@@ -393,7 +395,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             Ortho = actualRect;
 
-            ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
+            ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
@@ -683,15 +685,18 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
 
                 case IUniformWithValue<Vector2> v2:
-                    GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
+                    var v2value = v2.GetValue();
+                    GL.Uniform2(uniform.Location, v2value.X, v2value.Y);
                     break;
 
                 case IUniformWithValue<Vector3> v3:
-                    GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
+                    var v3value = v3.GetValue();
+                    GL.Uniform3(uniform.Location, v3value.X, v3value.Y, v3value.Z);
                     break;
 
                 case IUniformWithValue<Vector4> v4:
-                    GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
+                    var v4value = v4.GetValue();
+                    GL.Uniform4(uniform.Location, v4value.X, v4value.Y, v4value.Z, v4value.W);
                     break;
 
                 case IUniformWithValue<Matrix2> m2:
@@ -702,11 +707,15 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueByRef());
                     break;
 
-                case IUniformWithValue<Matrix4> m4:
-                    GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
+                case IUniformWithValue<Matrix4x4> m4:
+                    var mat4 = toMatrix4(m4.GetValue());
+                    GL.UniformMatrix4(uniform.Location, false, ref mat4);
                     break;
             }
         }
+
+        private static osuTK.Matrix4 toMatrix4(Matrix4x4 m4)
+            => new osuTK.Matrix4(m4.M11, m4.M12, m4.M13, m4.M14, m4.M21, m4.M22, m4.M23, m4.M24, m4.M31, m4.M32, m4.M33, m4.M34, m4.M41, m4.M42, m4.M43, m4.M44);
     }
 
     public struct MaskingInfo : IEquatable<MaskingInfo>

@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
-using osuTK;
 using osuTK.Graphics.ES30;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -117,7 +118,7 @@ namespace osu.Framework.Graphics.Shaders
                             break;
 
                         case ActiveUniformType.FloatMat4:
-                            uniform = createUniform<Matrix4>(uniformName);
+                            uniform = createUniform<Matrix4x4>(uniformName);
                             break;
 
                         case ActiveUniformType.FloatVec2:

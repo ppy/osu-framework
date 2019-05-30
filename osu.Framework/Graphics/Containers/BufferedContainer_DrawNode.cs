@@ -4,18 +4,18 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osuTK;
 using osuTK.Graphics.ES30;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using System;
+using System.Numerics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using System.Diagnostics;
 using osu.Framework.MathUtils;
-using Vector2 = System.Numerics.Vector2;
+using Matrix3 = osuTK.Matrix3;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 size = source.Size;
                     blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
-                    float radians = -MathHelper.DegreesToRadians(blurRotation);
+                    float radians = -osuTK.MathHelper.DegreesToRadians(blurRotation);
                     Vector2 blur = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
