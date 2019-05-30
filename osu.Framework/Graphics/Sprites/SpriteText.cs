@@ -491,6 +491,7 @@ namespace osu.Framework.Graphics.Sprites
                 float trackingPos = Padding.Left;
 
                 float ellipsisLength = 0;
+
                 foreach (var c in EllipsisString)
                 {
                     ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + glyph.XOffset * Font.Size;
