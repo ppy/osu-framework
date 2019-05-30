@@ -124,11 +124,11 @@ namespace osu.Framework
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
-            var tracks = new ResourceStore<byte[]>(Resources);
+            var tracks = new ResourceStore<byte[]>();
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
             tracks.AddStore(new OnlineStore());
 
-            var samples = new ResourceStore<byte[]>(Resources);
+            var samples = new ResourceStore<byte[]>();
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
