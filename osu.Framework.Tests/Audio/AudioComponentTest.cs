@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -13,37 +14,86 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class AudioComponentTest
     {
-        [Test]
-        public void TestVirtualTrack()
+        private AudioThread thread;
+        private NamespacedResourceStore<byte[]> store;
+        private AudioManager manager;
+
+        [SetUp]
+        public void SetUp()
         {
             Architecture.SetIncludePath();
 
-            var thread = new AudioThread();
-            var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            thread = new AudioThread();
+            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
 
-            var manager = new AudioManager(thread, store, store);
+            manager = new AudioManager(thread, store, store);
 
             thread.Start();
+        }
 
+        [TearDown]
+        public void TearDown()
+        {
+            thread.Exit();
+
+            Task.Delay(500);
+
+            Assert.IsFalse(thread.Exited);
+        }
+
+        [Test]
+        public void TestVirtualTrack()
+        {
             var track = manager.Tracks.GetVirtual();
+
+            waitAudioFrame();
+
+            checkTrackCount(1);
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(0, track.CurrentTime);
 
             track.Start();
-
-            Task.Delay(50);
+            waitAudioFrame();
 
             Assert.Greater(track.CurrentTime, 0);
 
             track.Stop();
             Assert.IsFalse(track.IsRunning);
 
-            thread.Exit();
+            track.Dispose();
+            waitAudioFrame();
 
-            Task.Delay(500);
+            checkTrackCount(0);
+        }
 
-            Assert.IsFalse(thread.Exited);
+        private void checkTrackCount(int expected)
+            => Assert.AreEqual(expected, ((TrackStore)manager.Tracks).Items.Count);
+
+        /// <summary>
+        /// Block for a specified number of audio thread frames.
+        /// </summary>
+        /// <param name="count">The number of frames to wait for. Two frames is generally considered safest.</param>
+        private void waitAudioFrame(int count = 2)
+        {
+            var cts = new TaskCompletionSource<bool>();
+
+            void runScheduled()
+            {
+                thread.Scheduler.Add(() =>
+                {
+                    if (--count > 0)
+                        runScheduled();
+                    else
+                    {
+                        cts.SetResult(true);
+                    }
+                });
+            }
+
+            runScheduled();
+
+            Task.WaitAll(cts.Task);
         }
     }
 }
