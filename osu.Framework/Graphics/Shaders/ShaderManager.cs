@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Shaders
             {
                 case ShaderType.FragmentShader:
                     return @".fs";
+
                 case ShaderType.VertexShader:
                     return @".vs";
             }

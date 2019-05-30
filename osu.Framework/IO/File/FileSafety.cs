@@ -131,6 +131,7 @@ namespace osu.Framework.IO.File
             }
 
             string deathLocation = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
             try
             {
                 System.IO.File.Move(filename, deathLocation);
@@ -231,9 +232,11 @@ namespace osu.Framework.IO.File
             }
 
             bool didExist = Directory.Exists(newDirectory);
+
             if (!didExist)
             {
                 DirectoryInfo newDirectoryInfo = Directory.CreateDirectory(newDirectory);
+
                 try
                 {
                     if (new DirectoryInfo(oldDirectory).Attributes.HasFlag(FileAttributes.Hidden))
@@ -249,6 +252,7 @@ namespace osu.Framework.IO.File
                 string newFile = Path.Combine(newDirectory, Path.GetFileName(file));
 
                 bool didMove = FileMove(file, newFile, didExist);
+
                 if (!didMove)
                 {
                     try
@@ -297,12 +301,14 @@ namespace osu.Framework.IO.File
                 return string.Empty;
 
             char[] converted = new char[(encoded.Length + 1) / 2];
+
             fixed (byte* bytePtr = encoded)
             fixed (char* stringPtr = converted)
             {
                 byte* stringBytes = (byte*)stringPtr;
                 byte* stringEnd = (byte*)stringPtr + converted.Length * 2;
                 byte* bytePtr2 = bytePtr;
+
                 do
                 {
                     *stringBytes = *bytePtr2++;
@@ -344,6 +350,7 @@ namespace osu.Framework.IO.File
         public static void CreateBackup(string filename)
         {
             string backupFilename = filename + @"." + DateTime.Now.Ticks + @".bak";
+
             if (System.IO.File.Exists(filename) && !System.IO.File.Exists(backupFilename))
             {
                 Debug.Print(@"Backup created: " + backupFilename);

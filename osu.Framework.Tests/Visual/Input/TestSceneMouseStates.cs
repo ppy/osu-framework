@@ -460,6 +460,7 @@ namespace osu.Framework.Tests.Visual.Input
                     case MouseMoveEvent mouseMove:
                         LastDelta = mouseMove.ScreenSpaceMousePosition - mouseMove.ScreenSpaceLastMousePosition;
                         break;
+
                     case ScrollEvent scroll:
                         LastScrollDelta = scroll.ScrollDelta;
                         break;
@@ -489,6 +490,7 @@ namespace osu.Framework.Tests.Visual.Input
                 base.Update();
 
                 var inputManager = GetContainingInputManager();
+
                 if (inputManager != null)
                 {
                     var state = inputManager.CurrentState;

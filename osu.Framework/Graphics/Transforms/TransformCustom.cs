@@ -74,6 +74,7 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor findAccessor(Type type, string propertyOrFieldName)
         {
             PropertyInfo property = type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
             if (property != null)
             {
                 if (property.PropertyType != typeof(TValue))
@@ -101,6 +102,7 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             FieldInfo field = type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
             if (field != null)
             {
                 if (field.FieldType != typeof(TValue))

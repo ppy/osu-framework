@@ -293,6 +293,7 @@ namespace osu.Framework.Graphics.Audio
                             );
                         }
                             break;
+
                         case 1:
                         {
                             quadToDraw = new Quad(

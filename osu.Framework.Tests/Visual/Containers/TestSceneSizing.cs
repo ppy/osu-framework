@@ -193,6 +193,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
                     box.OnUpdate += delegate { box.Rotation += 0.05f; };
                     break;
+
                 case 1:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
@@ -224,6 +225,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Colour = Color4.Blue,
                     });
                     break;
+
                 case 2:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
@@ -255,6 +257,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Colour = Color4.SeaGreen,
                     });
                     break;
+
                 case 3:
                     testContainer.Add(box = new InfofulBox
                     {
@@ -288,6 +291,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Colour = Color4.SeaGreen,
                     });
                     break;
+
                 case 4:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
@@ -320,6 +324,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Anchor = Anchor.CentreLeft
                     });
                     break;
+
                 case 5:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
@@ -353,6 +358,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Anchor = Anchor.CentreLeft
                     });
                     break;
+
                 case 6:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
@@ -377,6 +383,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Colour = Color4.OrangeRed,
                     });
                     break;
+
                 case 7:
                     Container shrinkContainer;
                     Container<Drawable> boxes;
@@ -1183,24 +1190,30 @@ namespace osu.Framework.Tests.Visual.Containers
             if (Chameleon && (int)Time.Current / 1000 != lastSwitch)
             {
                 lastSwitch = (int)Time.Current / 1000;
+
                 switch (lastSwitch % 6)
                 {
                     case 0:
                         Anchor = (Anchor)((int)Anchor + 1);
                         Origin = (Anchor)((int)Origin + 1);
                         break;
+
                     case 1:
                         this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
                         break;
+
                     case 2:
                         this.MoveTo(new Vector2(200, 0), 800, Easing.Out);
                         break;
+
                     case 3:
                         this.MoveTo(new Vector2(200, 200), 800, Easing.Out);
                         break;
+
                     case 4:
                         this.MoveTo(new Vector2(0, 200), 800, Easing.Out);
                         break;
+
                     case 5:
                         this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
                         break;

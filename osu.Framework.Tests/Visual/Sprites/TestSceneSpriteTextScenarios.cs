@@ -295,6 +295,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         {
                             default:
                                 return LOCALISABLE_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
                         }

@@ -113,6 +113,7 @@ namespace osu.Framework.Audio.Track
                         // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
                         // samplesPerPoint assumes this interleaving behaviour
                         var point = new WaveformPoint(info.Channels);
+
                         for (int j = i; j < i + samplesPerPoint; j += info.Channels)
                         {
                             // Find the maximum amplitude for each channel in the point
@@ -135,6 +136,7 @@ namespace osu.Framework.Audio.Track
                 float[] bins = new float[fft_bins];
                 int currentPoint = 0;
                 long currentByte = 0;
+
                 while (length > 0)
                 {
                     length = Bass.ChannelGetData(decodeStream, bins, (int)fft_samples);
@@ -217,6 +219,7 @@ namespace osu.Framework.Audio.Track
 
                     var point = new WaveformPoint(channels);
                     float totalWeight = 0;
+
                     for (int j = startIndex; j < endIndex; j++)
                     {
                         if (j < 0 || j >= points.Count) continue;
