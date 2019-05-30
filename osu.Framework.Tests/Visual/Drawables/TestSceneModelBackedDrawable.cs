@@ -62,9 +62,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
 
             AddStep("allow load", () => drawableModel.AllowLoad.Set());
-            AddUntilStep("wait for model to be loaded", () => drawableModel.IsLoaded);
-
-            AddAssert("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
+            AddUntilStep("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
         }
 
         [TestCase(false, false)]
@@ -92,7 +90,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
 
             AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
-            AddAssert("placeholder is not displayed", () => backedDrawable.DisplayedDrawable != placeholder);
+            AddUntilStep("second model displayed", () => backedDrawable.DisplayedDrawable == secondModel);
         }
 
         /// <summary>
@@ -117,8 +115,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
 
             AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
-            AddUntilStep("wait for first model to be loaded", () => firstModel.IsLoaded);
-            AddAssert("first model's drawable is displayed", () => backedDrawable.DisplayedDrawable == firstModel);
+            AddUntilStep("first model displayed", () => backedDrawable.DisplayedDrawable == firstModel);
 
             AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
 
@@ -130,11 +127,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                     AddAssert("nothing displayed", () => backedDrawable.DisplayedDrawable == null);
             }
             else
-                AddAssert("first model's drawable is displayed", () => backedDrawable.DisplayedDrawable == firstModel);
+                AddAssert("first model still displayed", () => backedDrawable.DisplayedDrawable == firstModel);
 
             AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
-            AddUntilStep("wait for second model to be loaded", () => secondModel.IsLoaded);
-            AddAssert("second model's drawable is displayed", () => backedDrawable.DisplayedDrawable == secondModel);
+            AddUntilStep("second model displayed", () => backedDrawable.DisplayedDrawable == secondModel);
         }
 
         [TestCase(false, false)]
@@ -172,17 +168,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 int localI = i;
                 AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
+                AddWaitStep("wait for potential load", 5);
+
                 if (withPlaceholder)
                     AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable is TestPlaceholder);
                 else
                     AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null);
-                AddWaitStep("wait for potential load", 5);
+
                 AddAssert($"model {i + 1} not loaded", () => !drawableModels[localI].IsLoaded);
             }
 
             AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddUntilStep($"model {model_count} loaded", () => drawableModels[model_count - 1].IsLoaded);
-            AddAssert($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+            AddUntilStep($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
         }
 
         [TestCase(false, false)]
@@ -217,8 +214,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
 
             AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddUntilStep($"model {model_count} loaded", () => drawableModels[model_count - 1].IsLoaded);
-            AddAssert($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
+            AddUntilStep($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
 
             for (int i = model_count - 2; i >= 0; i--)
             {

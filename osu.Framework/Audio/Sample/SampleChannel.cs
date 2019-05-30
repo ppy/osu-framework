@@ -6,7 +6,7 @@ using System;
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class SampleChannel : AdjustableAudioComponent
+    public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel
     {
         protected bool WasStarted;
 
