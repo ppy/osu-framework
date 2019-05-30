@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
@@ -44,6 +45,8 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
             => Image.Load<TPixel>(stream);
+
+        public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
 
         #region IDisposable Support
 
