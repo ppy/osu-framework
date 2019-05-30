@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Audio
         private float resolution = 1;
 
         /// <summary>
-        /// Gets or sets the amount of <see cref="WaveformPoint"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
+        /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
         /// </summary>
         public float Resolution
         {
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private IReadOnlyList<WaveformPoint> points;
+            private IReadOnlyList<Waveform.Point> points;
 
             private Vector2 drawSize;
             private int channels;
