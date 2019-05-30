@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
@@ -9,7 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureLoaderStore : ResourceStore<TextureUpload>
+    public class TextureLoaderStore : IResourceStore<TextureUpload>
     {
         private IResourceStore<byte[]> store { get; }
 
@@ -20,9 +21,9 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public override Task<TextureUpload> GetAsync(string name) => Task.Run(() => Get(name));
+        public Task<TextureUpload> GetAsync(string name) => Task.Run(() => Get(name));
 
-        public override TextureUpload Get(string name)
+        public TextureUpload Get(string name)
         {
             try
             {
@@ -39,7 +40,35 @@ namespace osu.Framework.Graphics.Textures
             return null;
         }
 
+        public Stream GetStream(string name) => store.GetStream(name);
+
         protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
             => Image.Load<TPixel>(stream);
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                store.Dispose();
+            }
+        }
+
+        ~TextureLoaderStore()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
