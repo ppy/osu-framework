@@ -82,8 +82,8 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="name">The name of the texture to look up.</param>
         /// <returns>Whether or not the specified texture is contained inside this GlyphStore.</returns>
-        public bool ContainsTexture(string name) => (name.Length == 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
-                                                    && Font.Characters.ContainsKey(name.Last());
+        public bool ContainsTexture(string name) =>
+            (name.Length == 1 || name.StartsWith($@"{FontName}/", StringComparison.Ordinal)) && Font.Characters.ContainsKey(name.Last());
 
         public TextureUpload Get(string name)
         {
