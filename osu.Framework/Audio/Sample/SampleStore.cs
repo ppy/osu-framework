@@ -2,15 +2,17 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleStore : AudioCollectionManager<SampleChannel>, IAdjustableResourceStore<SampleChannel>
+    internal class SampleStore : AudioCollectionManager<SampleChannel>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 
@@ -65,5 +67,7 @@ namespace osu.Framework.Audio.Sample
         }
 
         public Stream GetStream(string name) => store.GetStream(name);
+
+        public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
     }
 }

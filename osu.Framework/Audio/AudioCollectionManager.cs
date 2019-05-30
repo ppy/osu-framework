@@ -12,7 +12,7 @@ namespace osu.Framework.Audio
     public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
         where T : AdjustableAudioComponent
     {
-        protected List<T> Items = new List<T>();
+        internal List<T> Items = new List<T>();
 
         public void AddItem(T item)
         {
@@ -20,19 +20,9 @@ namespace osu.Framework.Audio
             {
                 if (Items.Contains(item)) return;
 
-                RegisterItem(item);
+                item.BindAdjustments(this);
                 Items.Add(item);
             });
-        }
-
-        public void RegisterItem(T item)
-        {
-            EnqueueAction(() => item.BindAdjustments(this));
-        }
-
-        public void UnregisterItem(T item)
-        {
-            EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
         public virtual void UpdateDevice(int deviceIndex)
