@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
@@ -66,5 +67,7 @@ namespace osu.Framework.Audio.Sample
         }
 
         public Stream GetStream(string name) => store.GetStream(name);
+
+        public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
     }
 }
