@@ -53,6 +53,11 @@ namespace osu.Framework.IO.Stores
             return info;
         }
 
+        /// <summary>
+        /// Get the base height of a font containing a particiular character.
+        /// </summary>
+        /// <param name="c">The charcter to search for.</param>
+        /// <returns>The base height of the font.</returns>
         public float? GetBaseHeight(char c)
         {
             var glyphStore = getGlyphStore("", c);
@@ -60,6 +65,11 @@ namespace osu.Framework.IO.Stores
             return glyphStore?.GetBaseHeight() / ScaleAdjust;
         }
 
+        /// <summary>
+        /// Get the base height of a font containing a particiular character.
+        /// </summary>
+        /// <param name="fontName">The font to search for.</param>
+        /// <returns>The base height of the font.</returns>
         public float? GetBaseHeight(string fontName)
         {
             var glyphStore = getGlyphStore(fontName);
@@ -73,7 +83,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look in for the character.</param>
         /// <param name="glyph">The found glyph.</param>
-        /// <returns>The associated character information for the character and font. Returns null if not found.</returns>
+        /// <returns>Whether a matching <see cref="CharacterGlyph"/> was found.</returns>
         private bool getCharacterInfo(string fontName, char charName, out CharacterGlyph glyph)
         {
             // Return the default (first available) character if fontName is default
