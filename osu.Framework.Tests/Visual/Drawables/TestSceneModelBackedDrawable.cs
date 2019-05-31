@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -10,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -31,221 +31,185 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
 
         [Test]
-        public void TestSomething()
+        public void TestEmptyDefaultState()
         {
-            AddStep("setup", () =>
-            {
-                var drawable = new TestDrawableModel(1);
-                drawable.AllowLoad.Set();
+            AddStep("setup", () => createModelBackedDrawable(false, false));
 
-                createModelBackedDrawable(true, true);
-
-                backedDrawable.Model = new TestModel(drawable);
-            });
+            assertDrawableVisibility(1, () => backedDrawable.DisplayedDrawable, false);
+            assertPlaceholderVisibility(false);
         }
 
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestDefaultState(bool withPlaceholder, bool fadeOutImmediately)
+        [Test]
+        public void TestPlaceholderDefaultState()
         {
-            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+            AddStep("setup", () => createModelBackedDrawable(true, false));
 
-            if (withPlaceholder)
-                AddAssert("placeholder displayed", () => backedDrawable.DisplayedDrawable == null && backedDrawable.PlaceholderDrawable is TestPlaceholder);
-            else
-                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+            assertDrawableVisibility(1, () => backedDrawable.DisplayedDrawable, false);
+            assertPlaceholderVisibility(true);
         }
 
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestSingleDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
+        [Test]
+        public void TestModelDefaultState()
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(false, false);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
 
-            AddStep("set model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1)));
-
-            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
-
-            AddStep("allow load", () => drawableModel.AllowLoad.Set());
-            AddUntilStep("model displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
+            assertDrawableVisibility(1, () => drawableModel, true);
+            assertPlaceholderVisibility(false);
         }
 
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestMultipleLoadDisplaysSinglePlaceholder(bool withPlaceholder, bool fadeOutImmediately)
+        [Test]
+        public void TestModelAndPlaceholderDefaultState()
+        {
+            TestDrawableModel drawableModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(true, false);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertPlaceholderVisibility(true);
+            assertDrawableVisibility(1, () => drawableModel, true);
+            assertPlaceholderVisibility(false);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangeModel(bool intermediatePlaceholder)
         {
             TestDrawableModel firstModel = null;
             TestDrawableModel secondModel = null;
-            Drawable placeholder = null;
 
-            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
-
-            AddStep("set first model", () =>
+            AddStep("setup", () =>
             {
+                createModelBackedDrawable(intermediatePlaceholder, intermediatePlaceholder);
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertPlaceholderVisibility(false);
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+
+            if (intermediatePlaceholder)
+            {
+                assertDrawableVisibility(1, () => firstModel, false);
+                assertPlaceholderVisibility(true);
+            }
+            else
+                assertDrawableVisibility(1, () => firstModel, true);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            assertPlaceholderVisibility(false);
+            assertDrawableVisibility(1, () => firstModel, false);
+            assertDrawableVisibility(2, () => secondModel, true);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangeModelDuringLoad(bool intermediatePlaceholder)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+            TestDrawableModel thirdModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(intermediatePlaceholder, intermediatePlaceholder);
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertPlaceholderVisibility(false);
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            AddStep("set third model", () => backedDrawable.Model = new TestModel(thirdModel = new TestDrawableModel(3)));
+            assertPlaceholderVisibility(intermediatePlaceholder);
+            assertDrawableVisibility(1, () => firstModel, !intermediatePlaceholder);
+            assertDrawableVisibility(2, () => secondModel, false);
+            assertDrawableVisibility(3, () => thirdModel, false);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            assertPlaceholderVisibility(intermediatePlaceholder);
+            assertDrawableVisibility(1, () => firstModel, !intermediatePlaceholder);
+            assertDrawableVisibility(2, () => secondModel, false);
+            assertDrawableVisibility(3, () => thirdModel, false);
+
+            AddStep("allow third model to load", () => thirdModel.AllowLoad.Set());
+            assertPlaceholderVisibility(false);
+            assertDrawableVisibility(1, () => firstModel, false);
+            assertDrawableVisibility(2, () => secondModel, false);
+            assertDrawableVisibility(3, () => thirdModel, true);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestOutOfOrderLoad(bool intermediatePlaceholder)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(intermediatePlaceholder, intermediatePlaceholder);
                 backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1));
-                placeholder = backedDrawable.DisplayedDrawable;
             });
+
+            assertPlaceholderVisibility(intermediatePlaceholder);
 
             AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
-            AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
-
-            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
-            AddAssert("first placeholder still displayed", () => backedDrawable.DisplayedDrawable == placeholder);
-
-            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
-            AddUntilStep("second model displayed", () => backedDrawable.DisplayedDrawable == secondModel);
-        }
-
-        /// <summary>
-        /// Covers <see cref="ModelBackedDrawable{T}.TransformImmediately"/> usage.
-        /// </summary>
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestIntermediaryPlaceholder(bool withPlaceholder, bool fadeOutImmediately)
-        {
-            TestDrawableModel firstModel = null;
-            TestDrawableModel secondModel = null;
-
-            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
-
-            AddStep("set first model", () => backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1)));
-
-            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
-
-            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
-            AddUntilStep("first model displayed", () => backedDrawable.DisplayedDrawable == firstModel);
-
-            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
-
-            if (fadeOutImmediately)
-                AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
-            else
-                AddAssert("first model still displayed", () => backedDrawable.DisplayedDrawable == firstModel);
+            assertPlaceholderVisibility(intermediatePlaceholder);
+            assertDrawableVisibility(1, () => firstModel, false);
+            assertDrawableVisibility(2, () => secondModel, false);
 
             AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
-            AddUntilStep("second model displayed", () => backedDrawable.DisplayedDrawable == secondModel);
+            assertPlaceholderVisibility(false);
+            assertDrawableVisibility(1, () => firstModel, false);
+            assertDrawableVisibility(2, () => secondModel, true);
+
+            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
+            assertPlaceholderVisibility(false);
+            assertDrawableVisibility(1, () => firstModel, false);
+            assertDrawableVisibility(2, () => secondModel, true);
         }
 
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestSequentialDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
-        {
-            const int model_count = 3;
-
-            var drawableModels = new List<TestDrawableModel>(model_count);
-
-            AddStep("setup", () =>
-            {
-                drawableModels.Clear();
-                createModelBackedDrawable(withPlaceholder, fadeOutImmediately);
-            });
-
-            for (int i = 0; i < model_count; i++)
-            {
-                int localI = i;
-                AddStep($"set model {i + 1}", () =>
-                {
-                    var model = new TestDrawableModel(localI + 1);
-                    drawableModels.Add(model);
-
-                    backedDrawable.Model = new TestModel(model);
-                });
-            }
-
-            // Due to potential left-over threading from elsewhere, we may have to wait for all models to get into a loading state
-            AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
-
-            for (int i = 0; i < model_count - 1; i++)
-            {
-                int localI = i;
-                AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
-                AddWaitStep("wait for potential load", 5);
-
-                AddAssert("no model displayed", () => backedDrawable.DisplayedDrawable == null);
-
-                AddAssert($"model {i + 1} not loaded", () => !drawableModels[localI].IsLoaded);
-            }
-
-            AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddUntilStep($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
-        }
-
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestOutOfOrderDelayedLoad(bool withPlaceholder, bool fadeOutImmediately)
-        {
-            const int model_count = 3;
-
-            var drawableModels = new List<TestDrawableModel>(model_count);
-
-            AddStep("setup", () =>
-            {
-                drawableModels.Clear();
-                createModelBackedDrawable(withPlaceholder, fadeOutImmediately);
-            });
-
-            for (int i = 0; i < model_count; i++)
-            {
-                int localI = i;
-                AddStep($"set model {i + 1}", () =>
-                {
-                    var model = new TestDrawableModel(localI + 1);
-                    drawableModels.Add(model);
-
-                    backedDrawable.Model = new TestModel(model);
-                });
-            }
-
-            // Due to potential left-over threading from elsewhere, we may have to wait for all models to get into a loading state
-            AddUntilStep("all loading", () => drawableModels.TrueForAll(d => d.LoadState == LoadState.Loading));
-
-            AddStep($"allow model {model_count} to load", () => drawableModels[model_count - 1].AllowLoad.Set());
-            AddUntilStep($"model {model_count} displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
-
-            for (int i = model_count - 2; i >= 0; i--)
-            {
-                int localI = i;
-                AddStep($"allow model {i + 1} to load", () => drawableModels[localI].AllowLoad.Set());
-                AddWaitStep("wait for potential load", 5);
-                AddAssert($"model {model_count} still displayed", () => backedDrawable.DisplayedDrawable == drawableModels[model_count - 1]);
-            }
-        }
-
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestSetNullModel(bool withPlaceholder, bool fadeOutImmediately)
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestSetNullModel(bool withPlaceholder)
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () => createModelBackedDrawable(withPlaceholder, fadeOutImmediately));
-
-            AddStep("set model", () =>
+            AddStep("setup", () =>
             {
-                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1));
-                drawableModel.AllowLoad.Set();
+                createModelBackedDrawable(withPlaceholder, false);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
             });
 
-            AddUntilStep("model is displayed", () => backedDrawable.DisplayedDrawable == drawableModel);
+            assertDrawableVisibility(1, () => drawableModel, true);
+            assertPlaceholderVisibility(false);
 
             AddStep("set null model", () => backedDrawable.Model = null);
+            assertDrawableVisibility(1, () => drawableModel, false);
+            assertPlaceholderVisibility(withPlaceholder);
+        }
 
-            AddAssert("no drawable displayed", () => backedDrawable.DisplayedDrawable == null);
+        private void assertDrawableVisibility(int id, Func<Drawable> drawable, bool visible)
+        {
+            if (visible)
+                AddUntilStep($"drawable {id} visible", () => drawable().Parent != null && Precision.AlmostEquals(drawable().Alpha, 1));
+            else
+                AddUntilStep($"drawable {id} not visible", () => drawable() == null || drawable().Parent == null || Precision.AlmostEquals(drawable().Alpha, 0));
+        }
+
+        private void assertPlaceholderVisibility(bool visible)
+        {
+            if (visible)
+                AddUntilStep("placeholder visible", () => Precision.AlmostEquals(backedDrawable.PlaceholderDrawable.Alpha, 1));
+            else
+                AddUntilStep("placeholder not visible", () => backedDrawable.PlaceholderDrawable == null || Precision.AlmostEquals(backedDrawable.PlaceholderDrawable.Alpha, 0));
         }
 
         private class TestModel
@@ -262,6 +226,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
 
+            protected virtual Color4 BackgroundColour => Color4.SkyBlue;
+
             public TestDrawableModel(int id)
                 : this($"Model {id}")
             {
@@ -276,7 +242,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SkyBlue
+                        Colour = BackgroundColour
                     },
                     new SpriteText
                     {
@@ -298,6 +264,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestPlaceholder : TestDrawableModel
         {
+            protected override Color4 BackgroundColour => Color4.SlateGray;
+
             public TestPlaceholder()
                 : base("Placeholder")
             {
@@ -311,9 +279,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             protected override Drawable CreatePlaceholder() => HasPlaceholder ? new TestPlaceholder() : null;
 
-            public Drawable PlaceholderDrawable => HasPlaceholder ? ((DelayedLoadWrapper)InternalChildren[0]).Content : null;
+            public Drawable PlaceholderDrawable => HasPlaceholder ? (((DelayedLoadWrapper)InternalChildren[0]).Content as TestPlaceholder)?.Parent : null;
 
-            public new Drawable DisplayedDrawable => base.DisplayedDrawable;
+            public new Drawable DisplayedDrawable => base.DisplayedDrawable?.Parent;
 
             public new TestModel Model
             {
