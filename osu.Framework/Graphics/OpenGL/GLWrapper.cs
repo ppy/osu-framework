@@ -714,8 +714,8 @@ namespace osu.Framework.Graphics.OpenGL
                         var mat4 = m4.GetValue();
                         GL.UniformMatrix4(uniform.Location, 1, false, &mat4.M11);
                     }
-                    break;
 
+                    break;
             }
         }
     }
