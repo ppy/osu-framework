@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines whether the currently-displayed <see cref="Drawable"/> should be hidden immediately when switching to a new model.
+        /// Determines whether <see cref="ApplyHideTransforms"/> should be invoked immediately on the currently-displayed drawable when switching to a new model.
         /// </summary>
         protected virtual bool TransformImmediately => false;
 
