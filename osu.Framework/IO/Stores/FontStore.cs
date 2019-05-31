@@ -32,12 +32,12 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Attempt to get the texture of a character from a specified font and its associated spacing information.
+        /// Attempts to retrieve the texture of a character from a specified font and its associated spacing information.
         /// </summary>
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look for the character in.</param>
-        /// <param name="glyph">The glyph retrieved, if it exists</param>
-        /// <returns>Whether or not a <see cref="CharacterGlyph"/> was able to be retrieved</returns>
+        /// <param name="glyph">The glyph retrieved, if it exists.</param>
+        /// <returns>Whether or not a <see cref="CharacterGlyph"/> was able to be retrieved.</returns>
         public bool TryGetCharacter(string fontName, char charName, out CharacterGlyph glyph)
         {
             var texture = namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
@@ -58,7 +58,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Get the base height of a font containing a particiular character.
+        /// Retrieves the base height of a font containing a particular character.
         /// </summary>
         /// <param name="c">The charcter to search for.</param>
         /// <returns>The base height of the font.</returns>
@@ -70,7 +70,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Get the base height of a font containing a particiular character.
+        /// Retrieves the base height of a font containing a particular character.
         /// </summary>
         /// <param name="fontName">The font to search for.</param>
         /// <returns>The base height of the font.</returns>
@@ -82,7 +82,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Looks for and gets the Character information from this store's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s.
+        /// Retrieves the character information from this <see cref="FontStore"/>.
         /// </summary>
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look in for the character.</param>
@@ -103,7 +103,7 @@ namespace osu.Framework.IO.Stores
             return true;
         }
 
-        private string getTextureName(string fontName, char charName) => string.IsNullOrEmpty(fontName) ? charName.ToString() : fontName + "/" + charName;
+        private string getTextureName(string fontName, char charName) => string.IsNullOrEmpty(fontName) ? charName.ToString() : $"{fontName}/{charName}";
 
         /// <summary>
         /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
@@ -221,7 +221,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Contains the texture and associated spacing information for a Character.
+        /// Contains the texture and associated spacing information for a character.
         /// </summary>
         public struct CharacterGlyph
         {

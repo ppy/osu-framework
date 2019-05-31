@@ -65,9 +65,9 @@ namespace osu.Framework.IO.Stores
         }, TaskCreationOptions.PreferFairness));
 
         /// <summary>
-        /// Gets the Character information for the specified character.
+        /// Gets the information for the specified character.
         /// </summary>
-        /// <param name="c">The character to retrieve information for.</param>
+        /// <param name="c">The character to retrieve the information for.</param>
         /// <returns>The information for the specified character, without the texture.</returns>
         public FontStore.CharacterGlyph GetCharacterInfo(char c)
         {

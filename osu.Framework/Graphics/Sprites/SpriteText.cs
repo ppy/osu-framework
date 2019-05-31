@@ -573,7 +573,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="character">The character to look up.</param>
         /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
-        /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character. Null if the texture is not available</param>
+        /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character.</param>
         /// <returns></returns>
         private Vector2 getCharacterSize(char character, bool applyFixedWidth, out FontStore.CharacterGlyph glyph)
         {
@@ -606,7 +606,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 width = constantWidth;
 
-                // Fixed with characters should not have additional XOffsets
+                // Fixed width characters should not have additional XOffsets
                 glyph.XOffset = 0;
             }
 
