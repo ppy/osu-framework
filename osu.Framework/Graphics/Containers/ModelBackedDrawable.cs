@@ -147,7 +147,8 @@ namespace osu.Framework.Graphics.Containers
             if (lastWrapper == wrapper)
                 return;
 
-            currentWrapper.Hide();
+            ApplyHideTransforms(currentWrapper);
+            currentWrapper?.FinishTransforms();
 
             if (wrapper == null)
                 showPlaceholder();
