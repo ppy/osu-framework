@@ -80,7 +80,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             protected override double TransformDuration => 500;
 
-            protected override Drawable CreateDrawable(TestModel model) => model.Drawable;
+            protected override Drawable CreateDrawable(TestModel model) => model?.Drawable;
 
             protected override void OnLoadStarted()
             {

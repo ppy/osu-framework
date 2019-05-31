@@ -93,16 +93,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateDrawable()
         {
-            if (model == null)
-            {
-                // Display nothing
-                loadDrawable(null);
-                return;
-            }
-
             if (TransformImmediately)
             {
-                // Fade to nothing, but continue on with displaying the original model
+                // If loading to a new model and we've requested to transform immediately, load a null model to allow such transforms to occur
                 loadDrawable(null);
             }
 
@@ -239,7 +232,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
         /// <returns>A <see cref="Drawable"/> that represents <paramref name="model"/>, or null if no <see cref="Drawable"/> should be displayed.</returns>
         [CanBeNull]
-        protected abstract Drawable CreateDrawable([NotNull] T model);
+        protected abstract Drawable CreateDrawable([CanBeNull] T model);
 
         /// <summary>
         /// Hides a drawable.

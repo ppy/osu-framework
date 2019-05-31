@@ -19,13 +19,14 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private TestModelBackedDrawable backedDrawable;
 
-        private void createModelBackedDrawable(bool hasIntermediate) =>
+        private void createModelBackedDrawable(bool hasIntermediate, bool showNullModel = false) =>
             Child = backedDrawable = new TestModelBackedDrawable
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(200),
                 HasIntermediate = hasIntermediate,
+                ShowNullModel = showNullModel
             };
 
         [Test]
@@ -126,14 +127,14 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("setup", () =>
             {
-                createModelBackedDrawable(false);
+                createModelBackedDrawable(false, true);
                 backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
             });
 
             assertDrawableVisibility(1, () => drawableModel);
 
             AddStep("set null model", () => backedDrawable.Model = null);
-            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
         }
 
         private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
@@ -163,6 +164,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
 
+            protected virtual Color4 BackgroundColour => Color4.SkyBlue;
+
             public TestDrawableModel(int id)
                 : this($"Model {id}")
             {
@@ -177,7 +180,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SkyBlue
+                        Colour = BackgroundColour
                     },
                     new SpriteText
                     {
@@ -197,9 +200,30 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
+        private class TestNullDrawableModel : TestDrawableModel
+        {
+            protected override Color4 BackgroundColour => Color4.SlateGray;
+
+            public TestNullDrawableModel()
+                : base("Null")
+            {
+                AllowLoad.Set();
+            }
+        }
+
         private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
-            protected override Drawable CreateDrawable(TestModel model) => model.DrawableModel;
+            public bool ShowNullModel;
+
+            public bool HasIntermediate;
+
+            protected override Drawable CreateDrawable(TestModel model)
+            {
+                if (model == null && ShowNullModel)
+                    return new TestNullDrawableModel();
+
+                return model?.DrawableModel;
+            }
 
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
@@ -207,8 +231,6 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 set => base.Model = value;
             }
-
-            public bool HasIntermediate;
 
             protected override bool TransformImmediately => HasIntermediate;
         }
