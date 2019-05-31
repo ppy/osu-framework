@@ -220,8 +220,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines whether <see cref="ApplyHideTransforms"/> should be applied immediately to the current <see cref="Drawable"/> when switching to a new model,
-        /// or whether it should wait until the new <see cref="Drawable"/> has finished loading.
+        /// Determines whether the currently-displayed <see cref="Drawable"/> should be hidden immediately when switching to a new model.
+        /// If a placeholder was created through <see cref="CreatePlaceholder"/>, it will be displayed.
         /// </summary>
         protected virtual bool TransformImmediately => false;
 
@@ -238,25 +238,30 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Allows subclasses to customise the <see cref="DelayedLoadWrapper"/>.
         /// </summary>
-        protected virtual DelayedLoadWrapper CreateDelayedLoadWrapper(Func<Drawable> createContentFunc, double timeBeforeLoad) =>
+        [NotNull]
+        protected virtual DelayedLoadWrapper CreateDelayedLoadWrapper([NotNull] Func<Drawable> createContentFunc, double timeBeforeLoad) =>
             new DelayedLoadWrapper(createContentFunc(), timeBeforeLoad);
 
         /// <summary>
-        /// Override to instantiate a custom <see cref="Drawable"/> based on the passed model.
-        /// May be null to indicate that the model has no visual representation,
-        /// in which case the placeholder will be used if it exists.
+        /// Creates a custom <see cref="Drawable"/> to display a model.
         /// </summary>
         /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
-        protected abstract Drawable CreateDrawable(T model);
+        [NotNull]
+        protected abstract Drawable CreateDrawable([NotNull] T model);
 
-        protected virtual Drawable CreatePlaceholder() => CreateDrawable(null);
+        /// <summary>
+        /// Creates a placeholder which is displayed upon construction of this <see cref="ModelBackedDrawable{T}"/>,
+        /// and as an intermediate display while a model is loading in the background.
+        /// </summary>
+        /// <returns>The placeholder.</returns>
+        protected virtual Drawable CreatePlaceholder() => null;
 
         /// <summary>
         /// Hides a drawable.
         /// </summary>
         /// <param name="drawable">The drawable that is to be hidden.</param>
         /// <returns>The transform sequence.</returns>
-        protected virtual TransformSequence<Drawable> ApplyHideTransforms(Drawable drawable)
+        protected virtual TransformSequence<Drawable> ApplyHideTransforms([CanBeNull] Drawable drawable)
             => drawable?.Delay(TransformDuration).FadeOut(TransformDuration, Easing.OutQuint);
 
         /// <summary>
@@ -264,7 +269,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="drawable">The drawable that is to be shown.</param>
         /// <returns>The transform sequence.</returns>
-        protected virtual TransformSequence<Drawable> ApplyShowTransforms(Drawable drawable)
+        protected virtual TransformSequence<Drawable> ApplyShowTransforms([CanBeNull] Drawable drawable)
             => drawable?.FadeIn(TransformDuration, Easing.OutQuint);
     }
 }
