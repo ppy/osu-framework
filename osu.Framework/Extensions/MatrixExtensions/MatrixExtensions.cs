@@ -161,7 +161,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
             if (Math.Abs(det) == 0.0f)
             {
-                value = Zero;
+                value = ZERO;
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
         #region Matrix4x4 extensions and utilities.
 
-        public static readonly Matrix4x4 Zero = new Matrix4x4();
+        public static readonly Matrix4x4 ZERO = new Matrix4x4();
 
         #endregion
     }

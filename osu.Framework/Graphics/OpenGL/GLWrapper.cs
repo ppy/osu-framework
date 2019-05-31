@@ -686,18 +686,18 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
 
                 case IUniformWithValue<Vector2> v2:
-                    var v2value = v2.GetValue();
-                    GL.Uniform2(uniform.Location, v2value.X, v2value.Y);
+                    var v2Value = v2.GetValue();
+                    GL.Uniform2(uniform.Location, v2Value.X, v2Value.Y);
                     break;
 
                 case IUniformWithValue<Vector3> v3:
-                    var v3value = v3.GetValue();
-                    GL.Uniform3(uniform.Location, v3value.X, v3value.Y, v3value.Z);
+                    var v3Value = v3.GetValue();
+                    GL.Uniform3(uniform.Location, v3Value.X, v3Value.Y, v3Value.Z);
                     break;
 
                 case IUniformWithValue<Vector4> v4:
-                    var v4value = v4.GetValue();
-                    GL.Uniform4(uniform.Location, v4value.X, v4value.Y, v4value.Z, v4value.W);
+                    var v4Value = v4.GetValue();
+                    GL.Uniform4(uniform.Location, v4Value.X, v4Value.Y, v4Value.Z, v4Value.W);
                     break;
 
                 case IUniformWithValue<Matrix2> m2:
@@ -717,9 +717,6 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
         }
-
-        private static osuTK.Matrix4 toMatrix4(Matrix4x4 m4)
-            => new osuTK.Matrix4(m4.M11, m4.M12, m4.M13, m4.M14, m4.M21, m4.M22, m4.M23, m4.M24, m4.M31, m4.M32, m4.M33, m4.M34, m4.M41, m4.M42, m4.M43, m4.M44);
     }
 
     public struct MaskingInfo : IEquatable<MaskingInfo>
