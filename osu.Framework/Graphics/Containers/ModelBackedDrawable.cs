@@ -127,11 +127,7 @@ namespace osu.Framework.Graphics.Containers
             if (createDrawableFunc != null)
             {
                 AddInternal(currentWrapper = createWrapper(createDrawableFunc, LoadDelay));
-                currentWrapper.DelayedLoadComplete += _ =>
-                {
-                    currentWrapper.Hide();
-                    finishLoad(currentWrapper);
-                };
+                currentWrapper.DelayedLoadComplete += _ => finishLoad(currentWrapper);
             }
             else
                 finishLoad(null);
@@ -150,6 +146,8 @@ namespace osu.Framework.Graphics.Containers
             // In this case, we do not want to transform/expire the wrapper
             if (lastWrapper == wrapper)
                 return;
+
+            currentWrapper.Hide();
 
             if (wrapper == null)
                 showPlaceholder();
