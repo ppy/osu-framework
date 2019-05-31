@@ -410,7 +410,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
             RectangleF viewportRect = Viewport;
-            System.Numerics.Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
+            Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
 
             RectangleI currentScissorRect = scissor_rect_stack.Peek();
 
@@ -420,7 +420,7 @@ namespace osu.Framework.Graphics.OpenGL
                 currentScissorRect.Width,
                 currentScissorRect.Height);
 
-            if (!Precision.AlmostEquals(offset, System.Numerics.Vector2.Zero))
+            if (!Precision.AlmostEquals(offset, Vector2.Zero))
             {
                 ++scissorRect.Width;
                 ++scissorRect.Height;
@@ -715,6 +715,7 @@ namespace osu.Framework.Graphics.OpenGL
                         GL.UniformMatrix4(uniform.Location, 1, false, &mat4.M11);
                     }
                     break;
+
             }
         }
     }
