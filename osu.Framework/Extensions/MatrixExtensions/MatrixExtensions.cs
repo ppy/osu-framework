@@ -196,7 +196,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
         public static osuTK.Matrix3 ToMatrix3(this Matrix4x4 mat)
             => new osuTK.Matrix3(mat.M11, mat.M12, mat.M13, mat.M21, mat.M22, mat.M23, mat.M31, mat.M32, mat.M33);
-        
+
         #endregion
 
         #region Matrix4x4 extensions and utilities.
