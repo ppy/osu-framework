@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,36 +16,56 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneModelBackedDrawableWithLoading : TestScene
     {
-        public TestSceneModelBackedDrawableWithLoading()
-        {
-            TestModelBackedDrawable backedDrawable;
+        private TestModelBackedDrawable backedDrawable;
 
-            Add(backedDrawable = new TestModelBackedDrawable
+        private void createModelBackedDrawable(bool immediate) =>
+            Child = backedDrawable = new TestModelBackedDrawable(immediate)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(200),
-                Model = new TestModel(new TestDrawableModel().With(d => d.AllowLoad.Set()))
-            });
+            };
 
+        [Test]
+        public void TestNonImmediateTransform()
+        {
+            AddStep("setup", () => createModelBackedDrawable(false));
+            addUsageSteps();
+        }
+
+        [Test]
+        public void TestTransformImmediately()
+        {
+            AddStep("setup", () => createModelBackedDrawable(true));
+            addUsageSteps();
+        }
+
+        private void addUsageSteps()
+        {
             TestDrawableModel drawableModel = null;
 
-            AddStep("set model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
-            AddStep("allow load", () => drawableModel.AllowLoad.Set());
+            AddStep("load first model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
+            AddWaitStep("wait a bit", 5);
+            AddStep("finish load", () => drawableModel.AllowLoad.Set());
+            AddWaitStep("wait a bit", 5);
+            AddStep("load second model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
+            AddWaitStep("wait a bit", 5);
+            AddStep("finish load", () => drawableModel.AllowLoad.Set());
         }
 
         private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
             public new TestModel Model
             {
-                get => base.Model;
                 set => base.Model = value;
             }
 
+            private readonly bool immediate;
             private readonly Drawable spinner;
 
-            public TestModelBackedDrawable()
+            public TestModelBackedDrawable(bool immediate)
             {
+                this.immediate = immediate;
                 AddInternal(spinner = new LoadingSpinner
                 {
                     Anchor = Anchor.Centre,
@@ -55,6 +76,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 });
             }
 
+            protected override bool TransformImmediately => immediate;
+
             protected override double TransformDuration => 500;
 
             protected override Drawable CreateDrawable(TestModel model) => model.Drawable;
@@ -62,36 +85,18 @@ namespace osu.Framework.Tests.Visual.Drawables
             protected override void OnLoadStarted()
             {
                 base.OnLoadStarted();
-                DisplayedDrawable?.FadeTo(0.5f, 500, Easing.OutQuint);
-                spinner.Delay(250).FadeIn(1000, Easing.OutQuint);
+
+                if (!immediate)
+                    DisplayedDrawable?.FadeTo(0.5f, 500, Easing.OutQuint);
+
+                spinner.Delay(250).FadeIn(500, Easing.OutQuint);
             }
 
             protected override void OnLoadFinished()
             {
                 base.OnLoadFinished();
-                spinner.FadeOut(100, Easing.OutQuint);
-            }
 
-            private class LoadingSpinner : CompositeDrawable
-            {
-                private readonly SpriteIcon icon;
-
-                public LoadingSpinner()
-                {
-                    InternalChild = icon = new SpriteIcon
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Both,
-                        Icon = FontAwesome.Solid.Spinner
-                    };
-                }
-
-                protected override void LoadComplete()
-                {
-                    base.LoadComplete();
-                    icon.Spin(2000, RotationDirection.Clockwise);
-                }
+                spinner.FadeOut(250, Easing.OutQuint);
             }
         }
 
@@ -135,6 +140,28 @@ namespace osu.Framework.Tests.Visual.Drawables
             private void load()
             {
                 AllowLoad.Wait();
+            }
+        }
+
+        private class LoadingSpinner : CompositeDrawable
+        {
+            private readonly SpriteIcon icon;
+
+            public LoadingSpinner()
+            {
+                InternalChild = icon = new SpriteIcon
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    Icon = FontAwesome.Solid.Spinner
+                };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+                icon.Spin(2000, RotationDirection.Clockwise);
             }
         }
     }
