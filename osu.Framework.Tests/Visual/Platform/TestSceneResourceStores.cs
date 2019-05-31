@@ -124,6 +124,7 @@ namespace osu.Framework.Tests.Visual.Platform
                             Size = new Vector2(20),
                             Texture = tex
                         };
+
                     default:
                         return new SpriteText { Text = resource.ToString() };
                 }

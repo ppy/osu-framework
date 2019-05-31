@@ -51,6 +51,7 @@ namespace osu.Framework
             if (OS == Platform.Windows)
             {
                 IntPtr hModule = GetModuleHandle(@"ntdll.dll");
+
                 if (hModule == IntPtr.Zero)
                     IsWine = false;
                 else

@@ -64,6 +64,7 @@ namespace osu.Framework.Bindables
             lock (sourceMapping)
             {
                 var weak = findExistingWeak(bindable);
+
                 if (weak != null)
                 {
                     sourceMapping[weak].UnbindAll();

@@ -76,11 +76,13 @@ namespace osu.Framework.IO
                 return;
 
             int last = -1;
+
             while (!isLoaded && !isClosed)
             {
                 cancellationToken.Token.ThrowIfCancellationRequested();
 
                 int curr = nextBlockToLoad;
+
                 if (curr < 0)
                 {
                     Thread.Sleep(1);
@@ -211,9 +213,11 @@ namespace osu.Framework.IO
                 case SeekOrigin.Begin:
                     Position = offset;
                     break;
+
                 case SeekOrigin.Current:
                     Position += offset;
                     break;
+
                 case SeekOrigin.End:
                     Position = data.Length + offset;
                     break;

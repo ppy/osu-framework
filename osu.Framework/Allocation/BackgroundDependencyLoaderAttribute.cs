@@ -45,6 +45,7 @@ namespace osu.Framework.Allocation
             {
                 case 0:
                     return (_, __) => { };
+
                 case 1:
                     var method = loaderMethods[0];
 
@@ -68,6 +69,7 @@ namespace osu.Framework.Allocation
                                 case OperationCanceledException _:
                                     // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
                                     throw exc.InnerException;
+
                                 case DependencyInjectionException die:
                                     // A nested activator has failed (multiple Invoke() calls) - propagate the original error
                                     throw die;
@@ -77,6 +79,7 @@ namespace osu.Framework.Allocation
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
                     };
+
                 default:
                     throw new MultipleDependencyLoaderMethodsException(type);
             }

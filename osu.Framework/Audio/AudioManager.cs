@@ -207,6 +207,7 @@ namespace osu.Framework.Audio
                 newDevice = audioDevices.Find(df => df.IsDefault).Name;
 
             bool oldDeviceValid = Bass.CurrentDevice >= 0;
+
             if (oldDeviceValid)
             {
                 DeviceInfo oldDeviceInfo = Bass.GetDeviceInfo(Bass.CurrentDevice);
@@ -318,6 +319,7 @@ namespace osu.Framework.Audio
                 {
                     // use default device
                     var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+
                     if (!device.IsDefault && !setAudioDevice())
                     {
                         if (!device.IsEnabled || !setAudioDevice(device.Name))
@@ -337,6 +339,7 @@ namespace osu.Framework.Audio
                 {
                     // use whatever is the preferred device
                     var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+
                     if (device.Name == AudioDevice.Value)
                     {
                         if (!device.IsEnabled && !setAudioDevice())
@@ -354,6 +357,7 @@ namespace osu.Framework.Audio
                     else
                     {
                         var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
+
                         if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
                             setAudioDevice(preferredDevice.Name);
                         else if (!device.IsEnabled && !setAudioDevice())

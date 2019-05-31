@@ -440,6 +440,7 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
+
             if (maskingInfo.BorderThickness > 0)
             {
                 GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
@@ -672,27 +673,35 @@ namespace osu.Framework.Graphics.OpenGL
                 case IUniformWithValue<bool> b:
                     GL.Uniform1(uniform.Location, b.GetValue() ? 1 : 0);
                     break;
+
                 case IUniformWithValue<int> i:
                     GL.Uniform1(uniform.Location, i.GetValue());
                     break;
+
                 case IUniformWithValue<float> f:
                     GL.Uniform1(uniform.Location, f.GetValue());
                     break;
+
                 case IUniformWithValue<Vector2> v2:
                     GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Vector3> v3:
                     GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Vector4> v4:
                     GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix2> m2:
                     GL.UniformMatrix2(uniform.Location, false, ref m2.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix3> m3:
                     GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix4> m4:
                     GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
                     break;
