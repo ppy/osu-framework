@@ -30,6 +30,20 @@ namespace osu.Framework.Tests.Visual.Drawables
                 HasPlaceholder = withPlaceholder
             };
 
+        [Test]
+        public void TestSomething()
+        {
+            AddStep("setup", () =>
+            {
+                var drawable = new TestDrawableModel(1);
+                drawable.AllowLoad.Set();
+
+                createModelBackedDrawable(true, true);
+
+                backedDrawable.Model = new TestModel(drawable);
+            });
+        }
+
         [TestCase(false, false)]
         [TestCase(false, true)]
         [TestCase(true, false)]
@@ -293,13 +307,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
         {
-            protected override Drawable CreateDrawable(TestModel model)
-            {
-                if (model == null)
-                    return HasPlaceholder ? new TestPlaceholder() : null;
+            protected override Drawable CreateDrawable(TestModel model) => model?.DrawableModel;
 
-                return model.DrawableModel;
-            }
+            protected override Drawable CreatePlaceholder() => HasPlaceholder ? new TestPlaceholder() : null;
 
             public Drawable PlaceholderDrawable => HasPlaceholder ? ((DelayedLoadWrapper)InternalChildren[0]).Content : null;
 

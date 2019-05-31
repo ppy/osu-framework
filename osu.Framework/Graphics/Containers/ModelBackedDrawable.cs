@@ -96,13 +96,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.LoadComplete();
 
-            placeholderWrapper = createWrapper(() => CreateDrawable(null), 0);
+            placeholderWrapper = createWrapper(CreatePlaceholder, 0);
 
             if (placeholderWrapper != null)
-            {
                 AddInternal(placeholderWrapper);
-                placeholderWrapper.DelayedLoadComplete += _ => updatePlaceholderState();
-            }
 
             updateDrawable();
         }
@@ -130,7 +127,11 @@ namespace osu.Framework.Graphics.Containers
             if (createDrawableFunc != null)
             {
                 AddInternal(currentWrapper = createWrapper(createDrawableFunc, LoadDelay));
-                currentWrapper.DelayedLoadComplete += _ => finishLoad(currentWrapper);
+                currentWrapper.DelayedLoadComplete += _ =>
+                {
+                    currentWrapper.Hide();
+                    finishLoad(currentWrapper);
+                };
             }
             else
                 finishLoad(null);
@@ -173,7 +174,9 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             placeholderVisible = true;
-            updatePlaceholderState();
+
+            if (placeholderWrapper?.DelayedLoadCompleted == true)
+                ApplyShowTransforms(placeholderWrapper);
         }
 
         /// <summary>
@@ -185,20 +188,8 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             placeholderVisible = false;
-            updatePlaceholderState();
-        }
 
-        /// <summary>
-        /// Applies transforms to <see cref="placeholderWrapper"/> based on its expected visibility.
-        /// </summary>
-        private void updatePlaceholderState()
-        {
-            if (placeholderWrapper?.DelayedLoadCompleted != true)
-                return;
-
-            if (placeholderVisible)
-                ApplyShowTransforms(placeholderWrapper);
-            else
+            if (placeholderWrapper?.DelayedLoadCompleted == true)
                 ApplyHideTransforms(placeholderWrapper);
         }
 
@@ -217,7 +208,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool first = true;
 
-            var wrapper = CreateDelayedLoadWrapper(() =>
+            return CreateDelayedLoadWrapper(() =>
             {
                 if (first)
                 {
@@ -227,10 +218,6 @@ namespace osu.Framework.Graphics.Containers
 
                 return createContentFunc();
             }, timeBeforeLoad);
-
-            wrapper.DelayedLoadComplete += _ => wrapper.Hide();
-
-            return wrapper;
         }
 
         /// <summary>
@@ -263,6 +250,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
         protected abstract Drawable CreateDrawable(T model);
 
+        protected virtual Drawable CreatePlaceholder() => CreateDrawable(null);
+
         /// <summary>
         /// Hides a drawable.
         /// </summary>
@@ -276,7 +265,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="drawable">The drawable that is to be shown.</param>
         /// <returns>The transform sequence.</returns>
-        protected virtual TransformSequence<Drawable> ApplyShowTransforms(Drawable drawable) =>
-            drawable?.FadeIn(TransformDuration, Easing.OutQuint);
+        protected virtual TransformSequence<Drawable> ApplyShowTransforms(Drawable drawable)
+            => drawable?.FadeIn(TransformDuration, Easing.OutQuint);
     }
 }
