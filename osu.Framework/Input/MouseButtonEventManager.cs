@@ -171,6 +171,7 @@ namespace osu.Framework.Input
 
             // only drawables up to the one that handled mouse down should handle mouse up
             MouseDownInputQueue = positionalInputQueue;
+
             if (handledBy != null)
             {
                 var count = MouseDownInputQueue.IndexOf(handledBy) + 1;

@@ -293,6 +293,7 @@ namespace osu.Framework.Graphics.UserInterface
             pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
+
             foreach (Drawable d in TextFlow.Children)
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
@@ -449,7 +450,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                audio.Sample.Get(@"Keyboard/key-movement")?.Play();
+                audio.Samples.Get(@"Keyboard/key-movement")?.Play();
                 cursorAndLayout.Invalidate();
             }
         }
@@ -468,7 +469,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (count == 0) return false;
 
             if (sound)
-                audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -536,6 +537,7 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (char c in addText)
             {
                 var ch = addCharacter(c);
+
                 if (ch == null)
                 {
                     notifyInputError();
@@ -677,9 +679,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
                 if (pendingText.Any(char.IsUpper))
-                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-caps")?.Play();
                 else
-                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                    audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
                 insertString(pendingText);
             }
@@ -704,6 +706,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Escape:
                     KillFocus();
                     return true;
+
                 case Key.KeypadEnter:
                 case Key.Enter:
                     Commit();
@@ -736,7 +739,7 @@ namespace osu.Framework.Graphics.UserInterface
             Background.ClearTransforms();
             Background.FlashColour(BackgroundCommit, 400);
 
-            audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+            audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
             OnCommit?.Invoke(this, true);
         }
 
@@ -949,7 +952,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 
@@ -957,6 +960,7 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = matchCount; i < s.Length; i++)
             {
                 Drawable dr = addCharacter(s[i]);
+
                 if (dr != null)
                 {
                     dr.Colour = Color4.Aqua;
@@ -965,7 +969,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion

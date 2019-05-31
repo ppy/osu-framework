@@ -174,6 +174,7 @@ namespace osu.Framework.Graphics.Containers
                 base.Draw(vertexAction);
 
                 drawEdgeEffect();
+
                 if (maskingInfo != null)
                 {
                     MaskingInfo info = maskingInfo.Value;

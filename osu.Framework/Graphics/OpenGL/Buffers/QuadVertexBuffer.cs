@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Initialise();
 
             int amountIndices = amountQuads * 6;
+
             if (amountIndices > QuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];

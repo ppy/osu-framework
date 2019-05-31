@@ -97,6 +97,7 @@ namespace osu.Framework.Graphics.Containers
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
+
             if (max == Vector2.Zero)
             {
                 var s = ChildSize;
@@ -128,6 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
             // First pass, computing initial flow positions
             Vector2 size = Vector2.Zero;
+
             for (int i = 0; i < children.Length; ++i)
             {
                 Drawable c = children[i];
@@ -138,10 +140,13 @@ namespace osu.Framework.Graphics.Containers
                     {
                         case FillDirection.Full:
                             return Axes.Both;
+
                         case FillDirection.Horizontal:
                             return Axes.X;
+
                         case FillDirection.Vertical:
                             return Axes.Y;
+
                         default:
                             throw new ArgumentException($"{direction.ToString()} is not defined");
                     }
@@ -192,6 +197,7 @@ namespace osu.Framework.Graphics.Containers
                 rowIndices[i] = rowOffsetsToMiddle.Count - 1;
 
                 Vector2 stride = Vector2.Zero;
+
                 if (i < children.Length - 1)
                 {
                     // Compute stride. Note, that the stride depends on the origins of the drawables
@@ -230,6 +236,7 @@ namespace osu.Framework.Graphics.Containers
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
 
                         break;
+
                     case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
                             throw new InvalidOperationException(
@@ -237,6 +244,7 @@ namespace osu.Framework.Graphics.Containers
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
 
                         break;
+
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
                             throw new InvalidOperationException(

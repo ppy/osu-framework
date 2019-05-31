@@ -103,6 +103,7 @@ namespace osu.Framework.Allocation
                         throw new AccessModifierNotAllowedForCachedValueException(AccessModifier.None, pi);
 
                     var setMethod = pi.SetMethod;
+
                     if (setMethod != null)
                     {
                         var modifier = setMethod.GetAccessModifier();
