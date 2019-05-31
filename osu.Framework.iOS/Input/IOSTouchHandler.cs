@@ -1,12 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using osu.Framework.Input.Handlers;
 using Foundation;
 using UIKit;
 using osu.Framework.Platform;
 using osu.Framework.Input.StateChanges;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.iOS.Input
