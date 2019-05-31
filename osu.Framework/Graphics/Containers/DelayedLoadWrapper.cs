@@ -83,6 +83,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
 
+            DelayedLoadStarted?.Invoke(Content);
             loadTask = LoadComponentAsync(Content, EndDelayedLoad);
         }
 
@@ -93,6 +94,11 @@ namespace osu.Framework.Graphics.Containers
             AddInternal(content);
             DelayedLoadComplete?.Invoke(content);
         }
+
+        /// <summary>
+        /// Fired when delayed async load has started.
+        /// </summary>
+        public event Action<Drawable> DelayedLoadStarted;
 
         /// <summary>
         /// Fired when delayed async load completes. Should be used to perform transitions.

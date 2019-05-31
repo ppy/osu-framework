@@ -60,13 +60,6 @@ namespace osu.Framework.Graphics.Containers
         private DelayedLoadWrapper currentWrapper;
 
         /// <summary>
-        /// The wrapper for the placeholder.
-        /// </summary>
-        private DelayedLoadWrapper placeholderWrapper;
-
-        private bool placeholderVisible = true;
-
-        /// <summary>
         /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> equality comparer.
         /// </summary>
         protected ModelBackedDrawable()
@@ -95,22 +88,25 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
-
-            placeholderWrapper = createWrapper(CreatePlaceholder, 0);
-
-            if (placeholderWrapper != null)
-                AddInternal(placeholderWrapper);
-
             updateDrawable();
         }
 
         private void updateDrawable()
         {
-            if (model == null || TransformImmediately)
+            if (model == null)
+            {
+                // Display nothing
                 loadDrawable(null);
+                return;
+            }
 
-            if (model != null)
-                loadDrawable(() => CreateDrawable(model));
+            if (TransformImmediately)
+            {
+                // Fade to nothing, but continue on with displaying the original model
+                loadDrawable(null);
+            }
+
+            loadDrawable(() => CreateDrawable(model));
         }
 
         private void loadDrawable(Func<Drawable> createDrawableFunc)
@@ -122,22 +118,31 @@ namespace osu.Framework.Graphics.Containers
                 DisposeChildAsync(currentWrapper);
             }
 
-            currentWrapper = null;
+            currentWrapper = createWrapper(createDrawableFunc, LoadDelay);
 
-            if (createDrawableFunc != null)
+            if (currentWrapper == null)
             {
-                AddInternal(currentWrapper = createWrapper(createDrawableFunc, LoadDelay));
-                currentWrapper.DelayedLoadComplete += _ => finishLoad(currentWrapper);
+                OnLoadStarted();
+                finishLoad(currentWrapper);
+                OnLoadFinished();
             }
             else
-                finishLoad(null);
+            {
+                AddInternal(currentWrapper);
+                currentWrapper.DelayedLoadStarted += _ => OnLoadStarted();
+                currentWrapper.DelayedLoadComplete += _ =>
+                {
+                    finishLoad(currentWrapper);
+                    OnLoadFinished();
+                };
+            }
         }
 
         /// <summary>
         /// Invoked when a <see cref="DelayedLoadWrapper"/> has finished loading its contents.
         /// May be invoked multiple times for each <see cref="DelayedLoadWrapper"/>.
         /// </summary>
-        /// <param name="wrapper">The <see cref="DelayedLoadWrapper"/>. This is never <see cref="placeholderWrapper"/>.</param>
+        /// <param name="wrapper">The <see cref="DelayedLoadWrapper"/>.</param>
         private void finishLoad(DelayedLoadWrapper wrapper)
         {
             var lastWrapper = displayedWrapper;
@@ -147,16 +152,17 @@ namespace osu.Framework.Graphics.Containers
             if (lastWrapper == wrapper)
                 return;
 
-            ApplyHideTransforms(currentWrapper);
-            currentWrapper?.FinishTransforms();
+            // Make the new wrapper initially hidden
+            ApplyHideTransforms(wrapper);
+            wrapper?.FinishTransforms();
 
-            if (wrapper == null)
-                showPlaceholder();
-            else
-                hidePlaceholder();
-
-            var hideTransforms = ApplyHideTransforms(lastWrapper);
             var showTransforms = ApplyShowTransforms(wrapper);
+
+            // If we have a non-null new wrapper, we need to wait for the show transformation to complete before hiding the old wrapper,
+            // otherwise, we can hide the old wrapper instantaneously and leave a blank display
+            var hideTransforms = wrapper == null
+                ? ApplyHideTransforms(lastWrapper)
+                : ((Drawable)lastWrapper)?.Delay(TransformDuration)?.Append(ApplyHideTransforms);
 
             // Expire the last wrapper after the front-most transform has completed (the last wrapper is assumed to be invisible by that point)
             (showTransforms ?? hideTransforms)?.OnComplete(_ => lastWrapper?.Expire());
@@ -165,42 +171,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Shows the placeholder.
-        /// </summary>
-        private void showPlaceholder()
-        {
-            if (placeholderVisible)
-                return;
-
-            placeholderVisible = true;
-
-            if (placeholderWrapper?.DelayedLoadCompleted == true)
-                ApplyShowTransforms(placeholderWrapper);
-        }
-
-        /// <summary>
-        /// Hides the placeholder.
-        /// </summary>
-        private void hidePlaceholder()
-        {
-            if (!placeholderVisible)
-                return;
-
-            placeholderVisible = false;
-
-            if (placeholderWrapper?.DelayedLoadCompleted == true)
-                ApplyHideTransforms(placeholderWrapper);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="DelayedLoadWrapper"/>.
+        /// Creates a <see cref="DelayedLoadWrapper"/> which supports reloading.
         /// </summary>
         /// <param name="createContentFunc">A function that creates the wrapped <see cref="Drawable"/>.</param>
         /// <param name="timeBeforeLoad">The time before loading should begin.</param>
         /// <returns>A <see cref="DelayedLoadWrapper"/> or null if <see cref="createContentFunc"/> returns null.</returns>
-        private DelayedLoadWrapper createWrapper([NotNull] Func<Drawable> createContentFunc, double timeBeforeLoad)
+        private DelayedLoadWrapper createWrapper(Func<Drawable> createContentFunc, double timeBeforeLoad)
         {
-            var content = createContentFunc();
+            var content = createContentFunc?.Invoke();
 
             if (content == null)
                 return null;
@@ -220,8 +198,21 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Invoked when the <see cref="Drawable"/> representation of a model begins loading.
+        /// </summary>
+        protected virtual void OnLoadStarted()
+        {
+        }
+
+        /// <summary>
+        /// Invoked when the <see cref="Drawable"/> representation of a model has finished loading.
+        /// </summary>
+        protected virtual void OnLoadFinished()
+        {
+        }
+
+        /// <summary>
         /// Determines whether the currently-displayed <see cref="Drawable"/> should be hidden immediately when switching to a new model.
-        /// If a placeholder was created through <see cref="CreatePlaceholder"/>, it will be displayed.
         /// </summary>
         protected virtual bool TransformImmediately => false;
 
@@ -246,15 +237,9 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a custom <see cref="Drawable"/> to display a model.
         /// </summary>
         /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
-        [NotNull]
+        /// <returns>A <see cref="Drawable"/> that represents <paramref name="model"/>, or null if no <see cref="Drawable"/> should be displayed.</returns>
+        [CanBeNull]
         protected abstract Drawable CreateDrawable([NotNull] T model);
-
-        /// <summary>
-        /// Creates a placeholder which is displayed upon construction of this <see cref="ModelBackedDrawable{T}"/>,
-        /// and as an intermediate display while a model is loading in the background.
-        /// </summary>
-        /// <returns>The placeholder.</returns>
-        protected virtual Drawable CreatePlaceholder() => null;
 
         /// <summary>
         /// Hides a drawable.
@@ -262,7 +247,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable that is to be hidden.</param>
         /// <returns>The transform sequence.</returns>
         protected virtual TransformSequence<Drawable> ApplyHideTransforms([CanBeNull] Drawable drawable)
-            => drawable?.Delay(TransformDuration).FadeOut(TransformDuration, Easing.OutQuint);
+            => drawable?.FadeOut(TransformDuration, Easing.OutQuint);
 
         /// <summary>
         /// Shows a drawable.
