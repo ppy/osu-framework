@@ -63,8 +63,7 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            var space = getCharacter('.');
-            spaceWidth = space.Width == default ? 1 : space.Width * 2;
+            spaceWidth = getCharacter('.').Texture?.DisplayWidth * 2 ?? 1;
 
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
