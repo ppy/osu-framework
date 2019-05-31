@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using Android.Views;
+using System.Numerics;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -23,7 +24,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(new MousePositionAbsoluteInput
             {
-                Position = new osuTK.Vector2(e.Event.GetX() * view.ScaleX, e.Event.GetY() * view.ScaleY)
+                Position = new Vector2(e.Event.GetX() * view.ScaleX, e.Event.GetY() * view.ScaleY)
             });
 
             switch (e.Event.Action & MotionEventActions.Mask)

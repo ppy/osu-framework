@@ -4,7 +4,6 @@
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osuTK.Graphics;
-using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Android
