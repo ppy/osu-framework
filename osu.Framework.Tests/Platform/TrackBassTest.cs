@@ -225,7 +225,8 @@ namespace osu.Framework.Tests.Platform
                 resetEvent.Set();
             });
 
-            resetEvent.WaitOne(TimeSpan.FromSeconds(10));
+            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException();
 
             track.Update();
 
