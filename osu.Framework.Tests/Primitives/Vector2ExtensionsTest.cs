@@ -34,15 +34,15 @@ namespace osu.Framework.Tests.Primitives
 
         [TestCase(true)]
         [TestCase(false)]
-        public void TestQuadOrientation(bool clockwise)
+        public void TestQuadOrientation(bool normalised)
         {
-            Quad quad = clockwise
-                ? new Quad(new Vector2(0, 1), Vector2.One, Vector2.Zero, new Vector2(1, 0))
-                : new Quad(Vector2.Zero, new Vector2(1, 0), new Vector2(0, 1), Vector2.One);
+            Quad quad = normalised
+                ? new Quad(Vector2.Zero, new Vector2(1, 0), new Vector2(0, 1), Vector2.One)
+                : new Quad(new Vector2(0, 1), Vector2.One, Vector2.Zero, new Vector2(1, 0));
 
             float orientation = Vector2Extensions.GetOrientation(quad.GetVertices());
 
-            Assert.That(orientation, Is.EqualTo(clockwise ? 2 : -2).Within(0.001));
+            Assert.That(orientation, Is.EqualTo(normalised ? 2 : -2).Within(0.001));
         }
     }
 }
