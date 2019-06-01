@@ -30,7 +30,7 @@ namespace osu.Framework.MathUtils.Clipping
         public int GetClipBufferSize()
         {
             // There can only be at most two intersections for each of the subject's vertices
-            return subjectPolygon.GetVertices().Length * 2;
+            return subjectPolygon.GetVertices().Length * clipPolygon.GetVertices().Length;
         }
 
         /// <summary>
@@ -53,55 +53,50 @@ namespace osu.Framework.MathUtils.Clipping
                                             + "Use GetClipBufferSize() to calculate the size of the buffer.", nameof(buffer));
             }
 
-            ReadOnlySpan<Vector2> clipVertices = clipPolygon.GetVertices();
+            // Get the subject vertices
+            ReadOnlySpan<Vector2> origSubjectVertices = subjectPolygon.GetVertices();
 
-            if (clipVertices.Length == 0)
+            if (origSubjectVertices.Length == 0)
                 return Span<Vector2>.Empty;
 
-            ReadOnlySpan<Vector2> subjectVertices = subjectPolygon.GetVertices();
+            // Get the clip vertices
+            ReadOnlySpan<Vector2> origClipVertices = clipPolygon.GetVertices();
 
-            if (subjectVertices.Length == 0)
+            if (origClipVertices.Length == 0)
                 return Span<Vector2>.Empty;
 
-            // Buffer is initially filled with the all of the subject's vertices
-            subjectVertices.CopyTo(buffer);
+            // Generate a slice from the buffer to store the subject vertices
+            Span<Vector2> subjectVertices = buffer.Slice(0, origSubjectVertices.Length);
+            origSubjectVertices.CopyTo(subjectVertices);
 
-            // Make sure that the subject vertices are ordered clockwise
+            // Generate a slice from the buffer to store the clip vertices.
+            // This is safe for convex-convex clipping since there can only be at most two extra vertices in the output list after each clip iteration
+            // The extra 1-item offset is added since the clip iteration needs to wrap around once, which causes the first index to get overwritten too early
+            Span<Vector2> clipVertices = buffer.Slice(subjectVertices.Length + 1, origClipVertices.Length);
+            origClipVertices.CopyTo(clipVertices);
+
+            // Normalise the orientation of the subject vertices
             if (Vector2Extensions.GetOrientation(subjectVertices) < 0)
-                buffer.Slice(0, subjectVertices.Length).Reverse();
+                subjectVertices.Reverse();
+
+            // Normalise the orientation of the clip vertices
+            if (Vector2Extensions.GetOrientation(clipVertices) < 0)
+                clipVertices.Reverse();
 
             // Number of vertices in the buffer that need to be tested against
             // This becomes the number of vertices in the resulting polygon after each clipping iteration
             int inputCount = subjectVertices.Length;
 
-            // It's unnecessary to construct + store all the clip edges in a separate array, so only the direction is checked
-            if (Vector2Extensions.GetOrientation(clipVertices) >= 0)
+            // Process the clip edge connecting the last vertex to the first vertex
+            inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);
+
+            // Process all other edges
+            for (int c = 1; c < clipVertices.Length; c++)
             {
-                // Process the clip edge connecting the last vertex to the first vertex
-                inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);
+                if (inputCount == 0)
+                    break;
 
-                // Process all other edges
-                for (int c = 1; c < clipVertices.Length; c++)
-                {
-                    if (inputCount == 0)
-                        break;
-
-                    inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount);
-                }
-            }
-            else
-            {
-                // Process the clip edge connecting the last vertex to the first vertex
-                inputCount = processClipEdge(new Line(clipVertices[0], clipVertices[clipVertices.Length - 1]), buffer, inputCount);
-
-                // Process all other edges
-                for (int c = clipVertices.Length - 1; c > 0; c--)
-                {
-                    if (inputCount == 0)
-                        break;
-
-                    inputCount = processClipEdge(new Line(clipVertices[c], clipVertices[c - 1]), buffer, inputCount);
-                }
+                inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount);
             }
 
             return buffer.Slice(0, inputCount);
