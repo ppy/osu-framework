@@ -212,23 +212,11 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            var resetEvent = new ManualResetEvent(false);
-
-            Task.Run(() =>
+            runOnAudioThread(() =>
             {
-                // The restart action is invoked during the update and will block if not invoked on the audio thread.
-                // The update is always run on the audio thread in normal operation such that the restart action is always inlined.
-                // The audio thread is faked here to simulate this operation and avoid a deadlock.
-                Thread.CurrentThread.Name = GameThread.PrefixedThreadNameFor("Audio");
-
                 track.Update();
                 track.Update();
-
-                resetEvent.Set();
             });
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
 
             Assert.IsTrue(track.IsRunning);
             Assert.LessOrEqual(track.CurrentTime, 1000);
@@ -243,17 +231,34 @@ namespace osu.Framework.Tests.Platform
 
         private void restartTrack()
         {
-            var resetEvent = new ManualResetEventSlim(false);
-
-            Task.Run(() =>
+            runOnAudioThread(() =>
             {
                 track.Restart();
                 track.Update();
-                resetEvent.Set();
             });
+        }
 
-            while (!resetEvent.IsSet)
-                track.Update();
+        /// <summary>
+        /// Certain actions are invoked on the audio thread.
+        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
+        /// </summary>
+        /// <param name="action">The action to perform.</param>
+        private void runOnAudioThread(Action action)
+        {
+            var resetEvent = new ManualResetEvent(false);
+
+            new Thread(() =>
+            {
+                action();
+
+                resetEvent.Set();
+            })
+            {
+                Name = GameThread.PrefixedThreadNameFor("Audio")
+            }.Start();
+
+            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException();
         }
     }
 }
