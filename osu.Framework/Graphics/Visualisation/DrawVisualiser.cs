@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
                         Drawable lastHighlight = highlightedTarget?.Target;
 
                         var parent = Target?.Parent;
+
                         if (parent != null)
                         {
                             var lastVisualiser = targetVisualiser;
@@ -58,6 +59,7 @@ namespace osu.Framework.Graphics.Visualisation
                         if (lastHighlight != null)
                         {
                             VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+
                             if (visualised != null)
                             {
                                 propertyDisplay.State = Visibility.Visible;

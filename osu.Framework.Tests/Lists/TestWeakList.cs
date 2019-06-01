@@ -48,6 +48,7 @@ namespace osu.Framework.Tests.Lists
             var list = new WeakList<object> { obj, obj2, obj3 };
 
             int count = 0;
+
             foreach (var item in list)
             {
                 if (count == 1)
@@ -68,6 +69,7 @@ namespace osu.Framework.Tests.Lists
             var list = new WeakList<object> { obj, obj2, obj3 };
 
             int count = 0;
+
             foreach (var item in list)
             {
                 if (count == 0)
@@ -90,6 +92,7 @@ namespace osu.Framework.Tests.Lists
             GC.WaitForPendingFinalizers();
 
             int index = 0;
+
             foreach (var obj in list)
             {
                 if (alive[index] != obj)

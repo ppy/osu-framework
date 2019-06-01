@@ -193,8 +193,10 @@ namespace osu.Framework.Tests.Localisation
                         {
                             default:
                                 return LOCALISABLE_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
+
                             case "ja-JP":
                                 return LOCALISABLE_STRING_JA_JP;
                         }
@@ -204,6 +206,7 @@ namespace osu.Framework.Tests.Localisation
                         {
                             default:
                                 return LOCALISABLE_FORMAT_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_FORMAT_STRING_JA;
                         }

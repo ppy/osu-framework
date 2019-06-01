@@ -80,6 +80,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             for (int index = 0; index < rawStates.Count; index++)
             {
                 var rawState = rawStates[index];
+
                 if (index < devices.Count)
                 {
                     devices[index].UpdateRawState(rawState);
