@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
-            current = Vector2Extensions.Transform(current, transformationMatrix);
+            current = VectorExtensions.Transform(current, transformationMatrix);
 
-            Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
+            Vector2 screenOrigin = VectorExtensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
             // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
-                current = Vector2Extensions.Transform(current, transformationMatrix);
+                current = VectorExtensions.Transform(current, transformationMatrix);
 
                 // current center point
                 halfCircleBatch.Add(new TexturedVertex2D

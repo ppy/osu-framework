@@ -123,12 +123,12 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// Distance squared from an arbitrary point p to this line.
         /// </summary>
-        public float DistanceSquaredToPoint(Vector2 p) => Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
+        public float DistanceSquaredToPoint(Vector2 p) => VectorExtensions.DistanceSquared(p, ClosestPointTo(p));
 
         /// <summary>
         /// Distance from an arbitrary point to this line.
         /// </summary>
-        public float DistanceToPoint(Vector2 p) => Vector2Extensions.Distance(p, ClosestPointTo(p));
+        public float DistanceToPoint(Vector2 p) => VectorExtensions.Distance(p, ClosestPointTo(p));
 
         /// <summary>
         /// Finds the point closest to the given point on this line.

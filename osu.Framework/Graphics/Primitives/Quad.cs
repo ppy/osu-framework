@@ -46,10 +46,10 @@ namespace osu.Framework.Graphics.Primitives
 
         public static Quad operator *(Quad r, Matrix4x4 m) =>
             new Quad(
-                Vector2Extensions.Transform(r.TopLeft, m),
-                Vector2Extensions.Transform(r.TopRight, m),
-                Vector2Extensions.Transform(r.BottomLeft, m),
-                Vector2Extensions.Transform(r.BottomRight, m));
+                VectorExtensions.Transform(r.TopLeft, m),
+                VectorExtensions.Transform(r.TopRight, m),
+                VectorExtensions.Transform(r.BottomLeft, m),
+                VectorExtensions.Transform(r.BottomRight, m));
 
         public osuTK.Matrix2 BasisTransform
         {
@@ -73,8 +73,8 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
         public Vector2 Size => new Vector2(Width, Height);
 
-        public float Width => Vector2Extensions.Distance(TopLeft, TopRight);
-        public float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
+        public float Width => VectorExtensions.Distance(TopLeft, TopRight);
+        public float Height => VectorExtensions.Distance(TopLeft, BottomLeft);
 
         public RectangleI AABB
         {
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Primitives
                 float lsq1 = d1.LengthSquared();
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * osuTK.MathHelper.InverseSqrtFast(lsq1)));
+                float lsq2 = VectorExtensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * osuTK.MathHelper.InverseSqrtFast(lsq1)));
 
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }

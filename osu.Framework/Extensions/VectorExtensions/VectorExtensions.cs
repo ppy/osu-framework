@@ -6,8 +6,10 @@ using System.Numerics;
 
 namespace osu.Framework.Graphics
 {
-    public static class Vector2Extensions
+    public static class VectorExtensions
     {
+        #region Vector2 Extensions
+
         /// <summary>Transform a Position by the given Matrix</summary>
         /// <param name="pos">The position to transform</param>
         /// <param name="mat">The desired transformation</param>
@@ -81,5 +83,19 @@ namespace osu.Framework.Graphics
         public static Vector2 PerpendicularLeft(this Vector2 vec) => new Vector2(-vec.Y, vec.X);
 
         public static Vector2 PerpendicularRight(this Vector2 vec) => new Vector2(vec.Y, -vec.X);
+
+        public static Vector2 Yx(this Vector2 vec) => new Vector2(vec.Y, vec.X);
+
+        #endregion
+
+        #region Vector3 Extensions
+
+        public static Vector2 Xy(this Vector3 vec) => new Vector2(vec.X, vec.Y);
+
+        public static Vector2 Yz(this Vector3 vec) => new Vector2(vec.Y, vec.Z);
+
+        public static Vector2 Xz(this Vector3 vec) => new Vector2(vec.X, vec.Z);
+
+        #endregion
     }
 }

@@ -1757,7 +1757,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return Vector2Extensions.Transform(Vector2Extensions.Transform(input, DrawInfo.Matrix), other.DrawInfo.MatrixInverse);
+            return VectorExtensions.Transform(VectorExtensions.Transform(input, DrawInfo.Matrix), other.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -1793,7 +1793,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in screen coordinates.</returns>
-        public Vector2 ToScreenSpace(Vector2 input) => Vector2Extensions.Transform(input, DrawInfo.Matrix);
+        public Vector2 ToScreenSpace(Vector2 input) => VectorExtensions.Transform(input, DrawInfo.Matrix);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in screen space.
@@ -1807,7 +1807,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="screenSpacePos">A vector in screen coordinates.</param>
         /// <returns>The vector in local coordinates.</returns>
-        public Vector2 ToLocalSpace(Vector2 screenSpacePos) => Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
+        public Vector2 ToLocalSpace(Vector2 screenSpacePos) => VectorExtensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
 
         /// <summary>
         /// Accepts a quad in screen coordinates and converts it to coordinates in local space.

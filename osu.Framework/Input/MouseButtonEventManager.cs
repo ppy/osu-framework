@@ -108,7 +108,7 @@ namespace osu.Framework.Input
                 if (!DragStarted)
                 {
                     var mouse = state.Mouse;
-                    if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
+                    if (mouse.IsPressed(Button) && VectorExtensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
                         HandleMouseDragStart(state);
                 }
                 else

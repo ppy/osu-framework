@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 first = relevantPositions.FirstOrDefault().Position;
             float appearRadiusSq = AppearRadius * AppearRadius;
 
-            if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
+            if (relevantPositions.All(t => VectorExtensions.DistanceSquared(t.Position, first) < appearRadiusSq))
                 return targetCandidate;
 
             return null;
