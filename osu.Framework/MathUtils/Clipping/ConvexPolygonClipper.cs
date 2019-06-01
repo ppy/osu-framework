@@ -30,7 +30,7 @@ namespace osu.Framework.MathUtils.Clipping
         public int GetClipBufferSize()
         {
             // There can only be at most two intersections for each of the subject's vertices
-            return subjectPolygon.GetVertices().Length * clipPolygon.GetVertices().Length;
+            return subjectPolygon.GetVertices().Length * 2;
         }
 
         /// <summary>
@@ -53,35 +53,24 @@ namespace osu.Framework.MathUtils.Clipping
                                             + "Use GetClipBufferSize() to calculate the size of the buffer.", nameof(buffer));
             }
 
-            // Get the subject vertices
             ReadOnlySpan<Vector2> origSubjectVertices = subjectPolygon.GetVertices();
-
             if (origSubjectVertices.Length == 0)
                 return Span<Vector2>.Empty;
 
-            // Get the clip vertices
             ReadOnlySpan<Vector2> origClipVertices = clipPolygon.GetVertices();
-
             if (origClipVertices.Length == 0)
                 return Span<Vector2>.Empty;
 
-            // Generate a slice from the buffer to store the subject vertices
-            Span<Vector2> subjectVertices = buffer.Slice(0, origSubjectVertices.Length);
-            origSubjectVertices.CopyTo(subjectVertices);
+            // Add the subject vertices to the buffer and immediately normalise them
+            Span<Vector2> subjectVertices = getNormalised(origSubjectVertices, buffer.Slice(0, origSubjectVertices.Length), true);
 
-            // Generate a slice from the buffer to store the clip vertices.
-            // This is safe for convex-convex clipping since there can only be at most two extra vertices in the output list after each clip iteration
-            // The extra 1-item offset is added since the clip iteration needs to wrap around once, which causes the first index to get overwritten too early
-            Span<Vector2> clipVertices = buffer.Slice(subjectVertices.Length + 1, origClipVertices.Length);
-            origClipVertices.CopyTo(clipVertices);
-
-            // Normalise the orientation of the subject vertices
-            if (Vector2Extensions.GetOrientation(subjectVertices) < 0)
-                subjectVertices.Reverse();
-
-            // Normalise the orientation of the clip vertices
-            if (Vector2Extensions.GetOrientation(clipVertices) < 0)
-                clipVertices.Reverse();
+            // Since the clip vertices aren't modified, we can use them as they are if they are normalised
+            // However if they are not normalised, then we must add them to the buffer and normalise them there
+            bool clipNormalised = Vector2Extensions.GetOrientation(origClipVertices) >= 0;
+            Span<Vector2> clipBuffer = clipNormalised ? null : stackalloc Vector2[origClipVertices.Length];
+            ReadOnlySpan<Vector2> clipVertices = clipNormalised
+                ? origClipVertices
+                : getNormalised(origClipVertices, clipBuffer, false);
 
             // Number of vertices in the buffer that need to be tested against
             // This becomes the number of vertices in the resulting polygon after each clipping iteration
@@ -141,6 +130,17 @@ namespace osu.Framework.MathUtils.Clipping
                 clipEdge.TryIntersectWith(ref startVertex, ref endVertex, out var t);
                 buffer[bufferIndex++] = clipEdge.At(t);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Span<Vector2> getNormalised(in ReadOnlySpan<Vector2> original, in Span<Vector2> bufferSlice, bool verify)
+        {
+            original.CopyTo(bufferSlice);
+
+            if (!verify || Vector2Extensions.GetOrientation(original) < 0)
+                bufferSlice.Reverse();
+
+            return bufferSlice;
         }
     }
 }
