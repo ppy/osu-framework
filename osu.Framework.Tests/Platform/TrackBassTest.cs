@@ -222,13 +222,13 @@ namespace osu.Framework.Tests.Platform
                 Thread.CurrentThread.Name = GameThread.PrefixedThreadNameFor("Audio");
 
                 track.Update();
+                track.Update();
+
                 resetEvent.Set();
             });
 
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
                 throw new TimeoutException();
-
-            track.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.LessOrEqual(track.CurrentTime, 1000);
