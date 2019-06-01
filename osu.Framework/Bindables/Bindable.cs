@@ -209,6 +209,7 @@ namespace osu.Framework.Bindables
                 case T t:
                     Value = t;
                     break;
+
                 case string s:
                     var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
 
@@ -217,6 +218,7 @@ namespace osu.Framework.Bindables
                     else
                         Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
                     break;
+
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
             }

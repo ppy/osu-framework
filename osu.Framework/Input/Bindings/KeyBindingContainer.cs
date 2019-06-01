@@ -102,6 +102,7 @@ namespace osu.Framework.Input.Bindings
         protected override bool Handle(UIEvent e)
         {
             var state = e.CurrentState;
+
             switch (e)
             {
                 case MouseDownEvent mouseDown:

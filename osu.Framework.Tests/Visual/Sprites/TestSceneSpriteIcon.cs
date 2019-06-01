@@ -49,6 +49,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             var weights = typeof(FontAwesome).GetNestedTypes();
+
             foreach (var w in weights)
             {
                 flow.Add(new SpriteText

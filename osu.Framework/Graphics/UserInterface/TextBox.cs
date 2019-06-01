@@ -293,6 +293,7 @@ namespace osu.Framework.Graphics.UserInterface
             pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
+
             foreach (Drawable d in TextFlow.Children)
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
@@ -536,6 +537,7 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (char c in addText)
             {
                 var ch = addCharacter(c);
+
                 if (ch == null)
                 {
                     notifyInputError();
@@ -704,6 +706,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Escape:
                     KillFocus();
                     return true;
+
                 case Key.KeypadEnter:
                 case Key.Enter:
                     Commit();
@@ -957,6 +960,7 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = matchCount; i < s.Length; i++)
             {
                 Drawable dr = addCharacter(s[i]);
+
                 if (dr != null)
                 {
                     dr.Colour = Color4.Aqua;

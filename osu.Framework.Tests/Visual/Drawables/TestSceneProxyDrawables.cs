@@ -412,6 +412,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 RelativeSizeAxes = Axes.Both;
 
                 original = proxy.Original;
+
                 while (original != (original = original.Original))
                 {
                 }
