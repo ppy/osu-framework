@@ -109,10 +109,12 @@ namespace osu.Framework.Testing.Drawables.Sections
                     recordButton.Text = "record";
                     playbackControls.Hide();
                     break;
+
                 case RecordState.Recording:
                     recordButton.Text = "stop";
                     playbackControls.Hide();
                     break;
+
                 case RecordState.Stopped:
                     recordButton.Text = "reset";
                     playbackControls.Show();

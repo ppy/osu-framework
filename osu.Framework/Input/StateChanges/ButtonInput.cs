@@ -65,6 +65,7 @@ namespace osu.Framework.Input.StateChanges
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var buttonStates = GetButtonStates(state);
+
             foreach (var entry in Entries)
             {
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))

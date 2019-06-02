@@ -52,6 +52,7 @@ namespace osu.Framework.MathUtils
             while (toFlatten.Count > 0)
             {
                 Vector2[] parent = toFlatten.Pop();
+
                 if (bezierIsFlatEnough(parent))
                 {
                     // If the control points we currently operate on are sufficiently "flat", we use
@@ -155,6 +156,7 @@ namespace osu.Framework.MathUtils
             // AC B lies.
             Vector2 orthoAtoC = c - a;
             orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
+
             if (Vector2.Dot(orthoAtoC, b - a) < 0)
             {
                 dir = -dir;
@@ -211,6 +213,7 @@ namespace osu.Framework.MathUtils
 
             float minX = controlPoints[0].X;
             float maxX = controlPoints[0].X;
+
             for (int i = 1; i < controlPoints.Length; i++)
             {
                 minX = Math.Min(minX, controlPoints[i].X);
@@ -293,6 +296,7 @@ namespace osu.Framework.MathUtils
                 l[count + i] = r[i + 1];
 
             output.Add(controlPoints[0]);
+
             for (int i = 1; i < count - 1; ++i)
             {
                 int index = 2 * i;

@@ -54,15 +54,16 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Retrieve a list of available resources provided by this store.
         /// </summary>
-        public IEnumerable<string> AvailableResources =>
+        public IEnumerable<string> GetAvailableResources() =>
             assembly.GetManifestResourceNames().Select(n =>
             {
-                var chars = n.ToCharArray();
+                n = n.Substring(n.StartsWith(prefix) ? prefix.Length + 1 : 0);
 
-                int startIndex = n.StartsWith(prefix) ? prefix.Length + 1 : 0;
                 int lastDot = n.LastIndexOf('.');
 
-                for (int i = startIndex; i < lastDot; i++)
+                var chars = n.ToCharArray();
+
+                for (int i = 0; i < lastDot; i++)
                     if (chars[i] == '.')
                         chars[i] = '/';
 
