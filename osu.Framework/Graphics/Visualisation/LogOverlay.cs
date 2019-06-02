@@ -212,12 +212,16 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 case LoggingTarget.Runtime:
                     return Color4.YellowGreen;
+
                 case LoggingTarget.Network:
                     return Color4.BlueViolet;
+
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
+
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
+
                 default:
                     return Color4.Cyan;
             }

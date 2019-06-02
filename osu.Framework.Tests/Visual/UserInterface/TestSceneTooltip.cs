@@ -44,6 +44,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             testContainer.Clear();
 
             CursorContainer cursor = null;
+
             if (!cursorlessTooltip)
             {
                 cursor = new RectangleCursorContainer();

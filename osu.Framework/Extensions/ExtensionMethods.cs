@@ -103,6 +103,7 @@ namespace osu.Framework.Extensions
                 return null;
 
             var jagged = new T[rectangular.GetLength(0)][];
+
             for (int r = 0; r < rectangular.GetLength(0); r++)
             {
                 jagged[r] = new T[rectangular.GetLength(1)];
@@ -130,6 +131,7 @@ namespace osu.Framework.Extensions
             var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
 
             var rectangular = new T[rows, cols];
+
             for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
             {

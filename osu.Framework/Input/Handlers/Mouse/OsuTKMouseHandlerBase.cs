@@ -36,6 +36,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             else
             {
                 var delta = state.Position - lastState.Position;
+
                 if (delta != Vector2.Zero)
                 {
                     PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = delta });
@@ -46,6 +47,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (lastState != null && state.WasActive)
             {
                 var scrollDelta = state.Scroll - lastState.Scroll;
+
                 if (scrollDelta != Vector2.Zero)
                 {
                     PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = scrollDelta, IsPrecise = state.HasPreciseScroll });

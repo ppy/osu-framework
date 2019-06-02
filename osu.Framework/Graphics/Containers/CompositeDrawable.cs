@@ -418,6 +418,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             internalChildren.RemoveAt(index);
+
             if (drawable.IsAlive)
             {
                 aliveInternalChildren.Remove(drawable);
@@ -563,17 +564,20 @@ namespace osu.Framework.Graphics.Containers
             {
                 case LoadState.NotLoaded:
                     break;
+
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
 
                     break;
+
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
 
                     break;
+
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
                         throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
@@ -985,6 +989,7 @@ namespace osu.Framework.Graphics.Containers
         private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> children = parentComposite.aliveInternalChildren;
+
             for (int i = 0; i < children.Count; ++i)
             {
                 Drawable drawable = children[i];
@@ -995,6 +1000,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     CompositeDrawable composite = drawable as CompositeDrawable;
+
                     if (composite?.CanBeFlattened == true)
                     {
                         if (!composite.IsMaskedAway)

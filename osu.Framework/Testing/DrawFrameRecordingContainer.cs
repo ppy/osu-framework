@@ -41,6 +41,7 @@ namespace osu.Framework.Testing
                     currentFrame.Value = currentFrame.MaxValue = 0;
 
                     return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
                 case RecordState.Recording:
                     var node = base.GenerateDrawNodeSubtree(frame, treeIndex, true);
 
@@ -50,6 +51,7 @@ namespace osu.Framework.Testing
                     currentFrame.Value = currentFrame.MaxValue = recordedFrames.Count - 1;
 
                     return node;
+
                 case RecordState.Stopped:
                     return recordedFrames[currentFrame.Value];
             }

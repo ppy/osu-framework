@@ -145,6 +145,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 NumRaw++;
                 bool foundOne = false;
+
                 foreach (Vector2 relevant in InputResampler.AddPosition(pos))
                 {
                     AddVertex(relevant);

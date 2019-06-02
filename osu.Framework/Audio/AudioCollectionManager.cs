@@ -9,7 +9,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// A collection of audio components which need central property control.
     /// </summary>
-    public class AudioCollectionManager<T> : AdjustableAudioComponent
+    public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
         where T : AdjustableAudioComponent
     {
         protected List<T> Items = new List<T>();
@@ -32,19 +32,12 @@ namespace osu.Framework.Audio
 
         public void RegisterItem(T item)
         {
-            EnqueueAction(() => item.AddAdjustmentDependency(this));
+            EnqueueAction(() => item.BindAdjustments(this));
         }
 
         public void UnregisterItem(T item)
         {
-            EnqueueAction(() => item.RemoveAdjustmentDependency(this));
-        }
-
-        internal override void OnStateChanged()
-        {
-            base.OnStateChanged();
-            foreach (var item in Items)
-                item.OnStateChanged();
+            EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
         public virtual void UpdateDevice(int deviceIndex)

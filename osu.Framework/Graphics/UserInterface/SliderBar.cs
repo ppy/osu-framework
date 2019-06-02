@@ -159,10 +159,12 @@ namespace osu.Framework.Graphics.UserInterface
                     currentNumberInstantaneous.Add(step);
                     onUserChange(currentNumberInstantaneous.Value);
                     return true;
+
                 case Key.Left:
                     currentNumberInstantaneous.Add(-step);
                     onUserChange(currentNumberInstantaneous.Value);
                     return true;
+
                 default:
                     return false;
             }
