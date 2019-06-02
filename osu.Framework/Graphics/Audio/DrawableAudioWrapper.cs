@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -71,5 +72,26 @@ namespace osu.Framework.Graphics.Audio
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="Volume"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public TransformSequence<DrawableAudioWrapper> VolumeTo(double newVolume, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformBindableTo(Volume, newVolume, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="Balance"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public TransformSequence<DrawableAudioWrapper> BalanceTo(double newBalance, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformBindableTo(Balance, newBalance, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="Frequency"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public TransformSequence<DrawableAudioWrapper> FrequencyTo(double newFrequency, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformBindableTo(Frequency, newFrequency, duration, easing);
     }
 }

@@ -64,14 +64,14 @@ namespace osu.Framework.Tests.Visual.Audio
                 },
             };
 
-            AddStep("reduce volume", () => samples.Volume.Value -= 0.1f);
-            AddStep("increase volume", () => samples.Volume.Value += 0.1f);
+            AddStep("reduce volume", () => samples.VolumeTo(samples.Volume.Value - 0.5f, 1000, Easing.OutQuint));
+            AddStep("increase volume", () => samples.VolumeTo(samples.Volume.Value + 0.5f, 1000, Easing.OutQuint));
 
-            AddStep("reduce frequency", () => samples.Frequency.Value -= 0.1f);
-            AddStep("increase frequency", () => samples.Frequency.Value += 0.1f);
+            AddStep("reduce frequency", () => samples.FrequencyTo(samples.Frequency.Value - 0.1f, 1000, Easing.OutQuint));
+            AddStep("increase frequency", () => samples.FrequencyTo(samples.Frequency.Value + 0.1f, 1000, Easing.OutQuint));
 
-            AddStep("left balance", () => samples.Balance.Value -= 0.1f);
-            AddStep("right balance", () => samples.Balance.Value += 0.1f);
+            AddStep("left balance", () => samples.BalanceTo(samples.Balance.Value - 1, 1000, Easing.OutQuint));
+            AddStep("right balance", () => samples.BalanceTo(samples.Balance.Value +1, 1000, Easing.OutQuint));
         }
 
         protected override void Update()
@@ -172,7 +172,7 @@ namespace osu.Framework.Tests.Visual.Audio
             [BackgroundDependencyLoader]
             private void load(SampleStore samples)
             {
-                AddInternal(sample = new DrawableSampleChannel(samples.Get("tone.wav")));
+                AddInternal(sample = new DrawableSampleChannel(samples.Get("long.mp3")));
             }
 
             private float dragStartY;
