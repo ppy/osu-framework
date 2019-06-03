@@ -63,6 +63,15 @@ namespace osu.Framework.Audio
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            AggregateVolume.UnbindAll();
+            AggregateBalance.UnbindAll();
+            AggregateFrequency.UnbindAll();
+        }
     }
 
     public enum AdjustableProperty
