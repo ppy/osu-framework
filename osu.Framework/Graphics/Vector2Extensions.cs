@@ -77,15 +77,18 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Retrieves the rotation of a set of vertices.
+        /// Retrieves the orientation of a set of vertices.
         /// </summary>
         /// <param name="vertices">The vertices.</param>
         /// <returns>Twice the area enclosed by the vertices.
-        /// The vertices are in clockwise order if the value is positive.
-        /// The vertices are in counter-clockwise order if the value is negative.</returns>
+        /// The vertices are clockwise-oriented if the value is positive.
+        /// The vertices are counter-clockwise-oriented if the value is negative.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float GetRotation(in ReadOnlySpan<Vector2> vertices)
+        public static float GetOrientation(in ReadOnlySpan<Vector2> vertices)
         {
+            if (vertices.Length == 0)
+                return 0;
+
             float rotation = 0;
             for (int i = 0; i < vertices.Length - 1; ++i)
                 rotation += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y);

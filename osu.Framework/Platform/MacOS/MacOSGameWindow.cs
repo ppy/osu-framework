@@ -130,6 +130,7 @@ namespace osu.Framework.Platform.MacOS
         {
             // update the window mode if we have an update queued
             WindowMode? mode = pendingWindowMode;
+
             if (mode.HasValue)
             {
                 pendingWindowMode = null;

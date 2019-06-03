@@ -9,9 +9,9 @@ using osuTK;
 
 namespace osu.Framework.MathUtils.Clipping
 {
-    public readonly ref struct ConvexPolygonClipper<TSubject, TClip>
-        where TSubject : IConvexPolygon
+    public readonly ref struct ConvexPolygonClipper<TClip, TSubject>
         where TClip : IConvexPolygon
+        where TSubject : IConvexPolygon
     {
         private readonly TClip clipPolygon;
         private readonly TSubject subjectPolygon;
@@ -53,48 +53,39 @@ namespace osu.Framework.MathUtils.Clipping
                                             + "Use GetClipBufferSize() to calculate the size of the buffer.", nameof(buffer));
             }
 
-            ReadOnlySpan<Vector2> subjectVertices = subjectPolygon.GetVertices();
-            ReadOnlySpan<Vector2> clipVertices = clipPolygon.GetVertices();
+            ReadOnlySpan<Vector2> origSubjectVertices = subjectPolygon.GetVertices();
+            if (origSubjectVertices.Length == 0)
+                return Span<Vector2>.Empty;
 
-            // Buffer is initially filled with the all of the subject's vertices
-            subjectVertices.CopyTo(buffer);
+            ReadOnlySpan<Vector2> origClipVertices = clipPolygon.GetVertices();
+            if (origClipVertices.Length == 0)
+                return Span<Vector2>.Empty;
 
-            // Make sure that the subject vertices are ordered clockwise
-            if (Vector2Extensions.GetRotation(subjectVertices) < 0)
-                buffer.Slice(0, subjectVertices.Length).Reverse();
+            // Add the subject vertices to the buffer and immediately normalise them
+            Span<Vector2> subjectVertices = getNormalised(origSubjectVertices, buffer.Slice(0, origSubjectVertices.Length), true);
+
+            // Since the clip vertices aren't modified, we can use them as they are if they are normalised
+            // However if they are not normalised, then we must add them to the buffer and normalise them there
+            bool clipNormalised = Vector2Extensions.GetOrientation(origClipVertices) >= 0;
+            Span<Vector2> clipBuffer = clipNormalised ? null : stackalloc Vector2[origClipVertices.Length];
+            ReadOnlySpan<Vector2> clipVertices = clipNormalised
+                ? origClipVertices
+                : getNormalised(origClipVertices, clipBuffer, false);
 
             // Number of vertices in the buffer that need to be tested against
             // This becomes the number of vertices in the resulting polygon after each clipping iteration
             int inputCount = subjectVertices.Length;
 
-            // It's unnecessary to construct + store all the clip edges in a separate array, so only the direction is checked
-            if (Vector2Extensions.GetRotation(clipVertices) >= 0)
+            // Process the clip edge connecting the last vertex to the first vertex
+            inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);
+
+            // Process all other edges
+            for (int c = 1; c < clipVertices.Length; c++)
             {
-                // Process the clip edge connecting the last vertex to the first vertex
-                inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);
+                if (inputCount == 0)
+                    break;
 
-                // Process all other edges
-                for (int c = 1; c < clipVertices.Length; c++)
-                {
-                    if (inputCount == 0)
-                        break;
-
-                    inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount);
-                }
-            }
-            else
-            {
-                // Process the clip edge connecting the last vertex to the first vertex
-                inputCount = processClipEdge(new Line(clipVertices[0], clipVertices[clipVertices.Length - 1]), buffer, inputCount);
-
-                // Process all other edges
-                for (int c = clipVertices.Length - 1; c > 0; c--)
-                {
-                    if (inputCount == 0)
-                        break;
-
-                    inputCount = processClipEdge(new Line(clipVertices[c], clipVertices[c - 1]), buffer, inputCount);
-                }
+                inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount);
             }
 
             return buffer.Slice(0, inputCount);
@@ -139,6 +130,17 @@ namespace osu.Framework.MathUtils.Clipping
                 clipEdge.TryIntersectWith(ref startVertex, ref endVertex, out var t);
                 buffer[bufferIndex++] = clipEdge.At(t);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Span<Vector2> getNormalised(in ReadOnlySpan<Vector2> original, in Span<Vector2> bufferSlice, bool verify)
+        {
+            original.CopyTo(bufferSlice);
+
+            if (!verify || Vector2Extensions.GetOrientation(original) < 0)
+                bufferSlice.Reverse();
+
+            return bufferSlice;
         }
     }
 }

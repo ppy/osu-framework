@@ -579,6 +579,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
 
             AvailableInputHandlers = CreateAvailableInputHandlers();
+
             foreach (var handler in AvailableInputHandlers)
             {
                 if (!handler.Initialize(this))
@@ -722,18 +723,22 @@ namespace osu.Framework.Platform
                         drawLimiter = int.MaxValue;
                         updateLimiter *= 2;
                         break;
+
                     case FrameSync.Limit2x:
                         drawLimiter *= 2;
                         updateLimiter *= 2;
                         break;
+
                     case FrameSync.Limit4x:
                         drawLimiter *= 4;
                         updateLimiter *= 4;
                         break;
+
                     case FrameSync.Limit8x:
                         drawLimiter *= 8;
                         updateLimiter *= 8;
                         break;
+
                     case FrameSync.Unlimited:
                         drawLimiter = updateLimiter = int.MaxValue;
                         break;

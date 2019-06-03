@@ -56,6 +56,7 @@ namespace osu.Framework.Graphics.Containers
                 case Visibility.Hidden:
                     PopOut();
                     break;
+
                 case Visibility.Visible:
                     PopIn();
                     break;

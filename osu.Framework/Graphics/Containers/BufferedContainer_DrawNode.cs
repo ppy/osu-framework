@@ -227,6 +227,7 @@ namespace osu.Framework.Graphics.Containers
                 currentFrameBufferIndex = originalIndex;
 
                 Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
+
                 if (RequiresRedraw)
                 {
                     sharedData.DrawVersion = updateVersion;

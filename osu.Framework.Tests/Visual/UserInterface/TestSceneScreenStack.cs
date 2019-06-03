@@ -444,6 +444,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Setup screens", () =>
             {
                 screens = new List<TestScreen>();
+
                 for (int i = 0; i < 5; i++)
                 {
                     var screen = new TestScreen();

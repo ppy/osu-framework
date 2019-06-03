@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -139,6 +140,8 @@ namespace osu.Framework.IO.Stores
         }
 
         public Stream GetStream(string name) => throw new NotSupportedException();
+
+        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
 
         private int loadedPageCount;
         private int loadedGlyphCount;

@@ -69,6 +69,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             bool aliveChildrenChanged = false;
+
             if (newState == LifetimeState.Current)
             {
                 MakeChildAlive(child);
@@ -92,6 +93,7 @@ namespace osu.Framework.Graphics.Containers
         private void enqueueEvents(Drawable child, LifetimeState oldState, LifetimeState newState)
         {
             Debug.Assert(oldState != newState);
+
             switch (oldState)
             {
                 case LifetimeState.Future:
@@ -99,11 +101,13 @@ namespace osu.Framework.Graphics.Containers
                     if (newState == LifetimeState.Past)
                         eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
                     break;
+
                 case LifetimeState.Current:
                     eventQueue.Enqueue(newState == LifetimeState.Past
                         ? new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward)
                         : new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward));
                     break;
+
                 case LifetimeState.Past:
                     eventQueue.Enqueue(new LifetimeBoundaryCrossedEvent(child, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
                     if (newState == LifetimeState.Future)
@@ -198,8 +202,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 case LifetimeState.Future:
                     return futureChildren;
+
                 case LifetimeState.Past:
                     return pastChildren;
+
                 default:
                     return null;
             }
