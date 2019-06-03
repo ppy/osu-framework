@@ -176,17 +176,18 @@ namespace osu.Framework.Graphics.Containers
             if (content == null)
                 return null;
 
-            bool first = true;
-
             return CreateDelayedLoadWrapper(() =>
             {
-                if (first)
+                try
                 {
-                    first = false;
-                    return content;
+                    // optimisation to use already constructed object (used above for null check).
+                    return content ?? createContentFunc();
                 }
-
-                return createContentFunc();
+                finally
+                {
+                    // consume initial object if not already.
+                    content = null;
+                }
             }, timeBeforeLoad);
         }
 
