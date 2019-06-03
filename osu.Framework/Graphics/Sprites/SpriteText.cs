@@ -13,7 +13,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
-using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
@@ -545,6 +544,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (AllowMultiline)
                 {
                     Debug.Assert(!Truncate);
+
                     if (currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = Padding.Left;
