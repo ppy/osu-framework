@@ -8,8 +8,6 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils.Clipping;
-using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
@@ -69,16 +67,7 @@ namespace osu.Framework.Graphics.Shapes
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
                 if (GLWrapper.IsMaskingActive)
-                {
-                    var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
-
-                    var clipper = new ConvexPolygonClipper<Quad, Quad>(ref conservativeScreenSpaceDrawQuad, ref maskingQuad);
-                    Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
-                    Span<Vector2> clippedRegion = clipper.Clip(buffer);
-
-                    for (int i = 2; i < clippedRegion.Length; i++)
-                        DrawTriangle(Texture, new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), DrawColourInfo.Colour);
-                }
+                    DrawClipped(ref conservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour);
                 else
                     Blit(conservativeScreenSpaceDrawQuad, vertexAction);
 

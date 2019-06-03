@@ -118,6 +118,27 @@ namespace osu.Framework.Graphics
                                 Vector2? blendRangeOverride = null)
             => texture.DrawQuad(vertexQuad, drawDepth, textureRect, drawColour, vertexAction, inflationPercentage, blendRangeOverride);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                      Vector2? inflationPercentage = null)
+            where T : IConvexPolygon
+            => DrawClipped(ref polygon, texture.TextureGL, drawColour, textureRect, vertexAction, inflationPercentage);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void DrawClipped<T>(ref T polygon, TextureGL texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                      Vector2? inflationPercentage = null)
+            where T : IConvexPolygon
+        {
+            var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
+
+            var clipper = new ConvexPolygonClipper<Quad, T>(ref maskingQuad, ref polygon);
+            Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
+            Span<Vector2> clippedRegion = clipper.Clip(buffer);
+
+            for (int i = 2; i < clippedRegion.Length; i++)
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), textureRect, drawColour, vertexAction, inflationPercentage);
+        }
+
         /// <summary>
         /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.
         /// Invoke <see cref="Dispose"/> to remove the reference.
