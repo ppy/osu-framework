@@ -187,7 +187,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         case 3:
                             return Color4.MediumPurple;
                         case 4:
-                            return Color4.Moccasin;
+                            return Color4.DarkOrchid;
                     }
                 }
             }

@@ -66,13 +66,26 @@ namespace osu.Framework.Tests.Visual.Drawables
             public TestModelBackedDrawable(bool immediate)
             {
                 this.immediate = immediate;
-                AddInternal(spinner = new LoadingSpinner
+
+                CornerRadius = 5;
+                Masking = true;
+
+                AddRangeInternal(new[]
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(50),
-                    Alpha = 0,
-                    Depth = float.MinValue
+                    new Box
+                    {
+                        Colour = new Color4(0.1f, 0.1f, 0.1f, 1),
+                        RelativeSizeAxes = Axes.Both,
+                        Depth = float.MaxValue
+                    },
+                    spinner = new LoadingSpinner
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(20),
+                        Alpha = 0,
+                        Depth = float.MinValue
+                    }
                 });
             }
 
@@ -87,9 +100,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 base.OnLoadStarted();
 
                 if (!immediate)
-                    DisplayedDrawable?.FadeTo(0.5f, 500, Easing.OutQuint);
+                    DisplayedDrawable?.FadeTo(0, 300, Easing.OutQuint);
 
-                spinner.Delay(250).FadeIn(500, Easing.OutQuint);
+                spinner.FadeIn(300, Easing.OutQuint);
             }
 
             protected override void OnLoadFinished()
@@ -112,9 +125,29 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestDrawableModel : CompositeDrawable
         {
-            private static int modelID = 1;
+            private static int id = 1;
 
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
+
+            protected virtual Color4 BackgroundColour
+            {
+                get
+                {
+                    switch (id % 5)
+                    {
+                        default:
+                            return Color4.SkyBlue;
+                        case 1:
+                            return Color4.Tomato;
+                        case 2:
+                            return Color4.DarkGreen;
+                        case 3:
+                            return Color4.MediumPurple;
+                        case 4:
+                            return Color4.DarkOrchid;
+                    }
+                }
+            }
 
             public TestDrawableModel()
             {
@@ -125,13 +158,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = BackgroundColour
                     },
                     new SpriteText
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"Model {modelID++}"
+                        Text = $"Model {id++}"
                     }
                 };
             }
