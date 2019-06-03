@@ -112,6 +112,7 @@ namespace osu.Framework.Graphics.Video
                 startTime = Clock.CurrentTime;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+
             if (nextFrame != null)
             {
                 bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&

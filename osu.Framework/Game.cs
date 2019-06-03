@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -7,6 +7,7 @@ using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -124,18 +125,23 @@ namespace osu.Framework
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
-            var tracks = new ResourceStore<byte[]>(Resources);
+            var tracks = new ResourceStore<byte[]>();
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
             tracks.AddStore(new OnlineStore());
 
-            var samples = new ResourceStore<byte[]>(Resources);
+            var samples = new ResourceStore<byte[]>();
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
-            //attach our bindables to the audio subsystem.
+            dependencies.Cache(Audio.Tracks);
+            dependencies.Cache(Audio.Samples);
+
+            dependencies.CacheAs<IResourceStore<SampleChannel>>(Audio.Samples);
+
+            // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
@@ -240,20 +246,6 @@ namespace osu.Framework
         }
 
         protected virtual bool OnExiting() => false;
-
-        /// <summary>
-        /// Called before a frame cycle has started (Update and Draw).
-        /// </summary>
-        protected virtual void PreFrame()
-        {
-        }
-
-        /// <summary>
-        /// Called after a frame cycle has been completed (Update and Draw).
-        /// </summary>
-        protected virtual void PostFrame()
-        {
-        }
 
         protected override void Dispose(bool isDisposing)
         {

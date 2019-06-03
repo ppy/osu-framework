@@ -350,10 +350,12 @@ namespace osu.Framework.Bindables
                 case null:
                     Clear();
                     break;
+
                 case IEnumerable<T> enumerable:
                     Clear();
                     AddRange(enumerable);
                     break;
+
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
             }

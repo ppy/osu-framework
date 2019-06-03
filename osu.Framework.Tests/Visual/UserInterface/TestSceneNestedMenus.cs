@@ -181,6 +181,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Check closed", () =>
             {
                 int currentSubMenu = 3;
+
                 while (true)
                 {
                     var subMenu = menus.GetSubMenu(currentSubMenu);
@@ -217,6 +218,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Check closed", () =>
             {
                 int currentSubMenu = 3;
+
                 while (true)
                 {
                     var subMenu = menus.GetSubMenu(currentSubMenu);
@@ -464,6 +466,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public Menu GetSubMenu(int index)
             {
                 var currentMenu = menu;
+
                 for (int i = 0; i < index; i++)
                 {
                     if (currentMenu == null)

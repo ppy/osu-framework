@@ -213,11 +213,11 @@ namespace osu.Framework.Graphics
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
             lock (loadLock)
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
                 if (loadState == LoadState.NotLoaded)
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
@@ -592,6 +592,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 offset = Vector2.Zero;
+
                 if (Parent != null && RelativePositionAxes != Axes.None)
                 {
                     offset = Parent.RelativeChildOffset;
@@ -844,6 +845,7 @@ namespace osu.Framework.Graphics
         private void updateBypassAutoSizeAxes()
         {
             var value = RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
+
             if (bypassAutoSizeAxes != value)
             {
                 var changedAxes = bypassAutoSizeAxes ^ value;
@@ -1406,6 +1408,7 @@ namespace osu.Framework.Graphics
         protected InputManager GetContainingInputManager()
         {
             Drawable search = Parent;
+
             while (search != null)
             {
                 if (search is InputManager test) return test;
@@ -1717,6 +1720,7 @@ namespace osu.Framework.Graphics
         internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             DrawNode node = drawNodes[treeIndex];
+
             if (node == null || forceNewDrawNode)
             {
                 drawNodes[treeIndex] = node = CreateDrawNode();
@@ -1850,41 +1854,58 @@ namespace osu.Framework.Graphics
             {
                 case MouseMoveEvent mouseMove:
                     return OnMouseMove(mouseMove);
+
                 case HoverEvent hover:
                     return OnHover(hover);
+
                 case HoverLostEvent hoverLost:
                     OnHoverLost(hoverLost);
                     return false;
+
                 case MouseDownEvent mouseDown:
                     return OnMouseDown(mouseDown);
+
                 case MouseUpEvent mouseUp:
                     return OnMouseUp(mouseUp);
+
                 case ClickEvent click:
                     return OnClick(click);
+
                 case DoubleClickEvent doubleClick:
                     return OnDoubleClick(doubleClick);
+
                 case DragStartEvent dragStart:
                     return OnDragStart(dragStart);
+
                 case DragEvent drag:
                     return OnDrag(drag);
+
                 case DragEndEvent dragEnd:
                     return OnDragEnd(dragEnd);
+
                 case ScrollEvent scroll:
                     return OnScroll(scroll);
+
                 case FocusEvent focus:
                     OnFocus(focus);
                     return false;
+
                 case FocusLostEvent focusLost:
                     OnFocusLost(focusLost);
                     return false;
+
                 case KeyDownEvent keyDown:
                     return OnKeyDown(keyDown);
+
                 case KeyUpEvent keyUp:
                     return OnKeyUp(keyUp);
+
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
+
                 case JoystickReleaseEvent joystickRelease:
                     return OnJoystickRelease(joystickRelease);
+
                 default:
                     return false;
             }
@@ -1956,13 +1977,13 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if <see cref="Handle(NonPositionalEvent)"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if <see cref="Handle(PositionalEvent)"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
@@ -1976,6 +1997,7 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] positional_input_methods =
             {
+                nameof(Handle),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1993,6 +2015,7 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] non_positional_input_methods =
             {
+                nameof(Handle),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2019,6 +2042,7 @@ namespace osu.Framework.Graphics
             private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
                 var type = drawable.GetType();
+
                 if (!cache.TryGetValue(type, out var value))
                 {
                     value = compute(type, positional);
@@ -2030,35 +2054,12 @@ namespace osu.Framework.Graphics
 
             private static bool compute(Type type, bool positional)
             {
-                // check for any input method overrides which are at a higher level than drawable.
-                var focusMethod = type.GetMethod(
-                    nameof(Handle),
-                    BindingFlags.Instance | BindingFlags.NonPublic,
-                    Type.DefaultBinder,
-                    new[] { typeof(FocusEventBase) },
-                    null);
+                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
-                Debug.Assert(focusMethod != null);
-
-                if (focusMethod.DeclaringType != typeof(Drawable))
-                    return true;
-
-                var handleMethod = type.GetMethod(
-                    nameof(Handle),
-                    BindingFlags.Instance | BindingFlags.NonPublic,
-                    Type.DefaultBinder,
-                    positional ? new[] { typeof(PositionalEvent) } : new[] { typeof(NonPositionalEvent) },
-                    null);
-
-                Debug.Assert(handleMethod != null);
-
-                if (handleMethod.DeclaringType != typeof(Drawable))
-                    return true;
-
-                var individualInputMethods = positional ? positional_input_methods : non_positional_input_methods;
-                foreach (var individualInputMethod in individualInputMethods)
+                foreach (var inputMethod in inputMethods)
                 {
-                    var method = type.GetMethod(individualInputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
+                    // check for any input method overrides which are at a higher level than drawable.
+                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
 
                     Debug.Assert(method != null);
 
@@ -2067,6 +2068,7 @@ namespace osu.Framework.Graphics
                 }
 
                 var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
+
                 foreach (var inputInterface in inputInterfaces)
                 {
                     // check if this type implements any interface which requires a drawable to handle input.

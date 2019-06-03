@@ -42,6 +42,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert($"{numAlive} alive children", () =>
             {
                 int num = 0;
+
                 foreach (var child in container.InternalChildren)
                 {
                     num += child.IsAlive ? 1 : 0;
@@ -190,6 +191,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 l = rng.Next(5);
                 r = rng.Next(5);
+
                 if (l > r)
                 {
                     var l1 = l;
@@ -252,6 +254,7 @@ namespace osu.Framework.Tests.Visual.Containers
             });
 
             int count = 1;
+
             for (int i = 0; i < 1000; i++)
             {
                 switch (rng.Next(3))
@@ -269,9 +272,11 @@ namespace osu.Framework.Tests.Visual.Containers
                         }
 
                         break;
+
                     case 1:
                         AddStep("Change lifetime", changeLifetime);
                         break;
+
                     case 2:
                         AddStep("Change time", changeTime);
                         break;

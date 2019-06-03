@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Extensions;
+using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
@@ -17,61 +18,76 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : TestScene
     {
+        private readonly IEnumerable<TestEnum> items;
+
+        private readonly StyledTabControl pinnedAndAutoSort;
+        private readonly StyledTabControl switchingTabControl;
+        private readonly PlatformActionContainer platformActionContainer;
+        private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
+        private readonly StyledTabControl removeAllTabControl;
+        private readonly StyledMultilineTabControl multilineTabControl;
+        private readonly StyledTabControl simpleTabcontrol;
+
         public TestSceneTabControl()
         {
-            List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
-            foreach (var val in (TestEnum[])Enum.GetValues(typeof(TestEnum)))
-                items.Add(new KeyValuePair<string, TestEnum>(val.GetDescription(), val));
+            items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
 
-            StyledTabControl simpleTabcontrol = new StyledTabControl
+            Add(new FillFlowContainer
             {
-                Position = new Vector2(200, 50),
-                Size = new Vector2(200, 30),
-            };
-            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
-
-            StyledTabControl pinnedAndAutoSort = new StyledTabControl
-            {
-                Position = new Vector2(200, 150),
-                Size = new Vector2(200, 30),
-                AutoSort = true
-            };
-            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
-            pinnedAndAutoSort.PinItem(TestEnum.Test5);
-
-            StyledTabControl switchingTabControl;
-            PlatformActionContainer platformActionContainer = new PlatformActionContainer
-            {
-                Child = switchingTabControl = new StyledTabControl
+                RelativeSizeAxes = Axes.Both,
+                Direction = FillDirection.Full,
+                Spacing = new Vector2(50),
+                Children = new Drawable[]
                 {
-                    Position = new Vector2(200, 250),
-                    Size = new Vector2(200, 30),
+                    simpleTabcontrol = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30),
+                    },
+                    multilineTabControl = new StyledMultilineTabControl
+                    {
+                        Size = new Vector2(200, 60),
+                    },
+                    pinnedAndAutoSort = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30),
+                        AutoSort = true
+                    },
+                    platformActionContainer = new PlatformActionContainer
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Size = new Vector2(200, 30),
+                        Child = switchingTabControl = new StyledTabControl
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    },
+                    removeAllTabControl = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30)
+                    },
+                    withoutDropdownTabControl = new StyledTabControlWithoutDropdown
+                    {
+                        Size = new Vector2(200, 30)
+                    },
                 }
-            };
-            items.AsEnumerable().ForEach(item => switchingTabControl.AddItem(item.Value));
+            });
 
-            StyledTabControl removeAllTabControl = new StyledTabControl
+            foreach (var item in items)
             {
-                Position = new Vector2(200, 350),
-                Size = new Vector2(200, 30)
-            };
+                simpleTabcontrol.AddItem(item);
+                multilineTabControl.AddItem(item);
+                switchingTabControl.AddItem(item);
+                withoutDropdownTabControl.AddItem(item);
+            }
 
-            var withoutDropdownTabControl = new StyledTabControlWithoutDropdown
-            {
-                Position = new Vector2(200, 450),
-                Size = new Vector2(200, 30)
-            };
-            items.AsEnumerable().ForEach(item => withoutDropdownTabControl.AddItem(item.Value));
+            items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
+            pinnedAndAutoSort.PinItem(TestEnum.Test5);
+        }
 
-            Add(simpleTabcontrol);
-            Add(pinnedAndAutoSort);
-            Add(platformActionContainer);
-            Add(removeAllTabControl);
-            Add(withoutDropdownTabControl);
-
-            var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
-                                                         .Select(item => item.Value)
-                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
+        [Test]
+        public void Basic()
+        {
+            var nextTest = new Func<TestEnum>(() => items.FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
             Stack<TestEnum> pinned = new Stack<TestEnum>();
 
@@ -120,8 +136,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
-            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item.Value)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count);
+            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count());
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -129,6 +145,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Any());
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
+
+            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Count());
+            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Count());
+        }
+
+        [Test]
+        public void SelectNull()
+        {
+            AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
+            AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
+            AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
@@ -139,15 +167,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
-        private class StyledTabControl : TabControl<TestEnum>
+        private class StyledMultilineTabControl : TabControl<TestEnum>
         {
-            protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
+
+            protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
-        private class StyledDropdown : Dropdown<TestEnum>
+        private class StyledTabControl : TabControl<TestEnum?>
+        {
+            protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
+
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
+                => new BasicTabControl<TestEnum?>.BasicTabItem(value);
+        }
+
+        private class StyledDropdown : Dropdown<TestEnum?>
         {
             protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 

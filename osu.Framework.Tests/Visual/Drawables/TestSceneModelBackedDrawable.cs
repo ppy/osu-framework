@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,91 +17,188 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneModelBackedDrawable : TestScene
     {
-        public TestSceneModelBackedDrawable()
+        private TestModelBackedDrawable backedDrawable;
+
+        private void createModelBackedDrawable(bool hasIntermediate, bool showNullModel = false) =>
+            Child = backedDrawable = new TestModelBackedDrawable
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(200),
+                HasIntermediate = hasIntermediate,
+                ShowNullModel = showNullModel
+            };
+
+        [Test]
+        public void TestEmptyDefaultState()
         {
-            TestModelBackedDrawable modelBackedDrawable;
-            DelayedTestModelBackedDrawable delayedModelBackedDrawable;
-            FadeImmediateTestModelBackedDrawable fadeImmediateModelBackedDrawable;
-
-            AddRange(new Drawable[]
-            {
-                modelBackedDrawable = new TestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 50),
-                    Size = new Vector2(100, 100)
-                },
-                delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 200),
-                    Size = new Vector2(100, 100)
-                },
-                fadeImmediateModelBackedDrawable = new FadeImmediateTestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 350),
-                    Size = new Vector2(100, 100)
-                }
-            });
-
-            // make sure the items are null before we begin the tests
-            AddStep("Set all null", () =>
-            {
-                modelBackedDrawable.Item = null;
-                delayedModelBackedDrawable.Item = null;
-                fadeImmediateModelBackedDrawable.Item = null;
-            });
-
-            AddUntilStep("Wait until all null", () => modelBackedDrawable.VisibleItemId == -1 &&
-                                                      delayedModelBackedDrawable.VisibleItemId == -1 &&
-                                                      fadeImmediateModelBackedDrawable.VisibleItemId == -1);
-
-            // try setting items and null for a regular model backed drawable
-            addItemTest("Simple", modelBackedDrawable, 0);
-            addItemTest("Simple", modelBackedDrawable, 1);
-            addItemTest("Simple", modelBackedDrawable, -1);
-
-            // try setting items and null for a model backed drawable with a loading delay
-            addItemTest("Delay", delayedModelBackedDrawable, 0);
-            addItemTest("Delay", delayedModelBackedDrawable, 1);
-            addItemTest("Delay", delayedModelBackedDrawable, -1);
-
-            // try setting an item and checking that the placeholder is visible during the transition
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 0, false);
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 1, false);
-            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, -1, false);
+            AddStep("setup", () => createModelBackedDrawable(false));
+            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
         }
 
-        private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber, bool testNotChanged = true)
+        [Test]
+        public void TestModelDefaultState()
         {
-            if (itemNumber < 0)
-                AddStep($"{prefix}: Set null", () => drawable.Item = null);
+            TestDrawableModel drawableModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(false);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertDrawableVisibility(1, () => drawableModel);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangeModel(bool hasIntermediate)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(hasIntermediate);
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertDrawableVisibility(1, () => firstModel);
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            assertIntermediateVisibility(hasIntermediate, () => firstModel);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            assertDrawableVisibility(2, () => secondModel);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestChangeModelDuringLoad(bool hasIntermediate)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+            TestDrawableModel thirdModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(hasIntermediate);
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertDrawableVisibility(1, () => firstModel);
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            assertIntermediateVisibility(hasIntermediate, () => firstModel);
+
+            AddStep("set third model", () => backedDrawable.Model = new TestModel(thirdModel = new TestDrawableModel(3)));
+            assertIntermediateVisibility(hasIntermediate, () => firstModel);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            assertIntermediateVisibility(hasIntermediate, () => firstModel);
+
+            AddStep("allow third model to load", () => thirdModel.AllowLoad.Set());
+            assertDrawableVisibility(3, () => thirdModel);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestOutOfOrderLoad(bool hasIntermediate)
+        {
+            TestDrawableModel firstModel = null;
+            TestDrawableModel secondModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(hasIntermediate);
+                backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertDrawableVisibility(1, () => firstModel);
+
+            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            assertIntermediateVisibility(hasIntermediate, () => firstModel);
+
+            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            assertDrawableVisibility(2, () => secondModel);
+
+            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
+            assertDrawableVisibility(2, () => secondModel);
+        }
+
+        [Test]
+        public void TestSetNullModel()
+        {
+            TestDrawableModel drawableModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(false, true);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
+            });
+
+            assertDrawableVisibility(1, () => drawableModel);
+
+            AddStep("set null model", () => backedDrawable.Model = null);
+            AddUntilStep("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
+        }
+
+        private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
+        {
+            if (hasIntermediate)
+                AddAssert("no drawable visible", () => backedDrawable.DisplayedDrawable == null);
             else
-                AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
-
-            if (testNotChanged)
-                AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
-
-            AddUntilStep($"{prefix}: Wait until changed", () => drawable.VisibleItemId == itemNumber);
+                AddUntilStep("last drawable visible", () => backedDrawable.DisplayedDrawable == getLastFunc());
         }
 
-        private class TestItem
+        private void assertDrawableVisibility(int id, Func<Drawable> getFunc)
         {
-            public readonly int ItemId;
+            AddUntilStep($"model {id} visible", () => backedDrawable.DisplayedDrawable == getFunc());
+        }
 
-            public TestItem(int itemId)
+        private class TestModel
+        {
+            public readonly TestDrawableModel DrawableModel;
+
+            public TestModel(TestDrawableModel drawableModel)
             {
-                ItemId = itemId;
+                DrawableModel = drawableModel;
             }
         }
 
-        private class TestItemDrawable : CompositeDrawable
+        private class TestDrawableModel : CompositeDrawable
         {
-            public readonly int ItemId;
-            private readonly bool delay;
+            private readonly int id;
 
-            public TestItemDrawable(TestItem item, bool delay = true)
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
+
+            protected virtual Color4 BackgroundColour
             {
-                this.delay = delay && item != null;
-                ItemId = item?.ItemId ?? -1;
+                get
+                {
+                    switch (id % 5)
+                    {
+                        default:
+                            return Color4.SkyBlue;
+
+                        case 1:
+                            return Color4.Tomato;
+
+                        case 2:
+                            return Color4.DarkGreen;
+
+                        case 3:
+                            return Color4.MediumPurple;
+
+                        case 4:
+                            return Color4.DarkOrchid;
+                    }
+                }
+            }
+
+            public TestDrawableModel(int id)
+            {
+                this.id = id;
 
                 RelativeSizeAxes = Axes.Both;
 
@@ -107,14 +206,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     new Box
                     {
-                        Colour = Color4.DarkGoldenrod,
-                        RelativeSizeAxes = Axes.Both
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = BackgroundColour
                     },
                     new SpriteText
                     {
-                        Text = item == null ? "No Item" : $"Item {item.ItemId}",
                         Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre
+                        Origin = Anchor.Centre,
+                        Text = id > 0 ? $"model {id}" : "null"
                     }
                 };
             }
@@ -122,53 +221,45 @@ namespace osu.Framework.Tests.Visual.Drawables
             [BackgroundDependencyLoader]
             private void load()
             {
-                if (delay)
-                    Thread.Sleep((int)(500 / Clock.Rate));
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                {
+                }
             }
         }
 
-        private class TestModelBackedDrawable : ModelBackedDrawable<TestItem>
+        private class TestNullDrawableModel : TestDrawableModel
         {
-            public TestItem Item
-            {
-                get => Model;
-                set => Model = value;
-            }
+            protected override Color4 BackgroundColour => Color4.SlateGray;
 
-            public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
+            public TestNullDrawableModel()
+                : base(0)
+            {
+                AllowLoad.Set();
+            }
+        }
+
+        private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>
+        {
+            public bool ShowNullModel;
+
+            public bool HasIntermediate;
+
+            protected override Drawable CreateDrawable(TestModel model)
+            {
+                if (model == null && ShowNullModel)
+                    return new TestNullDrawableModel();
+
+                return model?.DrawableModel;
+            }
 
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
-            public TestModelBackedDrawable()
-                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId)
+            public new TestModel Model
             {
-                AddInternal(new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Alpha = 0,
-                    AlwaysPresent = true
-                });
-
-                BorderColour = Color4.White;
-                BorderThickness = 2;
-                Masking = true;
+                set => base.Model = value;
             }
 
-            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model);
-        }
-
-        private class FadeImmediateTestModelBackedDrawable : TestModelBackedDrawable
-        {
-            protected override bool FadeOutImmediately => true;
-
-            protected override double FadeDuration => 0;
-        }
-
-        private class DelayedTestModelBackedDrawable : TestModelBackedDrawable
-        {
-            protected override double LoadDelay => 1000 / Clock.Rate;
-
-            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model, false);
+            protected override bool TransformImmediately => HasIntermediate;
         }
     }
 }

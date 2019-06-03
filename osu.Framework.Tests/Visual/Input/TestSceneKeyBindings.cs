@@ -103,6 +103,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                         Assert.AreEqual(count.OnPressedCount, testButton.OnPressedCount, $"{testButton.Concurrency} {testButton.Action} OnPressedCount");
                         Assert.AreEqual(count.OnReleasedCount, testButton.OnReleasedCount, $"{testButton.Concurrency} {testButton.Action} OnReleasedCount");
+
                         if (testButton is ScrollTestButton scrollTestButton && scrollEntry != null)
                         {
                             Assert.AreEqual(count.OnScrollCount, scrollTestButton.OnScrollCount, $"{testButton.Concurrency} {testButton.Action} OnScrollCount");
@@ -155,6 +156,7 @@ namespace osu.Framework.Tests.Visual.Input
                 toggleKey(key);
             foreach (var button in pressedMouseButtons.ToArray())
                 toggleMouseButton(button);
+
             foreach (var mode in new[] { none, noneExact, noneModifiers, unique, all })
             {
                 foreach (var action in Enum.GetValues(typeof(TestAction)).Cast<TestAction>())
