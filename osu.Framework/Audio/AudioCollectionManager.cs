@@ -12,7 +12,7 @@ namespace osu.Framework.Audio
     public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
         where T : AdjustableAudioComponent
     {
-        protected List<T> Items = new List<T>();
+        internal List<T> Items = new List<T>();
 
         public void AddItem(T item)
         {

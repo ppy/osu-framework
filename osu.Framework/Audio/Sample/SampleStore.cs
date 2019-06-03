@@ -8,10 +8,11 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleStore : AudioCollectionManager<SampleChannel>, IAdjustableResourceStore<SampleChannel>
+    internal class SampleStore : AudioCollectionManager<SampleChannel>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 

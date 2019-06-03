@@ -8,13 +8,20 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackStore : AudioCollectionManager<Track>, IAdjustableResourceStore<Track>
+    internal class TrackStore : AudioCollectionManager<Track>, ITrackStore
     {
         private readonly IResourceStore<byte[]> store;
 
         internal TrackStore(IResourceStore<byte[]> store)
         {
             this.store = store;
+        }
+
+        public TrackVirtual GetVirtual(double length = double.PositiveInfinity)
+        {
+            var track = new TrackVirtual(length);
+            AddItem(track);
+            return track;
         }
 
         public Track Get(string name)
