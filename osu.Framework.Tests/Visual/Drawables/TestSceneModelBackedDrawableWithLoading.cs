@@ -129,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
 
-            protected virtual Color4 BackgroundColour
+            protected Color4 BackgroundColour
             {
                 get
                 {
