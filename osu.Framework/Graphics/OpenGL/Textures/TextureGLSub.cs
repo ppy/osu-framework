@@ -61,12 +61,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
-        public override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        internal override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+                                            Vector2? inflationPercentage = null)
         {
             parent.DrawTriangle(vertexTriangle, depth, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
-        public override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        internal override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                        Vector2? blendRangeOverride = null)
         {
             parent.DrawQuad(vertexQuad, depth, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
         }
@@ -77,7 +79,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind()
+        internal override bool Bind()
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");

@@ -141,7 +141,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
-        public override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        internal override void DrawTriangle(Triangle vertexTriangle, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+                                            Vector2? inflationPercentage = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
@@ -221,8 +222,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
-        public override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                      Vector2? blendRangeOverride = null)
+        internal override void DrawQuad(Quad vertexQuad, float depth, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                        Vector2? blendRangeOverride = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
@@ -308,7 +309,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public override bool Bind()
+        internal override bool Bind()
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
