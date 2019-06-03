@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -68,7 +69,9 @@ namespace osu.Framework.Graphics.Video
 
         private double? startTime;
 
-        private readonly VideoDecoder decoder;
+        private VideoDecoder decoder;
+
+        private Stream stream;
 
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
@@ -90,7 +93,7 @@ namespace osu.Framework.Graphics.Video
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
-            decoder = new FfmpegVideoDecoder(stream);
+            this.stream = stream;
         }
 
         public VideoSprite(string filename)
@@ -99,8 +102,9 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost gameHost)
         {
+            decoder = gameHost.CreateVideoDecoder(stream);
             decoder.StartDecoding();
         }
 
