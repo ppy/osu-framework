@@ -153,6 +153,7 @@ namespace osu.Framework.Graphics.Containers
 
             // Create the new cell containers and add content
             cells = new CellContainer[requiredRows, requiredColumns];
+
             for (int r = 0; r < cellRows; r++)
             for (int c = 0; c < cellColumns; c++)
             {
@@ -234,14 +235,18 @@ namespace osu.Framework.Graphics.Containers
                 {
                     default:
                         throw new InvalidOperationException($"Unsupported dimension: {dimension.Mode}.");
+
                     case GridSizeMode.Distributed:
                         break;
+
                     case GridSizeMode.Relative:
                         sizes[i] = dimension.Size * spanLength;
                         break;
+
                     case GridSizeMode.Absolute:
                         sizes[i] = dimension.Size;
                         break;
+
                     case GridSizeMode.AutoSize:
                         float size = 0;
 
