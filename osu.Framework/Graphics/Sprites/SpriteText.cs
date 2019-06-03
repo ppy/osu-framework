@@ -550,11 +550,6 @@ namespace osu.Framework.Graphics.Sprites
                         currentPos.X = Padding.Left;
                         currentPos.Y += currentRowHeight + spacing.Y;
                         currentRowHeight = 0;
-                        Logger.Log($"CurrentRowHeight ({character}): {currentRowHeight}");
-                    }
-                    else
-                    {
-                        Logger.Log($"CurrentRowHeight ({character}): {currentRowHeight}");
                     }
                 }
 
