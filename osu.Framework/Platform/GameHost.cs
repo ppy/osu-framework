@@ -307,9 +307,6 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
-        private int samplesPassedQuery = -1;
-        private int lastSamplesPassed;
-
         protected virtual void DrawFrame()
         {
             if (Root == null)
