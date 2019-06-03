@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Video
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
-            decoder = new VideoDecoder(stream);
+            decoder = new FfmpegVideoDecoder(stream);
         }
 
         public VideoSprite(string filename)
