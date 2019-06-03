@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void Bind()
         {
             GLWrapper.BindFrameBuffer(frameBuffer);
+
             foreach (var r in attachedRenderBuffers)
             {
                 r.Size = Size;

@@ -67,6 +67,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             if (videoSprite != null)
             {
                 var newSecond = (int)(videoSprite.PlaybackPosition / 1000.0);
+
                 if (newSecond != currentSecond)
                 {
                     currentSecond = newSecond;

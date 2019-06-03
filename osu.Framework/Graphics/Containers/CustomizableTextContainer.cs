@@ -87,6 +87,7 @@ namespace osu.Framework.Graphics.Containers
             var sprites = new List<Drawable>();
             int index = 0;
             string str = line.Text;
+
             while (index < str.Length)
             {
                 Drawable placeholderDrawable = null;
@@ -96,6 +97,7 @@ namespace osu.Framework.Graphics.Containers
                     nextPlaceholderIndex = str.IndexOf(unescaped_left, nextPlaceholderIndex + 2, StringComparison.Ordinal);
 
                 string strPiece = null;
+
                 if (nextPlaceholderIndex != -1)
                 {
                     int placeholderEnd = str.IndexOf(unescaped_right, nextPlaceholderIndex, StringComparison.Ordinal);
@@ -110,6 +112,7 @@ namespace osu.Framework.Graphics.Containers
                         string placeholderName = placeholderStr;
                         string paramStr = "";
                         int parensOpen = placeholderStr.IndexOf('(');
+
                         if (parensOpen != -1)
                         {
                             placeholderName = placeholderStr.Substring(0, parensOpen).Trim();
@@ -132,6 +135,7 @@ namespace osu.Framework.Graphics.Containers
                         else
                         {
                             object[] args;
+
                             if (string.IsNullOrWhiteSpace(paramStr))
                             {
                                 args = Array.Empty<object>();
@@ -140,6 +144,7 @@ namespace osu.Framework.Graphics.Containers
                             {
                                 string[] argStrs = paramStr.Split(',');
                                 args = new object[argStrs.Length];
+
                                 for (int i = 0; i < argStrs.Length; ++i)
                                 {
                                     if (!int.TryParse(argStrs[i], out int argVal))

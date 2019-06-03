@@ -108,6 +108,7 @@ namespace osu.Framework.Allocation
                 case PropertyInfo pi:
                     action(((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target)));
                     break;
+
                 case FieldInfo fi:
                     action(((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target)));
                     break;

@@ -249,9 +249,11 @@ namespace osu.Framework.Platform
                     case Configuration.WindowMode.Windowed:
                         currentValue = Configuration.WindowMode.Borderless;
                         break;
+
                     case Configuration.WindowMode.Borderless:
                         currentValue = Configuration.WindowMode.Fullscreen;
                         break;
+
                     case Configuration.WindowMode.Fullscreen:
                         currentValue = Configuration.WindowMode.Windowed;
                         break;

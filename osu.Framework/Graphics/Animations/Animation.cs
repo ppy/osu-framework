@@ -129,10 +129,12 @@ namespace osu.Framework.Graphics.Animations
             if (IsPlaying && frameData.Count > 0)
             {
                 currentFrameTime += Time.Elapsed;
+
                 while (currentFrameTime > frameData[currentFrameIndex].Duration)
                 {
                     currentFrameTime -= frameData[currentFrameIndex].Duration;
                     ++currentFrameIndex;
+
                     if (currentFrameIndex >= frameData.Count)
                     {
                         if (Repeat)
