@@ -168,17 +168,34 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestDrawableModel : CompositeDrawable
         {
+            private readonly int id;
+
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
 
-            protected virtual Color4 BackgroundColour => Color4.SkyBlue;
-
-            public TestDrawableModel(int id)
-                : this($"Model {id}")
+            protected virtual Color4 BackgroundColour
             {
+                get
+                {
+                    switch (id % 5)
+                    {
+                        default:
+                            return Color4.SkyBlue;
+                        case 1:
+                            return Color4.Tomato;
+                        case 2:
+                            return Color4.DarkGreen;
+                        case 3:
+                            return Color4.MediumPurple;
+                        case 4:
+                            return Color4.Moccasin;
+                    }
+                }
             }
 
-            protected TestDrawableModel(string text)
+            public TestDrawableModel(int id)
             {
+                this.id = id;
+
                 RelativeSizeAxes = Axes.Both;
 
                 InternalChildren = new Drawable[]
@@ -192,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = text
+                        Text = id > 0 ? $"model {id}" : "null"
                     }
                 };
             }
@@ -211,7 +228,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             protected override Color4 BackgroundColour => Color4.SlateGray;
 
             public TestNullDrawableModel()
-                : base("Null")
+                : base(0)
             {
                 AllowLoad.Set();
             }
