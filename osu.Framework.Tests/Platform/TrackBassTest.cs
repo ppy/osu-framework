@@ -211,13 +211,26 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            runOnAudioThread(() =>
+            // The first update brings the track to its end time and restarts it
+            updateTrack();
+
+            // The second update updates the IsRunning state
+            updateTrack();
+
+            // In a perfect world the track will be running after the update above, but during testing it's possible that the track is in
+            // a stalled state due to updates running on Bass' own thread, so we'll loop until the track starts running again
+            // Todo: This should be fixed in the future if/when we invoke Bass.Update() ourselves
+            int loopCount = 0;
+
+            while (++loopCount < 50 && !track.IsRunning)
             {
                 updateTrack();
-                updateTrack();
-            });
+                Thread.Sleep(10);
+            }
 
-            Assert.IsTrue(track.IsRunning);
+            if (loopCount == 50)
+                throw new TimeoutException("Track failed to start in time.");
+
             Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
