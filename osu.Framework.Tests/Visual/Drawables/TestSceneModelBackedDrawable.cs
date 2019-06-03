@@ -180,12 +180,16 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         default:
                             return Color4.SkyBlue;
+
                         case 1:
                             return Color4.Tomato;
+
                         case 2:
                             return Color4.DarkGreen;
+
                         case 3:
                             return Color4.MediumPurple;
+
                         case 4:
                             return Color4.DarkOrchid;
                     }
