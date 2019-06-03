@@ -236,6 +236,7 @@ namespace osu.Framework.Testing
                 backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
                 backgroundCompiler.CompilationFailed += compileFailed;
+
                 try
                 {
                     backgroundCompiler.Start();
@@ -353,9 +354,11 @@ namespace osu.Framework.Testing
                     if (leftContainer.Width == 0) toggleTestList();
                     GetContainingInputManager().ChangeFocus(searchTextBox);
                     return true;
+
                 case TestBrowserAction.Reload:
                     LoadTest(CurrentTest.GetType());
                     return true;
+
                 case TestBrowserAction.ToggleTestList:
                     toggleTestList();
                     return true;

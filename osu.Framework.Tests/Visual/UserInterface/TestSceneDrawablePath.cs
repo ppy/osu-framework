@@ -147,6 +147,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override bool OnDrag(DragEvent e)
             {
                 Vector2 pos = e.MousePosition;
+
                 if ((pos - oldPos).Length > 10)
                 {
                     AddVertex(pos);

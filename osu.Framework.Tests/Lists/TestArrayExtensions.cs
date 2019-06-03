@@ -123,6 +123,7 @@ namespace osu.Framework.Tests.Lists
         public void TestNonSquareJaggedWithNullRowsToRectangular()
         {
             var jagged = new int[10][];
+
             for (int i = 1; i < 10; i += 2)
             {
                 if (i % 2 == 1)

@@ -80,6 +80,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             for (int i = 0; i < n; i++)
             {
                 RigidBodyContainer<Drawable> d;
+
                 do
                 {
                     d = generate();

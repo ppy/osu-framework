@@ -62,12 +62,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 default:
                 case CountType.AsDouble:
                     return value.ToString(CultureInfo.InvariantCulture);
+
                 case CountType.AsInteger:
                     return ((int)value).ToString();
+
                 case CountType.AsIntegerCeiling:
                     return ((int)Math.Ceiling(value)).ToString();
+
                 case CountType.AsDouble2:
                     return Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+
                 case CountType.AsDouble4:
                     return Math.Round(value, 4).ToString(CultureInfo.InvariantCulture);
             }

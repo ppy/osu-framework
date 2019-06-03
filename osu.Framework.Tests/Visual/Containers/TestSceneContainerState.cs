@@ -140,10 +140,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             bool unbound = false;
 
-            var drawableA = new Sprite().With(d =>
-            {
-                d.OnUnbindAllBindables += () => unbound = true;
-            });
+            var drawableA = new Sprite().With(d => { d.OnUnbindAllBindables += () => unbound = true; });
 
             var container = new Container { Children = new[] { drawableA } };
 
@@ -159,10 +156,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             bool disposed = false;
 
-            var drawableA = new Sprite().With(d =>
-            {
-                d.OnDispose += () => disposed = true;
-            });
+            var drawableA = new Sprite().With(d => { d.OnDispose += () => disposed = true; });
 
             var container = new Container { Children = new[] { drawableA } };
 
@@ -174,6 +168,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // Disposal happens asynchronously
             int iterations = 20;
+
             while (iterations-- > 0)
             {
                 if (disposed)

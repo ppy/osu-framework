@@ -185,6 +185,11 @@ namespace osu.Framework.IO.Stores
                 searchExtensions.Add(extension);
         }
 
+        public virtual IEnumerable<string> GetAvailableResources()
+        {
+            lock (stores) return stores.SelectMany(s => s.GetAvailableResources());
+        }
+
         #region IDisposable Support
 
         private bool isDisposed;

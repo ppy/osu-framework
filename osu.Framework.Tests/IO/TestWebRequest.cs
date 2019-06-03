@@ -96,6 +96,7 @@ namespace osu.Framework.Tests.IO
             List<long> startTimes = new List<long>();
 
             List<Task> running = new List<Task>();
+
             for (int i = 0; i < request_count; i++)
             {
                 var request = new DelayedWebRequest
@@ -354,6 +355,7 @@ namespace osu.Framework.Tests.IO
             Assert.DoesNotThrow(request.Perform);
 
             var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+
             foreach (var e in events)
             {
                 var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
@@ -368,6 +370,7 @@ namespace osu.Framework.Tests.IO
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
+
             using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
             {
                 Method = HttpMethod.Get,
@@ -383,6 +386,7 @@ namespace osu.Framework.Tests.IO
             }
 
             var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+
             foreach (var e in events)
             {
                 var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
