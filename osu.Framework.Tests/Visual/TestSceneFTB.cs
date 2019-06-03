@@ -31,11 +31,6 @@ namespace osu.Framework.Tests.Visual
                     : base(source)
                 {
                 }
-
-                public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
-                {
-                    base.DrawHull(vertexAction, depthValue);
-                }
             }
         }
     }

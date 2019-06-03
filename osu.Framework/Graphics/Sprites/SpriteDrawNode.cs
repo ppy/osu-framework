@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.Sprites
             WrapTexture = Source.WrapTexture;
         }
 
-        protected virtual void Blit(Quad drawQuad, float depth, Action<TexturedVertex2D> vertexAction)
+        protected virtual void Blit(Quad drawQuad, Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(drawQuad, depth, DrawColourInfo.Colour, null, vertexAction,
+            DrawQuad(Texture, drawQuad, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader.Bind();
 
-            Blit(ScreenSpaceDrawQuad, Depth, vertexAction);
+            Blit(ScreenSpaceDrawQuad, vertexAction);
 
             Shader.Unbind();
         }

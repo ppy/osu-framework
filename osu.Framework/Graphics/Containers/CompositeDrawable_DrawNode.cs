@@ -63,12 +63,9 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             private QuadBatch<TexturedVertex2D> vertexBatch;
 
-            private readonly bool drawHulls;
-
-            public CompositeDrawableDrawNode(CompositeDrawable source, bool drawHulls = true)
+            public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
             {
-                this.drawHulls = drawHulls;
             }
 
             public override void ApplyState()
@@ -145,8 +142,8 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                Texture.WhitePixel.DrawQuad(
-                    screenSpaceMaskingQuad.Value, Depth,
+                DrawQuad(Texture.WhitePixel,
+                    screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
@@ -202,37 +199,38 @@ namespace osu.Framework.Graphics.Containers
                     GLWrapper.PopMaskingInfo();
             }
 
-            public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+            protected internal override void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {
-                base.DrawHull(vertexAction, depthValue);
+                base.DrawHullSubTree(vertexAction, depthValue);
 
-                if (drawHulls)
-                    DrawChildrenHulls(vertexAction, depthValue);
-            }
+                bool canIncrement = depthValue.CanIncrement;
 
-            protected virtual void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
-            {
-                updateVertexBatch();
+                // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
+                if (canIncrement)
+                {
+                    updateVertexBatch();
 
-                // Prefer to use own vertex batch instead of the parent-owned one.
-                if (vertexBatch != null)
-                    vertexAction = vertexBatch.AddAction;
+                    // Prefer to use own vertex batch instead of the parent-owned one.
+                    if (vertexBatch != null)
+                        vertexAction = vertexBatch.AddAction;
 
-                if (maskingInfo != null)
-                    GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                    if (maskingInfo != null)
+                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                }
 
+                // We still need to invoke this method recursively for all children so their depth value is updated
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                    {
-                        Children[i].DrawHull(vertexAction, depthValue);
-                        if (!depthValue.CanIncrement)
-                            break;
-                    }
+                        Children[i].DrawHullSubTree(vertexAction, depthValue);
                 }
 
-                if (maskingInfo != null)
-                    GLWrapper.PopMaskingInfo();
+                // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
+                if (canIncrement)
+                {
+                    if (maskingInfo != null)
+                        GLWrapper.PopMaskingInfo();
+                }
             }
 
             protected override void Dispose(bool isDisposing)

@@ -3,8 +3,13 @@
 
 using osu.Framework.Graphics.OpenGL;
 using System;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Threading;
+using osuTK;
 
 namespace osu.Framework.Graphics
 {
@@ -36,8 +41,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected readonly IDrawable Source;
 
-        public float Depth;
         private readonly AtomicCounter referenceCount = new AtomicCounter();
+
+        private float drawDepth;
 
         /// <summary>
         /// Creates a new <see cref="DrawNode"/>.
@@ -72,10 +78,45 @@ namespace osu.Framework.Graphics
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 
-        public virtual void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+        protected internal virtual void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
         {
-            Depth = depthValue;
+            if (!depthValue.CanIncrement || !CanDrawHull)
+            {
+                // The back-to-front pass requires the depth value
+                drawDepth = depthValue;
+                return;
+            }
+
+            // It is crucial to draw with an incremented depth value, consider the case of a box:
+            // In the FTB pass, the inner conservative area is drawn at depth X
+            // In the BTF pass, the full area is drawn at depth X, and the depth test function is set to GL_LESS, so the inner conservative area is not redrawn
+            // Furthermore, a BTF-drawn object above the box will be visible since it will be drawn with a depth of (X - increment), satisfying the depth test
+            drawDepth = depthValue.Increment();
+
+            DrawHull(vertexAction);
         }
+
+        protected virtual void DrawHull(Action<TexturedVertex2D> vertexAction)
+        {
+        }
+
+        protected virtual bool CanDrawHull => false;
+
+        protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                    Vector2? inflationPercentage = null)
+            => texture.DrawTriangle(vertexTriangle, drawDepth, colour, textureRect, vertexAction, inflationPercentage);
+
+        protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+                                    Vector2? inflationPercentage = null)
+            => texture.DrawTriangle(vertexTriangle, drawDepth, textureRect, drawColour, vertexAction, inflationPercentage);
+
+        protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                Vector2? blendRangeOverride = null)
+            => texture.DrawQuad(vertexQuad, drawDepth, colour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+
+        protected void DrawQuad(TextureGL texture, Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                Vector2? blendRangeOverride = null)
+            => texture.DrawQuad(vertexQuad, drawDepth, textureRect, drawColour, vertexAction, inflationPercentage, blendRangeOverride);
 
         /// <summary>
         /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.

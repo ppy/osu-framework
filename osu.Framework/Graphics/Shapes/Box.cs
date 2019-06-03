@@ -61,17 +61,9 @@ namespace osu.Framework.Graphics.Shapes
                 conservativeScreenSpaceDrawQuad = Source.conservativeScreenSpaceDrawQuad;
             }
 
-            public override void DrawHull(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+            protected override void DrawHull(Action<TexturedVertex2D> vertexAction)
             {
-                base.DrawHull(vertexAction, depthValue);
-
-                if (Texture?.Available != true)
-                    return;
-
-                if (DrawColourInfo.Colour.MinAlpha != 1 || DrawColourInfo.Blending.RGBEquation != BlendEquationMode.FuncAdd || !DrawColourInfo.Colour.HasSingleColour)
-                    return;
-
-                depthValue.Increment();
+                base.DrawHull(vertexAction);
 
                 TextureShader.Bind();
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
@@ -85,13 +77,19 @@ namespace osu.Framework.Graphics.Shapes
                     Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
                     for (int i = 2; i < clippedRegion.Length; i++)
-                        Texture.DrawTriangle(new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), depthValue, DrawColourInfo.Colour);
+                        DrawTriangle(Texture, new Primitives.Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), DrawColourInfo.Colour);
                 }
                 else
-                    Blit(conservativeScreenSpaceDrawQuad, depthValue, vertexAction);
+                    Blit(conservativeScreenSpaceDrawQuad, vertexAction);
 
                 TextureShader.Unbind();
             }
+
+            protected override bool CanDrawHull =>
+                Texture?.Available == true
+                && DrawColourInfo.Colour.MinAlpha == 1
+                && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
+                && DrawColourInfo.Colour.HasSingleColour;
         }
     }
 }

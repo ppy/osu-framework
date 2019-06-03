@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.Shapes
             {
             }
 
-            protected override void Blit(Quad drawQuad, float depth, Action<TexturedVertex2D> vertexAction)
+            protected override void Blit(Quad drawQuad, Action<TexturedVertex2D> vertexAction)
             {
-                Texture.DrawTriangle(toTriangle(drawQuad), depth, DrawColourInfo.Colour, null, null,
+                DrawTriangle(Texture, toTriangle(drawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
             }
         }
