@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
 
             if (frameBuffer.Texture.Bind())
-                DrawQuad(frameBuffer.Texture, drawQuad ?? drawRectangle, textureRect, colourInfo);
+                DrawQuad(frameBuffer.Texture, drawQuad ?? drawRectangle, colourInfo, textureRect);
         }
 
         private ValueInvokeOnDisposal establishFrameBufferViewport()

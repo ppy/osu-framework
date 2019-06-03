@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Textures
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, depth, TextureBounds(textureRect), drawColour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, depth, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Textures
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, depth, TextureBounds(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
+            TextureGL.DrawQuad(vertexQuad, depth, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
