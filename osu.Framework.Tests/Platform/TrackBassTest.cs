@@ -35,18 +35,18 @@ namespace osu.Framework.Tests.Platform
         public void Setup()
         {
             track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
-            track.Update();
+            updateTrack();
         }
 
         [Test]
         public void TestStart()
         {
             track.StartAsync();
-            track.Update();
+            updateTrack();
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Platform
         {
             track.StartAsync();
             track.StopAsync();
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -74,9 +74,9 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             track.StopAsync();
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Platform
         public void TestSeek()
         {
             track.SeekAsync(1000);
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Platform
         {
             track.StartAsync();
             track.SeekAsync(1000);
-            track.Update();
+            updateTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Platform
         public void TestSeekToEndFails()
         {
             track.SeekAsync(track.Length);
-            track.Update();
+            updateTrack();
 
             Assert.AreEqual(0, track.CurrentTime);
         }
@@ -120,11 +120,11 @@ namespace osu.Framework.Tests.Platform
         {
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            track.Update();
+            updateTrack();
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -154,9 +154,9 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             track.StartAsync();
-            track.Update();
+            updateTrack();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
@@ -168,7 +168,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -213,8 +213,8 @@ namespace osu.Framework.Tests.Platform
 
             runOnAudioThread(() =>
             {
-                track.Update();
-                track.Update();
+                updateTrack();
+                updateTrack();
             });
 
             Assert.IsTrue(track.IsRunning);
@@ -225,8 +225,10 @@ namespace osu.Framework.Tests.Platform
         {
             track.SeekAsync(time);
             track.StartAsync();
-            track.Update();
+            updateTrack();
         }
+
+        private void updateTrack() => runOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
