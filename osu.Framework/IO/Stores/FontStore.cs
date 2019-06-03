@@ -87,10 +87,9 @@ namespace osu.Framework.IO.Stores
         /// <param name="charName">The character to look up.</param>
         /// <param name="fontName">The font look in for the character.</param>
         /// <param name="glyph">The found glyph.</param>
-        /// <returns>Whether a matching <see cref="CharacterGlyph"/> was found.</returns>
+        /// <returns>Whether a matching <see cref="CharacterGlyph"/> was found. If a font name is not provided, gets the glyph from the first font store that supports it.</returns>
         private bool tryGetCharacterGlyph(string fontName, char charName, out CharacterGlyph glyph)
         {
-            // Return the default (first available) character if fontName is default
             var glyphStore = getGlyphStore(fontName, charName);
 
             if (glyphStore == null)
@@ -106,7 +105,7 @@ namespace osu.Framework.IO.Stores
         private string getTextureName(string fontName, char charName) => string.IsNullOrEmpty(fontName) ? charName.ToString() : $"{fontName}/{charName}";
 
         /// <summary>
-        /// Performs a lookup of this FontStore's <see cref="GlyphStore"/>s and nested <see cref="FontStore"/>s for a GlyphStore that matches the provided condition.
+        /// Retrieves a <see cref="GlyphStore"/> from this <see cref="FontStore"/> that matches a font and character.
         /// </summary>
         /// <param name="fontName">The font to look up the <see cref="GlyphStore"/> for.</param>
         /// <param name="charName">A character to look up in the <see cref="GlyphStore"/>.</param>

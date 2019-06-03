@@ -31,15 +31,18 @@ namespace osu.Framework.Tests.Visual.Sprites
             textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
             textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
             textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
+            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", true));
+            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", true));
 
             AddToggleStep("Toggle fixed width", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleFixedWidth(b)));
+            AddToggleStep("Toggle full glyph height", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleUseFullGlyphHeight(b)));
         }
 
         public class ColorBackedContainer : Container
         {
             private readonly SpriteText spriteText;
 
-            public ColorBackedContainer(string text)
+            public ColorBackedContainer(string text, bool allowMultiLine = false)
             {
                 Children = new Drawable[]
                 {
@@ -52,12 +55,19 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         Text = text,
                         Font = new FontUsage(fixedWidth: false, size: 80),
+                        AllowMultiline = allowMultiLine,
                     }
                 };
+
+                if (allowMultiLine)
+                    spriteText.Width = 500;
+
                 AutoSizeAxes = Axes.Both;
             }
 
             public void ToggleFixedWidth(bool fixedWidth) => spriteText.Font = new FontUsage(fixedWidth: fixedWidth, size: 80);
+
+            public void ToggleUseFullGlyphHeight(bool useGlyphHeight) => spriteText.UseFullGlyphHeight = useGlyphHeight;
         }
     }
 }

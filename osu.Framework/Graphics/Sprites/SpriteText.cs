@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
@@ -493,7 +494,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var c in EllipsisString)
                 {
-                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X + glyph.XOffset * Font.Size;
+                    ellipsisLength += getCharacterSize(c, true, !useFixedWidthForCharacter(c), out _).X + spacing.X;
                 }
 
                 float availableWidth = maxWidth -= ellipsisLength;
@@ -503,7 +504,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    float glyphWidth = getCharacterSize(character, true, out var glyph).X + glyph.XOffset * Font.Size;
+                    float glyphWidth = getCharacterSize(character, true, !useFixedWidthForCharacter(character), out var glyph).X;
 
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
@@ -524,33 +525,42 @@ namespace osu.Framework.Graphics.Sprites
             void addCharacter(char character)
             {
                 // don't apply fixed width as we need the raw size to compare with glyphSize below.
-                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph glyph);
+                Vector2 scaledTextureSize = getCharacterSize(character, false, false, out FontStore.CharacterGlyph glyph);
+
+                bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+
+                var glyphHeight = isSpace ? 0 : scaledTextureSize.Y + Font.Size * glyph.YOffset;
 
                 // Scaled glyph size to be used for positioning.
                 Vector2 glyphSize = new Vector2(
                     useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
-                    UseFullGlyphHeight ? Font.Size : scaledTextureSize.Y);
+                    UseFullGlyphHeight ? Font.Size : glyphHeight);
+
+                if (!useFixedWidthForCharacter(character))
+                {
+                    currentPos.X += Font.Size * glyph.XOffset;
+                }
 
                 // Check if we need to go onto the next line
                 if (AllowMultiline)
                 {
                     Debug.Assert(!Truncate);
-
                     if (currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = Padding.Left;
                         currentPos.Y += currentRowHeight + spacing.Y;
                         currentRowHeight = 0;
+                        Logger.Log($"CurrentRowHeight ({character}): {currentRowHeight}");
+                    }
+                    else
+                    {
+                        Logger.Log($"CurrentRowHeight ({character}): {currentRowHeight}");
                     }
                 }
 
-                if (!useFixedWidthForCharacter(character))
-                    currentPos.X += Font.Size * glyph.XOffset;
-
                 // The height of the row depends on whether we want to use the full glyph height or not
+                // In the case of using full glyph height, this will be the height compomnent of Font.Size
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
 
                 if (!isSpace)
                 {
@@ -573,9 +583,10 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="character">The character to look up.</param>
         /// <param name="applyFixedWidth">Whether fixed width should be applied if available.</param>
+        /// <param name="applyOffset">Whether or not to account for character offsets when getting the width.</param>
         /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character.</param>
         /// <returns></returns>
-        private Vector2 getCharacterSize(char character, bool applyFixedWidth, out FontStore.CharacterGlyph glyph)
+        private Vector2 getCharacterSize(char character, bool applyFixedWidth, bool applyOffset, out FontStore.CharacterGlyph glyph)
         {
             float width;
             float height;
@@ -605,10 +616,10 @@ namespace osu.Framework.Graphics.Sprites
             if (applyFixedWidth && useFixedWidthForCharacter(character))
             {
                 width = constantWidth;
-
-                // Fixed width characters should not have additional XOffsets
-                glyph.XOffset = 0;
             }
+
+            if (applyOffset)
+                width += glyph.XOffset;
 
             return Font.Size * new Vector2(width, height);
         }
