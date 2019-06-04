@@ -201,8 +201,6 @@ namespace osu.Framework.Graphics.Containers
 
             protected internal override void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {
-                base.DrawHullSubTree(vertexAction, depthValue);
-
                 bool canIncrement = depthValue.CanIncrement;
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
@@ -231,6 +229,8 @@ namespace osu.Framework.Graphics.Containers
                     if (maskingInfo != null)
                         GLWrapper.PopMaskingInfo();
                 }
+
+                base.DrawHullSubTree(vertexAction, depthValue);
             }
 
             protected override void Dispose(bool isDisposing)
