@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,8 +18,10 @@ namespace osu.Framework.Audio.Track
             this.store = store;
         }
 
-        public TrackVirtual GetVirtual(double length = double.PositiveInfinity)
+        public Track GetVirtual(double length = double.PositiveInfinity)
         {
+            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(TrackStore)}");
+
             var track = new TrackVirtual(length);
             AddItem(track);
             return track;
@@ -26,6 +29,8 @@ namespace osu.Framework.Audio.Track
 
         public Track Get(string name)
         {
+            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(TrackStore)}");
+
             if (string.IsNullOrEmpty(name)) return null;
 
             var dataStream = store.GetStream(name);

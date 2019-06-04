@@ -12,6 +12,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="length">The length of the virtual track.</param>
         /// <returns>A new virtual track.</returns>
-        TrackVirtual GetVirtual(double length = Double.PositiveInfinity);
+        Track GetVirtual(double length = Double.PositiveInfinity);
     }
 }
