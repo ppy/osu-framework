@@ -35,11 +35,13 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void TearDown()
         {
+            Assert.IsFalse(thread.Exited);
+
             thread.Exit();
 
             Thread.Sleep(500);
 
-            Assert.IsFalse(thread.Exited);
+            Assert.IsTrue(thread.Exited);
         }
 
         [Test]
