@@ -106,6 +106,7 @@ namespace osu.Framework.Graphics
         /// <param name="vertexAction"></param>
         protected virtual void DrawHull(Action<TexturedVertex2D> vertexAction)
         {
+            GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 
         /// <summary>
