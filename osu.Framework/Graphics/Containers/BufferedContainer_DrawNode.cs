@@ -279,7 +279,7 @@ namespace osu.Framework.Graphics.Containers
                 Shader.Unbind();
             }
 
-            protected override void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+            protected override void DrawChildrenHulls(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
                 // Hulls aren't supported inside buffered containers yet
             }

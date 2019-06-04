@@ -333,7 +333,7 @@ namespace osu.Framework.Platform
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass
-                        buffer.Object.DrawHullSubTree(null, depthValue);
+                        buffer.Object.DrawHullSubTree(depthValue, null);
 
                         GLWrapper.PopDepthInfo();
 

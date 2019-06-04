@@ -97,9 +97,9 @@ namespace osu.Framework.Graphics
         /// If a hull is drawn: <paramref name="depthValue"/> is incremented, stored, and the hull vertices are drawn at the post-incremented depth value.
         /// Incrementing <paramref name="depthValue"/> at this point allows for early-z testing to also occur within the FTB pass.<br />
         /// </remarks>
-        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         /// <param name="depthValue">The previous depth value.</param>
-        protected internal virtual void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
+        protected internal virtual void DrawHullSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
         {
             if (!depthValue.CanIncrement || !CanDrawHull)
             {
