@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
@@ -17,28 +17,19 @@ namespace osu.Framework.Graphics.Shapes
     /// </summary>
     public class Box : Sprite
     {
+        private Quad conservativeScreenSpaceDrawQuad;
+
         public Box()
         {
             Texture = Texture.WhitePixel;
         }
 
-        private Cached<Quad> conservativeScreenSpaceDrawQuadBacking;
-
-        private Quad conservativeScreenSpaceDrawQuad => conservativeScreenSpaceDrawQuadBacking.IsValid
-            ? conservativeScreenSpaceDrawQuadBacking.Value
-            : conservativeScreenSpaceDrawQuadBacking.Value = Quad.FromRectangle(DrawRectangle) * DrawInfo.Matrix;
-
         protected override DrawNode CreateDrawNode() => new BoxDrawNode(this);
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override Quad ComputeScreenSpaceDrawQuad()
         {
-            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
-
-            // Either ScreenSize OR ScreenPosition OR Presence
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                alreadyInvalidated &= !conservativeScreenSpaceDrawQuadBacking.Invalidate();
-
-            return !alreadyInvalidated;
+            conservativeScreenSpaceDrawQuad = ToScreenSpace(DrawRectangle);
+            return base.ComputeScreenSpaceDrawQuad();
         }
 
         protected class BoxDrawNode : SpriteDrawNode
