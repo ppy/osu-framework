@@ -13,6 +13,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -60,9 +61,14 @@ namespace osu.Framework.Graphics.Containers
             private bool forceLocalVertexBatch;
 
             /// <summary>
-            /// The vertex batch used for rendering.
+            /// The vertex batch used for child quads during the back-to-front pass.
             /// </summary>
-            private QuadBatch<TexturedVertex2D> vertexBatch;
+            private QuadBatch<TexturedVertex2D> quadBatch;
+
+            /// <summary>
+            /// The vertex batch used for child triangles during the front-to-back pass.
+            /// </summary>
+            private LinearBatch<TexturedVertex2D> triangleBatch;
 
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
@@ -160,24 +166,39 @@ namespace osu.Framework.Graphics.Containers
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
-            private void updateVertexBatch()
+            private void updateQuadBatch()
             {
                 if (Children == null)
                     return;
 
                 // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
                 int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
-                    vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (quadBatch == null || quadBatch.Size < clampedAmountChildren))
+                    quadBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+            }
+
+            private void updateTriangleBatch()
+            {
+                if (Children == null)
+                    return;
+
+                // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
+                int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
+
+                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (triangleBatch == null || triangleBatch.Size < clampedAmountChildren))
+                {
+                    // The same general idea as updateQuadBatch(), except that each child draws up to 3 vertices * 6 triangles after quad-quad intersection
+                    triangleBatch = new LinearBatch<TexturedVertex2D>(clampedAmountChildren * 2 * 3, 500, PrimitiveType.Triangles);
+                }
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
-                updateVertexBatch();
+                updateQuadBatch();
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
-                if (vertexBatch != null)
-                    vertexAction = vertexBatch.AddAction;
+                if (quadBatch != null)
+                    vertexAction = quadBatch.AddAction;
 
                 base.Draw(vertexAction);
 
@@ -219,11 +240,11 @@ namespace osu.Framework.Graphics.Containers
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
-                    updateVertexBatch();
+                    updateTriangleBatch();
 
                     // Prefer to use own vertex batch instead of the parent-owned one.
-                    if (vertexBatch != null)
-                        vertexAction = vertexBatch.AddAction;
+                    if (triangleBatch != null)
+                        vertexAction = triangleBatch.AddAction;
 
                     if (maskingInfo != null)
                         GLWrapper.PushMaskingInfo(maskingInfo.Value);
@@ -248,7 +269,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch?.Dispose();
+                quadBatch?.Dispose();
+                triangleBatch?.Dispose();
             }
         }
     }
