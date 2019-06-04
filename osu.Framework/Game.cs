@@ -7,7 +7,6 @@ using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -138,8 +137,6 @@ namespace osu.Framework
 
             dependencies.Cache(Audio.Tracks);
             dependencies.Cache(Audio.Samples);
-
-            dependencies.CacheAs<IResourceStore<SampleChannel>>(Audio.Samples);
 
             // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
