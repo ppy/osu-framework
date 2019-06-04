@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK.Input;
 
@@ -36,13 +37,23 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public CompositeDrawable TabbableContentContainer { private get; set; }
 
+        private InputManager containingInputManager;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (TabbableContentContainer == null || e.Key != Key.Tab)
                 return false;
 
             var nextTab = getNextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
+
+            if (nextTab != null)
+            {
+                if (containingInputManager == null)
+                    containingInputManager = GetContainingInputManager();
+
+                containingInputManager.ChangeFocus(nextTab);
+            }
+
             return true;
         }
 
