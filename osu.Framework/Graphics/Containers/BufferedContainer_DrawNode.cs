@@ -279,7 +279,10 @@ namespace osu.Framework.Graphics.Containers
                 Shader.Unbind();
             }
 
-            protected override bool CanDrawHull => false;
+            protected override void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+            {
+                // Hulls aren't supported inside buffered containers yet
+            }
         }
 
         private class BufferedContainerDrawNodeSharedData : IDisposable

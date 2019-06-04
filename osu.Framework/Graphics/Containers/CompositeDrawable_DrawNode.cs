@@ -10,6 +10,7 @@ using osuTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
@@ -201,6 +202,13 @@ namespace osu.Framework.Graphics.Containers
 
             protected internal override void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {
+                DrawChildrenHulls(vertexAction, depthValue);
+                base.DrawHullSubTree(vertexAction, depthValue);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            protected virtual void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
+            {
                 bool canIncrement = depthValue.CanIncrement;
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
@@ -229,8 +237,6 @@ namespace osu.Framework.Graphics.Containers
                     if (maskingInfo != null)
                         GLWrapper.PopMaskingInfo();
                 }
-
-                base.DrawHullSubTree(vertexAction, depthValue);
             }
 
             protected override void Dispose(bool isDisposing)
