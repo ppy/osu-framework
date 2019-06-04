@@ -25,19 +25,29 @@ namespace osu.Framework.Graphics.OpenGL
         private float depth = -1;
         private int count;
 
+        /// <summary>
+        /// Increments the depth value.
+        /// </summary>
+        /// <returns>The post-incremented depth value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal float Increment()
         {
+            if (count == max_count)
+                return depth;
+
             depth += increment;
             count++;
 
             return depth;
         }
 
+        /// <summary>
+        /// Whether the depth value can be incremented.
+        /// </summary>
         internal bool CanIncrement
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => count != max_count - 1;
+            get => count < max_count;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
