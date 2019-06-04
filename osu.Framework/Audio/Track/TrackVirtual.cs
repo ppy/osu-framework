@@ -6,15 +6,15 @@ using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackVirtual : Track
+    public sealed class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
         private double seekOffset;
 
-        public TrackVirtual()
+        public TrackVirtual(double length)
         {
-            Length = double.PositiveInfinity;
+            Length = length;
         }
 
         public override bool Seek(double seek)

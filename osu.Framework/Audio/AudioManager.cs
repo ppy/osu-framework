@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public IAdjustableResourceStore<Track.Track> Tracks => GetTrackStore();
+        public ITrackStore Tracks => GetTrackStore();
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public IAdjustableResourceStore<SampleChannel> Samples => GetSampleStore();
+        public ISampleStore Samples => GetSampleStore();
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -86,11 +86,11 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<IAdjustableResourceStore<Track.Track>> globalTrackManager;
-        private readonly Lazy<IAdjustableResourceStore<SampleChannel>> globalSampleManager;
+        private readonly Lazy<ITrackStore> globalTrackStore;
+        private readonly Lazy<ISampleStore> globalSampleStore;
 
         /// <summary>
-        /// Constructs an AudioManager given a track resource store, and a sample resource store.
+        /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
         /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
@@ -108,8 +108,8 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackManager = new Lazy<IAdjustableResourceStore<Track.Track>>(() => GetTrackStore(trackStore));
-            globalSampleManager = new Lazy<IAdjustableResourceStore<SampleChannel>>(() => GetSampleStore(sampleStore));
+            globalTrackStore = new Lazy<ITrackStore>(() => GetTrackStore(trackStore));
+            globalSampleStore = new Lazy<ISampleStore>(() => GetSampleStore(sampleStore));
 
             scheduler.Add(() =>
             {
@@ -159,9 +159,9 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        public IAdjustableResourceStore<Track.Track> GetTrackStore(IResourceStore<byte[]> store = null)
+        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalTrackManager.Value;
+            if (store == null) return globalTrackStore.Value;
 
             TrackStore tm = new TrackStore(store);
             AddItem(tm);
@@ -175,9 +175,9 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
-        public IAdjustableResourceStore<SampleChannel> GetSampleStore(IResourceStore<byte[]> store = null)
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalSampleManager.Value;
+            if (store == null) return globalSampleStore.Value;
 
             SampleStore sm = new SampleStore(store);
             AddItem(sm);

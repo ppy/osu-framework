@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
@@ -36,18 +35,18 @@ namespace osu.Framework.Tests.Platform
         public void Setup()
         {
             track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
-            track.Update();
+            updateTrack();
         }
 
         [Test]
         public void TestStart()
         {
             track.StartAsync();
-            track.Update();
+            updateTrack();
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
@@ -58,7 +57,7 @@ namespace osu.Framework.Tests.Platform
         {
             track.StartAsync();
             track.StopAsync();
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -75,9 +74,9 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             track.StopAsync();
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -87,7 +86,7 @@ namespace osu.Framework.Tests.Platform
         public void TestSeek()
         {
             track.SeekAsync(1000);
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
@@ -98,7 +97,7 @@ namespace osu.Framework.Tests.Platform
         {
             track.StartAsync();
             track.SeekAsync(1000);
-            track.Update();
+            updateTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -111,7 +110,7 @@ namespace osu.Framework.Tests.Platform
         public void TestSeekToEndFails()
         {
             track.SeekAsync(track.Length);
-            track.Update();
+            updateTrack();
 
             Assert.AreEqual(0, track.CurrentTime);
         }
@@ -121,11 +120,11 @@ namespace osu.Framework.Tests.Platform
         {
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            track.Update();
+            updateTrack();
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
@@ -138,7 +137,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -155,9 +154,9 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             track.StartAsync();
-            track.Update();
+            updateTrack();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
@@ -169,7 +168,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -183,7 +182,7 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            track.Update();
+            updateTrack();
             restartTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -212,24 +211,26 @@ namespace osu.Framework.Tests.Platform
 
             Thread.Sleep(50);
 
-            var resetEvent = new ManualResetEvent(false);
+            // The first update brings the track to its end time and restarts it
+            updateTrack();
 
-            Task.Run(() =>
+            // The second update updates the IsRunning state
+            updateTrack();
+
+            // In a perfect world the track will be running after the update above, but during testing it's possible that the track is in
+            // a stalled state due to updates running on Bass' own thread, so we'll loop until the track starts running again
+            // Todo: This should be fixed in the future if/when we invoke Bass.Update() ourselves
+            int loopCount = 0;
+
+            while (++loopCount < 50 && !track.IsRunning)
             {
-                // The restart action is invoked during the update and will block if not invoked on the audio thread.
-                // The update is always run on the audio thread in normal operation such that the restart action is always inlined.
-                // The audio thread is faked here to simulate this operation and avoid a deadlock.
-                Thread.CurrentThread.Name = GameThread.PrefixedThreadNameFor("Audio");
+                updateTrack();
+                Thread.Sleep(10);
+            }
 
-                track.Update();
-                resetEvent.Set();
-            });
+            if (loopCount == 50)
+                throw new TimeoutException("Track failed to start in time.");
 
-            resetEvent.WaitOne(TimeSpan.FromSeconds(10));
-
-            track.Update();
-
-            Assert.IsTrue(track.IsRunning);
             Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
@@ -237,22 +238,41 @@ namespace osu.Framework.Tests.Platform
         {
             track.SeekAsync(time);
             track.StartAsync();
-            track.Update();
+            updateTrack();
         }
+
+        private void updateTrack() => runOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
-            var resetEvent = new ManualResetEventSlim(false);
-
-            Task.Run(() =>
+            runOnAudioThread(() =>
             {
                 track.Restart();
                 track.Update();
-                resetEvent.Set();
             });
+        }
 
-            while (!resetEvent.IsSet)
-                track.Update();
+        /// <summary>
+        /// Certain actions are invoked on the audio thread.
+        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
+        /// </summary>
+        /// <param name="action">The action to perform.</param>
+        private void runOnAudioThread(Action action)
+        {
+            var resetEvent = new ManualResetEvent(false);
+
+            new Thread(() =>
+            {
+                action();
+
+                resetEvent.Set();
+            })
+            {
+                Name = GameThread.PrefixedThreadNameFor("Audio")
+            }.Start();
+
+            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException();
         }
     }
 }

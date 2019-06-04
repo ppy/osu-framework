@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -8,10 +9,11 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleStore : AudioCollectionManager<SampleChannel>, IAdjustableResourceStore<SampleChannel>
+    internal class SampleStore : AudioCollectionManager<SampleChannel>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 
@@ -29,6 +31,8 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel Get(string name)
         {
+            if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
+
             if (string.IsNullOrEmpty(name)) return null;
 
             lock (sampleCache)
@@ -43,8 +47,7 @@ namespace osu.Framework.Audio.Sample
 
                 if (sample != null)
                 {
-                    channel = new SampleChannelBass(sample, AddItemToList);
-                    RegisterItem(channel);
+                    channel = new SampleChannelBass(sample, AddItem);
                 }
 
                 return channel;

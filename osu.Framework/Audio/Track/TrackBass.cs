@@ -14,7 +14,7 @@ using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackBass : Track, IBassAudio, IHasPitchAdjust
+    public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
         private AsyncBufferStream dataStream;
 
