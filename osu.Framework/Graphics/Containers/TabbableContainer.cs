@@ -41,12 +41,12 @@ namespace osu.Framework.Graphics.Containers
             if (TabbableContentContainer == null || e.Key != Key.Tab)
                 return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
+            var nextTab = getNextTabStop(TabbableContentContainer, e.ShiftPressed);
             if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
             return true;
         }
 
-        private Drawable nextTabStop(CompositeDrawable target, bool reverse)
+        private Drawable getNextTabStop(CompositeDrawable target, bool reverse)
         {
             Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing
