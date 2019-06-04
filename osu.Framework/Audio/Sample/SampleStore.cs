@@ -13,7 +13,7 @@ using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleStore : AudioCollectionManager<SampleChannel>, ISampleStore
+    internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 

@@ -149,7 +149,8 @@ namespace osu.Framework.Graphics.Containers
                 colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
                 colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
-                DrawQuad(Texture.WhitePixel,
+                DrawQuad(
+                    Texture.WhitePixel,
                     screenSpaceMaskingQuad.Value,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
