@@ -17,6 +17,9 @@ namespace osu.Framework.Graphics.Shapes
     /// </summary>
     public class Box : Sprite
     {
+        /// <summary>
+        /// The screen space draw quad of this <see cref="Box"/> free from inflation due to edge smoothing.
+        /// </summary>
         private Quad conservativeScreenSpaceDrawQuad;
 
         public Box()

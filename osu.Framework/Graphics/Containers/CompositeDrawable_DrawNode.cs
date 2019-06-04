@@ -85,8 +85,9 @@ namespace osu.Framework.Graphics.Containers
                 Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
                 float blendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2;
 
+                // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
                 float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
-                var shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
+                RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null

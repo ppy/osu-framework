@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL
         private int count;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Increment()
+        internal float Increment()
         {
             depth += increment;
             count++;
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL
             return depth;
         }
 
-        public bool CanIncrement
+        internal bool CanIncrement
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => count != max_count - 1;
