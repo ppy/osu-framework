@@ -42,6 +42,34 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestNestedStoreAdjustments()
+        {
+            var customStore = manager.GetSampleStore(new ResourceStore<byte[]>());
+
+            checkAggregateVolume(manager.Samples, 1);
+            checkAggregateVolume(customStore, 1);
+
+            manager.Samples.Volume.Value = 0.5;
+
+            waitAudioFrame();
+
+            checkAggregateVolume(manager.Samples, 0.5);
+            checkAggregateVolume(customStore, 0.5);
+
+            customStore.Volume.Value = 0.5;
+
+            waitAudioFrame();
+
+            checkAggregateVolume(manager.Samples, 0.5);
+            checkAggregateVolume(customStore, 0.25);
+        }
+
+        private void checkAggregateVolume(ISampleStore store, double expected)
+        {
+            Assert.AreEqual(expected, ((IAggregateAudioAdjustment)store).AggregateVolume.Value);
+        }
+
+        [Test]
         public void TestVirtualTrack()
         {
             var track = manager.Tracks.GetVirtual();
