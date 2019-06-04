@@ -17,7 +17,7 @@ namespace osu.Framework.Audio.Track
             this.store = store;
         }
 
-        public TrackVirtual GetVirtual(double length = double.PositiveInfinity)
+        public Track GetVirtual(double length = double.PositiveInfinity)
         {
             var track = new TrackVirtual(length);
             AddItem(track);
