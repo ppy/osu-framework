@@ -12,7 +12,7 @@ using osu.Framework.Threading;
 
 #pragma warning disable 4014
 
-namespace osu.Framework.Tests.Platform
+namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
     public class TrackBassTest

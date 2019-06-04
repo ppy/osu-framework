@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public ITrackStore Tracks => GetTrackStore();
+        public ITrackStore Tracks => globalTrackStore.Value;
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public ISampleStore Samples => GetSampleStore();
+        public ISampleStore Samples => globalSampleStore.Value;
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -86,8 +86,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<ITrackStore> globalTrackStore;
-        private readonly Lazy<ISampleStore> globalSampleStore;
+        private readonly Lazy<TrackStore> globalTrackStore;
+        private readonly Lazy<SampleStore> globalSampleStore;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -108,8 +108,21 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackStore = new Lazy<ITrackStore>(() => GetTrackStore(trackStore));
-            globalSampleStore = new Lazy<ISampleStore>(() => GetSampleStore(sampleStore));
+            globalTrackStore = new Lazy<TrackStore>(() =>
+            {
+                var store = new TrackStore(trackStore);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
+                return store;
+            });
+
+            globalSampleStore = new Lazy<SampleStore>(() =>
+            {
+                var store = new SampleStore(sampleStore);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
+                return store;
+            });
 
             scheduler.Add(() =>
             {
@@ -164,9 +177,7 @@ namespace osu.Framework.Audio
             if (store == null) return globalTrackStore.Value;
 
             TrackStore tm = new TrackStore(store);
-            AddItem(tm);
-            tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-
+            globalTrackStore.Value.AddItem(tm);
             return tm;
         }
 
@@ -180,9 +191,7 @@ namespace osu.Framework.Audio
             if (store == null) return globalSampleStore.Value;
 
             SampleStore sm = new SampleStore(store);
-            AddItem(sm);
-            sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-
+            globalSampleStore.Value.AddItem(sm);
             return sm;
         }
 
