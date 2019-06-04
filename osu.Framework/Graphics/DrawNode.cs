@@ -185,7 +185,16 @@ namespace osu.Framework.Graphics
         protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                       Vector2? inflationPercentage = null)
             where T : IConvexPolygon
-            => DrawClipped(ref polygon, texture.TextureGL, drawColour, textureRect, vertexAction, inflationPercentage);
+        {
+            var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
+
+            var clipper = new ConvexPolygonClipper<Quad, T>(ref maskingQuad, ref polygon);
+            Span<Vector2> buffer = stackalloc Vector2[clipper.GetClipBufferSize()];
+            Span<Vector2> clippedRegion = clipper.Clip(buffer);
+
+            for (int i = 2; i < clippedRegion.Length; i++)
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage);
+        }
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.
