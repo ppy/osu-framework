@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("increase frequency", () => samples.FrequencyTo(samples.Frequency.Value + 0.1f, 1000, Easing.OutQuint));
 
             AddStep("left balance", () => samples.BalanceTo(samples.Balance.Value - 1, 1000, Easing.OutQuint));
-            AddStep("right balance", () => samples.BalanceTo(samples.Balance.Value +1, 1000, Easing.OutQuint));
+            AddStep("right balance", () => samples.BalanceTo(samples.Balance.Value + 1, 1000, Easing.OutQuint));
         }
 
         protected override void Update()
