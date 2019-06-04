@@ -206,6 +206,11 @@ namespace osu.Framework.Graphics.Containers
                 base.DrawHullSubTree(vertexAction, depthValue);
             }
 
+            /// <summary>
+            /// Performs <see cref="DrawHullSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
+            /// </summary>
+            /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
+            /// <param name="depthValue">The previous depth value.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             protected virtual void DrawChildrenHulls(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
             {

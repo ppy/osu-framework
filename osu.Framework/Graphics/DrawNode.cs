@@ -46,6 +46,10 @@ namespace osu.Framework.Graphics
 
         private readonly AtomicCounter referenceCount = new AtomicCounter();
 
+        /// <summary>
+        /// The depth at which drawing should take place.
+        /// This is written to from the front-to-back pass and used in both passes.
+        /// </summary>
         private float drawDepth;
 
         /// <summary>
@@ -71,16 +75,30 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Draws this draw node to the screen.
+        /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
-        /// <param name="vertexAction">The action to be performed on each vertex of
-        /// the draw node in order to draw it if required. This is primarily used by
-        /// textured sprites.</param>
+        /// <remarks>
+        /// This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.<br />
+        /// The depth test will fail for texels that overlap the hulls of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.<br />
+        /// </remarks>
+        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 
+        /// <summary>
+        /// Draws the hull of this <see cref="DrawNode"/> and all <see cref="DrawNode"/>s further down the scene graph, invoking <see cref="DrawHull"/> if <see cref="CanDrawHull"/>
+        /// indicates that a hull can be drawn for each relevant <see cref="DrawNode"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is the front-to-back (FTB) pass. The back-buffer depth test function used is GL_LESS.<br />
+        /// If a hull is not drawn: the current value of <paramref name="depthValue"/> is stored.<br />
+        /// If a hull is drawn: <paramref name="depthValue"/> is incremented, stored, and the hull vertices are drawn at the post-incremented depth value.
+        /// Incrementing <paramref name="depthValue"/> at this point allows for early-z testing to also occur within the FTB pass.<br />
+        /// </remarks>
+        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
+        /// <param name="depthValue">The previous depth value.</param>
         protected internal virtual void DrawHullSubTree(Action<TexturedVertex2D> vertexAction, DepthValue depthValue)
         {
             if (!depthValue.CanIncrement || !CanDrawHull)
@@ -100,17 +118,19 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Draws the hull of this <see cref="DrawNode"/>. The hull should be the fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area.
-        /// See <see cref="osu.Framework.Graphics.Shapes.Box.BoxDrawNode"/> for an
+        /// Draws the hull of this <see cref="DrawNode"/> to the screen.
+        /// The hull must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
+        /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
         /// </summary>
-        /// <param name="vertexAction"></param>
+        /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawHull(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
 
         /// <summary>
-        /// Whether this <see cref="DrawNode"/> will draw a hull this frame. If true, <see cref="DrawHull"/> will be invoked when appropriate.
+        /// Whether this <see cref="DrawNode"/> can draw a hull. <see cref="DrawHull"/> will only be invoked if this value is <code>true</code>.
+        /// Should not return <code>true</code> if <see cref="DrawHull"/> will result in a no-op.
         /// </summary>
         protected virtual bool CanDrawHull => false;
 
