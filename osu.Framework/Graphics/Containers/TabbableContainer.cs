@@ -57,9 +57,10 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        private readonly Stack<Drawable> stack = new Stack<Drawable>();
+
         private Drawable getNextTabStop(CompositeDrawable target, bool reverse)
         {
-            Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
 
@@ -72,7 +73,10 @@ namespace osu.Framework.Graphics.Containers
                 if (!started)
                     started = ReferenceEquals(drawable, this);
                 else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
+                {
+                    stack.Clear(); // We clear the elements so that the gc can reclaim the references
                     return drawable;
+                }
 
                 if (drawable is CompositeDrawable composite)
                 {
@@ -100,6 +104,7 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
+            stack.Clear(); // We clear the elements so that the gc can reclaim the references
             return null;
         }
     }
