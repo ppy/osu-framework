@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         /// <param name="filename">The path to the file that should be decoded.</param>
         public FfmpegVideoDecoder(string filename)
-            : base(filename)
+            : this(File.OpenRead(filename))
         {
         }
 
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Video
             decodingTaskCancellationTokenSource.Dispose();
             decodingTaskCancellationTokenSource = null;
 
-            state = DecoderState.Ready;
+            State = DecoderState.Ready;
         }
 
         private int readPacket(void* opaque, byte* bufferPtr, int bufferSize)

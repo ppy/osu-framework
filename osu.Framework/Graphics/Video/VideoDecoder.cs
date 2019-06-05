@@ -58,24 +58,10 @@ namespace osu.Framework.Graphics.Video
 
         protected Stream VideoStream;
 
-        //private Task decodingTask;
-        //private CancellationTokenSource decodingTaskCancellationTokenSource;
-
-        //private double? skipOutputUntilTime;
-
         protected readonly ConcurrentQueue<DecodedFrame> DecodedFrames;
         protected readonly ConcurrentQueue<Texture> AvailableTextures;
 
         public bool Looping;
-
-        /// <summary>
-        /// Creates a new video decoder that decodes the given video file.
-        /// </summary>
-        /// <param name="filename">The path to the file that should be decoded.</param>
-        protected VideoDecoder(string filename)
-            : this(File.OpenRead(filename))
-        {
-        }
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video stream.
