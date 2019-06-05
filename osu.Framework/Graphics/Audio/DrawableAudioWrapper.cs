@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -43,9 +45,9 @@ namespace osu.Framework.Graphics.Audio
             AddInternal(content);
         }
 
-        protected DrawableAudioWrapper(AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+        protected DrawableAudioWrapper([NotNull] AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
         {
-            this.component = component;
+            this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
 
             component.BindAdjustments(adjustments);
