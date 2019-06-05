@@ -7,11 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using LibVLCSharp.Shared;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Callbacks;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SixLabors.ImageSharp.PixelFormats;
@@ -20,15 +17,15 @@ namespace osu.Framework.Graphics.Video
 {
     public unsafe class VlcVideoDecoder : VideoDecoder
     {
-        private static readonly MethodInfo setCallbackMethod;
+        private static readonly MethodInfo set_callback_method;
 
-        internal static void LibVLCVideoSetCallbacks(IntPtr mediaPlayer,
-                                                     MediaPlayer.LibVLCVideoLockCb lockCallback,
-                                                     MediaPlayer.LibVLCVideoUnlockCb unlockCallback,
-                                                     MediaPlayer.LibVLCVideoDisplayCb displayCallback,
-                                                     IntPtr opaque)
+        private static void libVlcVideoSetCallbacks(IntPtr mediaPlayer,
+                                                    MediaPlayer.LibVLCVideoLockCb lockCallback,
+                                                    MediaPlayer.LibVLCVideoUnlockCb unlockCallback,
+                                                    MediaPlayer.LibVLCVideoDisplayCb displayCallback,
+                                                    IntPtr opaque)
         {
-            setCallbackMethod.Invoke(null, new object[] { mediaPlayer, lockCallback, unlockCallback, displayCallback, opaque });
+            set_callback_method.Invoke(null, new object[] { mediaPlayer, lockCallback, unlockCallback, displayCallback, opaque });
         }
 
         static VlcVideoDecoder()
@@ -36,7 +33,7 @@ namespace osu.Framework.Graphics.Video
             var mediaPlayerType = typeof(MediaPlayer);
             var assembly = mediaPlayerType.Assembly;
             var nativeType = assembly.DefinedTypes.First(x => x.FullName == "LibVLCSharp.Shared.MediaPlayer+Native");
-            setCallbackMethod = nativeType.DeclaredMethods.First(x => x.Name == "LibVLCVideoSetCallbacks");
+            set_callback_method = nativeType.DeclaredMethods.First(x => x.Name == "LibVLCVideoSetCallbacks");
         }
 
         public override double Duration => media.Duration;
@@ -94,7 +91,7 @@ namespace osu.Framework.Graphics.Video
             videoCleanupDelegate = videoCleanupCallback;
 
             player.SetVideoFormatCallbacks(videoFormatDelegate, videoCleanupDelegate);
-            LibVLCVideoSetCallbacks(player.NativeReference, videoLockDelegate, videoUnlockDelegate, videoDisplayDelegate, objectHandle.Handle);
+            libVlcVideoSetCallbacks(player.NativeReference, videoLockDelegate, videoUnlockDelegate, videoDisplayDelegate, objectHandle.Handle);
         }
 
         private void playerEndReached(object sender, EventArgs e)
@@ -179,16 +176,7 @@ namespace osu.Framework.Graphics.Video
                 tex = new Texture(decoder.Width, decoder.Height, true);
 
             var upload = new ArrayPoolTextureUpload(tex.Width, tex.Height);
-
-            // var temp = stackalloc byte[1500];
-            // var tempSpan = new Span<byte>(temp, 1000);
-            // new Span<byte>(opaque.ToPointer(), 1000).CopyTo(tempSpan);
-            // foreach (byte b in tempSpan.Slice(500, 100))
-            //     Console.Write("{0:X}", b);
-            // Console.WriteLine();
-
             new Span<Rgba32>(decoder.buffer.ToPointer(), decoder.Width * decoder.Height).CopyTo(upload.RawData);
-
             tex.SetData(upload);
 
             float time = decoder.player.Position * decoder.media.Duration;
@@ -214,9 +202,9 @@ namespace osu.Framework.Graphics.Video
             var handle = new ObjectHandle<VlcVideoDecoder>(userData);
             handle.GetTarget(out VlcVideoDecoder decoder);
 
-            toFourCC("RV32", chroma);
+            writeFourCcString("RV32", chroma);
 
-            var mediaTrack = decoder.media.Tracks.Where(t => t.TrackType == TrackType.Video).FirstOrDefault();
+            var mediaTrack = decoder.media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video);
             var videoTrack = mediaTrack.Data.Video;
             width = videoTrack.Width;
             height = videoTrack.Height;
@@ -227,8 +215,8 @@ namespace osu.Framework.Graphics.Video
             decoder.Width = (int)width;
             decoder.Height = (int)height;
 
-            var bpp = 32;
-            pitches = alignDimension((uint)(width * bpp) / 8, 32);
+            const int bpp = 32;
+            pitches = alignDimension(width * bpp / 8, 32);
             lines = alignDimension(height, 32);
 
             var size = pitches * lines;
@@ -246,17 +234,18 @@ namespace osu.Framework.Graphics.Video
 
             if (decoder.buffer != IntPtr.Zero)
                 Marshal.FreeHGlobal(decoder.buffer);
+
             decoder.buffer = IntPtr.Zero;
         }
 
-        private static void toFourCC(string fourCCString, IntPtr destination)
+        private static void writeFourCcString(string fourCcString, IntPtr destination)
         {
-            if (fourCCString.Length != 4)
+            if (fourCcString.Length != 4)
             {
-                throw new ArgumentException("4CC codes must be 4 characters long", nameof(fourCCString));
+                throw new ArgumentException("4CC codes must be 4 characters long", nameof(fourCcString));
             }
 
-            var bytes = Encoding.ASCII.GetBytes(fourCCString);
+            var bytes = Encoding.ASCII.GetBytes(fourCcString);
 
             for (var i = 0; i < 4; i++)
             {

@@ -1,16 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Video
 {

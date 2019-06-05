@@ -1,17 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using FFmpeg.AutoGen;
-using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FFmpeg.AutoGen;
+using osu.Framework.Graphics.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -93,7 +91,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// Seek the decoder to the given timestamp. This will fail if <see cref="CanSeek"/> is false.
+        /// Seek the decoder to the given timestamp. This will fail if <see cref="VideoDecoder.CanSeek"/> is false.
         /// </summary>
         /// <param name="targetTimestamp">The timestamp to seek to.</param>
         public override void Seek(double targetTimestamp)
@@ -109,7 +107,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// Starts the decoding process. The decoding will happen asynchronously in a separate thread. The decoded frames can be retrieved by using <see cref="GetDecodedFrames"/>.
+        /// Starts the decoding process. The decoding will happen asynchronously in a separate thread. The decoded frames can be retrieved by using <see cref="VideoDecoder.GetDecodedFrames"/>.
         /// </summary>
         public override void StartDecoding()
         {

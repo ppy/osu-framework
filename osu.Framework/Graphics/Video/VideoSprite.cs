@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Video
 
         private VideoDecoder decoder;
 
-        private Stream stream;
+        private readonly Stream stream;
 
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
