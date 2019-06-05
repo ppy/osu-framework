@@ -7,14 +7,13 @@ using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("frame-based animations")]
-    public class TestSceneAnimation : TestScene
+    public class TestSceneAnimation : FrameworkTestScene
     {
         public TestSceneAnimation()
         {

@@ -10,13 +10,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneGridContainer : TestScene
+    public class TestSceneGridContainer : FrameworkTestScene
     {
         private Container gridParent;
         private GridContainer grid;

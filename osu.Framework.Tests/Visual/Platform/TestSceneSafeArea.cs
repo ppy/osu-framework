@@ -9,14 +9,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneSafeArea : TestScene
+    public class TestSceneSafeArea : FrameworkTestScene
     {
         private readonly BindableMarginPadding safeAreaPadding = new BindableMarginPadding();
         private readonly Container container;
