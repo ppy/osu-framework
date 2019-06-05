@@ -590,7 +590,7 @@ namespace osu.Framework.Graphics.Sprites
             float width;
             float height;
 
-            glyph = getCharacter(character);
+            glyph = char.IsWhiteSpace(character) ? new FontStore.CharacterGlyph() : getCharacter(character);
 
             if (char.IsWhiteSpace(character) || glyph.Texture == null)
             {
@@ -602,7 +602,6 @@ namespace osu.Framework.Graphics.Sprites
                     size *= 2;
                 }
 
-                glyph.Texture = null;
                 width = size;
                 height = size;
             }
@@ -610,7 +609,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (applyWidthAdjustments)
                 {
-                    // X offset should only be applied if not using fixed width, since they to be centered.
+                    // X offset should only be applied if not using fixed width, since they need to be centered.
                     width = useFixedWidthForCharacter(character) ? constantWidth : glyph.Width + glyph.XOffset;
                 }
                 else
