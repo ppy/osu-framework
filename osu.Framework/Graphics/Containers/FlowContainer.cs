@@ -33,17 +33,8 @@ namespace osu.Framework.Graphics.Containers
         public float LayoutDuration
         {
             get => AutoSizeDuration * 2;
-            set
-            {
-                //coupling with autosizeduration allows us to smoothly transition our size
-                //when no children are left to dictate autosize.
-                AutoSizeDuration = value / 2;
-            }
+            set => AutoSizeDuration = value / 2;
         }
-
-        private Cached layout = new Cached();
-
-        protected void InvalidateLayout() => layout.Invalidate();
 
         private Vector2 maximumSize;
 
@@ -63,7 +54,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Cached layout = new Cached();
+
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
+
+        /// <summary>
+        /// Invoked when layout should be invalidated.
+        /// </summary>
+        protected virtual void InvalidateLayout() => layout.Invalidate();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -112,6 +110,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (!layoutChildren.ContainsKey(drawable))
                 throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+
             layoutChildren[drawable] = newPosition;
             InvalidateLayout();
         }
@@ -165,6 +164,7 @@ namespace osu.Framework.Graphics.Containers
             var positions = ComputeLayoutPositions().ToArray();
 
             int i = 0;
+
             foreach (var d in FlowingChildren)
             {
                 if (i > positions.Length)

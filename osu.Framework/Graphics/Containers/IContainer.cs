@@ -4,6 +4,7 @@
 using osuTK;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -28,6 +29,10 @@ namespace osu.Framework.Graphics.Containers
         where T : IDrawable
     {
         IReadOnlyList<T> Children { set; }
+
+        T Child { set; }
+
+        IEnumerable<T> ChildrenEnumerable { set; }
 
         void Add(T drawable);
         void AddRange(IEnumerable<T> collection);

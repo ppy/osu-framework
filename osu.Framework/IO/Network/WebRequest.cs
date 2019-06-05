@@ -230,6 +230,7 @@ namespace osu.Framework.IO.Network
         private async Task internalPerform()
         {
             var url = Url;
+
             if (!AllowInsecureRequests && !url.StartsWith(@"https://"))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
@@ -459,6 +460,7 @@ namespace osu.Framework.IO.Network
                 {
                     // in the case we fail a request, spitting out the response in the log is quite helpful.
                     ResponseStream.Seek(0, SeekOrigin.Begin);
+
                     using (StreamReader r = new StreamReader(ResponseStream, new UTF8Encoding(false, true), true, 1024, true))
                     {
                         try
@@ -629,6 +631,7 @@ namespace osu.Framework.IO.Network
         protected void Dispose(bool disposing)
         {
             if (isDisposed) return;
+
             isDisposed = true;
 
             Abort();
@@ -671,10 +674,7 @@ namespace osu.Framework.IO.Network
                 return read;
             }
 
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return baseStream.Seek(offset, origin);
-            }
+            public override long Seek(long offset, SeekOrigin origin) => baseStream.Seek(offset, origin);
 
             public override void SetLength(long value)
             {

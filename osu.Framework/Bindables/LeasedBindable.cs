@@ -82,6 +82,7 @@ namespace osu.Framework.Bindables
                     checkValid();
 
                 if (Disabled == value) return;
+
                 SetDisabled(value, true);
             }
         }

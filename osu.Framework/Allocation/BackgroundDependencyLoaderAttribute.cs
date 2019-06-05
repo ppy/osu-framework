@@ -11,7 +11,7 @@ using osu.Framework.Extensions.TypeExtensions;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// Marks a method as the loader-Method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
+    /// Marks a method as the (potentially asynchronous) initialization method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Method)]
@@ -22,14 +22,14 @@ namespace osu.Framework.Allocation
         private bool permitNulls { get; }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         public BackgroundDependencyLoaderAttribute()
         {
         }
 
         /// <summary>
-        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// Marks this method as the (potentially asynchronous) initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
         public BackgroundDependencyLoaderAttribute(bool permitNulls)
@@ -45,6 +45,7 @@ namespace osu.Framework.Allocation
             {
                 case 0:
                     return (_, __) => { };
+
                 case 1:
                     var method = loaderMethods[0];
 
@@ -68,6 +69,7 @@ namespace osu.Framework.Allocation
                                 case OperationCanceledException _:
                                     // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
                                     throw exc.InnerException;
+
                                 case DependencyInjectionException die:
                                     // A nested activator has failed (multiple Invoke() calls) - propagate the original error
                                     throw die;
@@ -77,6 +79,7 @@ namespace osu.Framework.Allocation
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
                     };
+
                 default:
                     throw new MultipleDependencyLoaderMethodsException(type);
             }
@@ -87,6 +90,7 @@ namespace osu.Framework.Allocation
             var val = dc.Get(type);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
+
             return val;
         };
     }

@@ -66,13 +66,16 @@ namespace osu.Framework.Bindables
 
             collection[index] = item;
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.setIndex(index, item, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.setIndex(index, item, this);
+                }
+            }
 
             ItemsRemoved?.Invoke(new[] { lastItem });
             ItemsAdded?.Invoke(new[] { item });
@@ -92,13 +95,16 @@ namespace osu.Framework.Bindables
 
             collection.Add(item);
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.add(item, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.add(item, this);
+                }
+            }
 
             ItemsAdded?.Invoke(new[] { item });
         }
@@ -125,13 +131,16 @@ namespace osu.Framework.Bindables
 
             collection.Insert(index, item);
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.insert(index, item, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.insert(index, item, this);
+                }
+            }
 
             ItemsAdded?.Invoke(new[] { item });
         }
@@ -155,13 +164,16 @@ namespace osu.Framework.Bindables
 
             collection.Clear();
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.clear(this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.clear(this);
+                }
+            }
 
             ItemsRemoved?.Invoke(clearedItems);
         }
@@ -191,13 +203,16 @@ namespace osu.Framework.Bindables
 
             if (removed)
             {
-                bindings?.ForEachAlive(b =>
+                if (bindings != null)
                 {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.remove(item, this);
-                });
+                    foreach (var b in bindings)
+                    {
+                        // prevent re-adding the item back to the callee.
+                        // That would result in a <see cref="StackOverflowException"/>.
+                        if (b != caller)
+                            b.remove(item, this);
+                    }
+                }
 
                 ItemsRemoved?.Invoke(new[] { item });
             }
@@ -221,13 +236,16 @@ namespace osu.Framework.Bindables
 
             collection.RemoveAt(index);
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.removeAt(index, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.removeAt(index, this);
+                }
+            }
 
             ItemsRemoved?.Invoke(new[] { item });
         }
@@ -248,13 +266,16 @@ namespace osu.Framework.Bindables
             // RemoveAll is internally optimised
             collection.RemoveAll(match);
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.removeAll(match, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.removeAll(match, this);
+                }
+            }
 
             ItemsRemoved?.Invoke(removed);
 
@@ -329,10 +350,12 @@ namespace osu.Framework.Bindables
                 case null:
                     Clear();
                     break;
+
                 case IEnumerable<T> enumerable:
                     Clear();
                     AddRange(enumerable);
                     break;
+
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
             }
@@ -373,8 +396,11 @@ namespace osu.Framework.Bindables
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
 
-            if (propagateToBindings)
-                bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (propagateToBindings && bindings != null)
+            {
+                foreach (var b in bindings)
+                    b.Disabled = disabled;
+            }
 
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
@@ -393,7 +419,12 @@ namespace osu.Framework.Bindables
 
         public void UnbindBindings()
         {
-            bindings?.ForEachAlive(b => b.unbind(this));
+            if (bindings == null)
+                return;
+
+            foreach (var b in bindings)
+                b.unbind(this);
+
             bindings?.Clear();
         }
 
@@ -439,13 +470,16 @@ namespace osu.Framework.Bindables
 
             collection.AddRange(items);
 
-            bindings?.ForEachAlive(b =>
+            if (bindings != null)
             {
-                // prevent re-adding the item back to the callee.
-                // That would result in a <see cref="StackOverflowException"/>.
-                if (b != caller)
-                    b.addRange(items, this);
-            });
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.addRange(items, this);
+                }
+            }
 
             ItemsAdded?.Invoke(items);
         }

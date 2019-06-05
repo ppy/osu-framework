@@ -120,6 +120,7 @@ namespace osu.Framework.Statistics
                 for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
                 {
                     int amountCollections = GC.CollectionCount(i);
+
                     if (lastAmountGarbageCollects[i] != amountCollections)
                     {
                         lastAmountGarbageCollects[i] = amountCollections;

@@ -39,20 +39,25 @@ namespace osu.Framework.Screens
         /// </summary>
         private readonly List<Drawable> exited = new List<Drawable>();
 
+        private readonly bool suspendImmediately;
+
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
         /// </summary>
-        public ScreenStack()
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(bool suspendImmediately = true)
         {
+            this.suspendImmediately = suspendImmediately;
             ScreenExited += onExited;
         }
 
         /// <summary>
         /// Creates a new <see cref="ScreenStack"/>, and immediately pushes a <see cref="IScreen"/>.
         /// </summary>
-        /// <param name="baseScreen"></param>
-        public ScreenStack(IScreen baseScreen)
-            : this()
+        /// <param name="baseScreen">The initial <see cref="IScreen"/> to be loaded</param>
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(IScreen baseScreen, bool suspendImmediately = true)
+            : this(suspendImmediately)
         {
             Push(baseScreen);
         }
@@ -86,37 +91,74 @@ namespace osu.Framework.Screens
                 throw new ScreenWillBeRemovedOnPushException(newScreen.GetType());
 
             // Suspend the current screen, if there is one
-            if (source != null)
-            {
-                if (source != stack.Peek())
-                    throw new ScreenNotCurrentException(nameof(Push));
+            if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
-                source.OnSuspending(newScreen);
-                source.AsDrawable().Expire();
-            }
+            if (suspendImmediately)
+                suspend(source, newScreen);
 
-            // Push the new screen
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
 
-            void finishLoad()
-            {
-                if (!newScreen.ValidForPush)
-                {
-                    exitFrom(null);
-                    return;
-                }
+            var newScreenDrawable = newScreen.AsDrawable();
 
-                AddInternal(newScreen.AsDrawable());
-                newScreen.OnEntering(source);
+            if (source == null)
+            {
+                // this is the first screen to be loaded.
+                if (LoadState >= LoadState.Ready)
+                    LoadScreen(this, newScreenDrawable, () => finishPush(null, newScreen));
+                else
+                    Schedule(() => finishPush(null, newScreen));
+            }
+            else
+                LoadScreen((CompositeDrawable)source, newScreenDrawable, () => finishPush(source, newScreen));
+        }
+
+        /// <summary>
+        /// Complete push of a loaded screen.
+        /// </summary>
+        /// <param name="parent">The screen to push to.</param>
+        /// <param name="child">The new screen being pushed.</param>
+        private void finishPush(IScreen parent, IScreen child)
+        {
+            if (!child.ValidForPush)
+            {
+                if (child == CurrentScreen)
+                    exitFrom(null, shouldFireExitEvent: false, shouldFireResumeEvent: suspendImmediately);
+
+                return;
             }
 
-            if (source != null)
-                LoadScreen((CompositeDrawable)source, newScreen.AsDrawable(), finishLoad);
-            else if (LoadState >= LoadState.Ready)
-                LoadScreen(this, newScreen.AsDrawable(), finishLoad);
+            if (!suspendImmediately)
+                suspend(parent, child);
+
+            AddInternal(child.AsDrawable());
+            child.OnEntering(parent);
+        }
+
+        /// <summary>
+        /// Complete suspend of a screen in the stack.
+        /// </summary>
+        /// <param name="from">The screen being suspended.</param>
+        /// <param name="to">The screen being entered.</param>
+        private void suspend(IScreen from, IScreen to)
+        {
+            var sourceDrawable = from?.AsDrawable();
+            if (sourceDrawable == null)
+                return;
+
+            if (sourceDrawable.IsLoaded)
+                performSuspend();
             else
-                Schedule(finishLoad);
+            {
+                // Screens only receive OnEntering() upon load completion, so OnSuspending() should be delayed until after that
+                sourceDrawable.OnLoadComplete += _ => performSuspend();
+            }
+
+            void performSuspend()
+            {
+                from.OnSuspending(to);
+                sourceDrawable.Expire();
+            }
         }
 
         /// <summary>
@@ -130,7 +172,12 @@ namespace osu.Framework.Screens
             if (toLoad.LoadState >= LoadState.Ready)
                 continuation?.Invoke();
             else
-                loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+            {
+                if (loader.LoadState >= LoadState.Ready)
+                    loader.LoadComponentAsync(toLoad, _ => continuation?.Invoke(), scheduler: Scheduler);
+                else
+                    Schedule(() => LoadScreen(loader, toLoad, continuation));
+            }
         }
 
         internal void Exit(IScreen source)
@@ -158,6 +205,7 @@ namespace osu.Framework.Screens
                 {
                     if (child == source)
                         break;
+
                     child.ValidForResume = false;
                 }
             });
@@ -173,7 +221,9 @@ namespace osu.Framework.Screens
         /// </summary>
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
         /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
-        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null)
+        /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
+        /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
+        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
         {
             if (stack.Count == 0)
                 return;
@@ -182,7 +232,7 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (toExit.OnExiting(CurrentScreen))
+            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
                 stack.Push(toExit);
                 return;
@@ -205,7 +255,8 @@ namespace osu.Framework.Screens
             ScreenExited?.Invoke(toExit, CurrentScreen);
 
             // Resume the next current screen from the exited one
-            resumeFrom(toExit);
+            if (shouldFireResumeEvent)
+                resumeFrom(toExit);
         }
 
         /// <summary>
@@ -216,7 +267,7 @@ namespace osu.Framework.Screens
         /// leases could potentially be in a leased state during exiting transitions.
         /// This method should be called after exiting is confirmed to ensure a correct leased state before <see cref="IScreen.OnResuming"/>.
         /// </remarks>
-        private void onExited(IScreen prev, IScreen next) => (prev as CompositeDrawable)?.UnbindAllBindables();
+        private void onExited(IScreen prev, IScreen next) => (prev as CompositeDrawable)?.UnbindAllBindablesSubTree();
 
         /// <summary>
         /// Resumes the current <see cref="IScreen"/>.
@@ -238,6 +289,8 @@ namespace osu.Framework.Screens
                 exitFrom(source);
         }
 
+        protected override bool ShouldBeConsideredForInput(Drawable child) => !(child is IScreen screen) || screen.IsCurrentScreen();
+
         protected override bool UpdateChildrenLife()
         {
             if (!base.UpdateChildrenLife()) return false;
@@ -258,12 +311,39 @@ namespace osu.Framework.Screens
             return true;
         }
 
+        internal override void UnbindAllBindablesSubTree()
+        {
+            // Suspended screens that are not part of our children won't receive unbind invocations until their disposal, which happens too late.
+            // To get around this, we unbind them ourselves in the correct order (reverse-push)
+            // Exited screens don't need to be unbound here due to being unbound when exiting
+
+            foreach (var s in stack)
+                s.AsDrawable().UnbindAllBindablesSubTree();
+
+            base.UnbindAllBindablesSubTree();
+        }
+
         public class ScreenNotCurrentException : InvalidOperationException
         {
             public ScreenNotCurrentException(string action)
                 : base($"Cannot perform {action} on a non-current screen.")
             {
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            // Correct disposal order must be enforced manually before the base disposal.
+
+            foreach (var s in exited)
+                s.Dispose();
+            exited.Clear();
+
+            foreach (var s in stack)
+                s.AsDrawable().Dispose();
+            stack.Clear();
+
+            base.Dispose(isDisposing);
         }
 
         public class ScreenHasChildException : InvalidOperationException

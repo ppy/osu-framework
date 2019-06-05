@@ -12,12 +12,6 @@ namespace osu.Framework.Allocation
     public struct ObjectHandle<T> : IDisposable
     {
         /// <summary>
-        /// The object being referenced.  Returns the default value for <see cref="T" /> if the handle is not allocated
-        /// or if the handle points to an object that cannot be cast to <see cref="T" />.
-        /// </summary>
-        public T Target => handle.IsAllocated && handle.Target is T ? (T)handle.Target : default;
-
-        /// <summary>
         /// The pointer from the <see cref="GCHandle" />, if it is allocated.  Otherwise <see cref="IntPtr.Zero" />.
         /// </summary>
         public IntPtr Handle => handle.IsAllocated ? GCHandle.ToIntPtr(handle) : IntPtr.Zero;
@@ -54,6 +48,38 @@ namespace osu.Framework.Allocation
         {
             this.handle = GCHandle.FromIntPtr(handle);
             fromPointer = true;
+        }
+
+        /// <summary>
+        /// Gets the object being referenced.
+        /// Returns true if successful and populates <paramref name="target"/> with the referenced object.
+        /// Returns false If the handle is not allocated or the target is not of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="target">Populates this parameter with the targeted object.</param>
+        public bool GetTarget(out T target)
+        {
+            if (!handle.IsAllocated)
+            {
+                target = default;
+                return false;
+            }
+
+            try
+            {
+                var value = handle.Target;
+
+                if (value is T)
+                {
+                    target = (T)value;
+                    return true;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            target = default;
+            return false;
         }
 
         #region IDisposable Support

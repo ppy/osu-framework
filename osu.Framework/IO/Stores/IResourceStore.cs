@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -24,5 +25,11 @@ namespace osu.Framework.IO.Stores
         Task<T> GetAsync(string name);
 
         Stream GetStream(string name);
+
+        /// <summary>
+        /// Gets a collection of string representations of the resources available in this store.
+        /// </summary>
+        /// <returns>String representations of the resources available.</returns>
+        IEnumerable<string> GetAvailableResources();
     }
 }

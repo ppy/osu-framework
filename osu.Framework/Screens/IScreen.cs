@@ -52,7 +52,7 @@ namespace osu.Framework.Screens
         /// <param name="screen">The <see cref="IScreen"/> to push to.</param>
         /// <param name="newScreen">The <see cref="IScreen"/> to push.</param>
         public static void Push(this IScreen screen, IScreen newScreen)
-            => runOnRoot(screen, stack => stack.Push(screen, newScreen));
+            => runOnRoot(screen, stack => stack.Push(screen, newScreen), () => throw new InvalidOperationException($"Cannot {nameof(Push)} to a non-loaded {nameof(IScreen)} directly. Consider using {nameof(ScreenStack.Push)} instead."));
 
         /// <summary>
         /// Exits from an <see cref="IScreen"/>.
@@ -94,9 +94,11 @@ namespace osu.Framework.Screens
                 case null:
                     onFail?.Invoke();
                     return;
+
                 case ScreenStack stack:
                     onRoot(stack);
                     break;
+
                 default:
                     runOnRoot(current.Parent, onRoot, onFail);
                     break;
@@ -110,9 +112,12 @@ namespace osu.Framework.Screens
                 case null:
                     if (onFail != null)
                         return onFail.Invoke();
+
                     return default;
+
                 case ScreenStack stack:
                     return onRoot(stack);
+
                 default:
                     return runOnRoot(current.Parent, onRoot, onFail);
             }

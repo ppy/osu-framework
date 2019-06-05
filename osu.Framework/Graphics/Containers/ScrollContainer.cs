@@ -78,7 +78,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
@@ -264,6 +263,7 @@ namespace osu.Framework.Graphics.Containers
                     case Key.PageUp:
                         ScrollTo(target - displayableContent);
                         return true;
+
                     case Key.PageDown:
                         ScrollTo(target + displayableContent);
                         return true;
@@ -415,7 +415,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            target = value;
+            target = Clamp(value, ClampExtension);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
@@ -635,9 +635,11 @@ namespace osu.Framework.Graphics.Containers
                 case PlatformActionType.LineStart:
                     ScrollToStart();
                     return true;
+
                 case PlatformActionType.LineEnd:
                     ScrollToEnd();
                     return true;
+
                 default:
                     return false;
             }

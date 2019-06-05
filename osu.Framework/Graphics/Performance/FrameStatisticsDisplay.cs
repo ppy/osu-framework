@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Performance
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
                         break;
+
                     case FrameStatisticsMode.Full:
                         mainContainer.AutoSizeAxes = Axes.None;
                         mainContainer.Size = new Vector2(WIDTH, HEIGHT);
@@ -305,7 +306,6 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             switch (e.Key)
@@ -313,6 +313,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = true;
                     break;
+
                 case Key.ShiftLeft:
                     Running = false;
                     break;
@@ -328,6 +329,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = false;
                     break;
+
                 case Key.ShiftLeft:
                     Running = true;
                     break;
@@ -342,12 +344,10 @@ namespace osu.Framework.Graphics.Performance
                 addEvent(gcLevel);
         }
 
-        private readonly BufferStack<Rgba32> timeBarImages = new BufferStack<Rgba32>(100);
-
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new BufferStackTextureUpload(1, HEIGHT, timeBarImages)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -406,6 +406,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.YellowGreen;
+
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG
@@ -414,10 +415,13 @@ namespace osu.Framework.Graphics.Performance
 #endif
                 case PerformanceCollectionType.Sleep:
                     return Color4.DarkBlue;
+
                 case PerformanceCollectionType.Scheduler:
                     return Color4.HotPink;
+
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
+
                 case PerformanceCollectionType.GLReset:
                     return Color4.Cyan;
             }
@@ -431,16 +435,22 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.BlueViolet;
+
                 case 1:
                     return Color4.YellowGreen;
+
                 case 2:
                     return Color4.HotPink;
+
                 case 3:
                     return Color4.Red;
+
                 case 4:
                     return Color4.Cyan;
+
                 case 5:
                     return Color4.Yellow;
+
                 case 6:
                     return Color4.SkyBlue;
             }
@@ -469,6 +479,7 @@ namespace osu.Framework.Graphics.Performance
                 bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
+
                 if (!frameTimeType.HasValue)
                 {
                     int step = amountSteps / HEIGHT;
@@ -513,6 +524,7 @@ namespace osu.Framework.Graphics.Performance
                 set
                 {
                     if (expanded == value) return;
+
                     expanded = value;
 
                     if (expanded)

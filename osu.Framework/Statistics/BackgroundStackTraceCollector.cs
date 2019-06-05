@@ -57,7 +57,7 @@ namespace osu.Framework.Statistics
         /// </summary>
         public bool Enabled
         {
-            get { return enabled; }
+            get => enabled;
             set
             {
                 if (value == enabled || targetThread == null) return;

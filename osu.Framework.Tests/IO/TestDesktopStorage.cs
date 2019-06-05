@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.IO
 {
@@ -15,20 +14,20 @@ namespace osu.Framework.Tests.IO
         public void TestRelativePaths()
         {
             var guid = new Guid().ToString();
-            var storage = new DesktopStorage(guid, null);
 
-            var basePath = storage.GetFullPath(string.Empty);
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                var basePath = storage.GetFullPath(string.Empty);
 
-            Assert.IsTrue(basePath.EndsWith(guid));
+                Assert.IsTrue(basePath.EndsWith(guid));
 
-            Assert.Throws<ArgumentException>(() => storage.GetFullPath("../"));
-            Assert.Throws<ArgumentException>(() => storage.GetFullPath(".."));
-            Assert.Throws<ArgumentException>(() => storage.GetFullPath("./../"));
+                Assert.Throws<ArgumentException>(() => storage.GetFullPath("../"));
+                Assert.Throws<ArgumentException>(() => storage.GetFullPath(".."));
+                Assert.Throws<ArgumentException>(() => storage.GetFullPath("./../"));
 
-            Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")) + Path.DirectorySeparatorChar, storage.GetFullPath("sub/test/"));
-            Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")), storage.GetFullPath("sub/test"));
-
-            storage.DeleteDirectory(string.Empty);
+                Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")) + Path.DirectorySeparatorChar, storage.GetFullPath("sub/test/"));
+                Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")), storage.GetFullPath("sub/test"));
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Transforms
     internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
     {
         private delegate TValue ReadFunc(T transformable);
+
         private delegate void WriteFunc(T transformable, TValue value);
 
         private struct Accessor
@@ -59,18 +60,21 @@ namespace osu.Framework.Graphics.Transforms
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
             if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
 
         private static WriteFunc createPropertySetter(MethodInfo setter)
         {
-            if (!RuntimeInfo.SupportsJIT) return (transformable, value) => setter.Invoke(transformable, new object[]{ value });
+            if (!RuntimeInfo.SupportsJIT) return (transformable, value) => setter.Invoke(transformable, new object[] { value });
+
             return (WriteFunc)setter.CreateDelegate(typeof(WriteFunc));
         }
 
         private static Accessor findAccessor(Type type, string propertyOrFieldName)
         {
             PropertyInfo property = type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
             if (property != null)
             {
                 if (property.PropertyType != typeof(TValue))
@@ -98,6 +102,7 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             FieldInfo field = type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
             if (field != null)
             {
                 if (field.FieldType != typeof(TValue))

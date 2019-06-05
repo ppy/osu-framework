@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 if (state == value)
                     return;
+
                 state = value;
 
                 switch (state)
@@ -51,6 +52,7 @@ namespace osu.Framework.Graphics.Visualisation
                     case TreeContainerStatus.Offscreen:
                         this.Delay(500).FadeTo(0.7f, 300);
                         break;
+
                     case TreeContainerStatus.Onscreen:
                         this.FadeIn(300, Easing.OutQuint);
                         break;

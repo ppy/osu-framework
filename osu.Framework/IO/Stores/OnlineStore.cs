@@ -1,8 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
@@ -49,6 +51,8 @@ namespace osu.Framework.IO.Stores
 
             return new MemoryStream(ret);
         }
+
+        public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
 
         #region IDisposable Support
 

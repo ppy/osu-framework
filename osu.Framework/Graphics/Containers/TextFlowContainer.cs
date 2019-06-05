@@ -18,6 +18,11 @@ namespace osu.Framework.Graphics.Containers
         private float firstLineIndent;
         private readonly Action<SpriteText> defaultCreationParameters;
 
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
         /// </summary>
@@ -27,6 +32,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == firstLineIndent) return;
+
                 firstLineIndent = value;
 
                 layout.Invalidate();
@@ -44,6 +50,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == contentIndent) return;
+
                 contentIndent = value;
 
                 layout.Invalidate();
@@ -62,6 +69,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == paragraphSpacing) return;
+
                 paragraphSpacing = value;
 
                 layout.Invalidate();
@@ -80,6 +88,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == lineSpacing) return;
+
                 lineSpacing = value;
 
                 layout.Invalidate();
@@ -87,6 +96,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Anchor textAnchor = Anchor.TopLeft;
+
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
@@ -97,11 +107,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (textAnchor == value)
                     return;
+
                 textAnchor = value;
 
-                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
-                if (IsLoaded)
-                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
+                layout.Invalidate();
             }
         }
 
@@ -118,22 +127,65 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override void InvalidateLayout()
         {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
+            base.InvalidateLayout();
+            layout.Invalidate();
+        }
+
+        public override IEnumerable<Drawable> FlowingChildren
+        {
+            get
+            {
+                if ((TextAnchor & (Anchor.x2 | Anchor.y2)) == 0)
+                    return base.FlowingChildren;
+
+                var childArray = base.FlowingChildren.ToArray();
+
+                if ((TextAnchor & Anchor.x2) > 0)
+                    reverseHorizontal(childArray);
+                if ((TextAnchor & Anchor.y2) > 0)
+                    reverseVertical(childArray);
+
+                return childArray;
+            }
+        }
+
+        private void reverseHorizontal(Drawable[] children)
+        {
+            int reverseStartIndex = 0;
+
+            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (!(children[i] is NewLineContainer))
+                    continue;
+
+                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
+                reverseStartIndex = i + 1;
+            }
+
+            // Extra loop for the last newline boundary (or all children if there are no newlines)
+            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
+        }
+
+        private void reverseVertical(Drawable[] children)
+        {
+            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
+            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
+            Array.Reverse(children);
+            reverseHorizontal(children);
         }
 
         protected override void UpdateAfterChildren()
         {
-            base.UpdateAfterChildren();
-
             if (!layout.IsValid)
             {
                 computeLayout();
                 layout.Validate();
             }
+
+            base.UpdateAfterChildren();
         }
 
         protected override int Compare(Drawable x, Drawable y)
@@ -142,6 +194,7 @@ namespace osu.Framework.Graphics.Containers
             // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
             if (TextAnchor.HasFlag(Anchor.x2))
                 return base.Compare(y, x);
+
             return base.Compare(x, y);
         }
 
@@ -185,11 +238,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void NewParagraph() => base.Add(new NewLineContainer(true));
 
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
-        {
-            this.defaultCreationParameters = defaultCreationParameters;
-        }
-
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
         internal SpriteText CreateSpriteTextWithLine(TextLine line)
@@ -227,11 +275,13 @@ namespace osu.Framework.Graphics.Containers
         {
             bool first = true;
             var sprites = new List<Drawable>();
+
             foreach (string l in line.Text.Split('\n'))
             {
                 if (!first)
                 {
                     Drawable lastChild = Children.LastOrDefault();
+
                     if (lastChild != null)
                     {
                         var newLine = new NewLineContainer(newLineIsParagraph);
@@ -284,6 +334,7 @@ namespace osu.Framework.Graphics.Containers
         {
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
+
             foreach (var c in Children)
             {
                 c.Anchor = TextAnchor;
@@ -303,6 +354,7 @@ namespace osu.Framework.Graphics.Containers
                             childrenByLine.Add(curLine);
                         curLine = new List<Drawable>();
                     }
+
                     curLine.Add(c);
                 }
             }
@@ -312,6 +364,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
+
             foreach (var line in childrenByLine)
             {
                 bool isFirstChild = true;
