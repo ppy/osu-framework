@@ -426,7 +426,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         private void computeCharacters()
         {
-            ThreadSafety.EnsureUpdateThread();
+            if (LoadState >= LoadState.Loaded)
+                ThreadSafety.EnsureUpdateThread();
 
             if (store == null)
                 return;
