@@ -149,6 +149,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void Clear(ClearInfo clearInfo)
         {
+            PushDepthInfo(new DepthInfo(writeDepth: true));
+
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
@@ -174,6 +176,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             currentClearInfo = clearInfo;
+
+            PopDepthInfo();
         }
 
         /// <summary>
