@@ -155,10 +155,13 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuItem i:
                     return i.Text.Value;
+
                 case IHasText t:
                     return t.Text;
+
                 case Enum e:
                     return e.GetDescription();
+
                 default:
                     return item?.ToString() ?? "null";
             }
@@ -223,8 +226,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
-                && args.NewValue != null)
+            if (args.NewValue == null && SelectedItem != null)
+            {
+                selectedItem = new DropdownMenuItem<T>(null, default);
+            }
+            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {

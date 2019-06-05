@@ -23,6 +23,8 @@ namespace osu.Framework.Platform.MacOS
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
+        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
+
         public override Clipboard GetClipboard() => new MacOSClipboard();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]

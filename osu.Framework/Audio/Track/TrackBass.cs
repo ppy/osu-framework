@@ -14,7 +14,7 @@ using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackBass : Track, IBassAudio, IHasPitchAdjust
+    public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
         private AsyncBufferStream dataStream;
 
@@ -55,12 +55,13 @@ namespace osu.Framework.Audio.Track
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass(Stream data, bool quick = false)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
             EnqueueAction(() =>
             {
                 Preview = quick;
 
-                if (data == null)
-                    throw new ArgumentNullException(nameof(data));
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
@@ -254,17 +255,17 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
-            setDirection(FrequencyCalculated.Value < 0);
+            setDirection(AggregateFrequency.Value < 0);
 
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeCalculated.Value);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceCalculated.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated.Value), 100, 100000);
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
 
         private volatile int bitrate;
 

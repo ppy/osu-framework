@@ -140,6 +140,7 @@ namespace osu.Framework.Graphics.Cursor
             base.Update();
 
             IHasTooltip target = findTooltipTarget();
+
             if (target != null && target != currentlyDisplayed)
             {
                 currentlyDisplayed = target;
@@ -178,6 +179,7 @@ namespace osu.Framework.Graphics.Cursor
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
             IHasTooltip targetCandidate = FindTargets().Find(t => t.TooltipText != null);
+
             // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
             if (targetCandidate != lastCandidate)
             {
@@ -191,6 +193,7 @@ namespace osu.Framework.Graphics.Cursor
             double appearDelay = (targetCandidate as IHasAppearDelay)?.AppearDelay ?? AppearDelay;
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
             double positionRecordInterval = appearDelay / 10;
+
             if (Time.Current - lastRecordedPositionTime >= positionRecordInterval)
             {
                 lastRecordedPositionTime = Time.Current;

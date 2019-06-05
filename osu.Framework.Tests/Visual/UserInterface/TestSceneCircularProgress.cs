@@ -35,6 +35,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             var image = new Image<Rgba32>(width, 1);
 
             gradientTextureHorizontal = new Texture(width, 1, true);
+
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
@@ -46,6 +47,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             image = new Image<Rgba32>(width, 1);
 
             gradientTextureVertical = new Texture(1, width, true);
+
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
@@ -57,6 +59,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             image = new Image<Rgba32>(width, width);
 
             gradientTextureBoth = new Texture(width, width, true);
+
             for (int i = 0; i < width; ++i)
             {
                 for (int j = 0; j < width; ++j)
@@ -108,20 +111,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         protected override void Update()
         {
             base.Update();
+
             switch (rotateMode)
             {
                 case 0:
                     clock.Current.Value = Time.Current % (period * 2) / period - 1;
                     break;
+
                 case 1:
                     clock.Current.Value = Time.Current % period / period;
                     break;
+
                 case 2:
                     clock.Current.Value = Time.Current % period / period - 1;
                     break;
+
                 case 3:
                     clock.Current.Value = Time.Current % transition_period / transition_period / 5 - 0.1f;
                     break;
+
                 case 4:
                     clock.Current.Value = (Time.Current % transition_period / transition_period / 5 - 0.1f + 2) % 2 - 1;
                     break;
@@ -135,12 +143,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 case 0:
                     clock.Texture = Texture.WhitePixel;
                     break;
+
                 case 1:
                     clock.Texture = gradientTextureHorizontal;
                     break;
+
                 case 2:
                     clock.Texture = gradientTextureVertical;
                     break;
+
                 case 3:
                     clock.Texture = gradientTextureBoth;
                     break;
@@ -154,9 +165,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 case 0:
                     clock.Colour = new Color4(255, 255, 255, 255);
                     break;
+
                 case 1:
                     clock.Colour = new Color4(255, 128, 128, 255);
                     break;
+
                 case 2:
                     clock.Colour = new ColourInfo
                     {
@@ -166,6 +179,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         BottomRight = new Color4(128, 255, 128, 255),
                     };
                     break;
+
                 case 3:
                     clock.Colour = new ColourInfo
                     {
@@ -175,6 +189,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         BottomRight = new Color4(128, 255, 128, 255),
                     };
                     break;
+
                 case 4:
                     clock.Colour = new ColourInfo
                     {

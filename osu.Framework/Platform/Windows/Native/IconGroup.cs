@@ -83,6 +83,7 @@ namespace osu.Framework.Platform.Windows.Native
         {
             int requested = Math.Min(width, height);
             int closest = -1;
+
             for (int i = 0; i < iconDir.Count; i++)
             {
                 var entry = iconDir.Entries[i];
