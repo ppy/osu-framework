@@ -3,7 +3,7 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Sample;
+using osu.Framework.Audio.Track;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
@@ -170,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Audio
             public bool Played { get; private set; }
 
             [BackgroundDependencyLoader]
-            private void load(SampleStore samples)
+            private void load(ISampleStore samples)
             {
                 AddInternal(sample = new DrawableSampleChannel(samples.Get("long.mp3")));
             }
