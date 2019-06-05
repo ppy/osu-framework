@@ -13,11 +13,17 @@ namespace osu.Framework.Graphics.Containers
     public class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
-        private static Container<T> container;
+        private readonly Container<T> container;
 
         public AudioContainer()
-            : base(container = new Container<T>())
+            : this(new Container<T>())
         {
+        }
+
+        private AudioContainer(Container<T> container)
+            : base(container)
+        {
+            this.container = container;
         }
 
         public override Vector2 Size
