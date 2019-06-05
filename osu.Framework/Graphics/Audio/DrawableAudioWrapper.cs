@@ -11,6 +11,9 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Audio
 {
+    /// <summary>
+    /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
+    /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
     public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
     {
@@ -27,7 +30,6 @@ namespace osu.Framework.Graphics.Audio
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-
         public BindableDouble Frequency => adjustments.Frequency;
 
         private readonly AdjustableAudioComponent component;
@@ -37,14 +39,20 @@ namespace osu.Framework.Graphics.Audio
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
         /// <summary>
-        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
+        /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
+        /// Generally used to add adjustments to a hierarchy without adding an audio component.
         /// </summary>
-        /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
+        /// <param name="content">The <see cref="Drawable"/> to be wrapped.</param>
         protected DrawableAudioWrapper(Drawable content)
         {
             AddInternal(content);
         }
 
+        /// <summary>
+        /// Creates a <see cref="DrawableAudioWrapper"/> that will wrap an audio component (and contain no drawable content).
+        /// </summary>
+        /// <param name="component">The audio component to wrap.</param>
+        /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
         protected DrawableAudioWrapper([NotNull] AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));

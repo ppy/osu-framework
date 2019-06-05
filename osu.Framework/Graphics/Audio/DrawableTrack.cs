@@ -5,10 +5,18 @@ using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Graphics.Audio
 {
+    /// <summary>
+    /// A <see cref="Track"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
+    /// </summary>
     public class DrawableTrack : DrawableAudioWrapper, ITrack
     {
         private readonly Track track;
 
+        /// <summary>
+        /// Construct a new drawable track instance.
+        /// </summary>
+        /// <param name="track">The audio track to wrap.</param>
+        /// <param name="disposeTrackOnDisposal">Whether the track should be automatically disposed on drawable disposal/expiry.</param>
         public DrawableTrack(Track track, bool disposeTrackOnDisposal = true)
             : base(track, disposeTrackOnDisposal)
         {

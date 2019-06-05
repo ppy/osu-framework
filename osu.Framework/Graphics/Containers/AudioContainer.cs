@@ -4,12 +4,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using osu.Framework.Audio;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container which exposes audio adjustments via <see cref="IAggregateAudioAdjustment"/>.
+    /// </summary>
+    /// <remarks>
+    /// This is a bare-minimal implementation of a container, so it may be required to be nested inside a <see cref="Container"/> for some use cases.
+    /// </remarks>
+    /// <typeparam name="T">The tyoe of <see cref="Drawable"/>.</typeparam>
     public class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
@@ -139,6 +147,12 @@ namespace osu.Framework.Graphics.Containers
         public T this[int index] => container[index];
     }
 
+    /// <summary>
+    /// A container which exposes audio adjustments via <see cref="IAggregateAudioAdjustment"/>.
+    /// </summary>
+    /// <remarks>
+    /// This is a bare-minimal implementation of a container, so it may be required to be nested inside a <see cref="Container"/> for some use cases.
+    /// </remarks>
     public class AudioContainer : AudioContainer<Drawable>
     {
     }
