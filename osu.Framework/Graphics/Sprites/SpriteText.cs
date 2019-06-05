@@ -7,6 +7,7 @@ using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -425,6 +426,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         private void computeCharacters()
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (store == null)
                 return;
 
