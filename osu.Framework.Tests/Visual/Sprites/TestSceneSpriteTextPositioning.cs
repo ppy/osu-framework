@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     new Box
                     {
                         Colour = Color4.Crimson,
-                        RelativeSizeAxes = Axes.Both
+                        RelativeSizeAxes = Axes.Both,
                     },
                     spriteText = new SpriteText
                     {
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
 
                 if (allowMultiLine)
-                    spriteText.Width = 500;
+                    spriteText.Width = 250;
 
                 AutoSizeAxes = Axes.Both;
             }
