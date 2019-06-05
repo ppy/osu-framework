@@ -48,7 +48,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
             AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
 
-            AddStep("remove delayed from children", Clear);
+            AddStep("dispose children", () =>
+            {
+                Clear();
+                avatar1.Dispose();
+                avatar2.Dispose();
+            });
 
             AddUntilStep("gl textures disposed", () => texture.ReferenceCount == 0);
         }
