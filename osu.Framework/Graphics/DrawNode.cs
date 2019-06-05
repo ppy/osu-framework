@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="DrawNode"/>.
         /// </summary>
-        protected internal DrawColourInfo DrawColourInfo { get; internal set; }
+        protected DrawColourInfo DrawColourInfo { get; private set; }
 
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
