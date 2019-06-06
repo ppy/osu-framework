@@ -5,10 +5,12 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 #pragma warning disable 4014
 
@@ -237,15 +239,44 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestReversedLoopingRestart()
         {
-            track.TempoAdjust = -1;
+            track.Looping = true;
+
+            var clock = (IAdjustableClock)track;
+
+            switch (clock)
+            {
+                case IHasPitchAdjust pitch:
+                    pitch.PitchAdjust = -1;
+                    break;
+
+                case IHasTempoAdjust tempo:
+                    tempo.TempoAdjust = -1;
+                    break;
+
+                default:
+                    clock.Rate = -1;
+                    break;
+            }
 
             startPlaybackAt(1);
 
             Thread.Sleep(50);
 
             updateTrack();
+            updateTrack();
 
-            Assert.LessOrEqual(track.CurrentTime, 1000);
+            int loopCount = 0;
+
+            while (++loopCount < 50 && !track.IsRunning)
+            {
+                updateTrack();
+                Thread.Sleep(10);
+            }
+
+            if (loopCount == 50)
+                throw new TimeoutException("Track failed to start in time.");
+
+            Assert.GreaterOrEqual(track.CurrentTime, 1000);
         }
 
         private void startPlaybackAt(double time)
