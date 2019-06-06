@@ -124,7 +124,7 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
-        public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
+        public override bool HasCompleted => IsLoaded && !IsRunning && (!IsReversed ? CurrentTime >= Length : 0 <= Length);
 
         /// <summary>
         /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
