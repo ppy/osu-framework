@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.Containers
                     GLWrapper.PopMaskingInfo();
             }
 
-            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
                 DrawChildrenOpaqueInteriors(depthValue, vertexAction);
                 base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);

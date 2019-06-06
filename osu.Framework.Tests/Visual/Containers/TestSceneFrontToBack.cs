@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
             }
 
-            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
                 startQuery();
                 base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
