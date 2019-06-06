@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics
         /// Whether this <see cref="DrawNode"/> can draw a opaque interior. <see cref="DrawOpaqueInterior"/> will only be invoked if this value is <code>true</code>.
         /// Should not return <code>true</code> if <see cref="DrawOpaqueInterior"/> will result in a no-op.
         /// </summary>
-        protected virtual bool CanDrawOpaqueInterior => false;
+        protected internal virtual bool CanDrawOpaqueInterior => false;
 
         /// <summary>
         /// Draws a triangle to the screen.

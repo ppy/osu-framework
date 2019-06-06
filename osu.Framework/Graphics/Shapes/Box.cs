@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Shapes
                 TextureShader.Unbind();
             }
 
-            protected override bool CanDrawOpaqueInterior =>
+            protected internal override bool CanDrawOpaqueInterior =>
                 Texture?.Available == true
                 && DrawColourInfo.Colour.MinAlpha == 1
                 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
