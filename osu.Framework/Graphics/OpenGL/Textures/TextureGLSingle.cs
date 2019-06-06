@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        internal override bool Bind()
+        public override bool Bind()
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");

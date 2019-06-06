@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        internal override bool Bind()
+        public override bool Bind()
         {
             //we can use the special white space from any atlas texture.
             if (GLWrapper.AtlasTextureIsBound)
