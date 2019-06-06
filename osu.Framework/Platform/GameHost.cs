@@ -326,7 +326,7 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                    if (frontToBackPass.Value)
+                    if (!bypassFrontToBackPass.Value)
                     {
                         var depthValue = new DepthValue();
 
@@ -657,7 +657,7 @@ namespace osu.Framework.Platform
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
-        private Bindable<bool> frontToBackPass;
+        private Bindable<bool> bypassFrontToBackPass;
 
         private Bindable<GCLatencyMode> activeGCMode;
 
@@ -774,7 +774,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
 
-            frontToBackPass = debugConfig.GetBindable<bool>(DebugSetting.FrontToBackPass);
+            bypassFrontToBackPass = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
         }
 
         private void setVSyncMode()
