@@ -108,6 +108,8 @@ namespace osu.Framework.Graphics
                 return;
             }
 
+            float origDepthValue = depthValue;
+
             // It is crucial to draw with an incremented depth value, consider the case of a box:
             // In the front-to-back pass, the inner conservative area is drawn at depth X
             // In the back-to-front pass, the full area is drawn at depth X, and the depth test function is set to GL_LESS, so the inner conservative area is not redrawn
@@ -115,6 +117,8 @@ namespace osu.Framework.Graphics
             drawDepth = depthValue.Increment();
 
             DrawOpaqueInterior(vertexAction);
+
+            drawDepth = origDepthValue;
         }
 
         /// <summary>

@@ -330,12 +330,12 @@ namespace osu.Framework.Platform
                     {
                         var depthValue = new DepthValue();
 
-                        GLWrapper.PushDepthInfo(DepthInfo.Default);
-
                         // Front pass
+                        GL.ColorMask(false, false, false, false);
+                        GLWrapper.PushDepthInfo(DepthInfo.Default);
                         buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
-
                         GLWrapper.PopDepthInfo();
+                        GL.ColorMask(true, true, true, true);
 
                         // The back pass doesn't write depth, but needs to depth test properly
                         GLWrapper.PushDepthInfo(new DepthInfo(true, false));
