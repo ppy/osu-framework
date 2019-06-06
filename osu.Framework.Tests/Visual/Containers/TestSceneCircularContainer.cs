@@ -5,13 +5,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description(@"Checking for bugged corner radius")]
-    public class TestSceneCircularContainer : TestScene
+    public class TestSceneCircularContainer : FrameworkTestScene
     {
         private SingleUpdateCircularContainer container;
 

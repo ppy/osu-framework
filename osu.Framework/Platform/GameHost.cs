@@ -328,7 +328,31 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
+                    if (!bypassFrontToBackPass.Value)
+                    {
+                        var depthValue = new DepthValue();
+
+                        GLWrapper.PushDepthInfo(DepthInfo.Default);
+
+                        // Front pass
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+
+                        GLWrapper.PopDepthInfo();
+
+                        // The back pass doesn't write depth, but needs to depth test properly
+                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    }
+                    else
+                    {
+                        // Disable depth testing
+                        GLWrapper.PushDepthInfo(new DepthInfo());
+                    }
+
+                    // Back pass
                     buffer.Object.Draw(null);
+
+                    GLWrapper.PopDepthInfo();
+
                     lastDrawFrameId = buffer.FrameId;
                     break;
                 }
@@ -635,6 +659,8 @@ namespace osu.Framework.Platform
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
+        private Bindable<bool> bypassFrontToBackPass;
+
         private Bindable<GCLatencyMode> activeGCMode;
 
         private Bindable<FrameSync> frameSyncMode;
@@ -749,6 +775,8 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
+
+            bypassFrontToBackPass = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
         }
 
         private void setVSyncMode()
