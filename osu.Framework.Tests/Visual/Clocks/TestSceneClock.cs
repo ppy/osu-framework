@@ -7,14 +7,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Clocks
 {
-    public abstract class TestSceneClock : TestScene
+    public abstract class TestSceneClock : FrameworkTestScene
     {
         private readonly FillFlowContainer fill;
 

@@ -7,13 +7,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneScreenshot : TestScene
+    public class TestSceneScreenshot : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
