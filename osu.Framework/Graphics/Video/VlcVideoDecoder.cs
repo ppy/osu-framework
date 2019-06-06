@@ -15,6 +15,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Video
 {
+    // ReSharper disable RedundantAssignment
     public unsafe class VlcVideoDecoder : VideoDecoder
     {
         private static readonly MethodInfo set_callback_method;
@@ -202,7 +203,7 @@ namespace osu.Framework.Graphics.Video
             var handle = new ObjectHandle<VlcVideoDecoder>(userData);
             handle.GetTarget(out VlcVideoDecoder decoder);
 
-            writeFourCcString("RV32", chroma);
+            writeFourCcString("RGBA", chroma);
 
             var mediaTrack = decoder.media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video);
             var videoTrack = mediaTrack.Data.Video;
