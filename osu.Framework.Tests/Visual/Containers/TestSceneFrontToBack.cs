@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("add more drawables", addMoreDrawables);
             AddToggleStep("disable front to back", val =>
             {
-                debugConfig.Set(DebugSetting.FTBPass, !val);
+                debugConfig.Set(DebugSetting.FrontToBackPass, !val);
                 Invalidate(Invalidation.DrawNode); // reset counts
             });
 

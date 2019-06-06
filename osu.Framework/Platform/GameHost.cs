@@ -774,7 +774,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
 
-            ftbPass = debugConfig.GetBindable<bool>(DebugSetting.FTBPass);
+            ftbPass = debugConfig.GetBindable<bool>(DebugSetting.FrontToBackPass);
         }
 
         private void setVSyncMode()
