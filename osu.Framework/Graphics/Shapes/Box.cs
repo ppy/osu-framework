@@ -53,9 +53,9 @@ namespace osu.Framework.Graphics.Shapes
                 conservativeScreenSpaceDrawQuad = Source.conservativeScreenSpaceDrawQuad;
             }
 
-            protected override void DrawHull(Action<TexturedVertex2D> vertexAction)
+            protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
             {
-                base.DrawHull(vertexAction);
+                base.DrawOpaqueInterior(vertexAction);
 
                 TextureShader.Bind();
                 Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Shapes
                 TextureShader.Unbind();
             }
 
-            protected override bool CanDrawHull =>
+            protected override bool CanDrawOpaqueInterior =>
                 Texture?.Available == true
                 && DrawColourInfo.Colour.MinAlpha == 1
                 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd

@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 labelDrawables.Text = $"boxes: {Cell(1).Children.Count * cell_count:N0}";
                 labelFrag.Text = $"samples ({nameof(DrawNode.Draw)}): {drawNode.DrawSamples:N0}";
-                labelFrag2.Text = $"samples ({nameof(DrawNode.DrawHullSubTree)}): {drawNode.DrawHullSubTreeSamples:N0}";
+                labelFrag2.Text = $"samples ({nameof(DrawNode.DrawOpaqueInteriorSubTree)}): {drawNode.DrawOpaqueInteriorSubTreeSamples:N0}";
             }
         }
 
@@ -112,24 +112,24 @@ namespace osu.Framework.Tests.Visual.Containers
             private int queryObject = -1;
 
             public int DrawSamples { get; private set; }
-            public int DrawHullSubTreeSamples { get; private set; }
+            public int DrawOpaqueInteriorSubTreeSamples { get; private set; }
 
             public QueryingCompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
             {
             }
 
-            protected internal override void DrawHullSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
                 startQuery();
-                base.DrawHullSubTree(depthValue, vertexAction);
-                DrawHullSubTreeSamples = endQuery();
+                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                DrawOpaqueInteriorSubTreeSamples = endQuery();
             }
 
             public override void ApplyState()
             {
                 DrawSamples = 0;
-                DrawHullSubTreeSamples = 0;
+                DrawOpaqueInteriorSubTreeSamples = 0;
                 base.ApplyState();
             }
 

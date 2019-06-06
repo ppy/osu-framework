@@ -7,7 +7,7 @@ namespace osu.Framework.Graphics.OpenGL
 {
     /// <summary>
     /// The depth value used to draw 2D objects to the screen.
-    /// Starts at -1f and increments to 1f for each <see cref="Drawable"/> which draws a hull through <see cref="DrawNode.DrawHull"/>.
+    /// Starts at -1f and increments to 1f for each <see cref="Drawable"/> which draws a opaque interior through <see cref="DrawNode.DrawOpaqueInterior"/>.
     /// </summary>
     public class DepthValue
     {

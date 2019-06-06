@@ -223,19 +223,19 @@ namespace osu.Framework.Graphics.Containers
                     GLWrapper.PopMaskingInfo();
             }
 
-            protected internal override void DrawHullSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
-                DrawChildrenHulls(depthValue, vertexAction);
-                base.DrawHullSubTree(depthValue, vertexAction);
+                DrawChildrenOpaqueInteriors(depthValue, vertexAction);
+                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
             }
 
             /// <summary>
-            /// Performs <see cref="DrawHullSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
+            /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
             /// </summary>
             /// <param name="depthValue">The previous depth value.</param>
             /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            protected virtual void DrawChildrenHulls(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
                 bool canIncrement = depthValue.CanIncrement;
 
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Children != null)
                 {
                     for (int i = Children.Count - 1; i >= 0; i--)
-                        Children[i].DrawHullSubTree(depthValue, vertexAction);
+                        Children[i].DrawOpaqueInteriorSubTree(depthValue, vertexAction);
                 }
 
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.

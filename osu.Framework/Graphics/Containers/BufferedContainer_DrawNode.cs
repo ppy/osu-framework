@@ -135,9 +135,9 @@ namespace osu.Framework.Graphics.Containers
                 set => Child.Children = value;
             }
 
-            protected internal override void DrawHullSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
             {
-                // Hulls aren't supported inside buffered containers yet
+                // Opaque interiors aren't supported inside buffered containers yet
             }
 
             public bool AddChildDrawNodes => RequiresRedraw;
