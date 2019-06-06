@@ -8,11 +8,10 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneTextures : TestScene
+    public class TestSceneTextures : FrameworkTestScene
     {
         [Cached]
         private TextureStore normalStore;
