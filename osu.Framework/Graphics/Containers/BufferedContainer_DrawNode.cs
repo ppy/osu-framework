@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -132,6 +133,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 get => Child.Children;
                 set => Child.Children = value;
+            }
+
+            protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            {
+                // Opaque interiors aren't supported inside buffered containers yet
             }
 
             public bool AddChildDrawNodes => RequiresRedraw;

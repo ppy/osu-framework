@@ -36,8 +36,6 @@ namespace osu.Framework.Graphics.Shapes
 
         private class TriangleDrawNode : SpriteDrawNode
         {
-            protected new Triangle Source => (Triangle)base.Source;
-
             public TriangleDrawNode(Triangle source)
                 : base(source)
             {
