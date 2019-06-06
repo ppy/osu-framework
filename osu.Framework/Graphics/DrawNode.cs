@@ -92,10 +92,10 @@ namespace osu.Framework.Graphics
         /// indicates that a hull can be drawn for each relevant <see cref="DrawNode"/>.
         /// </summary>
         /// <remarks>
-        /// This is the front-to-back (FTB) pass. The back-buffer depth test function used is GL_LESS.<br />
+        /// This is the front-to-back pass. The back-buffer depth test function used is GL_LESS.<br />
         /// If a hull is not drawn: the current value of <paramref name="depthValue"/> is stored.<br />
         /// If a hull is drawn: <paramref name="depthValue"/> is incremented, stored, and the hull vertices are drawn at the post-incremented depth value.
-        /// Incrementing <paramref name="depthValue"/> at this point allows for early-z testing to also occur within the FTB pass.<br />
+        /// Incrementing <paramref name="depthValue"/> at this point allows for early-z testing to also occur within the front-to-back pass.<br />
         /// </remarks>
         /// <param name="depthValue">The previous depth value.</param>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
@@ -109,9 +109,9 @@ namespace osu.Framework.Graphics
             }
 
             // It is crucial to draw with an incremented depth value, consider the case of a box:
-            // In the FTB pass, the inner conservative area is drawn at depth X
-            // In the BTF pass, the full area is drawn at depth X, and the depth test function is set to GL_LESS, so the inner conservative area is not redrawn
-            // Furthermore, a BTF-drawn object above the box will be visible since it will be drawn with a depth of (X - increment), satisfying the depth test
+            // In the front-to-back pass, the inner conservative area is drawn at depth X
+            // In the back-to-front pass, the full area is drawn at depth X, and the depth test function is set to GL_LESS, so the inner conservative area is not redrawn
+            // Furthermore, a back-to-front-drawn object above the box will be visible since it will be drawn with a depth of (X - increment), satisfying the depth test
             drawDepth = depthValue.Increment();
 
             DrawHull(vertexAction);
