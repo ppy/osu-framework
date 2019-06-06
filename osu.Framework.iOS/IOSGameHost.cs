@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
@@ -51,5 +53,7 @@ namespace osu.Framework.iOS
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
+
+        public override VideoDecoder CreateVideoDecoder(Stream stream) => new VlcVideoDecoder(stream);
     }
 }

@@ -47,6 +47,8 @@ namespace osu.Framework.Android
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
 
+        public override VideoDecoder CreateVideoDecoder(Stream stream) => new VlcVideoDecoder(stream);
+
         protected override void PerformExit(bool immediately)
         {
             // Do not exit on Android, Window.Run() does not block
