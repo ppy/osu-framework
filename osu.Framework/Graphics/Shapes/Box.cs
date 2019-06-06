@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Shapes
             protected new Box Source => (Box)base.Source;
 
             private Quad conservativeScreenSpaceDrawQuad;
+            private bool hasOpaqueInterior;
 
             public BoxDrawNode(Box source)
                 : base(source)
@@ -51,6 +52,10 @@ namespace osu.Framework.Graphics.Shapes
                 base.ApplyState();
 
                 conservativeScreenSpaceDrawQuad = Source.conservativeScreenSpaceDrawQuad;
+
+                hasOpaqueInterior = DrawColourInfo.Colour.MinAlpha == 1
+                                    && DrawColourInfo.Blending.Equals(new BlendingInfo(BlendingMode.Mixture))
+                                    && DrawColourInfo.Colour.HasSingleColour;
             }
 
             protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
@@ -73,11 +78,7 @@ namespace osu.Framework.Graphics.Shapes
                 TextureShader.Unbind();
             }
 
-            protected internal override bool CanDrawOpaqueInterior =>
-                Texture?.Available == true
-                && DrawColourInfo.Colour.MinAlpha == 1
-                && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd
-                && DrawColourInfo.Colour.HasSingleColour;
+            protected internal override bool CanDrawOpaqueInterior => Texture?.Available == true && hasOpaqueInterior;
         }
     }
 }
