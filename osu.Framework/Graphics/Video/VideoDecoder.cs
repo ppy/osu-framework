@@ -142,10 +142,10 @@ namespace osu.Framework.Graphics.Video
 
             IsDisposed = true;
 
+            StopDecoding(true);
+
             VideoStream.Dispose();
             VideoStream = null;
-
-            StopDecoding(true);
 
             while (DecodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();

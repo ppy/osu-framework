@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Video
 
                 looping = value;
 
-                if (Looping)
+                if (Looping && State != DecoderState.Stopped)
                     restartPlayer();
             }
         }
@@ -115,23 +115,26 @@ namespace osu.Framework.Graphics.Video
 
             State = DecoderState.Stopped;
 
-            if (player?.IsPlaying ?? false)
-                player?.Stop();
+            if (disposing)
+            {
+                if (player.IsPlaying)
+                    player.Stop();
 
-            player?.Dispose();
+                player.Dispose();
             player = null;
+
+                media.Dispose();
+            media = null;
+
+                libVlc.Dispose();
+            libVlc = null;
+
+            objectHandle.Dispose();
+            }
 
             if (buffer != IntPtr.Zero)
                 Marshal.FreeHGlobal(buffer);
             buffer = IntPtr.Zero;
-
-            media?.Dispose();
-            media = null;
-
-            libVlc?.Dispose();
-            libVlc = null;
-
-            objectHandle.Dispose();
 
             videoCleanupDelegate = null;
             videoDisplayDelegate = null;
