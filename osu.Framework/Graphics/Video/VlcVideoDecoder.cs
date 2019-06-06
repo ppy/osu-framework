@@ -121,15 +121,15 @@ namespace osu.Framework.Graphics.Video
                     player.Stop();
 
                 player.Dispose();
-            player = null;
+                player = null;
 
                 media.Dispose();
-            media = null;
+                media = null;
 
                 libVlc.Dispose();
-            libVlc = null;
+                libVlc = null;
 
-            objectHandle.Dispose();
+                objectHandle.Dispose();
             }
 
             if (buffer != IntPtr.Zero)
