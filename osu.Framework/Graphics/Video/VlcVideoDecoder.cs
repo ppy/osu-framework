@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Video
 
         public override double FrameRate => player.Fps;
 
-        public override void Seek(double targetTimestamp) => player.Time = (long)targetTimestamp;
+        public override void Seek(double targetTimestamp) => seek((long)targetTimestamp);
 
         private bool looping;
 
@@ -151,8 +151,19 @@ namespace osu.Framework.Graphics.Video
         private void restartPlayer()
         {
             player.Play();
-            player.Time = 0;
+            seek(0);
             State = DecoderState.Running;
+        }
+
+        private void seek(long timestamp)
+        {
+            if (player.Time == timestamp)
+                return;
+
+            if (!VideoStream.CanSeek)
+                throw new InvalidOperationException("Tried seeking on a video sourced by a non-seekable stream.");
+
+            player.Time = timestamp;
         }
 
         private static void writeFourCcString(string fourCcString, IntPtr destination)
