@@ -881,7 +881,7 @@ namespace osu.Framework.Platform
         public virtual IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new TextureLoaderStore(underlyingStore);
 
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VlcVideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new FfmpegVideoDecoder(stream);
     }
 
     /// <summary>
