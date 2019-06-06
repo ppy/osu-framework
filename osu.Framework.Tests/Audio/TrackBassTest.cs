@@ -234,6 +234,20 @@ namespace osu.Framework.Tests.Audio
             Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
+        [Test]
+        public void TestReversedLoopingRestart()
+        {
+            track.Rate = -1;
+
+            startPlaybackAt(1);
+
+            Thread.Sleep(50);
+
+            updateTrack();
+
+            Assert.LessOrEqual(track.CurrentTime, 1000);
+        }
+
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
