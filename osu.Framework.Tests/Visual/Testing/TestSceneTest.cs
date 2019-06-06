@@ -7,7 +7,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneTest : TestScene
+    public class TestSceneTest : FrameworkTestScene
     {
         private int setupRun;
         private int setupStepsRun;

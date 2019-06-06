@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleBass : Sample, IBassAudio
+    internal sealed class SampleBass : Sample, IBassAudio
     {
         private volatile int sampleId;
 
         public override bool IsLoaded => sampleId != 0;
 
-        public SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
+        internal SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
             : base(concurrency)
         {
             if (customPendingActions != null)

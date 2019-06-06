@@ -12,13 +12,12 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneBorderless : TestScene
+    public class TestSceneBorderless : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
