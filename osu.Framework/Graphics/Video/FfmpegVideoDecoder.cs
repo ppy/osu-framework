@@ -18,24 +18,12 @@ namespace osu.Framework.Graphics.Video
     /// </summary>
     public unsafe class FfmpegVideoDecoder : VideoDecoder
     {
-        /// <summary>
-        /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
-        /// </summary>
         public override double Duration => stream->duration * timeBaseInSeconds * 1000;
 
-        /// <summary>
-        /// The timestamp of the last frame that was decoded by this video decoder, or 0 if no frames have been decoded.
-        /// </summary>
         public override float LastDecodedFrameTime => lastDecodedFrameTime;
 
-        /// <summary>
-        /// The frame rate of the video stream this decoder is decoding.
-        /// </summary>
         public override double FrameRate => stream->avg_frame_rate.GetValue();
 
-        /// <summary>
-        /// The current decoding state.
-        /// </summary>
         public override DecoderState State
         {
             get => state;
@@ -219,6 +207,9 @@ namespace osu.Framework.Graphics.Video
 
                     uncompressedFrameSize = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     frameRgbBufferPtr = Marshal.AllocHGlobal(uncompressedFrameSize);
+
+                    Width = codecParams.width;
+                    Height = codecParams.height;
 
                     var dataArr4 = *(byte_ptrArray4*)&ffmpegFrame->data;
                     var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;

@@ -48,7 +48,11 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The current decoding state.
         /// </summary>
-        public abstract DecoderState State { get; protected set; }
+        public virtual DecoderState State { get; protected set; }
+
+        public int Width { get; protected set; }
+
+        public int Height { get; protected set; }
 
         protected bool IsDisposed;
 
@@ -57,7 +61,7 @@ namespace osu.Framework.Graphics.Video
         protected readonly ConcurrentQueue<DecodedFrame> DecodedFrames;
         protected readonly ConcurrentQueue<Texture> AvailableTextures;
 
-        public bool Looping;
+        public virtual bool Looping { get; set; }
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video stream.

@@ -44,29 +44,32 @@ namespace osu.Framework.Graphics.Video
 
         public override double FrameRate => player.Fps;
 
-        /// <summary>
-        /// The current decoding state.
-        /// </summary>
-        public override DecoderState State
-        {
-            get => state;
-            protected set => state = value;
-        }
+        public override void Seek(double targetTimestamp) => player.Time = (long)targetTimestamp;
 
-        private volatile DecoderState state;
+        private bool looping;
+
+        public override bool Looping
+        {
+            get => looping;
+            set
+            {
+                if (looping == value)
+                    return;
+
+                looping = value;
+
+                if (Looping)
+                    restartPlayer();
+            }
+        }
 
         private LibVLC libVlc;
         private Media media;
         private MediaPlayer player;
 
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-
         private ObjectHandle<VlcVideoDecoder> objectHandle;
 
         private IntPtr buffer = IntPtr.Zero;
-
-        public override void Seek(double targetTimestamp) => player.Position = (float)(targetTimestamp / media.Duration);
 
         private MediaPlayer.LibVLCVideoLockCb videoLockDelegate;
         private MediaPlayer.LibVLCVideoUnlockCb videoUnlockDelegate;
@@ -95,24 +98,12 @@ namespace osu.Framework.Graphics.Video
             libVlcVideoSetCallbacks(player.NativeReference, videoLockDelegate, videoUnlockDelegate, videoDisplayDelegate, objectHandle.Handle);
         }
 
-        private void playerEndReached(object sender, EventArgs e)
-        {
-            if (Looping)
-                player.Position = 0;
-            else
-                State = DecoderState.EndOfStream;
-        }
-
-        public override void StartDecoding()
-        {
-            player.Play();
-            State = DecoderState.Running;
-        }
+        public override void StartDecoding() => restartPlayer();
 
         public override void StopDecoding(bool waitForDecoderExit)
         {
             player.Stop();
-            State = DecoderState.Ready;
+            State = DecoderState.Stopped;
         }
 
         protected override void Dispose(bool disposing)
@@ -122,15 +113,17 @@ namespace osu.Framework.Graphics.Video
 
             base.Dispose(disposing);
 
+            State = DecoderState.Stopped;
+
+            if (player?.IsPlaying ?? false)
+                player?.Stop();
+
+            player?.Dispose();
+            player = null;
+
             if (buffer != IntPtr.Zero)
                 Marshal.FreeHGlobal(buffer);
             buffer = IntPtr.Zero;
-
-            State = DecoderState.Stopped;
-            if (player?.IsPlaying ?? false)
-                player?.Stop();
-            player?.Dispose();
-            player = null;
 
             media?.Dispose();
             media = null;
@@ -147,13 +140,39 @@ namespace osu.Framework.Graphics.Video
             videoUnlockDelegate = null;
         }
 
+        private void playerEndReached(object sender, EventArgs e)
+        {
+            if (Looping)
+                restartPlayer();
+            else
+                State = DecoderState.EndOfStream;
+        }
+
+        private void restartPlayer()
+        {
+            player.Play();
+            player.Time = 0;
+            State = DecoderState.Running;
+        }
+
+        private static void writeFourCcString(string fourCcString, IntPtr destination)
+        {
+            var bytes = Encoding.ASCII.GetBytes(fourCcString);
+
+            for (var i = 0; i < 4; i++)
+                Marshal.WriteByte(destination, i, bytes[i]);
+        }
+
+        #region LibVLC Callbacks
+
         [MonoPInvokeCallback(typeof(MediaPlayer.LibVLCVideoLockCb))]
         private static IntPtr videoLockCallback(IntPtr opaque, IntPtr planes)
         {
             var handle = new ObjectHandle<VlcVideoDecoder>(opaque);
-            handle.GetTarget(out VlcVideoDecoder decoder);
 
-            Marshal.WriteIntPtr(planes, decoder.buffer);
+            if (handle.GetTarget(out VlcVideoDecoder decoder))
+                Marshal.WriteIntPtr(planes, decoder.buffer);
+
             return opaque;
         }
 
@@ -166,7 +185,9 @@ namespace osu.Framework.Graphics.Video
         private static void videoDisplayCallback(IntPtr opaque, IntPtr picture)
         {
             var handle = new ObjectHandle<VlcVideoDecoder>(opaque);
-            handle.GetTarget(out VlcVideoDecoder decoder);
+
+            if (!handle.GetTarget(out VlcVideoDecoder decoder))
+                return;
 
             const int max_pending_frames = 3;
 
@@ -180,11 +201,8 @@ namespace osu.Framework.Graphics.Video
             new Span<Rgba32>(decoder.buffer.ToPointer(), decoder.Width * decoder.Height).CopyTo(upload.RawData);
             tex.SetData(upload);
 
-            float time = decoder.player.Position * decoder.media.Duration;
-
-            decoder.DecodedFrames.Enqueue(new DecodedFrame { Time = time, Texture = tex });
-
-            decoder.lastDecodedFrameTime = time;
+            decoder.lastDecodedFrameTime = decoder.player.Time;
+            decoder.DecodedFrames.Enqueue(new DecodedFrame { Time = decoder.lastDecodedFrameTime, Texture = tex });
         }
 
         private static uint alignDimension(uint dimension, uint mod)
@@ -201,7 +219,9 @@ namespace osu.Framework.Graphics.Video
         private static uint videoFormatCallback(ref IntPtr userData, IntPtr chroma, ref uint width, ref uint height, ref uint pitches, ref uint lines)
         {
             var handle = new ObjectHandle<VlcVideoDecoder>(userData);
-            handle.GetTarget(out VlcVideoDecoder decoder);
+
+            if (!handle.GetTarget(out VlcVideoDecoder decoder))
+                return 0;
 
             writeFourCcString("RGBA", chroma);
 
@@ -231,7 +251,9 @@ namespace osu.Framework.Graphics.Video
         private static void videoCleanupCallback(ref IntPtr opaque)
         {
             var handle = new ObjectHandle<VlcVideoDecoder>(opaque);
-            handle.GetTarget(out VlcVideoDecoder decoder);
+
+            if (!handle.GetTarget(out VlcVideoDecoder decoder))
+                return;
 
             if (decoder.buffer != IntPtr.Zero)
                 Marshal.FreeHGlobal(decoder.buffer);
@@ -239,19 +261,6 @@ namespace osu.Framework.Graphics.Video
             decoder.buffer = IntPtr.Zero;
         }
 
-        private static void writeFourCcString(string fourCcString, IntPtr destination)
-        {
-            if (fourCcString.Length != 4)
-            {
-                throw new ArgumentException("4CC codes must be 4 characters long", nameof(fourCcString));
-            }
-
-            var bytes = Encoding.ASCII.GetBytes(fourCcString);
-
-            for (var i = 0; i < 4; i++)
-            {
-                Marshal.WriteByte(destination, i, bytes[i]);
-            }
-        }
+        #endregion
     }
 }
