@@ -9,6 +9,7 @@ using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 #pragma warning disable 4014
 
@@ -237,7 +238,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestReversedLoopingRestart()
         {
-            track.Rate = -1;
+            track.TempoAdjust = -1;
 
             startPlaybackAt(1);
 
