@@ -24,7 +24,13 @@ namespace osu.Framework.Graphics.Shapes
 
         public Box()
         {
-            Texture = Texture.WhitePixel;
+            base.Texture = Texture.WhitePixel;
+        }
+
+        public override Texture Texture
+        {
+            get => base.Texture;
+            set => throw new InvalidOperationException($"The texture of a {nameof(Box)} cannot be set.");
         }
 
         protected override DrawNode CreateDrawNode() => new BoxDrawNode(this);
