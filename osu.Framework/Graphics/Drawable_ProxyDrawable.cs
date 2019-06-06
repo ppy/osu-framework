@@ -76,16 +76,25 @@ namespace osu.Framework.Graphics
                 {
                 }
 
+                protected internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.Draw(vertexAction);
+
+                protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
+
+                private DrawNode getCurrentFrameSource()
                 {
                     var target = Source.originalDrawNodes[DrawNodeIndex];
+
                     if (target == null)
-                        return;
+                        return null;
 
                     if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
-                        return;
+                        return null;
 
-                    target.Draw(vertexAction);
+                    return target;
                 }
             }
         }
