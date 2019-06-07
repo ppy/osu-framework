@@ -16,6 +16,8 @@ namespace osu.Framework.Audio.Track
 {
     public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
+        public const int BYTES_PER_SAMPLE = 4;
+
         private AsyncBufferStream dataStream;
 
         /// <summary>
@@ -52,8 +54,6 @@ namespace osu.Framework.Audio.Track
         private volatile bool isLoaded;
 
         public override bool IsLoaded => isLoaded;
-
-        public const int BYTES_PER_SAMPLE = 4;
 
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
