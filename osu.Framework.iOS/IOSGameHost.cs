@@ -1,9 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
@@ -29,6 +30,13 @@ namespace osu.Framework.iOS
             base.SetupForRun();
             IOSGameWindow.GameView = gameView;
             Window = new IOSGameWindow();
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        {
+            base.SetupConfig(gameDefaults);
+
+            DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
         }
 
         protected override void PerformExit(bool immediately)

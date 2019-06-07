@@ -109,10 +109,13 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSeekToEndFails()
         {
-            track.SeekAsync(track.Length);
+            bool? success = null;
+
+            runOnAudioThread(() => { success = track.Seek(track.Length); });
             updateTrack();
 
             Assert.AreEqual(0, track.CurrentTime);
+            Assert.IsFalse(success);
         }
 
         [Test]

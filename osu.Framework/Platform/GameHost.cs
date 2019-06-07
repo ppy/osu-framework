@@ -46,9 +46,9 @@ namespace osu.Framework.Platform
     {
         public GameWindow Window { get; protected set; }
 
-        private FrameworkDebugConfigManager debugConfig;
+        protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
-        private FrameworkConfigManager config;
+        protected FrameworkConfigManager Config { get; private set; }
 
         /// <summary>
         /// Whether the <see cref="GameWindow"/> is active (in the foreground).
@@ -273,7 +273,7 @@ namespace osu.Framework.Platform
 
             if (Window == null)
             {
-                var windowedSize = config.Get<Size>(FrameworkSetting.WindowedSize);
+                var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
             else if (Window.WindowState != WindowState.Minimized)
@@ -488,11 +488,11 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig(game.GetFrameworkConfigDefaults());
+                SetupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
-                    Window.SetupWindow(config);
+                    Window.SetupWindow(Config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     IsActive.BindTo(Window.IsActive);
@@ -672,7 +672,7 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
             var hostDefaults = new Dictionary<FrameworkSetting, object>
             {
@@ -686,10 +686,10 @@ namespace osu.Framework.Platform
                     hostDefaults[d.Key] = d.Value;
             }
 
-            Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
+            Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
+            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
 
-            windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+            windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
 
             windowMode.BindValueChanged(mode =>
             {
@@ -700,10 +700,10 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
+            activeGCMode = DebugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += e => { GCSettings.LatencyMode = IsActive.Value ? e.NewValue : GCLatencyMode.Interactive; };
 
-            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+            frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
             {
                 float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
@@ -747,7 +747,7 @@ namespace osu.Framework.Platform
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
 
-            ignoredInputHandlers = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
+            ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
@@ -771,12 +771,12 @@ namespace osu.Framework.Platform
                 }
             };
 
-            cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+            cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
+            Config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
 
-            bypassFrontToBackPass = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
+            bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
         }
 
         private void setVSyncMode()
@@ -816,8 +816,8 @@ namespace osu.Framework.Platform
             Root?.Dispose();
             Root = null;
 
-            config?.Dispose();
-            debugConfig?.Dispose();
+            Config?.Dispose();
+            DebugConfig?.Dispose();
 
             Window?.Dispose();
 

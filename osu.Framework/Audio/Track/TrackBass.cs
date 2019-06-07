@@ -16,6 +16,8 @@ namespace osu.Framework.Audio.Track
 {
     public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
+        public const int BYTES_PER_SAMPLE = 4;
+
         private AsyncBufferStream dataStream;
 
         /// <summary>
@@ -39,6 +41,11 @@ namespace osu.Framework.Audio.Track
         private bool isPlayed;
 
         private long byteLength;
+
+        /// <summary>
+        /// The last position that a seek will succeed for.
+        /// </summary>
+        private double lastSeekablePosition;
 
         private FileCallbacks fileCallbacks;
         private SyncCallback stopCallback;
@@ -96,6 +103,9 @@ namespace osu.Framework.Audio.Track
                 if (success)
                 {
                     Length = seconds * 1000;
+
+                    // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
                     Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                     initialFrequency = frequency;
@@ -227,7 +237,7 @@ namespace osu.Framework.Audio.Track
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
-            double conservativeLength = Length == 0 ? double.MaxValue : Length;
+            double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
             await EnqueueAction(() =>
