@@ -174,21 +174,15 @@ namespace osu.Framework.Tests.Visual.Audio
                 AddInternal(sample = new DrawableSampleChannel(samples.Get("long.mp3")));
             }
 
-            private float dragStartY;
-
             private DrawableSampleChannel sample;
 
             private readonly Circle circle;
 
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                dragStartY = e.MousePosition.Y;
-                return true;
-            }
+            protected override bool OnDragStart(DragStartEvent e) => true;
 
             protected override bool OnDrag(DragEvent e)
             {
-                Y = (int)(e.MousePosition.Y - dragStartY);
+                Y = (int)(e.MousePosition.Y / (Parent.DrawHeight / 16));
                 return true;
             }
 
