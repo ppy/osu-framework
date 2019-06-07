@@ -44,9 +44,9 @@ namespace osu.Framework.Platform
     {
         public GameWindow Window { get; protected set; }
 
-        protected FrameworkDebugConfigManager DebugConfig;
+        protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
-        protected FrameworkConfigManager Config;
+        protected FrameworkConfigManager Config { get; private set; }
 
         /// <summary>
         /// Whether the <see cref="GameWindow"/> is active (in the foreground).
