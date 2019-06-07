@@ -101,7 +101,7 @@ namespace osu.Framework.Audio.Track
                 if (success)
                 {
                     Length = seconds * 1000;
-                    
+
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
                     lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - 4) * 1000;
 
