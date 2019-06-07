@@ -7,14 +7,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [System.ComponentModel.Description("implementing the IEffect interface")]
-    public class TestSceneEffects : TestScene
+    public class TestSceneEffects : FrameworkTestScene
     {
         private readonly SpriteText changeColourText;
 

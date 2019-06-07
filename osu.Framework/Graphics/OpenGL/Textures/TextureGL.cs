@@ -75,30 +75,32 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Draws a triangle to the screen.
         /// </summary>
         /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="depth">The vertex depth. Ranges from -1 at the front to 1 at the back.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+        internal abstract void DrawTriangle(Triangle vertexTriangle, float depth, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null);
 
         /// <summary>
         /// Draws a quad to the screen.
         /// </summary>
         /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="depth">The vertex depth. Ranges from -1 at the front to 1 at the back.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
-        internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+        internal abstract void DrawQuad(Quad vertexQuad, float depth, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null);
 
         /// <summary>
         /// Bind as active texture.
         /// </summary>
         /// <returns>True if bind was successful.</returns>
-        internal abstract bool Bind();
+        public abstract bool Bind();
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.

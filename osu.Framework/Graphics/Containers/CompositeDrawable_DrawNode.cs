@@ -10,8 +10,10 @@ using osuTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -22,6 +24,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected class CompositeDrawableDrawNode : DrawNode, ICompositeDrawNode
         {
+            private static readonly float cos_45 = (float)Math.Cos(Math.PI / 4);
+
             protected new CompositeDrawable Source => (CompositeDrawable)base.Source;
 
             /// <summary>
@@ -57,9 +61,14 @@ namespace osu.Framework.Graphics.Containers
             private bool forceLocalVertexBatch;
 
             /// <summary>
-            /// The vertex batch used for rendering.
+            /// The vertex batch used for child quads during the back-to-front pass.
             /// </summary>
-            private QuadBatch<TexturedVertex2D> vertexBatch;
+            private QuadBatch<TexturedVertex2D> quadBatch;
+
+            /// <summary>
+            /// The vertex batch used for child triangles during the front-to-back pass.
+            /// </summary>
+            private LinearBatch<TexturedVertex2D> triangleBatch;
 
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
@@ -74,6 +83,11 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
                 Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                float blendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2;
+
+                // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
+                float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
+                RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null
@@ -81,6 +95,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
                         MaskingRect = Source.DrawRectangle,
+                        ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
                         CornerRadius = Source.CornerRadius,
                         BorderThickness = Source.BorderThickness,
@@ -88,7 +103,7 @@ namespace osu.Framework.Graphics.Containers
                         // We are setting the linear blend range to the approximate size of a _pixel_ here.
                         // This results in the optimal trade-off between crispness and smoothness of the
                         // edges of the masked region according to sampling theory.
-                        BlendRange = Source.MaskingSmoothness * (scale.X + scale.Y) / 2,
+                        BlendRange = blendRange,
                         AlphaExponent = 1,
                     };
 
@@ -102,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawEdgeEffect()
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0.0f)
+                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
 
                 RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
@@ -153,24 +168,39 @@ namespace osu.Framework.Graphics.Containers
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
-            private void updateVertexBatch()
+            private void updateQuadBatch()
             {
                 if (Children == null)
                     return;
 
                 // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
                 int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (vertexBatch == null || vertexBatch.Size < clampedAmountChildren))
-                    vertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (quadBatch == null || quadBatch.Size < clampedAmountChildren))
+                    quadBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+            }
+
+            private void updateTriangleBatch()
+            {
+                if (Children == null)
+                    return;
+
+                // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
+                int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
+
+                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (triangleBatch == null || triangleBatch.Size < clampedAmountChildren))
+                {
+                    // The same general idea as updateQuadBatch(), except that each child draws up to 3 vertices * 6 triangles after quad-quad intersection
+                    triangleBatch = new LinearBatch<TexturedVertex2D>(clampedAmountChildren * 2 * 3, 500, PrimitiveType.Triangles);
+                }
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
-                updateVertexBatch();
+                updateQuadBatch();
 
                 // Prefer to use own vertex batch instead of the parent-owned one.
-                if (vertexBatch != null)
-                    vertexAction = vertexBatch.AddAction;
+                if (quadBatch != null)
+                    vertexAction = quadBatch.AddAction;
 
                 base.Draw(vertexAction);
 
@@ -193,11 +223,56 @@ namespace osu.Framework.Graphics.Containers
                     GLWrapper.PopMaskingInfo();
             }
 
+            internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            {
+                DrawChildrenOpaqueInteriors(depthValue, vertexAction);
+                base.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+            }
+
+            /// <summary>
+            /// Performs <see cref="DrawOpaqueInteriorSubTree"/> on all children of this <see cref="CompositeDrawableDrawNode"/>.
+            /// </summary>
+            /// <param name="depthValue">The previous depth value.</param>
+            /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            protected virtual void DrawChildrenOpaqueInteriors(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+            {
+                bool canIncrement = depthValue.CanIncrement;
+
+                // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
+                if (canIncrement)
+                {
+                    updateTriangleBatch();
+
+                    // Prefer to use own vertex batch instead of the parent-owned one.
+                    if (triangleBatch != null)
+                        vertexAction = triangleBatch.AddAction;
+
+                    if (maskingInfo != null)
+                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                }
+
+                // We still need to invoke this method recursively for all children so their depth value is updated
+                if (Children != null)
+                {
+                    for (int i = Children.Count - 1; i >= 0; i--)
+                        Children[i].DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+                }
+
+                // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
+                if (canIncrement)
+                {
+                    if (maskingInfo != null)
+                        GLWrapper.PopMaskingInfo();
+                }
+            }
+
             protected override void Dispose(bool isDisposing)
             {
                 base.Dispose(isDisposing);
 
-                vertexBatch?.Dispose();
+                quadBatch?.Dispose();
+                triangleBatch?.Dispose();
             }
         }
     }
