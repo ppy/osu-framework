@@ -178,17 +178,11 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        public override DrawColourInfo DrawColourInfo
-        {
-            get
-            {
-                var result = base.DrawColourInfo;
-                result.Blending = new BlendingInfo(BlendingMode.None);
-                return result;
-            }
-        }
-
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
+
+        // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
+        // Removal of blending allows for correct blending between the wedges of the path.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, new BlendingInfo(BlendingMode.None));
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
