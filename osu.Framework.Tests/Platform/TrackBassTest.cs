@@ -233,6 +233,14 @@ namespace osu.Framework.Tests.Platform
             Assert.LessOrEqual(track.CurrentTime, 1000);
         }
 
+        [Test]
+        public void TestSetTempoNegative()
+        {
+            track.TempoAdjust = -1;
+            Assert.IsFalse(track.IsReversed);
+            Assert.AreEqual(0.05f, track.Tempo.Value);
+        }
+
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
