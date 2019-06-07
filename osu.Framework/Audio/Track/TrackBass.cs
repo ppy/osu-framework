@@ -40,6 +40,11 @@ namespace osu.Framework.Audio.Track
 
         private long byteLength;
 
+        /// <summary>
+        /// The last position that a seek will succeed for.
+        /// </summary>
+        private double lastSeekablePosition;
+
         private FileCallbacks fileCallbacks;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
@@ -90,6 +95,9 @@ namespace osu.Framework.Audio.Track
 
                 // will be -1 in case of an error
                 double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
+
+                // Bass does not allow seeking to the end of the track
+                lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - 1);
 
                 bool success = seconds >= 0;
 
@@ -227,7 +235,7 @@ namespace osu.Framework.Audio.Track
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
-            double conservativeLength = Length == 0 ? double.MaxValue : Length;
+            double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
             await EnqueueAction(() =>
