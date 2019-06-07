@@ -58,6 +58,9 @@ namespace osu.Framework.Audio.Track
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            // Bass limits tempo to 5% of the track's original speed.
+            Tempo.MinValue = 0.05f;
+
             EnqueueAction(() =>
             {
                 Preview = quick;
