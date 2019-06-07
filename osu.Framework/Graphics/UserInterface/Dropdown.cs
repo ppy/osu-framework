@@ -18,10 +18,16 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : TabbableContainer, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
+
+        public override bool AcceptsFocus => true;
+
+        public override bool CanBeTabbedTo => true;
+
+        protected override Container<Drawable> Content => content;
 
         /// <summary>
         /// Creates the header part of the control.
@@ -32,6 +38,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// A mapping from menu items to their values.
         /// </summary>
         private readonly Dictionary<T, DropdownMenuItem<T>> itemMap = new Dictionary<T, DropdownMenuItem<T>>();
+
+        private readonly FillFlowContainer content;
 
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
@@ -123,6 +131,12 @@ namespace osu.Framework.Graphics.UserInterface
             itemMap[value] = newItem;
         }
 
+        protected override void OnFocus(FocusEvent e)
+        {
+            base.OnFocus(e);
+            Menu.State = MenuState.Open;
+        }
+
         /// <summary>
         /// Remove a menu item directly.
         /// </summary>
@@ -197,10 +211,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown()
         {
-            AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Vertical;
+            content = new FillFlowContainer
+            {
+                Direction = FillDirection.Vertical,
+                AutoSizeAxes = Axes.Y,
+            };
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Header = CreateHeader(),
                 Menu = CreateMenu()
