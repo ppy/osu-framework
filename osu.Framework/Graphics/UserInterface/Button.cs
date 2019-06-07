@@ -46,6 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.DarkSlateGray,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                     },
