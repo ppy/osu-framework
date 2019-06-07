@@ -122,7 +122,7 @@ namespace osu.Framework.Audio.Track
             set => throw new InvalidOperationException($"Setting {nameof(Rate)} directly on a {nameof(Track)} is not supported. Set {nameof(IHasPitchAdjust.PitchAdjust)} or {nameof(IHasTempoAdjust.TempoAdjust)} instead.");
         }
 
-        public bool IsReversed => Rate < 0;
+        public bool IsReversed => Frequency.Value < 0;
 
         public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
 
