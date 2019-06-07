@@ -315,21 +315,8 @@ namespace osu.Framework.Graphics.Containers
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
-        public override DrawColourInfo DrawColourInfo
-        {
-            get
-            {
-                DrawColourInfo result = base.DrawColourInfo;
-
-                // When drawing our children to the frame buffer we do not
-                // want their colour to be polluted by their parent (us!)
-                // since our own color will be applied on top when we render
-                // from the frame buffer to the back buffer later on.
-                result.Colour = ColourInfo.SingleColour(Color4.White);
-
-                return result;
-            }
-        }
+        // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
         protected override void Dispose(bool isDisposing)
         {
