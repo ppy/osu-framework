@@ -133,10 +133,14 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
+        /// <summary>
+        /// The playback tempo for this track.
+        /// <remarks>Can only be positive, and must be above 0.05 (5% playback speed)</remarks>
+        /// </summary>
         public double TempoAdjust
         {
             get => Tempo.Value;
-            set => Tempo.Value = value;
+            set => Tempo.Value = Math.Max(value, 0.05f);
         }
 
         protected override void UpdateState()
