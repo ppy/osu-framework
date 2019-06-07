@@ -171,10 +171,10 @@ namespace osu.Framework.Tests.Visual.Audio
             [BackgroundDependencyLoader]
             private void load(ISampleStore samples)
             {
-                AddInternal(sample = new DrawableSampleChannel(samples.Get("long.mp3")));
+                AddInternal(sample = new DrawableSample(samples.Get("long.mp3")));
             }
 
-            private DrawableSampleChannel sample;
+            private DrawableSample sample;
 
             private readonly Circle circle;
 
@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
             protected override bool OnDrag(DragEvent e)
             {
-                Y = (int)(e.MousePosition.Y / (Parent.DrawHeight / 16));
+                Y = (int)(e.MousePosition.Y / (Parent.DrawHeight / notes));
                 return true;
             }
 

@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Audio
     /// <summary>
     /// A <see cref="SampleChannel"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableSampleChannel : DrawableAudioWrapper, ISampleChannel
+    public class DrawableSample : DrawableAudioWrapper, ISampleChannel
     {
         private readonly SampleChannel channel;
 
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         /// <param name="channel">The audio sample to wrap.</param>
         /// <param name="disposeChannelOnDisposal">Whether the sample should be automatically disposed on drawable disposal/expiry.</param>
-        public DrawableSampleChannel(SampleChannel channel, bool disposeChannelOnDisposal = true)
+        public DrawableSample(SampleChannel channel, bool disposeChannelOnDisposal = true)
             : base(channel, disposeChannelOnDisposal)
         {
             this.channel = channel;
