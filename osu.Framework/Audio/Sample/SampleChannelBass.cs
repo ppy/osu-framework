@@ -6,7 +6,7 @@ using ManagedBass;
 
 namespace osu.Framework.Audio.Sample
 {
-    public class SampleChannelBass : SampleChannel, IBassAudio
+    public sealed class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
         private volatile bool playing;

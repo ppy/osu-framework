@@ -4,13 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Visualisation;
-using osu.Framework.Testing;
 using osu.Framework.Tests.Visual.Containers;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDrawVisualiser : TestScene
+    public class TestSceneDrawVisualiser : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load()
