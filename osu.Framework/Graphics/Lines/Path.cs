@@ -17,12 +17,14 @@ namespace osu.Framework.Graphics.Lines
     {
         public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
+        private IShader pathShader;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
