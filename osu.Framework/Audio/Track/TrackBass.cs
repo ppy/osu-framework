@@ -53,6 +53,8 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        public const int BYTES_PER_SAMPLE = 4;
+
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
@@ -103,7 +105,7 @@ namespace osu.Framework.Audio.Track
                     Length = seconds * 1000;
 
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
-                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - 4) * 1000;
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
                     Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                     initialFrequency = frequency;

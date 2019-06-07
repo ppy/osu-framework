@@ -28,8 +28,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private const int points_per_iteration = 100000;
 
-        private const int bytes_per_sample = 4;
-
         /// <summary>
         /// FFT1024 gives ~40hz accuracy.
         /// </summary>
@@ -93,19 +91,19 @@ namespace osu.Framework.Audio.Track
                 // Each "point" is generated from a number of samples, each sample contains a number of channels
                 int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
 
-                int bytesPerPoint = samplesPerPoint * bytes_per_sample;
+                int bytesPerPoint = samplesPerPoint * TrackBass.BYTES_PER_SAMPLE;
 
                 points.Capacity = (int)(length / bytesPerPoint);
 
                 // Each iteration pulls in several samples
                 int bytesPerIteration = bytesPerPoint * points_per_iteration;
-                var sampleBuffer = new float[bytesPerIteration / bytes_per_sample];
+                var sampleBuffer = new float[bytesPerIteration / TrackBass.BYTES_PER_SAMPLE];
 
                 // Read sample data
                 while (length > 0)
                 {
                     length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
-                    int samplesRead = (int)(length / bytes_per_sample);
+                    int samplesRead = (int)(length / TrackBass.BYTES_PER_SAMPLE);
 
                     // Each point is composed of multiple samples
                     for (int i = 0; i < samplesRead; i += samplesPerPoint)
