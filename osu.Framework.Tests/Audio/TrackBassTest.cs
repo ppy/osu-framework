@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Audio
         }
 
         /// <summary>
-        /// Bass does not allow seeking to the end of the track. It should fail and the current time should not change.
+        /// Bass does not allow seeking to the end of the track. Seek is clamped to one byte before the end to account for this.
         /// </summary>
         [Test]
         public void TestSeekToEndFails()
@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Audio
             track.SeekAsync(track.Length);
             updateTrack();
 
-            Assert.AreEqual(0, track.CurrentTime);
+            Assert.Greater(track.CurrentTime, 0);
         }
 
         [Test]

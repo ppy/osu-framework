@@ -234,7 +234,8 @@ namespace osu.Framework.Audio.Track
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
-                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+                // If attempting to seek past or at the end of the track, seek one byte before it since bass disallows seeking to the end.
+                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d) - (seek >= Length ? 1 : 0);
 
                 if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
