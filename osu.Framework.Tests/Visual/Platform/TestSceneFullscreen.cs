@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -18,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentDisplay = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
 
-        private GameWindow window;
+        private IWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
