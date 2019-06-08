@@ -72,7 +72,7 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Provides a <see cref="IBindable{MarginPadding}"/> that can be used to keep track of the "safe area" insets on mobile
-        /// devices.  This usually corresponds to areas of the screen hidden under notches and rounded corners.
+        /// devices. This usually corresponds to areas of the screen hidden under notches and rounded corners.
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
         IBindable<MarginPadding> SafeAreaPadding { get; }
