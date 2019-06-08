@@ -42,14 +42,14 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window { get; protected set; }
+        public IWindow Window { get; protected set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
 
         /// <summary>
-        /// Whether the <see cref="GameWindow"/> is active (in the foreground).
+        /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
