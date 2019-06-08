@@ -83,6 +83,7 @@ namespace osu.Framework.Testing.Drawables
             text.AddText(TestScene.RemovePrefix(test.Name));
 
             var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
+
             if (description != null)
             {
                 text.NewLine();

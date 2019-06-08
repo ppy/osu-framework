@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -295,6 +297,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         {
                             default:
                                 return LOCALISABLE_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
                         }
@@ -309,6 +312,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             public void Dispose()
             {
             }
+
+            public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
         }
     }
 }

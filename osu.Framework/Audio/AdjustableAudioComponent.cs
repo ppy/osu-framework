@@ -8,7 +8,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// An audio component which allows for basic bindable adjustments to be applied.
     /// </summary>
-    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment
+    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment, IAdjustableAudioComponent
     {
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
@@ -63,6 +63,15 @@ namespace osu.Framework.Audio
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            AggregateVolume.UnbindAll();
+            AggregateBalance.UnbindAll();
+            AggregateFrequency.UnbindAll();
+        }
     }
 
     public enum AdjustableProperty

@@ -9,35 +9,20 @@ namespace osu.Framework.Audio
     /// <summary>
     /// A collection of audio components which need central property control.
     /// </summary>
-    public class AudioCollectionManager<T> : AdjustableAudioComponent
+    public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
         where T : AdjustableAudioComponent
     {
-        protected List<T> Items = new List<T>();
+        internal List<T> Items = new List<T>();
 
         public void AddItem(T item)
-        {
-            RegisterItem(item);
-            AddItemToList(item);
-        }
-
-        public void AddItemToList(T item)
         {
             EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
 
+                item.BindAdjustments(this);
                 Items.Add(item);
             });
-        }
-
-        public void RegisterItem(T item)
-        {
-            EnqueueAction(() => item.BindAdjustments(this));
-        }
-
-        public void UnregisterItem(T item)
-        {
-            EnqueueAction(() => item.UnbindAdjustments(this));
         }
 
         public virtual void UpdateDevice(int deviceIndex)

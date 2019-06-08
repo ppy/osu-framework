@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Performance
                     case FrameStatisticsMode.None:
                         this.FadeOut(100);
                         break;
+
                     case FrameStatisticsMode.Minimal:
                     case FrameStatisticsMode.Full:
                         this.FadeIn(100);

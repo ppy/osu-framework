@@ -68,6 +68,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                     addEmphasis(text, emphases);
 
                                     break;
+
                                 case LinkInline linkInline:
                                 {
                                     if (!linkInline.IsImage)
@@ -82,25 +83,31 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         }
 
                         break;
+
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);
                         break;
+
                     case LinkInline linkInline when linkInline.IsImage:
                         AddImage(linkInline);
                         break;
+
                     case HtmlInline _:
                     case HtmlEntityInline _:
                         // Handled by the next literal
                         break;
+
                     case LineBreakInline lineBreak:
                         if (lineBreak.IsHard)
                             NewParagraph();
                         else
                             NewLine();
                         break;
+
                     case ContainerInline innerContainer:
                         AddInlineText(innerContainer);
                         break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -139,6 +146,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     case "_":
                         hasItalic = true;
                         break;
+
                     case "**":
                     case "__":
                         hasBold = true;
