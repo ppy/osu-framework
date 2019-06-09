@@ -273,7 +273,7 @@ namespace osu.Framework.Platform
         public void MakeCurrent() => Implementation.MakeCurrent();
         public void SwapBuffers() => Implementation.SwapBuffers();
 
-        Icon INativeWindow.Icon
+        public Icon Icon
         {
             get => Implementation.Icon;
             set => Implementation.Icon = value;
