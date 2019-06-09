@@ -484,32 +484,4 @@ namespace osu.Framework.Platform
 
         #endregion
     }
-
-    /// <summary>
-    /// Describes our supported states of the OS cursor.
-    /// </summary>
-    [Flags]
-    public enum CursorState
-    {
-        /// <summary>
-        /// The OS cursor is always visible and can move anywhere.
-        /// </summary>
-        Default = 0,
-
-        /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>, but can still move anywhere.
-        /// </summary>
-        Hidden = 1,
-
-        /// <summary>
-        /// The OS cursor is confined to the <see cref="GameWindow"/> while the window is in focus.
-        /// </summary>
-        Confined = 2,
-
-        /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>.
-        /// It is confined to the <see cref="GameWindow"/> while the window is in focus and can move freely otherwise.
-        /// </summary>
-        HiddenAndConfined = Hidden | Confined,
-    }
 }
