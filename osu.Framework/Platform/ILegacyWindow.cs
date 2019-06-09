@@ -49,9 +49,6 @@ namespace osu.Framework.Platform
         int Height { get; set; }
         Rectangle ClientRectangle { get; set; }
         Size ClientSize { get; set; }
-        MouseCursor Cursor { get; set; }
-        bool CursorVisible { get; set; }
-        bool CursorGrabbed { get; set; }
         void Close();
         void ProcessEvents();
         Point PointToClient(Point point);

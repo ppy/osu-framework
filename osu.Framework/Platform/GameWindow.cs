@@ -173,36 +173,6 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// We do not support directly using <see cref="Cursor"/>.
-        /// It is controlled internally. Use <see cref="CursorState"/> instead.
-        /// </summary>
-        public MouseCursor Cursor
-        {
-            get => throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}.");
-            set => throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}.");
-        }
-
-        /// <summary>
-        /// We do not support directly using <see cref="CursorVisible"/>.
-        /// It is controlled internally. Use <see cref="CursorState"/> instead.
-        /// </summary>
-        public bool CursorVisible
-        {
-            get => throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}.");
-            set => throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}.");
-        }
-
-        /// <summary>
-        /// We do not support directly using <see cref="CursorGrabbed"/>.
-        /// It is controlled internally. Use <see cref="CursorState"/> instead.
-        /// </summary>
-        public bool CursorGrabbed
-        {
-            get => throw new InvalidOperationException($@"{nameof(CursorGrabbed)} is not supported. Use {nameof(CursorState)}.");
-            set => throw new InvalidOperationException($@"{nameof(CursorGrabbed)} is not supported. Use {nameof(CursorState)}.");
-        }
-
-        /// <summary>
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
