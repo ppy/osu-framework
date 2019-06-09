@@ -597,6 +597,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+                GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             }
 
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);

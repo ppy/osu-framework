@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.MathUtils.Clipping;
 using osu.Framework.Threading;
@@ -85,6 +86,7 @@ namespace osu.Framework.Graphics
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GlobalPropertyManager.Set(GlobalProperty.BackbufferDrawDepth, drawDepth);
         }
 
         /// <summary>
@@ -126,6 +128,7 @@ namespace osu.Framework.Graphics
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GlobalPropertyManager.Set(GlobalProperty.BackbufferDrawDepth, drawDepth);
         }
 
         /// <summary>
