@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -81,5 +82,10 @@ namespace osu.Framework.Platform
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
         IBindableList<WindowMode> SupportedWindowModes { get; }
+
+        /// <summary>
+        /// Available resolutions for full-screen display.
+        /// </summary>
+        IEnumerable<DisplayResolution> AvailableResolutions { get; }
     }
 }
