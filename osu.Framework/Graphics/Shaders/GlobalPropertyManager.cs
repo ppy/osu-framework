@@ -49,13 +49,6 @@ namespace osu.Framework.Graphics.Shaders
                 ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
         }
 
-        public static T Get<T>(GlobalProperty property)
-            where T : struct
-        {
-            lock (global_properties)
-                return ((UniformMapping<T>)global_properties[(int)property]).Value;
-        }
-
         public static void Register(Shader shader)
         {
             lock (global_properties)
