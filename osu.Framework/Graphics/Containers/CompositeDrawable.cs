@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (Shader == null)
-                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2_INTERNAL, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked

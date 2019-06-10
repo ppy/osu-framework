@@ -1,5 +1,3 @@
-#define VS_HAS_VERTEX_DEPTH
-
 #include "sh_Utils.h"
 
 attribute vec2 m_Position;
