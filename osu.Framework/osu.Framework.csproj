@@ -10,6 +10,7 @@
     <Product>osu!framework</Product>
     <NoWarn>1591</NoWarn>
     <LangVersion>7.3</LangVersion>
+    <CodeAnalysisRuleSet>..\CodeAnalyzerRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
@@ -41,6 +42,10 @@
     </PackageReference>
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.0.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
@@ -57,6 +62,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\Fonts\FontAwesome" />
+  </ItemGroup>
+  <ItemGroup Label="StyleCop">
+    <None Remove="..\stylecop.json" />
+    <AdditionalFiles Include="..\stylecop.json" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(APPVEYOR_DEPLOY)'==1">
