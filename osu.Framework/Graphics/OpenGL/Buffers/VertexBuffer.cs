@@ -36,10 +36,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <returns>Whether the vertex changed.</returns>
         public bool SetVertex(int vertexIndex, T vertex)
         {
-            bool isNewVertex = !vertices[vertexIndex].Equals(vertex) || vertices[vertexIndex].Depth != GLWrapper.BackbufferDrawDepth;
+            bool isNewVertex = !vertices[vertexIndex].Equals(vertex) || vertices[vertexIndex].BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
 
             vertices[vertexIndex].Vertex = vertex;
-            vertices[vertexIndex].Depth = GLWrapper.BackbufferDrawDepth;
+            vertices[vertexIndex].BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth;
 
             return isNewVertex;
         }
