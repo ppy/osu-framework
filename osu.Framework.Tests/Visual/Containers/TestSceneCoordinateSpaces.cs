@@ -6,13 +6,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCoordinateSpaces : TestScene
+    public class TestSceneCoordinateSpaces : FrameworkTestScene
     {
         public TestSceneCoordinateSpaces()
         {
@@ -47,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     h.CreateMarkerAt(1f);
                     h.CreateMarkerAt(1.1f);
                     break;
+
                 case 1:
                     h.RelativeChildSize = new Vector2(150, 1);
                     h.CreateMarkerAt(0);
@@ -56,6 +56,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     h.CreateMarkerAt(200);
                     h.CreateMarkerAt(250);
                     break;
+
                 case 2:
                     h.RelativeChildOffset = new Vector2(50, 0);
                     h.RelativeChildSize = new Vector2(150, 1);
@@ -66,6 +67,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     h.CreateMarkerAt(200);
                     h.CreateMarkerAt(250);
                     break;
+
                 case 3:
                     h.RelativeChildOffset = new Vector2(150, 0);
                     h.RelativeChildSize = new Vector2(-200, 1);
@@ -76,6 +78,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     h.CreateMarkerAt(200);
                     h.CreateMarkerAt(250);
                     break;
+
                 case 4:
                     h.RelativeChildOffset = new Vector2(0, 0);
                     h.RelativeChildSize = new Vector2(300, 1);
@@ -86,6 +89,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     h.CreateMarkerAt(200);
                     h.CreateMarkerAt(250);
                     break;
+
                 case 5:
                     h.RelativeChildOffset = new Vector2(-250, 0);
                     h.RelativeChildSize = new Vector2(500, 1);

@@ -80,6 +80,7 @@ namespace osu.Framework.Graphics.Cursor
                     relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
                     menu.Open();
                     return true;
+
                 default:
                     menu.Close();
                     return false;

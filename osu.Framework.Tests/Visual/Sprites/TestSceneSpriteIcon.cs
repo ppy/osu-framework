@@ -10,14 +10,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [TestFixture]
-    public class TestSceneSpriteIcon : TestScene
+    public class TestSceneSpriteIcon : FrameworkTestScene
     {
         public TestSceneSpriteIcon()
         {
@@ -49,6 +48,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             var weights = typeof(FontAwesome).GetNestedTypes();
+
             foreach (var w in weights)
             {
                 flow.Add(new SpriteText

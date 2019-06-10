@@ -6,13 +6,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedUnload : TestScene
+    public class TestSceneDelayedUnload : FrameworkTestScene
     {
         private const int panel_count = 1024;
 

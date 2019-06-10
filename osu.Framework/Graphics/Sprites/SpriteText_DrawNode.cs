@@ -68,10 +68,10 @@ namespace osu.Framework.Graphics.Sprites
                         shadowQuad.BottomLeft += shadowOffset;
                         shadowQuad.BottomRight += shadowOffset;
 
-                        parts[i].Texture.DrawQuad(shadowQuad, finalShadowColour, vertexAction: vertexAction);
+                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction);
                     }
 
-                    parts[i].Texture.DrawQuad(parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
                 Shader.Unbind();

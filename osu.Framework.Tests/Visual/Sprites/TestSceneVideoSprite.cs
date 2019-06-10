@@ -5,12 +5,11 @@ using System;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoSprite : TestScene
+    public class TestSceneVideoSprite : FrameworkTestScene
     {
         private ManualClock clock;
         private VideoSprite videoSprite;
@@ -67,6 +66,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             if (videoSprite != null)
             {
                 var newSecond = (int)(videoSprite.PlaybackPosition / 1000.0);
+
                 if (newSecond != currentSecond)
                 {
                     currentSecond = newSecond;

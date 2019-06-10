@@ -164,6 +164,7 @@ namespace osu.Framework.Graphics.Containers
             var positions = ComputeLayoutPositions().ToArray();
 
             int i = 0;
+
             foreach (var d in FlowingChildren)
             {
                 if (i > positions.Length)

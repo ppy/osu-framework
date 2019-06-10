@@ -263,6 +263,7 @@ namespace osu.Framework.Graphics.Containers
                     case Key.PageUp:
                         ScrollTo(target - displayableContent);
                         return true;
+
                     case Key.PageDown:
                         ScrollTo(target + displayableContent);
                         return true;
@@ -508,12 +509,12 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal)
             {
                 Scrollbar.X = Current * Scrollbar.Size.X;
-                content.X = -Current;
+                content.X = -Current + scrollableExtent * content.RelativeAnchorPosition.X;
             }
             else
             {
                 Scrollbar.Y = Current * Scrollbar.Size.Y;
-                content.Y = -Current;
+                content.Y = -Current + scrollableExtent * content.RelativeAnchorPosition.Y;
             }
         }
 
@@ -634,9 +635,11 @@ namespace osu.Framework.Graphics.Containers
                 case PlatformActionType.LineStart:
                     ScrollToStart();
                     return true;
+
                 case PlatformActionType.LineEnd:
                     ScrollToEnd();
                     return true;
+
                 default:
                     return false;
             }

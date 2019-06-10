@@ -8,13 +8,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneContextMenu : TestScene
+    public class TestSceneContextMenu : FrameworkTestScene
     {
         private const int start_time = 0;
         private const int duration = 1000;

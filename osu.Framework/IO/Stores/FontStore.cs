@@ -149,6 +149,7 @@ namespace osu.Framework.IO.Stores
                 case FontStore fs:
                     nestedFontStores.Add(fs);
                     return;
+
                 case GlyphStore gs:
                     glyphStores.Add(gs);
                     queueLoad(gs);
@@ -191,6 +192,7 @@ namespace osu.Framework.IO.Stores
                 case FontStore fs:
                     nestedFontStores.Remove(fs);
                     return;
+
                 case GlyphStore gs:
                     glyphStores.Remove(gs);
                     break;

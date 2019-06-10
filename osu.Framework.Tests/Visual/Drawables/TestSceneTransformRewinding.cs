@@ -12,14 +12,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneTransformRewinding : TestScene
+    public class TestSceneTransformRewinding : FrameworkTestScene
     {
         private const double interval = 250;
         private const int interval_count = 4;
@@ -406,6 +405,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 maxTimeText.Text = wrapping.MaxTime.ToString("n0");
                 maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
                 minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
+
                 if (displayedTransforms == null || !ExaminableDrawable.Transforms.SequenceEqual(displayedTransforms))
                 {
                     transforms.Clear();
