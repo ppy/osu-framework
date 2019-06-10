@@ -37,7 +37,11 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
                 int fieldOffset = currentOffset + Marshal.OffsetOf(type, field.Name).ToInt32();
 
                 if (typeof(IVertex).IsAssignableFrom(field.FieldType))
+                {
+                    // Vertices may contain others, but the attributes of contained vertices belong to the parent when marshalled, so they are recursively added for their parent
+                    // Their field offsets must be adjusted to reflect the position of the child attribute in the parent vertex
                     addAttributesRecursive(field.FieldType, fieldOffset);
+                }
                 else if (field.IsDefined(typeof(VertexMemberAttribute), true))
                 {
                     var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
