@@ -235,9 +235,9 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_INTERNAL, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_INTERNAL, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_INTERNAL, FragmentShaderDescriptor.BLUR);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.BLUR);
         }
 
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();

@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Shaders
         public const string POSITION = "Position";
         public const string COLOUR = "Colour";
 
-        internal const string TEXTURE_2_INTERNAL = "Texture2D_Internal";
+        internal const string TEXTURE_2_VERTEX_DEPTH = "Texture2D_VertexDepth";
     }
 
     public static class FragmentShaderDescriptor
