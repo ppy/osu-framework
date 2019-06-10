@@ -16,8 +16,8 @@
     <Rule Id="SA1011" Action="Error"/>
     <Rule Id="SA1012" Action="Error"/>
     <Rule Id="SA1013" Action="Error"/>
-    <Rule Id="SA1014" Action="None"/>
-    <Rule Id="SA1015" Action="None"/>
+    <Rule Id="SA1014" Action="Error"/>
+    <Rule Id="SA1015" Action="Error"/>
     <Rule Id="SA1016" Action="Error"/>
     <Rule Id="SA1017" Action="Error"/>
     <Rule Id="SA1018" Action="None"/>
