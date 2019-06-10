@@ -2,7 +2,7 @@
 <RuleSet Name="StyleCop rules for Core Application" Description="Custom Rules" ToolsVersion="10.0">
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA0001" Action="None"/>
-    <Rule Id="SA1000" Action="None"/>
+    <Rule Id="SA1000" Action="Error"/>
     <Rule Id="SA1001" Action="None"/>
     <Rule Id="SA1002" Action="None"/>
     <Rule Id="SA1003" Action="None"/>
