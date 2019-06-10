@@ -45,11 +45,15 @@ namespace osu.Framework.IO.Stores
             if (texture == null)
             {
                 glyph = default;
+                Logger.Log($"Glyph texture lookup for {fontName}/{charName} was unsuccessful.", level: LogLevel.Error);
                 return false;
             }
 
             if (!tryGetCharacterGlyph(fontName, charName, out glyph))
+            {
+                Logger.Log($"Glyph information lookup for {fontName}/{charName} was unsuccessful.", level: LogLevel.Error);
                 return false;
+            }
 
             glyph.Texture = texture;
             glyph.ApplyScaleAdjust(1 / ScaleAdjust);

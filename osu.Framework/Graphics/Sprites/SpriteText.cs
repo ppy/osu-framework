@@ -496,9 +496,7 @@ namespace osu.Framework.Graphics.Sprites
                 float ellipsisLength = 0;
 
                 foreach (var c in EllipsisString)
-                {
                     ellipsisLength += getCharacterSize(c, true, out _).X + spacing.X;
-                }
 
                 float availableWidth = maxWidth -= ellipsisLength;
 
@@ -727,13 +725,13 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>Whether or not the lookup was successful.</returns>
         protected virtual bool TryGetCharacter(char c, out FontStore.CharacterGlyph glyph)
         {
-            if (store.TryGetCharacter(Font.FontName, c, out glyph))
-                return true;
+            if (store == null)
+            {
+                glyph = default;
+                return false;
+            }
 
-            if (store.TryGetCharacter(null, c, out glyph))
-                return true;
-
-            return false;
+            return store.TryGetCharacter(Font.FontName, c, out glyph) || store.TryGetCharacter(null, c, out glyph);
         }
 
         /// <summary>
