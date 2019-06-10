@@ -3,9 +3,9 @@
 
 // Use the depth definition provided by vertices.
 // Must only be used if a depth value is provided by the vertex definition.
-// #define BACKBUFFER_USE_VERTEX_DEPTH
+// #define VS_USE_VERTEX_DEPTH
 
-#ifdef BACKBUFFER_USE_VERTEX_DEPTH
+#ifdef VS_USE_VERTEX_DEPTH
     attribute float m_BackbufferDrawDepth;
 #else
     uniform float g_BackbufferDrawDepth;
@@ -20,7 +20,7 @@ void main()
 
     if (g_BackbufferDraw)
     {
-#ifdef BACKBUFFER_USE_VERTEX_DEPTH
+#ifdef VS_USE_VERTEX_DEPTH
         gl_Position.z = m_BackbufferDrawDepth;
 #else
         gl_Position.z = g_BackbufferDrawDepth;

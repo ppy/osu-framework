@@ -1,4 +1,4 @@
-#define BACKBUFFER_USE_VERTEX_DEPTH
+#define VS_HAS_VERTEX_DEPTH
 
 #include "sh_Utils.h"
 
