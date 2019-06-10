@@ -44,6 +44,8 @@ namespace osu.Framework.iOS
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
+        
+
         public override bool CanExit => false;
 
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
