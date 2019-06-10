@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly int amountQuads;
 
-        public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
+        internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * 4, usage)
         {
             this.amountQuads = amountQuads;
