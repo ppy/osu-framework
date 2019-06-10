@@ -3,11 +3,10 @@
 
 // ReSharper disable StaticMemberInGenericType
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Vertices
@@ -21,22 +20,33 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         /// <summary>
         /// The stride of the vertex of type <see cref="T"/>.
         /// </summary>
-        public static readonly int STRIDE = BlittableValueType.StrideOf(default(T));
+        public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
 
         static VertexUtils()
         {
-            // Use reflection to retrieve the members attached with a VertexMemberAttribute
-            foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
+            addAttributesRecursive(typeof(T), 0);
+        }
+
+        private static void addAttributesRecursive(Type type, int currentOffset)
+        {
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
-                var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
+                int fieldOffset = currentOffset + Marshal.OffsetOf(type, field.Name).ToInt32();
 
-                // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
-                attrib.Offset = Marshal.OffsetOf(typeof(T), field.Name);
+                if (typeof(IVertex).IsAssignableFrom(field.FieldType))
+                    addAttributesRecursive(field.FieldType, fieldOffset);
+                else if (field.IsDefined(typeof(VertexMemberAttribute), true))
+                {
+                    var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
 
-                attributes.Add(attrib);
+                    // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
+                    attrib.Offset = new IntPtr(fieldOffset);
+
+                    attributes.Add(attrib);
+                }
             }
         }
 

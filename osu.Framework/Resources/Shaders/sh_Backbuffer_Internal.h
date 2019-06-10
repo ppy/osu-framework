@@ -5,11 +5,7 @@
 // Must only be used if a depth value is provided by the vertex definition.
 // #define VS_USE_VERTEX_DEPTH
 
-#ifdef VS_USE_VERTEX_DEPTH
-    attribute float m_BackbufferDrawDepth;
-#else
-    uniform float g_BackbufferDrawDepth;
-#endif
+attribute float m_BackbufferDrawDepth;
 
 // Whether the backbuffer is currently being drawn to
 uniform bool g_BackbufferDraw;
@@ -19,11 +15,5 @@ void main()
     {{ real_main }}(); // Invoke real main func
 
     if (g_BackbufferDraw)
-    {
-#ifdef VS_USE_VERTEX_DEPTH
         gl_Position.z = m_BackbufferDrawDepth;
-#else
-        gl_Position.z = g_BackbufferDrawDepth;
-#endif
-    }
 }

@@ -67,8 +67,8 @@ namespace osu.Framework.Graphics.Sprites
 
             spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
 
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)

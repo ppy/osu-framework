@@ -34,7 +34,6 @@ namespace osu.Framework.Graphics.Shaders
 
             // Backbuffer internals
             global_properties[(int)GlobalProperty.BackbufferDraw] = new UniformMapping<bool>("g_BackbufferDraw");
-            global_properties[(int)GlobalProperty.BackbufferDrawDepth] = new UniformMapping<float>("g_BackbufferDrawDepth");
         }
 
         /// <summary>
@@ -48,6 +47,13 @@ namespace osu.Framework.Graphics.Shaders
         {
             lock (global_properties)
                 ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
+        }
+
+        public static T Get<T>(GlobalProperty property)
+            where T : struct
+        {
+            lock (global_properties)
+                return ((UniformMapping<T>)global_properties[(int)property]).Value;
         }
 
         public static void Register(Shader shader)

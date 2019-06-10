@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Audio
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2_VERTEX_DEPTH, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private float resolution = 1;

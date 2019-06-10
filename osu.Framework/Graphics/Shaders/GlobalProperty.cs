@@ -21,6 +21,5 @@ namespace osu.Framework.Graphics.Shaders
         InnerCornerRadius,
         GammaCorrection,
         BackbufferDraw,
-        BackbufferDrawDepth,
     }
 }
