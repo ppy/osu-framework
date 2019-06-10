@@ -68,7 +68,7 @@ namespace osu.Framework.IO.Stores
         /// <returns>The base height of the font.</returns>
         public float? GetBaseHeight(char c)
         {
-            var glyphStore = getGlyphStore("", c);
+            var glyphStore = getGlyphStore(string.Empty, c);
 
             return glyphStore?.GetBaseHeight() / ScaleAdjust;
         }
