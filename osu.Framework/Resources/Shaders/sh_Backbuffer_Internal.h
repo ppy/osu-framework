@@ -1,5 +1,4 @@
 // Automatically included for every vertex shader.
-// Apply the following defines to vertex shader files to enable specific optimisations.
 
 attribute float m_BackbufferDrawDepth;
 
