@@ -117,19 +117,15 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
                     return;
 
-                TextureGL tex = shared.MainBuffer.Texture;
-                TextureWrapMode previousWrapMode = tex.WrapMode;
-
-                tex.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+                TextureGL texture = shared.MainBuffer.Texture;
+                TextureWrapMode previousWrapMode = texture.WrapMode;
+                texture.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
                 Shader.Bind();
-
-                if (tex.Bind())
-                    DrawQuad(tex, screenSpaceDrawQuad, DrawColourInfo.Colour, new RectangleF(0, tex.Height, tex.Width, -tex.Height), vertexAction);
-
+                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
                 Shader.Unbind();
 
-                tex.WrapMode = previousWrapMode;
+                texture.WrapMode = previousWrapMode;
             }
         }
     }
