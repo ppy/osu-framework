@@ -8,9 +8,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        public override bool RequestsFocus => State == Visibility.Visible;
+        public override bool RequestsFocus => State.Value == Visibility.Visible;
 
-        public override bool AcceptsFocus => State == Visibility.Visible;
+        public override bool AcceptsFocus => State.Value == Visibility.Visible;
 
         protected override void PopIn()
         {
