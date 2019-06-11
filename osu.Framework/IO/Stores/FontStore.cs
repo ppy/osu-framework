@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
 using JetBrains.Annotations;
+using NUnit.Framework;
 
 namespace osu.Framework.IO.Stores
 {
@@ -28,7 +29,15 @@ namespace osu.Framework.IO.Stores
         public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
             : base(store, scaleAdjust: scaleAdjust)
         {
-            cachedTextureLookup = t => Get(getTextureName(t.Item1, t.Item2));
+            cachedTextureLookup = t =>
+            {
+                var tex = Get(getTextureName(t.Item1, t.Item2));
+
+                if (tex == null)
+                    Logger.Log($"Glyph texture lookup for {getTextureName(t.Item1, t.Item2)} was unsuccessful.", level: LogLevel.Error);
+
+                return tex;
+            };
         }
 
         /// <summary>
@@ -45,15 +54,10 @@ namespace osu.Framework.IO.Stores
             if (texture == null)
             {
                 glyph = default;
-                Logger.Log($"Glyph texture lookup for {fontName}/{charName} was unsuccessful.", level: LogLevel.Error);
                 return false;
             }
 
-            if (!tryGetCharacterGlyph(fontName, charName, out glyph))
-            {
-                Logger.Log($"Glyph information lookup for {fontName}/{charName} was unsuccessful.", level: LogLevel.Error);
-                return false;
-            }
+            Assert.IsTrue(tryGetCharacterGlyph(fontName, charName, out glyph));
 
             glyph.Texture = texture;
             glyph.ApplyScaleAdjust(1 / ScaleAdjust);
