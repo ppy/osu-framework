@@ -315,6 +315,27 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// The blending which <see cref="BufferedContainerDrawNode"/> uses for the effect.
+        /// </summary>
+        public BlendingParameters DrawEffectBlending
+        {
+            get
+            {
+                BlendingParameters blending = EffectBlending;
+                if (blending.Mode == BlendingMode.Inherit)
+                    blending.Mode = Blending.Mode;
+
+                if (blending.RGBEquation == BlendingEquation.Inherit)
+                    blending.RGBEquation = Blending.RGBEquation;
+
+                if (blending.AlphaEquation == BlendingEquation.Inherit)
+                    blending.AlphaEquation = Blending.AlphaEquation;
+
+                return blending;
+            }
+        }
+
+        /// <summary>
         /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
         /// </summary>
         /// <returns>The view.</returns>
