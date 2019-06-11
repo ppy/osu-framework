@@ -17,7 +17,8 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         public float BackbufferDrawDepth;
 
         public bool Equals(DepthWrappingVertex<TVertex> other)
-            => Vertex.Equals(other.Vertex);
+            => Vertex.Equals(other.Vertex)
+               && BackbufferDrawDepth.Equals(other.BackbufferDrawDepth);
 
         public bool Equals(TVertex other)
             => Vertex.Equals(other);
