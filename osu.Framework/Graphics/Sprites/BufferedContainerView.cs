@@ -3,12 +3,12 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -63,6 +63,25 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private bool displayOriginalEffects;
+
+        /// <summary>
+        /// Whether the effects drawn by the <see cref="BufferedContainer{T}"/> should also be drawn for this view.
+        /// </summary>
+        public bool DisplayOriginalEffects
+        {
+            get => displayOriginalEffects;
+            set
+            {
+                if (displayOriginalEffects == value)
+                    return;
+
+                displayOriginalEffects = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         private void removeContainer()
         {
             if (container == null)
@@ -89,6 +108,12 @@ namespace osu.Framework.Graphics.Sprites
 
             private Quad screenSpaceDrawQuad;
             private BufferedDrawNodeSharedData shared;
+            private bool displayOriginalEffects;
+
+            private bool sourceDrawsOriginal;
+            private ColourInfo sourceEffectColour;
+            private BlendingParameters sourceEffectBlending;
+            private EffectPlacement sourceEffectPlacement;
 
             public BufferSpriteDrawNode(BufferedContainerView<T> source)
                 : base(source)
@@ -99,9 +124,14 @@ namespace osu.Framework.Graphics.Sprites
             {
                 base.ApplyState();
 
-                screenSpaceDrawQuad = Source.synchronisedDrawQuad ? (Source.container?.ScreenSpaceDrawQuad ?? Source.ScreenSpaceDrawQuad) : Source.ScreenSpaceDrawQuad;
-                wrapTexture = Source.WrapTexture;
+                screenSpaceDrawQuad = Source.synchronisedDrawQuad ? Source.container.ScreenSpaceDrawQuad : Source.ScreenSpaceDrawQuad;
                 shared = Source.sharedData;
+
+                displayOriginalEffects = Source.displayOriginalEffects;
+                sourceDrawsOriginal = Source.container.DrawOriginal;
+                sourceEffectColour = Source.container.EffectColour;
+                sourceEffectBlending = Source.container.DrawEffectBlending;
+                sourceEffectPlacement = Source.container.EffectPlacement;
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -112,9 +142,48 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 Shader.Bind();
-                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+
+                if (sourceEffectPlacement == EffectPlacement.InFront)
+                    drawMainBuffer(vertexAction);
+
+                drawEffectBuffer(vertexAction);
+
+                if (sourceEffectPlacement == EffectPlacement.Behind)
+                    drawMainBuffer(vertexAction);
+
                 Shader.Unbind();
             }
+
+            private void drawMainBuffer(Action<TexturedVertex2D> vertexAction)
+            {
+                // If the original was drawn, draw it.
+                // Otherwise, if an effect will also not be drawn then we still need to display something - the original.
+                // Keep in mind that the effect MAY be the original itself, but is drawn through drawEffectBuffer().
+                if (!sourceDrawsOriginal && shouldDrawEffectBuffer)
+                    return;
+
+                GLWrapper.SetBlend(DrawColourInfo.Blending);
+                DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+            }
+
+            private void drawEffectBuffer(Action<TexturedVertex2D> vertexAction)
+            {
+                if (!shouldDrawEffectBuffer)
+                    return;
+
+                GLWrapper.SetBlend(new BlendingInfo(sourceEffectBlending));
+                ColourInfo finalEffectColour = DrawColourInfo.Colour;
+                finalEffectColour.ApplyChild(sourceEffectColour);
+
+                DrawFrameBuffer(shared.CurrentEffectBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
+            }
+
+            /// <summary>
+            /// Whether the source's current effect buffer should be drawn.
+            /// This is true if we explicitly want to draw it or if no effects were drawn by the source. In the case that no effects were drawn by the source,
+            /// the current effect buffer will be the main buffer, and what will be drawn is the main buffer with the effect blending applied.
+            /// </summary>
+            private bool shouldDrawEffectBuffer => displayOriginalEffects || shared.CurrentEffectBuffer == shared.MainBuffer;
         }
     }
 }
