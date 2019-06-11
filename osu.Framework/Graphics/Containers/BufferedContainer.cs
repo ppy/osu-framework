@@ -12,6 +12,7 @@ using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -312,6 +313,12 @@ namespace osu.Framework.Graphics.Containers
 
             childrenUpdateVersion = updateVersion;
         }
+
+        /// <summary>
+        /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <returns>The view.</returns>
+        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, sharedData);
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
