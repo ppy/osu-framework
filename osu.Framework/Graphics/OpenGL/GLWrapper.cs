@@ -18,6 +18,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -65,7 +66,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            isEmbedded = host.Window.IsEmbedded;
+            if (host.Window is GameWindow win)
+                isEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
