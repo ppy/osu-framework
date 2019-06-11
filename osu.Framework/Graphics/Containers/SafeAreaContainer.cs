@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         private GameHost host { get; set; }
 
-        private readonly BindableMarginPadding safeAreaPadding = new BindableMarginPadding();
+        private readonly IBindable<MarginPadding> safeAreaPadding = new BindableMarginPadding();
 
         private Edges appliedEdges = Edges.All;
 
