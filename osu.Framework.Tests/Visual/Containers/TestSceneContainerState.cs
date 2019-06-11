@@ -8,12 +8,11 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
-    public class TestSceneContainerState : TestScene
+    public class TestSceneContainerState : FrameworkTestScene
     {
         /// <summary>
         /// Tests if a drawable can be added to a container, removed, and then re-added to the same container.

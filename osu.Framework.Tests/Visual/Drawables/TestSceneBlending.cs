@@ -8,13 +8,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneBlending : TestScene
+    public class TestSceneBlending : FrameworkTestScene
     {
         private readonly Dropdown<BlendingMode> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -20,13 +20,12 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
     public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
     {
-        public GameWindow Window => Host?.Window;
+        public IWindow Window => Host?.Window;
 
         public ResourceStore<byte[]> Resources { get; private set; }
 
@@ -134,6 +133,9 @@ namespace osu.Framework
 
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
+
+            dependencies.CacheAs(Audio.Tracks);
+            dependencies.CacheAs(Audio.Samples);
 
             // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);

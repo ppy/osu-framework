@@ -4,11 +4,10 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteText : TestScene
+    public class TestSceneSpriteText : FrameworkTestScene
     {
         public TestSceneSpriteText()
         {

@@ -7,12 +7,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.IO.Network;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     [Description("markdown reader")]
-    public class TestSceneMarkdown : TestScene
+    public class TestSceneMarkdown : FrameworkTestScene
     {
         public TestSceneMarkdown()
         {

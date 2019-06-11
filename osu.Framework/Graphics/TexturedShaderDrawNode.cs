@@ -8,10 +8,10 @@ namespace osu.Framework.Graphics
 {
     public abstract class TexturedShaderDrawNode : DrawNode
     {
-        protected IShader Shader => RequiresRoundedShader ? roundedTextureShader : textureShader;
+        protected IShader Shader => RequiresRoundedShader ? RoundedTextureShader : TextureShader;
 
-        private IShader textureShader;
-        private IShader roundedTextureShader;
+        protected IShader TextureShader { get; private set; }
+        protected IShader RoundedTextureShader { get; private set; }
 
         protected new ITexturedShaderDrawable Source => (ITexturedShaderDrawable)base.Source;
 
@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics
         {
             base.ApplyState();
 
-            textureShader = Source.TextureShader;
-            roundedTextureShader = Source.RoundedTextureShader;
+            TextureShader = Source.TextureShader;
+            RoundedTextureShader = Source.RoundedTextureShader;
         }
 
         protected virtual bool RequiresRoundedShader => GLWrapper.IsMaskingActive;

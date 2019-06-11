@@ -9,13 +9,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneConcurrentLoad : TestScene
+    public class TestSceneConcurrentLoad : FrameworkTestScene
     {
         private const int panel_count = 6;
 

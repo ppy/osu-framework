@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Sprites
         /// of this sprite will be set to the size of the texture.
         /// <see cref="Drawable.FillAspectRatio"/> is automatically set to the aspect ratio of the given texture or 1 if the texture is null.
         /// </summary>
-        public Texture Texture
+        public virtual Texture Texture
         {
             get => texture;
             set

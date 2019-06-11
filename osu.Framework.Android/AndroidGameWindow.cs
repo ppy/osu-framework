@@ -41,10 +41,12 @@ namespace osu.Framework.Android
 
         public override void Run()
         {
+            View.Run();
         }
 
         public override void Run(double updateRate)
         {
+            View.Run(updateRate);
         }
     }
 }

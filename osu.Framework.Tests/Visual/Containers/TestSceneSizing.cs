@@ -9,14 +9,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("potentially challenging size calculations")]
-    public class TestSceneSizing : TestScene
+    public class TestSceneSizing : FrameworkTestScene
     {
         private Container testContainer;
 
