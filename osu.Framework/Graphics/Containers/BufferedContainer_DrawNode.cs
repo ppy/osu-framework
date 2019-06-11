@@ -48,18 +48,8 @@ namespace osu.Framework.Graphics.Containers
 
                 updateVersion = Source.updateVersion;
 
-                BlendingParameters localEffectBlending = Source.EffectBlending;
-                if (localEffectBlending.Mode == BlendingMode.Inherit)
-                    localEffectBlending.Mode = Source.Blending.Mode;
-
-                if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                    localEffectBlending.RGBEquation = Source.Blending.RGBEquation;
-
-                if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localEffectBlending.AlphaEquation = Source.Blending.AlphaEquation;
-
                 effectColour = Source.EffectColour;
-                effectBlending = localEffectBlending;
+                effectBlending = Source.DrawEffectBlending;
                 effectPlacement = Source.EffectPlacement;
 
                 drawOriginal = Source.DrawOriginal;
@@ -97,7 +87,7 @@ namespace osu.Framework.Graphics.Containers
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
 
-                DrawFrameBuffer(SharedData.CurrentEffectBuffer, finalEffectColour);
+                DrawFrameBuffer(SharedData.CurrentEffectBuffer, DrawRectangle, finalEffectColour);
 
                 if (drawOriginal && effectPlacement == EffectPlacement.Behind)
                     base.DrawContents();
@@ -123,7 +113,7 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    DrawFrameBuffer(current, ColourInfo.SingleColour(Color4.White), new RectangleF(0, 0, current.Texture.Width, current.Texture.Height));
+                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
                     blurShader.Unbind();
                 }
             }

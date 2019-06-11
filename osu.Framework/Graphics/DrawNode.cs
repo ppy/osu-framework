@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -85,6 +86,7 @@ namespace osu.Framework.Graphics
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -126,6 +128,7 @@ namespace osu.Framework.Graphics
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -238,6 +241,25 @@ namespace osu.Framework.Graphics
 
             for (int i = 2; i < clippedRegion.Length; i++)
                 DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage);
+        }
+
+        /// <summary>
+        /// Draws a <see cref="FrameBuffer"/> to the screen.
+        /// </summary>
+        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
+        /// <param name="vertexQuad">The destination vertices.</param>
+        /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
+        protected void DrawFrameBuffer(FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+                                       Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        {
+            // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
+            RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
+
+            if (frameBuffer.Texture.Bind())
+                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         /// <summary>
