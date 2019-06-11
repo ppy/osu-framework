@@ -8,19 +8,23 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public partial class Path : Drawable, ITexturedShaderDrawable
+    public partial class Path : Drawable, IBufferedDrawable
     {
         public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
+        private IShader pathShader;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -174,6 +178,16 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode(this);
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
+
+        // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
+        // Removal of blending allows for correct blending between the wedges of the path.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, new BlendingInfo(BlendingMode.None));
+
+        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
     }
 }

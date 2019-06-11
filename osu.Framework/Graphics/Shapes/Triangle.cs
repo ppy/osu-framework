@@ -36,8 +36,6 @@ namespace osu.Framework.Graphics.Shapes
 
         private class TriangleDrawNode : SpriteDrawNode
         {
-            protected new Triangle Source => (Triangle)base.Source;
-
             public TriangleDrawNode(Triangle source)
                 : base(source)
             {
@@ -45,7 +43,7 @@ namespace osu.Framework.Graphics.Shapes
 
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
             {
-                Texture.DrawTriangle(toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
+                DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
             }
         }

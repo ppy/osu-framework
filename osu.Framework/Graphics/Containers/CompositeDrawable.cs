@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource disposalCancellationSource;
 
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -1556,7 +1556,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
-                    throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} can not be set manually.");
 
                 base.Width = value;
             }
@@ -1574,7 +1574,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
-                    throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} can not be set manually.");
 
                 base.Height = value;
             }
@@ -1594,7 +1594,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
-                    throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} can not be set manually.");
 
                 base.Size = value;
             }

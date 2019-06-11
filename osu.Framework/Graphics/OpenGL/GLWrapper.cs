@@ -18,6 +18,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -65,7 +66,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            isEmbedded = host.Window.IsEmbedded;
+            if (host.Window is GameWindow win)
+                isEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
@@ -141,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL
                 AlphaExponent = 1,
             }, true);
 
-            PushDepthInfo(new DepthInfo(false));
+            PushDepthInfo(DepthInfo.Default);
             Clear(ClearInfo.Default);
         }
 
@@ -149,6 +151,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void Clear(ClearInfo clearInfo)
         {
+            PushDepthInfo(new DepthInfo(writeDepth: true));
+
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
@@ -174,6 +178,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             currentClearInfo = clearInfo;
+
+            PopDepthInfo();
         }
 
         /// <summary>
@@ -713,6 +719,8 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
+
+        public Quad ConservativeScreenSpaceQuad;
 
         /// <summary>
         /// This matrix transforms screen space coordinates to masking space (likely the parent

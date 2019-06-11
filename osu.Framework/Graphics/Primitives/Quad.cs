@@ -12,11 +12,12 @@ namespace osu.Framework.Graphics.Primitives
     [StructLayout(LayoutKind.Sequential)]
     public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
-        // Note: Do not change the order of vertices.
+        // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
+        // See: IPolygon.GetVertices()
         public Vector2 TopLeft;
-        public Vector2 TopRight;
-        public Vector2 BottomRight;
         public Vector2 BottomLeft;
+        public Vector2 BottomRight;
+        public Vector2 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
