@@ -211,17 +211,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown()
         {
-            content = new FillFlowContainer
+            AddInternal(content = new FillFlowContainer
             {
                 Direction = FillDirection.Vertical,
                 AutoSizeAxes = Axes.Y,
-            };
+                RelativeSizeAxes = Axes.X
+            });
 
-            InternalChildren = new Drawable[]
+            AddRange(new Drawable[]
             {
                 Header = CreateHeader(),
                 Menu = CreateMenu()
-            };
+            });
 
             Menu.RelativeSizeAxes = Axes.X;
 
