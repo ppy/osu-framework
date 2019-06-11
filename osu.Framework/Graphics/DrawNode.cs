@@ -85,6 +85,7 @@ namespace osu.Framework.Graphics
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -126,6 +127,7 @@ namespace osu.Framework.Graphics
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
