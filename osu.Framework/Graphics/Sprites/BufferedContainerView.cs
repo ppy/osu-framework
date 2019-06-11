@@ -21,11 +21,6 @@ namespace osu.Framework.Graphics.Sprites
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
 
-        /// <summary>
-        /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
-        /// </summary>
-        public bool WrapTexture;
-
         private BufferedContainer<T> container;
         private BufferedDrawNodeSharedData sharedData;
 
@@ -93,7 +88,6 @@ namespace osu.Framework.Graphics.Sprites
             protected new BufferedContainerView<T> Source => (BufferedContainerView<T>)base.Source;
 
             private Quad screenSpaceDrawQuad;
-            private bool wrapTexture;
             private BufferedDrawNodeSharedData shared;
 
             public BufferSpriteDrawNode(BufferedContainerView<T> source)
@@ -117,15 +111,9 @@ namespace osu.Framework.Graphics.Sprites
                 if (shared?.MainBuffer?.Texture?.Available != true || shared.DrawVersion == -1)
                     return;
 
-                TextureGL texture = shared.MainBuffer.Texture;
-                TextureWrapMode previousWrapMode = texture.WrapMode;
-                texture.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-
                 Shader.Bind();
                 DrawFrameBuffer(shared.MainBuffer, screenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction);
                 Shader.Unbind();
-
-                texture.WrapMode = previousWrapMode;
             }
         }
     }
