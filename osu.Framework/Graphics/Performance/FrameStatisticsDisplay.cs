@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Performance
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
                         break;
+
                     case FrameStatisticsMode.Full:
                         mainContainer.AutoSizeAxes = Axes.None;
                         mainContainer.Size = new Vector2(WIDTH, HEIGHT);
@@ -99,7 +100,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
+        public FrameStatisticsDisplay(GameThread thread)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
@@ -143,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
+                                            Texture = new Texture(1, HEIGHT),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -177,8 +178,8 @@ namespace osu.Framework.Graphics.Performance
                                 RelativeSizeAxes = Axes.Both,
                                 Children = timeBars = new[]
                                 {
-                                    new TimeBar(atlas),
-                                    new TimeBar(atlas),
+                                    new TimeBar(),
+                                    new TimeBar(),
                                 },
                             },
                             frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
@@ -312,6 +313,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = true;
                     break;
+
                 case Key.ShiftLeft:
                     Running = false;
                     break;
@@ -327,6 +329,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = false;
                     break;
+
                 case Key.ShiftLeft:
                     Running = true;
                     break;
@@ -403,6 +406,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.YellowGreen;
+
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG
@@ -411,10 +415,13 @@ namespace osu.Framework.Graphics.Performance
 #endif
                 case PerformanceCollectionType.Sleep:
                     return Color4.DarkBlue;
+
                 case PerformanceCollectionType.Scheduler:
                     return Color4.HotPink;
+
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
+
                 case PerformanceCollectionType.GLReset:
                     return Color4.Cyan;
             }
@@ -428,16 +435,22 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.BlueViolet;
+
                 case 1:
                     return Color4.YellowGreen;
+
                 case 2:
                     return Color4.HotPink;
+
                 case 3:
                     return Color4.Red;
+
                 case 4:
                     return Color4.Cyan;
+
                 case 5:
                     return Color4.Yellow;
+
                 case 6:
                     return Color4.SkyBlue;
             }
@@ -466,6 +479,7 @@ namespace osu.Framework.Graphics.Performance
                 bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
+
                 if (!frameTimeType.HasValue)
                 {
                     int step = amountSteps / HEIGHT;
@@ -486,12 +500,12 @@ namespace osu.Framework.Graphics.Performance
         {
             public readonly Sprite Sprite;
 
-            public TimeBar(TextureAtlas atlas)
+            public TimeBar()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
+                Sprite.Texture = new Texture(WIDTH, HEIGHT);
             }
         }
 

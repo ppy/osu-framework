@@ -6,13 +6,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneProxyDrawables : TestScene
+    public class TestSceneProxyDrawables : FrameworkTestScene
     {
         public TestSceneProxyDrawables()
         {
@@ -45,6 +44,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         generateProxyBelowParentOriginalIndirectlyMaskedAway(1),
                         generateProxyAboveParentOriginalIndirectlyMaskedAway(6),
                         generateProxyBelowParentOriginalIndirectlyMaskedAway(6),
+                        generateOpaqueProxyAboveOpaqueBox(),
                     }
                 }
             };
@@ -340,6 +340,27 @@ namespace osu.Framework.Tests.Visual.Drawables
             };
         }
 
+        private Drawable generateOpaqueProxyAboveOpaqueBox()
+        {
+            var box = new Box
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(50),
+            };
+
+            var proxy = box.CreateProxy();
+
+            return new Visualiser("proxy above opaque box")
+            {
+                Children = new Drawable[]
+                {
+                    box,
+                    new ProxyVisualiser(proxy, false, 1.0f)
+                }
+            };
+        }
+
         private class NonPresentContainer : Container
         {
             private bool isPresent = true;
@@ -407,11 +428,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             private readonly Drawable original;
             private readonly Drawable overlay;
 
-            public ProxyVisualiser(Drawable proxy, bool proxyIsBelow)
+            public ProxyVisualiser(Drawable proxy, bool proxyIsBelow, float boxAlpha = 0.5f)
             {
                 RelativeSizeAxes = Axes.Both;
 
                 original = proxy.Original;
+
                 while (original != (original = original.Original))
                 {
                 }
@@ -427,12 +449,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Alpha = 0.5f,
+                            Alpha = boxAlpha,
                         },
                         new SpriteText
                         {
                             Anchor = Anchor.BottomCentre,
                             Origin = Anchor.BottomCentre,
+                            Colour = Color4.Black,
                             Text = "proxy"
                         }
                     }

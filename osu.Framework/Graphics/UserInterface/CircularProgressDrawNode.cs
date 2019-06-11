@@ -101,6 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = dir * Math.Min(i * step, dir * angle);
                 float normalisedOffset = angularOffset / MathHelper.TwoPi;
+
                 if (dir < 0)
                 {
                     normalisedOffset += 1.0f;

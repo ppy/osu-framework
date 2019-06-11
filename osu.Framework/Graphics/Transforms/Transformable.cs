@@ -274,6 +274,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
 
             Transform[] toAbort;
+
             if (targetMember == null)
             {
                 toAbort = transformsLazy.Value.Where(t => t.StartTime >= time).ToArray();
@@ -438,6 +439,7 @@ namespace osu.Framework.Graphics.Transforms
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
+
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);

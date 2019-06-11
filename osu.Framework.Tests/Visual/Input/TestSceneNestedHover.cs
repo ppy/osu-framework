@@ -5,13 +5,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneNestedHover : TestScene
+    public class TestSceneNestedHover : FrameworkTestScene
     {
         public TestSceneNestedHover()
         {

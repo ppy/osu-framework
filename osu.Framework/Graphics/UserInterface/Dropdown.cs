@@ -159,10 +159,13 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuItem i:
                     return i.Text.Value;
+
                 case IHasText t:
                     return t.Text;
+
                 case Enum e:
                     return e.GetDescription();
+
                 default:
                     return item?.ToString() ?? "null";
             }

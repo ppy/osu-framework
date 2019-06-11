@@ -114,6 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Direction.Horizontal:
                     ItemsContainer.AutoSizeAxes = Axes.X;
                     break;
+
                 case Direction.Vertical:
                     ItemsContainer.AutoSizeAxes = Axes.Y;
                     break;
@@ -236,6 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     AnimateClose();
                     break;
+
                 case MenuState.Open:
                     AnimateOpen();
                     if (!TopLevelMenu)
@@ -453,6 +455,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     selectedItem.State = MenuItemState.NotSelected;
                     break;
+
                 case MenuState.Open:
                     selectedItem.State = MenuItemState.Selected;
                     break;

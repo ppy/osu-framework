@@ -10,14 +10,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneFillFlowContainer : TestScene
+    public class TestSceneFillFlowContainer : FrameworkTestScene
     {
         private FillDirectionDropdown selectionDropdown;
 
@@ -266,27 +265,35 @@ namespace osu.Framework.Tests.Visual.Layout
                             case 0:
                                 child.Origin = Anchor.TopLeft;
                                 break;
+
                             case 1:
                                 child.Origin = Anchor.TopCentre;
                                 break;
+
                             case 2:
                                 child.Origin = Anchor.TopRight;
                                 break;
+
                             case 3:
                                 child.Origin = Anchor.CentreLeft;
                                 break;
+
                             case 4:
                                 child.Origin = Anchor.Centre;
                                 break;
+
                             case 5:
                                 child.Origin = Anchor.CentreRight;
                                 break;
+
                             case 6:
                                 child.Origin = Anchor.BottomLeft;
                                 break;
+
                             case 7:
                                 child.Origin = Anchor.BottomCentre;
                                 break;
+
                             case 8:
                                 child.Origin = Anchor.BottomRight;
                                 break;

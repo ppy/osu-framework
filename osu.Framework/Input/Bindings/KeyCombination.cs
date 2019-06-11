@@ -119,109 +119,156 @@ namespace osu.Framework.Input.Bindings
             {
                 case InputKey.None:
                     return string.Empty;
+
                 case InputKey.Shift:
                     return "Shift";
+
                 case InputKey.Control:
                     return "Ctrl";
+
                 case InputKey.Alt:
                     return "Alt";
+
                 case InputKey.Super:
                     return "Win";
+
                 case InputKey.Escape:
                     return "Esc";
+
                 case InputKey.BackSpace:
                     return "Backsp";
+
                 case InputKey.Insert:
                     return "Ins";
+
                 case InputKey.Delete:
                     return "Del";
+
                 case InputKey.PageUp:
                     return "Pgup";
+
                 case InputKey.PageDown:
                     return "Pgdn";
+
                 case InputKey.CapsLock:
                     return "Caps";
+
                 case InputKey.Number0:
                 case InputKey.Keypad0:
                     return "0";
+
                 case InputKey.Number1:
                 case InputKey.Keypad1:
                     return "1";
+
                 case InputKey.Number2:
                 case InputKey.Keypad2:
                     return "2";
+
                 case InputKey.Number3:
                 case InputKey.Keypad3:
                     return "3";
+
                 case InputKey.Number4:
                 case InputKey.Keypad4:
                     return "4";
+
                 case InputKey.Number5:
                 case InputKey.Keypad5:
                     return "5";
+
                 case InputKey.Number6:
                 case InputKey.Keypad6:
                     return "6";
+
                 case InputKey.Number7:
                 case InputKey.Keypad7:
                     return "7";
+
                 case InputKey.Number8:
                 case InputKey.Keypad8:
                     return "8";
+
                 case InputKey.Number9:
                 case InputKey.Keypad9:
                     return "9";
+
                 case InputKey.Tilde:
                     return "~";
+
                 case InputKey.Minus:
                     return "-";
+
                 case InputKey.Plus:
                     return "+";
+
                 case InputKey.BracketLeft:
                     return "(";
+
                 case InputKey.BracketRight:
                     return ")";
+
                 case InputKey.Semicolon:
                     return ";";
+
                 case InputKey.Quote:
                     return "\"";
+
                 case InputKey.Comma:
                     return ",";
+
                 case InputKey.Period:
                     return ".";
+
                 case InputKey.Slash:
                     return "/";
+
                 case InputKey.BackSlash:
                 case InputKey.NonUSBackSlash:
                     return "\\";
+
                 case InputKey.MouseLeft:
                     return "M1";
+
                 case InputKey.MouseMiddle:
                     return "M3";
+
                 case InputKey.MouseRight:
                     return "M2";
+
                 case InputKey.MouseButton1:
                     return "M4";
+
                 case InputKey.MouseButton2:
                     return "M5";
+
                 case InputKey.MouseButton3:
                     return "M6";
+
                 case InputKey.MouseButton4:
                     return "M7";
+
                 case InputKey.MouseButton5:
                     return "M8";
+
                 case InputKey.MouseButton6:
                     return "M9";
+
                 case InputKey.MouseButton7:
                     return "M10";
+
                 case InputKey.MouseButton8:
                     return "M11";
+
                 case InputKey.MouseButton9:
                     return "M12";
+
                 case InputKey.MouseWheelDown:
                     return "Wheel Down";
+
                 case InputKey.MouseWheelUp:
                     return "Wheel Up";
+
                 default:
                     return key.ToString();
             }
@@ -233,10 +280,13 @@ namespace osu.Framework.Input.Bindings
             {
                 case Key.RShift:
                     return InputKey.Shift;
+
                 case Key.RAlt:
                     return InputKey.Alt;
+
                 case Key.RControl:
                     return InputKey.Control;
+
                 case Key.RWin:
                     return InputKey.Super;
             }
@@ -304,6 +354,7 @@ namespace osu.Framework.Input.Bindings
                             if (!keys.Contains(iKey))
                                 keys.Add(iKey);
                             break;
+
                         default:
                             keys.Add(iKey);
                             break;

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -32,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Containers
         /// Create a scroll container, attempt to scroll past its <see cref="ScrollContainer.ClampExtension"/>, and check that it does not.
         /// </summary>
         [Test]
-        public void ScrollToTest()
+        public void TestScrollTo()
         {
             AddStep("Create scroll container with specified clamp extension", () => createScrollContainer(clampExtension));
             AddStep("Scroll past extent", () => scrollContainer.ScrollTo(200));
@@ -45,7 +46,7 @@ namespace osu.Framework.Tests.Visual.Containers
         /// Attempt to drag a scrollcontainer past its <see cref="ScrollContainer.ClampExtension"/> and check that it does not.
         /// </summary>
         [Test]
-        public void DraggingScrollTest()
+        public void TestDraggingScroll()
         {
             AddStep("Create scroll container with specified clamp extension", () => createScrollContainer(clampExtension));
             AddStep("Click and drag scrollcontainer", () =>
@@ -63,12 +64,31 @@ namespace osu.Framework.Tests.Visual.Containers
             checkScrollWithinBounds();
         }
 
+        [Test]
+        public void TestContentAnchor()
+        {
+            AddStep("Create scroll container with centre-left content", () =>
+            {
+                createScrollContainer(clampExtension).With(d =>
+                {
+                    d.RelativeSizeAxes = Axes.None;
+                    d.Size = new Vector2(300);
+                    d.ScrollContent.Anchor = Anchor.CentreLeft;
+                    d.ScrollContent.Origin = Anchor.CentreLeft;
+                    d.ScrollContent.Child.Height = 400;
+                });
+            });
+
+            AddStep("Scroll to 0", () => scrollContainer.ScrollTo(0, false));
+            AddAssert("Content position at top", () => Precision.AlmostEquals(scrollContainer.ScreenSpaceDrawQuad.TopLeft, scrollContainer.ScrollContent.ScreenSpaceDrawQuad.TopLeft));
+        }
+
         private void checkScrollWithinBounds()
         {
             AddAssert("Scroll amount is within ClampExtension bounds", () => Math.Abs(scrollContainer.Current) <= scrollContainer.ClampExtension);
         }
 
-        private void createScrollContainer(float clampExtension = 0)
+        private ScrollContainer createScrollContainer(float clampExtension = 0)
         {
             if (scrollContainer != null)
                 InputManager.Remove(scrollContainer);
@@ -86,6 +106,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 }
             });
+
+            return scrollContainer;
         }
     }
 }

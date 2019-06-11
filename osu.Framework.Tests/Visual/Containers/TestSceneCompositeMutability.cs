@@ -8,11 +8,10 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCompositeMutability : TestScene
+    public class TestSceneCompositeMutability : FrameworkTestScene
     {
         [TestCase(TestThread.External, false)]
         [TestCase(TestThread.Update, false)]
@@ -51,15 +50,18 @@ namespace osu.Framework.Tests.Visual.Containers
                         case LoadState.Loading when thread != TestThread.Load:
                             container.LoadingEvent.Set();
                             break;
+
                         // Special case for the load thread: possibly active during the ready state, but the ready event is handled in the switch below
                         case LoadState.Ready when thread == TestThread.Load:
                             container.LoadingEvent.Set();
                             stateToWaitFor = LoadState.Loading; // We'll never reach the ready state before the switch below
                             break;
+
                         case LoadState.Ready:
                             container.LoadingEvent.Set();
                             container.ReadyEvent.Set();
                             break;
+
                         case LoadState.Loaded:
                             container.LoadingEvent.Set();
                             container.ReadyEvent.Set();
@@ -96,6 +98,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             AddStep("bind event", () => container.OnLoading += tryThrow);
                             AddStep("set loading", () => container.LoadingEvent.Set());
                             break;
+
                         case LoadState.Ready:
                             AddStep("bind event", () => container.OnReady += tryThrow);
                             AddStep("set loading", () => container.ReadyEvent.Set());

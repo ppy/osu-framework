@@ -209,11 +209,16 @@ namespace osu.Framework.Bindables
                 case T t:
                     Value = t;
                     break;
+
                 case string s:
-                    Value = typeof(T).IsEnum
-                        ? (T)Enum.Parse(typeof(T), s)
-                        : (T)Convert.ChangeType(s, typeof(T), CultureInfo.InvariantCulture);
+                    var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+                    if (underlyingType.IsEnum)
+                        Value = (T)Enum.Parse(underlyingType, s);
+                    else
+                        Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
                     break;
+
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
             }

@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         };
 
         private Button button;
-        private TrackBass track;
+        private Track track;
         private Waveform waveform;
         private Container<Drawable> waveformContainer;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
@@ -39,10 +39,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         [BackgroundDependencyLoader]
         private void load(Game game, AudioManager audio)
         {
-            track = new TrackBass(game.Resources.GetStream("Tracks/sample-track.mp3"));
-            audio.Track.AddItem(track);
+            var store = audio.GetTrackStore(game.Resources);
 
-            waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
+            const string track_name = "Tracks/sample-track.mp3";
+
+            track = store.Get(track_name);
+            waveform = new Waveform(store.GetStream(track_name));
 
             const float track_width = 1366; // required because RelativeSizeAxes.X doesn't seem to work with horizontal scroll
 

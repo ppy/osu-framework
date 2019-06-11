@@ -52,6 +52,7 @@ namespace osu.Framework.Graphics.Visualisation
                     case TreeContainerStatus.Offscreen:
                         this.Delay(500).FadeTo(0.7f, 300);
                         break;
+
                     case TreeContainerStatus.Onscreen:
                         this.FadeIn(300, Easing.OutQuint);
                         break;
@@ -164,7 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
-            PropertyDisplay.StateChanged += v => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
+            PropertyDisplay.State.ValueChanged += v => propertyButton.BackgroundColour = v.NewValue == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
         }
 
         protected override void Update()

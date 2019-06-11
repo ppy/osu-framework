@@ -177,6 +177,7 @@ namespace osu.Framework.Testing.Input
                         case MouseButton.Left:
                             left.FadeIn();
                             break;
+
                         case MouseButton.Right:
                             right.FadeIn();
                             break;
@@ -193,6 +194,7 @@ namespace osu.Framework.Testing.Input
                         case MouseButton.Left:
                             left.FadeOut(500);
                             break;
+
                         case MouseButton.Right:
                             right.FadeOut(500);
                             break;
