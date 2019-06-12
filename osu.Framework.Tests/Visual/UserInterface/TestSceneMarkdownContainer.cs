@@ -188,45 +188,87 @@ soft break with '\'";
             });
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestRelativeLink(bool withBaseUri)
+        [Test]
+        public void TestRootRelativeLink()
         {
             AddStep("set content", () =>
             {
-                if (withBaseUri)
-                    markdownContainer.BaseUri = new Uri("https://a.ppy.sh");
-
-                markdownContainer.Text = "[peppy!](/2)";
+                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
+                markdownContainer.Text = "[link](/file)";
             });
 
-            if (!withBaseUri)
-                AddAssert("relative link maintained", () => markdownContainer.Links[0].Url == "/2");
-            else
-                AddAssert("has absolute link", () => markdownContainer.Links[0].Url == "https://a.ppy.sh/2");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestAbsoluteLink(bool withBaseUri)
+        [Test]
+        public void TestDocumentRelativeLink()
+        {
+            AddStep("set content", () => { markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2"); });
+
+            AddStep("set 'file'", () => markdownContainer.Text = "[link](file)");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
+
+            AddStep("set './file'", () => markdownContainer.Text = "[link](./file)");
+            AddAssert("has correct link", () => markdownContainer.Links[1].Url == "https://some.test.url/some/path/file");
+
+            AddStep("set '../folder/file'", () => markdownContainer.Text = "[link](../folder/file)");
+            AddAssert("has correct link", () => markdownContainer.Links[2].Url == "https://some.test.url/some/folder/file");
+        }
+
+        [Test]
+        public void TestDocumentRelativeLinkWithNoUri()
+        {
+            AddStep("set content", () => { markdownContainer.Text = "[link](file)"; });
+
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "file");
+        }
+
+        [Test]
+        public void TestRootRelativeLinkWithNoUri()
+        {
+            AddStep("set content", () => { markdownContainer.Text = "[link](/file)"; });
+
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "/file");
+        }
+
+        [Test]
+        public void TestDocumentRelativeLinkWithRootOverride()
         {
             AddStep("set content", () =>
             {
-                if (withBaseUri)
-                    markdownContainer.BaseUri = new Uri("https://a.ppy.sh");
-
-                markdownContainer.Text = "[peppy!](https://a.ppy.sh/2)";
+                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
+                markdownContainer.RootUri = new Uri("https://some.test.url/some/", UriKind.Absolute);
+                markdownContainer.Text = "[link](file)";
             });
 
-            AddAssert("has correct absolute link", () => markdownContainer.Links[0].Url == "https://a.ppy.sh/2");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
         }
 
-        private class TestMarkdownContainer : OnlineMarkdownContainer
+        [Test]
+        public void TestRootRelativeLinkWithRootOverride()
         {
-            public new Uri BaseUri
+            AddStep("set content", () =>
             {
-                get => base.BaseUri;
-                set => base.BaseUri = value;
+                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
+                markdownContainer.RootUri = new Uri("https://some.test.url/some/", UriKind.Absolute);
+                markdownContainer.Text = "[link](/file)";
+            });
+
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/file");
+        }
+
+        private class TestMarkdownContainer : MarkdownContainer
+        {
+            public new Uri DocumentUri
+            {
+                get => base.DocumentUri;
+                set => base.DocumentUri = value;
+            }
+
+            public new Uri RootUri
+            {
+                get => base.RootUri;
+                set => base.RootUri = value;
             }
 
             public readonly List<LinkInline> Links = new List<LinkInline>();

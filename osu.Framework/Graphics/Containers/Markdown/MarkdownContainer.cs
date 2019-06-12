@@ -90,20 +90,33 @@ namespace osu.Framework.Graphics.Containers.Markdown
             set => document.Padding = value;
         }
 
-        private Uri baseUri;
+        private Uri documentUri;
 
-        /// <summary>
-        /// The base URI to use for all relative resources in the document.
-        /// </summary>
-        protected Uri BaseUri
+        protected Uri DocumentUri
         {
-            get => baseUri;
+            get => documentUri;
             set
             {
-                if (baseUri == value)
+                if (documentUri == value)
                     return;
 
-                baseUri = value;
+                documentUri = value;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        private Uri rootUri;
+
+        protected Uri RootUri
+        {
+            get => rootUri;
+            set
+            {
+                if (rootUri == value)
+                    return;
+
+                rootUri = value;
 
                 contentCache.Invalidate();
             }
@@ -141,16 +154,27 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 
-                if (BaseUri != null)
+                // Turn all relative URIs in the document into absolute URIs based on BaseUri
+                foreach (var link in parsed.Descendants().OfType<LinkInline>())
                 {
-                    // Turn all relative URIs in the document into absolute URIs based on BaseUri
-                    foreach (var link in parsed.Descendants().OfType<LinkInline>())
-                    {
-                        if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
-                            continue;
+                    if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                        continue;
 
-                        if (!linkUri.IsAbsoluteUri)
-                            link.Url = new Uri(BaseUri, linkUri).AbsoluteUri;
+                    if (linkUri.IsAbsoluteUri)
+                    {
+                        // The simplest case
+                        continue;
+                    }
+
+                    if (DocumentUri != null)
+                    {
+                        if (RootUri != null && link.Url.StartsWith("/"))
+                        {
+                            // Ensure the URI is document-relative by removing all trailing slashes
+                            link.Url = new Uri(RootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
+                        }
+                        else
+                            link.Url = new Uri(documentUri, linkUri).AbsoluteUri;
                     }
                 }
 
