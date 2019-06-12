@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void FocusedOverlayTakesFocusOnShow()
         {
-            AddAssert("overlay not visible", () => overlay.State == Visibility.Hidden);
+            AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
             checkNotFocused(() => overlay);
 
             AddStep("show overlay", () => overlay.Show());
@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void FocusedOverlayLosesFocusOnClickAway()
         {
-            AddAssert("overlay not visible", () => overlay.State == Visibility.Hidden);
+            AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
             checkNotFocused(() => overlay);
 
             AddStep("show overlay", () => overlay.Show());
@@ -251,7 +251,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 if (!box.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                 {
-                    State = Visibility.Hidden;
+                    Hide();
                     return true;
                 }
 

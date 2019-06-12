@@ -11,18 +11,17 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
     public class TestSceneSafeArea : FrameworkTestScene
     {
-        private readonly BindableMarginPadding safeAreaPadding = new BindableMarginPadding();
+        private readonly IBindable<MarginPadding> safeAreaPadding = new BindableMarginPadding();
         private readonly Container container;
         private readonly Box box;
         private readonly SpriteText textbox;
 
-        private GameWindow window;
+        private IWindow window;
 
         public TestSceneSafeArea()
         {

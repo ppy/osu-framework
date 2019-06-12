@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
-            PropertyDisplay.StateChanged += v => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
+            PropertyDisplay.State.ValueChanged += v => propertyButton.BackgroundColour = v.NewValue == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
         }
 
         protected override void Update()

@@ -12,6 +12,7 @@ using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -313,23 +314,37 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
-
-        public override DrawColourInfo DrawColourInfo
+        /// <summary>
+        /// The blending which <see cref="BufferedContainerDrawNode"/> uses for the effect.
+        /// </summary>
+        public BlendingParameters DrawEffectBlending
         {
             get
             {
-                DrawColourInfo result = base.DrawColourInfo;
+                BlendingParameters blending = EffectBlending;
+                if (blending.Mode == BlendingMode.Inherit)
+                    blending.Mode = Blending.Mode;
 
-                // When drawing our children to the frame buffer we do not
-                // want their colour to be polluted by their parent (us!)
-                // since our own color will be applied on top when we render
-                // from the frame buffer to the back buffer later on.
-                result.Colour = ColourInfo.SingleColour(Color4.White);
+                if (blending.RGBEquation == BlendingEquation.Inherit)
+                    blending.RGBEquation = Blending.RGBEquation;
 
-                return result;
+                if (blending.AlphaEquation == BlendingEquation.Inherit)
+                    blending.AlphaEquation = Blending.AlphaEquation;
+
+                return blending;
             }
         }
+
+        /// <summary>
+        /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <returns>The view.</returns>
+        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, sharedData);
+
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
+
+        // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
         protected override void Dispose(bool isDisposing)
         {

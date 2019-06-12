@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
@@ -33,10 +32,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected new DrawColourInfo DrawColourInfo { get; private set; }
 
+        protected RectangleF DrawRectangle { get; private set; }
+
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
-
-        private RectangleF drawRectangle;
         private Vector2 frameBufferSize;
 
         private readonly All filteringMode;
@@ -62,7 +61,7 @@ namespace osu.Framework.Graphics
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
             frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
-            drawRectangle = filteringMode == All.Nearest
+            DrawRectangle = filteringMode == All.Nearest
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
 
@@ -132,7 +131,7 @@ namespace osu.Framework.Graphics
         protected virtual void DrawContents()
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
-            DrawFrameBuffer(SharedData.MainBuffer, DrawColourInfo.Colour);
+            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>
@@ -159,21 +158,6 @@ namespace osu.Framework.Graphics
             frameBuffer.Bind();
 
             return new ValueInvokeOnDisposal(frameBuffer.Unbind);
-        }
-
-        /// <summary>
-        /// Renders a <see cref="FrameBuffer"/> to the currently attached draw buffer (ba ckbuffer or frame buffer).
-        /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
-        /// <param name="colourInfo">The colour to draw the <paramref name="frameBuffer"/> with.</param>
-        /// <param name="drawQuad">The destination vertices.</param>
-        protected void DrawFrameBuffer(FrameBuffer frameBuffer, ColourInfo colourInfo, Quad? drawQuad = null)
-        {
-            // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
-            RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
-
-            if (frameBuffer.Texture.Bind())
-                DrawQuad(frameBuffer.Texture, drawQuad ?? drawRectangle, colourInfo, textureRect);
         }
 
         private ValueInvokeOnDisposal establishFrameBufferViewport()

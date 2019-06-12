@@ -20,13 +20,12 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
     public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
     {
-        public GameWindow Window => Host?.Window;
+        public IWindow Window => Host?.Window;
 
         public ResourceStore<byte[]> Resources { get; private set; }
 

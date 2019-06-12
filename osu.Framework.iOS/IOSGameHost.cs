@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
@@ -27,6 +28,13 @@ namespace osu.Framework.iOS
             base.SetupForRun();
             IOSGameWindow.GameView = gameView;
             Window = new IOSGameWindow();
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        {
+            base.SetupConfig(gameDefaults);
+
+            DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
         }
 
         protected override void PerformExit(bool immediately)

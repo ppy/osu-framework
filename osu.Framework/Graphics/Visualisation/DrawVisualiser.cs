@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                             if (visualised != null)
                             {
-                                propertyDisplay.State = Visibility.Visible;
+                                propertyDisplay.Show();
                                 setHighlight(visualised);
                             }
                         }
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         propertyDisplay.ToggleVisibility();
 
-                        if (propertyDisplay.State == Visibility.Visible)
+                        if (propertyDisplay.State.Value == Visibility.Visible)
                             setHighlight(targetVisualiser);
                     },
                 },
@@ -83,9 +83,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             propertyDisplay = treeContainer.PropertyDisplay;
 
-            propertyDisplay.StateChanged += visibility =>
+            propertyDisplay.State.ValueChanged += v =>
             {
-                switch (visibility)
+                switch (v.NewValue)
                 {
                     case Visibility.Hidden:
                         // Dehighlight everything automatically if property display is closed
@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.State = Visibility.Visible;
+                propertyDisplay.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Visualisation
             treeContainer.Remove(visualiser);
 
             if (Target == null)
-                propertyDisplay.State = Visibility.Hidden;
+                propertyDisplay.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State == Visibility.Visible)
+            if (propertyDisplay.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;

@@ -17,7 +17,9 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -34,6 +36,8 @@ namespace osu.Framework.Graphics.OpenGL
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
+
+        public static float BackbufferDrawDepth { get; private set; }
 
         public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
 
@@ -65,7 +69,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            isEmbedded = host.Window.IsEmbedded;
+            if (host.Window is GameWindow win)
+                isEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
@@ -580,6 +585,13 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Sets the current draw depth.
+        /// The draw depth is written to every vertex added to <see cref="VertexBuffer{T}"/>s.
+        /// </summary>
+        /// <param name="drawDepth">The draw depth.</param>
+        internal static void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
+
+        /// <summary>
         /// Binds a framebuffer.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to bind.</param>
@@ -595,6 +607,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+                GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             }
 
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
@@ -616,6 +629,7 @@ namespace osu.Framework.Graphics.OpenGL
             FlushCurrentBatch();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
 
+            GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
         }
 
