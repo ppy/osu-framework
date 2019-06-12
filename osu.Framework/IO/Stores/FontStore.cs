@@ -34,7 +34,7 @@ namespace osu.Framework.IO.Stores
                 var tex = Get(getTextureName(t.Item1, t.Item2));
 
                 if (tex == null)
-                    Logger.Log($"Glyph texture lookup for {getTextureName(t.Item1, t.Item2)} was unsuccessful.", level: LogLevel.Important);
+                    Logger.Log($"Glyph texture lookup for {getTextureName(t.Item1, t.Item2)} was unsuccessful.");
 
                 return tex;
             };
