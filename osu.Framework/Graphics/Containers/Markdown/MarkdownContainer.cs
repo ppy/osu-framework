@@ -168,17 +168,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 
-                // Turn all relative URIs in the document into absolute URIs based on BaseUri
+                // Turn all relative URIs in the document into absolute URIs
                 foreach (var link in parsed.Descendants().OfType<LinkInline>())
                 {
                     if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
                         continue;
 
                     if (linkUri.IsAbsoluteUri)
-                    {
-                        // The simplest case
                         continue;
-                    }
 
                     if (documentUri != null)
                     {
