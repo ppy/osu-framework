@@ -1,8 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.ComponentModel;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
@@ -10,12 +10,13 @@ using osu.Framework.IO.Network;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    [Description("markdown reader")]
-    public class TestSceneMarkdown : FrameworkTestScene
+    public class TestSceneMarkdownContainer : FrameworkTestScene
     {
-        public TestSceneMarkdown()
+        private MarkdownContainer markdownContainer;
+
+        [SetUp]
+        public void Setup() => Schedule(() =>
         {
-            MarkdownContainer markdownContainer;
             Add(new ScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -25,7 +26,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     AutoSizeAxes = Axes.Y
                 }
             });
+        });
 
+        [Test]
+        public void TestHeading()
+        {
             AddStep("Markdown Heading", () =>
             {
                 markdownContainer.Text = @"# Header 1
@@ -34,7 +39,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 #### Header 4
 ##### Header 5";
             });
+        }
 
+        [Test]
+        public void TestSeparator()
+        {
             AddStep("Markdown Seperator", () =>
             {
                 markdownContainer.Text = @"Line above
@@ -43,8 +52,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
 Line below";
             });
+        }
 
-            AddStep("Markdown Heading", () =>
+        [Test]
+        public void TestUnorderedList()
+        {
+            AddStep("Markdown Unordered List", () =>
             {
                 markdownContainer.Text = @"- [1. Blocks](#1-blocks)
   - [1.1 Code block](#11-code-block)
@@ -58,9 +71,17 @@ Line below";
   - [3.3 Boolean](#33-boolean)
   - [3.4 null](#34-null)";
             });
+        }
 
+        [Test]
+        public void TestQuote()
+        {
             AddStep("Markdown Quote", () => { markdownContainer.Text = @"> **input**"; });
+        }
 
+        [Test]
+        public void TestFencedCode()
+        {
             AddStep("Markdown Fenced Code", () =>
             {
                 markdownContainer.Text = @"```scriban-html
@@ -75,7 +96,11 @@ Line below";
 }}
 ```";
             });
+        }
 
+        [Test]
+        public void TestTable()
+        {
             AddStep("Markdown Table", () =>
             {
                 markdownContainer.Text =
@@ -84,7 +109,11 @@ Line below";
 | `'left' + <right>` | concatenates left to right string: `""ab"" + ""c"" -> ""abc""`
 | `'left' * <right>` | concatenates the left string `right` times: `'a' * 5  -> aaaaa`. left and right and be swapped as long as there is one string and one number.";
             });
+        }
 
+        [Test]
+        public void TestTableAlignment()
+        {
             AddStep("Markdown Table (Aligned)", () =>
             {
                 markdownContainer.Text =
@@ -94,19 +123,34 @@ Line below";
 | col 2 is      | centered        |   $12 |
 | zebra stripes | are neat        |    $1 |";
             });
+        }
 
-            AddStep("Markdown Paragraph 1", () => { markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine."; });
-
-            AddStep("Markdown Paragraph 2", () =>
+        [Test]
+        public void TestParagraph()
+        {
+            AddStep("Markdown Paragraph", () =>
             {
-                markdownContainer.Text =
-                    @"The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, including newlines Examples with the variable name = ""foo"":";
+                markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.
+
+The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, including newlines Examples with the variable name = ""foo"":";
             });
+        }
 
+        [Test]
+        public void TestLink()
+        {
             AddStep("MarkdownLink", () => { markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)"; });
+        }
 
+        [Test]
+        public void TestImage()
+        {
             AddStep("MarkdownImage", () => { markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)"; });
+        }
 
+        [Test]
+        public void TestMarkdownFromInternet()
+        {
             AddStep("MarkdownFromInternet", () =>
             {
                 var req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
@@ -114,7 +158,11 @@ Line below";
 
                 Task.Run(() => req.PerformAsync());
             });
+        }
 
+        [Test]
+        public void TestEmphases()
+        {
             AddStep("Emphases", () =>
             {
                 markdownContainer.Text = @"_italic with underscore_
@@ -124,7 +172,11 @@ __bold with underscore__
 *__italic with asterisk, bold with underscore__*
 _**italic with underscore, bold with asterisk**_";
             });
+        }
 
+        [Test]
+        public void TestLineBreaks()
+        {
             AddStep("new lines", () =>
             {
                 markdownContainer.Text = @"line 1
