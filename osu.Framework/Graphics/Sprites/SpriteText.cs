@@ -583,7 +583,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Get the size (and texture) for a specific character. Post-multiplied by <see cref="FontUsage.Size"/>, but not forced to fixed width.
         /// </summary>
-        /// /// <param name="character">The character to look up.</param>
+        /// <param name="character">The character to look up.</param>
         /// <param name="applyWidthAdjustments">Whether or not fixed width spacing and xOffset should be taken into account in the calculated size</param>
         /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character.</param>
         /// <returns>The size of the character texture.</returns>
