@@ -191,12 +191,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestTabAwayFromDropdown()
         {
             performTabToTest(dropdown, text1);
+            AddAssert("Dropdown was closed", () => dropdown.Menu.State == MenuState.Closed);
         }
 
         [Test]
         public void TestTabToDropdown()
         {
             performTabToTest(textLast, dropdown);
+            AddAssert("Dropdown was opened", () => dropdown.Menu.State == MenuState.Open);
         }
 
         [Test]
