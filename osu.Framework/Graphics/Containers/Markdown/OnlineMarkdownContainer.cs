@@ -32,16 +32,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// The root URL of any resources linked to by the document.
         /// </summary>
         /// <exception cref="ArgumentException">If the provided URL is not an absolute URI.</exception>
-        public string RootUrl
+        public new string RootUrl
         {
-            get => RootUri.AbsoluteUri;
-            set
-            {
-                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
-                    throw new ArgumentException($"Root URL ({value}) must be an absolute path.", nameof(value));
-
-                RootUri = uri;
-            }
+            get => base.RootUrl;
+            set => base.RootUrl = value;
         }
 
         protected override void LoadAsyncComplete()
@@ -65,7 +59,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 if (string.IsNullOrEmpty(document) || this.url != url)
                     return;
 
-                DocumentUri = new Uri(url, UriKind.Absolute);
+                DocumentUrl = url;
                 Text = document;
             }
             catch

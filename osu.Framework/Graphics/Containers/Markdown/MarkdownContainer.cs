@@ -92,15 +92,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Uri documentUri;
 
-        protected Uri DocumentUri
+        protected string DocumentUrl
         {
-            get => documentUri;
+            get => documentUri?.AbsoluteUri;
             set
             {
-                if (documentUri == value)
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Document URL ({value}) must be an absolute URI.");
+
+                if (documentUri == uri)
                     return;
 
-                documentUri = value;
+                documentUri = uri;
 
                 contentCache.Invalidate();
             }
@@ -108,15 +111,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Uri rootUri;
 
-        protected Uri RootUri
+        protected string RootUrl
         {
-            get => rootUri;
+            get => rootUri?.AbsoluteUri;
             set
             {
-                if (rootUri == value)
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Root URL ({value}) must be an absolute URI.");
+
+                if (rootUri == uri)
                     return;
 
-                rootUri = value;
+                rootUri = uri;
 
                 contentCache.Invalidate();
             }
@@ -166,12 +172,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         continue;
                     }
 
-                    if (DocumentUri != null)
+                    if (documentUri != null)
                     {
-                        if (RootUri != null && link.Url.StartsWith("/"))
+                        if (rootUri != null && link.Url.StartsWith("/"))
                         {
                             // Ensure the URI is document-relative by removing all trailing slashes
-                            link.Url = new Uri(RootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
+                            link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
                         }
                         else
                             link.Url = new Uri(documentUri, linkUri).AbsoluteUri;

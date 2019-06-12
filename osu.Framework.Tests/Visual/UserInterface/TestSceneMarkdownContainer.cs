@@ -193,7 +193,7 @@ soft break with '\'";
         {
             AddStep("set content", () =>
             {
-                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
+                markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
                 markdownContainer.Text = "[link](/file)";
             });
 
@@ -203,7 +203,7 @@ soft break with '\'";
         [Test]
         public void TestDocumentRelativeLink()
         {
-            AddStep("set content", () => { markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2"); });
+            AddStep("set content", () => markdownContainer.DocumentUrl = "https://some.test.url/some/path/2");
 
             AddStep("set 'file'", () => markdownContainer.Text = "[link](file)");
             AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
@@ -236,8 +236,8 @@ soft break with '\'";
         {
             AddStep("set content", () =>
             {
-                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
-                markdownContainer.RootUri = new Uri("https://some.test.url/some/", UriKind.Absolute);
+                markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
+                markdownContainer.RootUrl = "https://some.test.url/some/";
                 markdownContainer.Text = "[link](file)";
             });
 
@@ -249,8 +249,8 @@ soft break with '\'";
         {
             AddStep("set content", () =>
             {
-                markdownContainer.DocumentUri = new Uri("https://some.test.url/some/path/2");
-                markdownContainer.RootUri = new Uri("https://some.test.url/some/", UriKind.Absolute);
+                markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
+                markdownContainer.RootUrl = "https://some.test.url/some/";
                 markdownContainer.Text = "[link](/file)";
             });
 
@@ -259,16 +259,16 @@ soft break with '\'";
 
         private class TestMarkdownContainer : MarkdownContainer
         {
-            public new Uri DocumentUri
+            public new string DocumentUrl
             {
-                get => base.DocumentUri;
-                set => base.DocumentUri = value;
+                get => base.DocumentUrl;
+                set => base.DocumentUrl = value;
             }
 
-            public new Uri RootUri
+            public new string RootUrl
             {
-                get => base.RootUri;
-                set => base.RootUri = value;
+                get => base.RootUrl;
+                set => base.RootUrl = value;
             }
 
             public readonly List<LinkInline> Links = new List<LinkInline>();
