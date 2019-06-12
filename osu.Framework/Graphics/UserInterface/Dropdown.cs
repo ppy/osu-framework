@@ -445,6 +445,10 @@ namespace osu.Framework.Graphics.UserInterface
 
                 private bool preSelected;
 
+                /// <summary>
+                /// Denotes whether this menu item will be selected on <see cref="Key.Enter"/> press.
+                /// This property is related to selecting menu items using keyboard or hovering.
+                /// </summary>
                 public bool IsPreSelected
                 {
                     get => preSelected;
