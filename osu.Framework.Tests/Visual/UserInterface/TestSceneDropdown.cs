@@ -164,19 +164,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Preselect next item", () =>
             {
-                previousIndex = testDropdownMenu.SelectedIndex;
-                performKeypress(testDropdownMenu.Header, Key.Down);
+                previousIndex = testDropdownMenu.PreselectedIndex;
+                performKeypress(testDropdownMenu.Menu, Key.Down);
             });
 
-            AddAssert("Next item is preselected", () => testDropdownMenu.SelectedIndex == previousIndex + 1);
+            AddAssert("Next item is preselected", () => testDropdownMenu.PreselectedIndex == previousIndex + 1);
 
             AddStep("Preselect previous item", () =>
             {
-                previousIndex = testDropdownMenu.SelectedIndex;
-                performKeypress(testDropdownMenu.Header, Key.Up);
+                previousIndex = testDropdownMenu.PreselectedIndex;
+                performKeypress(testDropdownMenu.Menu, Key.Up);
             });
 
-            AddAssert("Previous item is preselected", () => testDropdownMenu.SelectedIndex == previousIndex - 1);
+            AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex == previousIndex - 1);
 
             AddStep("Preselect last visible item", () =>
             {
