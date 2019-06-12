@@ -539,12 +539,15 @@ namespace osu.Framework.Graphics.Sprites
                     useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
                     UseFullGlyphHeight ? Font.Size : glyphHeight);
 
+                var adjustedXOffset = Font.Size * glyph.XOffset;
+
                 // Check if we need to go onto the next line
                 if (AllowMultiline)
                 {
                     Debug.Assert(!Truncate);
 
-                    if (currentPos.X + glyphSize.X >= maxWidth)
+                    // Don't go to the next line if this is the only character on the line.
+                    if (currentPos.X + glyphSize.X + adjustedXOffset >= maxWidth && !Precision.AlmostEquals(currentPos.X, Padding.Left))
                     {
                         currentPos.X = Padding.Left;
                         currentPos.Y += currentRowHeight + spacing.Y;
@@ -552,16 +555,16 @@ namespace osu.Framework.Graphics.Sprites
                     }
                 }
 
+                // Move the position of the texture to the right by the amount specified by the glyph
+                // This needs to be after the current line height has been updated, as the X position been reset as a result.
+                if (!useFixedWidthForCharacter(character))
+                {
+                    currentPos.X += adjustedXOffset;
+                }
+
                 // The height of the row depends on whether we want to use the full glyph height or not
                 // In the case of using full glyph height, this will be the height compomnent of Font.Size
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                // Move the position of the texture to the right by the amount specified by the glyph
-                // Must be done after checking for the line height but before computing the rectangle
-                if (!useFixedWidthForCharacter(character))
-                {
-                    currentPos.X += Font.Size * glyph.XOffset;
-                }
 
                 if (!isSpace)
                 {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -21,6 +22,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             typeof(GlyphStore),
         };
 
+        private const int font_size = 80;
+
         private readonly List<Drawable> textDrawables = new List<Drawable>();
 
         public TestSceneSpriteTextPositioning()
@@ -31,18 +34,27 @@ namespace osu.Framework.Tests.Visual.Sprites
             textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
             textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
             textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
-            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", true));
-            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", true));
+            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
+            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", 250));
 
             AddToggleStep("Toggle fixed width", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleFixedWidth(b)));
             AddToggleStep("Toggle full glyph height", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleUseFullGlyphHeight(b)));
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(FontStore fontStore)
+        {
+            fontStore.TryGetCharacter("", 'i', out var glyph);
+
+            // Used to verify extreme multi-line scenarios.
+            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("ii", (glyph.Width + glyph.XOffset) * font_size));
         }
 
         public class ColorBackedContainer : Container
         {
             private readonly SpriteText spriteText;
 
-            public ColorBackedContainer(string text, bool allowMultiLine = false)
+            public ColorBackedContainer(string text, float? multiLineWidth = null)
             {
                 Children = new Drawable[]
                 {
@@ -54,18 +66,18 @@ namespace osu.Framework.Tests.Visual.Sprites
                     spriteText = new SpriteText
                     {
                         Text = text,
-                        Font = new FontUsage(fixedWidth: false, size: 80),
-                        AllowMultiline = allowMultiLine,
+                        Font = new FontUsage(fixedWidth: false, size: font_size),
+                        AllowMultiline = multiLineWidth != null,
                     }
                 };
 
-                if (allowMultiLine)
-                    spriteText.Width = 250;
+                if (multiLineWidth != null)
+                    spriteText.Width = multiLineWidth.Value;
 
                 AutoSizeAxes = Axes.Both;
             }
 
-            public void ToggleFixedWidth(bool fixedWidth) => spriteText.Font = new FontUsage(fixedWidth: fixedWidth, size: 80);
+            public void ToggleFixedWidth(bool fixedWidth) => spriteText.Font = new FontUsage(fixedWidth: fixedWidth, size: font_size);
 
             public void ToggleUseFullGlyphHeight(bool useGlyphHeight) => spriteText.UseFullGlyphHeight = useGlyphHeight;
         }
