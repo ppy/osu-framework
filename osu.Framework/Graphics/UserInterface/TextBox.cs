@@ -32,8 +32,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected Drawable Caret;
         protected Container TextContainer;
 
-        public override bool HandleNonPositionalInput => HasFocus;
-
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
@@ -873,8 +871,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
         }
-
-        public override bool AcceptsFocus => true;
 
         protected override bool OnClick(ClickEvent e) => !ReadOnly;
 

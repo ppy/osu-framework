@@ -31,6 +31,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual bool CanBeTabbedTo => true;
 
+        public override bool HandleNonPositionalInput => HasFocus;
+
+        public override bool AcceptsFocus => true;
+
         /// <summary>
         /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
