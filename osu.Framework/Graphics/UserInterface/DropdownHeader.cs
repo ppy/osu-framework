@@ -88,9 +88,11 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Up:
                     ChangeSelection?.Invoke(DropdownSelectionAction.Previous);
                     return true;
+
                 case Key.Down:
                     ChangeSelection?.Invoke(DropdownSelectionAction.Next);
                     return true;
+
                 default:
                     return base.OnKeyDown(e);
             }
@@ -103,9 +105,11 @@ namespace osu.Framework.Graphics.UserInterface
                 case PlatformActionType.ListStart:
                     ChangeSelection?.Invoke(DropdownSelectionAction.First);
                     return true;
+
                 case PlatformActionType.ListEnd:
                     ChangeSelection?.Invoke(DropdownSelectionAction.Last);
                     return true;
+
                 default:
                     return false;
             }

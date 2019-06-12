@@ -240,15 +240,19 @@ namespace osu.Framework.Graphics.UserInterface
                 case DropdownHeader.DropdownSelectionAction.Previous:
                     SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
                     break;
+
                 case DropdownHeader.DropdownSelectionAction.Next:
                     SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
                     break;
+
                 case DropdownHeader.DropdownSelectionAction.First:
                     SelectedItem = dropdownMenuItems[0];
                     break;
+
                 case DropdownHeader.DropdownSelectionAction.Last:
                     SelectedItem = dropdownMenuItems[dropdownMenuItems.Count - 1];
                     break;
+
                 default:
                     throw new ArgumentException("Unexpected selection action type.", nameof(action));
             }
@@ -527,9 +531,11 @@ namespace osu.Framework.Graphics.UserInterface
                     case Key.Up:
                         PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
                         return true;
+
                     case Key.Down:
                         PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
                         return true;
+
                     case Key.PageUp:
                         var firstVisibleItem = VisibleMenuItems.First();
                         preselectedIndex = preselectedItem == firstVisibleItem
@@ -537,6 +543,7 @@ namespace osu.Framework.Graphics.UserInterface
                             : drawableMenuItemsList.IndexOf(firstVisibleItem);
                         PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
                         return true;
+
                     case Key.PageDown:
                         var lastVisibleItem = VisibleMenuItems.Last();
                         preselectedIndex = preselectedItem == lastVisibleItem
@@ -544,9 +551,11 @@ namespace osu.Framework.Graphics.UserInterface
                             : drawableMenuItemsList.IndexOf(lastVisibleItem);
                         PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
                         return true;
+
                     case Key.Enter:
                         PreselectionConfirmed?.Invoke(preselectedIndex);
                         return true;
+
                     default:
                         return base.OnKeyDown(e);
                 }
@@ -559,9 +568,11 @@ namespace osu.Framework.Graphics.UserInterface
                     case PlatformActionType.ListStart:
                         PreselectItem((DropdownMenuItem<T>)Items.First());
                         return true;
+
                     case PlatformActionType.ListEnd:
                         PreselectItem((DropdownMenuItem<T>)Items.Last());
                         return true;
+
                     default:
                         return false;
                 }
