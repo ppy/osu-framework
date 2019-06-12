@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.Shaders
 
         internal ShaderType Type;
 
+        private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
+
         private int partID = -1;
 
         private int lastShaderInputIndex;
@@ -43,7 +45,7 @@ namespace osu.Framework.Graphics.Shaders
 
             this.manager = manager;
 
-            shaderCodes.Add(loadFile(data));
+            shaderCodes.Add(loadFile(data, true));
             shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
             if (shaderCodes.Count == 0)
@@ -52,7 +54,7 @@ namespace osu.Framework.Graphics.Shaders
             HasCode = true;
         }
 
-        private string loadFile(byte[] bytes)
+        private string loadFile(byte[] bytes, bool mainFile)
         {
             if (bytes == null)
                 return null;
@@ -86,7 +88,7 @@ namespace osu.Framework.Graphics.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName)) + '\n';
+                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -104,6 +106,16 @@ namespace osu.Framework.Graphics.Shaders
                             });
                         }
                     }
+                }
+
+                if (mainFile && isVertexShader)
+                {
+                    string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+
+                    string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                    backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                    code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                 }
 
                 return code;

@@ -117,11 +117,12 @@ namespace osu.Framework.Graphics.Textures
         /// Draws a triangle to the screen.
         /// </summary>
         /// <param name="vertexTriangle">The triangle to draw.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                   Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
@@ -132,8 +133,8 @@ namespace osu.Framework.Graphics.Textures
         /// Draws a quad to the screen.
         /// </summary>
         /// <param name="vertexQuad">The quad to draw.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>

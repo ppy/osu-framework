@@ -7,14 +7,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Testing;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCircularProgress : TestScene
+    public class TestSceneCircularProgress : FrameworkTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode) };
 

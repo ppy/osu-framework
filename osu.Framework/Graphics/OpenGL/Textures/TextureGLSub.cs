@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
+            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
         }
 
         internal override bool Upload() => false;
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        internal override bool Bind()
+        public override bool Bind()
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");

@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Bind as active texture.
         /// </summary>
         /// <returns>True if bind was successful.</returns>
-        internal abstract bool Bind();
+        public abstract bool Bind();
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.

@@ -24,7 +24,8 @@ namespace osu.Framework.Threading
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
         /// </summary>
         /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
-        public ThreadedTaskScheduler(int numberOfThreads)
+        /// <param name="name">The thread name to give threads in this pool.</param>
+        public ThreadedTaskScheduler(int numberOfThreads, string name)
         {
             if (numberOfThreads < 1)
                 throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
@@ -35,7 +36,7 @@ namespace osu.Framework.Threading
             {
                 var thread = new Thread(processTasks)
                 {
-                    Name = "LoadComponentThreadPool",
+                    Name = $"ThreadedTaskScheduler ({name})",
                     IsBackground = true
                 };
 

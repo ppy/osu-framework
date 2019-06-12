@@ -5,14 +5,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneScrollableFlow : TestScene
+    public class TestSceneScrollableFlow : FrameworkTestScene
     {
         private readonly ScheduledDelegate boxCreator;
 

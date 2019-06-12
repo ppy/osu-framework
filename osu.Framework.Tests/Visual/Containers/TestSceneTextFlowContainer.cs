@@ -8,12 +8,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneTextFlowContainer : TestScene
+    public class TestSceneTextFlowContainer : FrameworkTestScene
     {
         private const string default_text = "Default text\n\nnewline";
 
