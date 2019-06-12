@@ -44,10 +44,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load(FontStore fontStore)
         {
-            fontStore.TryGetCharacter("", 'i', out var glyph);
+            fontStore.TryGetCharacter("", 'm', out var glyph);
 
             // Used to verify extreme multi-line scenarios.
-            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("ii", (glyph.Width + glyph.XOffset) * font_size));
+            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("iimmss", (glyph.Width + glyph.XOffset) * font_size));
         }
 
         public class ColorBackedContainer : Container
