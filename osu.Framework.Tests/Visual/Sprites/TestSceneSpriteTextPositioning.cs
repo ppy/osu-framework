@@ -29,14 +29,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         public TestSceneSpriteTextPositioning()
             : base(7, 7)
         {
-            textDrawables.Add(Cell(0, 0).Child = new ColorBackedContainer("Time"));
-            textDrawables.Add(Cell(1, 0).Child = new ColorBackedContainer("T"));
-            textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
-            textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
-            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
-            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
-            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", 250));
-
             AddToggleStep("Toggle fixed width", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleFixedWidth(b)));
             AddToggleStep("Toggle full glyph height", b => textDrawables.ForEach(d => (d as ColorBackedContainer)?.ToggleUseFullGlyphHeight(b)));
         }
@@ -45,6 +37,14 @@ namespace osu.Framework.Tests.Visual.Sprites
         private void load(FontStore fontStore)
         {
             fontStore.TryGetCharacter("", 'm', out var glyph);
+
+            textDrawables.Add(Cell(0, 0).Child = new ColorBackedContainer("Time"));
+            textDrawables.Add(Cell(1, 0).Child = new ColorBackedContainer("T"));
+            textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
+            textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
+            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
+            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
+            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", 250));
 
             // Used to verify extreme multi-line scenarios.
             textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("iimmss", (glyph.Width + glyph.XOffset) * font_size));
