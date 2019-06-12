@@ -92,6 +92,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Uri documentUri;
 
+        /// <summary>
+        /// The URL of the loaded document.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
         protected string DocumentUrl
         {
             get => documentUri?.AbsoluteUri;
@@ -111,6 +115,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private Uri rootUri;
 
+        /// <summary>
+        /// The base URL for all root-relative links.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
         protected string RootUrl
         {
             get => rootUri?.AbsoluteUri;
