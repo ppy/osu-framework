@@ -1,7 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Markdig.Syntax.Inlines;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,20 +15,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneMarkdownContainer : FrameworkTestScene
     {
-        private MarkdownContainer markdownContainer;
+        private TestMarkdownContainer markdownContainer;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Add(new ScrollContainer
+            Child = new ScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = markdownContainer = new MarkdownContainer
+                Child = markdownContainer = new TestMarkdownContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 }
-            });
+            };
         });
 
         [Test]
@@ -183,6 +186,67 @@ _**italic with underscore, bold with asterisk**_";
 soft break\
 soft break with '\'";
             });
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestRelativeLink(bool withBaseUri)
+        {
+            AddStep("set content", () =>
+            {
+                if (withBaseUri)
+                    markdownContainer.BaseUri = new Uri("https://a.ppy.sh");
+
+                markdownContainer.Text = "[peppy!](/2)";
+            });
+
+            if (!withBaseUri)
+                AddAssert("relative link maintained", () => markdownContainer.Links[0].Url == "/2");
+            else
+                AddAssert("has absolute link", () => markdownContainer.Links[0].Url == "https://a.ppy.sh/2");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAbsoluteLink(bool withBaseUri)
+        {
+            AddStep("set content", () =>
+            {
+                if (withBaseUri)
+                    markdownContainer.BaseUri = new Uri("https://a.ppy.sh");
+
+                markdownContainer.Text = "[peppy!](https://a.ppy.sh/2)";
+            });
+
+            AddAssert("has correct absolute link", () => markdownContainer.Links[0].Url == "https://a.ppy.sh/2");
+        }
+
+        private class TestMarkdownContainer : OnlineMarkdownContainer
+        {
+            public new Uri BaseUri
+            {
+                get => base.BaseUri;
+                set => base.BaseUri = value;
+            }
+
+            public readonly List<LinkInline> Links = new List<LinkInline>();
+
+            public override MarkdownTextFlowContainer CreateTextFlow() => new TestMarkdownTextFlowContainer
+            {
+                UrlAdded = url => Links.Add(url)
+            };
+
+            private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
+            {
+                public Action<LinkInline> UrlAdded;
+
+                protected override void AddLinkText(string text, LinkInline linkInline)
+                {
+                    base.AddLinkText(text, linkInline);
+
+                    UrlAdded?.Invoke(linkInline);
+                }
+            }
         }
     }
 }

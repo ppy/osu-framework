@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
@@ -88,6 +90,25 @@ namespace osu.Framework.Graphics.Containers.Markdown
             set => document.Padding = value;
         }
 
+        private Uri baseUri;
+
+        /// <summary>
+        /// The base URI to use for all relative resources in the document.
+        /// </summary>
+        protected Uri BaseUri
+        {
+            get => baseUri;
+            set
+            {
+                if (baseUri == value)
+                    return;
+
+                baseUri = value;
+
+                contentCache.Invalidate();
+            }
+        }
+
         private Cached contentCache = new Cached();
 
         private readonly FillFlowContainer document;
@@ -119,6 +140,19 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var markdownText = Text;
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
+
+                if (BaseUri != null)
+                {
+                    // Turn all relative URIs in the document into absolute URIs based on BaseUri
+                    foreach (var link in parsed.Descendants().OfType<LinkInline>())
+                    {
+                        if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                            continue;
+
+                        if (!linkUri.IsAbsoluteUri)
+                            link.Url = new Uri(BaseUri, linkUri).AbsoluteUri;
+                    }
+                }
 
                 document.Clear();
                 foreach (var component in parsed)
