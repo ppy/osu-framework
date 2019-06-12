@@ -184,14 +184,14 @@
     <Rule Id="SA1631" Action="None"/> <!-- DocumentationMustMeetCharacterPercentage -->
     <Rule Id="SA1632" Action="None"/> <!-- DocumentationTextMustMeetMinimumCharacterLength -->
     <Rule Id="SA1633" Action="Warning"/> <!-- FileMustHaveHeader -->
-    <Rule Id="SA1634" Action="None"/> <!-- FileHeaderMustShowCopyright -->
-    <Rule Id="SA1635" Action="None"/> <!-- FileHeaderMustHaveCopyrightText -->
-    <Rule Id="SA1636" Action="None"/> <!-- FileHeaderCopyrightTextMustMatch -->
-    <Rule Id="SA1637" Action="None"/> <!-- FileHeaderMustContainFileName -->
-    <Rule Id="SA1638" Action="None"/> <!-- FileHeaderFileNameDocumentationMustMatchFileName -->
-    <Rule Id="SA1639" Action="None"/> <!-- FileHeaderMustHaveSummary -->
-    <Rule Id="SA1640" Action="None"/> <!-- FileHeaderMustHaveValidCompanyText -->
-    <Rule Id="SA1641" Action="None"/> <!-- FileHeaderCompanyNameTextMustMatch -->
+    <Rule Id="SA1634" Action="Warning"/> <!-- FileHeaderMustShowCopyright -->
+    <Rule Id="SA1635" Action="Warning"/> <!-- FileHeaderMustHaveCopyrightText -->
+    <Rule Id="SA1636" Action="Warning"/> <!-- FileHeaderCopyrightTextMustMatch -->
+    <Rule Id="SA1637" Action="Warning"/> <!-- FileHeaderMustContainFileName -->
+    <Rule Id="SA1638" Action="Warning"/> <!-- FileHeaderFileNameDocumentationMustMatchFileName -->
+    <Rule Id="SA1639" Action="Warning"/> <!-- FileHeaderMustHaveSummary -->
+    <Rule Id="SA1640" Action="Warning"/> <!-- FileHeaderMustHaveValidCompanyText -->
+    <Rule Id="SA1641" Action="Warning"/> <!-- FileHeaderCompanyNameTextMustMatch -->
     <Rule Id="SA1642" Action="None"/> <!-- ConstructorSummaryDocumentationMustBeginWithStandardText -->
     <Rule Id="SA1643" Action="None"/> <!-- DestructorSummaryDocumentationMustBeginWithStandardText -->
     <Rule Id="SA1644" Action="None"/> <!-- DocumentationHeadersMustNotContainBlankLines -->
