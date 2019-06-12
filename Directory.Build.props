@@ -19,4 +19,11 @@
     <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
     <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
   </PropertyGroup>
+  <Target Name="DisableAnalyzersForDebugBuild"
+    BeforeTargets="CoreCompile"
+    Condition="'$(Configuration)' == 'Debug' And '$(BuildingProject)' == 'True'">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)"/>
+    </ItemGroup>
+  </Target>
 </Project>
