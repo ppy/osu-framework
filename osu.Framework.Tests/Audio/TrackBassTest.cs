@@ -256,7 +256,7 @@ namespace osu.Framework.Tests.Audio
 
             int loopCount = 0;
 
-            while (++loopCount < 75 && !track.IsRunning)
+            while (++loopCount < 50 && !track.IsRunning)
             {
                 updateTrack();
                 Thread.Sleep(10);
@@ -265,7 +265,7 @@ namespace osu.Framework.Tests.Audio
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
 
-            Assert.GreaterOrEqual(track.CurrentTime, 3000);
+            Assert.GreaterOrEqual(track.CurrentTime, 2500);
         }
 
         public void TestSetTempoNegative()
