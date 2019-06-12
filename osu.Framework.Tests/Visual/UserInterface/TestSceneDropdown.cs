@@ -134,7 +134,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("current value still three", () => bindableDropdown.Current.Value == "three");
             AddStep("remove three", () => bindableList.Remove("three"));
             AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
+        }
 
+        private void performKeypress(Drawable drawable, Key key)
+        {
+            drawable.TriggerEvent(new KeyDownEvent(new InputState(), key));
+            drawable.TriggerEvent(new KeyUpEvent(new InputState(), key));
+        }
+
+        private void performPlatformAction(PlatformAction action, PlatformActionContainer platformActionContainer, Drawable drawable)
+        {
+            var tempIsHovered = drawable.IsHovered;
+            var tempHasFocus = drawable.HasFocus;
+
+            drawable.IsHovered = true;
+            drawable.HasFocus = true;
+
+            platformActionContainer.TriggerPressed(action);
+            platformActionContainer.TriggerReleased(action);
+
+            drawable.IsHovered = tempIsHovered;
+            drawable.HasFocus = tempHasFocus;
+        }
+
+        [Test]
+        public void KeyboardSelection()
+        {
             AddStep("Select next item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
@@ -158,7 +183,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardSelection, testDropdown.Header));
 
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
+        }
 
+        [Test]
+        public void KeyboardPreselection()
+        {
             AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(testDropdownMenu));
             AddAssert("dropdown is open", () => testDropdownMenu.Menu.State == MenuState.Open);
 
@@ -222,27 +251,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Preselect first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
             AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
-        }
-
-        private void performKeypress(Drawable drawable, Key key)
-        {
-            drawable.TriggerEvent(new KeyDownEvent(new InputState(), key));
-            drawable.TriggerEvent(new KeyUpEvent(new InputState(), key));
-        }
-
-        private void performPlatformAction(PlatformAction action, PlatformActionContainer platformActionContainer, Drawable drawable)
-        {
-            var tempIsHovered = drawable.IsHovered;
-            var tempHasFocus = drawable.HasFocus;
-
-            drawable.IsHovered = true;
-            drawable.HasFocus = true;
-
-            platformActionContainer.TriggerPressed(action);
-            platformActionContainer.TriggerReleased(action);
-
-            drawable.IsHovered = tempIsHovered;
-            drawable.HasFocus = tempHasFocus;
         }
 
         [Test]
