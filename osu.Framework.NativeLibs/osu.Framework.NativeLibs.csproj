@@ -10,7 +10,6 @@
     <Description>Native libraries for osu!framework</Description>
     <Product>osu!framework Libraries</Product>
     <LangVersion>7.3</LangVersion>
-    <CodeAnalysisRuleSet>..\CodeAnalyzerRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework Libraries</Title>
@@ -33,16 +32,6 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup Label="StyleCop">
-    <None Remove="..\stylecop.json" />
-    <AdditionalFiles Include="..\stylecop.json" />
   </ItemGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>
