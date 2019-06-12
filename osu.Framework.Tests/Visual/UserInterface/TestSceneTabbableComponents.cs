@@ -8,16 +8,23 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
 using System.Collections.Generic;
+using NUnit.Framework;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTabbableComponents : TestScene
+    public class TestSceneTabbableComponents : ManualInputManagerTestScene
     {
         private const float height = 350;
         private const float width = 450;
         private const float spacing = 20;
         private const float component_height = 30;
         private const float component_width = (width - spacing - (spacing * 2)) / 2;
+
+        private readonly BasicDropdown<string> dropdown;
+        private readonly BasicTextBox text1;
+        private readonly BasicTextBox text2;
+        private readonly BasicTextBox textLast;
 
         public TestSceneTabbableComponents()
         {
@@ -42,7 +49,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             Padding = new MarginPadding(spacing),
                             Children = new Drawable[]
                             {
-                                new BasicDropdown<string>
+                                dropdown = new BasicDropdown<string>
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
@@ -73,13 +80,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                     Spacing = new Vector2(spacing),
                                                     Children = new Drawable[]
                                                     {
-                                                        new BasicTextBox
+                                                        text1 = new BasicTextBox
                                                         {
                                                             Width = component_width,
                                                             Height = component_height,
                                                             TabbableContentContainer = this,
                                                         },
-                                                        new BasicTextBox
+                                                        text2 = new BasicTextBox
                                                         {
                                                             Width = component_width,
                                                             Height = component_height,
@@ -105,7 +112,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                             Height = component_height,
                                                             TabbableContentContainer = this,
                                                         },
-                                                        new BasicTextBox
+                                                        textLast = new BasicTextBox
                                                         {
                                                             Width = component_width,
                                                             Height = component_height,
@@ -157,6 +164,63 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             };
+        }
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep("Clear focus", () =>
+            {
+                InputManager.MoveMouseTo(new Vector2(0));
+                InputManager.Click(MouseButton.Left);
+            });
+        }
+
+        [Test]
+        public void TestTabWithNoFocus()
+        {
+            AddStep("Press tab with no focus", () =>
+            {
+                InputManager.PressKey(Key.Tab);
+                InputManager.ReleaseKey(Key.Tab);
+            });
+            AddAssert("No focused item", () => InputManager.FocusedDrawable == null);
+        }
+
+        [Test]
+        public void TestTabAwayFromDropdown()
+        {
+            performTabToTest(dropdown, text1);
+        }
+
+        [Test]
+        public void TestTabToDropdown()
+        {
+            performTabToTest(textLast, dropdown);
+        }
+
+        [Test]
+        public void TestTabFromTexttoText()
+        {
+            performTabToTest(text1, text2);
+        }
+
+        private void performTabToTest(Drawable source, Drawable target)
+        {
+            AddStep($"Click {source}", () =>
+            {
+                InputManager.MoveMouseTo(source);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep($"Press tab with {source} focused", () =>
+            {
+                InputManager.PressKey(Key.Tab);
+                InputManager.ReleaseKey(Key.Tab);
+            });
+
+            // HandleNonPositionInput is overridden by each tabbable container to only accept input if it was the last tabbed to item.
+            // In the case of dropdowns, this is any one of its children.
+            AddAssert($"{target} focused", () => target.HandleNonPositionalInput);
         }
     }
 }
