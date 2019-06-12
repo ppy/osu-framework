@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Visualisation
             Width = width;
             RelativeSizeAxes = Axes.Y;
 
-            AddInternal(new ScrollContainer<Drawable>
+            AddInternal(new BasicScrollContainer<Drawable>
             {
                 Padding = new MarginPadding(10),
                 RelativeSizeAxes = Axes.Both,

@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Padding = new MarginPadding { Top = 65 },
                     Children = new Drawable[]
                     {
-                        scroll = new ScrollContainer<Drawable>
+                        scroll = new BasicScrollContainer<Drawable>
                         {
                             Padding = new MarginPadding(10),
                             RelativeSizeAxes = Axes.Y,

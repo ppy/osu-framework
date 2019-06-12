@@ -3,32 +3,17 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : ScrollContainer<Drawable>
-    {
-        /// <summary>
-        /// Creates a scroll container.
-        /// </summary>
-        /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        [Obsolete("Use a BasicScrollContainer or create your own implementation of ScrollContainer<T>")]
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
-            : base(scrollDirection)
-        {
-        }
-    }
-
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -178,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a scroll container.
         /// </summary>
         /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
+        protected ScrollContainer(Direction scrollDirection = Direction.Vertical)
         {
             ScrollDirection = scrollDirection;
 
@@ -520,10 +505,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
+        /// Creates the scrollbar for this <see cref="ScrollContainer{T}"/>.
         /// </summary>
         /// <param name="direction">The scrolling direction.</param>
-        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new LegacyScrollbarContainer(direction);
+        protected abstract ScrollbarContainer CreateScrollbar(Direction direction);
 
         protected internal abstract class ScrollbarContainer : Container
         {
@@ -565,83 +550,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
                 return true;
-            }
-        }
-
-        protected internal class LegacyScrollbarContainer : ScrollbarContainer
-        {
-            private const float dim_size = 10;
-
-            private readonly Color4 hoverColour = Color4.White;
-            private readonly Color4 defaultColour = Color4.Gray;
-            private readonly Color4 highlightColour = Color4.GreenYellow;
-
-            private readonly Box box;
-
-            public LegacyScrollbarContainer(Direction scrollDir)
-                : base(scrollDir)
-            {
-                Colour = defaultColour;
-
-                Blending = BlendingMode.Additive;
-
-                CornerRadius = 5;
-
-                const float margin = 3;
-
-                Margin = new MarginPadding
-                {
-                    Left = scrollDir == Direction.Vertical ? margin : 0,
-                    Right = scrollDir == Direction.Vertical ? margin : 0,
-                    Top = scrollDir == Direction.Horizontal ? margin : 0,
-                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
-                };
-
-                Masking = true;
-
-                Child = box = new Box { RelativeSizeAxes = Axes.Both };
-
-                ResizeTo(1);
-            }
-
-            public override void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
-            {
-                Vector2 size = new Vector2(dim_size)
-                {
-                    [(int)ScrollDirection] = val
-                };
-                this.ResizeTo(size, duration, easing);
-            }
-
-            protected override bool OnHover(HoverEvent e)
-            {
-                this.FadeColour(hoverColour, 100);
-                return true;
-            }
-
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                this.FadeColour(defaultColour, 100);
-            }
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                bool baseMouseDown = base.OnMouseDown(e);
-
-                if (baseMouseDown)
-                    //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                    box.FadeColour(highlightColour, 100);
-
-                return baseMouseDown;
-            }
-
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                if (e.Button != MouseButton.Left) return false;
-
-                box.FadeColour(Color4.White, 100);
-
-                return base.OnMouseUp(e);
             }
         }
 
