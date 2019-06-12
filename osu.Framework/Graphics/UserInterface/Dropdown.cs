@@ -23,6 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
+        public override bool HandleNonPositionalInput => HasFocus || Children.Any(c => c.HasFocus);
+
         public override bool AcceptsFocus => true;
 
         public override bool CanBeTabbedTo => true;
