@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using JetBrains.Annotations;
-using NUnit.Framework;
 
 namespace osu.Framework.IO.Stores
 {
@@ -34,7 +34,7 @@ namespace osu.Framework.IO.Stores
                 var tex = Get(getTextureName(t.Item1, t.Item2));
 
                 if (tex == null)
-                    Logger.Log($"Glyph texture lookup for {getTextureName(t.Item1, t.Item2)} was unsuccessful.", level: LogLevel.Error);
+                    Logger.Log($"Glyph texture lookup for {getTextureName(t.Item1, t.Item2)} was unsuccessful.", level: LogLevel.Important);
 
                 return tex;
             };
@@ -57,7 +57,7 @@ namespace osu.Framework.IO.Stores
                 return false;
             }
 
-            Assert.IsTrue(tryGetCharacterGlyph(fontName, charName, out glyph));
+            Trace.Assert(tryGetCharacterGlyph(fontName, charName, out glyph));
 
             glyph.Texture = texture;
             glyph.ApplyScaleAdjust(1 / ScaleAdjust);
