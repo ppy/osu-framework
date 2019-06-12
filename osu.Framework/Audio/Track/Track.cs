@@ -133,6 +133,9 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
+        /// <summary>
+        /// The playback tempo multiplier for this track, where 1 is the original speed.
+        /// </summary>
         public double TempoAdjust
         {
             get => Tempo.Value;
