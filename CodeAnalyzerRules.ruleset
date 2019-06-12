@@ -183,7 +183,7 @@
     <Rule Id="SA1630" Action="None"/> <!-- DocumentationTextMustContainWhitespace -->
     <Rule Id="SA1631" Action="None"/> <!-- DocumentationMustMeetCharacterPercentage -->
     <Rule Id="SA1632" Action="None"/> <!-- DocumentationTextMustMeetMinimumCharacterLength -->
-    <Rule Id="SA1633" Action="None"/> <!-- FileMustHaveHeader -->
+    <Rule Id="SA1633" Action="Warning"/> <!-- FileMustHaveHeader -->
     <Rule Id="SA1634" Action="None"/> <!-- FileHeaderMustShowCopyright -->
     <Rule Id="SA1635" Action="None"/> <!-- FileHeaderMustHaveCopyrightText -->
     <Rule Id="SA1636" Action="None"/> <!-- FileHeaderCopyrightTextMustMatch -->

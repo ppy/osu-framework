@@ -1,8 +1,18 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
   "settings": {
+    "documentationRules": {
+      "xmlHeader": false,
+      "companyName": "ppy Pty Ltd",
+      "copyrightText": "Copyright (c) {companyName} <{contactEmail}>. Licensed under the {licenseName} Licence.\nSee the {licenceFile} file in the repository root for full licence text.",
+      "variables": {
+        "contactEmail": "contact@ppy.sh",
+        "licenseName": "MIT",
+        "licenceFile": "LICENCE"
+      }
+    },
     "orderingRules": {
       "usingDirectivesPlacement": "outsideNamespace"
-      }
+    }
   }
 }
