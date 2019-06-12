@@ -221,7 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             // HandleNonPositionInput is overridden by each tabbable container to only accept input if it was the last tabbed to item.
-            // In the case of dropdowns, this is any one of its children.
+            // In the case of dropdowns, this would be if any one of its children has focus.
             AddAssert($"{target} focused", () => target.HandleNonPositionalInput);
         }
     }
