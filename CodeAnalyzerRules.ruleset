@@ -76,7 +76,7 @@
     <Rule Id="SA1141" Action="Warning"/> <!-- UseTupleSyntax -->
     <Rule Id="SA1142" Action="Warning"/> <!-- ReferToTupleElementsByName -->
     
-    <Rule Id="SA1200" Action="None"/> <!-- UsingDirectivesMustBePlacedCorrectly -->
+    <Rule Id="SA1200" Action="Warning"/> <!-- UsingDirectivesMustBePlacedCorrectly -->
     <Rule Id="SA1201" Action="None"/> <!-- ElementsMustAppearInTheCorrectOrder -->
     <Rule Id="SA1202" Action="None"/> <!-- ElementsMustBeOrderedByAccess -->
     <Rule Id="SA1203" Action="None"/> <!-- ConstantsMustAppearBeforeFields -->
