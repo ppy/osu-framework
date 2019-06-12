@@ -17,11 +17,12 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private readonly DllResourceStore resources;
+        private DllResourceStore resources;
 
         private TrackBass track;
 
-        public TrackBassTest()
+        [SetUp]
+        public void Setup()
         {
             Architecture.SetIncludePath();
 
@@ -29,13 +30,15 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
 
             resources = new DllResourceStore("osu.Framework.Tests.dll");
-        }
 
-        [SetUp]
-        public void Setup()
-        {
             track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
             updateTrack();
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            Bass.Free();
         }
 
         [Test]
