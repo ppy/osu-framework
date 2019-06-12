@@ -11,12 +11,6 @@
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
-  <ItemGroup Label="Package References">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <PropertyGroup Label="Project">
     <Company>ppy Pty Ltd</Company>
     <Copyright>Copyright (c) 2019 ppy Pty Ltd</Copyright>
@@ -26,13 +20,15 @@
     <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
     <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
   </PropertyGroup>
-  <ItemGroup Label="StyleCop json">
+  <ItemGroup Label="StyleCop">
     <None Remove="..\stylecop.json" />
     <AdditionalFiles Include="..\stylecop.json" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
-  <Target Name="DisableAnalyzersForDebugBuild"
-    BeforeTargets="CoreCompile"
-    Condition="'$(Configuration)' == 'Debug' And '$(BuildingProject)' == 'True'">
+  <Target Name="DisableAnalyzersForDebugBuild" BeforeTargets="CoreCompile" Condition="'$(Configuration)' == 'Debug' And '$(BuildingProject)' == 'True'">
     <ItemGroup>
       <Analyzer Remove="@(Analyzer)"/>
     </ItemGroup>
