@@ -40,7 +40,7 @@ namespace osu.Framework.Platform
 
         public override DisplayDevice CurrentDisplay
         {
-            set
+            protected set
             {
                 if (value == null || value == CurrentDisplay) return;
 

@@ -23,11 +23,11 @@ namespace osu.Framework.Platform
         public abstract void SetupWindow(FrameworkConfigManager config);
         public abstract event Func<bool> ExitRequested;
         public abstract event Action Exited;
-        public abstract bool CursorInWindow { get; }
+        public abstract bool CursorInWindow { get; protected set; }
         public abstract CursorState CursorState { get; set; }
         public abstract VSyncMode VSync { get; set; }
         public abstract WindowMode DefaultWindowMode { get; }
-        public abstract DisplayDevice CurrentDisplay { get; }
+        public abstract DisplayDevice CurrentDisplay { get; protected set; }
         public abstract IBindable<bool> IsActive { get; }
         public abstract IBindable<MarginPadding> SafeAreaPadding { get; }
         public abstract IBindableList<WindowMode> SupportedWindowModes { get; }
