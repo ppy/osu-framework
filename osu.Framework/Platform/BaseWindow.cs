@@ -141,9 +141,9 @@ namespace osu.Framework.Platform
 
         #region IDisposable
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing) => isDisposed = true;
+        protected virtual void Dispose(bool disposing)
+        {
+        }
 
         public void Dispose()
         {
