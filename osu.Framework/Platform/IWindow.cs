@@ -8,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osuTK;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
