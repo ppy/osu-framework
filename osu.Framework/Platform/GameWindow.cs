@@ -3,19 +3,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
+using JetBrains.Annotations;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osuTK.Platform;
 using osuTK.Input;
-using System.ComponentModel;
-using System.Drawing;
-using JetBrains.Annotations;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics;
+using osuTK.Platform;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
