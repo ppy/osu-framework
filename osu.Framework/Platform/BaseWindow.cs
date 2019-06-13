@@ -25,52 +25,37 @@ namespace osu.Framework.Platform
 
         public abstract void SetupWindow(FrameworkConfigManager config);
 
-        /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
-        /// </summary>
         [CanBeNull]
         public event Func<bool> ExitRequested;
 
-        /// <summary>
-        /// Invoked when the window has closed.
-        /// </summary>
         [CanBeNull]
         public event Action Exited;
 
-        /// <summary>
-        /// Whether the OS cursor is currently contained within the game window.
-        /// </summary>
-        public bool CursorInWindow { get; protected set; }
+        public virtual bool CursorInWindow { get; protected set; }
 
-        /// <summary>
-        /// Controls the state of the OS cursor.
-        /// </summary>
         public abstract CursorState CursorState { get; set; }
 
-        public abstract VSyncMode VSync { get; set; }
+        public virtual VSyncMode VSync { get; set; }
 
         public abstract WindowMode DefaultWindowMode { get; }
 
         public abstract DisplayDevice CurrentDisplay { get; protected set; }
 
-        public abstract IBindable<bool> IsActive { get; }
+        public virtual IBindable<bool> IsActive { get; } = new Bindable<bool>();
 
-        public abstract IBindable<MarginPadding> SafeAreaPadding { get; }
+        public virtual IBindable<MarginPadding> SafeAreaPadding { get; } = new BindableMarginPadding();
 
-        public abstract IBindableList<WindowMode> SupportedWindowModes { get; }
+        public virtual IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
 
-        /// <summary>
-        /// Available resolutions for full-screen display.
-        /// </summary>
         public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         #endregion
 
         #region Event Invocation
 
-        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
+        protected virtual bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
 
-        protected void OnExited() => Exited?.Invoke();
+        protected virtual void OnExited() => Exited?.Invoke();
 
         #endregion
 
