@@ -39,6 +39,8 @@ namespace osu.Framework.Platform
 
         public abstract WindowMode DefaultWindowMode { get; }
 
+        public virtual Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
+
         public abstract DisplayDevice CurrentDisplay { get; protected set; }
 
         public virtual IBindable<bool> IsActive { get; } = new Bindable<bool>();

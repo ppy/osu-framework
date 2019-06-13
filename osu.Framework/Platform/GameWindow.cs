@@ -40,8 +40,6 @@ namespace osu.Framework.Platform
 
         protected readonly IGameWindow Implementation;
 
-        public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
-
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
         /// <summary>

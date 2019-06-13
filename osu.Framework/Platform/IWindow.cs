@@ -62,6 +62,11 @@ namespace osu.Framework.Platform
         WindowMode DefaultWindowMode { get; }
 
         /// <summary>
+        /// The current <see cref="osu.Framework.Configuration.WindowMode"/> for this window.
+        /// </summary>
+        Bindable<WindowMode> WindowMode { get; }
+
+        /// <summary>
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         DisplayDevice CurrentDisplay { get; }
