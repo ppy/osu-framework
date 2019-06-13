@@ -257,6 +257,19 @@ soft break with '\'";
             AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/file");
         }
 
+        [Test]
+        public void TestRootRelativeLinkWithRootOverrideCantEscape()
+        {
+            AddStep("set content", () =>
+            {
+                markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
+                markdownContainer.RootUrl = "https://some.test.url/some/";
+                markdownContainer.Text = "[link](/../../../file)";
+            });
+
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
+        }
+
         private class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
