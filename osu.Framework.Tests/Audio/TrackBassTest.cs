@@ -244,7 +244,6 @@ namespace osu.Framework.Tests.Audio
         public void TestReversedLoopingRestart()
         {
             track.Looping = true;
-            track.RestartPoint = 3000;
             track.Frequency.Value = -1;
 
             startPlaybackAt(1);
@@ -265,7 +264,7 @@ namespace osu.Framework.Tests.Audio
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
 
-            Assert.GreaterOrEqual(track.CurrentTime, 2500);
+            Assert.Greater(track.CurrentTime, 0);
         }
 
         public void TestSetTempoNegative()
