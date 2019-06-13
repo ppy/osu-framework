@@ -29,18 +29,6 @@ namespace osu.Framework.Platform
         public abstract IGraphicsContext Context { get; }
 
         /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
-        /// </summary>
-        [CanBeNull]
-        public override event Func<bool> ExitRequested;
-
-        /// <summary>
-        /// Invoked when the <see cref="GameWindow"/> has closed.
-        /// </summary>
-        [CanBeNull]
-        public override event Action Exited;
-
-        /// <summary>
         /// Invoked when any key has been pressed.
         /// </summary>
         [CanBeNull]
@@ -51,16 +39,6 @@ namespace osu.Framework.Platform
         internal readonly bool IsEmbedded;
 
         protected readonly IGameWindow Implementation;
-
-        /// <summary>
-        /// Whether the OS cursor is currently contained within the game window.
-        /// </summary>
-        public override bool CursorInWindow { get; protected set; }
-
-        /// <summary>
-        /// Available resolutions for full-screen display.
-        /// </summary>
-        public override IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
 
@@ -79,8 +57,8 @@ namespace osu.Framework.Platform
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
 
-            Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
-            Closed += (sender, e) => Exited?.Invoke();
+            // Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
+            // Closed += (sender, e) => Exited?.Invoke();
 
             MouseEnter += (sender, args) => CursorInWindow = true;
             MouseLeave += (sender, args) => CursorInWindow = false;
@@ -149,9 +127,6 @@ namespace osu.Framework.Platform
 
         private CursorState cursorState = CursorState.Default;
 
-        /// <summary>
-        /// Controls the state of the OS cursor.
-        /// </summary>
         public override CursorState CursorState
         {
             get => cursorState;
