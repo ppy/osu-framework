@@ -443,6 +443,8 @@ namespace osu.Framework.Graphics.Sprites
             float maxWidth = float.PositiveInfinity;
             float currentRowHeight = 0;
 
+            bool isFirstCharacter = true;
+
             try
             {
                 if (string.IsNullOrEmpty(displayedText))
@@ -539,10 +541,7 @@ namespace osu.Framework.Graphics.Sprites
                     useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
                     UseFullGlyphHeight ? Font.Size : glyphHeight);
 
-                bool isFirstCharacter = Precision.AlmostEquals(currentPos.X, Padding.Left);
-
                 // Move the position of the texture to the right by the amount specified by the glyph
-                // This needs to be after the current line height has been updated, as the X position been reset as a result.
                 if (!useFixedWidthForCharacter(character))
                 {
                     currentPos.X += Font.Size * glyph.XOffset;
@@ -553,17 +552,21 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Debug.Assert(!Truncate);
 
-                    // Don't go to the next line if this is the only character on the line.
-                    if (currentPos.X + glyphSize.X >= maxWidth && !isFirstCharacter)
+                    if (currentPos.X + glyphSize.X >= maxWidth || isFirstCharacter)
                     {
                         currentPos.X = Padding.Left;
                         currentPos.Y += currentRowHeight + spacing.Y;
                         currentRowHeight = 0;
                     }
                 }
+                else if (isFirstCharacter)
+                {
+                    // The first character shouldn't have any xOffset, regardless of multiline.
+                    currentPos.X = Padding.Left;
+                }
 
                 // The height of the row depends on whether we want to use the full glyph height or not
-                // In the case of using full glyph height, this will be the height compomnent of Font.Size
+                // In the case of using full glyph height, this will be the height component of Font.Size
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
                 if (!isSpace)
@@ -580,6 +583,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
 
                 currentPos.X += glyphSize.X + spacing.X;
+                isFirstCharacter = false;
             }
         }
 

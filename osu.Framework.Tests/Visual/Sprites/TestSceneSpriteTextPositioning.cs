@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", 250));
 
             // Used to verify extreme multi-line scenarios.
-            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("iimmss", (glyph.Width + glyph.XOffset) * font_size));
+            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("iimmss", glyph.Width * font_size));
         }
 
         public class ColorBackedContainer : Container
