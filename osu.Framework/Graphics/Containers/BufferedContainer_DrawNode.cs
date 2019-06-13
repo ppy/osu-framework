@@ -48,18 +48,8 @@ namespace osu.Framework.Graphics.Containers
 
                 updateVersion = Source.updateVersion;
 
-                BlendingParameters localEffectBlending = Source.EffectBlending;
-                if (localEffectBlending.Mode == BlendingMode.Inherit)
-                    localEffectBlending.Mode = Source.Blending.Mode;
-
-                if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
-                    localEffectBlending.RGBEquation = Source.Blending.RGBEquation;
-
-                if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localEffectBlending.AlphaEquation = Source.Blending.AlphaEquation;
-
                 effectColour = Source.EffectColour;
-                effectBlending = localEffectBlending;
+                effectBlending = Source.DrawEffectBlending;
                 effectPlacement = Source.EffectPlacement;
 
                 drawOriginal = Source.DrawOriginal;
