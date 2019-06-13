@@ -57,8 +57,8 @@ namespace osu.Framework.Platform
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
 
-            // Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
-            // Closed += (sender, e) => Exited?.Invoke();
+            Closing += (sender, e) => e.Cancel = OnExitRequested();
+            Closed += (sender, e) => OnExited();
 
             MouseEnter += (sender, args) => CursorInWindow = true;
             MouseLeave += (sender, args) => CursorInWindow = false;

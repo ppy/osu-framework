@@ -66,6 +66,14 @@ namespace osu.Framework.Platform
 
         #endregion
 
+        #region Event Invocation
+
+        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
+
+        protected void OnExited() => Exited?.Invoke();
+
+        #endregion
+
         #region ILegacyWindow
 
         public abstract void Run();
