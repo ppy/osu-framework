@@ -17,7 +17,7 @@ using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BaseWindow : IWindow
+    public abstract class Window : IWindow
     {
         #region IWindow
 
@@ -151,7 +151,7 @@ namespace osu.Framework.Platform
             GC.SuppressFinalize(this);
         }
 
-        ~BaseWindow()
+        ~Window()
         {
             Dispose(false);
         }
