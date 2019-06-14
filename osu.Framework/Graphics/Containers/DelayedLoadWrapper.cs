@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which asynchronously loads specified content.
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
-    /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
+    /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer{T}"/>.
     /// </summary>
     public class DelayedLoadWrapper : CompositeDrawable
     {
