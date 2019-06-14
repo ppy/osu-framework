@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -59,6 +60,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Text = text,
                         Font = new FontUsage(fixedWidth: false, size: font_size),
                         AllowMultiline = multiLineWidth != null,
+                        Spacing = new Vector2(0)
                     }
                 };
 

@@ -497,8 +497,23 @@ namespace osu.Framework.Graphics.Sprites
 
                 float ellipsisLength = 0;
 
+                char? lastChar = null;
+
                 foreach (var c in EllipsisString)
-                    ellipsisLength += getCharacterSize(c, true, out _).X + spacing.X;
+                {
+                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X;
+
+                    bool isSpace = char.IsWhiteSpace(c) || glyph.Texture == null;
+
+                    if (lastChar != null && !isSpace)
+                    {
+                        ellipsisLength += glyph.GetKerningPair(lastChar.Value, c) * Font.Size;
+                    }
+
+                    lastChar = c;
+                }
+
+                lastChar = null;
 
                 float availableWidth = maxWidth -= ellipsisLength;
 
@@ -509,12 +524,17 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     float glyphWidth = getCharacterSize(character, true, out var glyph).X;
 
+                    bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+
+                    if (lastChar != null && !isSpace)
+                        glyphWidth += glyph.GetKerningPair(lastChar.Value, character) * Font.Size;
+
+                    lastChar = character;
+
                     if (trackingPos + glyphWidth >= availableWidth)
                         return lastNonSpaceIndex;
 
                     trackingPos += glyphWidth + spacing.X;
-
-                    bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
 
                     index++;
 
@@ -541,15 +561,16 @@ namespace osu.Framework.Graphics.Sprites
                     useFixedWidthForCharacter(character) ? constantWidth * Font.Size : scaledTextureSize.X,
                     UseFullGlyphHeight ? Font.Size : glyphHeight);
 
-                // Move the position of the texture to the right by the amount specified by the glyph
+                // Move the position by the amount specified for the combination.
+                // This purposely gets reset if this character belongs to a new line, so this offset must be applied before checking for the line position.
                 if (!useFixedWidthForCharacter(character) && previous != null && !isSpace)
                 {
                     currentPos.X += glyph.GetKerningPair(previous.Value, character) * Font.Size;
                 }
 
-                previous = character;
+                var totalPositionOffset = isSpace || useFixedWidthForCharacter(character) ? glyphSize.X : glyph.XAdvance * Font.Size;
 
-                var totalPositionOffset = isSpace || useFixedWidthForCharacter(character) ? glyphSize.X : glyph.XAdvance * font.Size;
+                previous = character;
 
                 // Check if we need to go onto the next line
                 if (AllowMultiline)
@@ -559,7 +580,7 @@ namespace osu.Framework.Graphics.Sprites
                     if (currentPos.X + totalPositionOffset >= maxWidth)
                     {
                         currentPos.X = Padding.Left;
-                        currentPos.Y += currentRowHeight + spacing.Y;
+                        currentPos.Y += currentRowHeight + Spacing.Y;
                         currentRowHeight = 0;
                     }
                 }
@@ -580,7 +601,7 @@ namespace osu.Framework.Graphics.Sprites
                     });
                 }
 
-                currentPos.X += totalPositionOffset;
+                currentPos.X += totalPositionOffset + Spacing.X;
             }
         }
 
@@ -616,7 +637,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (applyWidthAdjustments)
                 {
                     // X offset should only be applied if not using fixed width, since they need to be centered.
-                    width = useFixedWidthForCharacter(character) ? constantWidth : glyph.Width + glyph.XOffset;
+                    width = useFixedWidthForCharacter(character) ? constantWidth : glyph.XAdvance;
                 }
                 else
                 {
