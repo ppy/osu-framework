@@ -79,13 +79,15 @@ namespace osu.Framework.Graphics
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
         /// <remarks>
-        /// This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.<br />
-        /// The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.<br />
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing this <see cref="DrawNode"/> to the screen.
         /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+
+            // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.
+            // The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.
             GLWrapper.SetDrawDepth(drawDepth);
         }
 
@@ -124,6 +126,9 @@ namespace osu.Framework.Graphics
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
         /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
         /// </summary>
+        /// <remarks>
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing the opaque interior of this <see cref="DrawNode"/> to the screen.
+        /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
