@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestSceneScrollContainer : ManualInputManagerTestScene
     {
         private float clampExtension = 50;
-        private ScrollContainer scrollContainer;
+        private ScrollContainer<Drawable> scrollContainer;
 
         public TestSceneScrollContainer()
         {
@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         /// <summary>
-        /// Create a scroll container, attempt to scroll past its <see cref="ScrollContainer.ClampExtension"/>, and check that it does not.
+        /// Create a scroll container, attempt to scroll past its <see cref="ScrollContainer{T}.ClampExtension"/>, and check that it does not.
         /// </summary>
         [Test]
         public void TestScrollTo()
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         /// <summary>
-        /// Attempt to drag a scrollcontainer past its <see cref="ScrollContainer.ClampExtension"/> and check that it does not.
+        /// Attempt to drag a scrollcontainer past its <see cref="ScrollContainer{T}.ClampExtension"/> and check that it does not.
         /// </summary>
         [Test]
         public void TestDraggingScroll()
@@ -88,12 +88,12 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("Scroll amount is within ClampExtension bounds", () => Math.Abs(scrollContainer.Current) <= scrollContainer.ClampExtension);
         }
 
-        private ScrollContainer createScrollContainer(float clampExtension = 0)
+        private ScrollContainer<Drawable> createScrollContainer(float clampExtension = 0)
         {
             if (scrollContainer != null)
                 InputManager.Remove(scrollContainer);
 
-            InputManager.Add(scrollContainer = new ScrollContainer
+            InputManager.Add(scrollContainer = new BasicScrollContainer
             {
                 ClampExtension = clampExtension,
                 RelativeSizeAxes = Axes.Both,

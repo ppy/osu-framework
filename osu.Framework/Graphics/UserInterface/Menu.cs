@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new MenuScrollContainer(direction)
+                        ContentContainer = new BasicScrollContainer<Container<DrawableMenuItem>>(direction)
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = false,
@@ -251,13 +251,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             sizeCache.Invalidate();
         }
-
-        /// <summary>
-        /// Scrolls a <see cref="Drawable"/> into view.
-        /// </summary>
-        /// <param name="d">The <see cref="Drawable"/> to scroll into view.</param>
-        /// <param name="animated">Whether to animate the movement.</param>
-        public void ScrollIntoView(Drawable d, bool animated = true) => ContentContainer.ScrollIntoView(d, animated);
 
         /// <summary>
         /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
@@ -789,16 +782,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        public class MenuScrollContainer : ScrollContainer<Container<DrawableMenuItem>>
-        {
-            public override bool HandleNonPositionalInput => false;
-
-            public MenuScrollContainer(Direction direction)
-                : base(direction)
-            {
-            }
-        }
     }
 
     public enum MenuState

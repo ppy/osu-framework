@@ -65,6 +65,15 @@ namespace osu.Framework.Audio.Track
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            // todo: support this internally to match the underlying Track implementation (which can support this).
+            const float tempo_minimum_supported = 0.05f;
+
+            Tempo.ValueChanged += t =>
+            {
+                if (t.NewValue < tempo_minimum_supported)
+                    throw new ArgumentException($"{nameof(TrackBass)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
+            };
+
             EnqueueAction(() =>
             {
                 Preview = quick;
