@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
         /// <remarks>
-        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing this <see cref="DrawNode"/> to the screen.
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics
         /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
         /// </summary>
         /// <remarks>
-        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing the opaque interior of this <see cref="DrawNode"/> to the screen.
+        /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
