@@ -522,7 +522,7 @@ namespace osu.Framework.Graphics.Sprites
                     if (trackingPos + characterAdvance >= availableWidth)
                         return lastNonSpaceIndex;
 
-                    trackingPos += characterAdvance + spacing.X;
+                    trackingPos += characterAdvance;
 
                     index++;
 
@@ -651,7 +651,7 @@ namespace osu.Framework.Graphics.Sprites
             if (previous != null && !isSpace && !useFixedWidthForCharacter(character))
                 glyphWidth += glyph.GetKerningPair(previous.Value, character) * Font.Size;
 
-            return glyphWidth;
+            return glyphWidth + Spacing.X;
         }
 
         /// <summary>
