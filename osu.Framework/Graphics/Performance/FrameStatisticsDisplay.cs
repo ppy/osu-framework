@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
+        public FrameStatisticsDisplay(GameThread thread)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
+                                            Texture = new Texture(1, HEIGHT),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -178,8 +178,8 @@ namespace osu.Framework.Graphics.Performance
                                 RelativeSizeAxes = Axes.Both,
                                 Children = timeBars = new[]
                                 {
-                                    new TimeBar(atlas),
-                                    new TimeBar(atlas),
+                                    new TimeBar(),
+                                    new TimeBar(),
                                 },
                             },
                             frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
@@ -500,12 +500,12 @@ namespace osu.Framework.Graphics.Performance
         {
             public readonly Sprite Sprite;
 
-            public TimeBar(TextureAtlas atlas)
+            public TimeBar()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
+                Sprite.Texture = new Texture(WIDTH, HEIGHT);
             }
         }
 

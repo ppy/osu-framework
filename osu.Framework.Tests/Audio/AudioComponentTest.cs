@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
@@ -34,11 +35,41 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void TearDown()
         {
+            Assert.IsFalse(thread.Exited);
+
             thread.Exit();
 
-            Task.Delay(500);
+            Thread.Sleep(500);
 
-            Assert.IsFalse(thread.Exited);
+            Assert.IsTrue(thread.Exited);
+        }
+
+        [Test]
+        public void TestNestedStoreAdjustments()
+        {
+            var customStore = manager.GetSampleStore(new ResourceStore<byte[]>());
+
+            checkAggregateVolume(manager.Samples, 1);
+            checkAggregateVolume(customStore, 1);
+
+            manager.Samples.Volume.Value = 0.5;
+
+            waitAudioFrame();
+
+            checkAggregateVolume(manager.Samples, 0.5);
+            checkAggregateVolume(customStore, 0.5);
+
+            customStore.Volume.Value = 0.5;
+
+            waitAudioFrame();
+
+            checkAggregateVolume(manager.Samples, 0.5);
+            checkAggregateVolume(customStore, 0.25);
+        }
+
+        private void checkAggregateVolume(ISampleStore store, double expected)
+        {
+            Assert.AreEqual(expected, ((IAggregateAudioAdjustment)store).AggregateVolume.Value);
         }
 
         [Test]

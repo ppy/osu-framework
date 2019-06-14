@@ -4,11 +4,10 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteText : TestScene
+    public class TestSceneSpriteText : FrameworkTestScene
     {
         public TestSceneSpriteText()
         {
@@ -16,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             Children = new Drawable[]
             {
-                new ScrollContainer
+                new BasicScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]

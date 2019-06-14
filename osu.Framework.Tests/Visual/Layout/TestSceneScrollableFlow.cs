@@ -5,18 +5,17 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSceneScrollableFlow : TestScene
+    public class TestSceneScrollableFlow : FrameworkTestScene
     {
         private readonly ScheduledDelegate boxCreator;
 
-        private ScrollContainer scroll;
+        private ScrollContainer<Drawable> scroll;
         private FillFlowContainer flow;
 
         private void createArea(Direction dir)
@@ -25,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
             Children = new[]
             {
-                scroll = new ScrollContainer(dir)
+                scroll = new BasicScrollContainer(dir)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
@@ -48,13 +47,13 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             Children = new[]
             {
-                new ScrollContainer(Direction.Horizontal)
+                new BasicScrollContainer(Direction.Horizontal)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
                     Children = new[]
                     {
-                        scroll = new ScrollContainer
+                        scroll = new BasicScrollContainer
                         {
                             RelativeSizeAxes = Axes.Y,
                             AutoSizeAxes = Axes.X,

@@ -5,13 +5,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneSpriteTextTruncate : TestScene
+    public class TestSceneSpriteTextTruncate : FrameworkTestScene
     {
         private readonly FillFlowContainer flow;
 
@@ -19,7 +18,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Children = new Drawable[]
             {
-                new ScrollContainer
+                new BasicScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]

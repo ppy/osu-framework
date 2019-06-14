@@ -12,16 +12,17 @@ using osu.Framework.Threading;
 
 #pragma warning disable 4014
 
-namespace osu.Framework.Tests.Platform
+namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
     public class TrackBassTest
     {
-        private readonly DllResourceStore resources;
+        private DllResourceStore resources;
 
         private TrackBass track;
 
-        public TrackBassTest()
+        [SetUp]
+        public void Setup()
         {
             Architecture.SetIncludePath();
 
@@ -29,13 +30,15 @@ namespace osu.Framework.Tests.Platform
             Bass.Init(0);
 
             resources = new DllResourceStore("osu.Framework.Tests.dll");
-        }
 
-        [SetUp]
-        public void Setup()
-        {
             track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
             updateTrack();
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            Bass.Free();
         }
 
         [Test]
@@ -109,10 +112,13 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestSeekToEndFails()
         {
-            track.SeekAsync(track.Length);
+            bool? success = null;
+
+            runOnAudioThread(() => { success = track.Seek(track.Length); });
             updateTrack();
 
             Assert.AreEqual(0, track.CurrentTime);
+            Assert.IsFalse(success);
         }
 
         [Test]
@@ -232,6 +238,20 @@ namespace osu.Framework.Tests.Platform
                 throw new TimeoutException("Track failed to start in time.");
 
             Assert.LessOrEqual(track.CurrentTime, 1000);
+        }
+
+        [Test]
+        public void TestSetTempoNegative()
+        {
+            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
+            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
+
+            Assert.IsFalse(track.IsReversed);
+
+            track.TempoAdjust = 0.05f;
+
+            Assert.IsFalse(track.IsReversed);
+            Assert.AreEqual(0.05f, track.Tempo.Value);
         }
 
         private void startPlaybackAt(double time)
