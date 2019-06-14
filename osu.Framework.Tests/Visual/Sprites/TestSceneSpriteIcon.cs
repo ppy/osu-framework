@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Colour = Color4.Teal,
                         RelativeSizeAxes = Axes.Both,
                     },
-                    new ScrollContainer
+                    new BasicScrollContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = flow = new FillFlowContainer

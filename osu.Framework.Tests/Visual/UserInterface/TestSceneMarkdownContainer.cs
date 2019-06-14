@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new ScrollContainer
+            Child = new BasicScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Child = markdownContainer = new TestMarkdownContainer

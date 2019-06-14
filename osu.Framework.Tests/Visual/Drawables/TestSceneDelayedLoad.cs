@@ -23,13 +23,13 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void TestManyChildren(bool instant)
         {
             FillFlowContainer<Container> flow = null;
-            ScrollContainer scroll = null;
+            ScrollContainer<Drawable> scroll = null;
 
             AddStep("create children", () =>
             {
                 Children = new Drawable[]
                 {
-                    scroll = new ScrollContainer
+                    scroll = new BasicScrollContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Children = new Drawable[]

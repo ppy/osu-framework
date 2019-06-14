@@ -154,7 +154,7 @@ namespace osu.Framework.Testing
                         RelativeSizeAxes = Axes.Y,
                         Width = steps_width,
                     },
-                    scroll = new ScrollContainer
+                    scroll = new BasicScrollContainer
                     {
                         Width = steps_width,
                         Depth = float.MinValue,
@@ -195,7 +195,7 @@ namespace osu.Framework.Testing
         private int actionIndex;
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
-        private readonly ScrollContainer scroll;
+        private readonly ScrollContainer<Drawable> scroll;
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
