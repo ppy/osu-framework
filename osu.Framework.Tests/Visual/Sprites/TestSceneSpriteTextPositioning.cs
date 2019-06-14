@@ -35,11 +35,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             textDrawables.Add(Cell(1, 0).Child = new ColorBackedContainer("T"));
             textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
             textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
-            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("h"));
+            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
 
-            fontStore.TryGetCharacter("", 'e', out var glyph);
+            fontStore.TryGetCharacter("", 'm', out var glyph);
             textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
-            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("Time to air", 250));
+            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog.", 250));
+            textDrawables.Add(Cell(2, 6).Child = new ColorBackedContainer("iimmss", glyph.XAdvance * font_size));
         }
 
         public class ColorBackedContainer : Container
