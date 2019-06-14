@@ -129,5 +129,37 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
         }
+
+        [Test]
+        public void TestPathBlending()
+        {
+            AddStep("create path", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(200)
+                    },
+                    new TexturedPath
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Red,
+                        Vertices = new List<Vector2>
+                        {
+                            new Vector2(50, 50),
+                            new Vector2(50, 150),
+                            new Vector2(150, 150),
+                            new Vector2(150, 100),
+                            new Vector2(20, 100),
+                        },
+                        Texture = gradientTexture,
+                    }
+                };
+            });
+        }
     }
 }
