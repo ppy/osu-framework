@@ -22,13 +22,13 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollBar(direction);
+        protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollbar(direction);
 
-        private class BasicScrollBar : ScrollbarContainer
+        private class BasicScrollbar : ScrollbarContainer
         {
             private const float dim_size = 8;
 
-            public BasicScrollBar(Direction direction)
+            public BasicScrollbar(Direction direction)
                 : base(direction)
             {
                 Child = new Box
