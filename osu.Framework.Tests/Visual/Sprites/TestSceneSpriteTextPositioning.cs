@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -17,11 +16,6 @@ namespace osu.Framework.Tests.Visual.Sprites
     [System.ComponentModel.Description("Color backed characters to visualize size and spacing")]
     public class TestSceneSpriteTextPositioning : GridTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(GlyphStore),
-        };
-
         private const int font_size = 80;
 
         private readonly List<Drawable> textDrawables = new List<Drawable>();
@@ -36,18 +30,15 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load(FontStore fontStore)
         {
-            fontStore.TryGetCharacter("", 'm', out var glyph);
-
             textDrawables.Add(Cell(0, 0).Child = new ColorBackedContainer("Time"));
             textDrawables.Add(Cell(1, 0).Child = new ColorBackedContainer("T"));
             textDrawables.Add(Cell(1, 1).Child = new ColorBackedContainer("i"));
             textDrawables.Add(Cell(1, 2).Child = new ColorBackedContainer("m"));
-            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("e"));
-            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
-            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("The quick brown fox jumps over the lazy dog", 250));
+            textDrawables.Add(Cell(1, 3).Child = new ColorBackedContainer("h"));
 
-            // Used to verify extreme multi-line scenarios.
-            textDrawables.Add(Cell(2, 2).Child = new ColorBackedContainer("iimmss", glyph.Width * font_size));
+            fontStore.TryGetCharacter("", 'e', out var glyph);
+            textDrawables.Add(Cell(2, 0).Child = new ColorBackedContainer("Thequickbrownfoxjumpsoverthelazydog", 250));
+            textDrawables.Add(Cell(2, 3).Child = new ColorBackedContainer("Time to air", 250));
         }
 
         public class ColorBackedContainer : Container
@@ -77,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 AutoSizeAxes = Axes.Both;
             }
 
-            public void ToggleFixedWidth(bool fixedWidth) => spriteText.Font = new FontUsage(fixedWidth: fixedWidth, size: font_size);
+            public void ToggleFixedWidth(bool fixedWidth) => spriteText.Font = new FontUsage(fixedWidth: fixedWidth, size: font_size, family: "OpenSans");
 
             public void ToggleUseFullGlyphHeight(bool useGlyphHeight) => spriteText.UseFullGlyphHeight = useGlyphHeight;
         }

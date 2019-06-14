@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.Sprites
             float maxWidth = float.PositiveInfinity;
             float currentRowHeight = 0;
 
-            bool isFirstCharacter = true;
+            char? previous = null;
 
             try
             {
@@ -542,27 +542,26 @@ namespace osu.Framework.Graphics.Sprites
                     UseFullGlyphHeight ? Font.Size : glyphHeight);
 
                 // Move the position of the texture to the right by the amount specified by the glyph
-                if (!useFixedWidthForCharacter(character))
+                if (!useFixedWidthForCharacter(character) && previous != null && !isSpace)
                 {
-                    currentPos.X += Font.Size * glyph.XOffset;
+                    currentPos.X += glyph.GetKerningPair(previous.Value, character) * Font.Size;
                 }
+
+                previous = character;
+
+                var totalPositionOffset = isSpace || useFixedWidthForCharacter(character) ? glyphSize.X : glyph.XAdvance * font.Size;
 
                 // Check if we need to go onto the next line
                 if (AllowMultiline)
                 {
                     Debug.Assert(!Truncate);
 
-                    if (currentPos.X + glyphSize.X >= maxWidth || isFirstCharacter)
+                    if (currentPos.X + totalPositionOffset >= maxWidth)
                     {
                         currentPos.X = Padding.Left;
                         currentPos.Y += currentRowHeight + spacing.Y;
                         currentRowHeight = 0;
                     }
-                }
-                else if (isFirstCharacter)
-                {
-                    // The first character shouldn't have any xOffset, regardless of multiline.
-                    currentPos.X = Padding.Left;
                 }
 
                 // The height of the row depends on whether we want to use the full glyph height or not
@@ -572,18 +571,16 @@ namespace osu.Framework.Graphics.Sprites
                 if (!isSpace)
                 {
                     // If we have fixed width, we'll need to centre the texture to the glyph size
-                    // glyphSize.X will be identical to scaledTextureSize.X when not using fixed width, so offset will be 0
-                    float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+                    float xOffset = useFixedWidthForCharacter(character) ? (glyphSize.X - scaledTextureSize.X) / 2 : Font.Size * glyph.XOffset;
 
                     charactersBacking.Add(new CharacterPart
                     {
                         Texture = glyph.Texture,
-                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y + Font.Size * glyph.YOffset), scaledTextureSize),
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + xOffset, currentPos.Y + Font.Size * glyph.YOffset), scaledTextureSize),
                     });
                 }
 
-                currentPos.X += glyphSize.X + spacing.X;
-                isFirstCharacter = false;
+                currentPos.X += totalPositionOffset;
             }
         }
 

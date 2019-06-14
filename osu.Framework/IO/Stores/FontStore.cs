@@ -264,12 +264,28 @@ namespace osu.Framework.IO.Stores
             /// </summary>
             public float Height => Texture.DisplayHeight;
 
-            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0)
+            /// <summary>
+            /// Gets the kerning value for the specified character pair, adjusted for the scale of the <see cref="FontStore"/>.
+            /// <remarks>The kerning value is a unique spacing adjustment specified for each character pair by the font.</remarks>
+            /// </summary>
+            /// <param name="left">The character on the left side to compare.</param>
+            /// <param name="right">The character on the right side to compare</param>
+            /// <returns>The scale-adjusted kerning value for the specified character pair</returns>
+            public float GetKerningPair(char left, char right) => containingStore.GetKerningValue(left, right) * scaleAdjust;
+
+            private float scaleAdjust;
+
+            private readonly GlyphStore containingStore;
+
+            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, GlyphStore containingStore = null)
             {
                 Texture = texture;
                 XOffset = xOffset;
                 YOffset = yOffset;
                 XAdvance = xAdvance;
+
+                scaleAdjust = 1;
+                this.containingStore = containingStore;
             }
 
             /// <summary>
@@ -281,6 +297,7 @@ namespace osu.Framework.IO.Stores
                 XOffset *= scaleAdjust;
                 YOffset *= scaleAdjust;
                 XAdvance *= scaleAdjust;
+                this.scaleAdjust = scaleAdjust;
             }
         }
     }

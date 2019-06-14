@@ -72,8 +72,10 @@ namespace osu.Framework.IO.Stores
         public FontStore.CharacterGlyph GetCharacterInfo(char c)
         {
             var character = Font.GetCharacter(c);
-            return new FontStore.CharacterGlyph(xOffset: character.XOffset, yOffset: character.YOffset, xAdvance: character.XAdvance);
+            return new FontStore.CharacterGlyph(xOffset: character.XOffset, yOffset: character.YOffset, xAdvance: character.XAdvance, containingStore: this);
         }
+
+        public int GetKerningValue(char left, char right) => Font.GetKerningAmount(left, right);
 
         public int GetBaseHeight() => Font.Common.Base;
 
