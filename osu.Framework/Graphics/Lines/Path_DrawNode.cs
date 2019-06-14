@@ -210,6 +210,9 @@ namespace osu.Framework.Graphics.Lines
 
                 GLWrapper.PushDepthInfo(DepthInfo.Default);
 
+                // Blending is removed to allow for correct blending between the wedges of the path.
+                GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
+
                 pathShader.Bind();
 
                 texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
