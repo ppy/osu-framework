@@ -536,9 +536,7 @@ namespace osu.Framework.Graphics.Sprites
             void addCharacter(char character)
             {
                 // don't apply any adjustments for width, as we need the raw size in order to not stretch the draw rectangle for drawing the texture.
-                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph glyph);
-
-                bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph glyph, out bool isSpace);
 
                 // The height of the glyph with YOffset applied
                 // The height of a space is forced to be 0 so the Y offset doesn't get accounted for incorrectly
@@ -599,15 +597,18 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="character">The character to look up.</param>
         /// <param name="applyWidthAdjustments">Whether or not fixed width spacing and xOffset should be taken into account in the calculated size</param>
         /// <param name="glyph">A struct containing the texture and its associated spacing information for the specified character.</param>
+        /// <param name="isSpace">Whether or not the character glyph returned is a space</param>
         /// <returns>The size of the character texture.</returns>
-        private Vector2 getCharacterSize(char character, bool applyWidthAdjustments, out FontStore.CharacterGlyph glyph)
+        private Vector2 getCharacterSize(char character, bool applyWidthAdjustments, out FontStore.CharacterGlyph glyph, out bool isSpace)
         {
             float width;
             float height;
 
             glyph = char.IsWhiteSpace(character) ? new FontStore.CharacterGlyph() : getCharacter(character);
 
-            if (char.IsWhiteSpace(character) || glyph.Texture == null)
+            isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+
+            if (isSpace)
             {
                 float size = useFixedWidthForCharacter(character) ? constantWidth : spaceWidth;
 
@@ -645,8 +646,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private float getCursorAdvanceForCharacter(char character, char? previous, out bool isSpace)
         {
-            float glyphWidth = getCharacterSize(character, true, out var glyph).X;
-            isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+            float glyphWidth = getCharacterSize(character, true, out var glyph, out isSpace).X;
 
             if (previous != null && !isSpace && !useFixedWidthForCharacter(character))
                 glyphWidth += glyph.GetKerningPair(previous.Value, character) * Font.Size;
