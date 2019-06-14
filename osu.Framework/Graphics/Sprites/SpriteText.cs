@@ -499,17 +499,10 @@ namespace osu.Framework.Graphics.Sprites
 
                 char? lastChar = null;
 
+                // Calculate the length of our Ellipsis
                 foreach (var c in EllipsisString)
                 {
-                    ellipsisLength += getCharacterSize(c, true, out var glyph).X + spacing.X;
-
-                    bool isSpace = char.IsWhiteSpace(c) || glyph.Texture == null;
-
-                    if (lastChar != null && !isSpace)
-                    {
-                        ellipsisLength += glyph.GetKerningPair(lastChar.Value, c) * Font.Size;
-                    }
-
+                    ellipsisLength += getCursorAdvanceForCharacter(c, lastChar, out _);
                     lastChar = c;
                 }
 
@@ -522,19 +515,14 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    float glyphWidth = getCharacterSize(character, true, out var glyph).X;
-
-                    bool isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
-
-                    if (lastChar != null && !isSpace)
-                        glyphWidth += glyph.GetKerningPair(lastChar.Value, character) * Font.Size;
+                    var characterAdvance = getCursorAdvanceForCharacter(character, lastChar, out var isSpace);
 
                     lastChar = character;
 
-                    if (trackingPos + glyphWidth >= availableWidth)
+                    if (trackingPos + characterAdvance >= availableWidth)
                         return lastNonSpaceIndex;
 
-                    trackingPos += glyphWidth + spacing.X;
+                    trackingPos += characterAdvance + spacing.X;
 
                     index++;
 
@@ -636,7 +624,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (applyWidthAdjustments)
                 {
-                    // X offset should only be applied if not using fixed width, since they need to be centered.
+                    // Use the glyph defined character width unless constant width.
                     width = useFixedWidthForCharacter(character) ? constantWidth : glyph.XAdvance;
                 }
                 else
@@ -654,6 +642,17 @@ namespace osu.Framework.Graphics.Sprites
 
         private Cached screenSpaceCharactersCache = new Cached();
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
+
+        private float getCursorAdvanceForCharacter(char character, char? previous, out bool isSpace)
+        {
+            float glyphWidth = getCharacterSize(character, true, out var glyph).X;
+            isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
+
+            if (previous != null && !isSpace && !useFixedWidthForCharacter(character))
+                glyphWidth += glyph.GetKerningPair(previous.Value, character) * Font.Size;
+
+            return glyphWidth;
+        }
 
         /// <summary>
         /// The characters in screen space. These are ready to be drawn.
