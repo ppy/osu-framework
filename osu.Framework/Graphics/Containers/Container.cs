@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Containers
         /// forwarded to the content. By default a container's content is itself, in which case
         /// <see cref="Children"/> refers to <see cref="CompositeDrawable.InternalChildren"/>.
         /// This property is useful for containers that require internal children that should
-        /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
+        /// not be exposed to the outside world, e.g. <see cref="ScrollContainer{T}"/>.
         /// </summary>
         protected virtual Container<T> Content => this;
 

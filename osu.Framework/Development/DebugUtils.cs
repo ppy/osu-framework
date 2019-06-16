@@ -32,14 +32,15 @@ namespace osu.Framework.Development
         );
 
         // https://stackoverflow.com/a/2186634
-        private static bool isDebugAssembly(Assembly assembly) => assembly.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled);
+        private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
 
         /// <summary>
         /// Get the entry assembly, even when running under nUnit.
+        /// Will fall back to calling assembly if there is no Entry assembly.
         /// </summary>
         /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
         public static Assembly GetEntryAssembly() =>
-            HostAssembly ?? Assembly.GetEntryAssembly();
+            HostAssembly ?? Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 
         /// <summary>
         /// Get the entry path, even when running under nUnit.

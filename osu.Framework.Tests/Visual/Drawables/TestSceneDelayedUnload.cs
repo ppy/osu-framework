@@ -18,11 +18,11 @@ namespace osu.Framework.Tests.Visual.Drawables
         public TestSceneDelayedUnload()
         {
             FillFlowContainer<Container> flow;
-            ScrollContainer scroll;
+            ScrollContainer<Drawable> scroll;
 
             Children = new Drawable[]
             {
-                scroll = new ScrollContainer
+                scroll = new BasicScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]

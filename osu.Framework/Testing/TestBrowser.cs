@@ -173,14 +173,13 @@ namespace osu.Framework.Testing
                                     PlaceholderText = "type to search",
                                     Depth = -1,
                                 },
-                                new ScrollContainer
+                                new BasicScrollContainer
                                 {
-                                    Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
                                     Masking = false,
                                     Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
                                     {
-                                        Padding = new MarginPadding(3),
+                                        Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,

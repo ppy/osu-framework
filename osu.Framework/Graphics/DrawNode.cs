@@ -79,13 +79,15 @@ namespace osu.Framework.Graphics
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
         /// <remarks>
-        /// This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.<br />
-        /// The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.<br />
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+
+            // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.
+            // The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.
             GLWrapper.SetDrawDepth(drawDepth);
         }
 
@@ -124,6 +126,9 @@ namespace osu.Framework.Graphics
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
         /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
         /// </summary>
+        /// <remarks>
+        /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
+        /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
@@ -149,7 +154,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage);
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -163,7 +168,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage);
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -178,7 +183,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -193,7 +198,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.

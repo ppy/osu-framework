@@ -55,7 +55,6 @@ namespace osu.Framework.Testing.Drawables
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
                     Children = new Drawable[]
                     {
                         new EdgeSnappingContainer
@@ -72,7 +71,7 @@ namespace osu.Framework.Testing.Drawables
                             {
                                 Top = 4,
                                 Left = LEFT_TEXT_PADDING,
-                                Right = 4,
+                                Right = 4 + LEFT_TEXT_PADDING,
                                 Bottom = 5,
                             },
                         }
