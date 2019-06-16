@@ -18,7 +18,7 @@ namespace osu.Framework.iOS
     {
         public event Action<NSSet> HandleTouches;
 
-        public HiddenTextField KeyboardTextField { get; private set; }
+        public HiddenTextField KeyboardTextField { get; }
 
         [Export("layerClass")]
         public static Class LayerClass() => GetLayerClass();
@@ -44,7 +44,7 @@ namespace osu.Framework.iOS
             UserInteractionEnabled = true;
         }
 
-        public float Scale { get; private set; }
+        public float Scale { get; }
 
         // SafeAreaInsets is cached to prevent access outside the main thread
         private UIEdgeInsets safeArea = UIEdgeInsets.Zero;
@@ -105,10 +105,10 @@ namespace osu.Framework.iOS
             /// <summary>
             /// Placeholder text that the <see cref="HiddenTextField"/> will be populated with after every keystroke.
             /// </summary>
-            public const string PLACEHOLDER_TEXT = "placeholder placeholder placeholder";
+            private const string placeholder_text = "placeholder placeholder placeholder";
 
             /// <summary>
-            /// The approximate midpoint of <see cref="PLACEHOLDER_TEXT"/> that the cursor will be reset to after every keystroke.
+            /// The approximate midpoint of <see cref="placeholder_text"/> that the cursor will be reset to after every keystroke.
             /// </summary>
             public const int CURSOR_POSITION = 17;
 
@@ -156,7 +156,7 @@ namespace osu.Framework.iOS
             private void resetText()
             {
                 // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
-                Text = PLACEHOLDER_TEXT;
+                Text = placeholder_text;
                 var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
                 SelectedTextRange = GetTextRange(newPosition, newPosition);
             }

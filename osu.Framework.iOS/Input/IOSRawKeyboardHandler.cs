@@ -21,7 +21,7 @@ namespace osu.Framework.iOS.Input
             if (!(UIApplication.SharedApplication is GameUIApplication game))
                 return false;
 
-            game.KeyEvent += (int keyCode, bool isDown) =>
+            game.KeyEvent += (keyCode, isDown) =>
             {
                 if (keyMap.ContainsKey(keyCode))
                     PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
