@@ -12,7 +12,7 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSRawKeyboardHandler : InputHandler
     {
-        internal bool KeyboardActive;
+        internal bool KeyboardActive = true;
         public override bool IsActive => KeyboardActive;
 
         public override int Priority => 0;
