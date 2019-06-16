@@ -71,6 +71,7 @@ namespace osu.Framework.iOS.Input
             { 39, Key.Number0 },
             { 40, Key.Enter },
             { 41, Key.Escape },
+            { 42, Key.BackSpace },
             { 43, Key.Tab },
             { 44, Key.Space },
             { 45, Key.Minus },
