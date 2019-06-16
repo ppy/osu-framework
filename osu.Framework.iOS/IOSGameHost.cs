@@ -26,15 +26,23 @@ namespace osu.Framework.iOS
         public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
-            NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, keyboardWillShow);
+            NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
+            NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
         }
 
-        private void keyboardWillShow(NSNotification notification)
+        /// <summary>
+        /// If the keyboard visibility changes (including the hardware keyboard helper bar) we select the keyboard
+        /// handler based on the height of the on-screen keyboard at the end of the animation. If the height is above
+        /// an arbitrary value, we decide that the software keyboard handler should be enabled. Otherwise, enable the
+        /// raw keyboard handler.
+        /// This will also cover the case where there is no first responder, in which case the raw handler will still
+        /// successfully catch key events.
+        /// </summary>
+        private void handleKeyboardNotification(NSNotification notification)
         {
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
             RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
 
-            // if the keyboard height is above an arbitrary value, we assume software
             var softwareKeyboard = keyboardFrame.Height > 300;
 
             if (keyboardHandler != null)
