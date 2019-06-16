@@ -18,7 +18,7 @@ namespace osu.Framework.iOS
     {
         public event Action<NSSet> HandleTouches;
 
-        public DummyTextField KeyboardTextField { get; private set; }
+        public HiddenTextField KeyboardTextField { get; private set; }
 
         [Export("layerClass")]
         public static Class LayerClass() => GetLayerClass();
@@ -33,7 +33,7 @@ namespace osu.Framework.iOS
             ContextRenderingApi = EAGLRenderingAPI.OpenGLES3;
             LayerRetainsBacking = false;
 
-            AddSubview(KeyboardTextField = new DummyTextField());
+            AddSubview(KeyboardTextField = new HiddenTextField());
         }
 
         protected override void ConfigureLayer(CAEAGLLayer eaglLayer)
@@ -96,13 +96,21 @@ namespace osu.Framework.iOS
 
         protected override bool ShouldCallOnRender => false;
 
-        public class DummyTextField : UITextField
+        public class HiddenTextField : UITextField
         {
             public event Action<NSRange, string> HandleShouldChangeCharacters;
             public event Action HandleShouldReturn;
             public event Action<UIKeyCommand> HandleKeyCommand;
 
-            public const int CURSOR_POSITION = 5;
+            /// <summary>
+            /// Placeholder text that the <see cref="HiddenTextField"/> will be populated with after every keystroke.
+            /// </summary>
+            public const string PLACEHOLDER_TEXT = "placeholder placeholder placeholder";
+
+            /// <summary>
+            /// The approximate midpoint of <see cref="PLACEHOLDER_TEXT"/> that the cursor will be reset to after every keystroke.
+            /// </summary>
+            public const int CURSOR_POSITION = 17;
 
             private int responderSemaphore;
 
@@ -110,7 +118,7 @@ namespace osu.Framework.iOS
             public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
 
-            public DummyTextField()
+            public HiddenTextField()
             {
                 AutocapitalizationType = UITextAutocapitalizationType.None;
                 AutocorrectionType = UITextAutocorrectionType.No;
@@ -148,7 +156,7 @@ namespace osu.Framework.iOS
             private void resetText()
             {
                 // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
-                Text = "dummytext";
+                Text = PLACEHOLDER_TEXT;
                 var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
                 SelectedTextRange = GetTextRange(newPosition, newPosition);
             }
