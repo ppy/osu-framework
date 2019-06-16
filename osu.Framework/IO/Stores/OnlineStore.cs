@@ -33,9 +33,11 @@ namespace osu.Framework.IO.Stores
 
             try
             {
-                WebRequest req = new WebRequest($@"{url}");
-                req.Perform();
-                return req.ResponseData;
+                using (WebRequest req = new WebRequest($@"{url}"))
+                {
+                    req.Perform();
+                    return req.ResponseData;
+                }
             }
             catch
             {
