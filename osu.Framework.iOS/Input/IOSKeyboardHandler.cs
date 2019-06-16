@@ -27,12 +27,20 @@ namespace osu.Framework.iOS.Input
         {
             if (text.Length == 0)
             {
+                Key key = range.Location < IOSGameView.HiddenTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
+
+                // NOTE: this makes the assumption that Key.ControlLeft triggers the WordPrevious platform action
+                if (range.Length > 1)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.ControlLeft, true));
+
                 if (range.Length > 0)
                 {
-                    Key key = range.Location < IOSGameView.DummyTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                 }
+
+                if (range.Length > 1)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.ControlLeft, false));
 
                 return;
             }
