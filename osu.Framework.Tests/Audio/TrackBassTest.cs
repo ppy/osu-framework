@@ -264,7 +264,7 @@ namespace osu.Framework.Tests.Audio
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
 
-            Assert.Greater(track.CurrentTime, 0);
+            Assert.GreaterOrEqual(track.CurrentTime, track.Length - 1000);
         }
 
         public void TestSetTempoNegative()

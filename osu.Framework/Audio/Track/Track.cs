@@ -31,15 +31,9 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
         /// </summary>
-        public double RestartPoint
+        public virtual double RestartPoint
         {
-            get
-            {
-                if (IsReversed && restartPoint == 0)
-                    restartPoint = Length - 1;
-
-                return restartPoint;
-            }
+            get => restartPoint;
             set => restartPoint = value;
         }
 
