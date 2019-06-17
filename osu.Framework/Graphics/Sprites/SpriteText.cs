@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
@@ -549,7 +550,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 // Move the position by the amount specified for the combination.
                 // This purposely gets reset if this character belongs to a new line, so this offset must be applied before checking for the line position.
-                if (!useFixedWidthForCharacter(character) && previous != null && !isSpace)
+                if (!useFixedWidthForCharacter(character) && previous != null)
                 {
                     currentPos.X += glyph.GetKerningPair(previous.Value) * Font.Size;
                 }
@@ -605,7 +606,7 @@ namespace osu.Framework.Graphics.Sprites
             float width;
             float height;
 
-            glyph = char.IsWhiteSpace(character) ? new FontStore.CharacterGlyph() : getCharacter(character);
+            glyph = getCharacter(character);
 
             isSpace = char.IsWhiteSpace(character) || glyph.Texture == null;
 
