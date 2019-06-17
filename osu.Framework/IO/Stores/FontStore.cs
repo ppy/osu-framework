@@ -265,19 +265,20 @@ namespace osu.Framework.IO.Stores
             public float Height => Texture.DisplayHeight;
 
             /// <summary>
-            /// Gets the kerning value for the specified character pair, adjusted for the scale of the <see cref="FontStore"/>.
+            /// Gets the kerning value for the previous character along with the one for this glyph, adjusted for the scale of the <see cref="FontStore"/>.
             /// <remarks>The kerning value is a unique spacing adjustment specified for each character pair by the font.</remarks>
             /// </summary>
-            /// <param name="left">The character on the left side to compare.</param>
-            /// <param name="right">The character on the right side to compare</param>
-            /// <returns>The scale-adjusted kerning value for the specified character pair</returns>
-            public float GetKerningPair(char left, char right) => containingStore.GetKerningValue(left, right) * scaleAdjust;
+            /// <param name="previous">The character previous to this one.</param>
+            /// <returns>The scale-adjusted kerning value for the character pair</returns>
+            public float GetKerningPair(char previous) => containingStore.GetKerningValue(previous, character) * scaleAdjust;
 
             private float scaleAdjust;
 
             private readonly GlyphStore containingStore;
 
-            public CharacterGlyph([CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, GlyphStore containingStore = null)
+            private readonly char character;
+
+            public CharacterGlyph(char character, [CanBeNull] Texture texture = null, float xOffset = 0, float yOffset = 0, float xAdvance = 0, GlyphStore containingStore = null)
             {
                 Texture = texture;
                 XOffset = xOffset;
@@ -286,6 +287,7 @@ namespace osu.Framework.IO.Stores
 
                 scaleAdjust = 1;
                 this.containingStore = containingStore;
+                this.character = character;
             }
 
             /// <summary>

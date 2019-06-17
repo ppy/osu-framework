@@ -536,7 +536,7 @@ namespace osu.Framework.Graphics.Sprites
             void addCharacter(char character)
             {
                 // don't apply any adjustments for width, as we need the raw size in order to not stretch the draw rectangle for drawing the texture.
-                Vector2 scaledTextureSize = getCharacterSize(character, false, out FontStore.CharacterGlyph glyph, out bool isSpace);
+                Vector2 scaledTextureSize = getCharacterSize(character, false, out var glyph, out bool isSpace);
 
                 // The height of the glyph with YOffset applied
                 // The height of a space is forced to be 0 so the Y offset doesn't get accounted for incorrectly
@@ -551,7 +551,7 @@ namespace osu.Framework.Graphics.Sprites
                 // This purposely gets reset if this character belongs to a new line, so this offset must be applied before checking for the line position.
                 if (!useFixedWidthForCharacter(character) && previous != null && !isSpace)
                 {
-                    currentPos.X += glyph.GetKerningPair(previous.Value, character) * Font.Size;
+                    currentPos.X += glyph.GetKerningPair(previous.Value) * Font.Size;
                 }
 
                 var totalPositionOffset = isSpace || useFixedWidthForCharacter(character) ? glyphSize.X : glyph.XAdvance * Font.Size;
@@ -579,11 +579,12 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     // If we have fixed width, we'll need to centre the texture to the glyph size
                     float xOffset = useFixedWidthForCharacter(character) ? (glyphSize.X - scaledTextureSize.X) / 2 : Font.Size * glyph.XOffset;
+                    float yOffset = Font.Size * glyph.YOffset;
 
                     charactersBacking.Add(new CharacterPart
                     {
                         Texture = glyph.Texture,
-                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + xOffset, currentPos.Y + Font.Size * glyph.YOffset), scaledTextureSize),
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + xOffset, currentPos.Y + yOffset), scaledTextureSize),
                     });
                 }
 
@@ -649,7 +650,7 @@ namespace osu.Framework.Graphics.Sprites
             float glyphWidth = getCharacterSize(character, true, out var glyph, out isSpace).X;
 
             if (previous != null && !isSpace && !useFixedWidthForCharacter(character))
-                glyphWidth += glyph.GetKerningPair(previous.Value, character) * Font.Size;
+                glyphWidth += glyph.GetKerningPair(previous.Value) * Font.Size;
 
             return glyphWidth + Spacing.X;
         }
