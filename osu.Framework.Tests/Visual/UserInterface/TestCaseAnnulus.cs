@@ -85,16 +85,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 },
             };
 
-            AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
-            AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
-            AddStep("2D Gradient Texture", delegate { setTexture(3); });
-            AddStep("White Texture", delegate { setTexture(0); });
+            AddStep("Horizontal Gradient Texture", () => setTexture(1));
+            AddStep("Vertical Gradient Texture", () => setTexture(2));
+            AddStep("2D Gradient Texture", () => setTexture(3));
+            AddStep("White Texture", () => setTexture(0));
 
-            AddStep("Red Colour", delegate { setColour(1); });
-            AddStep("Horzontal Gradient Colour", delegate { setColour(2); });
-            AddStep("Vertical Gradient Colour", delegate { setColour(3); });
-            AddStep("2D Gradient Colour", delegate { setColour(4); });
-            AddStep("White Colour", delegate { setColour(0); });
+            AddStep("Red Colour", () => setColour(1));
+            AddStep("Horzontal Gradient Colour", () => setColour(2));
+            AddStep("Vertical Gradient Colour", () => setColour(3));
+            AddStep("2D Gradient Colour", () => setColour(4));
+            AddStep("White Colour", () => setColour(0));
 
             AddSliderStep("Start angle", 0d, 2d, 0d, angle => annulus.StartAngle.Value = MathHelper.TwoPi * angle);
             AddSliderStep("End angle", 0d, 2d, 1d, angle => annulus.EndAngle.Value = MathHelper.TwoPi * angle);

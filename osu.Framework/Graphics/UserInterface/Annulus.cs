@@ -43,8 +43,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Annulus()
         {
-            StartAngle.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
-            EndAngle.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
+            StartAngle.ValueChanged += _ => Invalidate(Invalidation.DrawNode);
+            EndAngle.ValueChanged += _ => Invalidate(Invalidation.DrawNode);
         }
 
         private IShader roundedTextureShader;
