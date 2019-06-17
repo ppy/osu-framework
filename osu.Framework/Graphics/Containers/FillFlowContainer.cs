@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Containers
                 // in an autosize-related feedback loop, and we can thus simply allow it.
                 if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
-                        "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for." +
+                        "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
 
                 // Populate running variables with sane initial values.
