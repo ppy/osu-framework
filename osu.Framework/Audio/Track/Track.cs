@@ -26,16 +26,10 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public bool Looping { get; set; }
 
-        private double restartPoint;
-
         /// <summary>
         /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
         /// </summary>
-        public virtual double RestartPoint
-        {
-            get => restartPoint;
-            set => restartPoint = value;
-        }
+        public virtual double RestartPoint { get; set; }
 
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
