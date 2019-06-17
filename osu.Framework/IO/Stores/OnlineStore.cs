@@ -16,9 +16,11 @@ namespace osu.Framework.IO.Stores
         {
             try
             {
-                WebRequest req = new WebRequest($@"{url}");
-                await req.PerformAsync();
-                return req.ResponseData;
+                using (WebRequest req = new WebRequest($@"{url}"))
+                {
+                    await req.PerformAsync();
+                    return req.ResponseData;
+                }
             }
             catch
             {
