@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                current.UnbindFrom(currentBound);
+                if (currentBound != null) current.UnbindFrom(currentBound);
                 current.BindTo(currentBound = value);
             }
         }
