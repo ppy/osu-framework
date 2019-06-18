@@ -57,7 +57,7 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
 
-        public override IEnumerable<WindowOrientationMode> SupportedOrientationModes => new List<WindowOrientationMode>();
+        public override IEnumerable<WindowOrientationMode> SupportedOrientationModes => new WindowOrientationMode[0];
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {

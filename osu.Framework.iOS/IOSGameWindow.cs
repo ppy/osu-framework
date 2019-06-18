@@ -46,6 +46,8 @@ namespace osu.Framework.iOS
             Configuration.WindowMode.Fullscreen,
         };
 
+        public override IEnumerable<WindowOrientationMode> SupportedOrientationModes => new WindowOrientationMode[0];
+
         public override void Run()
         {
             // do nothing for iOS
