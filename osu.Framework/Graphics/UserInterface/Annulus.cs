@@ -6,15 +6,14 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Transforms;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class Annulus : Drawable, ITexturedShaderDrawable
     {
-        protected readonly Bindable<double> startAngle = new Bindable<double>();
-        protected readonly Bindable<double> endAngle = new Bindable<double>();
+        private readonly Bindable<double> startAngle = new Bindable<double>();
+        private readonly Bindable<double> endAngle = new Bindable<double>();
 
         public Bindable<double> StartAngle
         {
