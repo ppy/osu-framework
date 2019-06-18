@@ -43,13 +43,15 @@ namespace osu.Framework.iOS
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
             RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
 
-            var softwareKeyboard = keyboardFrame.Height > 300;
+            var softwareKeyboard = keyboardFrame.Height > 120;
 
             if (keyboardHandler != null)
                 keyboardHandler.KeyboardActive = softwareKeyboard;
 
             if (rawKeyboardHandler != null)
                 rawKeyboardHandler.KeyboardActive = !softwareKeyboard;
+
+            gameView.KeyboardTextField.SoftwareKeyboard = softwareKeyboard;
         }
 
         protected override void SetupForRun()
