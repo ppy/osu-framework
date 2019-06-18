@@ -108,6 +108,9 @@ namespace osu.Framework.iOS.Input
 
             switch (c)
             {
+                case ' ':
+                    return Key.Space;
+
                 case '\t':
                     return Key.Tab;
 

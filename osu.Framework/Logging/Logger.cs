@@ -129,9 +129,10 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, target, null, level);
+            log(message, target, null, level, outputToListeners: outputToListeners);
         }
 
         /// <summary>
@@ -140,19 +141,20 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="name">The logger name (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, null, name, level);
+            log(message, null, name, level, outputToListeners: outputToListeners);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null)
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level, exception);
+                    GetLogger(target.Value).Add(message, level, exception, outputToListeners);
                 else
-                    GetLogger(loggerName).Add(message, level, exception);
+                    GetLogger(loggerName).Add(message, level, exception, outputToListeners);
             }
             catch
             {
@@ -264,8 +266,9 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
-            add(message, level, exception, OutputToListeners);
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
+            add(message, level, exception, outputToListeners && OutputToListeners);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
 
