@@ -13,19 +13,20 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNode : TexturedShaderDrawNode
+    public class AnnulusDrawNode : TexturedShaderDrawNode
     {
         public const int MAX_RES = 24;
 
-        protected new CircularProgress Source => (CircularProgress)base.Source;
+        protected new Annulus Source => (Annulus)base.Source;
 
-        private float angle;
+        private float startAngle;
+        private float endAngle;
         private float innerRadius = 1;
 
         private Vector2 drawSize;
         private Texture texture;
 
-        public CircularProgressDrawNode(CircularProgress source)
+        public AnnulusDrawNode(Annulus source)
             : base(source)
         {
         }
@@ -36,7 +37,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             texture = Source.Texture;
             drawSize = Source.DrawSize;
-            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            startAngle = (float)Source.StartAngle.Value * MathHelper.TwoPi;
+            endAngle = (float)Source.EndAngle.Value * MathHelper.TwoPi;
             innerRadius = Source.InnerRadius;
         }
 
@@ -57,19 +59,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateVertexBuffer()
         {
-            const float start_angle = 0;
             const float step = MathHelper.Pi / MAX_RES;
 
-            float dir = Math.Sign(angle);
+            float sweep = endAngle - startAngle;
 
-            int amountPoints = (int)Math.Ceiling(Math.Abs(angle) / step);
+            float dir = Math.Sign(sweep);
+
+            int amountPoints = (int)Math.Ceiling(Math.Abs(sweep) / step);
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
-
-            Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
-            Color4 currentColour = colourAt(current);
-            current = Vector2Extensions.Transform(current, transformationMatrix);
 
             Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
@@ -79,27 +78,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
-            // First center point
-            halfCircleBatch.Add(new TexturedVertex2D
-            {
-                Position = Vector2.Lerp(current, screenOrigin, innerRadius),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
-                Colour = originColour
-            });
-
-            // First outer point.
-            halfCircleBatch.Add(new TexturedVertex2D
-            {
-                Position = new Vector2(current.X, current.Y),
-                TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Bottom),
-                Colour = currentColour
-            });
-
-            for (int i = 1; i <= amountPoints; i++)
+            for (int i = 0; i <= amountPoints; i++)
             {
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = dir * Math.Min(i * step, dir * angle);
+                float angularOffset = dir * Math.Min(i * step, dir * sweep);
                 float normalisedOffset = angularOffset / MathHelper.TwoPi;
 
                 if (dir < 0)
@@ -108,8 +91,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 // Update `current`
-                current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
-                currentColour = colourAt(current);
+                Vector2 current = origin + pointOnCircle(startAngle + angularOffset) * 0.5f;
+                Color4 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // current center point

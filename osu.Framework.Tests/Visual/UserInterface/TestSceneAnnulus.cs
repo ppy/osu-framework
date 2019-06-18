@@ -13,21 +13,17 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneCircularProgress : FrameworkTestScene
+    public class TestSceneAnnulus : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(Annulus), typeof(AnnulusDrawNode) };
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(Annulus), typeof(AnnulusDrawNode) };
 
-        private readonly CircularProgress clock;
-
-        private int rotateMode;
-        private const double period = 4000;
-        private const double transition_period = 2000;
+        private readonly Annulus annulus;
 
         private readonly Texture gradientTextureHorizontal;
         private readonly Texture gradientTextureVertical;
         private readonly Texture gradientTextureBoth;
 
-        public TestSceneCircularProgress()
+        public TestSceneAnnulus()
         {
             const int width = 128;
 
@@ -77,7 +73,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             Children = new Drawable[]
             {
-                clock = new CircularProgress
+                annulus = new Annulus
                 {
                     Width = 0.8f,
                     Height = 0.8f,
@@ -87,15 +83,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 },
             };
 
-            AddStep("Forward", () => rotateMode = 1);
-            AddStep("Backward", () => rotateMode = 2);
-            AddStep("Transition Focus", () => rotateMode = 3);
-            AddStep("Transition Focus 2", () => rotateMode = 4);
-            AddStep("Forward/Backward", () => rotateMode = 0);
-
             AddStep("Horizontal Gradient Texture", () => setTexture(1));
             AddStep("Vertical Gradient Texture", () => setTexture(2));
-            AddStep("2D Gradient Texture", () => setTexture(3));
+            AddStep("2D Graident Texture", () => setTexture(3));
             AddStep("White Texture", () => setTexture(0));
 
             AddStep("Red Colour", () => setColour(1));
@@ -104,37 +94,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("2D Gradient Colour", () => setColour(4));
             AddStep("White Colour", () => setColour(0));
 
-            AddSliderStep("Progress start angle", 0.0, 1.0, 0.0, angle => clock.ProgressStartAngle.Value = angle);
-            AddSliderStep("Progress end angle", 0.0, 1.0, 1.0, angle => clock.ProgressEndAngle.Value = angle);
-            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            switch (rotateMode)
-            {
-                case 0:
-                    clock.Current.Value = Time.Current % (period * 2) / period - 1;
-                    break;
-
-                case 1:
-                    clock.Current.Value = Time.Current % period / period;
-                    break;
-
-                case 2:
-                    clock.Current.Value = Time.Current % period / period - 1;
-                    break;
-
-                case 3:
-                    clock.Current.Value = Time.Current % transition_period / transition_period / 5 - 0.1f;
-                    break;
-
-                case 4:
-                    clock.Current.Value = (Time.Current % transition_period / transition_period / 5 - 0.1f + 2) % 2 - 1;
-                    break;
-            }
+            AddSliderStep("Start angle", 0.0, 1.0, 0.0, angle => annulus.StartAngle.Value = angle);
+            AddSliderStep("End angle", 0.0, 1.0, 1.0, angle => annulus.EndAngle.Value = angle);
+            AddSliderStep("Fill", 0, 10, 10, fill => annulus.InnerRadius = fill / 10f);
         }
 
         private void setTexture(int textureMode)
@@ -142,19 +104,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (textureMode)
             {
                 case 0:
-                    clock.Texture = Texture.WhitePixel;
+                    annulus.Texture = Texture.WhitePixel;
                     break;
 
                 case 1:
-                    clock.Texture = gradientTextureHorizontal;
+                    annulus.Texture = gradientTextureHorizontal;
                     break;
 
                 case 2:
-                    clock.Texture = gradientTextureVertical;
+                    annulus.Texture = gradientTextureVertical;
                     break;
 
                 case 3:
-                    clock.Texture = gradientTextureBoth;
+                    annulus.Texture = gradientTextureBoth;
                     break;
             }
         }
@@ -164,15 +126,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (colourMode)
             {
                 case 0:
-                    clock.Colour = new Color4(255, 255, 255, 255);
+                    annulus.Colour = new Color4(255, 255, 255, 255);
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 128, 128, 255);
+                    annulus.Colour = new Color4(255, 128, 128, 255);
                     break;
 
                 case 2:
-                    clock.Colour = new ColourInfo
+                    annulus.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
@@ -182,7 +144,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 3:
-                    clock.Colour = new ColourInfo
+                    annulus.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(255, 128, 128, 255),
@@ -192,7 +154,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 4:
-                    clock.Colour = new ColourInfo
+                    annulus.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
