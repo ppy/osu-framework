@@ -14,6 +14,8 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url)
         {
+            this.LogIfNonBackgroundThread(url);
+
             try
             {
                 using (WebRequest req = new WebRequest($@"{url}"))
@@ -32,6 +34,8 @@ namespace osu.Framework.IO.Stores
         {
             if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                 return null;
+
+            this.LogIfNonBackgroundThread(url);
 
             try
             {
