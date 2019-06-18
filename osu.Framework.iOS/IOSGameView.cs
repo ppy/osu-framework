@@ -105,12 +105,12 @@ namespace osu.Framework.iOS
             /// <summary>
             /// Placeholder text that the <see cref="HiddenTextField"/> will be populated with after every keystroke.
             /// </summary>
-            private const string placeholder_text = "placeholder placeholder placeholder";
+            private const string placeholder_text = "aaaaaa";
 
             /// <summary>
             /// The approximate midpoint of <see cref="placeholder_text"/> that the cursor will be reset to after every keystroke.
             /// </summary>
-            public const int CURSOR_POSITION = 17;
+            public const int CURSOR_POSITION = 3;
 
             private int responderSemaphore;
 
