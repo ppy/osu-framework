@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             AddRange(new Drawable[]
             {
-                dropdown = new BasicDropdown<WindowOrientationMode>()
+                dropdown = new BasicDropdown<WindowOrientationMode>
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
