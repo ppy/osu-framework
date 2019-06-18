@@ -34,6 +34,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            Set(FrameworkSetting.WindowOrientationMode, WindowOrientationMode.Landscape);
             Set(FrameworkSetting.ShowUnicode, false);
             Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
@@ -79,6 +80,7 @@ namespace osu.Framework.Configuration
         SizeFullscreen,
 
         WindowMode,
+        WindowOrientationMode,
         ConfineMouseMode,
         FrameSync,
 

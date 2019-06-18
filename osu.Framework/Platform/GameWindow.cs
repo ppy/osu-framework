@@ -362,6 +362,8 @@ namespace osu.Framework.Platform
             set => Implementation.ClientSize = value;
         }
 
+        public abstract IEnumerable<WindowOrientationMode> SupportedOrientationModes { get; }
+
         public void Close() => Implementation.Close();
         public void ProcessEvents() => Implementation.ProcessEvents();
         public Point PointToClient(Point point) => Implementation.PointToClient(point);

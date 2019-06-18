@@ -87,5 +87,7 @@ namespace osu.Framework.Platform
         /// Available resolutions for full-screen display.
         /// </summary>
         IEnumerable<DisplayResolution> AvailableResolutions { get; }
+
+        IEnumerable<WindowOrientationMode> SupportedOrientationModes { get; }
     }
 }
