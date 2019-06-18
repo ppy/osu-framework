@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public CircularProgress() : base()
+        public CircularProgress()
         {
             ProgressStartAngle.ValueChanged += recalculateAngles;
             ProgressEndAngle.ValueChanged += recalculateAngles;
