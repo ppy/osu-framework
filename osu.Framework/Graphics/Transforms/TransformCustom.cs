@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNC;
+            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
 
             if (this.interpolationFunc == null)
                 throw new InvalidOperationException(
