@@ -395,7 +395,7 @@ namespace osu.Framework.MathUtils
 
     internal static class Interpolation<TValue>
     {
-        private static readonly InterpolationFunc<TValue> interpolation_func;
+        public static readonly InterpolationFunc<TValue> FUNC;
 
         static Interpolation()
         {
@@ -405,18 +405,18 @@ namespace osu.Framework.MathUtils
                              .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                              ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
-            interpolation_func =
+            FUNC =
                 (InterpolationFunc<TValue>)(
                     typeof(Interpolation).GetMethod(interpolation_method, parameters)
                     ?? typeof(TValue).GetMethod(interpolation_method, parameters)
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
 
-            if (interpolation_func == null)
+            if (FUNC == null)
                 throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
         }
 
         public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
-            => interpolation_func(time, startValue, endValue, startTime, endTime, easing);
+            => FUNC(time, startValue, endValue, startTime, endTime, easing);
     }
 
     public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
