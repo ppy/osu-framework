@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     Origin = Anchor.Centre,
                     Size = new Vector2(200),
                     ClampExtension = withClampExtension ? 100 : 0,
-                    Child = new Box { Size = new Vector2(200, 400) }
+                    Child = new Box { Size = new Vector2(200, 300) }
                 });
             });
 
@@ -84,9 +84,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(0, -600f))));
-            checkPosition(withClampExtension ? 300 : 200);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ToScreenSpace(scrollContainer.LayoutRectangle.Centre + new Vector2(0, 600f))));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 400)));
+            checkPosition(withClampExtension ? 200 : 100);
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(scrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 400)));
             checkPosition(withClampExtension ? -100 : 0);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkPosition(0);
