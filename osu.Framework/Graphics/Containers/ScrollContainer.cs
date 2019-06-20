@@ -124,6 +124,8 @@ namespace osu.Framework.Graphics.Containers
 
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
 
+        private float scrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+
         /// <summary>
         /// Clamp a value to the available scroll range.
         /// </summary>
@@ -348,7 +350,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(Clamp(value / Scrollbar.Size[ScrollDim]), false);
+        private void onScrollbarMovement(float value) => scrollTo(Clamp(fromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -494,14 +496,40 @@ namespace osu.Framework.Graphics.Containers
 
             if (ScrollDirection == Direction.Horizontal)
             {
-                Scrollbar.X = Current * Scrollbar.Size.X;
+                Scrollbar.X = toScrollbarPosition(Current);
                 content.X = -Current + scrollableExtent * content.RelativeAnchorPosition.X;
             }
             else
             {
-                Scrollbar.Y = Current * Scrollbar.Size.Y;
+                Scrollbar.Y = toScrollbarPosition(Current);
                 content.Y = -Current + scrollableExtent * content.RelativeAnchorPosition.Y;
             }
+        }
+
+        /// <summary>
+        /// Converts a scroll position to a scrollbar position.
+        /// </summary>
+        /// <param name="scrollPosition">The absolute scroll position (e.g. <see cref="Current"/>).</param>
+        /// <returns>The scrollbar position.</returns>
+        private float toScrollbarPosition(float scrollPosition)
+        {
+            if (Precision.AlmostEquals(0, scrollableExtent))
+                return 0;
+
+            return scrollbarMovementExtent * (scrollPosition / scrollableExtent);
+        }
+
+        /// <summary>
+        /// Converts a scrollbar position to a scroll position.
+        /// </summary>
+        /// <param name="scrollbarPosition">The scrollbar position.</param>
+        /// <returns>The absolute scroll position.</returns>
+        private float fromScrollbarPosition(float scrollbarPosition)
+        {
+            if (Precision.AlmostEquals(0, scrollbarMovementExtent))
+                return 0;
+
+            return scrollableExtent * (scrollbarPosition / scrollbarMovementExtent);
         }
 
         /// <summary>
