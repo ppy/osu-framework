@@ -46,11 +46,13 @@ namespace osu.Framework.IO.Stores
         /// <param name="resourceName">The resource retrieved.</param>
         public static void LogIfNonBackgroundThread<T>(this IResourceStore<T> store, string resourceName)
         {
+            if (!DebugUtils.LogPerformanceIssues)
+                return;
+
             if (ThreadSafety.IsUpdateThread || ThreadSafety.IsDrawThread || ThreadSafety.IsAudioThread)
             {
                 Logger.Log($"Resource {resourceName} was retrieved from a {store.GetType().ReadableName()} on a non-background thread.", LoggingTarget.Performance);
-                if (DebugUtils.IsDebugBuild)
-                    Logger.Log(new StackTrace(1).ToString(), LoggingTarget.Performance, outputToListeners: false);
+                Logger.Log(new StackTrace(1).ToString(), LoggingTarget.Performance, outputToListeners: false);
             }
         }
     }
