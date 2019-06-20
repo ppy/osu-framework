@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
         {
             var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
             if (size > 0)
-                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.DimSize / size, 1), 200, Easing.OutQuint);
+                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
@@ -518,7 +518,10 @@ namespace osu.Framework.Graphics.Containers
 
             protected readonly Direction ScrollDirection;
 
-            public float DimSize => Size[ScrollDirection == Direction.Vertical ? 0 : 1];
+            /// <summary>
+            /// The minimum size of this <see cref="ScrollbarContainer"/>. Defaults to the size in the non-scrolling direction.
+            /// </summary>
+            protected internal virtual float MinimumDimSize => Size[ScrollDirection == Direction.Vertical ? 0 : 1];
 
             protected ScrollbarContainer(Direction direction)
             {
