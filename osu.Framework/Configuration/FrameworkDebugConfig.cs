@@ -21,12 +21,14 @@ namespace osu.Framework.Configuration
 
             Set(DebugSetting.ActiveGCMode, GCLatencyMode.SustainedLowLatency);
             Set(DebugSetting.BypassCaching, false).ValueChanged += delegate { StaticCached.BypassCache = Get<bool>(DebugSetting.BypassCaching); };
+            Set(DebugSetting.BypassFrontToBackPass, false);
         }
     }
 
     public enum DebugSetting
     {
         ActiveGCMode,
-        BypassCaching
+        BypassCaching,
+        BypassFrontToBackPass
     }
 }

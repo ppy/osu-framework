@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Threading
             objects.ForEach(AsyncDisposalQueue.Enqueue);
 
             int attempts = 1000;
+
             while (!objects.All(o => o.IsDisposed))
             {
                 if (attempts-- == 0)

@@ -15,21 +15,49 @@ namespace osu.Framework.Lists
     public class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
-        private readonly List<WeakReference<T>> list = new List<WeakReference<T>>();
+        private readonly List<InvalidatableWeakReference<T>> list = new List<InvalidatableWeakReference<T>>();
 
-        public void Add(T obj) => Add(new WeakReference<T>(obj));
+        public void Add(T obj) => list.Add(new InvalidatableWeakReference<T>(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(weakReference);
+        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference<T>(weakReference));
 
-        public void Remove(T item) => list.RemoveAll(t => t.TryGetTarget(out var obj) && obj == item);
+        public void Remove(T item)
+        {
+            foreach (var i in list)
+            {
+                if (i.Reference.TryGetTarget(out var obj) && obj == item)
+                {
+                    i.Invalidate();
+                    return;
+                }
+            }
+        }
 
-        public bool Remove(WeakReference<T> weakReference) => list.Remove(weakReference);
+        public bool Remove(WeakReference<T> weakReference)
+        {
+            bool found = false;
 
-        public bool Contains(T item) => list.Any(t => t.TryGetTarget(out var obj) && obj == item);
+            foreach (var item in list)
+            {
+                if (item.Reference == weakReference)
+                {
+                    item.Invalidate();
+                    found = true;
+                }
+            }
 
-        public bool Contains(WeakReference<T> weakReference) => list.Contains(weakReference);
+            return found;
+        }
 
-        public void Clear() => list.Clear();
+        public bool Contains(T item) => list.Any(t => t.Reference.TryGetTarget(out var obj) && obj == item);
+
+        public bool Contains(WeakReference<T> weakReference) => list.Any(t => t.Reference == weakReference);
+
+        public void Clear()
+        {
+            foreach (var item in list)
+                item.Invalidate();
+        }
 
         [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
         public void ForEachAlive(Action<T> action)
@@ -40,7 +68,7 @@ namespace osu.Framework.Lists
 
         public Enumerator GetEnumerator()
         {
-            list.RemoveAll(item => !item.TryGetTarget(out _));
+            list.RemoveAll(item => item.Invalid || !item.Reference.TryGetTarget(out _));
 
             return new Enumerator(list);
         }
@@ -51,12 +79,12 @@ namespace osu.Framework.Lists
 
         public struct Enumerator : IEnumerator<T>
         {
-            private List<WeakReference<T>> list;
+            private List<InvalidatableWeakReference<T>> list;
 
             private int currentIndex;
             private T currentObject;
 
-            internal Enumerator(List<WeakReference<T>> list)
+            internal Enumerator(List<InvalidatableWeakReference<T>> list)
             {
                 this.list = list;
 
@@ -68,7 +96,7 @@ namespace osu.Framework.Lists
             {
                 while (++currentIndex < list.Count)
                 {
-                    if (!list[currentIndex].TryGetTarget(out currentObject))
+                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject))
                         continue;
 
                     return true;
@@ -92,6 +120,26 @@ namespace osu.Framework.Lists
                 list = null;
                 currentObject = null;
             }
+        }
+
+        internal class InvalidatableWeakReference<U>
+            where U : class
+        {
+            public readonly WeakReference<U> Reference;
+
+            public bool Invalid { get; private set; }
+
+            public InvalidatableWeakReference(U reference)
+                : this(new WeakReference<U>(reference))
+            {
+            }
+
+            public InvalidatableWeakReference(WeakReference<U> weakReference)
+            {
+                Reference = weakReference;
+            }
+
+            public void Invalidate() => Invalid = true;
         }
     }
 }

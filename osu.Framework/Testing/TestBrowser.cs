@@ -138,6 +138,48 @@ namespace osu.Framework.Testing
 
             Children = new Drawable[]
             {
+                mainContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Left = test_list_width },
+                    Children = new Drawable[]
+                    {
+                        testContentContainer = new Container
+                        {
+                            Clock = framedClock,
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding { Top = 50 },
+                            Child = compilingNotice = new Container
+                            {
+                                Alpha = 0,
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Masking = true,
+                                Depth = float.MinValue,
+                                CornerRadius = 5,
+                                AutoSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = Color4.Black,
+                                    },
+                                    new SpriteText
+                                    {
+                                        Font = new FontUsage(size: 30),
+                                        Text = @"Compiling new version..."
+                                    }
+                                },
+                            }
+                        },
+                        toolbar = new TestBrowserToolbar
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 50,
+                        },
+                    }
+                },
                 leftContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Y,
@@ -167,13 +209,12 @@ namespace osu.Framework.Testing
                                     RelativeSizeAxes = Axes.X,
                                     PlaceholderText = "type to search"
                                 },
-                                new ScrollContainer
+                                new BasicScrollContainer
                                 {
-                                    Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
                                     Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
                                     {
-                                        Padding = new MarginPadding(3),
+                                        Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,
@@ -183,49 +224,6 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
-                mainContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = test_list_width },
-                    Children = new Drawable[]
-                    {
-                        toolbar = new TestBrowserToolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 50,
-                            Depth = -1,
-                        },
-                        testContentContainer = new Container
-                        {
-                            Clock = framedClock,
-                            RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 50 },
-                            Child = compilingNotice = new Container
-                            {
-                                Alpha = 0,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Masking = true,
-                                Depth = float.MinValue,
-                                CornerRadius = 5,
-                                AutoSizeAxes = Axes.Both,
-                                Children = new Drawable[]
-                                {
-                                    new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.Black,
-                                    },
-                                    new SpriteText
-                                    {
-                                        Font = new FontUsage(size: 30),
-                                        Text = @"Compiling new version..."
-                                    }
-                                },
-                            }
-                        }
-                    }
-                }
             };
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
@@ -236,6 +234,7 @@ namespace osu.Framework.Testing
                 backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
                 backgroundCompiler.CompilationFailed += compileFailed;
+
                 try
                 {
                     backgroundCompiler.Start();
@@ -353,9 +352,11 @@ namespace osu.Framework.Testing
                     if (leftContainer.Width == 0) toggleTestList();
                     GetContainingInputManager().ChangeFocus(searchTextBox);
                     return true;
+
                 case TestBrowserAction.Reload:
                     LoadTest(CurrentTest.GetType());
                     return true;
+
                 case TestBrowserAction.ToggleTestList:
                     toggleTestList();
                     return true;

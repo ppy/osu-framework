@@ -141,6 +141,7 @@ namespace osu.Framework.Input
             {
                 case MouseButton.Left:
                     return new MouseLeftButtonEventManager(button);
+
                 default:
                     return new MouseMinorButtonEventManager(button);
             }
@@ -260,6 +261,7 @@ namespace osu.Framework.Input
             if (!(keyboardRepeatKey is Key key)) return;
 
             keyboardRepeatTime -= Time.Elapsed;
+
             while (keyboardRepeatTime < 0)
             {
                 handleKeyDown(state, key, true);
@@ -358,6 +360,7 @@ namespace osu.Framework.Input
                     }
 
                     d.IsHovered = true;
+
                     if (d.TriggerEvent(new HoverEvent(state)))
                     {
                         hoverHandledDrawable = d;
@@ -402,8 +405,11 @@ namespace osu.Framework.Input
             {
                 handleKeyUp(state, key);
 
-                keyboardRepeatKey = null;
-                keyboardRepeatTime = 0;
+                if (key == keyboardRepeatKey)
+                {
+                    keyboardRepeatKey = null;
+                    keyboardRepeatTime = 0;
+                }
             }
         }
 
@@ -430,15 +436,19 @@ namespace osu.Framework.Input
                 case MousePositionChangeEvent mousePositionChange:
                     HandleMousePositionChange(mousePositionChange);
                     return;
+
                 case MouseScrollChangeEvent mouseScrollChange:
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
+
                 case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
+
                 case ButtonStateChangeEvent<Key> keyboardKeyStateChange:
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
+
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
                     return;
@@ -518,6 +528,7 @@ namespace osu.Framework.Input
             {
                 //ensure we are visible
                 CompositeDrawable d = FocusedDrawable.Parent;
+
                 while (d != null)
                 {
                     if (!d.IsPresent || !d.IsAlive)

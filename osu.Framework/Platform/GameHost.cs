@@ -42,14 +42,14 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window { get; protected set; }
+        public IWindow Window { get; protected set; }
 
-        private FrameworkDebugConfigManager debugConfig;
+        protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
-        private FrameworkConfigManager config;
+        protected FrameworkConfigManager Config { get; private set; }
 
         /// <summary>
-        /// Whether the <see cref="GameWindow"/> is active (in the foreground).
+        /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
@@ -271,7 +271,7 @@ namespace osu.Framework.Platform
 
             if (Window == null)
             {
-                var windowedSize = config.Get<Size>(FrameworkSetting.WindowedSize);
+                var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
             else if (Window.WindowState != WindowState.Minimized)
@@ -326,7 +326,31 @@ namespace osu.Framework.Platform
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                         GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
+                    if (!bypassFrontToBackPass.Value)
+                    {
+                        var depthValue = new DepthValue();
+
+                        GLWrapper.PushDepthInfo(DepthInfo.Default);
+
+                        // Front pass
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+
+                        GLWrapper.PopDepthInfo();
+
+                        // The back pass doesn't write depth, but needs to depth test properly
+                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    }
+                    else
+                    {
+                        // Disable depth testing
+                        GLWrapper.PushDepthInfo(new DepthInfo());
+                    }
+
+                    // Back pass
                     buffer.Object.Draw(null);
+
+                    GLWrapper.PopDepthInfo();
+
                     lastDrawFrameId = buffer.FrameId;
                     break;
                 }
@@ -462,11 +486,11 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                setupConfig(game.GetFrameworkConfigDefaults());
+                SetupConfig(game.GetFrameworkConfigDefaults());
 
                 if (Window != null)
                 {
-                    Window.SetupWindow(config);
+                    Window.SetupWindow(Config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     IsActive.BindTo(Window.IsActive);
@@ -552,6 +576,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
 
             AvailableInputHandlers = CreateAvailableInputHandlers();
+
             foreach (var handler in AvailableInputHandlers)
             {
                 if (!handler.Initialize(this))
@@ -632,6 +657,8 @@ namespace osu.Framework.Platform
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
+        private Bindable<bool> bypassFrontToBackPass;
+
         private Bindable<GCLatencyMode> activeGCMode;
 
         private Bindable<FrameSync> frameSyncMode;
@@ -643,7 +670,7 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private void setupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
             var hostDefaults = new Dictionary<FrameworkSetting, object>
             {
@@ -657,10 +684,10 @@ namespace osu.Framework.Platform
                     hostDefaults[d.Key] = d.Value;
             }
 
-            Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(config = new FrameworkConfigManager(Storage, hostDefaults));
+            Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
+            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
 
-            windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+            windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
 
             windowMode.BindValueChanged(mode =>
             {
@@ -671,10 +698,10 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
+            activeGCMode = DebugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += e => { GCSettings.LatencyMode = IsActive.Value ? e.NewValue : GCLatencyMode.Interactive; };
 
-            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+            frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
             {
                 float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
@@ -693,18 +720,22 @@ namespace osu.Framework.Platform
                         drawLimiter = int.MaxValue;
                         updateLimiter *= 2;
                         break;
+
                     case FrameSync.Limit2x:
                         drawLimiter *= 2;
                         updateLimiter *= 2;
                         break;
+
                     case FrameSync.Limit4x:
                         drawLimiter *= 4;
                         updateLimiter *= 4;
                         break;
+
                     case FrameSync.Limit8x:
                         drawLimiter *= 8;
                         updateLimiter *= 8;
                         break;
+
                     case FrameSync.Unlimited:
                         drawLimiter = updateLimiter = int.MaxValue;
                         break;
@@ -714,7 +745,7 @@ namespace osu.Framework.Platform
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
 
-            ignoredInputHandlers = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
+            ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
@@ -738,10 +769,16 @@ namespace osu.Framework.Platform
                 }
             };
 
-            cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+            cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
+            Config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
+            performanceLogging.BindValueChanged(logging =>
+            {
+                threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                DebugUtils.LogPerformanceIssues = logging.NewValue;
+            }, true);
+
+            bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
         }
 
         private void setVSyncMode()
@@ -781,8 +818,8 @@ namespace osu.Framework.Platform
             Root?.Dispose();
             Root = null;
 
-            config?.Dispose();
-            debugConfig?.Dispose();
+            Config?.Dispose();
+            DebugConfig?.Dispose();
 
             Window?.Dispose();
 

@@ -46,6 +46,7 @@ namespace osu.Framework.Testing
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+
             while (!game.IsLoaded)
             {
                 checkForErrors();
@@ -153,7 +154,7 @@ namespace osu.Framework.Testing
                         RelativeSizeAxes = Axes.Y,
                         Width = steps_width,
                     },
-                    scroll = new ScrollContainer
+                    scroll = new BasicScrollContainer
                     {
                         Width = steps_width,
                         Depth = float.MinValue,
@@ -194,7 +195,7 @@ namespace osu.Framework.Testing
         private int actionIndex;
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
-        private readonly ScrollContainer scroll;
+        private readonly ScrollContainer<Drawable> scroll;
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {

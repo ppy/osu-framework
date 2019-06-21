@@ -7,13 +7,12 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Physics;
-using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneRigidBody : TestScene
+    public class TestSceneRigidBody : FrameworkTestScene
     {
         private readonly TestRigidBodySimulation sim;
 
@@ -80,6 +79,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             for (int i = 0; i < n; i++)
             {
                 RigidBodyContainer<Drawable> d;
+
                 do
                 {
                     d = generate();

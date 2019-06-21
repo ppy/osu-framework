@@ -79,6 +79,7 @@ namespace osu.Framework.Platform
                     if (!File.Exists(path)) return null;
 
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
+
                 default:
                     return File.Open(path, mode, access);
             }

@@ -14,8 +14,10 @@ using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackBass : Track, IBassAudio, IHasPitchAdjust
+    public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
+        public const int BYTES_PER_SAMPLE = 4;
+
         private AsyncBufferStream dataStream;
 
         /// <summary>
@@ -38,6 +40,13 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
+        private long byteLength;
+
+        /// <summary>
+        /// The last position that a seek will succeed for.
+        /// </summary>
+        private double lastSeekablePosition;
+
         private FileCallbacks fileCallbacks;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
@@ -53,12 +62,22 @@ namespace osu.Framework.Audio.Track
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass(Stream data, bool quick = false)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            // todo: support this internally to match the underlying Track implementation (which can support this).
+            const float tempo_minimum_supported = 0.05f;
+
+            Tempo.ValueChanged += t =>
+            {
+                if (t.NewValue < tempo_minimum_supported)
+                    throw new ArgumentException($"{nameof(TrackBass)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
+            };
+
             EnqueueAction(() =>
             {
                 Preview = quick;
 
-                if (data == null)
-                    throw new ArgumentNullException(nameof(data));
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
@@ -86,13 +105,16 @@ namespace osu.Framework.Audio.Track
                 }
 
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream));
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
 
                 bool success = seconds >= 0;
 
                 if (success)
                 {
                     Length = seconds * 1000;
+
+                    // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
                     Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                     initialFrequency = frequency;
@@ -125,8 +147,7 @@ namespace osu.Framework.Audio.Track
         {
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
@@ -210,7 +231,7 @@ namespace osu.Framework.Audio.Track
         public Task StartAsync() => EnqueueAction(() =>
         {
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
-            if (CurrentTime == Length)
+            if (Bass.ChannelGetPosition(activeStream) == byteLength)
                 return;
 
             if (Bass.ChannelPlay(activeStream))
@@ -225,18 +246,17 @@ namespace osu.Framework.Audio.Track
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
-            double conservativeLength = Length == 0 ? double.MaxValue : Length;
+            double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
             await EnqueueAction(() =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
-                if (clamped != CurrentTime)
-                {
-                    long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+
+                if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
-                }
             });
 
             return conservativeClamped == seek;
@@ -254,17 +274,17 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
-            setDirection(FrequencyCalculated.Value < 0);
+            setDirection(AggregateFrequency.Value < 0);
 
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, VolumeCalculated.Value);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, BalanceCalculated.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated.Value), 100, 100000);
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
 
         private volatile int bitrate;
 

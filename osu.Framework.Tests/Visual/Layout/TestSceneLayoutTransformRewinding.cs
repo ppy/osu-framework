@@ -6,13 +6,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
     [System.ComponentModel.Description("Rewinding of transforms that are important to layout.")]
-    public class TestSceneLayoutTransformRewinding : TestScene
+    public class TestSceneLayoutTransformRewinding : FrameworkTestScene
     {
         private readonly ManualUpdateSubTreeContainer manualContainer;
 

@@ -55,7 +55,6 @@ namespace osu.Framework.Testing.Drawables
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
                     Children = new Drawable[]
                     {
                         content = new Container { RelativeSizeAxes = Axes.Both },
@@ -67,7 +66,7 @@ namespace osu.Framework.Testing.Drawables
                             {
                                 Top = 4,
                                 Left = LEFT_TEXT_PADDING,
-                                Right = 4,
+                                Right = 4 + LEFT_TEXT_PADDING,
                                 Bottom = 5,
                             },
                         }
@@ -83,6 +82,7 @@ namespace osu.Framework.Testing.Drawables
             text.AddText(TestScene.RemovePrefix(test.Name));
 
             var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
+
             if (description != null)
             {
                 text.NewLine();

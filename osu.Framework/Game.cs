@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -20,13 +20,12 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
     public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
     {
-        public GameWindow Window => Host?.Window;
+        public IWindow Window => Host?.Window;
 
         public ResourceStore<byte[]> Resources { get; private set; }
 
@@ -124,18 +123,21 @@ namespace osu.Framework
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
-            var tracks = new ResourceStore<byte[]>(Resources);
+            var tracks = new ResourceStore<byte[]>();
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
             tracks.AddStore(new OnlineStore());
 
-            var samples = new ResourceStore<byte[]>(Resources);
+            var samples = new ResourceStore<byte[]>();
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
-            //attach our bindables to the audio subsystem.
+            dependencies.CacheAs(Audio.Tracks);
+            dependencies.CacheAs(Audio.Samples);
+
+            // attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
@@ -240,20 +242,6 @@ namespace osu.Framework
         }
 
         protected virtual bool OnExiting() => false;
-
-        /// <summary>
-        /// Called before a frame cycle has started (Update and Draw).
-        /// </summary>
-        protected virtual void PreFrame()
-        {
-        }
-
-        /// <summary>
-        /// Called after a frame cycle has been completed (Update and Draw).
-        /// </summary>
-        protected virtual void PostFrame()
-        {
-        }
 
         protected override void Dispose(bool isDisposing)
         {

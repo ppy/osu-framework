@@ -2,21 +2,18 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoSprite : TestScene
+    public class TestSceneVideoSprite : FrameworkTestScene
     {
         private ManualClock clock;
         private VideoSprite videoSprite;
-        private TextFlowContainer timeText;
+        private SpriteText timeText;
 
         public TestSceneVideoSprite()
         {
@@ -40,7 +37,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                 clock = new ManualClock();
                 videoSprite.Clock = new FramedClock(clock);
 
-                Add(timeText = new TextFlowContainer { AutoSizeAxes = Axes.Both });
+                Add(timeText = new SpriteText
+                {
+                    Font = new FontUsage("RobotoCondensed", weight: "Regular", fixedWidth: true)
+                });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
                 AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
@@ -66,6 +66,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             if (videoSprite != null)
             {
                 var newSecond = (int)(videoSprite.PlaybackPosition / 1000.0);
+
                 if (newSecond != currentSecond)
                 {
                     currentSecond = newSecond;
@@ -74,10 +75,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
 
                 if (timeText != null)
-                    timeText.Text = $"aim time: {videoSprite.PlaybackPosition:N2}\n"
-                                    + $"video time: {videoSprite.CurrentFrameTime:N2}\n"
-                                    + $"duration: {videoSprite.Duration:N2}\n"
-                                    + $"buffered {videoSprite.AvailableFrames}\n"
+                    timeText.Text = $"aim time: {videoSprite.PlaybackPosition:N2} | "
+                                    + $"video time: {videoSprite.CurrentFrameTime:N2} | "
+                                    + $"duration: {videoSprite.Duration:N2} | "
+                                    + $"buffered {videoSprite.AvailableFrames} | "
                                     + $"FPS: {fps}";
             }
         }

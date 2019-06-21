@@ -17,7 +17,9 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -34,6 +36,8 @@ namespace osu.Framework.Graphics.OpenGL
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
+
+        public static float BackbufferDrawDepth { get; private set; }
 
         public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
 
@@ -65,7 +69,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            isEmbedded = host.Window.IsEmbedded;
+            if (host.Window is GameWindow win)
+                isEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
@@ -141,7 +146,7 @@ namespace osu.Framework.Graphics.OpenGL
                 AlphaExponent = 1,
             }, true);
 
-            PushDepthInfo(new DepthInfo(false));
+            PushDepthInfo(DepthInfo.Default);
             Clear(ClearInfo.Default);
         }
 
@@ -149,6 +154,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void Clear(ClearInfo clearInfo)
         {
+            PushDepthInfo(new DepthInfo(writeDepth: true));
+
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
@@ -174,6 +181,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             currentClearInfo = clearInfo;
+
+            PopDepthInfo();
         }
 
         /// <summary>
@@ -440,6 +449,7 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
+
             if (maskingInfo.BorderThickness > 0)
             {
                 GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
@@ -575,6 +585,13 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Sets the current draw depth.
+        /// The draw depth is written to every vertex added to <see cref="VertexBuffer{T}"/>s.
+        /// </summary>
+        /// <param name="drawDepth">The draw depth.</param>
+        internal static void SetDrawDepth(float drawDepth) => BackbufferDrawDepth = drawDepth;
+
+        /// <summary>
         /// Binds a framebuffer.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to bind.</param>
@@ -590,6 +607,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+                GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             }
 
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
@@ -611,6 +629,7 @@ namespace osu.Framework.Graphics.OpenGL
             FlushCurrentBatch();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
 
+            GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
         }
 
@@ -672,27 +691,35 @@ namespace osu.Framework.Graphics.OpenGL
                 case IUniformWithValue<bool> b:
                     GL.Uniform1(uniform.Location, b.GetValue() ? 1 : 0);
                     break;
+
                 case IUniformWithValue<int> i:
                     GL.Uniform1(uniform.Location, i.GetValue());
                     break;
+
                 case IUniformWithValue<float> f:
                     GL.Uniform1(uniform.Location, f.GetValue());
                     break;
+
                 case IUniformWithValue<Vector2> v2:
                     GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Vector3> v3:
                     GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Vector4> v4:
                     GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix2> m2:
                     GL.UniformMatrix2(uniform.Location, false, ref m2.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix3> m3:
                     GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueByRef());
                     break;
+
                 case IUniformWithValue<Matrix4> m4:
                     GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
                     break;
@@ -704,6 +731,8 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
+
+        public Quad ConservativeScreenSpaceQuad;
 
         /// <summary>
         /// This matrix transforms screen space coordinates to masking space (likely the parent

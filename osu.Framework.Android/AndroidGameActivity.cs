@@ -16,5 +16,11 @@ namespace osu.Framework.Android
 
             SetContentView(new AndroidGameView(this, CreateGame()));
         }
+
+        protected override void OnPause() {
+            base.OnPause();
+            // Because Android is not playing nice with Background - we just kill it
+            System.Diagnostics.Process.GetCurrentProcess().Kill();
+        }
     }
 }

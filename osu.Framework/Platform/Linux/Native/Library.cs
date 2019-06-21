@@ -22,6 +22,7 @@ namespace osu.Framework.Platform.Linux.Native
         public static void Load(string library, LoadFlags flags)
         {
             var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
+
             foreach (var path in paths.Split(':'))
             {
                 if (dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)

@@ -3,9 +3,6 @@
 
 using System;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 using osu.Framework.Threading;
 using System.Collections.Generic;
 
@@ -13,9 +10,12 @@ namespace osu.Framework.Graphics.Performance
 {
     internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
+        private readonly IEnumerable<GameThread> threads;
         private FrameStatisticsMode state;
 
         public event Action<FrameStatisticsMode> StateChanged;
+
+        private bool initialised;
 
         public FrameStatisticsMode State
         {
@@ -31,8 +31,16 @@ namespace osu.Framework.Graphics.Performance
                     case FrameStatisticsMode.None:
                         this.FadeOut(100);
                         break;
+
                     case FrameStatisticsMode.Minimal:
                     case FrameStatisticsMode.Full:
+                        if (!initialised)
+                        {
+                            initialised = true;
+                            foreach (GameThread t in threads)
+                                Add(new FrameStatisticsDisplay(t) { State = state });
+                        }
+
                         this.FadeIn(100);
                         break;
                 }
@@ -46,11 +54,8 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
+            this.threads = threads;
             Direction = FillDirection.Vertical;
-            TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
-
-            foreach (GameThread t in threads)
-                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
         }
     }
 

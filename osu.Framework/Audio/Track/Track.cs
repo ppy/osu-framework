@@ -8,7 +8,7 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasTempoAdjust, ITrack
     {
         public event Action Completed;
         public event Action Failed;
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Track
 
         protected Track()
         {
-            Tempo.ValueChanged += e => InvalidateState(e.NewValue);
+            Tempo.ValueChanged += InvalidateState;
         }
 
         /// <summary>
@@ -133,6 +133,9 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
+        /// <summary>
+        /// The playback tempo multiplier for this track, where 1 is the original speed.
+        /// </summary>
         public double TempoAdjust
         {
             get => Tempo.Value;

@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A container which asynchronously loads specified content.
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
-    /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
+    /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer{T}"/>.
     /// </summary>
     public class DelayedLoadWrapper : CompositeDrawable
     {
@@ -32,9 +32,17 @@ namespace osu.Framework.Graphics.Containers
             AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
-        public override double LifetimeStart => Content.LifetimeStart;
+        public override double LifetimeStart
+        {
+            get => Content.LifetimeStart;
+            set => Content.LifetimeStart = value;
+        }
 
-        public override double LifetimeEnd => Content.LifetimeEnd;
+        public override double LifetimeEnd
+        {
+            get => Content.LifetimeEnd;
+            set => Content.LifetimeEnd = value;
+        }
 
         public virtual Drawable Content { get; protected set; }
 
@@ -75,6 +83,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
 
+            DelayedLoadStarted?.Invoke(Content);
             loadTask = LoadComponentAsync(Content, EndDelayedLoad);
         }
 
@@ -87,9 +96,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Fired when delayed async load has started.
+        /// </summary>
+        public event Action<Drawable> DelayedLoadStarted;
+
+        /// <summary>
         /// Fired when delayed async load completes. Should be used to perform transitions.
         /// </summary>
-        public Action<Drawable> DelayedLoadComplete;
+        public event Action<Drawable> DelayedLoadComplete;
 
         /// <summary>
         /// True if the load task for our content has been started.

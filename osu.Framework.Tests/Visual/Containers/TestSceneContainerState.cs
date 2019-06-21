@@ -8,12 +8,11 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
-    public class TestSceneContainerState : TestScene
+    public class TestSceneContainerState : FrameworkTestScene
     {
         /// <summary>
         /// Tests if a drawable can be added to a container, removed, and then re-added to the same container.
@@ -140,10 +139,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             bool unbound = false;
 
-            var drawableA = new Sprite().With(d =>
-            {
-                d.OnUnbindAllBindables += () => unbound = true;
-            });
+            var drawableA = new Sprite().With(d => { d.OnUnbindAllBindables += () => unbound = true; });
 
             var container = new Container { Children = new[] { drawableA } };
 
@@ -159,10 +155,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             bool disposed = false;
 
-            var drawableA = new Sprite().With(d =>
-            {
-                d.OnDispose += () => disposed = true;
-            });
+            var drawableA = new Sprite().With(d => { d.OnDispose += () => disposed = true; });
 
             var container = new Container { Children = new[] { drawableA } };
 
@@ -174,6 +167,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // Disposal happens asynchronously
             int iterations = 20;
+
             while (iterations-- > 0)
             {
                 if (disposed)

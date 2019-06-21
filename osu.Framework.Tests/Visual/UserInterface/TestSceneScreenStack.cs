@@ -15,7 +15,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
-using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Graphics;
@@ -23,7 +22,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneScreenStack : TestScene
+    public class TestSceneScreenStack : FrameworkTestScene
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
@@ -449,6 +448,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Setup screens", () =>
             {
                 screens = new List<TestScreen>();
+
                 for (int i = 0; i < 5; i++)
                 {
                     var screen = new TestScreen();

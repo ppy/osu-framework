@@ -73,6 +73,7 @@ namespace osu.Framework.MathUtils
         {
             int n = points.Length;
             double[] w = new double[n];
+
             for (int i = 0; i < n; i++)
             {
                 w[i] = 1;
@@ -257,9 +258,11 @@ namespace osu.Framework.MathUtils
                 case Easing.In:
                 case Easing.InQuad:
                     return time * time;
+
                 case Easing.Out:
                 case Easing.OutQuad:
                     return time * (2 - time);
+
                 case Easing.InOutQuad:
                     if (time < .5) return time * time * 2;
 
@@ -267,8 +270,10 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InCubic:
                     return time * time * time;
+
                 case Easing.OutCubic:
                     return --time * time * time + 1;
+
                 case Easing.InOutCubic:
                     if (time < .5) return time * time * time * 4;
 
@@ -276,8 +281,10 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InQuart:
                     return time * time * time * time;
+
                 case Easing.OutQuart:
                     return 1 - --time * time * time * time;
+
                 case Easing.InOutQuart:
                     if (time < .5) return time * time * time * time * 8;
 
@@ -285,8 +292,10 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InQuint:
                     return time * time * time * time * time;
+
                 case Easing.OutQuint:
                     return --time * time * time * time * time + 1;
+
                 case Easing.InOutQuint:
                     if (time < .5) return time * time * time * time * time * 16;
 
@@ -294,15 +303,19 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InSine:
                     return 1 - Math.Cos(time * Math.PI * .5);
+
                 case Easing.OutSine:
                     return Math.Sin(time * Math.PI * .5);
+
                 case Easing.InOutSine:
                     return .5 - .5 * Math.Cos(Math.PI * time);
 
                 case Easing.InExpo:
                     return Math.Pow(2, 10 * (time - 1));
+
                 case Easing.OutExpo:
                     return -Math.Pow(2, -10 * time) + 1;
+
                 case Easing.InOutExpo:
                     if (time < .5) return .5 * Math.Pow(2, 20 * time - 10);
 
@@ -310,8 +323,10 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InCirc:
                     return 1 - Math.Sqrt(1 - time * time);
+
                 case Easing.OutCirc:
                     return Math.Sqrt(1 - --time * time);
+
                 case Easing.InOutCirc:
                     if ((time *= 2) < 1) return .5 - .5 * Math.Sqrt(1 - time * time);
 
@@ -319,12 +334,16 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InElastic:
                     return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const);
+
                 case Easing.OutElastic:
                     return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1;
+
                 case Easing.OutElasticHalf:
                     return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1;
+
                 case Easing.OutElasticQuarter:
                     return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1;
+
                 case Easing.InOutElastic:
                     if ((time *= 2) < 1)
                         return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5);
@@ -333,8 +352,10 @@ namespace osu.Framework.MathUtils
 
                 case Easing.InBack:
                     return time * time * ((back_const + 1) * time - back_const);
+
                 case Easing.OutBack:
                     return --time * time * ((back_const + 1) * time + back_const) + 1;
+
                 case Easing.InOutBack:
                     if ((time *= 2) < 1) return .5 * time * time * ((back_const2 + 1) * time - back_const2);
 
@@ -350,6 +371,7 @@ namespace osu.Framework.MathUtils
                         return 1 - (7.5625 * (time -= 2.25 * bounce_const) * time + .9375);
 
                     return 1 - (7.5625 * (time -= 2.625 * bounce_const) * time + .984375);
+
                 case Easing.OutBounce:
                     if (time < bounce_const)
                         return 7.5625 * time * time;
@@ -359,6 +381,7 @@ namespace osu.Framework.MathUtils
                         return 7.5625 * (time -= 2.25 * bounce_const) * time + .9375;
 
                     return 7.5625 * (time -= 2.625 * bounce_const) * time + .984375;
+
                 case Easing.InOutBounce:
                     if (time < .5) return .5 - .5 * ApplyEasing(Easing.OutBounce, 1 - time * 2);
 
@@ -372,24 +395,28 @@ namespace osu.Framework.MathUtils
 
     internal static class Interpolation<TValue>
     {
-        private static readonly InterpolationFunc<TValue> interpolation_func;
+        public static readonly InterpolationFunc<TValue> FUNCTION;
 
         static Interpolation()
         {
-            interpolation_func =
-                (InterpolationFunc<TValue>)typeof(Interpolation).GetMethod(
-                    nameof(Interpolation.ValueAt),
-                    typeof(InterpolationFunc<TValue>)
-                        .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                        ?.GetParameters().Select(p => p.ParameterType).ToArray()
+            const string interpolation_method = nameof(Interpolation.ValueAt);
+
+            var parameters = typeof(InterpolationFunc<TValue>)
+                             .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
+                             ?.GetParameters().Select(p => p.ParameterType).ToArray();
+
+            FUNCTION =
+                (InterpolationFunc<TValue>)(
+                    typeof(Interpolation).GetMethod(interpolation_method, parameters)
+                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
 
-            if (interpolation_func == null)
-                throw new InvalidOperationException($"Type {typeof(TValue)} has no automatic interpolation function. The value must be interpolated manually.");
+            if (FUNCTION == null)
+                throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
         }
 
-        public static TValue ValueAt(double time, TValue val1, TValue val2, double startTime, double endTime, Easing easing = Easing.None)
-            => interpolation_func(time, val1, val2, startTime, endTime, easing);
+        public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
+            => FUNCTION(time, startValue, endValue, startTime, endTime, easing);
     }
 
     public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
