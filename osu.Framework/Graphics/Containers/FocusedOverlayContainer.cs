@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool AcceptsFocus => State.Value == Visibility.Visible;
 
+        public override bool HandleNonPositionalInput => true;
+
         protected override void PopIn()
         {
             Schedule(() => GetContainingInputManager().TriggerFocusContention(this));
