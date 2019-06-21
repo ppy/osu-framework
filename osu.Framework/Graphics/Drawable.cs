@@ -2021,6 +2021,17 @@ namespace osu.Framework.Graphics
                 typeof(IKeyBindingHandler),
             };
 
+            private static readonly string[] positional_input_properties =
+            {
+                nameof(HandlePositionalInput),
+            };
+
+            private static readonly string[] non_positional_input_properties =
+            {
+                nameof(HandleNonPositionalInput),
+                nameof(AcceptsFocus),
+            };
+
             public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
 
             public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
@@ -2062,12 +2073,17 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                // check if HandlePositionalInput/HandleNonPositionalInput is overridden to manually specify that this type handles input.
-                var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
-                var property = type.GetProperty(handleInputPropertyName);
-                Debug.Assert(property != null);
-                if (property.DeclaringType != typeof(Drawable))
-                    return true;
+                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+
+                foreach (var inputProperty in inputProperties)
+                {
+                    var property = type.GetProperty(inputProperty);
+
+                    Debug.Assert(property != null);
+
+                    if (property.DeclaringType != typeof(Drawable))
+                        return true;
+                }
 
                 return false;
             }
