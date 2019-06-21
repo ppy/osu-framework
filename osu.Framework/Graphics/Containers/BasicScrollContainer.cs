@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollbar(direction);
 
-        private class BasicScrollbar : ScrollbarContainer
+        protected class BasicScrollbar : ScrollbarContainer
         {
             private const float dim_size = 8;
 
