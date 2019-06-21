@@ -39,12 +39,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly ScrollContainer<Container<DrawableMenuItem>> ContentContainer;
+        protected readonly ScrollContainer<Drawable> ContentContainer;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly FillFlowContainer<DrawableMenuItem> ItemsContainer;
+        protected FillFlowContainer<DrawableMenuItem> ItemsContainer;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -94,12 +94,12 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new BasicScrollContainer<Container<DrawableMenuItem>>(direction)
+                        ContentContainer = CreateScrollContainer(direction).With(d =>
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = false,
-                            Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical }
-                        }
+                            d.RelativeSizeAxes = Axes.Both;
+                            d.Masking = false;
+                            d.Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                        })
                     }
                 },
                 submenuContainer = new Container<Menu>
@@ -543,6 +543,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The <see cref="MenuItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
+
+        /// <summary>
+        /// Creates the <see cref="ScrollContainer{T}"/> to hold the items of this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="direction">The scrolling direction.</param>
+        /// <returns>The <see cref="ScrollContainer{T}"/>.</returns>
+        protected virtual ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer<Drawable>(direction);
 
         #region DrawableMenuItem
 
