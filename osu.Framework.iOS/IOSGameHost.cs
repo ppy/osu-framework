@@ -89,6 +89,8 @@ namespace osu.Framework.iOS
 
         public override void OpenUrlExternally(string url) => throw new NotImplementedException();
 
+        public override Clipboard GetClipboard() => new IOSClipboard(gameView);
+
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
 
