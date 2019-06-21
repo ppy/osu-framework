@@ -2023,14 +2023,13 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] positional_input_properties =
             {
-                nameof(HandlePositionalInput)
+                nameof(HandlePositionalInput),
             };
 
             private static readonly string[] non_positional_input_properties =
             {
                 nameof(HandleNonPositionalInput),
                 nameof(AcceptsFocus),
-                nameof(RequestsFocus)
             };
 
             public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
