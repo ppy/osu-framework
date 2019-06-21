@@ -118,6 +118,17 @@ namespace osu.Framework.iOS
             public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
 
+            private bool softwareKeyboard = true;
+            internal bool SoftwareKeyboard
+            {
+                get => softwareKeyboard;
+                set
+                {
+                    softwareKeyboard = value;
+                    resetText();
+                }
+            }
+
             public HiddenTextField()
             {
                 AutocapitalizationType = UITextAutocapitalizationType.None;
@@ -155,10 +166,18 @@ namespace osu.Framework.iOS
 
             private void resetText()
             {
-                // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
-                Text = placeholder_text;
-                var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
-                SelectedTextRange = GetTextRange(newPosition, newPosition);
+                if (SoftwareKeyboard)
+                {
+                    // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
+                    Text = placeholder_text;
+                    var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
+                    SelectedTextRange = GetTextRange(newPosition, newPosition);
+                }
+                else
+                {
+                    Text = "";
+                    SelectedTextRange = GetTextRange(BeginningOfDocument, BeginningOfDocument);
+                }
             }
 
             public void UpdateFirstResponder(bool become)
