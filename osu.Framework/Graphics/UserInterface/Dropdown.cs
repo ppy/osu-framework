@@ -294,13 +294,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the menu body.
         /// </summary>
-        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+        protected abstract DropdownMenu CreateMenu();
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu
+        public abstract class DropdownMenu : Menu
         {
-            public DropdownMenu()
+            protected DropdownMenu()
                 : base(Direction.Vertical)
             {
             }
@@ -331,14 +331,16 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+
+            protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
             #region DrawableDropdownMenuItem
 
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-            public class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public DrawableDropdownMenuItem(MenuItem item)
+                protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }

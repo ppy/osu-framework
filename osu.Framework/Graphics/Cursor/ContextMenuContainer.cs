@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Cursor
     /// If a right-click happens on a <see cref="Drawable"/> that implements <see cref="IHasContextMenu"/> and exists as a child of the same <see cref="InputManager"/> as this container,
     /// a <see cref="Menu"/> will be displayed with bottom-right origin at the right-clicked position.
     /// </summary>
-    public class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
+    public abstract class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
     {
         private readonly Menu menu;
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="Menu"/>.
         /// </summary>
-        protected virtual Menu CreateMenu() => new Menu(Direction.Vertical);
+        protected abstract Menu CreateMenu();
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new <see cref="ContextMenuContainer"/>.
         /// </summary>
-        public ContextMenuContainer()
+        protected ContextMenuContainer()
         {
             AddInternal(content = new Container
             {
