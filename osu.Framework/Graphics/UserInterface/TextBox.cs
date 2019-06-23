@@ -104,7 +104,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
-        public bool ReleaseFocusOnCommit = true;
+        /// <summary>
+        /// Whether the textbox should rescind focus on commit.
+        /// </summary>
+        public bool ReleaseFocusOnCommit { get; set; } = true;
+
+        /// <summary>
+        /// Whether a commit should be triggered whenever the textbox loses focus.
+        /// </summary>
+        public bool CommitOnFocusLost { get; set; } = false;
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
@@ -343,7 +351,7 @@ namespace osu.Framework.Graphics.UserInterface
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
 
-                    insertString(pending);
+                    InsertString(pending);
                     return true;
 
                 case PlatformActionType.SelectAll:
@@ -529,12 +537,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
-        /// <param name="addText"></param>
-        private void insertString(string addText)
+        /// <param name="text">The new text to insert.</param>
+        protected void InsertString(string text)
         {
-            if (string.IsNullOrEmpty(addText)) return;
+            if (string.IsNullOrEmpty(text)) return;
 
-            foreach (char c in addText)
+            foreach (char c in text)
             {
                 var ch = addCharacter(c);
 
@@ -624,7 +632,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == text)
                     return;
 
-                value = value ?? string.Empty;
+                lastCommitText = value = value ?? string.Empty;
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
@@ -685,7 +693,7 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
-                insertString(pendingText);
+                InsertString(pendingText);
             }
 
             if (consumingText)
@@ -725,6 +733,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void KillFocus() => killFocus();
 
+        private string lastCommitText;
+
+        private bool hasNewComittableText => text != lastCommitText;
+
         private void killFocus()
         {
             var manager = GetContainingInputManager();
@@ -734,15 +746,22 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected void Commit()
         {
-            if (ReleaseFocusOnCommit)
+            if (ReleaseFocusOnCommit && HasFocus)
+            {
                 killFocus();
+                if (CommitOnFocusLost)
+                    // the commit will happen as a result of the focus loss.
+                    return;
+            }
 
             Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
             Background.ClearTransforms();
             Background.FlashColour(BackgroundCommit, 400);
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
-            OnCommit?.Invoke(this, true);
+
+            OnCommit?.Invoke(this, hasNewComittableText);
+            lastCommitText = text;
         }
 
         protected override bool OnKeyUp(KeyUpEvent e)
@@ -874,6 +893,9 @@ namespace osu.Framework.Graphics.UserInterface
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
 
             cursorAndLayout.Invalidate();
+
+            if (CommitOnFocusLost)
+                Commit();
         }
 
         public override bool AcceptsFocus => true;
