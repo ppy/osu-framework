@@ -7,11 +7,13 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBox : FrameworkTestScene
+    public class TestSceneTextBox : ManualInputManagerTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -23,22 +25,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private FillFlowContainer textBoxes;
 
         [SetUp]
-        public void SetUp() => Schedule(() =>
+        public override void SetUp()
         {
-            Child = textBoxes = new FillFlowContainer
+            base.SetUp();
+
+            Schedule(() =>
             {
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(0, 50),
-                Padding = new MarginPadding
+                Child = textBoxes = new FillFlowContainer
                 {
-                    Top = 50,
-                },
-                Anchor = Anchor.TopCentre,
-                Origin = Anchor.TopCentre,
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.9f, 1)
-            };
-        });
+                    Direction = FillDirection.Vertical,
+                    Spacing = new Vector2(0, 50),
+                    Padding = new MarginPadding
+                    {
+                        Top = 50,
+                    },
+                    Anchor = Anchor.TopCentre,
+                    Origin = Anchor.TopCentre,
+                    RelativeSizeAxes = Axes.Both,
+                    Size = new Vector2(0.9f, 1)
+                };
+            });
+        }
 
         [Test]
         public void VariousTextBoxes()
@@ -172,6 +179,81 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
+        }
+
+        [TestCase(true, true)]
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        public void CommitOnFocusLost(bool commitOnFocusLost, bool changeText)
+        {
+            InsertableTextBox textBox = null;
+
+            bool wasNewText = false;
+            int commitCount = 0;
+
+            AddStep("add commit on unfocus textbox", () =>
+            {
+                wasNewText = false;
+                commitCount = 0;
+
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Text = "Default Text",
+                    CommitOnFocusLost = commitOnFocusLost,
+                    Size = new Vector2(500, 30),
+                    OnCommit = (_, newText) =>
+                    {
+                        commitCount++;
+                        wasNewText = newText;
+                    }
+                });
+            });
+
+            AddAssert("ensure no commits", () => commitCount == 0);
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            if (changeText)
+                AddStep("insert more text", () => textBox.InsertString(" Plus More"));
+
+            AddStep("click away", () =>
+            {
+                InputManager.MoveMouseTo(Vector2.One);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            if (commitOnFocusLost)
+            {
+                AddAssert("ensure one commit", () => commitCount == 1);
+                AddAssert("ensure new text", () => wasNewText == changeText);
+            }
+            else
+                AddAssert("ensure no commits", () => commitCount == 0);
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            if (changeText)
+                AddStep("insert more text", () => textBox.InsertString(" Plus More"));
+
+            AddStep("commit via enter", () => InputManager.PressKey(Key.Enter));
+
+            int expectedCount = 1 + (commitOnFocusLost ? 1 : 0);
+
+            AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
+            AddAssert("ensure new text", () => wasNewText == changeText);
+        }
+
+        private class InsertableTextBox : BasicTextBox
+        {
+            public new void InsertString(string text) => base.InsertString(text);
         }
 
         private class NumberTextBox : BasicTextBox
