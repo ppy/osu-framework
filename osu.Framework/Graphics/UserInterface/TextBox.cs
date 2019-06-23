@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether a commit should be triggered whenever the textbox loses focus.
         /// </summary>
-        public bool CommitOnFocusLost { get; set; };
+        public bool CommitOnFocusLost { get; set; }
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
