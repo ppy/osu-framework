@@ -20,7 +20,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected Box Background;
         protected SpriteText SpriteText;
 
-        public Action Action { get; protected set; }
+        public Action Action { get; set; }
 
         public string Text
         {

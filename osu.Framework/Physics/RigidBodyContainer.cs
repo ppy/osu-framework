@@ -97,10 +97,8 @@ namespace osu.Framework.Physics
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
-            return (
-                (mat.M11 * mat.M11 + mat.M12 * mat.M12) * size.X * size.X +
-                (mat.M21 * mat.M21 + mat.M22 * mat.M22) * size.Y * size.Y
-            ) * Mass / 12;
+            return ((mat.M11 * mat.M11 + mat.M12 * mat.M12) * size.X * size.X +
+                    (mat.M21 * mat.M21 + mat.M22 * mat.M22) * size.Y * size.Y) * Mass / 12;
         }
 
         /// <summary>
@@ -129,6 +127,7 @@ namespace osu.Framework.Physics
                 float usableLength = Math.Max(length - 2 * cornerRadius, 0);
 
                 Vector2 normal = (b - a).PerpendicularRight.Normalized();
+
                 for (int j = 0; j < amount_side_steps; ++j)
                 {
                     Vertices.Add(a + dir * (cornerRadius + j * usableLength / (amount_side_steps - 1)));
@@ -137,10 +136,12 @@ namespace osu.Framework.Physics
             }
 
             const int amount_corner_steps = 10;
+
             if (cornerRadius > 0)
             {
                 // Rounded corners
-                Vector2[] offsets = {
+                Vector2[] offsets =
+                {
                     new Vector2(cornerRadius, cornerRadius),
                     new Vector2(-cornerRadius, cornerRadius),
                     new Vector2(-cornerRadius, -cornerRadius),
@@ -208,6 +209,7 @@ namespace osu.Framework.Physics
                 return false;
 
             bool didCollide = false;
+
             for (int i = 0; i < Vertices.Count; ++i)
             {
                 if (other.BodyContains(Vector2Extensions.Transform(Vertices[i], SimulationToScreenSpace)))

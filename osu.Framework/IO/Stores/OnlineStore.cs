@@ -1,8 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
@@ -12,11 +14,15 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url)
         {
+            this.LogIfNonBackgroundThread(url);
+
             try
             {
-                WebRequest req = new WebRequest($@"{url}");
-                await req.PerformAsync();
-                return req.ResponseData;
+                using (WebRequest req = new WebRequest($@"{url}"))
+                {
+                    await req.PerformAsync();
+                    return req.ResponseData;
+                }
             }
             catch
             {
@@ -29,11 +35,15 @@ namespace osu.Framework.IO.Stores
             if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                 return null;
 
+            this.LogIfNonBackgroundThread(url);
+
             try
             {
-                WebRequest req = new WebRequest($@"{url}");
-                req.Perform();
-                return req.ResponseData;
+                using (WebRequest req = new WebRequest($@"{url}"))
+                {
+                    req.Perform();
+                    return req.ResponseData;
+                }
             }
             catch
             {
@@ -49,6 +59,8 @@ namespace osu.Framework.IO.Stores
 
             return new MemoryStream(ret);
         }
+
+        public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
 
         #region IDisposable Support
 

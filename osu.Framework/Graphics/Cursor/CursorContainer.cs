@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
@@ -21,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
-            State = Visibility.Visible;
+            State.Value = Visibility.Visible;
         }
 
         [BackgroundDependencyLoader]

@@ -17,11 +17,11 @@ namespace osu.Framework.Testing
     public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
-        public Action CompilationStarted;
+        public event Action CompilationStarted;
 
-        public Action<Type> CompilationFinished;
+        public event Action<Type> CompilationFinished;
 
-        public Action<Exception> CompilationFailed;
+        public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
@@ -58,15 +58,17 @@ namespace osu.Framework.Testing
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
 
-                    validDirectories.Add(dir);
+                    lock (compileLock) // enumeration over this list occurs during compilation
+                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName,
                     };
 
+                    fsw.Renamed += onChange;
                     fsw.Changed += onChange;
                     fsw.Created += onChange;
 
@@ -92,12 +94,12 @@ namespace osu.Framework.Testing
 
                 var checkpointName = checkpointObject.GetType().Name;
 
-                var reqTypes = checkpointObject.RequiredTypes.Select(t => t.Name).ToList();
+                var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
 
                 // add ourselves as a required type.
-                reqTypes.Add(checkpointName);
+                reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(checkpointName.Replace("TestCase", ""));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
@@ -116,10 +118,15 @@ namespace osu.Framework.Testing
                 lastTouchedFile = e.FullPath;
 
                 isCompiling = true;
-                Task.Run((Action)recompile)
+                Task.Run(recompile)
                     .ContinueWith(_ => isCompiling = false);
             }
         }
+
+        /// <summary>
+        /// Removes the "`1[T]" generic specification from type name output.
+        /// </summary>
+        private string removeGenerics(string checkpointName) => checkpointName.Split('`').First();
 
         private int currentVersion;
 
@@ -140,17 +147,18 @@ namespace osu.Framework.Testing
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
-                #if DEBUG
-                    "DEBUG",
-                #endif
-                #if TRACE
-                    "TRACE",
-                #endif
-                #if RELEASE
-                    "RELEASE",
-                #endif
-            }, languageVersion: LanguageVersion.CSharp7_2);
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+            {
+#if DEBUG
+                "DEBUG",
+#endif
+#if TRACE
+                "TRACE",
+#endif
+#if RELEASE
+                "RELEASE",
+#endif
+            }, languageVersion: LanguageVersion.CSharp7_3);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))

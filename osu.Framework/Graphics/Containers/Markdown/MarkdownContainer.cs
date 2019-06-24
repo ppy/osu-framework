@@ -1,10 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
@@ -21,6 +24,26 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         private const int root_level = 0;
 
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="Drawable.RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Drawable.Size"/> (or <see cref="Drawable.Width"/> / <see cref="Drawable.Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public new Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set
+            {
+                if (value.HasFlag(Axes.X))
+                    throw new ArgumentException($"{nameof(MarkdownContainer)} does not support an {nameof(AutoSizeAxes)} of {value}");
+
+                base.AutoSizeAxes = value;
+            }
+        }
+
         private string text = string.Empty;
 
         /// <summary>
@@ -33,6 +56,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 if (text == value)
                     return;
+
                 text = value;
 
                 contentCache.Invalidate();
@@ -66,25 +90,63 @@ namespace osu.Framework.Graphics.Containers.Markdown
             set => document.Padding = value;
         }
 
+        private Uri documentUri;
+
+        /// <summary>
+        /// The URL of the loaded document.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
+        protected string DocumentUrl
+        {
+            get => documentUri?.AbsoluteUri;
+            set
+            {
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Document URL ({value}) must be an absolute URI.");
+
+                if (documentUri == uri)
+                    return;
+
+                documentUri = uri;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        private Uri rootUri;
+
+        /// <summary>
+        /// The base URL for all root-relative links.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
+        protected string RootUrl
+        {
+            get => rootUri?.AbsoluteUri;
+            set
+            {
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Root URL ({value}) must be an absolute URI.");
+
+                if (rootUri == uri)
+                    return;
+
+                rootUri = uri;
+
+                contentCache.Invalidate();
+            }
+        }
+
         private Cached contentCache = new Cached();
 
         private readonly FillFlowContainer document;
 
         public MarkdownContainer()
         {
-            InternalChildren = new Drawable[]
+            InternalChild = document = new FillFlowContainer
             {
-                new ScrollContainer
-                {
-                    ScrollbarOverlapsContent = false,
-                    RelativeSizeAxes = Axes.Both,
-                    Child = document = new FillFlowContainer
-                    {
-                        AutoSizeAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
-                    }
-                }
+                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.X,
+                Direction = FillDirection.Vertical,
             };
 
             LineSpacing = 25;
@@ -105,6 +167,27 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var markdownText = Text;
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
+
+                // Turn all relative URIs in the document into absolute URIs
+                foreach (var link in parsed.Descendants().OfType<LinkInline>())
+                {
+                    if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                        continue;
+
+                    if (linkUri.IsAbsoluteUri)
+                        continue;
+
+                    if (documentUri != null)
+                    {
+                        if (rootUri != null && link.Url.StartsWith("/"))
+                        {
+                            // Ensure the URI is document-relative by removing all trailing slashes
+                            link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
+                        }
+                        else
+                            link.Url = new Uri(documentUri, linkUri).AbsoluteUri;
+                    }
+                }
 
                 document.Clear();
                 foreach (var component in parsed)
@@ -139,37 +222,47 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case ThematicBreakBlock thematicBlock:
                     container.Add(CreateSeparator(thematicBlock));
                     break;
+
                 case HeadingBlock headingBlock:
                     container.Add(CreateHeading(headingBlock));
                     break;
+
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateParagraph(paragraphBlock, level));
                     break;
+
                 case QuoteBlock quoteBlock:
                     container.Add(CreateQuoteBlock(quoteBlock));
                     break;
+
                 case FencedCodeBlock fencedCodeBlock:
                     container.Add(CreateFencedCodeBlock(fencedCodeBlock));
                     break;
+
                 case Table table:
                     container.Add(CreateTable(table));
                     break;
+
                 case ListBlock listBlock:
                     var childContainer = CreateList(listBlock);
                     container.Add(childContainer);
                     foreach (var single in listBlock)
                         AddMarkdownComponent(single, childContainer, level + 1);
                     break;
+
                 case ListItemBlock listItemBlock:
                     foreach (var single in listItemBlock)
                         AddMarkdownComponent(single, container, level);
                     break;
+
                 case HtmlBlock _:
                     // HTML is not supported
                     break;
+
                 case LinkReferenceDefinitionGroup _:
                     // Link reference doesn't need to be displayed.
                     break;
+
                 default:
                     container.Add(CreateNotImplemented(markdownObject));
                     break;
@@ -190,7 +283,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <param name="level">The level in the document of <paramref name="paragraphBlock"/>.
         /// 0 for the root level, 1 for first-level items in a list, 2 for second-level items in a list, etc.</param>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
+        protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock);
 
         /// <summary>
         /// Creates the visualiser for a <see cref="QuoteBlock"/>.
@@ -217,13 +310,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// Creates the visualiser for a <see cref="ListBlock"/>.
         /// </summary>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownList CreateList(ListBlock listBlock) => new MarkdownList(listBlock);
+        protected virtual MarkdownList CreateList(ListBlock listBlock) => new MarkdownList();
 
         /// <summary>
         /// Creates the visualiser for a horizontal separator.
         /// </summary>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator(thematicBlock);
+        protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator();
 
         /// <summary>
         /// Creates the visualiser for an element that isn't implemented.

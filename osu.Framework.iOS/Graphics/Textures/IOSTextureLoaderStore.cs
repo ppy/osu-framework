@@ -20,7 +20,7 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
         }
 
-        protected unsafe override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
+        protected override unsafe Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
             using (var uiImage = UIImage.LoadFromData(NSData.FromStream(stream)))
             {

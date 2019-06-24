@@ -12,7 +12,8 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSRawKeyboardHandler : InputHandler
     {
-        public override bool IsActive => true;
+        internal bool KeyboardActive = true;
+        public override bool IsActive => KeyboardActive;
 
         public override int Priority => 0;
 
@@ -21,16 +22,16 @@ namespace osu.Framework.iOS.Input
             if (!(UIApplication.SharedApplication is GameUIApplication game))
                 return false;
 
-            game.KeyEvent += (int keyCode, bool isDown) =>
+            game.KeyEvent += (keyCode, isDown) =>
             {
-                if (keyMap.ContainsKey(keyCode))
+                if (IsActive && keyMap.ContainsKey(keyCode))
                     PendingInputs.Enqueue(new KeyboardKeyInput(keyMap[keyCode], isDown));
             };
 
             return true;
         }
 
-        private Dictionary<int, Key> keyMap = new Dictionary<int, Key>
+        private readonly Dictionary<int, Key> keyMap = new Dictionary<int, Key>
         {
             { 4, Key.A },
             { 5, Key.B },
@@ -70,6 +71,7 @@ namespace osu.Framework.iOS.Input
             { 39, Key.Number0 },
             { 40, Key.Enter },
             { 41, Key.Escape },
+            { 42, Key.BackSpace },
             { 43, Key.Tab },
             { 44, Key.Space },
             { 45, Key.Minus },

@@ -3,6 +3,8 @@
 
 using osuTK;
 using System;
+using JetBrains.Annotations;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics
 {
@@ -80,21 +82,28 @@ namespace osu.Framework.Graphics
             Top = Left = Bottom = Right = allSides;
         }
 
-        public bool Equals(MarginPadding other)
-        {
-            return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
-        }
+        public bool Equals(MarginPadding other) => Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
 
         public override string ToString() => $@"({Top}, {Left}, {Bottom}, {Right})";
 
-        public static MarginPadding operator -(MarginPadding mp)
-        {
-            return new MarginPadding
+        public static MarginPadding operator -(MarginPadding mp) =>
+            new MarginPadding
             {
                 Left = -mp.Left,
                 Top = -mp.Top,
                 Right = -mp.Right,
                 Bottom = -mp.Bottom,
+            };
+
+        [UsedImplicitly]
+        public static MarginPadding ValueAt(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, Easing easingType = Easing.None)
+        {
+            return new MarginPadding
+            {
+                Left = Interpolation.ValueAt(time, startValue.Left, endValue.Left, startTime, endTime, easingType),
+                Top = Interpolation.ValueAt(time, startValue.Top, endValue.Top, startTime, endTime, easingType),
+                Right = Interpolation.ValueAt(time, startValue.Right, endValue.Right, startTime, endTime, easingType),
+                Bottom = Interpolation.ValueAt(time, startValue.Bottom, endValue.Bottom, startTime, endTime, easingType),
             };
         }
     }

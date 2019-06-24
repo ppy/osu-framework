@@ -24,7 +24,8 @@ namespace osu.Framework.Threading
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
         /// </summary>
         /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
-        public ThreadedTaskScheduler(int numberOfThreads)
+        /// <param name="name">The thread name to give threads in this pool.</param>
+        public ThreadedTaskScheduler(int numberOfThreads, string name)
         {
             if (numberOfThreads < 1)
                 throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
@@ -35,7 +36,7 @@ namespace osu.Framework.Threading
             {
                 var thread = new Thread(processTasks)
                 {
-                    Name = "LoadComponentThreadPool",
+                    Name = $"ThreadedTaskScheduler ({name})",
                     IsBackground = true
                 };
 
@@ -72,10 +73,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The task to be executed.</param>
         /// <param name="taskWasPreviouslyQueued">Whether the task was previously queued.</param>
         /// <returns>true if the task was successfully inlined; otherwise, false.</returns>
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            return threads.Contains(Thread.CurrentThread) && TryExecuteTask(task);
-        }
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) => threads.Contains(Thread.CurrentThread) && TryExecuteTask(task);
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
         public override int MaximumConcurrencyLevel => threads.Length;

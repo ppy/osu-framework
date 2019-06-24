@@ -55,6 +55,7 @@ namespace osu.Framework.Allocation
 
                     buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
                     return buffers[write];
+
                 case UsageType.Read:
                     if (lastWrite < 0) return null;
 
@@ -78,12 +79,14 @@ namespace osu.Framework.Allocation
                     lock (buffers)
                         buffers[read].Usage = UsageType.None;
                     break;
+
                 case UsageType.Write:
                     lock (buffers)
                     {
                         buffers[write].Usage = UsageType.None;
                         lastWrite = write;
                     }
+
                     break;
             }
         }

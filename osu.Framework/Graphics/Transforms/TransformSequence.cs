@@ -335,6 +335,7 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
             var iterDuration = endTime - startTime + pause;
+
             foreach (var t in transforms)
             {
                 Action tmpOnAbort = t.OnAbort;
@@ -347,6 +348,7 @@ namespace osu.Framework.Graphics.Transforms
                 // inserted in the correct order such that none of them trigger abortions on
                 // each other due to instant re-sorting upon adding.
                 double currentTransformTime = t.TargetTransformable.Time.Current;
+
                 while (t.EndTime <= currentTransformTime)
                 {
                     t.StartTime += iterDuration;

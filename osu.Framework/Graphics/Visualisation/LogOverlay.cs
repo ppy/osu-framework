@@ -9,6 +9,7 @@ using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Timing;
 using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
@@ -77,10 +78,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void addEntry(LogEntry entry)
         {
-#if !DEBUG
-            if (entry.Level <= LogLevel.Verbose)
+            if (!DebugUtils.IsDebugBuild && entry.Level <= LogLevel.Verbose)
                 return;
-#endif
 
             Schedule(() =>
             {
@@ -121,7 +120,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void load(FrameworkConfigManager config)
         {
             enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += e => State = e.NewValue ? Visibility.Visible : Visibility.Hidden;
+            enabled.ValueChanged += e => State.Value = e.NewValue ? Visibility.Visible : Visibility.Hidden;
             enabled.TriggerChange();
         }
 
@@ -213,12 +212,16 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 case LoggingTarget.Runtime:
                     return Color4.YellowGreen;
+
                 case LoggingTarget.Network:
                     return Color4.BlueViolet;
+
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
+
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
+
                 default:
                     return Color4.Cyan;
             }

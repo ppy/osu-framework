@@ -1,36 +1,49 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// Draw node containing all necessary information to draw a <see cref="Sprite"/>.
     /// </summary>
-    public class SpriteDrawNode : DrawNode
+    public class SpriteDrawNode : TexturedShaderDrawNode
     {
-        public Texture Texture;
-        public Quad ScreenSpaceDrawQuad;
-        public RectangleF DrawRectangle;
-        public Vector2 InflationAmount;
-        public bool WrapTexture;
+        protected Texture Texture { get; private set; }
+        protected Quad ScreenSpaceDrawQuad { get; private set; }
 
-        public IShader TextureShader;
-        public IShader RoundedTextureShader;
+        protected RectangleF DrawRectangle { get; private set; }
+        protected Vector2 InflationAmount { get; private set; }
 
-        private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
+        protected bool WrapTexture { get; private set; }
+
+        protected new Sprite Source => (Sprite)base.Source;
+
+        public SpriteDrawNode(Sprite source)
+            : base(source)
+        {
+        }
+
+        public override void ApplyState()
+        {
+            base.ApplyState();
+
+            Texture = Source.Texture;
+            ScreenSpaceDrawQuad = Source.ScreenSpaceDrawQuad;
+            DrawRectangle = Source.DrawRectangle;
+            InflationAmount = Source.InflationAmount;
+            WrapTexture = Source.WrapTexture;
+        }
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
+            DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
@@ -41,15 +54,15 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture?.Available != true)
                 return;
 
-            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
-
-            shader.Bind();
-
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+
+            Shader.Bind();
 
             Blit(vertexAction);
 
-            shader.Unbind();
+            Shader.Unbind();
         }
+
+        protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
     }
 }

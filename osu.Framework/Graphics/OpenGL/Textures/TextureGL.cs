@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using osuTK;
@@ -34,17 +35,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Dispose();
         }
 
-        public bool IsDisposed { get; private set; }
+        /// <summary>
+        /// Whether this <see cref="TextureGL"/> can used for drawing.
+        /// </summary>
+        public bool Available { get; private set; } = true;
 
-        protected virtual void Dispose(bool isDisposing)
-        {
-            IsDisposed = true;
-        }
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool isDisposing) => GLWrapper.ScheduleDisposal(() => Available = false);
 
         public void Dispose()
         {
-            if (IsDisposed)
+            if (isDisposed)
                 return;
+
+            isDisposed = true;
 
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -67,14 +72,27 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public abstract RectangleF GetTextureRect(RectangleF? textureRect);
 
         /// <summary>
-        /// Blit a triangle to OpenGL display with specified parameters.
+        /// Draws a triangle to the screen.
         /// </summary>
-        public abstract void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null);
+        /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                            Vector2? inflationPercentage = null);
 
         /// <summary>
-        /// Blit a quad to OpenGL display with specified parameters.
+        /// Draws a quad to the screen.
         /// </summary>
-        public abstract void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null);
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                        Vector2? blendRangeOverride = null);
 
         /// <summary>
         /// Bind as active texture.
@@ -87,6 +105,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
         internal abstract bool Upload();
+
+        /// <summary>
+        /// Flush any unprocessed uploads without actually uploading.
+        /// </summary>
+        internal abstract void FlushUploads();
 
         public abstract void SetData(ITextureUpload upload);
     }
