@@ -35,6 +35,8 @@ namespace osu.Framework.Audio.Sample
 
             if (string.IsNullOrEmpty(name)) return null;
 
+            this.LogIfNonBackgroundThread(name);
+
             lock (sampleCache)
             {
                 SampleChannel channel = null;

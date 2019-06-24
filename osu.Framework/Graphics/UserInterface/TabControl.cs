@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly Bindable<T> current = new Bindable<T>();
 
+        private Bindable<T> currentBound;
+
         public Bindable<T> Current
         {
             get => current;
@@ -33,8 +35,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
             }
         }
 
@@ -128,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
                 var newTab = Current.Value != null ? tabMap[Current.Value] : null;
 
                 if (IsLoaded)
-                    SelectTab(newTab);
+                    selectTab(newTab);
                 else
                     //will be handled in LoadComplete
                     SelectedTab = newTab;
@@ -268,6 +270,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void SelectTab(TabItem<T> tab)
         {
+            selectTab(tab);
+            Current.Value = SelectedTab != null ? SelectedTab.Value : default;
+        }
+
+        private void selectTab(TabItem<T> tab)
+        {
             // Only reorder if not pinned and not showing
             if (AutoSort && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
@@ -278,14 +286,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectedTab = tab;
 
             if (SelectedTab != null)
-            {
                 SelectedTab.Active.Value = true;
-                Current.Value = SelectedTab.Value;
-            }
-            else
-            {
-                Current.Value = default;
-            }
         }
 
         /// <summary>

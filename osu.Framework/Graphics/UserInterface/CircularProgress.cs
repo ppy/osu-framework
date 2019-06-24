@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly Bindable<double> current = new Bindable<double>();
 
+        private Bindable<double> currentBound;
+
         public Bindable<double> Current
         {
             get => current;
@@ -23,8 +25,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
             }
         }
 
