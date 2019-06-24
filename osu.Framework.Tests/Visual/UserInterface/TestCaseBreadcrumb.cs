@@ -7,7 +7,7 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestCaseBreadcrumb : FrameworkTestCase
+    public class TestCaseBreadcrumb : FrameworkTestScene
     {
         private readonly string[] testValues =
         {
@@ -37,7 +37,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             const int test_index = 2;
 
-            AddStep($"Click on {testValues[test_index]} one of the elements", () => {
+            AddStep($"Click on {testValues[test_index]} one of the elements", () =>
+            {
                 (navigation.InternalChild as CompositeDrawable)?.InternalChildren[test_index].Click();
             });
         }

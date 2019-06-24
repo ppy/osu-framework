@@ -43,17 +43,20 @@ namespace osu.Framework.Graphics.UserInterface
             private readonly SpriteText text;
             private readonly Box background;
 
-            public string Text {
+            public string Text
+            {
                 get => text.Text;
                 set => text.Text = value;
             }
 
-            public BasicBreadcrumb(T value) : base(value)
+            public BasicBreadcrumb(T value)
+                : base(value)
             {
                 AutoSizeAxes = Axes.X;
                 Current.ValueChanged += args => background.Colour = args.NewValue ? Color4.DarkSlateGray : Color4.Gray;
 
-                AddRangeInternal(new Drawable[] {
+                AddRangeInternal(new Drawable[]
+                {
                     background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,

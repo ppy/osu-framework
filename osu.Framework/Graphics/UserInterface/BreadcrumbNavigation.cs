@@ -30,7 +30,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (items.Count == 0) return;
 
-            fillFlowContainer.AddRange(items.Select(val => {
+            fillFlowContainer.AddRange(items.Select(val =>
+            {
                 var breadcrumb = CreateBreadcrumb(val);
 
                 breadcrumb.Selected += () => updateItems(fillFlowContainer.Children.ToList().IndexOf(breadcrumb));
@@ -40,7 +41,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             fillFlowContainer.Children.Last().Current.Value = true;
         }
-
 
         /// <summary>
         /// Override this method for customising the design of the breadcrumb.
@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
                 throw new IndexOutOfRangeException($"Could not find an appropriate item for the index {newIndex}");
             if (newIndex < 0)
                 throw new IndexOutOfRangeException("The index can not be below 0.");
+
             if (newIndex + 1 == Items.Count)
                 return;
 
@@ -92,7 +93,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract class Breadcrumb : CompositeDrawable, IHasCurrentValue<bool>
         {
             private readonly Bindable<bool> current = new Bindable<bool>();
-            public Bindable<bool> Current {
+
+            public Bindable<bool> Current
+            {
                 get => current;
                 set => current.BindTo(value);
             }
