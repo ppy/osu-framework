@@ -34,7 +34,6 @@ namespace osu.Framework.Allocation
         private readonly IReadOnlyDependencyContainer parent;
         private readonly IReadOnlyDependencyContainer shadowDependencies;
 
-
         public CachedModelDependencyContainer(IReadOnlyDependencyContainer parent)
         {
             this.parent = parent;
@@ -62,6 +61,7 @@ namespace osu.Framework.Allocation
                 return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
             if (info.Parent == typeof(TModel))
                 return shadowDependencies.Get(type, info) ?? parent?.Get(type, info);
+
             return parent?.Get(type, info);
         }
 
@@ -108,6 +108,7 @@ namespace osu.Framework.Allocation
                 case PropertyInfo pi:
                     action(((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target)));
                     break;
+
                 case FieldInfo fi:
                     action(((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target)));
                     break;

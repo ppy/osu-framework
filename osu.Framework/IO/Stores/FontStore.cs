@@ -14,6 +14,8 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
+        private readonly List<FontStore> nestedFontStores = new List<FontStore>();
+
         private readonly Func<(string, char), Texture> cachedTextureLookup;
 
         /// <summary>
@@ -22,18 +24,30 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
 
-        public FontStore(GlyphStore glyphStore, float scaleAdjust = 100)
-            : base(glyphStore, scaleAdjust: scaleAdjust)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : base(store, scaleAdjust: scaleAdjust)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
 
+        protected override IEnumerable<string> GetFilenames(string name)
+        {
+            // extensions should not be used as they interfere with character lookup.
+            yield return name;
+        }
+
         public override void AddStore(IResourceStore<TextureUpload> store)
         {
-            if (store is GlyphStore gs)
+            switch (store)
             {
-                glyphStores.Add(gs);
-                queueLoad(gs);
+                case FontStore fs:
+                    nestedFontStores.Add(fs);
+                    return;
+
+                case GlyphStore gs:
+                    glyphStores.Add(gs);
+                    queueLoad(gs);
+                    break;
             }
 
             base.AddStore(store);
@@ -67,9 +81,32 @@ namespace osu.Framework.IO.Stores
 
         public override void RemoveStore(IResourceStore<TextureUpload> store)
         {
-            if (store is GlyphStore gs)
-                glyphStores.Remove(gs);
+            switch (store)
+            {
+                case FontStore fs:
+                    nestedFontStores.Remove(fs);
+                    return;
+
+                case GlyphStore gs:
+                    glyphStores.Remove(gs);
+                    break;
+            }
+
             base.RemoveStore(store);
+        }
+
+        public override Texture Get(string name)
+        {
+            var found = base.Get(name);
+
+            if (found == null)
+            {
+                foreach (var store in nestedFontStores)
+                    if ((found = store.Get(name)) != null)
+                        break;
+            }
+
+            return found;
         }
 
         public float? GetBaseHeight(char c)
@@ -78,6 +115,13 @@ namespace osu.Framework.IO.Stores
             {
                 if (store.HasGlyph(c))
                     return store.GetBaseHeight() / ScaleAdjust;
+            }
+
+            foreach (var store in nestedFontStores)
+            {
+                var height = store.GetBaseHeight(c);
+                if (height.HasValue)
+                    return height;
             }
 
             return null;
@@ -90,6 +134,13 @@ namespace osu.Framework.IO.Stores
                 var bh = store.GetBaseHeight(fontName);
                 if (bh.HasValue)
                     return bh.Value / ScaleAdjust;
+            }
+
+            foreach (var store in nestedFontStores)
+            {
+                var height = store.GetBaseHeight(fontName);
+                if (height.HasValue)
+                    return height;
             }
 
             return null;

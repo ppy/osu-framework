@@ -34,8 +34,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
-            TextFlowContainer textFlowContainer;
-            InternalChildren = new []
+            MarkdownTextFlowContainer textFlowContainer;
+            InternalChildren = new[]
             {
                 CreateBackground(),
                 textFlowContainer = CreateTextFlow(),

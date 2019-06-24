@@ -11,6 +11,16 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class CustomizableTextContainer : TextFlowContainer
     {
+        private const string unescaped_left = "[";
+        private const string escaped_left = "[[";
+
+        private const string unescaped_right = "]";
+        private const string escaped_right = "]]";
+
+        public static string Escape(string text) => text.Replace(unescaped_left, escaped_left).Replace(unescaped_right, escaped_right);
+
+        public static string Unescape(string text) => text.Replace(escaped_left, unescaped_left).Replace(escaped_right, unescaped_right);
+
         /// <summary>
         /// Sets the placeholders that should be used to replace the numeric placeholders, in the order given.
         /// </summary>
@@ -77,21 +87,23 @@ namespace osu.Framework.Graphics.Containers
             var sprites = new List<Drawable>();
             int index = 0;
             string str = line.Text;
+
             while (index < str.Length)
             {
                 Drawable placeholderDrawable = null;
-                int nextPlaceholderIndex = str.IndexOf('[', index);
+                int nextPlaceholderIndex = str.IndexOf(unescaped_left, index, StringComparison.Ordinal);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
-                while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex, StringComparison.InvariantCulture) == nextPlaceholderIndex)
-                    nextPlaceholderIndex = str.IndexOf('[', nextPlaceholderIndex + 2);
+                while (nextPlaceholderIndex != -1 && str.IndexOf(escaped_left, nextPlaceholderIndex, StringComparison.Ordinal) == nextPlaceholderIndex)
+                    nextPlaceholderIndex = str.IndexOf(unescaped_left, nextPlaceholderIndex + 2, StringComparison.Ordinal);
 
                 string strPiece = null;
+
                 if (nextPlaceholderIndex != -1)
                 {
-                    int placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
+                    int placeholderEnd = str.IndexOf(unescaped_right, nextPlaceholderIndex, StringComparison.Ordinal);
                     // make sure we skip  ahead to the next ] as long as the current ] is escaped
-                    while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
-                        placeholderEnd = str.IndexOf(']', placeholderEnd + 2);
+                    while (placeholderEnd != -1 && str.IndexOf(escaped_right, placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
+                        placeholderEnd = str.IndexOf(unescaped_right, placeholderEnd + 2, StringComparison.Ordinal);
 
                     if (placeholderEnd != -1)
                     {
@@ -100,6 +112,7 @@ namespace osu.Framework.Graphics.Containers
                         string placeholderName = placeholderStr;
                         string paramStr = "";
                         int parensOpen = placeholderStr.IndexOf('(');
+
                         if (parensOpen != -1)
                         {
                             placeholderName = placeholderStr.Substring(0, parensOpen).Trim();
@@ -122,6 +135,7 @@ namespace osu.Framework.Graphics.Containers
                         else
                         {
                             object[] args;
+
                             if (string.IsNullOrWhiteSpace(paramStr))
                             {
                                 args = Array.Empty<object>();
@@ -130,6 +144,7 @@ namespace osu.Framework.Graphics.Containers
                             {
                                 string[] argStrs = paramStr.Split(',');
                                 args = new object[argStrs.Length];
+
                                 for (int i = 0; i < argStrs.Length; ++i)
                                 {
                                     if (!int.TryParse(argStrs[i], out int argVal))
@@ -144,6 +159,7 @@ namespace osu.Framework.Graphics.Containers
 
                             placeholderDrawable = (Drawable)cb.DynamicInvoke(args);
                         }
+
                         index = placeholderEnd + 1;
                     }
                 }
@@ -153,14 +169,16 @@ namespace osu.Framework.Graphics.Containers
                     strPiece = str.Substring(index);
                     index = str.Length;
                 }
+
                 // unescape stuff
-                strPiece = strPiece.Replace("[[", "[").Replace("]]", "]");
+                strPiece = Unescape(strPiece);
                 sprites.AddRange(AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph));
 
                 if (placeholderDrawable != null)
                 {
                     if (placeholderDrawable.Parent != null)
                         throw new ArgumentException("All icons used by a customizable text container must not have a parent. If you get this error message it means one of your icon factories created a drawable that was already added to another parent, or you used a drawable as a placeholder that already has another parent or you used an index-based placeholder (like [2]) more than once.");
+
                     AddInternal(placeholderDrawable);
                 }
             }

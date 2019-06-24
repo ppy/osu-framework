@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Shaders
             {
                 case ShaderType.FragmentShader:
                     return @".fs";
+
                 case ShaderType.VertexShader:
                     return @".vs";
             }
@@ -45,6 +46,7 @@ namespace osu.Framework.Graphics.Shaders
                 name = shader_prefix + name;
             if (name.EndsWith(ending, StringComparison.Ordinal))
                 return name;
+
             return name + ending;
         }
 

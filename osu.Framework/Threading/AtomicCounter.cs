@@ -9,20 +9,13 @@ namespace osu.Framework.Threading
     {
         private long count;
 
-        public long Increment()
-        {
-            return Interlocked.Increment(ref count);
-        }
+        public long Increment() => Interlocked.Increment(ref count);
 
-        public long Add(long value)
-        {
-            return Interlocked.Add(ref count, value);
-        }
+        public long Decrement() => Interlocked.Decrement(ref count);
 
-        public long Reset()
-        {
-            return Interlocked.Exchange(ref count, 0);
-        }
+        public long Add(long value) => Interlocked.Add(ref count, value);
+
+        public long Reset() => Interlocked.Exchange(ref count, 0);
 
         public long Value
         {

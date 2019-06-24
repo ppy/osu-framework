@@ -47,6 +47,7 @@ namespace osu.Framework.Graphics.Shaders
                 return;
 
             programID = GL.CreateProgram();
+
             foreach (ShaderPart p in parts)
             {
                 if (!p.Compiled) p.Compile();
@@ -63,6 +64,7 @@ namespace osu.Framework.Graphics.Shaders
 
             Log.AppendLine(string.Format(ShaderPart.BOUNDARY, name));
             Log.AppendLine($"Linked: {linkResult == 1}");
+
             if (linkResult == 0)
             {
                 Log.AppendLine("Log:");
@@ -90,36 +92,46 @@ namespace osu.Framework.Graphics.Shaders
                         int location = GL.GetUniformLocation(this, name);
 
                         if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+
                         return new Uniform<T>(this, name, location);
                     }
 
                     IUniform uniform;
+
                     switch (type)
                     {
                         case ActiveUniformType.Bool:
                             uniform = createUniform<bool>(uniformName);
                             break;
+
                         case ActiveUniformType.Float:
                             uniform = createUniform<float>(uniformName);
                             break;
+
                         case ActiveUniformType.Int:
                             uniform = createUniform<int>(uniformName);
                             break;
+
                         case ActiveUniformType.FloatMat3:
                             uniform = createUniform<Matrix3>(uniformName);
                             break;
+
                         case ActiveUniformType.FloatMat4:
                             uniform = createUniform<Matrix4>(uniformName);
                             break;
+
                         case ActiveUniformType.FloatVec2:
                             uniform = createUniform<Vector2>(uniformName);
                             break;
+
                         case ActiveUniformType.FloatVec3:
                             uniform = createUniform<Vector3>(uniformName);
                             break;
+
                         case ActiveUniformType.FloatVec4:
                             uniform = createUniform<Vector4>(uniformName);
                             break;
+
                         default:
                             continue;
                     }
@@ -178,10 +190,7 @@ namespace osu.Framework.Graphics.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        public static implicit operator int(Shader shader)
-        {
-            return shader.programID;
-        }
+        public static implicit operator int(Shader shader) => shader.programID;
 
         #region Disposal
 

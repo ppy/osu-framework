@@ -1,10 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using System;
 using osu.Framework.Graphics.Batches;
@@ -15,24 +13,37 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgressDrawNode : DrawNode
+    public class CircularProgressDrawNode : TexturedShaderDrawNode
     {
-        public const int MAXRES = 24;
-        public float Angle;
-        public float InnerRadius = 1;
+        public const int MAX_RES = 24;
 
-        public Vector2 DrawSize;
-        public Texture Texture;
+        protected new CircularProgress Source => (CircularProgress)base.Source;
 
-        public IShader TextureShader;
-        public IShader RoundedTextureShader;
+        private float angle;
+        private float innerRadius = 1;
+
+        private Vector2 drawSize;
+        private Texture texture;
+
+        public CircularProgressDrawNode(CircularProgress source)
+            : base(source)
+        {
+        }
+
+        public override void ApplyState()
+        {
+            base.ApplyState();
+
+            texture = Source.Texture;
+            drawSize = Source.DrawSize;
+            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            innerRadius = Source.InnerRadius;
+        }
 
         // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
-        // MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
+        // MAX_RES is being multiplied by 2 to account for each circle part needing 2 triangles
         // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
-        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
-
-        private bool needsRoundedShader => GLWrapper.IsMaskingActive;
+        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAX_RES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
 
         private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
         private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
@@ -43,17 +54,18 @@ namespace osu.Framework.Graphics.UserInterface
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
+
         private void updateVertexBuffer()
         {
             const float start_angle = 0;
-            const float step = MathHelper.Pi / MAXRES;
+            const float step = MathHelper.Pi / MAX_RES;
 
-            float dir = Math.Sign(Angle);
+            float dir = Math.Sign(angle);
 
-            int amountPoints = (int)Math.Ceiling(Math.Abs(Angle) / step);
+            int amountPoints = (int)Math.Ceiling(Math.Abs(angle) / step);
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
-            MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
+            MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
@@ -63,14 +75,14 @@ namespace osu.Framework.Graphics.UserInterface
             Color4 originColour = colourAt(origin);
 
             // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
-            RectangleF texRect = Texture.GetTextureRect(new RectangleF(0.5f, 0.5f, Texture.Width - 1, Texture.Height - 1));
+            RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
 
             float prevOffset = dir >= 0 ? 0 : 1;
 
             // First center point
             halfCircleBatch.Add(new TexturedVertex2D
             {
-                Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
+                Position = Vector2.Lerp(current, screenOrigin, innerRadius),
                 TexturePosition = new Vector2(dir >= 0 ? texRect.Left : texRect.Right, texRect.Top),
                 Colour = originColour
             });
@@ -87,8 +99,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = dir * Math.Min(i * step, dir * Angle);
+                float angularOffset = dir * Math.Min(i * step, dir * angle);
                 float normalisedOffset = angularOffset / MathHelper.TwoPi;
+
                 if (dir < 0)
                 {
                     normalisedOffset += 1.0f;
@@ -102,7 +115,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // current center point
                 halfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
+                    Position = Vector2.Lerp(current, screenOrigin, innerRadius),
                     TexturePosition = new Vector2(texRect.Left + (normalisedOffset + prevOffset) / 2 * texRect.Width, texRect.Top),
                     Colour = originColour
                 });
@@ -123,19 +136,17 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Draw(vertexAction);
 
-            if (Texture?.Available != true)
+            if (texture?.Available != true)
                 return;
 
-            IShader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
+            Shader.Bind();
 
-            shader.Bind();
-
-            Texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
-            Texture.TextureGL.Bind();
+            texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
+            texture.TextureGL.Bind();
 
             updateVertexBuffer();
 
-            shader.Unbind();
+            Shader.Unbind();
         }
 
         protected override void Dispose(bool isDisposing)

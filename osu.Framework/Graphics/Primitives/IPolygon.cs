@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -8,17 +9,27 @@ namespace osu.Framework.Graphics.Primitives
     public interface IPolygon
     {
         /// <summary>
-        /// The vertices for this polygon.
+        /// The vertices that define the axes spanned by this polygon in screen-space counter-clockwise orientation.
         /// </summary>
-        Vector2[] Vertices { get; }
+        /// <remarks>
+        /// Counter-clockwise orientation in screen-space coordinates is equivalent to a clockwise orientation in standard coordinates.
+        /// <para>
+        /// E.g. For the set of vertices { (0, 0), (1, 0), (0, 1), (1, 1) }, a counter-clockwise orientation is { (0, 0), (0, 1), (1, 1), (1, 0) }.
+        /// </para>
+        /// </remarks>
+        /// <returns>The vertices that define the axes spanned by this polygon.</returns>
+        ReadOnlySpan<Vector2> GetAxisVertices();
 
         /// <summary>
-        /// The vertices for this polygon that are used to compute the axes of the polygon.
-        /// <para>
-        /// Optimisation: Edges that would form duplicate normals as other edges
-        /// in the polygon do not need their vertices added to this array.
-        /// </para>
+        /// Retrieves the vertices of this polygon in screen-space counter-clockwise orientation.
         /// </summary>
-        Vector2[] AxisVertices { get; }
+        /// <remarks>
+        /// Counter-clockwise orientation in screen-space coordinates is equivalent to a clockwise orientation in standard coordinates.
+        /// <para>
+        /// E.g. For the set of vertices { (0, 0), (1, 0), (0, 1), (1, 1) }, a counter-clockwise orientation is { (0, 0), (0, 1), (1, 1), (1, 0) }.
+        /// </para>
+        /// </remarks>
+        /// <returns>The vertices of this polygon.</returns>
+        ReadOnlySpan<Vector2> GetVertices();
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -110,23 +111,39 @@ namespace osu.Framework.Graphics.Textures
             return texRect;
         }
 
-        public RectangleF GetTextureRect(RectangleF? textureRect = null)
-        {
-            return TextureGL.GetTextureRect(TextureBounds(textureRect));
-        }
+        public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
 
-        public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        /// <summary>
+        /// Draws a triangle to the screen.
+        /// </summary>
+        /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                   Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage);
         }
 
-        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        /// <summary>
+        /// Draws a quad to the screen.
+        /// </summary>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                               Vector2? blendRangeOverride = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage, blendRangeOverride);
+            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
@@ -134,7 +151,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Whether <see cref="TextureGL"/> is in a usable state.
         /// </summary>
-        public virtual bool Available => !TextureGL.IsDisposed;
+        public virtual bool Available => TextureGL.Available;
 
         #region Disposal
 
@@ -143,6 +160,7 @@ namespace osu.Framework.Graphics.Textures
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)

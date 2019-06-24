@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
@@ -12,6 +13,12 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
+    /// <summary>
+    /// A container which filters children based on a search term.
+    /// Re-filtering will only be performed when the <see cref="SearchTerm"/> changes, or
+    /// new items are added as direct children of this container.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         private string searchTerm;
@@ -24,13 +31,40 @@ namespace osu.Framework.Graphics.Containers
             get => searchTerm;
             set
             {
+                if (value == searchTerm)
+                    return;
+
                 searchTerm = value;
-                var terms = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Children.OfType<IFilterable>().ForEach(child => match(child, terms));
+                filterValid.Invalidate();
             }
         }
 
-        private static bool match(IFilterable filterable, IEnumerable<string> terms)
+        protected internal override void AddInternal(Drawable drawable)
+        {
+            base.AddInternal(drawable);
+            filterValid.Invalidate();
+        }
+
+        private Cached filterValid = new Cached();
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!filterValid.IsValid)
+            {
+                performFilter();
+                filterValid.Validate();
+            }
+        }
+
+        private void performFilter()
+        {
+            var terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0));
+        }
+
+        private static bool match(IFilterable filterable, IEnumerable<string> terms, bool searchActive)
         {
             //Words matched by parent is not needed to match children
             var childTerms = terms.Where(term =>
@@ -41,11 +75,12 @@ namespace osu.Framework.Graphics.Containers
 
             bool matching = childTerms.Length == 0;
 
-            //We need to check the children and should any child match this matches aswell
+            //We need to check the children and should any child match this matches as well
             if (hasFilterableChildren != null)
-                foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
-                    matching |= match(searchableChildren, childTerms);
+                foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
+                    matching |= match(child, childTerms, searchActive);
 
+            filterable.FilteringActive = searchActive;
             return filterable.MatchingFilter = matching;
         }
     }

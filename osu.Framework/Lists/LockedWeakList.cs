@@ -2,13 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace osu.Framework.Lists
 {
     /// <summary>
     /// A <see cref="IWeakList{T}"/> which locks all operations.
     /// </summary>
-    public class LockedWeakList<T> : IWeakList<T>
+    public class LockedWeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
         private readonly WeakList<T> list = new WeakList<T>();
@@ -55,10 +58,50 @@ namespace osu.Framework.Lists
                 list.Clear();
         }
 
+        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
         public void ForEachAlive(Action<T> action)
         {
-            lock (list)
-                list.ForEachAlive(action);
+            foreach (var item in this)
+                action(item);
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator(list);
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            private readonly WeakList<T> list;
+
+            private WeakList<T>.Enumerator listEnumerator;
+
+            private readonly bool lockTaken;
+
+            internal Enumerator(WeakList<T> list)
+            {
+                this.list = list;
+
+                listEnumerator = list.GetEnumerator();
+
+                lockTaken = false;
+                Monitor.Enter(list, ref lockTaken);
+            }
+
+            public bool MoveNext() => listEnumerator.MoveNext();
+
+            public void Reset() => listEnumerator.Reset();
+
+            public T Current => listEnumerator.Current;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                if (lockTaken)
+                    Monitor.Exit(list);
+            }
         }
     }
 }

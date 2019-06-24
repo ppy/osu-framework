@@ -3,6 +3,7 @@
 
 using osuTK;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Primitives
@@ -13,7 +14,8 @@ namespace osu.Framework.Graphics.Primitives
         public int X;
         public int Y;
 
-        public Vector2I(int val) : this(val, val)
+        public Vector2I(int val)
+            : this(val, val)
         {
         }
 
@@ -43,14 +45,11 @@ namespace osu.Framework.Graphics.Primitives
         {
             if (!(obj is Vector2I))
                 return false;
+
             return Equals((Vector2I)obj);
         }
 
-        public override int GetHashCode()
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return (int)((uint)X ^ (uint)Y << 13 | (uint)Y >> 0x13);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override int GetHashCode() => (int)(((uint)X ^ ((uint)Y << 13)) | ((uint)Y >> 0x13));
     }
 }

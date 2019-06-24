@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
                         Drawable lastHighlight = highlightedTarget?.Target;
 
                         var parent = Target?.Parent;
+
                         if (parent != null)
                         {
                             var lastVisualiser = targetVisualiser;
@@ -58,9 +59,10 @@ namespace osu.Framework.Graphics.Visualisation
                         if (lastHighlight != null)
                         {
                             VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
+
                             if (visualised != null)
                             {
-                                propertyDisplay.State = Visibility.Visible;
+                                propertyDisplay.Show();
                                 setHighlight(visualised);
                             }
                         }
@@ -72,7 +74,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         propertyDisplay.ToggleVisibility();
 
-                        if (propertyDisplay.State == Visibility.Visible)
+                        if (propertyDisplay.State.Value == Visibility.Visible)
                             setHighlight(targetVisualiser);
                     },
                 },
@@ -81,9 +83,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             propertyDisplay = treeContainer.PropertyDisplay;
 
-            propertyDisplay.StateChanged += visibility =>
+            propertyDisplay.State.ValueChanged += v =>
             {
-                switch (visibility)
+                switch (v.NewValue)
                 {
                     case Visibility.Hidden:
                         // Dehighlight everything automatically if property display is closed
@@ -127,7 +129,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.State = Visibility.Visible;
+                propertyDisplay.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -146,11 +148,12 @@ namespace osu.Framework.Graphics.Visualisation
             treeContainer.Remove(visualiser);
 
             if (Target == null)
-                propertyDisplay.State = Visibility.Hidden;
+                propertyDisplay.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
         private Drawable target;
+
         public Drawable Target
         {
             get => target;
@@ -253,7 +256,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State == Visibility.Visible)
+            if (propertyDisplay.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
@@ -304,8 +307,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
-            // May come from the disposal thread, in which case they won't ever be reused anyway
-            Schedule(() => treeContainer.Clear());
+            treeContainer.Clear();
 
             // We don't really know where the visualised drawables are, so we have to dispose them manually
             // This is done as an optimisation so that events aren't handled while the visualiser is hidden
@@ -315,12 +317,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             target = null;
             targetVisualiser = null;
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            recycleVisualisers();
         }
     }
 }

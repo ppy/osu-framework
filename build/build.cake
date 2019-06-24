@@ -1,6 +1,6 @@
 using System.Threading;
 #addin "nuget:?package=CodeFileSanity&version=0.0.21"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2018.3.4"
+#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.1.1"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
 var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
@@ -52,10 +52,12 @@ Task("DetermineAppveyorDeployProperties")
         Environment.SetEnvironmentVariable("APPVEYOR_DEPLOY", "1");
 
         if (AppVeyor.Environment.Repository.Tag.IsTag)
+        {
             AppVeyor.UpdateBuildVersion(AppVeyor.Environment.Repository.Tag.Name);
+            version = AppVeyor.Environment.Repository.Tag.Name;
+        }
 
         configuration = "Release";
-        version = AppVeyor.Environment.Repository.Tag.Name;
     });
 
 Task("Clean")
@@ -70,7 +72,7 @@ Task("RunHttpBin")
         StartProcess(pythonPath, "-m pip install httpbin waitress");
 
         waitressProcess = StartAndReturnProcess(waitressPath, new ProcessSettings {
-            Arguments = "--listen=*:80 httpbin:app",
+            Arguments = "--listen=*:80 --threads=20 httpbin:app",
         });
 
         Thread.Sleep(5000); // we need to wait for httpbin to startup. :/
@@ -115,7 +117,9 @@ Task("InspectCode")
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
 
-        StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+        int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+        if (returnCode != 0)
+            throw new Exception($"inspectcode failed with return code {returnCode}");
     });
 
 Task("CodeFileSanity")
@@ -211,6 +215,7 @@ Task("Build")
     .IsDependentOn("CodeFileSanity")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")

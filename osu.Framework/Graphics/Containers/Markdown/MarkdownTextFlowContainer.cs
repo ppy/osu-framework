@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
             => base.AddText("[" + AddPlaceholder(drawable) + "]");
 
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
-            => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+            => base.AddText(Escape(text), creationParameters);
 
         public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
-            => base.AddParagraph(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
+            => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
         {
@@ -61,44 +61,53 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                                     while (parent != null && parent is EmphasisInline e)
                                     {
-                                        emphases.Add(e.IsDouble ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
+                                        emphases.Add(e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
                                         parent = parent.Parent;
                                     }
 
                                     addEmphasis(text, emphases);
 
                                     break;
+
                                 case LinkInline linkInline:
                                 {
                                     if (!linkInline.IsImage)
                                         AddLinkText(text, linkInline);
                                     break;
                                 }
+
                                 default:
                                     AddText(text);
                                     break;
                             }
                         }
+
                         break;
+
                     case CodeInline codeInline:
                         AddCodeInLine(codeInline);
                         break;
+
                     case LinkInline linkInline when linkInline.IsImage:
                         AddImage(linkInline);
                         break;
+
                     case HtmlInline _:
                     case HtmlEntityInline _:
                         // Handled by the next literal
                         break;
+
                     case LineBreakInline lineBreak:
                         if (lineBreak.IsHard)
                             NewParagraph();
                         else
                             NewLine();
                         break;
+
                     case ContainerInline innerContainer:
                         AddInlineText(innerContainer);
                         break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -137,6 +146,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     case "_":
                         hasItalic = true;
                         break;
+
                     case "**":
                     case "__":
                         hasBold = true;

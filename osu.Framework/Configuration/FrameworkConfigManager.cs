@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
@@ -12,7 +13,9 @@ namespace osu.Framework.Configuration
 {
     public class FrameworkConfigManager : IniConfigManager<FrameworkSetting>
     {
-        protected override string Filename => @"framework.ini";
+        internal const string FILENAME = @"framework.ini";
+
+        protected override string Filename => FILENAME;
 
         protected override void InitialiseDefaults()
         {
@@ -38,8 +41,8 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.PerformanceLogging, false);
         }
 
-        public FrameworkConfigManager(Storage storage)
-            : base(storage)
+        public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
+            : base(storage, defaultOverrides)
         {
         }
 

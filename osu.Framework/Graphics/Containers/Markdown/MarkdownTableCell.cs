@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [Resolved]
         private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
 
-        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
+        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition)
         {
             this.cell = cell;
             this.definition = definition;
@@ -65,9 +65,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case TableColumnAlign.Center:
                     textFlow.TextAnchor = Anchor.Centre;
                     break;
+
                 case TableColumnAlign.Right:
                     textFlow.TextAnchor = Anchor.CentreRight;
                     break;
+
                 default:
                     textFlow.TextAnchor = Anchor.CentreLeft;
                     break;

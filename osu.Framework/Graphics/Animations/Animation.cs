@@ -118,7 +118,9 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="content">The content of the new frame.</param>
         /// <param name="displayDuration">The display duration of the new frame.</param>
-        protected virtual void OnFrameAdded(T content, double displayDuration) { }
+        protected virtual void OnFrameAdded(T content, double displayDuration)
+        {
+        }
 
         protected override void Update()
         {
@@ -127,10 +129,12 @@ namespace osu.Framework.Graphics.Animations
             if (IsPlaying && frameData.Count > 0)
             {
                 currentFrameTime += Time.Elapsed;
+
                 while (currentFrameTime > frameData[currentFrameIndex].Duration)
                 {
                     currentFrameTime -= frameData[currentFrameIndex].Duration;
                     ++currentFrameIndex;
+
                     if (currentFrameIndex >= frameData.Count)
                     {
                         if (Repeat)
@@ -145,6 +149,7 @@ namespace osu.Framework.Graphics.Animations
                         }
                     }
                 }
+
                 displayFrame(currentFrameIndex);
             }
         }

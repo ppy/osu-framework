@@ -85,6 +85,7 @@ namespace osu.Framework.Graphics.Textures
             Vector2I res = new Vector2I(0, currentY);
 
             int maxY = currentY;
+
             foreach (RectangleI bounds in subTextureBounds)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.

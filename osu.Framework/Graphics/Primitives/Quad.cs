@@ -2,18 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.PolygonExtensions;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using osuTK;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Primitives
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
+        // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
+        // See: IPolygon.GetVertices()
         public Vector2 TopLeft;
-        public Vector2 TopRight;
         public Vector2 BottomLeft;
         public Vector2 BottomRight;
+        public Vector2 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -35,22 +39,18 @@ namespace osu.Framework.Graphics.Primitives
         public static implicit operator Quad(RectangleI r) => FromRectangle(r);
         public static implicit operator Quad(RectangleF r) => FromRectangle(r);
 
-        public static Quad FromRectangle(RectangleF rectangle)
-        {
-            return new Quad(new Vector2(rectangle.Left, rectangle.Top),
+        public static Quad FromRectangle(RectangleF rectangle) =>
+            new Quad(new Vector2(rectangle.Left, rectangle.Top),
                 new Vector2(rectangle.Right, rectangle.Top),
                 new Vector2(rectangle.Left, rectangle.Bottom),
                 new Vector2(rectangle.Right, rectangle.Bottom));
-        }
 
-        public static Quad operator *(Quad r, Matrix3 m)
-        {
-            return new Quad(
+        public static Quad operator *(Quad r, Matrix3 m) =>
+            new Quad(
                 Vector2Extensions.Transform(r.TopLeft, m),
                 Vector2Extensions.Transform(r.TopRight, m),
                 Vector2Extensions.Transform(r.BottomLeft, m),
                 Vector2Extensions.Transform(r.BottomRight, m));
-        }
 
         public Matrix2 BasisTransform
         {
@@ -103,15 +103,19 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
-        public Vector2[] AxisVertices => Vertices;
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public bool Contains(Vector2 pos)
+        public ReadOnlySpan<Vector2> GetVertices()
         {
-            return
-                new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
-                new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
+            unsafe
+            {
+                return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 4);
+            }
         }
+
+        public bool Contains(Vector2 pos) =>
+            new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
+            new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
         public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
 
@@ -135,32 +139,21 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public bool Intersects(IConvexPolygon other)
-        {
-            return (this as IConvexPolygon).Intersects(other);
-        }
+        public bool Equals(Quad other) =>
+            TopLeft == other.TopLeft &&
+            TopRight == other.TopRight &&
+            BottomLeft == other.BottomLeft &&
+            BottomRight == other.BottomRight;
 
-        public bool Equals(Quad other)
-        {
-            return
-                TopLeft == other.TopLeft &&
-                TopRight == other.TopRight &&
-                BottomLeft == other.BottomLeft &&
-                BottomRight == other.BottomRight;
-        }
-
-        public bool AlmostEquals(Quad other)
-        {
-            return
-                Precision.AlmostEquals(TopLeft.X, other.TopLeft.X) &&
-                Precision.AlmostEquals(TopLeft.Y, other.TopLeft.Y) &&
-                Precision.AlmostEquals(TopRight.X, other.TopRight.X) &&
-                Precision.AlmostEquals(TopRight.Y, other.TopRight.Y) &&
-                Precision.AlmostEquals(BottomLeft.X, other.BottomLeft.X) &&
-                Precision.AlmostEquals(BottomLeft.Y, other.BottomLeft.Y) &&
-                Precision.AlmostEquals(BottomRight.X, other.BottomRight.X) &&
-                Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
-        }
+        public bool AlmostEquals(Quad other) =>
+            Precision.AlmostEquals(TopLeft.X, other.TopLeft.X) &&
+            Precision.AlmostEquals(TopLeft.Y, other.TopLeft.Y) &&
+            Precision.AlmostEquals(TopRight.X, other.TopRight.X) &&
+            Precision.AlmostEquals(TopRight.Y, other.TopRight.Y) &&
+            Precision.AlmostEquals(BottomLeft.X, other.BottomLeft.X) &&
+            Precision.AlmostEquals(BottomLeft.Y, other.BottomLeft.Y) &&
+            Precision.AlmostEquals(BottomRight.X, other.BottomRight.X) &&
+            Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
 
         public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
     }

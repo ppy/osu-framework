@@ -97,6 +97,7 @@ namespace osu.Framework.Graphics.Containers
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
+
             if (max == Vector2.Zero)
             {
                 var s = ChildSize;
@@ -128,6 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
             // First pass, computing initial flow positions
             Vector2 size = Vector2.Zero;
+
             for (int i = 0; i < children.Length; ++i)
             {
                 Drawable c = children[i];
@@ -138,10 +140,13 @@ namespace osu.Framework.Graphics.Containers
                     {
                         case FillDirection.Full:
                             return Axes.Both;
+
                         case FillDirection.Horizontal:
                             return Axes.X;
+
                         case FillDirection.Vertical:
                             return Axes.Y;
+
                         default:
                             throw new ArgumentException($"{direction.ToString()} is not defined");
                     }
@@ -155,7 +160,7 @@ namespace osu.Framework.Graphics.Containers
                 // in an autosize-related feedback loop, and we can thus simply allow it.
                 if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
-                        "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for." +
+                        "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
 
                 // Populate running variables with sane initial values.
@@ -192,6 +197,7 @@ namespace osu.Framework.Graphics.Containers
                 rowIndices[i] = rowOffsetsToMiddle.Count - 1;
 
                 Vector2 stride = Vector2.Zero;
+
                 if (i < children.Length - 1)
                 {
                     // Compute stride. Note, that the stride depends on the origins of the drawables
@@ -228,18 +234,23 @@ namespace osu.Framework.Graphics.Containers
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
+
                     case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
+
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                         break;
                 }
 

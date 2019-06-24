@@ -32,6 +32,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == firstLineIndent) return;
+
                 firstLineIndent = value;
 
                 layout.Invalidate();
@@ -49,6 +50,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == contentIndent) return;
+
                 contentIndent = value;
 
                 layout.Invalidate();
@@ -67,6 +69,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == paragraphSpacing) return;
+
                 paragraphSpacing = value;
 
                 layout.Invalidate();
@@ -85,6 +88,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == lineSpacing) return;
+
                 lineSpacing = value;
 
                 layout.Invalidate();
@@ -103,6 +107,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (textAnchor == value)
                     return;
+
                 textAnchor = value;
 
                 layout.Invalidate();
@@ -189,6 +194,7 @@ namespace osu.Framework.Graphics.Containers
             // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
             if (TextAnchor.HasFlag(Anchor.x2))
                 return base.Compare(y, x);
+
             return base.Compare(x, y);
         }
 
@@ -269,11 +275,13 @@ namespace osu.Framework.Graphics.Containers
         {
             bool first = true;
             var sprites = new List<Drawable>();
+
             foreach (string l in line.Text.Split('\n'))
             {
                 if (!first)
                 {
                     Drawable lastChild = Children.LastOrDefault();
+
                     if (lastChild != null)
                     {
                         var newLine = new NewLineContainer(newLineIsParagraph);
@@ -326,6 +334,7 @@ namespace osu.Framework.Graphics.Containers
         {
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
+
             foreach (var c in Children)
             {
                 c.Anchor = TextAnchor;
@@ -345,6 +354,7 @@ namespace osu.Framework.Graphics.Containers
                             childrenByLine.Add(curLine);
                         curLine = new List<Drawable>();
                     }
+
                     curLine.Add(c);
                 }
             }
@@ -354,6 +364,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
+
             foreach (var line in childrenByLine)
             {
                 bool isFirstChild = true;

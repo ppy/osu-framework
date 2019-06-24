@@ -41,9 +41,9 @@ namespace osu.Framework.Tests.Bindables
         [TestCase("(-100, -100, -100, -100)", -10, -10, -10, -10, 10, 10, 10, 10, -10, -10, -10, -10)]
         [TestCase("(100, 100, 100, 100)", -10, -10, -10, -10, 10, 10, 10, 10, 10, 10, 10, 10)]
         public void TestParsingStringWithRange(string value,
-            float minValueTop, float minValueLeft, float minValueBottom, float minValueRight,
-            float maxValueTop, float maxValueLeft, float maxValueBottom, float maxValueRight,
-            float expectedTop, float expectedLeft, float expectedBottom, float expectedRight
+                                               float minValueTop, float minValueLeft, float minValueBottom, float minValueRight,
+                                               float maxValueTop, float maxValueLeft, float maxValueBottom, float maxValueRight,
+                                               float expectedTop, float expectedLeft, float expectedBottom, float expectedRight
         )
         {
             var minValue = new MarginPadding { Top = minValueTop, Left = minValueLeft, Bottom = minValueBottom, Right = minValueRight };

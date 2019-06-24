@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [Resolved]
         private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
 
-        public MarkdownParagraph(ParagraphBlock paragraphBlock, int level)
+        public MarkdownParagraph(ParagraphBlock paragraphBlock)
         {
             this.paragraphBlock = paragraphBlock;
 

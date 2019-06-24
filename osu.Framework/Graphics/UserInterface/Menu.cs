@@ -39,12 +39,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly ScrollContainer<Container<DrawableMenuItem>> ContentContainer;
+        protected readonly ScrollContainer<Drawable> ContentContainer;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly FillFlowContainer<DrawableMenuItem> ItemsContainer;
+        protected FillFlowContainer<DrawableMenuItem> ItemsContainer;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -94,12 +94,12 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new ScrollContainer<Container<DrawableMenuItem>>(direction)
+                        ContentContainer = CreateScrollContainer(direction).With(d =>
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = false,
-                            Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical }
-                        }
+                            d.RelativeSizeAxes = Axes.Both;
+                            d.Masking = false;
+                            d.Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                        })
                     }
                 },
                 submenuContainer = new Container<Menu>
@@ -114,6 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Direction.Horizontal:
                     ItemsContainer.AutoSizeAxes = Axes.X;
                     break;
+
                 case Direction.Vertical:
                     ItemsContainer.AutoSizeAxes = Axes.Y;
                     break;
@@ -161,6 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private float maxWidth = float.MaxValue;
+
         /// <summary>
         /// Gets or sets the maximum allowable width by this <see cref="Menu"/>.
         /// </summary>
@@ -171,6 +173,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (Precision.AlmostEquals(maxWidth, value))
                     return;
+
                 maxWidth = value;
 
                 sizeCache.Invalidate();
@@ -178,6 +181,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private float maxHeight = float.PositiveInfinity;
+
         /// <summary>
         /// Gets or sets the maximum allowable height by this <see cref="Menu"/>.
         /// </summary>
@@ -188,6 +192,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (Precision.AlmostEquals(maxHeight, value))
                     return;
+
                 maxHeight = value;
 
                 sizeCache.Invalidate();
@@ -195,6 +200,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private MenuState state = MenuState.Closed;
+
         /// <summary>
         /// Gets or sets the current state of this <see cref="Menu"/>.
         /// </summary>
@@ -211,6 +217,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (state == value)
                     return;
+
                 state = value;
 
                 updateState();
@@ -230,6 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     AnimateClose();
                     break;
+
                 case MenuState.Open:
                     AnimateOpen();
                     if (!TopLevelMenu)
@@ -373,6 +381,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual void UpdateSize(Vector2 newSize) => Size = newSize;
 
         #region Hover/Focus logic
+
         private void menuItemClicked(DrawableMenuItem item)
         {
             // We only want to close the sub-menu if we're not a sub menu - if we are a sub menu
@@ -439,6 +448,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     selectedItem.State = MenuItemState.NotSelected;
                     break;
+
                 case MenuState.Open:
                     selectedItem.State = MenuItemState.Selected;
                     break;
@@ -446,6 +456,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private ScheduledDelegate openDelegate;
+
         private void menuItemHovered(DrawableMenuItem item)
         {
             // If we're not a sub-menu, then hover shouldn't display a sub-menu unless an item is clicked
@@ -533,7 +544,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>The visual representation.</returns>
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
+        /// <summary>
+        /// Creates the <see cref="ScrollContainer{T}"/> to hold the items of this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="direction">The scrolling direction.</param>
+        /// <returns>The <see cref="ScrollContainer{T}"/>.</returns>
+        protected virtual ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer<Drawable>(direction);
+
         #region DrawableMenuItem
+
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
         public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
@@ -606,6 +625,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 backgroundColour = Color4.DarkSlateGray;
+
             /// <summary>
             /// Gets or sets the default background colour.
             /// </summary>
@@ -620,6 +640,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 foregroundColour = Color4.White;
+
             /// <summary>
             /// Gets or sets the default foreground colour.
             /// </summary>
@@ -634,6 +655,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 backgroundColourHover = Color4.DarkGray;
+
             /// <summary>
             /// Gets or sets the background colour when this <see cref="DrawableMenuItem"/> is hovered.
             /// </summary>
@@ -648,6 +670,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 foregroundColourHover = Color4.White;
+
             /// <summary>
             /// Gets or sets the foreground colour when this <see cref="DrawableMenuItem"/> is hovered.
             /// </summary>
@@ -662,6 +685,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private MenuItemState state;
+
             public MenuItemState State
             {
                 get => state;
@@ -763,6 +787,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Font = new FontUsage(size: 17),
             };
         }
+
         #endregion
     }
 

@@ -116,10 +116,10 @@ namespace osu.Framework.Platform
                 return;
 
             var newResolution = display.AvailableResolutions
-                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
-                                              .OrderByDescending(r => r.RefreshRate)
-                                              .ThenByDescending(r => r.BitsPerPixel)
-                                              .FirstOrDefault();
+                                       .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                       .OrderByDescending(r => r.RefreshRate)
+                                       .ThenByDescending(r => r.BitsPerPixel)
+                                       .FirstOrDefault();
 
             if (newResolution == null)
             {
@@ -143,6 +143,8 @@ namespace osu.Framework.Platform
             {
                 case Configuration.WindowMode.Windowed:
                     sizeWindowed.Value = ClientSize;
+                    if (sizeWindowed.Value != ClientSize)
+                        ClientSize = sizeWindowed.Value;
                     break;
             }
         }
@@ -150,6 +152,7 @@ namespace osu.Framework.Platform
         protected void OnMove(object sender, EventArgs e)
         {
             if (inWindowModeTransition) return;
+
             if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
                 // Values are clamped to a range of [-0.5, 1.5], so if more than half of the window was
@@ -173,6 +176,7 @@ namespace osu.Framework.Platform
                 case Input.ConfineMouseMode.Fullscreen:
                     confine = WindowMode.Value != Configuration.WindowMode.Windowed;
                     break;
+
                 case Input.ConfineMouseMode.Always:
                     confine = true;
                     break;
@@ -199,6 +203,7 @@ namespace osu.Framework.Platform
             try
             {
                 inWindowModeTransition = true;
+
                 switch (newMode)
                 {
                     case Configuration.WindowMode.Fullscreen:
@@ -207,6 +212,7 @@ namespace osu.Framework.Platform
 
                         WindowState = WindowState.Fullscreen;
                         break;
+
                     case Configuration.WindowMode.Borderless:
                         if (lastFullscreenDisplay != null)
                             RestoreResolution(lastFullscreenDisplay);
@@ -219,6 +225,7 @@ namespace osu.Framework.Platform
                         ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
                         Location = currentDisplay.Bounds.Location;
                         break;
+
                     case Configuration.WindowMode.Windowed:
                         if (lastFullscreenDisplay != null)
                             RestoreResolution(lastFullscreenDisplay);
@@ -264,7 +271,7 @@ namespace osu.Framework.Platform
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
-                    display.Width  > Size.Width  ? (float)relativeLocation.X / (display.Width  - Size.Width)  : 0,
+                    display.Width > Size.Width ? (float)relativeLocation.X / (display.Width - Size.Width) : 0,
                     display.Height > Size.Height ? (float)relativeLocation.Y / (display.Height - Size.Height) : 0);
             }
             set

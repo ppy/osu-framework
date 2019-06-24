@@ -69,23 +69,32 @@ namespace osu.Framework.Graphics
                 /// </summary>
                 public ulong FrameCount;
 
-                private readonly ProxyDrawable proxyDrawable;
+                protected new ProxyDrawable Source => (ProxyDrawable)base.Source;
 
                 public ProxyDrawNode(ProxyDrawable proxyDrawable)
+                    : base(proxyDrawable)
                 {
-                    this.proxyDrawable = proxyDrawable;
                 }
 
+                internal override void DrawOpaqueInteriorSubTree(DepthValue depthValue, Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.DrawOpaqueInteriorSubTree(depthValue, vertexAction);
+
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
+                    => getCurrentFrameSource()?.Draw(vertexAction);
+
+                protected internal override bool CanDrawOpaqueInterior => getCurrentFrameSource()?.CanDrawOpaqueInterior ?? false;
+
+                private DrawNode getCurrentFrameSource()
                 {
-                    var target = proxyDrawable.originalDrawNodes[DrawNodeIndex];
+                    var target = Source.originalDrawNodes[DrawNodeIndex];
+
                     if (target == null)
-                        return;
+                        return null;
 
-                    if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
-                        return;
+                    if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
+                        return null;
 
-                    target.Draw(vertexAction);
+                    return target;
                 }
             }
         }

@@ -123,6 +123,7 @@ namespace osu.Framework.Tests.Lists
         public void TestNonSquareJaggedWithNullRowsToRectangular()
         {
             var jagged = new int[10][];
+
             for (int i = 1; i < 10; i += 2)
             {
                 if (i % 2 == 1)
@@ -170,7 +171,7 @@ namespace osu.Framework.Tests.Lists
                 new int?[] { 1, 2, null },
                 new int?[] { 3, 4 },
                 null,
-                new int?[] { null, 5, 6, 7, 8}
+                new int?[] { null, 5, 6, 7, 8 }
             };
 
             var result = original.Invert();

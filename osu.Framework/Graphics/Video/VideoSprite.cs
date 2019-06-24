@@ -52,6 +52,7 @@ namespace osu.Framework.Graphics.Video
                     return 0;
 
                 if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+
                 return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
             }
         }
@@ -111,6 +112,7 @@ namespace osu.Framework.Graphics.Video
                 startTime = Clock.CurrentTime;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+
             if (nextFrame != null)
             {
                 bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&

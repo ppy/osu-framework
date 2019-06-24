@@ -102,6 +102,7 @@ namespace osu.Framework.Input.Bindings
         protected override bool Handle(UIEvent e)
         {
             var state = e.CurrentState;
+
             switch (e)
             {
                 case MouseDownEvent mouseDown:
@@ -113,6 +114,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyDownEvent keyDown:
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
+
                     return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat);
 
                 case KeyUpEvent keyUp:
@@ -128,6 +130,7 @@ namespace osu.Framework.Input.Bindings
                 {
                     var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
                     if (key == InputKey.None) return false;
+
                     return handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise) | handleNewReleased(state, key);
                 }
             }

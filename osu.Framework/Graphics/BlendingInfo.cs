@@ -27,12 +27,14 @@ namespace osu.Framework.Graphics
                     SourceAlpha = BlendingFactorSrc.One;
                     DestinationAlpha = BlendingFactorDest.One;
                     break;
+
                 case BlendingMode.Additive:
                     Source = BlendingFactorSrc.SrcAlpha;
                     Destination = BlendingFactorDest.One;
                     SourceAlpha = BlendingFactorSrc.One;
                     DestinationAlpha = BlendingFactorDest.One;
                     break;
+
                 default:
                     Source = BlendingFactorSrc.One;
                     Destination = BlendingFactorDest.Zero;
@@ -43,7 +45,6 @@ namespace osu.Framework.Graphics
 
             RGBEquation = translateEquation(parameters.RGBEquation);
             AlphaEquation = translateEquation(parameters.AlphaEquation);
-
         }
 
         private static BlendEquationMode translateEquation(BlendingEquation blendingEquation)
@@ -54,12 +55,16 @@ namespace osu.Framework.Graphics
                 case BlendingEquation.Inherit:
                 case BlendingEquation.Add:
                     return BlendEquationMode.FuncAdd;
+
                 case BlendingEquation.Min:
                     return BlendEquationMode.Min;
+
                 case BlendingEquation.Max:
                     return BlendEquationMode.Max;
+
                 case BlendingEquation.Subtract:
                     return BlendEquationMode.FuncSubtract;
+
                 case BlendingEquation.ReverseSubtract:
                     return BlendEquationMode.FuncReverseSubtract;
             }

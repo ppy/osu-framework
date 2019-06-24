@@ -7,21 +7,24 @@ using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Caching;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class Path : Drawable
+    public partial class Path : Drawable, IBufferedDrawable
     {
-        private IShader roundedTextureShader;
-        private IShader textureShader;
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
+        private IShader pathShader;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -72,6 +75,7 @@ namespace osu.Framework.Graphics.Lines
             foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+
             return false;
         }
 
@@ -174,21 +178,15 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode();
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            PathDrawNode n = (PathDrawNode)node;
+        // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.Radius = PathRadius;
-            n.DrawSize = DrawSize;
+        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-            n.Segments = segments.ToList();
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
 
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
     }
 }

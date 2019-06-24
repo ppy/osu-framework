@@ -60,18 +60,17 @@ namespace osu.Framework.Bindables
 
                     Value = new Size(int.Parse(split[0]), int.Parse(split[1]));
                     break;
+
                 default:
                     base.Parse(input);
                     break;
             }
         }
 
-        private static Size clamp(Size value, Size minValue, Size maxValue)
-        {
-            return new Size(
+        private static Size clamp(Size value, Size minValue, Size maxValue) =>
+            new Size(
                 Math.Max(minValue.Width, Math.Min(value.Width, maxValue.Width)),
                 Math.Max(minValue.Height, Math.Min(value.Height, maxValue.Height))
             );
-        }
     }
 }
