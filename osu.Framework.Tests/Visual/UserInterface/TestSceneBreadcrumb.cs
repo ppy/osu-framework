@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestCaseBreadcrumb : FrameworkTestScene
+    public class TestSceneBreadcrumb : FrameworkTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             "hosts"
         };
 
-        public TestCaseBreadcrumb()
+        public TestSceneBreadcrumb()
         {
             BreadcrumbNavigation<string> navigation;
 
@@ -44,12 +44,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Add range of values", () => navigation.Items.AddRange(testValues));
 
-            AddStep($"Click on the last one of the elements", () =>
+            AddStep("Click on the last one of the elements", () =>
             {
                 (navigation.InternalChild as CompositeDrawable)?.InternalChildren.Last().Click();
             });
 
-            AddStep($"Click on the first one of the elements", () =>
+            AddStep("Click on the first one of the elements", () =>
             {
                 (navigation.InternalChild as CompositeDrawable)?.InternalChildren.First().Click();
             });
