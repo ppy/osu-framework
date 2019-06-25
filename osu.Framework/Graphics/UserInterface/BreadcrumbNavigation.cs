@@ -83,7 +83,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Items.RemoveRange(newIndex + 1, Items.Count - newIndex - 1);
 
-
             fillFlowContainer.Children.Last().Current.Value = true;
         }
 
