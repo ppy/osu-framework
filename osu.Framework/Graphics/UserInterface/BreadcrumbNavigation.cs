@@ -81,11 +81,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (newIndex + 1 == Items.Count)
                 return;
 
-            for (int i = Items.Count - 1; i != newIndex; i--)
-                Items.RemoveAt(i);
+            Items.RemoveRange(newIndex + 1, Items.Count - newIndex - 1);
 
-            foreach (var unselected in fillFlowContainer.Children.Take(newIndex))
-                unselected.Current.Value = false;
 
             fillFlowContainer.Children.Last().Current.Value = true;
         }
