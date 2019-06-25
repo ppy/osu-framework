@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Audio
             {
                 thread.Scheduler.Add(() =>
                 {
-                    if (--count > 0)
+                    if (count-- > 0)
                         runScheduled();
                     else
                     {
