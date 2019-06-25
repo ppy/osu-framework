@@ -534,6 +534,89 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region .RemoveRange(index, count)
+
+        [TestCase(1, 0, 1)]
+        [TestCase(0, 0, 0)]
+        [TestCase(1000, 999, 1)]
+        [TestCase(3, 1, 1)]
+        [TestCase(10, 0, 9)]
+        [TestCase(10, 0, 0)]
+        public void TestRemoveRangeRemovesRange(int totalCount, int startIndex, int removeCount)
+        {
+            for (int i = 0; i < totalCount; i++)
+                bindableStringList.Add("test" + i);
+
+            bindableStringList.RemoveRange(startIndex, removeCount);
+
+            Assert.AreEqual(totalCount - removeCount, bindableStringList.Count);
+
+            var remainingItems = new List<string>();
+
+            for (int i = 0; i < startIndex; i++)
+                remainingItems.Add("test" + i);
+            for (int i = startIndex + removeCount; i < totalCount; i++)
+                remainingItems.Add("test" + i);
+
+            CollectionAssert.AreEqual(remainingItems, bindableStringList);
+        }
+
+        [Test]
+        public void TestRemoveRangeNotifiesSubscribers()
+        {
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+
+            List<string> itemsRemoved = null;
+            bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
+            bindableStringList.RemoveRange(1, 1);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(1, bindableStringList.Count);
+                Assert.AreEqual("0", bindableStringList.FirstOrDefault());
+                Assert.AreEqual(1, itemsRemoved.Count);
+                Assert.AreEqual("1", itemsRemoved.FirstOrDefault());
+            });
+        }
+
+        [Test]
+        public void TestRemoveRangeNotifiesBoundLists()
+        {
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+
+            List<string> itemsRemoved = null;
+            var list = new BindableList<string>();
+            list.BindTo(bindableStringList);
+            list.ItemsRemoved += i => itemsRemoved = i.ToList();
+
+            bindableStringList.RemoveRange(0, 1);
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(1, itemsRemoved.Count);
+                Assert.AreEqual("0", itemsRemoved.FirstOrDefault());
+            });
+        }
+
+        [Test]
+        public void TestRemoveRangeDoesNotNotifyBoundListsWhenCountIsZero()
+        {
+            bindableStringList.Add("0");
+
+            bool notified = false;
+            var list = new BindableList<string>();
+            list.BindTo(bindableStringList);
+            list.ItemsRemoved += i => notified = true;
+
+            bindableStringList.RemoveRange(0, 0);
+
+            Assert.IsFalse(notified);
+        }
+
+        #endregion
+
         #region .RemoveAt(index)
 
         [Test]
