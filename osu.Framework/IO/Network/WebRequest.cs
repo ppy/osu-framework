@@ -456,7 +456,7 @@ namespace osu.Framework.IO.Network
 
                 logger.Add($"Request to {Url} failed with {e}.");
 
-                if (ResponseStream?.Length > 0)
+                if (ResponseStream?.CanSeek == true && ResponseStream.Length > 0)
                 {
                     // in the case we fail a request, spitting out the response in the log is quite helpful.
                     ResponseStream.Seek(0, SeekOrigin.Begin);
