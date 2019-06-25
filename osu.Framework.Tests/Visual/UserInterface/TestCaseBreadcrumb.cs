@@ -4,11 +4,20 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestCaseBreadcrumb : FrameworkTestScene
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(BreadcrumbNavigation<string>),
+            typeof(BasicBreadcrumbNavigation<string>)
+        };
+
         private readonly string[] testValues =
         {
             "c://",
@@ -35,11 +44,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Add range of values", () => navigation.Items.AddRange(testValues));
 
-            const int test_index = 2;
-
-            AddStep($"Click on {testValues[test_index]} one of the elements", () =>
+            AddStep($"Click on the last one of the elements", () =>
             {
-                (navigation.InternalChild as CompositeDrawable)?.InternalChildren[test_index].Click();
+                (navigation.InternalChild as CompositeDrawable)?.InternalChildren.Last().Click();
+            });
+
+            AddStep($"Click on the first one of the elements", () =>
+            {
+                (navigation.InternalChild as CompositeDrawable)?.InternalChildren.First().Click();
             });
         }
     }
