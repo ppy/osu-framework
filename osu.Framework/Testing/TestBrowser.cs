@@ -138,6 +138,52 @@ namespace osu.Framework.Testing
 
             Children = new Drawable[]
             {
+                mainContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Left = test_list_width },
+                    Children = new Drawable[]
+                    {
+                        toolbar = new TestBrowserToolbar
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 50,
+                        },
+                        new EdgeSnappingContainer
+                        {
+                            SnappedEdges = Edges.Right | Edges.Bottom,
+                            Child = testContentContainer = new Container
+                            {
+                                Clock = framedClock,
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding { Top = 50 },
+                                Child = compilingNotice = new Container
+                                {
+                                    Alpha = 0,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Masking = true,
+                                    Depth = float.MinValue,
+                                    CornerRadius = 5,
+                                    AutoSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.Black,
+                                        },
+                                        new SpriteText
+                                        {
+                                            Font = new FontUsage(size: 30),
+                                            Text = @"Compiling new version..."
+                                        }
+                                    },
+                                }
+                            }
+                        },
+                    }
+                },
                 leftContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Y,
@@ -189,53 +235,6 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
-                mainContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = test_list_width },
-                    Children = new Drawable[]
-                    {
-                        toolbar = new TestBrowserToolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 50,
-                            Depth = -1,
-                        },
-                        new EdgeSnappingContainer
-                        {
-                            SnappedEdges = Edges.Right | Edges.Bottom,
-                            Child = testContentContainer = new Container
-                            {
-                                Clock = framedClock,
-                                RelativeSizeAxes = Axes.Both,
-                                Padding = new MarginPadding { Top = 50 },
-                                Child = compilingNotice = new Container
-                                {
-                                    Alpha = 0,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Masking = true,
-                                    Depth = float.MinValue,
-                                    CornerRadius = 5,
-                                    AutoSizeAxes = Axes.Both,
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Black,
-                                        },
-                                        new SpriteText
-                                        {
-                                            Font = new FontUsage(size: 30),
-                                            Text = @"Compiling new version..."
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    }
-                }
             };
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;

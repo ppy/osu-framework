@@ -27,6 +27,8 @@ namespace osu.Framework.IO.Stores
 
         public byte[] Get(string name)
         {
+            this.LogIfNonBackgroundThread(name);
+
             using (Stream input = GetStream(name))
             {
                 if (input == null)
@@ -40,6 +42,8 @@ namespace osu.Framework.IO.Stores
 
         public virtual async Task<byte[]> GetAsync(string name)
         {
+            this.LogIfNonBackgroundThread(name);
+
             using (Stream input = GetStream(name))
             {
                 if (input == null)
@@ -72,6 +76,8 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name)
         {
+            this.LogIfNonBackgroundThread(name);
+
             var split = name.Split('/');
             for (int i = 0; i < split.Length - 1; i++)
                 split[i] = split[i].Replace('-', '_');

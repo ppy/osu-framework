@@ -67,6 +67,8 @@ namespace osu.Framework.Graphics.Textures
         {
             if (string.IsNullOrEmpty(name)) return null;
 
+            this.LogIfNonBackgroundThread(name);
+
             lock (textureCache)
             {
                 // refresh the texture if no longer available (may have been previously disposed).
