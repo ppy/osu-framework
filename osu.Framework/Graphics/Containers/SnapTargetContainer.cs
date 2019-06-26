@@ -15,18 +15,12 @@ namespace osu.Framework.Graphics.Containers
     /// It is automatically cached as <see cref="ISnapTargetContainer"/> so that it may be resolved by any
     /// child <see cref="EdgeSnappingContainer{T}"/>s.
     /// </summary>
+    [Cached(typeof(ISnapTargetContainer))]
     public class SnapTargetContainer<T> : Container<T>, ISnapTargetContainer
         where T : Drawable
     {
         public virtual RectangleF SnapRectangle => DrawRectangle;
 
         public Quad SnapRectangleToSpaceOfOtherDrawable(IDrawable other) => ToSpaceOfOtherDrawable(SnapRectangle, other);
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-        {
-            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
-            dependencies.CacheAs<ISnapTargetContainer>(this);
-            return dependencies;
-        }
     }
 }
