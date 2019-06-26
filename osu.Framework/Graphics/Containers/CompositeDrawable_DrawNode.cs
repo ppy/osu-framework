@@ -271,6 +271,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Dispose(isDisposing);
 
+                Children?.ForEach(c => c.Dispose());
+                Children = null;
+
                 quadBatch?.Dispose();
                 triangleBatch?.Dispose();
             }

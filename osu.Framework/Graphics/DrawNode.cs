@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="Drawable"/> which this <see cref="DrawNode"/> draws.
         /// </summary>
-        protected readonly IDrawable Source;
+        protected IDrawable Source { get; private set; }
 
         private readonly AtomicCounter referenceCount = new AtomicCounter();
 
@@ -292,6 +292,7 @@ namespace osu.Framework.Graphics
 
         protected virtual void Dispose(bool isDisposing)
         {
+            Source = null;
         }
     }
 }
