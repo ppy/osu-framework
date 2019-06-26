@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~FrameBuffer()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
