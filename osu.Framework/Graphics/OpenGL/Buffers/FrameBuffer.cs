@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private bool isDisposed;
 
-        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delegate
+        protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GLWrapper.DeleteFramebuffer(frameBuffer);
             frameBuffer = -1;
-        });
+        }
 
         #endregion
 
