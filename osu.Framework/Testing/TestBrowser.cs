@@ -152,6 +152,7 @@ namespace osu.Framework.Testing
                         new EdgeSnappingContainer
                         {
                             SnappedEdges = Edges.Right | Edges.Bottom,
+                            RelativeSizeAxes = Axes.Both,
                             Child = testContentContainer = new Container
                             {
                                 Clock = framedClock,
