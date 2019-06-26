@@ -11,7 +11,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShaderManager : IDisposable
+    public class ShaderManager
     {
         private const string shader_prefix = @"sh_";
 
@@ -97,30 +97,6 @@ namespace osu.Framework.Graphics.Shaders
 
             return shader;
         }
-
-        #region Disposal
-
-        ~ShaderManager()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            foreach (var kvp in partCache)
-                kvp.Value.Dispose();
-
-            foreach (var kvp in shaderCache)
-                kvp.Value.Dispose();
-        }
-
-        #endregion
     }
 
     public static class VertexShaderDescriptor
