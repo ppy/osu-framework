@@ -15,9 +15,9 @@ namespace osu.Framework.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
-            Child = new SafeAreaContainer
+            Child = new SafeAreaSnappingContainer
             {
-                AppliedEdges = Edges.Left | Edges.Top | Edges.Right,
+                SafeEdges = Edges.Left | Edges.Top | Edges.Right,
                 Child = new DrawSizePreservingFillContainer
                 {
                     Children = new Drawable[]

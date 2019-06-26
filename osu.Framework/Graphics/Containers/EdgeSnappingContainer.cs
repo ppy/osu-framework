@@ -13,8 +13,6 @@ namespace osu.Framework.Graphics.Containers
     /// A <see cref="Container{T}"/> that will apply negative <see cref="Container{T}.Padding"/> to snap the edges to
     /// the nearest cached <see cref="ISnapTargetContainer"/>.
     /// Individual <see cref="Edges"/> may be snapped by setting the <see cref="SnappedEdges"/> property.
-    /// This class is most useful when used in conjunction with <see cref="SafeAreaContainer{T}"/> to ensure UI elements are
-    /// not hidden underneath inaccessible areas of the screen on mobile devices.
     /// Note that children within the negative padding will not be drawn if a parent <see cref="Drawable"/>
     /// has <see cref="CompositeDrawable.Masking"/> set to true.
     /// </summary>
@@ -23,6 +21,8 @@ namespace osu.Framework.Graphics.Containers
     {
         [Resolved(CanBeNull = true)]
         private ISnapTargetContainer snapTargetContainer { get; set; }
+
+        public virtual ISnapTargetContainer SnapTarget => snapTargetContainer;
 
         private Edges snappedEdges = Edges.None;
 
@@ -40,31 +40,30 @@ namespace osu.Framework.Graphics.Containers
 
                 snappedEdges = value;
 
-                updatePadding();
+                UpdatePadding();
             }
         }
 
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-            updatePadding();
+            UpdatePadding();
         }
 
-        private void updatePadding()
-        {
-            if (snapTargetContainer == null)
-            {
-                Padding = new MarginPadding();
-                return;
-            }
+        protected void UpdatePadding() => Padding = SnappedPadding();
 
-            var rect = snapTargetContainer.SnapRectangleToSpaceOfOtherDrawable(this);
+        protected virtual MarginPadding SnappedPadding()
+        {
+            if (SnapTarget == null)
+                return new MarginPadding();
+
+            var rect = SnapTarget.SnapRectangleToSpaceOfOtherDrawable(this);
             var left = SnappedEdges.HasFlag(Edges.Left) ? rect.TopLeft.X : 0;
             var top = SnappedEdges.HasFlag(Edges.Top) ? rect.TopLeft.Y : 0;
             var right = SnappedEdges.HasFlag(Edges.Right) ? DrawRectangle.BottomRight.X - rect.BottomRight.X : 0;
             var bottom = SnappedEdges.HasFlag(Edges.Bottom) ? DrawRectangle.BottomRight.Y - rect.BottomRight.Y : 0;
 
-            Padding = new MarginPadding { Left = left, Right = right, Top = top, Bottom = bottom };
+            return new MarginPadding { Left = left, Right = right, Top = top, Bottom = bottom };
         }
     }
 }

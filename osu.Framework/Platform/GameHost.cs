@@ -601,7 +601,12 @@ namespace osu.Framework.Platform
             {
                 Child = new FrameworkActionContainer
                 {
-                    Child = game
+                    Child = new SafeAreaTargetContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        SafeAreaPadding = Window.SafeAreaPadding,
+                        Child = game
+                    }
                 }
             };
 
