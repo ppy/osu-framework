@@ -45,11 +45,6 @@ namespace osu.Framework.Graphics.Batches
 
         #region Disposal
 
-        ~VertexBatch()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
