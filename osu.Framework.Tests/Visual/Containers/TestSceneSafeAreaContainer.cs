@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -41,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 SafeEdges = Edges.None,
                 SnappedEdges = Edges.None,
                 RelativeSizeAxes = Axes.Both,
-                Child = createGridContainer(),
+                Child = createGridContainer(10, 10),
             };
 
             var snappingContainer = new SafeAreaContainer
@@ -135,34 +136,22 @@ namespace osu.Framework.Tests.Visual.Containers
             };
         }
 
-        private GridContainer createGridContainer()
+        private GridContainer createGridContainer(int rows, int columns)
         {
-            var rows = new List<Drawable[]>();
-
-            for (int i = 0; i < 10; i++)
+            Drawable[][] boxes = Enumerable.Range(1, rows).Select(row => Enumerable.Range(1, columns).Select(column => new Box
             {
-                var row = new List<Drawable>();
-
-                for (int j = 0; j < 10; j++)
-                {
-                    row.Add(new Box
-                    {
-                        Colour = Color4.White,
-                        RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(0.7f),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                    });
-                }
-
-                rows.Add(row.ToArray());
-            }
+                Colour = new Color4(1f, 0.2f + (row * 0.8f) / rows, 0.2f + (column * 0.8f) / columns, 1f),
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.7f),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+            }).ToArray()).ToArray();
 
             return new GridContainer
             {
                 Name = "Safe Contents",
                 RelativeSizeAxes = Axes.Both,
-                Content = rows.ToArray()
+                Content = boxes,
             };
         }
 
