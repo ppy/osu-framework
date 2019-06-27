@@ -58,72 +58,77 @@ namespace osu.Framework.Tests.Visual.Platform
                 },
             };
 
-            Children = new Drawable[]
+            Child = new FillFlowContainer
             {
-                new MarginPaddingControlsContainer(snappingContainer, paddingContainer, safeAreaPadding)
+                Padding = new MarginPadding(10),
+                Spacing = new Vector2(10),
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    Position = new Vector2(20, 20),
-                    AutoSizeAxes = Axes.Both,
-                },
-                new SafeAreaTargetContainer
-                {
-                    Name = "Safe Area Target",
-                    Position = new Vector2(20, 280),
-                    Size = new Vector2(500, 400),
-                    SafeAreaPadding = safeAreaPadding,
-                    Children = new Drawable[]
+                    new MarginPaddingControlsContainer(snappingContainer, paddingContainer, safeAreaPadding)
                     {
-                        new Box
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    },
+                    new SafeAreaTargetContainer
+                    {
+                        Name = "Safe Area Target",
+                        Size = new Vector2(500, 400),
+                        SafeAreaPadding = safeAreaPadding,
+                        Children = new Drawable[]
                         {
-                            Name = "Safe Area Target Background",
-                            Colour = Color4.Red,
-                            RelativeSizeAxes = Axes.Both,
-                        },
-                        new Container
-                        {
-                            Position = new Vector2(50, 50),
-                            Size = new Vector2(400, 300),
-                            Children = new Drawable[]
+                            new Box
                             {
-                                snappingContainer,
-                                paddingContainer,
+                                Name = "Safe Area Target Background",
+                                Colour = Color4.Red,
+                                RelativeSizeAxes = Axes.Both,
+                            },
+                            new Container
+                            {
+                                Position = new Vector2(50, 50),
+                                Size = new Vector2(400, 300),
+                                Children = new Drawable[]
+                                {
+                                    snappingContainer,
+                                    paddingContainer,
+                                }
+                            },
+                            safeAreaLeftOverlay = new Box
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Width = 0,
+                                RelativeSizeAxes = Axes.Y,
+                                Colour = Color4.Green,
+                                Alpha = 0.2f
+                            },
+                            safeAreaRightOverlay = new Box
+                            {
+                                Anchor = Anchor.CentreRight,
+                                Origin = Anchor.CentreRight,
+                                Width = 0,
+                                RelativeSizeAxes = Axes.Y,
+                                Colour = Color4.Green,
+                                Alpha = 0.2f
+                            },
+                            safeAreaTopOverlay = new Box
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
+                                Height = 0,
+                                RelativeSizeAxes = Axes.X,
+                                Colour = Color4.Green,
+                                Alpha = 0.2f
+                            },
+                            safeAreaBottomOverlay = new Box
+                            {
+                                Anchor = Anchor.BottomCentre,
+                                Origin = Anchor.BottomCentre,
+                                Height = 0,
+                                RelativeSizeAxes = Axes.X,
+                                Colour = Color4.Green,
+                                Alpha = 0.2f
                             }
-                        },
-                        safeAreaLeftOverlay = new Box
-                        {
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Width = 0,
-                            RelativeSizeAxes = Axes.Y,
-                            Colour = Color4.Green,
-                            Alpha = 0.2f
-                        },
-                        safeAreaRightOverlay = new Box
-                        {
-                            Anchor = Anchor.CentreRight,
-                            Origin = Anchor.CentreRight,
-                            Width = 0,
-                            RelativeSizeAxes = Axes.Y,
-                            Colour = Color4.Green,
-                            Alpha = 0.2f
-                        },
-                        safeAreaTopOverlay = new Box
-                        {
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Height = 0,
-                            RelativeSizeAxes = Axes.X,
-                            Colour = Color4.Green,
-                            Alpha = 0.2f
-                        },
-                        safeAreaBottomOverlay = new Box
-                        {
-                            Anchor = Anchor.BottomCentre,
-                            Origin = Anchor.BottomCentre,
-                            Height = 0,
-                            RelativeSizeAxes = Axes.X,
-                            Colour = Color4.Green,
-                            Alpha = 0.2f
                         }
                     }
                 }
@@ -143,8 +148,10 @@ namespace osu.Framework.Tests.Visual.Platform
                     row.Add(new Box
                     {
                         Colour = Color4.White,
-                        Margin = new MarginPadding(10),
-                        Size = new Vector2(10, 10),
+                        RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(0.7f),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
                     });
                 }
 
@@ -223,66 +230,70 @@ namespace osu.Framework.Tests.Visual.Platform
                 public MarginPaddingControl(SafeAreaSnappingContainer snappingContainer, SafeAreaSnappingContainer paddingContainer, string title, Bindable<float> bindable, Edges edge)
                 {
                     SpriteText valueText;
-                    EdgeModeDropdown dropdown;
+                    BasicCheckbox snapCheckbox;
+                    BasicCheckbox safeCheckbox;
 
                     Direction = FillDirection.Horizontal;
-                    Spacing = new Vector2(10, 0);
+                    Spacing = new Vector2(20, 0);
                     AutoSizeAxes = Axes.Both;
 
                     Children = new Drawable[]
                     {
-                        new SpriteText { Text = title, Width = 60 },
-                        valueText = new SpriteText { Width = 50 },
+                        new SpriteText
+                        {
+                            Text = title,
+                            Width = 60,
+                            Origin = Anchor.CentreLeft,
+                            Anchor = Anchor.CentreLeft,
+                        },
+                        valueText = new SpriteText
+                        {
+                            Width = 50,
+                            Origin = Anchor.CentreLeft,
+                            Anchor = Anchor.CentreLeft,
+                        },
                         new BasicSliderBar<float>
                         {
                             Current = bindable,
                             Size = new Vector2(100, 20),
+                            Origin = Anchor.CentreLeft,
+                            Anchor = Anchor.CentreLeft,
                         },
-                        dropdown = new EdgeModeDropdown(),
+                        new SpriteText
+                        {
+                            Text = "Snap",
+                            Origin = Anchor.CentreLeft,
+                            Anchor = Anchor.CentreLeft,
+                        },
+                        snapCheckbox = new BasicCheckbox(),
+                        new SpriteText
+                        {
+                            Text = "Safe",
+                            Origin = Anchor.CentreLeft,
+                            Anchor = Anchor.CentreLeft,
+                        },
+                        safeCheckbox = new BasicCheckbox()
                     };
 
-                    dropdown.Current.ValueChanged += e =>
+                    snapCheckbox.Current.ValueChanged += e =>
                     {
-                        switch (e.NewValue)
-                        {
-                            case EdgeModes.None:
-                                snappingContainer.SnappedEdges &= ~edge;
-                                paddingContainer.SafeEdges &= ~edge;
-                                break;
+                        if (e.NewValue)
+                            snappingContainer.SnappedEdges |= edge;
+                        else
+                            snappingContainer.SnappedEdges &= ~edge;
+                    };
 
-                            case EdgeModes.Snapped:
-                                snappingContainer.SnappedEdges |= edge;
-                                paddingContainer.SafeEdges &= ~edge;
-                                break;
-
-                            case EdgeModes.Safe:
-                                snappingContainer.SnappedEdges &= ~edge;
-                                paddingContainer.SafeEdges |= edge;
-                                break;
-                        }
+                    safeCheckbox.Current.ValueChanged += e =>
+                    {
+                        if (e.NewValue)
+                            paddingContainer.SafeEdges |= edge;
+                        else
+                            paddingContainer.SafeEdges &= ~edge;
                     };
 
                     bindable.ValueChanged += e => valueText.Text = $"{e.NewValue:F1}";
-
                     bindable.TriggerChange();
                 }
-            }
-
-            private class EdgeModeDropdown : BasicDropdown<EdgeModes>
-            {
-                public EdgeModeDropdown()
-                {
-                    Items = new[] { EdgeModes.None, EdgeModes.Snapped, EdgeModes.Safe };
-                    Width = 100;
-                    Current.Value = EdgeModes.None;
-                }
-            }
-
-            private enum EdgeModes
-            {
-                None,
-                Snapped,
-                Safe,
             }
         }
     }
