@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics
         {
             base.Dispose(isDisposing);
 
-            Child.Dispose();
+            Child?.Dispose();
             Child = null;
         }
     }
