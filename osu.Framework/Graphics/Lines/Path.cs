@@ -188,5 +188,12 @@ namespace osu.Framework.Graphics.Lines
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            sharedData.Dispose();
+        }
     }
 }
