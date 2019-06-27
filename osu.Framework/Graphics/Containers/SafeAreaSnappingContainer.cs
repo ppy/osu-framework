@@ -52,15 +52,16 @@ namespace osu.Framework.Graphics.Containers
 
             var snapRect = SnapTarget.SnapRectangle;
             var safeArea = safeAreaPadding.Value;
-            var paddedRect = new Quad(snapRect.X + safeArea.Left, snapRect.Y + safeArea.Top, snapRect.Width - safeArea.TotalHorizontal, snapRect.Height - safeArea.TotalVertical);
-            var localRect = ToLocalSpace(paddedRect);
+            var paddedRect = new RectangleF(snapRect.X + safeArea.Left, snapRect.Y + safeArea.Top, snapRect.Width - safeArea.TotalHorizontal, snapRect.Height - safeArea.TotalVertical);
+            var localTopLeft = SnapTarget.ToSpaceOfOtherDrawable(paddedRect.TopLeft, this);
+            var localBottomRight = SnapTarget.ToSpaceOfOtherDrawable(paddedRect.BottomRight, this);
 
             return new MarginPadding
             {
-                Left = SafeEdges.HasFlag(Edges.Left) ? Math.Max(0, localRect.TopLeft.X) : basePadding.Left,
-                Right = SafeEdges.HasFlag(Edges.Right) ? Math.Max(0, DrawSize.X - localRect.BottomRight.X) : basePadding.Right,
-                Top = SafeEdges.HasFlag(Edges.Top) ? Math.Max(0, localRect.TopLeft.Y) : basePadding.Top,
-                Bottom = SafeEdges.HasFlag(Edges.Bottom) ? Math.Max(0, DrawSize.Y - localRect.BottomRight.Y) : basePadding.Bottom
+                Left = SafeEdges.HasFlag(Edges.Left) ? Math.Max(0, localTopLeft.X) : basePadding.Left,
+                Right = SafeEdges.HasFlag(Edges.Right) ? Math.Max(0, DrawSize.X - localBottomRight.X) : basePadding.Right,
+                Top = SafeEdges.HasFlag(Edges.Top) ? Math.Max(0, localTopLeft.Y) : basePadding.Top,
+                Bottom = SafeEdges.HasFlag(Edges.Bottom) ? Math.Max(0, DrawSize.Y - localBottomRight.Y) : basePadding.Bottom
             };
         }
     }
