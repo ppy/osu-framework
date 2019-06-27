@@ -14,9 +14,9 @@ using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Visual.Platform
+namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneSafeArea : FrameworkTestScene
+    public class TestSceneSafeAreaContainer : FrameworkTestScene
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Box safeAreaLeftOverlay;
         private readonly Box safeAreaRightOverlay;
 
-        public TestSceneSafeArea()
+        public TestSceneSafeAreaContainer()
         {
             var safeContainer = new SafeAreaContainer
             {
