@@ -234,12 +234,12 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            if (count == 0)
-                return;
-
             var removedItems = collection.GetRange(index, count);
 
             collection.RemoveRange(index, count);
+
+            if (removedItems.Count == 0)
+                return;
 
             if (bindings != null)
             {

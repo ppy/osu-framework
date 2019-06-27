@@ -94,7 +94,7 @@ namespace osu.Framework.Input.Bindings
 
         public override string ToString() => Keys.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
 
-        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}");
+        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1} {s2}");
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
