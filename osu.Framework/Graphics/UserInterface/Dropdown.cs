@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -43,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => MenuItems.Select(i => i.Value);
             set
             {
-                if (usingItemSource)
+                if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
                 setItems(value);
@@ -66,7 +65,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private readonly IBindableList<T> itemSource = new BindableList<T>();
-        private bool usingItemSource;
+        private IBindableList<T> boundItemSource;
 
         /// <summary>
         /// Allows the developer to assign an <see cref="IBindableList{T}"/> as the source
@@ -77,13 +76,11 @@ namespace osu.Framework.Graphics.UserInterface
             get => itemSource;
             set
             {
-                itemSource.UnbindBindings();
-                usingItemSource = value != null;
-
                 if (value == null)
-                    setItems(null);
-                else
-                    itemSource.BindTo(value);
+                    throw new ArgumentNullException(nameof(value));
+
+                if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
+                itemSource.BindTo(boundItemSource = value);
             }
         }
 
@@ -100,7 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value selected by the menu item.</param>
         protected void AddDropdownItem(string text, T value)
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
             addDropdownItem(text, value);
@@ -129,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value of the menu item to be removed.</param>
         public bool RemoveDropdownItem(T value)
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
 
             return removeDropdownItem(value);
@@ -249,7 +246,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void ClearItems()
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
 
             clearItems();
@@ -288,8 +285,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
-
-        protected override bool OnHover(HoverEvent e) => true;
 
         /// <summary>
         /// Creates the menu body.
