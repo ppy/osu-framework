@@ -35,27 +35,39 @@ namespace osu.Framework.Tests.Visual.Platform
 
         public TestSceneSafeArea()
         {
+            var paddingContainer = new SafeAreaSnappingContainer
+            {
+                Name = "Padding Container",
+                SafeEdges = Edges.None,
+                SnappedEdges = Edges.None,
+                RelativeSizeAxes = Axes.Both,
+                Child = createGridContainer(),
+            };
+
             var snappingContainer = new SafeAreaSnappingContainer
             {
-                Position = new Vector2(50, 50),
-                Size = new Vector2(400, 300),
+                Name = "Snapping Container",
+                RelativeSizeAxes = Axes.Both,
                 SafeEdges = Edges.None,
+                SnappedEdges = Edges.None,
                 Child = new Box
                 {
+                    Name = "Snapping Background",
                     Colour = Color4.Blue,
                     RelativeSizeAxes = Axes.Both
-                }
+                },
             };
 
             Children = new Drawable[]
             {
-                new MarginPaddingControlsContainer(snappingContainer, safeAreaPadding)
+                new MarginPaddingControlsContainer(snappingContainer, paddingContainer, safeAreaPadding)
                 {
                     Position = new Vector2(20, 20),
                     AutoSizeAxes = Axes.Both,
                 },
                 new SafeAreaTargetContainer
                 {
+                    Name = "Safe Area Target",
                     Position = new Vector2(20, 280),
                     Size = new Vector2(500, 400),
                     SafeAreaPadding = safeAreaPadding,
@@ -63,10 +75,20 @@ namespace osu.Framework.Tests.Visual.Platform
                     {
                         new Box
                         {
+                            Name = "Safe Area Target Background",
                             Colour = Color4.Red,
                             RelativeSizeAxes = Axes.Both,
                         },
-                        snappingContainer,
+                        new Container
+                        {
+                            Position = new Vector2(50, 50),
+                            Size = new Vector2(400, 300),
+                            Children = new Drawable[]
+                            {
+                                snappingContainer,
+                                paddingContainer,
+                            }
+                        },
                         safeAreaLeftOverlay = new Box
                         {
                             Anchor = Anchor.CentreLeft,
@@ -108,6 +130,35 @@ namespace osu.Framework.Tests.Visual.Platform
             };
         }
 
+        private GridContainer createGridContainer()
+        {
+            var rows = new List<Drawable[]>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var row = new List<Drawable>();
+
+                for (int j = 0; j < 10; j++)
+                {
+                    row.Add(new Box
+                    {
+                        Colour = Color4.White,
+                        Margin = new MarginPadding(10),
+                        Size = new Vector2(10, 10),
+                    });
+                }
+
+                rows.Add(row.ToArray());
+            }
+
+            return new GridContainer
+            {
+                Name = "Safe Contents",
+                RelativeSizeAxes = Axes.Both,
+                Content = rows.ToArray()
+            };
+        }
+
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
@@ -131,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             private readonly Bindable<MarginPadding> bindableMarginPadding;
 
-            public MarginPaddingControlsContainer(SafeAreaSnappingContainer snappingContainer, Bindable<MarginPadding> bindableMarginPadding)
+            public MarginPaddingControlsContainer(SafeAreaSnappingContainer snappingContainer, SafeAreaSnappingContainer paddingContainer, Bindable<MarginPadding> bindableMarginPadding)
             {
                 this.bindableMarginPadding = bindableMarginPadding;
 
@@ -144,10 +195,10 @@ namespace osu.Framework.Tests.Visual.Platform
                 Spacing = new Vector2(10);
                 Children = new Drawable[]
                 {
-                    new MarginPaddingControl(snappingContainer, "Top", safeAreaPaddingTop, Edges.Top),
-                    new MarginPaddingControl(snappingContainer, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
-                    new MarginPaddingControl(snappingContainer, "Left", safeAreaPaddingLeft, Edges.Left),
-                    new MarginPaddingControl(snappingContainer, "Right", safeAreaPaddingRight, Edges.Right),
+                    new MarginPaddingControl(snappingContainer, paddingContainer, "Top", safeAreaPaddingTop, Edges.Top),
+                    new MarginPaddingControl(snappingContainer, paddingContainer, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
+                    new MarginPaddingControl(snappingContainer, paddingContainer, "Left", safeAreaPaddingLeft, Edges.Left),
+                    new MarginPaddingControl(snappingContainer, paddingContainer, "Right", safeAreaPaddingRight, Edges.Right),
                 };
 
                 safeAreaPaddingTop.ValueChanged += updateMarginPadding;
@@ -169,7 +220,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             private class MarginPaddingControl : FillFlowContainer
             {
-                public MarginPaddingControl(SafeAreaSnappingContainer snappingContainer, string title, Bindable<float> bindable, Edges edge)
+                public MarginPaddingControl(SafeAreaSnappingContainer snappingContainer, SafeAreaSnappingContainer paddingContainer, string title, Bindable<float> bindable, Edges edge)
                 {
                     SpriteText valueText;
                     EdgeModeDropdown dropdown;
@@ -196,17 +247,17 @@ namespace osu.Framework.Tests.Visual.Platform
                         {
                             case EdgeModes.None:
                                 snappingContainer.SnappedEdges &= ~edge;
-                                snappingContainer.SafeEdges &= ~edge;
+                                paddingContainer.SafeEdges &= ~edge;
                                 break;
 
                             case EdgeModes.Snapped:
                                 snappingContainer.SnappedEdges |= edge;
-                                snappingContainer.SafeEdges &= ~edge;
+                                paddingContainer.SafeEdges &= ~edge;
                                 break;
 
                             case EdgeModes.Safe:
                                 snappingContainer.SnappedEdges &= ~edge;
-                                snappingContainer.SafeEdges |= edge;
+                                paddingContainer.SafeEdges |= edge;
                                 break;
                         }
                     };
