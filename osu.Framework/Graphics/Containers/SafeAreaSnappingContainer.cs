@@ -27,25 +27,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override ISnapTargetContainer SnapTarget => safeAreaTargetContainer;
 
-        private Edges safeEdges = Edges.All;
-
         /// <summary>
         /// The <see cref="Edges"/> that should be automatically padded based on the target's <see cref="SafeAreaTargetContainer{T}.SafeAreaPadding"/>
         /// Defaults to <see cref="Edges.All"/>. May not share edges with <see cref="EdgeSnappingContainer{T}.SnappedEdges"/>.
         /// </summary>
-        public Edges SafeEdges
-        {
-            get => safeEdges;
-            set
-            {
-                if (safeEdges.Equals(value))
-                    return;
-
-                safeEdges = value;
-
-                UpdatePadding();
-            }
-        }
+        public Edges SafeEdges { get; set; } = Edges.All;
 
         [BackgroundDependencyLoader]
         private void load()

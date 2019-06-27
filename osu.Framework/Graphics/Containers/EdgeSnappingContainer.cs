@@ -24,25 +24,11 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual ISnapTargetContainer SnapTarget => snapTargetContainer;
 
-        private Edges snappedEdges = Edges.None;
-
         /// <summary>
         /// The <see cref="Edges"/> that should be snapped to the nearest <see cref="ISnapTargetContainer"/>.
         /// Defaults to <see cref="Edges.None"/>.
         /// </summary>
-        public Edges SnappedEdges
-        {
-            get => snappedEdges;
-            set
-            {
-                if (snappedEdges.Equals(value))
-                    return;
-
-                snappedEdges = value;
-
-                UpdatePadding();
-            }
-        }
+        public Edges SnappedEdges { get; set; } = Edges.None;
 
         protected override void UpdateAfterChildren()
         {
