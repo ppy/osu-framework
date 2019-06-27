@@ -54,11 +54,6 @@ namespace osu.Framework.Graphics.Containers
             safeAreaPadding.BindTo(safeAreaTargetContainer.SafeAreaPadding);
         }
 
-        public SafeAreaSnappingContainer()
-        {
-            RelativeSizeAxes = Axes.Both;
-        }
-
         protected override MarginPadding SnappedPadding()
         {
             if ((SafeEdges & SnappedEdges) != Edges.None)
