@@ -17,6 +17,7 @@ namespace osu.Framework.Tests
         {
             Child = new SafeAreaSnappingContainer
             {
+                RelativeSizeAxes = Axes.Both,
                 SafeEdges = Edges.Left | Edges.Top | Edges.Right,
                 Child = new DrawSizePreservingFillContainer
                 {
