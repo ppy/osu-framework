@@ -144,11 +144,6 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        toolbar = new TestBrowserToolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 50,
-                        },
                         new EdgeSnappingContainer
                         {
                             SnappedEdges = Edges.Right | Edges.Bottom,
@@ -182,6 +177,11 @@ namespace osu.Framework.Testing
                                     },
                                 }
                             }
+                        },
+                        toolbar = new TestBrowserToolbar
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 50,
                         },
                     }
                 },
