@@ -772,7 +772,11 @@ namespace osu.Framework.Platform
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
             Config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(logging => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue), true);
+            performanceLogging.BindValueChanged(logging =>
+            {
+                threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                DebugUtils.LogPerformanceIssues = logging.NewValue;
+            }, true);
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
         }

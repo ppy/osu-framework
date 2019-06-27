@@ -41,7 +41,7 @@ namespace osu.Framework.iOS
             set { }
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };
