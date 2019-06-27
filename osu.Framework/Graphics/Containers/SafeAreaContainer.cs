@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SafeAreaSnappingContainer : SafeAreaSnappingContainer<Drawable>
+    public class SafeAreaContainer : SafeAreaContainer<Drawable>
     {
     }
 
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// Padding will only be applied if the contents of this container would otherwise intersect the safe area margins relative to the associated target container.
     /// Padding may be applied to individual edges by setting the <see cref="SafeEdges"/> property.
     /// </summary>
-    public class SafeAreaSnappingContainer<T> : EdgeSnappingContainer<T>
+    public class SafeAreaContainer<T> : EdgeSnappingContainer<T>
         where T : Drawable
     {
         [Resolved]
@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
         protected override MarginPadding SnappedPadding()
         {
             if ((SafeEdges & SnappedEdges) != Edges.None)
-                throw new InvalidOperationException($"A {nameof(SafeAreaSnappingContainer)}'s {nameof(SafeEdges)} may not share edges with its {nameof(SnappedEdges)}.");
+                throw new InvalidOperationException($"A {nameof(SafeAreaContainer)}'s {nameof(SafeEdges)} may not share edges with its {nameof(SnappedEdges)}.");
 
             MarginPadding basePadding = base.SnappedPadding();
 

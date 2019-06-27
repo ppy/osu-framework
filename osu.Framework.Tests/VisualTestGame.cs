@@ -15,7 +15,7 @@ namespace osu.Framework.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
-            Child = new SafeAreaSnappingContainer
+            Child = new SafeAreaContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 SafeEdges = Edges.Left | Edges.Top | Edges.Right,
