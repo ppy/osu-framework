@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// the desired safe area margins. Should be used in conjunction with child <see cref="SafeAreaSnappingContainer{T}"/>s.
     /// The root of the scenegraph contains an instance of this container, with <see cref="SafeAreaPadding"/> automatically bound
     /// to the host <see cref="GameWindow"/>'s <see cref="GameWindow.SafeAreaPadding"/>.
+    /// Developers may set a custom bindable for testing various safe area insets.
     /// </summary>
     [Cached(typeof(SafeAreaTargetContainer))]
     public class SafeAreaTargetContainer<T> : SnapTargetContainer<T>
