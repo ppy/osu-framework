@@ -134,6 +134,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 }
             };
+
+            safeAreaPadding.ValueChanged += e => safeAreaPaddingChanged(e.NewValue);
         }
 
         private GridContainer createGridContainer(int rows, int columns)
@@ -153,12 +155,6 @@ namespace osu.Framework.Tests.Visual.Containers
                 RelativeSizeAxes = Axes.Both,
                 Content = boxes,
             };
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            safeAreaPadding.ValueChanged += e => safeAreaPaddingChanged(e.NewValue);
         }
 
         private void safeAreaPaddingChanged(MarginPadding padding)
