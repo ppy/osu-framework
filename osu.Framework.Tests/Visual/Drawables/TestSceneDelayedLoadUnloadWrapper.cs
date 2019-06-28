@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Lists;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
@@ -19,14 +20,14 @@ namespace osu.Framework.Tests.Visual.Drawables
         private const int panel_count = 1024;
 
         private FillFlowContainer<Container> flow;
-        private ScrollContainer<Drawable> scroll;
+        private TestScrollContainer scroll;
 
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
             Children = new Drawable[]
             {
-                scroll = new BasicScrollContainer
+                scroll = new TestScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
@@ -48,6 +49,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("populate panels", () =>
             {
+                references.Clear();
+
                 for (int i = 0; i < 16; i++)
                     flow.Add(new Container
                     {
@@ -75,7 +78,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             AddUntilStep("references counted", () => references.Count() == 16);
+
+            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
+
             AddStep("Remove all panels", () => flow.Clear());
+
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+
             AddUntilStep("references lost", () =>
             {
                 GC.Collect();
@@ -122,6 +131,11 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
 
             AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadedCountSecondary);
+        }
+
+        public class TestScrollContainer : BasicScrollContainer
+        {
+            public new Scheduler Scheduler => base.Scheduler;
         }
 
         public class TestBox : Container
