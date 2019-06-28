@@ -12,6 +12,14 @@ namespace osu.Framework.iOS
 
         public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures => UIRectEdge.All;
 
+        public override void DidReceiveMemoryWarning()
+        {
+            base.DidReceiveMemoryWarning();
+
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+            GC.Collect();
+        }
+
         public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {
             coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
