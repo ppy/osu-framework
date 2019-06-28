@@ -145,7 +145,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Size = new Vector2(0.7f),
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-            }).ToArray()).ToArray();
+            } as Drawable).ToArray()).ToArray();
 
             return new GridContainer
             {
