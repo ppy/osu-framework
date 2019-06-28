@@ -11,11 +11,11 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedUnload : FrameworkTestScene
+    public class TestSceneDelayedLoadUnloadWrapper : FrameworkTestScene
     {
         private const int panel_count = 1024;
 
-        public TestSceneDelayedUnload()
+        public TestSceneDelayedLoadUnloadWrapper()
         {
             FillFlowContainer<Container> flow;
             ScrollContainer<Drawable> scroll;
