@@ -54,7 +54,16 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            var glTexture = atlas?.Add(upload.Width, upload.Height) ?? new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
+            TextureGL glTexture = null;
+
+            if (atlas != null)
+            {
+                if ((glTexture = atlas.Add(upload.Width, upload.Height)) == null)
+                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
+            }
+
+            if (glTexture == null)
+                glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
 
