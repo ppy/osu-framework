@@ -54,11 +54,9 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            var glTexture = atlas?.Add(upload.Width, upload.Height);
+            var glTexture = atlas?.Add(upload.Width, upload.Height) ?? new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
-            Texture tex = glTexture != null
-                ? new Texture(glTexture) { ScaleAdjust = ScaleAdjust }
-                : new TextureWithRefCount(new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode)) { ScaleAdjust = ScaleAdjust };
+            Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
 
             tex.SetData(upload);
 
