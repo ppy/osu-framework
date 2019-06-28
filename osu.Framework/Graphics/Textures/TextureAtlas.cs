@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.Textures
             this.filteringMode = filteringMode;
         }
 
+        private int exceedCount;
+
         public void Reset()
         {
             subTextureBounds.Clear();
@@ -73,7 +75,7 @@ namespace osu.Framework.Graphics.Textures
             }
             else if (currentY + height > atlasHeight)
             {
-                Logger.Log($"TextureAtlas size exceeded; generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
+                Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
 
