@@ -152,13 +152,13 @@ namespace osu.Framework.IO.File
         /// <returns>True if deletion was successful by any means, or the file didn't exist.</returns>
         public static bool FileDelete(string filename)
         {
-            filename = PathSanitise(filename);
+            var file = new FileInfo(PathSanitise(filename));
 
-            if (!System.IO.File.Exists(filename)) return true;
+            if (!file.Exists) return true;
 
             try
             {
-                System.IO.File.Delete(filename);
+                file.Delete();
                 return true;
             }
             catch
@@ -174,7 +174,7 @@ namespace osu.Framework.IO.File
                     di.Attributes |= FileAttributes.Hidden;
                 }
 
-                System.IO.File.Move(filename, Path.Combine(CLEANUP_DIRECTORY, Guid.NewGuid().ToString()));
+                file.MoveTo(Path.Combine(CLEANUP_DIRECTORY, Guid.NewGuid().ToString()));
                 return true;
             }
             catch
