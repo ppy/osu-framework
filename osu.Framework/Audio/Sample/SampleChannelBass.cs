@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using ManagedBass;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleChannelBass : SampleChannel, IBassAudio
+    public sealed class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
         private volatile bool playing;
@@ -35,9 +35,9 @@ namespace osu.Framework.Audio.Sample
 
             if (channel != 0)
             {
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * FrequencyCalculated);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * AggregateFrequency.Value);
             }
         }
 

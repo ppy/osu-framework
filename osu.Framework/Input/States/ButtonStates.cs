@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections;
@@ -55,10 +55,7 @@ namespace osu.Framework.Input.States
         /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
-        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
-        {
-            return new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
-        }
+        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons) => new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
 
         /// <summary>
         /// Copies the state of another <see cref="ButtonStates{TButton}"/> to ourselves.
@@ -70,10 +67,7 @@ namespace osu.Framework.Input.States
             pressedButtons.AddRange(other.pressedButtons);
         }
 
-        public override string ToString()
-        {
-            return $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
-        }
+        public override string ToString() => $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
 
         public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

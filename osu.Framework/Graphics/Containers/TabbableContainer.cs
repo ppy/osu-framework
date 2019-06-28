@@ -1,10 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// This interface is used for recogonizing <see cref="TabbableContainer{T}"/> of any type without reflection.
+    /// This interface is used for recognizing <see cref="TabbableContainer{T}"/> of any type without reflection.
     /// </summary>
     internal interface ITabbableContainer
     {
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
-        public Container<Drawable> TabbableContentContainer { private get; set; }
+        public CompositeDrawable TabbableContentContainer { private get; set; }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -46,13 +46,14 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private Drawable nextTabStop(Container<Drawable> target, bool reverse)
+        private Drawable nextTabStop(CompositeDrawable target, bool reverse)
         {
             Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
 
             bool started = false;
+
             while (stack.Count > 0)
             {
                 var drawable = stack.Pop();
@@ -66,6 +67,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;
+
                     if (!started)
                     {
                         // Find self, to know starting point

@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Allocation;
@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
@@ -20,7 +20,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected Box Background;
         protected SpriteText SpriteText;
 
-        public Action Action { get; protected set; }
+        public Action Action { get; set; }
 
         public string Text
         {
@@ -40,8 +40,9 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
         }
 
-        private readonly Color4 idleColour = new Color4(0.15f, 0.15f, 0.15f, 1);
-        private readonly Color4 runningColour = new Color4(0.5f, 0.5f, 0.5f, 1);
+        protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
+
+        protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
         protected StepButton()
         {
@@ -50,7 +51,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = idleColour,
+                    Colour = IdleColour,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                 },
@@ -63,7 +64,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    TextSize = 14,
+                    Font = new FontUsage(size: 14),
                     X = 5,
                     Padding = new MarginPadding(5),
                 }
@@ -106,14 +107,14 @@ namespace osu.Framework.Testing.Drawables.Steps
         /// </summary>
         public virtual void Reset()
         {
-            Background.DelayUntilTransformsFinished().FadeColour(idleColour, 1000, Easing.OutQuint);
+            Background.DelayUntilTransformsFinished().FadeColour(IdleColour, 1000, Easing.OutQuint);
             Light.FadeColour(lightColour);
         }
 
         public virtual void PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();
-            Background.FadeColour(runningColour, 400, Easing.OutQuint);
+            Background.FadeColour(RunningColour, 400, Easing.OutQuint);
 
             try
             {
@@ -135,7 +136,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected virtual void Success()
         {
             Background.FinishTransforms();
-            Background.FadeColour(idleColour, 1000, Easing.OutQuint);
+            Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
             SpriteText.Alpha = 0.8f;

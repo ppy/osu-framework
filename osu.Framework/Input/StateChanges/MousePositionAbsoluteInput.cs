@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Input.StateChanges
 {
@@ -24,6 +24,7 @@ namespace osu.Framework.Input.StateChanges
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var mouse = state.Mouse;
+
             if (!mouse.IsPositionValid || mouse.Position != Position)
             {
                 var lastPosition = mouse.IsPositionValid ? mouse.Position : Position;

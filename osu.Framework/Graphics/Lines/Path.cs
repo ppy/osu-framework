@@ -1,27 +1,30 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Caching;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public class Path : Drawable
+    public partial class Path : Drawable, IBufferedDrawable
     {
-        private Shader roundedTextureShader;
-        private Shader textureShader;
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
+        private IShader pathShader;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private readonly List<Vector2> vertices = new List<Vector2>();
@@ -41,16 +44,22 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private float pathWidth = 10f;
+        private float pathRadius = 10f;
 
-        public virtual float PathWidth
+        /// <summary>
+        /// How wide this path is on each side of the line.
+        /// </summary>
+        /// <remarks>
+        /// The actual width of the path is twice the PathRadius.
+        /// </remarks>
+        public virtual float PathRadius
         {
-            get => pathWidth;
+            get => pathRadius;
             set
             {
-                if (pathWidth == value) return;
+                if (pathRadius == value) return;
 
-                pathWidth = value;
+                pathRadius = value;
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
@@ -61,11 +70,12 @@ namespace osu.Framework.Graphics.Lines
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);
-            var pathWidthSquared = PathWidth * PathWidth;
+            var pathRadiusSquared = PathRadius * PathRadius;
 
             foreach (var t in segments)
-                if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
+                if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+
             return false;
         }
 
@@ -102,12 +112,18 @@ namespace osu.Framework.Graphics.Lines
 
         private RectangleF bounds => new RectangleF(minX, minY, maxX - minX, maxY - minY);
 
+        /// <summary>
+        /// Adjust the height and width of this Path depending on the position of the vertices and its radius.
+        /// </summary>
+        /// <remarks>
+        /// Keep in mind that the height will factor in PathRadius twice, once at the top and once on the bottom of the rectangle.
+        /// </remarks>
         private void expandBounds(Vector2 pos)
         {
-            if (pos.X - PathWidth < minX) minX = pos.X - PathWidth;
-            if (pos.Y - PathWidth < minY) minY = pos.Y - PathWidth;
-            if (pos.X + PathWidth > maxX) maxX = pos.X + PathWidth;
-            if (pos.Y + PathWidth > maxY) maxY = pos.Y + PathWidth;
+            if (pos.X - PathRadius < minX) minX = pos.X - PathRadius;
+            if (pos.Y - PathRadius < minY) minY = pos.Y - PathRadius;
+            if (pos.X + PathRadius > maxX) maxX = pos.X + PathRadius;
+            if (pos.Y + PathRadius > maxY) maxY = pos.Y + PathRadius;
 
             RectangleF b = bounds;
             if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = b.Width;
@@ -162,25 +178,22 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
+        public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
-        protected override DrawNode CreateDrawNode() => new PathDrawNode();
+        // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-        protected override void ApplyDrawNode(DrawNode node)
+        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
+
+        protected override void Dispose(bool isDisposing)
         {
-            PathDrawNode n = (PathDrawNode)node;
+            base.Dispose(isDisposing);
 
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.Width = PathWidth;
-            n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
-            n.Segments = segments.ToList();
-
-            base.ApplyDrawNode(node);
+            sharedData.Dispose();
         }
     }
 }

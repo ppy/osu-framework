@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.MathUtils;
@@ -59,9 +59,8 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool CacheDrawnEffect;
 
-        public BufferedContainer ApplyTo(Drawable drawable)
-        {
-            return new BufferedContainer
+        public BufferedContainer ApplyTo(Drawable drawable) =>
+            new BufferedContainer
             {
                 BlurSigma = Sigma,
                 BlurRotation = Rotation,
@@ -73,12 +72,13 @@ namespace osu.Framework.Graphics.Effects
 
                 CacheDrawnFrameBuffer = CacheDrawnEffect,
 
-                Padding = !PadExtent ? new MarginPadding() : new MarginPadding
-                {
-                    Horizontal = Blur.KernelSize(Sigma.X),
-                    Vertical = Blur.KernelSize(Sigma.Y),
-                },
+                Padding = !PadExtent
+                    ? new MarginPadding()
+                    : new MarginPadding
+                    {
+                        Horizontal = Blur.KernelSize(Sigma.X),
+                        Vertical = Blur.KernelSize(Sigma.Y),
+                    },
             }.Wrap(drawable);
-        }
     }
 }

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
@@ -36,7 +36,6 @@ namespace osu.Framework.Graphics.Animations
         /// True if the animation should start over from the first frame after finishing. False if it should stop playing and keep displaying the last frame when finishing.
         /// </summary>
         public bool Repeat { get; set; }
-
 
         protected Animation()
         {
@@ -119,7 +118,9 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="content">The content of the new frame.</param>
         /// <param name="displayDuration">The display duration of the new frame.</param>
-        protected virtual void OnFrameAdded(T content, double displayDuration) { }
+        protected virtual void OnFrameAdded(T content, double displayDuration)
+        {
+        }
 
         protected override void Update()
         {
@@ -128,10 +129,12 @@ namespace osu.Framework.Graphics.Animations
             if (IsPlaying && frameData.Count > 0)
             {
                 currentFrameTime += Time.Elapsed;
+
                 while (currentFrameTime > frameData[currentFrameIndex].Duration)
                 {
                     currentFrameTime -= frameData[currentFrameIndex].Duration;
                     ++currentFrameIndex;
+
                     if (currentFrameIndex >= frameData.Count)
                     {
                         if (Repeat)
@@ -146,6 +149,7 @@ namespace osu.Framework.Graphics.Animations
                         }
                     }
                 }
+
                 displayFrame(currentFrameIndex);
             }
         }

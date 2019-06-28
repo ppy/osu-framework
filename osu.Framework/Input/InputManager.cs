@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -15,8 +16,8 @@ using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
 using KeyboardState = osu.Framework.Input.States.KeyboardState;
 using MouseState = osu.Framework.Input.States.MouseState;
@@ -38,7 +39,10 @@ namespace osu.Framework.Input
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
-        internal Drawable FocusedDrawable;
+        /// <summary>
+        /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
+        /// </summary>
+        public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 
@@ -145,6 +149,7 @@ namespace osu.Framework.Input
             {
                 case MouseButton.Left:
                     return new MouseLeftButtonEventManager(button);
+
                 default:
                     return new MouseMinorButtonEventManager(button);
             }
@@ -264,6 +269,7 @@ namespace osu.Framework.Input
             if (!(keyboardRepeatKey is Key key)) return;
 
             keyboardRepeatTime -= Time.Elapsed;
+
             while (keyboardRepeatTime < 0)
             {
                 handleKeyDown(state, key, true);
@@ -362,6 +368,7 @@ namespace osu.Framework.Input
                     }
 
                     d.IsHovered = true;
+
                     if (d.TriggerEvent(new HoverEvent(state)))
                     {
                         hoverHandledDrawable = d;
@@ -380,13 +387,11 @@ namespace osu.Framework.Input
             hoverEventsUpdated = true;
         }
 
-        private bool isModifierKey(Key k)
-        {
-            return k == Key.LControl || k == Key.RControl
-                                     || k == Key.LAlt || k == Key.RAlt
-                                     || k == Key.LShift || k == Key.RShift
-                                     || k == Key.LWin || k == Key.RWin;
-        }
+        private bool isModifierKey(Key k) =>
+            k == Key.LControl || k == Key.RControl
+                              || k == Key.LAlt || k == Key.RAlt
+                              || k == Key.LShift || k == Key.RShift
+                              || k == Key.LWin || k == Key.RWin;
 
         protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
         {
@@ -408,8 +413,11 @@ namespace osu.Framework.Input
             {
                 handleKeyUp(state, key);
 
-                keyboardRepeatKey = null;
-                keyboardRepeatTime = 0;
+                if (key == keyboardRepeatKey)
+                {
+                    keyboardRepeatKey = null;
+                    keyboardRepeatTime = 0;
+                }
             }
         }
 
@@ -436,15 +444,19 @@ namespace osu.Framework.Input
                 case MousePositionChangeEvent mousePositionChange:
                     HandleMousePositionChange(mousePositionChange);
                     return;
+
                 case MouseScrollChangeEvent mouseScrollChange:
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
+
                 case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
+
                 case ButtonStateChangeEvent<Key> keyboardKeyStateChange:
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
+
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
                     return;
@@ -457,7 +469,7 @@ namespace osu.Framework.Input
             var mouse = state.Mouse;
 
             foreach (var h in InputHandlers)
-                if (h.Enabled && h is INeedsMousePositionFeedback handler)
+                if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
 
             handleMouseMove(state, e.LastPosition);
@@ -479,35 +491,17 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition)
-        {
-            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
-        }
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise)
-        {
-            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
-        }
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
-        private bool handleKeyDown(InputState state, Key key, bool repeat)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
-        }
+        private bool handleKeyDown(InputState state, Key key, bool repeat) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
 
-        private bool handleKeyUp(InputState state, Key key)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
-        }
+        private bool handleKeyUp(InputState state, Key key) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
 
-        private bool handleJoystickPress(InputState state, JoystickButton button)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
-        }
+        private bool handleJoystickPress(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
 
-        private bool handleJoystickRelease(InputState state, JoystickButton button)
-        {
-            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
-        }
+        private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
 
         /// <summary>
         /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
@@ -520,7 +514,10 @@ namespace osu.Framework.Input
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
-                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            {
+                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
 
             InputUpdated?.Invoke(e.CurrentState, handledBy);
 
@@ -535,15 +532,16 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return true;
 
-            bool stillValid = FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
+            bool stillValid = FocusedDrawable.IsAlive && FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
 
             if (stillValid)
             {
                 //ensure we are visible
                 CompositeDrawable d = FocusedDrawable.Parent;
+
                 while (d != null)
                 {
-                    if (!d.IsPresent)
+                    if (!d.IsPresent || !d.IsAlive)
                     {
                         stillValid = false;
                         break;
@@ -591,7 +589,6 @@ namespace osu.Framework.Input
                     }
                 }
             }
-
 
             ChangeFocus(focusTarget);
         }

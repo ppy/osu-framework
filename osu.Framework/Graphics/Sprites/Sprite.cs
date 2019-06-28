@@ -1,10 +1,10 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 
@@ -13,15 +13,16 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A sprite that displays its texture.
     /// </summary>
-    public class Sprite : Drawable
+    public class Sprite : Drawable, ITexturedShaderDrawable
     {
-        private Shader textureShader;
-        private Shader roundedTextureShader;
+        public IShader TextureShader { get; private set; }
+
+        public IShader RoundedTextureShader { get; private set; }
 
         /// <summary>
         /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
         /// </summary>
-        public bool WrapTexture;
+        public bool WrapTexture { get; set; }
 
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
@@ -49,29 +50,13 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            SpriteDrawNode n = (SpriteDrawNode)node;
-
-            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
-            n.DrawRectangle = DrawRectangle;
-            n.Texture = Texture;
-            n.WrapTexture = WrapTexture;
-
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.InflationAmount = inflationAmount;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new SpriteDrawNode(this);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private Texture texture;
@@ -82,7 +67,7 @@ namespace osu.Framework.Graphics.Sprites
         /// of this sprite will be set to the size of the texture.
         /// <see cref="Drawable.FillAspectRatio"/> is automatically set to the aspect ratio of the given texture or 1 if the texture is null.
         /// </summary>
-        public Texture Texture
+        public virtual Texture Texture
         {
             get => texture;
             set
@@ -101,13 +86,13 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Vector2 inflationAmount;
+        public Vector2 InflationAmount { get; private set; }
 
         protected override Quad ComputeScreenSpaceDrawQuad()
         {
             if (EdgeSmoothness == Vector2.Zero)
             {
-                inflationAmount = Vector2.Zero;
+                InflationAmount = Vector2.Zero;
                 return base.ComputeScreenSpaceDrawQuad();
             }
 
@@ -117,15 +102,15 @@ namespace osu.Framework.Graphics.Sprites
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
-            return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
+            InflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
+            return ToScreenSpace(DrawRectangle.Inflate(InflationAmount));
         }
 
         public override string ToString()
         {
             string result = base.ToString();
             if (!string.IsNullOrEmpty(texture?.AssetName))
-                result += $" tex: {texture?.AssetName}";
+                result += $" tex: {texture.AssetName}";
             return result;
         }
     }

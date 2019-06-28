@@ -1,10 +1,10 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -35,20 +35,48 @@ namespace osu.Framework.Testing
             {
                 default:
                 case RecordState.Normal:
+                    recordedFrames.ForEach(disposeRecursively);
                     recordedFrames.Clear();
+
                     currentFrame.Value = currentFrame.MaxValue = 0;
 
                     return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
+
                 case RecordState.Recording:
                     var node = base.GenerateDrawNodeSubtree(frame, treeIndex, true);
+
+                    referenceRecursively(node);
 
                     recordedFrames.Add(node);
                     currentFrame.Value = currentFrame.MaxValue = recordedFrames.Count - 1;
 
                     return node;
+
                 case RecordState.Stopped:
                     return recordedFrames[currentFrame.Value];
             }
+        }
+
+        private void referenceRecursively(DrawNode drawNode)
+        {
+            drawNode.Reference();
+
+            if (!(drawNode is ICompositeDrawNode composite))
+                return;
+
+            foreach (var child in composite.Children)
+                referenceRecursively(child);
+        }
+
+        private void disposeRecursively(DrawNode drawNode)
+        {
+            drawNode.Dispose();
+
+            if (!(drawNode is ICompositeDrawNode composite))
+                return;
+
+            foreach (var child in composite.Children)
+                disposeRecursively(child);
         }
     }
 }

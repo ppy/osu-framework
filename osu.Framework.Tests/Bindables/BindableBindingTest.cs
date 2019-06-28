@@ -1,10 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -16,14 +18,17 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
             Assert.AreEqual("default", bindable1.Value);
             Assert.AreEqual(bindable2.Value, bindable1.Value);
+            Assert.AreEqual(bindable3.Value, bindable1.Value);
 
             bindable1.Value = "new value";
 
             Assert.AreEqual("new value", bindable1.Value);
             Assert.AreEqual(bindable2.Value, bindable1.Value);
+            Assert.AreEqual(bindable3.Value, bindable1.Value);
         }
 
         [Test]
@@ -31,11 +36,13 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
             bindable1.Disabled = true;
 
             Assert.Throws<InvalidOperationException>(() => bindable1.Value = "new value");
             Assert.Throws<InvalidOperationException>(() => bindable2.Value = "new value");
+            Assert.Throws<InvalidOperationException>(() => bindable3.Value = "new value");
 
             bindable1.Disabled = false;
 
@@ -43,11 +50,13 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.AreEqual("new value", bindable1.Value);
             Assert.AreEqual("new value", bindable2.Value);
+            Assert.AreEqual("new value", bindable3.Value);
 
             bindable2.Value = "new value 2";
 
             Assert.AreEqual("new value 2", bindable1.Value);
             Assert.AreEqual("new value 2", bindable2.Value);
+            Assert.AreEqual("new value 2", bindable3.Value);
         }
 
         [Test]
@@ -55,27 +64,32 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
-            int changed1 = 0, changed2 = 0;
+            int changed1 = 0, changed2 = 0, changed3 = 0;
 
             bindable1.ValueChanged += _ => changed1++;
             bindable2.ValueChanged += _ => changed2++;
+            bindable3.ValueChanged += _ => changed3++;
 
             bindable1.Value = "new value";
 
             Assert.AreEqual(1, changed1);
             Assert.AreEqual(1, changed2);
+            Assert.AreEqual(1, changed3);
 
             bindable1.Value = "new value 2";
 
             Assert.AreEqual(2, changed1);
             Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
 
             // should not re-fire, as the value hasn't changed.
             bindable1.Value = "new value 2";
 
             Assert.AreEqual(2, changed1);
             Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
         }
 
         [Test]
@@ -108,21 +122,25 @@ namespace osu.Framework.Tests.Bindables
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
             Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
 
-            bool disabled1 = false, disabled2 = false;
+            bool disabled1 = false, disabled2 = false, disabled3 = false;
 
             bindable1.DisabledChanged += v => disabled1 = v;
             bindable2.DisabledChanged += v => disabled2 = v;
+            bindable3.DisabledChanged += v => disabled3 = v;
 
             bindable1.Disabled = true;
 
             Assert.AreEqual(true, disabled1);
             Assert.AreEqual(true, disabled2);
+            Assert.AreEqual(true, disabled3);
 
             bindable1.Disabled = false;
 
             Assert.AreEqual(false, disabled1);
             Assert.AreEqual(false, disabled2);
+            Assert.AreEqual(false, disabled3);
         }
 
         [Test]
@@ -321,6 +339,50 @@ namespace osu.Framework.Tests.Bindables
             TestUnbindOnDrawableDispose();
         }
 
+        [Test]
+        public void TestUnbindFrom()
+        {
+            var bindable1 = new Bindable<int>(5);
+            var bindable2 = new Bindable<int>();
+            bindable2.BindTo(bindable1);
+
+            Assert.AreEqual(bindable1.Value, bindable2.Value);
+
+            bindable2.UnbindFrom(bindable1);
+            bindable1.Value = 10;
+
+            Assert.AreNotEqual(bindable1.Value, bindable2.Value);
+        }
+
+        [Test]
+        public void TestEventArgs()
+        {
+            var bindable1 = new Bindable<int>();
+            var bindable2 = new Bindable<int>();
+
+            bindable2.BindTo(bindable1);
+
+            ValueChangedEvent<int> event1 = null;
+            ValueChangedEvent<int> event2 = null;
+
+            bindable1.BindValueChanged(e => event1 = e);
+            bindable2.BindValueChanged(e => event2 = e);
+
+            bindable1.Value = 1;
+
+            Assert.AreEqual(0, event1.OldValue);
+            Assert.AreEqual(1, event1.NewValue);
+            Assert.AreEqual(0, event2.OldValue);
+            Assert.AreEqual(1, event2.NewValue);
+
+            bindable1.Value = 2;
+
+            Assert.AreEqual(1, event1.OldValue);
+            Assert.AreEqual(2, event1.NewValue);
+            Assert.AreEqual(1, event2.OldValue);
+            Assert.AreEqual(2, event2.NewValue);
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
@@ -330,6 +392,9 @@ namespace osu.Framework.Tests.Bindables
             public TestDrawable()
             {
                 bindable.BindValueChanged(_ => ValueChanged = true);
+
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
             }
 
             public virtual void SetValue(int value) => bindable.Value = value;
@@ -357,6 +422,12 @@ namespace osu.Framework.Tests.Bindables
         {
             public Func<Bindable<int>> GetBindable;
             private Bindable<int> bindable => GetBindable();
+
+            public TestDrawable2()
+            {
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
+            }
 
             public void SetValue(int value) => bindable.Value = value;
         }

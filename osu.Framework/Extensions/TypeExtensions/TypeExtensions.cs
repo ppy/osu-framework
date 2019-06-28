@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -33,6 +33,21 @@ namespace osu.Framework.Extensions.TypeExtensions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Return every base type until (and excluding) <see cref="object"/>
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static IEnumerable<Type> EnumerateBaseTypes(this Type t)
+        {
+            while (t != null && t != typeof(object))
+            {
+                yield return t;
+
+                t = t.BaseType;
+            }
         }
 
         public static string ReadableName(this Type t) => readableName(t, new HashSet<Type>());

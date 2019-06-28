@@ -1,9 +1,9 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.TypeExtensions;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input.States
 {
@@ -22,7 +22,7 @@ namespace osu.Framework.Input.States
 
         public override string ToString()
         {
-            string position = IsPositionValid ? $"({ Position.X:F0},{ Position.Y:F0})" : "(Invalid)";
+            string position = IsPositionValid ? $"({Position.X:F0},{Position.Y:F0})" : "(Invalid)";
             return $@"{GetType().ReadableName()} {position} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})";
         }
     }

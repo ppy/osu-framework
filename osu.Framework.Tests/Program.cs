@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests
@@ -11,9 +12,10 @@ namespace osu.Framework.Tests
         [STAThread]
         public static void Main(string[] args)
         {
-            bool benchmark = args.Length > 0 && args[0] == @"-benchmark";
+            bool benchmark = args.Contains(@"--benchmark");
+            bool portable = args.Contains(@"--portable");
 
-            using (GameHost host = Host.GetSuitableHost(@"visual-tests"))
+            using (GameHost host = Host.GetSuitableHost(@"visual-tests", portableInstallation: portable))
             {
                 if (benchmark)
                     host.Run(new AutomatedVisualTestGame());

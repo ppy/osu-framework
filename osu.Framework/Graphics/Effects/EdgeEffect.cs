@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Containers;
 
@@ -20,14 +20,12 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public float CornerRadius;
 
-        public Container ApplyTo(Drawable drawable)
-        {
-            return new Container
+        public Container ApplyTo(Drawable drawable) =>
+            new Container
             {
                 Masking = true,
                 EdgeEffect = Parameters,
                 CornerRadius = CornerRadius,
             }.Wrap(drawable);
-        }
     }
 }

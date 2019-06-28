@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,11 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class WaveformGraph : Drawable
     {
-        private Shader shader;
+        private IShader shader;
         private readonly Texture texture;
 
         public WaveformGraph()
@@ -37,13 +37,13 @@ namespace osu.Framework.Graphics.Audio
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            shader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         }
 
         private float resolution = 1;
 
         /// <summary>
-        /// Gets or sets the amount of <see cref="WaveformPoint"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
+        /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
         /// </summary>
         public float Resolution
         {
@@ -55,6 +55,7 @@ namespace osu.Framework.Graphics.Audio
 
                 if (resolution == value)
                     return;
+
                 resolution = value;
                 generate();
             }
@@ -91,6 +92,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (lowColour == value)
                     return;
+
                 lowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -110,6 +112,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (midColour == value)
                     return;
+
                 midColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -129,6 +132,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 if (highColour == value)
                     return;
+
                 highColour = value;
 
                 Invalidate(Invalidation.DrawNode);
@@ -148,7 +152,7 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private ScheduledDelegate scheduledGenerate;
 
-        private Waveform generatedWaveform;
+        protected Waveform ResampledWaveform { get; private set; }
 
         private void generate()
         {
@@ -165,7 +169,7 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
-                    generatedWaveform = w.Result;
+                    ResampledWaveform = w.Result;
                     Schedule(() => Invalidate(Invalidation.DrawNode));
                 }, token);
             });
@@ -178,25 +182,7 @@ namespace osu.Framework.Graphics.Audio
             cancelSource = null;
         }
 
-        private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
-        protected override DrawNode CreateDrawNode() => new WaveformDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            var n = (WaveformDrawNode)node;
-
-            n.Shader = shader;
-            n.Texture = texture;
-            n.DrawSize = DrawSize;
-            n.Shared = sharedData;
-            n.Points = generatedWaveform?.GetPoints();
-            n.Channels = generatedWaveform?.GetChannels() ?? 0;
-            n.LowColour = lowColour ?? DrawColourInfo.Colour;
-            n.MidColour = midColour ?? DrawColourInfo.Colour;
-            n.HighColour = highColour ?? DrawColourInfo.Colour;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new WaveformDrawNode(this);
 
         protected override void Dispose(bool isDisposing)
         {
@@ -204,56 +190,63 @@ namespace osu.Framework.Graphics.Audio
             cancelGeneration();
         }
 
-        private class WaveformDrawNodeSharedData
-        {
-            public readonly QuadBatch<TexturedVertex2D> VertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
-        }
-
         private class WaveformDrawNode : DrawNode
         {
-            public Shader Shader;
-            public Texture Texture;
+            private IShader shader;
+            private Texture texture;
 
-            public WaveformDrawNodeSharedData Shared;
+            private IReadOnlyList<Waveform.Point> points;
 
-            public Vector2 DrawSize;
-            public int Channels;
+            private Vector2 drawSize;
+            private int channels;
 
-            public Color4 LowColour;
-            public Color4 MidColour;
-            public Color4 HighColour;
-
-            private IReadOnlyList<WaveformPoint> points;
+            private Color4 lowColour;
+            private Color4 midColour;
+            private Color4 highColour;
 
             private double highMax;
             private double midMax;
             private double lowMax;
 
-            public IReadOnlyList<WaveformPoint> Points
-            {
-                get { return points; }
-                set
-                {
-                    points = value;
+            protected new WaveformGraph Source => (WaveformGraph)base.Source;
 
-                    if (points?.Any() == true)
-                    {
-                        highMax = points.Max(p => p.HighIntensity);
-                        midMax = points.Max(p => p.MidIntensity);
-                        lowMax = points.Max(p => p.LowIntensity);
-                    }
+            public WaveformDrawNode(WaveformGraph source)
+                : base(source)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                shader = Source.shader;
+                texture = Source.texture;
+                drawSize = Source.DrawSize;
+                points = Source.ResampledWaveform?.GetPoints();
+                channels = Source.ResampledWaveform?.GetChannels() ?? 0;
+                lowColour = Source.lowColour ?? DrawColourInfo.Colour;
+                midColour = Source.midColour ?? DrawColourInfo.Colour;
+                highColour = Source.highColour ?? DrawColourInfo.Colour;
+
+                if (points?.Any() == true)
+                {
+                    highMax = points.Max(p => p.HighIntensity);
+                    midMax = points.Max(p => p.MidIntensity);
+                    lowMax = points.Max(p => p.LowIntensity);
                 }
             }
+
+            private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
 
-                if (Texture?.Available != true || points == null || points.Count == 0)
+                if (texture?.Available != true || points == null || points.Count == 0)
                     return;
 
-                Shader.Bind();
-                Texture.TextureGL.Bind();
+                shader.Bind();
+                texture.TextureGL.Bind();
 
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
 
@@ -262,7 +255,7 @@ namespace osu.Framework.Graphics.Audio
                 // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
                 RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
 
-                float separation = DrawSize.X / (points.Count - 1);
+                float separation = drawSize.X / (points.Count - 1);
 
                 for (int i = 0; i < points.Count - 1; i++)
                 {
@@ -271,26 +264,27 @@ namespace osu.Framework.Graphics.Audio
 
                     if (rightX < localMaskingRectangle.Left)
                         continue;
+
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
                     Color4 colour = DrawColourInfo.Colour;
 
                     // colouring is applied in the order of interest to a viewer.
-                    colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, MidColour, 0, 1);
+                    colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, midColour, 0, 1);
                     // high end (cymbal) can help find beat, so give it priority over mids.
-                    colour = Interpolation.ValueAt(points[i].HighIntensity / highMax, colour, HighColour, 0, 1);
+                    colour = Interpolation.ValueAt(points[i].HighIntensity / highMax, colour, highColour, 0, 1);
                     // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
-                    colour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, colour, LowColour, 0, 1);
+                    colour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, colour, lowColour, 0, 1);
 
                     Quad quadToDraw;
 
-                    switch (Channels)
+                    switch (channels)
                     {
                         default:
                         case 2:
                         {
-                            float height = DrawSize.Y / 2;
+                            float height = drawSize.Y / 2;
                             quadToDraw = new Quad(
                                 new Vector2(leftX, height - points[i].Amplitude[0] * height),
                                 new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
@@ -299,23 +293,31 @@ namespace osu.Framework.Graphics.Audio
                             );
                         }
                             break;
+
                         case 1:
                         {
                             quadToDraw = new Quad(
-                                new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
-                                new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
-                                new Vector2(leftX, DrawSize.Y),
-                                new Vector2(rightX, DrawSize.Y)
+                                new Vector2(leftX, drawSize.Y - points[i].Amplitude[0] * drawSize.Y),
+                                new Vector2(rightX, drawSize.Y - points[i + 1].Amplitude[0] * drawSize.Y),
+                                new Vector2(leftX, drawSize.Y),
+                                new Vector2(rightX, drawSize.Y)
                             );
                             break;
                         }
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    Texture.DrawQuad(quadToDraw, colour, null, Shared.VertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    DrawQuad(texture, quadToDraw, colour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
-                Shader.Unbind();
+                shader.Unbind();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                vertexBatch.Dispose();
             }
         }
     }

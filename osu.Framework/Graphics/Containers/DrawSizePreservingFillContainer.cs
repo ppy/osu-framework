@@ -1,8 +1,8 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -81,18 +81,21 @@ namespace osu.Framework.Graphics.Containers
         /// while the other is always larger.
         /// </summary>
         Minimum,
+
         /// <summary>
         /// Preserves the aspect ratio of all children while ensuring one of the
         /// two axes matches <see cref="DrawSizePreservingFillContainer.TargetDrawSize"/>
         /// while the other is always smaller.
         /// </summary>
         Maximum,
+
         /// <summary>
         /// Preserves the aspect ratio of all children while one axis is always larger and
         /// the other always smaller than <see cref="DrawSizePreservingFillContainer.TargetDrawSize"/>,
         /// achieving a good compromise.
         /// </summary>
         Average,
+
         /// <summary>
         /// Ensures <see cref="DrawSizePreservingFillContainer.TargetDrawSize"/> is perfectly
         /// matched while aspect ratio of children is disregarded.

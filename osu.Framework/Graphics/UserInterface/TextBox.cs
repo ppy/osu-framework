@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -10,12 +10,12 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
@@ -38,6 +38,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
         protected virtual float LeftRightPadding => 5;
+
+        protected virtual float CaretWidth => 3;
 
         private const float caret_move_time = 60;
 
@@ -64,11 +66,34 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
-        protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
-        protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
+        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
+        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
+
+        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
+
+        protected Color4 BackgroundFocused
+        {
+            get => backgroundFocused;
+            set
+            {
+                backgroundFocused = value;
+                updateFocus();
+            }
+        }
+
+        protected Color4 BackgroundUnfocused
+        {
+            get => backgroundUnfocused;
+            set
+            {
+                backgroundUnfocused = value;
+                updateFocus();
+            }
+        }
 
         protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
+
+        protected virtual Color4 InputErrorColour => Color4.Red;
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -79,7 +104,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
-        public bool ReleaseFocusOnCommit = true;
+        /// <summary>
+        /// Whether the textbox should rescind focus on commit.
+        /// </summary>
+        public bool ReleaseFocusOnCommit { get; set; } = true;
+
+        /// <summary>
+        /// Whether a commit should be triggered whenever the textbox loses focus.
+        /// </summary>
+        public bool CommitOnFocusLost { get; set; }
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
@@ -113,10 +146,12 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new[]
                     {
-                        Placeholder = CreatePlaceholder(),
+                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
                         Caret = new DrawableCaret(),
                         TextFlow = new FillFlowContainer
                         {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
                             Direction = FillDirection.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
@@ -125,7 +160,7 @@ namespace osu.Framework.Graphics.UserInterface
                 },
             };
 
-            Current.ValueChanged += newValue => { Text = newValue; };
+            Current.ValueChanged += e => { Text = e.NewValue; };
         }
 
         [BackgroundDependencyLoader]
@@ -167,6 +202,8 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
+        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
+
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -182,17 +219,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
-            const float cursor_width = 3;
-
-            Placeholder.TextSize = CalculatedTextSize;
+            Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
 
             textUpdateScheduler.Update();
 
-            float caretWidth = cursor_width;
+            float caretWidth = CaretWidth;
 
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
+                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
@@ -253,6 +288,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (index < text.Length)
                     return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
+
                 var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
@@ -265,10 +301,12 @@ namespace osu.Framework.Graphics.UserInterface
             pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
+
             foreach (Drawable d in TextFlow.Children)
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
+
                 i++;
             }
 
@@ -313,7 +351,7 @@ namespace osu.Framework.Graphics.UserInterface
                     if (string.IsNullOrEmpty(pending))
                         pending = clipboard?.GetText();
 
-                    insertString(pending);
+                    InsertString(pending);
                     return true;
 
                 case PlatformActionType.SelectAll:
@@ -420,7 +458,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                audio.Sample.Get(@"Keyboard/key-movement")?.Play();
+                audio.Samples.Get(@"Keyboard/key-movement")?.Play();
                 cursorAndLayout.Invalidate();
             }
         }
@@ -439,13 +477,17 @@ namespace osu.Framework.Graphics.UserInterface
             if (count == 0) return false;
 
             if (sound)
-                audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 TextFlow.Remove(d);
 
                 TextContainer.Add(d);
+
+                // account for potentially altered height of textbox
+                d.Y = TextFlow.BoundingBox.Y;
+
                 d.FadeOut(200);
                 d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();
@@ -462,7 +504,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = CalculatedTextSize };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -495,14 +537,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
-        /// <param name="addText"></param>
-        private void insertString(string addText)
+        /// <param name="text">The new text to insert.</param>
+        protected void InsertString(string text)
         {
-            if (string.IsNullOrEmpty(addText)) return;
+            if (string.IsNullOrEmpty(text)) return;
 
-            foreach (char c in addText)
+            foreach (char c in text)
             {
                 var ch = addCharacter(c);
+
                 if (ch == null)
                 {
                     notifyInputError();
@@ -541,9 +584,9 @@ namespace osu.Framework.Graphics.UserInterface
         private void notifyInputError()
         {
             if (Background.Alpha > 0)
-                Background.FlashColour(Color4.Red, 200);
+                Background.FlashColour(InputErrorColour, 200);
             else
-                TextFlow.FlashColour(Color4.Red, 200);
+                TextFlow.FlashColour(InputErrorColour, 200);
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
@@ -559,7 +602,22 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        public Bindable<string> Current { get; } = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
+
+        private Bindable<string> currentBound;
+
+        public Bindable<string> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
+            }
+        }
 
         private string text = string.Empty;
 
@@ -574,7 +632,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == text)
                     return;
 
-                value = value ?? string.Empty;
+                lastCommitText = value = value ?? string.Empty;
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
@@ -631,11 +689,11 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
                 if (pendingText.Any(char.IsUpper))
-                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-caps")?.Play();
                 else
-                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                    audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
-                insertString(pendingText);
+                InsertString(pendingText);
             }
 
             if (consumingText)
@@ -646,7 +704,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (e.ControlPressed || e.SuperPressed)
+            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
 
             // we only care about keys which can result in text output.
@@ -658,6 +716,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Escape:
                     KillFocus();
                     return true;
+
                 case Key.KeypadEnter:
                 case Key.Enter:
                     Commit();
@@ -674,6 +733,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void KillFocus() => killFocus();
 
+        private string lastCommitText;
+
+        private bool hasNewComittableText => text != lastCommitText;
+
         private void killFocus()
         {
             var manager = GetContainingInputManager();
@@ -683,15 +746,22 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected void Commit()
         {
-            if (ReleaseFocusOnCommit)
+            if (ReleaseFocusOnCommit && HasFocus)
+            {
                 killFocus();
+                if (CommitOnFocusLost)
+                    // the commit will happen as a result of the focus loss.
+                    return;
+            }
 
             Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
             Background.ClearTransforms();
             Background.FlashColour(BackgroundCommit, 400);
 
-            audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-            OnCommit?.Invoke(this, true);
+            audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
+
+            OnCommit?.Invoke(this, hasNewComittableText);
+            lastCommitText = text;
         }
 
         protected override bool OnKeyUp(KeyUpEvent e)
@@ -819,11 +889,13 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
 
             cursorAndLayout.Invalidate();
+
+            if (CommitOnFocusLost)
+                Commit();
         }
 
         public override bool AcceptsFocus => true;
@@ -904,7 +976,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 
@@ -912,6 +984,7 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = matchCount; i < s.Length; i++)
             {
                 Drawable dr = addCharacter(s[i]);
+
                 if (dr != null)
                 {
                     dr.Colour = Color4.Aqua;
@@ -920,7 +993,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion

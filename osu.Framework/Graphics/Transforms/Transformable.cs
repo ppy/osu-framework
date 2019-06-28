@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Lists;
@@ -274,6 +274,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
 
             Transform[] toAbort;
+
             if (targetMember == null)
             {
                 toAbort = transformsLazy.Value.Where(t => t.StartTime >= time).ToArray();
@@ -300,6 +301,7 @@ namespace osu.Framework.Graphics.Transforms
         public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
             if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
+
             updateTransforms(time);
         }
 
@@ -437,6 +439,7 @@ namespace osu.Framework.Graphics.Transforms
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
+
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);

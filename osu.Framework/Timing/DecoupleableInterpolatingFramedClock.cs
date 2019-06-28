@@ -1,5 +1,7 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
 
 namespace osu.Framework.Timing
 {
@@ -10,7 +12,7 @@ namespace osu.Framework.Timing
     ///
     /// This clock type removes the requirement of having a source set.
     ///
-    /// If a <see cref="InterpolatingFramedClock.SourceClock"/> is set, it is presumed that we have exclusive control over operations on it.
+    /// If a <see cref="InterpolatingFramedClock.Source"/> is set, it is presumed that we have exclusive control over operations on it.
     /// This is used to our advantage to allow correct <see cref="IsRunning"/> state tracking in the event of cross-thread communication delays (with an audio thread, for instance).
     /// </summary>
     public class DecoupleableInterpolatingFramedClock : InterpolatingFramedClock, IAdjustableClock
@@ -31,17 +33,21 @@ namespace osu.Framework.Timing
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.
         /// </summary>
-        private IAdjustableClock adjustableSource => SourceClock as IAdjustableClock;
+        private IAdjustableClock adjustableSource => Source as IAdjustableClock;
 
-        public override double CurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+        public override double CurrentTime => currentTime;
+
+        private double currentTime;
 
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
-        public override double ElapsedFrameTime => useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+        private double elapsedFrameTime;
+
+        public override double ElapsedFrameTime => elapsedFrameTime;
 
         public override double Rate
         {
-            get => SourceClock?.Rate ?? 1;
+            get => Source?.Rate ?? 1;
             set => adjustableSource.Rate = value;
         }
 
@@ -58,7 +64,7 @@ namespace osu.Framework.Timing
 
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
 
-            bool sourceRunning = SourceClock?.IsRunning ?? false;
+            bool sourceRunning = Source?.IsRunning ?? false;
 
             if (IsRunning)
             {
@@ -66,7 +72,7 @@ namespace osu.Framework.Timing
                 {
                     // when coupled, we want to stop when our source clock stops.
                     if (sourceRunning)
-                        decoupledStopwatch.Seek(CurrentTime);
+                        decoupledStopwatch.Seek(base.CurrentTime);
                     else
                         Stop();
                 }
@@ -84,6 +90,12 @@ namespace osu.Framework.Timing
             }
 
             decoupledClock.ProcessFrame();
+
+            double proposedTime = useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+
+            elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+
+            currentTime = elapsedFrameTime < 0 ? proposedTime : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)
@@ -93,8 +105,7 @@ namespace osu.Framework.Timing
             // transfer our value to the source clock.
             (source as IAdjustableClock)?.Seek(CurrentTime);
 
-            SourceClock = source;
-            FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
+            base.ChangeSource(source);
         }
 
         public void Reset()

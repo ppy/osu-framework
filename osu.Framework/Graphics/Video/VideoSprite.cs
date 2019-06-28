@@ -1,11 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Video
@@ -51,6 +52,7 @@ namespace osu.Framework.Graphics.Video
                     return 0;
 
                 if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+
                 return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
             }
         }
@@ -84,9 +86,11 @@ namespace osu.Framework.Graphics.Video
 
         private bool isDisposed;
 
-        public VideoSprite(Stream videoStream)
+        public VideoSprite([NotNull] Stream stream)
         {
-            decoder = new VideoDecoder(videoStream);
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            decoder = new VideoDecoder(stream);
         }
 
         public VideoSprite(string filename)
@@ -108,6 +112,7 @@ namespace osu.Framework.Graphics.Video
                 startTime = Clock.CurrentTime;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+
             if (nextFrame != null)
             {
                 bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
@@ -130,6 +135,7 @@ namespace osu.Framework.Graphics.Video
 
             while (availableFrames.Count > 0 && availableFrames.Peek().Time <= PlaybackPosition && Math.Abs(availableFrames.Peek().Time - PlaybackPosition) < lenience_before_seek)
             {
+                if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
                 Texture = lastFrame.Texture;
             }

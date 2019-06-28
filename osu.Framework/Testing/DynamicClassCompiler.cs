@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.IO;
@@ -17,11 +17,11 @@ namespace osu.Framework.Testing
     public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
-        public Action CompilationStarted;
+        public event Action CompilationStarted;
 
-        public Action<Type> CompilationFinished;
+        public event Action<Type> CompilationFinished;
 
-        public Action<Exception> CompilationFailed;
+        public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Testing
 
             Task.Run(() =>
             {
-                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
+                var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
                     return;
@@ -58,21 +58,31 @@ namespace osu.Framework.Testing
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
 
-                    validDirectories.Add(dir);
+                    lock (compileLock) // enumeration over this list occurs during compilation
+                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
-                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime | NotifyFilters.FileName,
                     };
 
+                    fsw.Renamed += onChange;
                     fsw.Changed += onChange;
                     fsw.Created += onChange;
 
                     watchers.Add(fsw);
                 }
             });
+
+            string getSolutionPath(DirectoryInfo d)
+            {
+                if (d == null)
+                    return null;
+
+                return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
+            }
         }
 
         private void onChange(object sender, FileSystemEventArgs e)
@@ -84,12 +94,12 @@ namespace osu.Framework.Testing
 
                 var checkpointName = checkpointObject.GetType().Name;
 
-                var reqTypes = checkpointObject.RequiredTypes.Select(t => t.Name).ToList();
+                var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
 
                 // add ourselves as a required type.
-                reqTypes.Add(checkpointName);
+                reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(checkpointName.Replace("TestCase", ""));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
@@ -108,10 +118,15 @@ namespace osu.Framework.Testing
                 lastTouchedFile = e.FullPath;
 
                 isCompiling = true;
-                Task.Run((Action)recompile)
+                Task.Run(recompile)
                     .ContinueWith(_ => isCompiling = false);
             }
         }
+
+        /// <summary>
+        /// Removes the "`1[T]" generic specification from type name output.
+        /// </summary>
+        private string removeGenerics(string checkpointName) => checkpointName.Split('`').First();
 
         private int currentVersion;
 
@@ -132,17 +147,18 @@ namespace osu.Framework.Testing
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
-                #if DEBUG
-                    "DEBUG",
-                #endif
-                #if TRACE
-                    "TRACE",
-                #endif
-                #if RELEASE
-                    "RELEASE",
-                #endif
-            });
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+            {
+#if DEBUG
+                "DEBUG",
+#endif
+#if TRACE
+                "TRACE",
+#endif
+#if RELEASE
+                "RELEASE",
+#endif
+            }, languageVersion: LanguageVersion.CSharp7_3);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -162,7 +178,7 @@ namespace osu.Framework.Testing
                 dynamicNamespace,
                 requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), parseOptions, file))
                              // Compile the assembly with a new version so that it replaces the existing one
-                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
+                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions))
                 ,
                 references,
                 options
@@ -176,7 +192,7 @@ namespace osu.Framework.Testing
                 {
                     ms.Seek(0, SeekOrigin.Begin);
                     CompilationFinished?.Invoke(
-                        Assembly.Load(ms.ToArray()).GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName)
+                        Assembly.Load(ms.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName)
                     );
                 }
                 else

@@ -1,10 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
-using OpenTK;
-using OpenTK.Graphics.ES30;
+using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             Unbind();
@@ -85,24 +86,26 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (info.FrameBufferID != frameBuffer)
             {
                 // Make sure the framebuffer we want to attach to is bound
-                int lastFrameBuffer = GLWrapper.BindFrameBuffer(frameBuffer);
+                GLWrapper.BindFrameBuffer(frameBuffer);
 
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
+
                     case RenderbufferInternalFormat.Rgb565:
                     case RenderbufferInternalFormat.Rgb5A1:
                     case RenderbufferInternalFormat.Rgba4:
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
+
                     case RenderbufferInternalFormat.StencilIndex8:
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
 
-                GLWrapper.BindFrameBuffer(lastFrameBuffer);
+                GLWrapper.UnbindFrameBuffer(frameBuffer);
             }
 
             info.FrameBufferID = frameBuffer;

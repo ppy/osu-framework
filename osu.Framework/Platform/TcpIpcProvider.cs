@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
@@ -25,6 +25,7 @@ namespace osu.Framework.Platform
         public bool Bind()
         {
             listener = new TcpListener(IPAddress.Loopback, ipc_port);
+
             try
             {
                 listener.Start();
@@ -45,6 +46,7 @@ namespace osu.Framework.Platform
         public async Task StartAsync()
         {
             var token = cancelListener.Token;
+
             try
             {
                 while (!token.IsCancellationRequested)
@@ -101,6 +103,7 @@ namespace osu.Framework.Platform
             using (var client = new TcpClient())
             {
                 await client.ConnectAsync(IPAddress.Loopback, ipc_port);
+
                 using (var stream = client.GetStream())
                 {
                     var str = JsonConvert.SerializeObject(message, Formatting.None);

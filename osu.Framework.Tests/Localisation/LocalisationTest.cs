@@ -1,8 +1,10 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
@@ -153,7 +155,10 @@ namespace osu.Framework.Tests.Localisation
         {
             protected override string Filename => null;
 
-            public FakeFrameworkConfigManager() : base(null) { }
+            public FakeFrameworkConfigManager()
+                : base(null)
+            {
+            }
 
             protected override void InitialiseDefaults()
             {
@@ -188,19 +193,24 @@ namespace osu.Framework.Tests.Localisation
                         {
                             default:
                                 return LOCALISABLE_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
+
                             case "ja-JP":
                                 return LOCALISABLE_STRING_JA_JP;
                         }
+
                     case LOCALISABLE_FORMAT_STRING_EN:
                         switch (locale)
                         {
                             default:
                                 return LOCALISABLE_FORMAT_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_FORMAT_STRING_JA;
                         }
+
                     default:
                         return name;
                 }
@@ -211,6 +221,8 @@ namespace osu.Framework.Tests.Localisation
             public void Dispose()
             {
             }
+
+            public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
         }
     }
 }

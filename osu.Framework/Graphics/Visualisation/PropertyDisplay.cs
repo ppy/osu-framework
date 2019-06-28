@@ -1,16 +1,17 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -29,7 +30,7 @@ namespace osu.Framework.Graphics.Visualisation
             Width = width;
             RelativeSizeAxes = Axes.Y;
 
-            AddInternal(new ScrollContainer
+            AddInternal(new BasicScrollContainer<Drawable>
             {
                 Padding = new MarginPadding(10),
                 RelativeSizeAxes = Axes.Both,
@@ -52,19 +53,15 @@ namespace osu.Framework.Graphics.Visualisation
 
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
-            Type type = source.GetType();
-            while (type != null && type != typeof(object))
-            {
+            foreach (var type in source.GetType().EnumerateBaseTypes())
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null)
+                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
                     .ForEach(m => allMembers.Add(m));
-
-                type = type.BaseType;
-            }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
             AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
                                .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+                               .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
                                .Select(m => new PropertyItem(m, source)));
         }
 
@@ -87,6 +84,7 @@ namespace osu.Framework.Graphics.Visualisation
             public PropertyItem(MemberInfo info, IDrawable d)
             {
                 Type type;
+
                 switch (info.MemberType)
                 {
                     case MemberTypes.Property:
@@ -167,6 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
             private void updateValue()
             {
                 object value;
+
                 try
                 {
                     value = getValue() ?? "<null>";

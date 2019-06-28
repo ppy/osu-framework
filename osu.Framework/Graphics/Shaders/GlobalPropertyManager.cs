@@ -1,10 +1,10 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -29,6 +29,11 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
             global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
+            global_properties[(int)GlobalProperty.InnerCornerRadius] = new UniformMapping<float>("g_InnerCornerRadius");
+            global_properties[(int)GlobalProperty.GammaCorrection] = new UniformMapping<bool>("g_GammaCorrection");
+
+            // Backbuffer internals
+            global_properties[(int)GlobalProperty.BackbufferDraw] = new UniformMapping<bool>("g_BackbufferDraw");
         }
 
         /// <summary>
@@ -38,7 +43,10 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
         public static void Set<T>(GlobalProperty property, T value)
-            where T : struct => ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
+            where T : struct
+        {
+            ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
+        }
 
         public static void Register(Shader shader)
         {

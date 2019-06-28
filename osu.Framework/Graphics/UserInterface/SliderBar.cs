@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using OpenTK.Input;
-using OpenTK;
+using osuTK.Input;
+using osuTK;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -30,7 +30,28 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly BindableNumber<T> CurrentNumber;
 
-        public Bindable<T> Current => CurrentNumber;
+        private readonly BindableNumber<T> currentNumberInstantaneous;
+
+        /// <summary>
+        /// When set, value changes based on user input are only transferred to any bound <see cref="Current"/> on commit.
+        /// This is useful if the UI interaction could be adversely affected by the value changing, such as the position of the <see cref="SliderBar{T}"/> on the screen.
+        /// </summary>
+        public bool TransferValueOnCommit;
+
+        public Bindable<T> Current
+        {
+            get => CurrentNumber;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                CurrentNumber.UnbindBindings();
+                CurrentNumber.BindTo(value);
+
+                currentNumberInstantaneous.Default = CurrentNumber.Default;
+            }
+        }
 
         protected SliderBar()
         {
@@ -40,31 +61,42 @@ namespace osu.Framework.Graphics.UserInterface
                 CurrentNumber = new BindableLong() as BindableNumber<T>;
             else if (typeof(T) == typeof(double))
                 CurrentNumber = new BindableDouble() as BindableNumber<T>;
-            else if (typeof(T) == typeof(float))
+            else
                 CurrentNumber = new BindableFloat() as BindableNumber<T>;
 
             if (CurrentNumber == null)
                 throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
+
+            currentNumberInstantaneous = CurrentNumber.GetUnboundCopy();
+
+            CurrentNumber.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
+            CurrentNumber.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
+            CurrentNumber.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
+            CurrentNumber.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
+            CurrentNumber.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
+
+            currentNumberInstantaneous.ValueChanged += e =>
+            {
+                if (!TransferValueOnCommit)
+                    CurrentNumber.Value = e.NewValue;
+            };
         }
 
         protected float NormalizedValue
         {
             get
             {
-                if (Current == null)
-                    return 0;
-
-                if (!CurrentNumber.HasDefinedRange)
+                if (!currentNumberInstantaneous.HasDefinedRange)
                     throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
 
-                var min = Convert.ToSingle(CurrentNumber.MinValue);
-                var max = Convert.ToSingle(CurrentNumber.MaxValue);
+                var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
+                var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
 
                 if (max - min == 0)
                     return 1;
 
-                var val = Convert.ToSingle(CurrentNumber.Value);
+                var val = Convert.ToSingle(currentNumberInstantaneous.Value);
                 return (val - min) / (max - min);
             }
         }
@@ -79,9 +111,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            CurrentNumber.ValueChanged += _ => UpdateValue(NormalizedValue);
-            CurrentNumber.MinValueChanged += _ => UpdateValue(NormalizedValue);
-            CurrentNumber.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.ValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.MinValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.MaxValueChanged += _ => UpdateValue(NormalizedValue);
 
             UpdateValue(NormalizedValue);
         }
@@ -89,6 +121,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             handleMouseInput(e);
+            commit();
             return true;
         }
 
@@ -100,49 +133,85 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(DragStartEvent e)
         {
+            handleMouseInput(e);
             Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDragEnd(DragEndEvent e) => true;
+        protected override bool OnDragEnd(DragEndEvent e)
+        {
+            handleMouseInput(e);
+            commit();
+            return true;
+        }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!IsHovered || CurrentNumber.Disabled)
+            if (!IsHovered || currentNumberInstantaneous.Disabled)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
-            if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
+            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+            if (currentNumberInstantaneous.IsInteger) step = (float)Math.Ceiling(step);
 
             switch (e.Key)
             {
                 case Key.Right:
-                    CurrentNumber.Add(step);
-                    OnUserChange();
+                    currentNumberInstantaneous.Add(step);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
+
                 case Key.Left:
-                    CurrentNumber.Add(-step);
-                    OnUserChange();
+                    currentNumberInstantaneous.Add(-step);
+                    onUserChange(currentNumberInstantaneous.Value);
                     return true;
+
                 default:
                     return false;
             }
+        }
+
+        protected override bool OnKeyUp(KeyUpEvent e)
+        {
+            if (e.Key == Key.Left || e.Key == Key.Right)
+                return commit();
+
+            return false;
+        }
+
+        private bool uncommittedChanges;
+
+        private bool commit()
+        {
+            if (!uncommittedChanges)
+                return false;
+
+            CurrentNumber.Value = currentNumberInstantaneous.Value;
+            uncommittedChanges = false;
+            return true;
         }
 
         private void handleMouseInput(UIEvent e)
         {
             var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
-            if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
+            if (currentNumberInstantaneous.Disabled)
+                return;
 
-            OnUserChange();
+            currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
+            onUserChange(currentNumberInstantaneous.Value);
+        }
+
+        private void onUserChange(T value)
+        {
+            uncommittedChanges = true;
+            OnUserChange(value);
         }
 
         /// <summary>
         /// Triggered when the value is changed based on end-user input to this control.
         /// </summary>
-        protected virtual void OnUserChange() { }
+        protected virtual void OnUserChange(T value)
+        {
+        }
     }
 }

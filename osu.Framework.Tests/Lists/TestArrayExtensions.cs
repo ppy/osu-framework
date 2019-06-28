@@ -1,6 +1,7 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 
@@ -122,6 +123,7 @@ namespace osu.Framework.Tests.Lists
         public void TestNonSquareJaggedWithNullRowsToRectangular()
         {
             var jagged = new int[10][];
+
             for (int i = 1; i < 10; i += 2)
             {
                 if (i % 2 == 1)
@@ -135,6 +137,76 @@ namespace osu.Framework.Tests.Lists
 
             for (int i = 0; i < 10; i++)
                 Assert.AreEqual(0, result[i, 0]);
+        }
+
+        [Test]
+        public void TestInvertRectangular()
+        {
+            var original = new int?[,]
+            {
+                { 1, 2, null },
+                { null, 3, 4 },
+                { 5, 6, null }
+            };
+
+            var result = original.Invert();
+
+            Assert.AreEqual(1, result[0, 0]);
+            Assert.AreEqual(2, result[1, 0]);
+            Assert.AreEqual(null, result[2, 0]);
+            Assert.AreEqual(null, result[0, 1]);
+            Assert.AreEqual(3, result[1, 1]);
+            Assert.AreEqual(4, result[2, 1]);
+            Assert.AreEqual(5, result[0, 2]);
+            Assert.AreEqual(6, result[1, 2]);
+            Assert.AreEqual(null, result[2, 2]);
+        }
+
+        [Test]
+        public void TestInvertJagged()
+        {
+            // 4x5 array
+            var original = new[]
+            {
+                new int?[] { 1, 2, null },
+                new int?[] { 3, 4 },
+                null,
+                new int?[] { null, 5, 6, 7, 8 }
+            };
+
+            var result = original.Invert();
+
+            // Ensure 5x4 array
+            Assert.AreEqual(5, result.Length);
+            Assert.AreEqual(4, result.Max(r => r.Length));
+
+            // Column 1
+            Assert.AreEqual(1, result[0][0]);
+            Assert.AreEqual(2, result[1][0]);
+            Assert.AreEqual(null, result[2][0]);
+            Assert.AreEqual(null, result[3][0]);
+            Assert.AreEqual(null, result[4][0]);
+
+            // Column 2
+            Assert.AreEqual(3, result[0][1]);
+            Assert.AreEqual(4, result[1][1]);
+            Assert.AreEqual(null, result[2][1]);
+            Assert.AreEqual(null, result[3][1]);
+            Assert.AreEqual(null, result[4][1]);
+
+            // Column 3
+            Assert.AreEqual(null, result[0][2]);
+            Assert.AreEqual(null, result[1][2]);
+            Assert.AreEqual(null, result[2][2]);
+            Assert.AreEqual(null, result[3][2]);
+            Assert.AreEqual(null, result[4][2]);
+
+            // Column 4
+            Assert.AreEqual(null, result[0][3]);
+            Assert.AreEqual(5, result[1][3]);
+            Assert.AreEqual(6, result[2][3]);
+            Assert.AreEqual(7, result[3][3]);
+            Assert.AreEqual(8, result[4][3]);
         }
     }
 }

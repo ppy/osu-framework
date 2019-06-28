@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Lists;
 using NUnit.Framework;
 
@@ -38,7 +37,7 @@ namespace osu.Framework.Tests.Lists
                 -10
             };
             list.Remove(8);
-            Assert.IsFalse(list.Any(i => i == 8));
+            Assert.That(list, Does.Not.Contain(8));
             Assert.AreEqual(3, list.Count);
         }
 
@@ -53,7 +52,7 @@ namespace osu.Framework.Tests.Lists
                 -10
             };
             list.RemoveAt(0);
-            Assert.IsFalse(list.Any(i => i == -10));
+            Assert.That(list, Does.Not.Contain(-10));
             Assert.AreEqual(3, list.Count);
         }
 
@@ -68,7 +67,7 @@ namespace osu.Framework.Tests.Lists
                 -10
             };
             list.Clear();
-            Assert.IsFalse(list.Any());
+            Assert.That(list, Is.Empty);
             Assert.AreEqual(0, list.Count);
         }
 

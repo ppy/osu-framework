@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -11,6 +11,12 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public interface IHasCurrentValue<T>
     {
-        Bindable<T> Current { get; }
+        /// <summary>
+        /// Gets or sets the <see cref="Bindable{T}"/> that provides the current value.
+        /// </summary>
+        /// <remarks>
+        /// A provided <see cref="Bindable{T}"/> will be bound to, rather than be stored internally.
+        /// </remarks>
+        Bindable<T> Current { get; set; }
     }
 }

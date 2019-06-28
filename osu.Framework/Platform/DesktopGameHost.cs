@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,42 +12,58 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Logging;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
-        private readonly TcpIpcProvider ipcProvider;
-        private readonly Thread ipcThread;
+        private TcpIpcProvider ipcProvider;
+        private readonly bool bindIPCPort;
+        private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
+        {
+            this.bindIPCPort = bindIPCPort;
+            IsPortableInstallation = portableInstallation;
+        }
+
+        protected override void SetupForRun()
         {
             //todo: yeah.
             Architecture.SetIncludePath();
 
-            if (bindIPCPort)
-            {
-                ipcProvider = new TcpIpcProvider();
-                IsPrimaryInstance = ipcProvider.Bind();
-
-                if (IsPrimaryInstance)
-                {
-                    ipcProvider.MessageReceived += OnMessageReceived;
-
-                    ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
-                    {
-                        Name = "IPC",
-                        IsBackground = true
-                    };
-
-                    ipcThread.Start();
-                }
-            }
-
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+
+            if (bindIPCPort)
+                startIPC();
+
+            base.SetupForRun();
         }
+
+        private void startIPC()
+        {
+            Debug.Assert(ipcProvider == null);
+
+            ipcProvider = new TcpIpcProvider();
+            IsPrimaryInstance = ipcProvider.Bind();
+
+            if (IsPrimaryInstance)
+            {
+                ipcProvider.MessageReceived += OnMessageReceived;
+
+                ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
+                {
+                    Name = "IPC",
+                    IsBackground = true
+                };
+
+                ipcThread.Start();
+            }
+        }
+
+        public bool IsPortableInstallation { get; }
 
         public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
 
@@ -65,14 +81,14 @@ namespace osu.Framework.Platform
         {
             var defaultEnabled = new InputHandler[]
             {
-                new OpenTKMouseHandler(),
-                new OpenTKKeyboardHandler(),
-                new OpenTKJoystickHandler(),
+                new OsuTKMouseHandler(),
+                new OsuTKKeyboardHandler(),
+                new OsuTKJoystickHandler(),
             };
 
             var defaultDisabled = new InputHandler[]
             {
-                new OpenTKRawMouseHandler(),
+                new OsuTKRawMouseHandler(),
             };
 
             foreach (var h in defaultDisabled)

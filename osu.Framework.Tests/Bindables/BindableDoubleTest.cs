@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -61,6 +61,19 @@ namespace osu.Framework.Tests.Bindables
             bindable.Parse(value);
 
             Assert.AreEqual(value, bindable.Value);
+        }
+
+        [Test]
+        public void TestPropagationToPlainBindable()
+        {
+            var number = new BindableDouble(1000);
+            var bindable = new Bindable<double>();
+
+            bindable.BindTo(number);
+
+            number.Precision = 0.5f;
+            number.MinValue = 0;
+            number.MaxValue = 10;
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Shaders
             {
                 case ShaderType.FragmentShader:
                     return @".fs";
+
                 case ShaderType.VertexShader:
                     return @".vs";
             }
@@ -45,6 +46,7 @@ namespace osu.Framework.Graphics.Shaders
                 name = shader_prefix + name;
             if (name.EndsWith(ending, StringComparison.Ordinal))
                 return name;
+
             return name + ending;
         }
 
@@ -66,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
             return part;
         }
 
-        public Shader Load(string vertex, string fragment, bool continuousCompilation = false)
+        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
         {
             var tuple = (vertex, fragment);
 
@@ -81,7 +83,7 @@ namespace osu.Framework.Graphics.Shaders
 
             shader = new Shader($"{vertex}/{fragment}", parts);
 
-            if (!shader.Loaded)
+            if (!shader.IsLoaded)
             {
                 StringBuilder logContents = new StringBuilder();
                 logContents.AppendLine($@"Loading shader {vertex}/{fragment}");

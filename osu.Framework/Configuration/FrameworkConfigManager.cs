@@ -1,18 +1,21 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Platform;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Configuration
 {
     public class FrameworkConfigManager : IniConfigManager<FrameworkSetting>
     {
-        protected override string Filename => @"framework.ini";
+        internal const string FILENAME = @"framework.ini";
+
+        protected override string Filename => FILENAME;
 
         protected override void InitialiseDefaults()
         {
@@ -29,9 +32,6 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
-            Set(FrameworkSetting.Letterboxing, true);
-            Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0, 0.01);
-            Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0, 0.01);
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
@@ -41,8 +41,8 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.PerformanceLogging, false);
         }
 
-        public FrameworkConfigManager(Storage storage)
-            : base(storage)
+        public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
+            : base(storage, defaultOverrides)
         {
         }
 
@@ -80,9 +80,6 @@ namespace osu.Framework.Configuration
 
         WindowMode,
         ConfineMouseMode,
-        Letterboxing,
-        LetterboxPositionX,
-        LetterboxPositionY,
         FrameSync,
 
         ShowUnicode,

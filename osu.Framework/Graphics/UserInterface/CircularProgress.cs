@@ -1,28 +1,42 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CircularProgress : Drawable, IHasCurrentValue<double>
+    public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
-        public Bindable<double> Current { get; } = new Bindable<double>();
+        private readonly Bindable<double> current = new Bindable<double>();
+
+        private Bindable<double> currentBound;
+
+        public Bindable<double> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
+            }
+        }
 
         public CircularProgress()
         {
             Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
         }
 
-        private Shader roundedTextureShader;
-        private Shader textureShader;
-
-        private readonly CircularProgressDrawNodeSharedData pathDrawNodeSharedData = new CircularProgressDrawNodeSharedData();
+        public IShader RoundedTextureShader { get; private set; }
+        public IShader TextureShader { get; private set; }
 
         #region Disposal
 
@@ -36,24 +50,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            CircularProgressDrawNode n = (CircularProgressDrawNode)node;
-
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
-            n.Angle = (float)Current.Value * MathHelper.TwoPi;
-            n.InnerRadius = innerRadius;
-
-            base.ApplyDrawNode(node);
-        }
+        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
             => this.TransformBindableTo(Current, newValue, duration, easing);
@@ -61,8 +58,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;

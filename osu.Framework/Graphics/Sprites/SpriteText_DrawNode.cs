@@ -1,73 +1,81 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
     public partial class SpriteText
     {
-        internal class SpriteTextDrawNode : DrawNode
+        internal class SpriteTextDrawNode : TexturedShaderDrawNode
         {
-            internal SpriteTextDrawNodeSharedData Shared;
+            protected new SpriteText Source => (SpriteText)base.Source;
 
-            public bool Shadow;
-            public ColourInfo ShadowColour;
-            public Vector2 ShadowOffset;
+            private bool shadow;
+            private ColourInfo shadowColour;
+            private Vector2 shadowOffset;
 
-            internal readonly List<ScreenSpaceCharacterPart> Parts = new List<ScreenSpaceCharacterPart>();
+            private readonly List<ScreenSpaceCharacterPart> parts = new List<ScreenSpaceCharacterPart>();
 
-            private bool needsRoundedShader => GLWrapper.IsMaskingActive;
+            public SpriteTextDrawNode(SpriteText source)
+                : base(source)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                parts.Clear();
+                parts.AddRange(Source.screenSpaceCharacters);
+                shadow = Source.Shadow;
+
+                if (shadow)
+                {
+                    shadowColour = Source.ShadowColour;
+                    shadowOffset = Source.shadowOffset;
+                }
+            }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
 
-                Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
-
-                shader.Bind();
+                Shader.Bind();
 
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
                 //squared result for quadratic fall-off seems to give the best result.
-                var shadowColour = DrawColourInfo.Colour;
-                shadowColour.ApplyChild(ShadowColour.MultiplyAlpha(shadowAlpha));
+                var finalShadowColour = DrawColourInfo.Colour;
+                finalShadowColour.ApplyChild(shadowColour.MultiplyAlpha(shadowAlpha));
 
-                for (int i = 0; i < Parts.Count; i++)
+                for (int i = 0; i < parts.Count; i++)
                 {
-                    if (Shadow)
+                    if (shadow)
                     {
-                        var shadowQuad = Parts[i].DrawQuad;
-                        shadowQuad.TopLeft += ShadowOffset;
-                        shadowQuad.TopRight += ShadowOffset;
-                        shadowQuad.BottomLeft += ShadowOffset;
-                        shadowQuad.BottomRight += ShadowOffset;
+                        var shadowQuad = parts[i].DrawQuad;
+                        shadowQuad.TopLeft += shadowOffset;
+                        shadowQuad.TopRight += shadowOffset;
+                        shadowQuad.BottomLeft += shadowOffset;
+                        shadowQuad.BottomRight += shadowOffset;
 
-                        Parts[i].Texture.DrawQuad(shadowQuad, shadowColour, vertexAction: vertexAction);
+                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction);
                     }
 
-                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
-                shader.Unbind();
+                Shader.Unbind();
             }
-        }
-
-        internal class SpriteTextDrawNodeSharedData
-        {
-            public Shader TextureShader;
-            public Shader RoundedTextureShader;
         }
 
         /// <summary>

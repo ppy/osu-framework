@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
@@ -19,6 +19,12 @@ namespace osu.Framework.IO.Network
     public class WebRequest : IDisposable
     {
         internal const int MAX_RETRIES = 1;
+
+        /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        public bool AllowInsecureRequests;
 
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
@@ -73,23 +79,10 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        private string url;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
-        public string Url
-        {
-            get => url;
-            set
-            {
-#if !DEBUG
-                if (!value.StartsWith(@"https://"))
-                    value = @"https://" + value.Replace(@"http://", @"");
-#endif
-                url = value;
-            }
-        }
+        public string Url;
 
         /// <summary>
         /// POST parameters.
@@ -236,6 +229,14 @@ namespace osu.Framework.IO.Network
 
         private async Task internalPerform()
         {
+            var url = Url;
+
+            if (!AllowInsecureRequests && !url.StartsWith(@"https://"))
+            {
+                logger.Add($"Insecure request was automatically converted to https ({Url})");
+                url = @"https://" + url.Replace(@"http://", @"");
+            }
+
             using (abortToken = abortToken ?? new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
@@ -256,11 +257,11 @@ namespace osu.Framework.IO.Network
                             requestParameters.Append($@"{p.Key}={p.Value}&");
                         string requestString = requestParameters.ToString().TrimEnd('&');
 
-                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
+                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
                     }
                     else
                     {
-                        request = new HttpRequestMessage(Method, Url);
+                        request = new HttpRequestMessage(Method, url);
 
                         Stream postContent;
 
@@ -299,10 +300,10 @@ namespace osu.Framework.IO.Network
                         }
 
                         requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += v =>
+                        requestStream.BytesRead.ValueChanged += e =>
                         {
                             reportForwardProgress();
-                            UploadProgress?.Invoke(v, contentLength);
+                            UploadProgress?.Invoke(e.NewValue, contentLength);
                         };
 
                         request.Content = new StreamContent(requestStream);
@@ -340,12 +341,12 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
                         WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                    Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
                 }
                 catch (Exception e)
                 {
@@ -421,9 +422,10 @@ namespace osu.Framework.IO.Network
             var we = e as WebException;
 
             bool allowRetry = AllowRetryOnTimeout;
+            bool wasTimeout = false;
 
             if (e != null)
-                allowRetry &= we?.Status == WebExceptionStatus.Timeout;
+                wasTimeout = we?.Status == WebExceptionStatus.Timeout;
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
@@ -432,17 +434,12 @@ namespace osu.Framework.IO.Network
                 {
                     case HttpStatusCode.GatewayTimeout:
                     case HttpStatusCode.RequestTimeout:
-                        break;
-                    case HttpStatusCode.NotFound:
-                    case HttpStatusCode.MethodNotAllowed:
-                    case HttpStatusCode.Forbidden:
-                        allowRetry = false;
-                        break;
-                    case HttpStatusCode.Unauthorized:
-                        allowRetry = false;
+                        wasTimeout = true;
                         break;
                 }
             }
+
+            allowRetry &= wasTimeout;
 
             if (e != null)
             {
@@ -458,13 +455,37 @@ namespace osu.Framework.IO.Network
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
+
+                if (ResponseStream?.CanSeek == true && ResponseStream.Length > 0)
+                {
+                    // in the case we fail a request, spitting out the response in the log is quite helpful.
+                    ResponseStream.Seek(0, SeekOrigin.Begin);
+
+                    using (StreamReader r = new StreamReader(ResponseStream, new UTF8Encoding(false, true), true, 1024, true))
+                    {
+                        try
+                        {
+                            char[] output = new char[1024];
+                            int read = r.ReadBlock(output, 0, 1024);
+                            string trimmedResponse = new string(output, 0, read);
+                            logger.Add($"Response was: {trimmedResponse}");
+                            if (read == 1024)
+                                logger.Add("(Response was trimmed)");
+                        }
+                        catch (DecoderFallbackException)
+                        {
+                            // Ignore non-text format
+                        }
+                    }
+                }
             }
             else
                 logger.Add($@"Request to {Url} successfully completed!");
 
             try
             {
-                ProcessResponse();
+                if (!wasTimeout)
+                    ProcessResponse();
             }
             catch (Exception se)
             {
@@ -610,6 +631,7 @@ namespace osu.Framework.IO.Network
         protected void Dispose(bool disposing)
         {
             if (isDisposed) return;
+
             isDisposed = true;
 
             Abort();
@@ -652,10 +674,7 @@ namespace osu.Framework.IO.Network
                 return read;
             }
 
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return baseStream.Seek(offset, origin);
-            }
+            public override long Seek(long offset, SeekOrigin origin) => baseStream.Seek(offset, origin);
 
             public override void SetLength(long value)
             {

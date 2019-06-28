@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,7 +36,11 @@ namespace osu.Framework.IO.Stores
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
-            this.store = store;
+            this.store = new ResourceStore<byte[]>(store);
+
+            this.store.AddExtension("fnt");
+            this.store.AddExtension("bin");
+
             this.assetName = assetName;
 
             FontName = assetName?.Split('/').Last();
@@ -46,7 +51,7 @@ namespace osu.Framework.IO.Stores
             try
             {
                 BitmapFont font;
-                using (var s = store.GetStream($@"{assetName}.bin"))
+                using (var s = store.GetStream($@"{assetName}"))
                     font = BitmapFont.FromStream(s, FormatHint.Binary, false);
 
                 completionSource.SetResult(font);
@@ -54,11 +59,13 @@ namespace osu.Framework.IO.Stores
             catch (Exception ex)
             {
                 Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
+                completionSource.SetResult(null);
                 throw;
             }
         }, TaskCreationOptions.PreferFairness));
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+
         public int GetBaseHeight() => Font.Common.Base;
 
         public int? GetBaseHeight(string name)
@@ -132,10 +139,9 @@ namespace osu.Framework.IO.Stores
             return t;
         }
 
-        public Stream GetStream(string name)
-        {
-            throw new NotSupportedException();
-        }
+        public Stream GetStream(string name) => throw new NotSupportedException();
+
+        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
 
         private int loadedPageCount;
         private int loadedGlyphCount;

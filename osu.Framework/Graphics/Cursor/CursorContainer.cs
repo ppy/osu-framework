@@ -1,13 +1,15 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using OpenTK;
-using OpenTK.Graphics;
+using osu.Framework.MathUtils;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -20,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
-            State = Visibility.Visible;
+            State.Value = Visibility.Visible;
         }
 
         [BackgroundDependencyLoader]
@@ -35,9 +37,21 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
 
+        private Vector2? lastPosition;
+
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
+            // required due to IRequireHighFrequencyMousePosition firing with the last known position even when the source is not in a
+            // valid state (ie. receiving updates from user or otherwise). in this case, we generally want the cursor to remain at its
+            // last *relative* position.
+            if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition.Value))
+                return false;
+
+            lastPosition = e.ScreenSpaceMousePosition;
+
+            ActiveCursor.RelativePositionAxes = Axes.None;
             ActiveCursor.Position = e.MousePosition;
+            ActiveCursor.RelativePositionAxes = Axes.Both;
             return base.OnMouseMove(e);
         }
 

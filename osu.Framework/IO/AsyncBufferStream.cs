@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.IO
 {
@@ -76,11 +76,13 @@ namespace osu.Framework.IO
                 return;
 
             int last = -1;
+
             while (!isLoaded && !isClosed)
             {
                 cancellationToken.Token.ThrowIfCancellationRequested();
 
                 int curr = nextBlockToLoad;
+
                 if (curr < 0)
                 {
                     Thread.Sleep(1);
@@ -125,7 +127,8 @@ namespace osu.Framework.IO
                     end = Math.Min(end, (position + amountBytesToRead) / block_size + blocksToReadAhead + 1);
 
                 for (int i = start; i < end; i++)
-                    if (!blockLoadedStatus[i]) return i;
+                    if (!blockLoadedStatus[i])
+                        return i;
 
                 return -1;
             }
@@ -210,9 +213,11 @@ namespace osu.Framework.IO
                 case SeekOrigin.Begin:
                     Position = offset;
                     break;
+
                 case SeekOrigin.Current:
                     Position += offset;
                     break;
+
                 case SeekOrigin.End:
                     Position = data.Length + offset;
                     break;

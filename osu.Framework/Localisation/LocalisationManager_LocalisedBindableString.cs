@@ -1,8 +1,8 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
@@ -34,7 +34,7 @@ namespace osu.Framework.Localisation
                 if (text.ShouldLocalise && storage.Value != null)
                     newText = storage.Value.Get(newText);
 
-                if (text.Args != null && !string.IsNullOrEmpty(newText))
+                if (text.Args?.Length > 0 && !string.IsNullOrEmpty(newText))
                 {
                     try
                     {
@@ -55,6 +55,7 @@ namespace osu.Framework.Localisation
                 {
                     if (text.Equals(value))
                         return;
+
                     text = value;
 
                     updateValue();

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Reflection;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -62,6 +62,12 @@ namespace osu.Framework.Platform.MacOS
 
         private bool menuBarVisible => Cocoa.SendBool(classNSMenu, selMenuBarVisible);
 
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
+        {
+            Configuration.WindowMode.Windowed,
+            Configuration.WindowMode.Fullscreen,
+        };
+
         protected void OnLoad(object sender, EventArgs e)
         {
             try
@@ -102,15 +108,20 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private const NSApplicationPresentationOptions fullscreen_presentation_options =
+        private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
             NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreen_presentation_options;
+        private bool isCursorHidden => CursorState.HasFlag(CursorState.Hidden);
+
+        private NSApplicationPresentationOptions fullscreenPresentationOptions =>
+            default_fullscreen_presentation_options | (isCursorHidden ? NSApplicationPresentationOptions.DisableCursorLocationAssistance : 0);
+
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreenPresentationOptions;
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
             if ((pendingWindowMode ?? WindowMode.Value) == Configuration.WindowMode.Windowed)
-                pendingWindowMode = Configuration.WindowMode.Borderless;
+                pendingWindowMode = Configuration.WindowMode.Fullscreen;
         }
 
         private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => pendingWindowMode = Configuration.WindowMode.Windowed;
@@ -119,24 +130,27 @@ namespace osu.Framework.Platform.MacOS
         {
             // update the window mode if we have an update queued
             WindowMode? mode = pendingWindowMode;
+
             if (mode.HasValue)
             {
                 pendingWindowMode = null;
 
                 bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
-                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Borderless || mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
                 else if (currentFullScreen)
-                    NSApplication.PresentationOptions = fullscreen_presentation_options;
+                    NSApplication.PresentationOptions = fullscreenPresentationOptions;
+                else if (isCursorHidden)
+                    NSApplication.PresentationOptions = NSApplicationPresentationOptions.DisableCursorLocationAssistance;
 
                 WindowMode.Value = mode.Value;
             }
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
-            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
-            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible() && !menuBarVisible)
+            // invalidate the cursor rects to hide it.  osuTK has a private function that does this.
+            if (isCursorHidden && Cocoa.CGCursorIsVisible() && !menuBarVisible)
                 methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
 
@@ -146,47 +160,47 @@ namespace osu.Framework.Platform.MacOS
             var keyCode = Cocoa.SendInt(sender, selKeyCode);
 
             bool keyDown;
-            OpenTK.Input.Key key;
+            osuTK.Input.Key key;
 
             switch ((MacOSKeyCodes)keyCode)
             {
                 case MacOSKeyCodes.LShift:
-                    key = OpenTK.Input.Key.LShift;
+                    key = osuTK.Input.Key.LShift;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftShift);
                     break;
 
                 case MacOSKeyCodes.RShift:
-                    key = OpenTK.Input.Key.RShift;
+                    key = osuTK.Input.Key.RShift;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightShift);
                     break;
 
                 case MacOSKeyCodes.LControl:
-                    key = OpenTK.Input.Key.LControl;
+                    key = osuTK.Input.Key.LControl;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftControl);
                     break;
 
                 case MacOSKeyCodes.RControl:
-                    key = OpenTK.Input.Key.RControl;
+                    key = osuTK.Input.Key.RControl;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightControl);
                     break;
 
                 case MacOSKeyCodes.LAlt:
-                    key = OpenTK.Input.Key.LAlt;
+                    key = osuTK.Input.Key.LAlt;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftAlt);
                     break;
 
                 case MacOSKeyCodes.RAlt:
-                    key = OpenTK.Input.Key.RAlt;
+                    key = osuTK.Input.Key.RAlt;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightAlt);
                     break;
 
                 case MacOSKeyCodes.LCommand:
-                    key = OpenTK.Input.Key.LWin;
+                    key = osuTK.Input.Key.LWin;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftCommand);
                     break;
 
                 case MacOSKeyCodes.RCommand:
-                    key = OpenTK.Input.Key.RWin;
+                    key = osuTK.Input.Key.RWin;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightCommand);
                     break;
 
@@ -200,7 +214,7 @@ namespace osu.Framework.Platform.MacOS
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
 
-        // FIXME: OpenTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
+        // FIXME: osuTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
         private bool windowShouldZoomToFrame(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame) => true;
 
         protected override void UpdateWindowMode(WindowMode newMode)
@@ -283,6 +297,7 @@ namespace osu.Framework.Platform.MacOS
         DisableHideApplication = 1 << 8,
         DisableMenuBarTransparency = 1 << 9,
         FullScreen = 1 << 10,
-        AutoHideToolbar = 1 << 11
+        AutoHideToolbar = 1 << 11,
+        DisableCursorLocationAssistance = 1 << 12
     }
 }

@@ -1,11 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Textures;
-using OpenTK.Graphics.ES30;
 using osu.Framework.Threading;
 using System.Collections.Generic;
 
@@ -13,9 +10,12 @@ namespace osu.Framework.Graphics.Performance
 {
     internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
+        private readonly IEnumerable<GameThread> threads;
         private FrameStatisticsMode state;
 
         public event Action<FrameStatisticsMode> StateChanged;
+
+        private bool initialised;
 
         public FrameStatisticsMode State
         {
@@ -31,8 +31,16 @@ namespace osu.Framework.Graphics.Performance
                     case FrameStatisticsMode.None:
                         this.FadeOut(100);
                         break;
+
                     case FrameStatisticsMode.Minimal:
                     case FrameStatisticsMode.Full:
+                        if (!initialised)
+                        {
+                            initialised = true;
+                            foreach (GameThread t in threads)
+                                Add(new FrameStatisticsDisplay(t) { State = state });
+                        }
+
                         this.FadeIn(100);
                         break;
                 }
@@ -46,11 +54,8 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
+            this.threads = threads;
             Direction = FillDirection.Vertical;
-            TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
-
-            foreach (GameThread t in threads)
-                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
         }
     }
 

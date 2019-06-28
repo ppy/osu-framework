@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -60,14 +60,12 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
         /// <param name="button">The <see cref="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
-        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind)
-        {
-            return new ButtonStateChangeEvent<TButton>(state, this, button, kind);
-        }
+        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var buttonStates = GetButtonStates(state);
+
             foreach (var entry in Entries)
             {
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))

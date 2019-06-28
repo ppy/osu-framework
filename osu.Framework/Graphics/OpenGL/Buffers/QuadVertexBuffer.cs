@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -21,10 +21,20 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class QuadVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
-        public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
+        private readonly int amountQuads;
+
+        internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * 4, usage)
         {
+            this.amountQuads = amountQuads;
+        }
+
+        protected override void Initialise()
+        {
+            base.Initialise();
+
             int amountIndices = amountQuads * 6;
+
             if (amountIndices > QuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];

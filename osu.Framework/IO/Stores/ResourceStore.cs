@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -152,8 +152,6 @@ namespace osu.Framework.IO.Stores
         {
             yield return name;
 
-            if (name.Contains(@".")) yield break;
-
             //add file extension if it's missing.
             foreach (string ext in searchExtensions)
                 yield return $@"{name}.{ext}";
@@ -185,6 +183,11 @@ namespace osu.Framework.IO.Stores
 
             if (!searchExtensions.Contains(extension))
                 searchExtensions.Add(extension);
+        }
+
+        public virtual IEnumerable<string> GetAvailableResources()
+        {
+            lock (stores) return stores.SelectMany(s => s.GetAvailableResources());
         }
 
         #region IDisposable Support

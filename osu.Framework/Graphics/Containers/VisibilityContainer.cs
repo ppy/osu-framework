@@ -1,21 +1,26 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using System;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A container which adds a basic visibility state.
     /// </summary>
-    public abstract class VisibilityContainer : Container, IStateful<Visibility>
+    public abstract class VisibilityContainer : Container
     {
+        /// <summary>
+        /// The current visibility state.
+        /// </summary>
+        public readonly Bindable<Visibility> State = new Bindable<Visibility>();
+
         /// <summary>
         /// Whether we should be in a hidden state when first displayed.
         /// Override this and set to true to *always* perform a <see cref="PopIn"/> animation even when the state is non-hidden at
         /// first display.
         /// </summary>
-        protected virtual bool StartHidden => state == Visibility.Hidden;
+        protected virtual bool StartHidden => State.Value == Visibility.Hidden;
 
         protected override void LoadComplete()
         {
@@ -26,57 +31,53 @@ namespace osu.Framework.Graphics.Containers
                 FinishTransforms(true);
             }
 
-            if (state != Visibility.Hidden)
-                updateState();
+            State.BindValueChanged(updateState, State.Value != Visibility.Hidden);
 
             base.LoadComplete();
         }
 
-        private Visibility state;
+        /// <summary>
+        /// Hide this container by setting its visibility to <see cref="Visibility.Visible"/>.
+        /// </summary>
+        public override void Show() => State.Value = Visibility.Visible;
 
-        public Visibility State
+        /// <summary>
+        /// Hide this container by setting its visibility to <see cref="Visibility.Hidden"/>.
+        /// </summary>
+        public override void Hide() => State.Value = Visibility.Hidden;
+
+        /// <summary>
+        /// Toggle this container's visibility.
+        /// </summary>
+        public void ToggleVisibility() => State.Value = State.Value == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
+
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State.Value == Visibility.Visible;
+        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && State.Value == Visibility.Visible;
+
+        /// <summary>
+        /// Implement any transition to be played when <see cref="State"/> becomes <see cref="Visibility.Visible"/>.
+        /// </summary>
+        protected abstract void PopIn();
+
+        /// <summary>
+        /// Implement any transition to be played when <see cref="State"/> becomes <see cref="Visibility.Hidden"/>.
+        /// Will be invoked once on <see cref="LoadComplete"/> if <see cref="StartHidden"/> is set.
+        /// </summary>
+        protected abstract void PopOut();
+
+        private void updateState(ValueChangedEvent<Visibility> e)
         {
-            get => state;
-            set
-            {
-                if (value == state) return;
-                state = value;
-
-                if (!IsLoaded) return;
-
-                updateState();
-            }
-        }
-
-        private void updateState()
-        {
-            switch (state)
+            switch (e.NewValue)
             {
                 case Visibility.Hidden:
                     PopOut();
                     break;
+
                 case Visibility.Visible:
                     PopIn();
                     break;
             }
-
-            StateChanged?.Invoke(state);
         }
-
-        public override void Hide() => State = Visibility.Hidden;
-
-        public override void Show() => State = Visibility.Visible;
-
-        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State == Visibility.Visible;
-        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && State == Visibility.Visible;
-
-        public event Action<Visibility> StateChanged;
-
-        protected abstract void PopIn();
-
-        protected abstract void PopOut();
-
-        public void ToggleVisibility() => State = State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
     }
 
     public enum Visibility

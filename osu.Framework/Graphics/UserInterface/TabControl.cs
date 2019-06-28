@@ -1,17 +1,16 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -24,12 +23,38 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        private Bindable<T> currentBound;
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
+        public IEnumerable<T> Items
+        {
+            get
+            {
+                var items = TabContainer.TabItems.Select(t => t.Value);
+
+                if (Dropdown != null)
+                    items = items.Concat(Dropdown.Items).Distinct();
+
+                return items;
+            }
+        }
 
         public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
@@ -77,12 +102,13 @@ namespace osu.Framework.Graphics.UserInterface
         protected TabControl()
         {
             Dropdown = CreateDropdown();
+
             if (Dropdown != null)
             {
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.Current.BindTo(Current);
+                Dropdown.Current = Current;
 
                 AddInternal(Dropdown);
 
@@ -90,7 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
 
                 // create tab items for already existing items in dropdown (if any).
-                tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
+                tabMap = Dropdown.Items.ToDictionary(item => item, item => addTab(item, false));
             }
             else
                 tabMap = new Dictionary<T, TabItem<T>>();
@@ -101,11 +127,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             Current.ValueChanged += newSelection =>
             {
+                var newTab = Current.Value != null ? tabMap[Current.Value] : null;
+
                 if (IsLoaded)
-                    SelectTab(tabMap[Current]);
+                    selectTab(newTab);
                 else
                     //will be handled in LoadComplete
-                    SelectedTab = tabMap[Current];
+                    SelectedTab = newTab;
             };
         }
 
@@ -137,6 +165,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
+
             tab.Pinned = true;
         }
 
@@ -148,6 +177,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
+
             tab.Pinned = false;
         }
 
@@ -201,7 +231,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             tabMap[tab.Value] = tab;
             if (addToDropdown)
-                Dropdown?.AddDropdownItem((tab.Value as Enum)?.GetDescription() ?? tab.Value.ToString(), tab.Value);
+                Dropdown?.AddDropdownItem(tab.Value);
             TabContainer.Add(tab);
         }
 
@@ -212,7 +242,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
-            if (!tab.IsRemovable) return;
+            if (!tab.IsRemovable)
+                throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
             if (tab == SelectedTab)
                 SelectedTab = null;
@@ -239,6 +270,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void SelectTab(TabItem<T> tab)
         {
+            selectTab(tab);
+            Current.Value = SelectedTab != null ? SelectedTab.Value : default;
+        }
+
+        private void selectTab(TabItem<T> tab)
+        {
             // Only reorder if not pinned and not showing
             if (AutoSort && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
@@ -247,9 +284,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
 
             SelectedTab = tab;
-            SelectedTab.Active.Value = true;
 
-            Current.Value = SelectedTab.Value;
+            if (SelectedTab != null)
+                SelectedTab.Active.Value = true;
         }
 
         /// <summary>
@@ -315,6 +352,7 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                 }
             }
+
             return false;
         }
 
@@ -330,6 +368,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
+            private bool allowMultiline;
+
+            public bool AllowMultiline
+            {
+                get => allowMultiline;
+                set
+                {
+                    if (value == allowMultiline)
+                        return;
+
+                    allowMultiline = value;
+                    InvalidateLayout();
+                }
+            }
+
             /// <summary>
             /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
             /// </summary>
@@ -347,12 +400,17 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
+
                 foreach (var child in FlowingChildren.OfType<TabItem<T>>())
                 {
-                    updateChildIfNeeded(child, result[i].Y == 0);
-                    ++i;
+                    bool isVisible = allowMultiline || result[i].Y == 0;
+                    updateChildIfNeeded(child, isVisible);
+
+                    if (isVisible)
+                        yield return result[i];
+
+                    i++;
                 }
-                return result;
             }
 
             private readonly Dictionary<TabItem<T>, bool> tabVisibility = new Dictionary<TabItem<T>, bool>();
@@ -363,6 +421,11 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     TabVisibilityChanged?.Invoke(child, isVisible);
                     tabVisibility[child] = isVisible;
+
+                    if (isVisible)
+                        child.Show();
+                    else
+                        child.Hide();
                 }
             }
         }

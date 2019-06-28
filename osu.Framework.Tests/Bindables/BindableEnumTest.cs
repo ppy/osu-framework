@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Configuration;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -31,6 +31,18 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(expected, bindable.Value);
         }
 
+        [TestCase("Value1", TestEnum.Value1)]
+        [TestCase("Value2", TestEnum.Value2)]
+        [TestCase("-1", TestEnum.Value1 - 1)]
+        [TestCase("2", TestEnum.Value2 + 1)]
+        public void TestParsingStringToNullableType(string value, TestEnum? expected)
+        {
+            var bindable = new Bindable<TestEnum?>();
+            bindable.Parse(value);
+
+            Assert.AreEqual(expected, bindable.Value);
+        }
+
         [TestCase(TestEnum.Value1)]
         [TestCase(TestEnum.Value2)]
         [TestCase(TestEnum.Value1 - 1)]
@@ -38,6 +50,18 @@ namespace osu.Framework.Tests.Bindables
         public void TestParsingEnum(TestEnum value)
         {
             var bindable = new Bindable<TestEnum>();
+            bindable.Parse(value);
+
+            Assert.AreEqual(value, bindable.Value);
+        }
+
+        [TestCase(TestEnum.Value1)]
+        [TestCase(TestEnum.Value2)]
+        [TestCase(TestEnum.Value1 - 1)]
+        [TestCase(TestEnum.Value2 + 1)]
+        public void TestParsingEnumToNullableType(TestEnum value)
+        {
+            var bindable = new Bindable<TestEnum?>();
             bindable.Parse(value);
 
             Assert.AreEqual(value, bindable.Value);

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
@@ -41,16 +41,9 @@ namespace osu.Framework.Graphics.Batches
             this.maxBuffers = maxBuffers;
 
             AddAction = Add;
-
-            GLWrapper.RegisterVertexBatch(this);
         }
 
         #region Disposal
-
-        ~VertexBatch()
-        {
-            Dispose(false);
-        }
 
         public void Dispose()
         {
@@ -90,7 +83,7 @@ namespace osu.Framework.Graphics.Batches
 
             VertexBuffer<T> vertexBuffer = currentVertexBuffer;
 
-            if (!vertexBuffer.Vertices[currentVertex].Equals(v))
+            if (vertexBuffer.SetVertex(currentVertex, v))
             {
                 if (changeBeginIndex == -1)
                     changeBeginIndex = currentVertex;
@@ -98,10 +91,9 @@ namespace osu.Framework.Graphics.Batches
                 changeEndIndex = currentVertex + 1;
             }
 
-            vertexBuffer.Vertices[currentVertex] = v;
             ++currentVertex;
 
-            if (currentVertex >= vertexBuffer.Vertices.Length)
+            if (currentVertex >= vertexBuffer.Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);

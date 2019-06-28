@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Threading;
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.IO
 
             Logger.NewEntry += logTest;
 
-            using (new HeadlessGameHost())
+            using (new BackgroundGameHeadlessGameHost())
             {
                 // see https://tpodolak.com/blog/2015/08/10/tpl-exception-handling-and-unobservedtaskexception-issue/
                 // needs to be in a separate method so the Task gets GC'd.

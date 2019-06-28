@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 // using System.Windows.Forms;
 
@@ -7,11 +7,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxClipboard : Clipboard
     {
-        public override string GetText()
-        {
-            return string.Empty;
-            // return System.Windows.Forms.Clipboard.GetText(TextDataFormat.UnicodeText);
-        }
+        public override string GetText() => string.Empty;
 
         public override void SetText(string selectedText)
         {

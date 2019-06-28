@@ -1,5 +1,5 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
 using System.Reflection;
@@ -8,13 +8,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarAssemblySection : ToolbarSection
     {
-        private BasicDropdown<Assembly> assemblyDropdown;
+        private AssemblyDropdown assemblyDropdown;
 
         public ToolbarAssemblySection()
         {
@@ -25,8 +25,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         [BackgroundDependencyLoader]
         private void load(TestBrowser browser)
         {
-            BasicCheckbox runAllStepsCheckbox;
-
             InternalChild = new FillFlowContainer
             {
                 Spacing = new Vector2(5),
@@ -38,33 +36,43 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new SpriteText
                     {
                         Padding = new MarginPadding(5),
-                        Text = "Assembly:"
+                        Font = new FontUsage("RobotoCondensed", weight: "Regular"),
+                        Text = "Assembly"
                     },
-                    assemblyDropdown = new BasicDropdown<Assembly>
+                    assemblyDropdown = new AssemblyDropdown
                     {
                         Width = 250,
+                        Current = browser.Assembly
                     },
-                    runAllStepsCheckbox = new BasicCheckbox
+                    new BasicCheckbox
                     {
                         LabelText = "Run all steps",
-                        LabelPadding = new MarginPadding { Left = 5, Right = 10 },
-                        AutoSizeAxes = Axes.Y,
-                        Width = 140,
+                        RightHandedCheckbox = true,
+                        AutoSizeAxes = Axes.Both,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
+                        Current = browser.RunAllSteps
                     },
                 }
             };
-
-            assemblyDropdown.Current.BindTo(browser.Assembly);
-            runAllStepsCheckbox.Current.BindTo(browser.RunAllSteps);
         }
 
-        public void AddAssembly(string name, Assembly assembly)
+        public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
+
+        private class AssemblyDropdown : BasicDropdown<Assembly>
         {
-            const string dynamic_assembly_identifier = "dynamic";
-            assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Key.Contains(dynamic_assembly_identifier)).Value);
-            assemblyDropdown.AddDropdownItem(name, assembly);
+            public void AddAssembly(string name, Assembly assembly)
+            {
+                if (assembly == null) return;
+
+                foreach (var item in MenuItems.ToArray())
+                {
+                    if (item.Text.Value.Contains("dynamic"))
+                        RemoveDropdownItem(item.Value);
+                }
+
+                AddDropdownItem(name, assembly);
+            }
         }
     }
 }

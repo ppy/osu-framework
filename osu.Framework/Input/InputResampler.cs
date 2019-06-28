@@ -1,9 +1,9 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Input
 {
@@ -64,6 +64,7 @@ namespace osu.Framework.Input
             float realMovementDistance = realDiff.Length;
             if (realMovementDistance < 1)
                 return Array.Empty<Vector2>();
+
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion

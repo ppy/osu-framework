@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics;
 using System.Collections.Generic;
 using System;
@@ -57,9 +57,9 @@ namespace osu.Framework.Physics
 
             // Handle collisions between each pair of bodies.
             foreach (var d in toSimulate)
-                foreach (var other in toSimulate)
-                    if (other != d)
-                        d.CheckAndHandleCollisionWith(other);
+            foreach (var other in toSimulate)
+                if (other != d)
+                    d.CheckAndHandleCollisionWith(other);
 
             // Advance the simulation by the given time step for each body and
             // apply the state to each drawable in question.

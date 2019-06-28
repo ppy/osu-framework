@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -53,6 +53,7 @@ namespace osu.Framework.Graphics.Cursor
                 // We keep track of all drawables we found while traversing the parent chain upwards.
                 newChildDrawables.Clear();
                 newChildDrawables.Add(candidate);
+
                 // When we encounter a drawable we already encountered before, then there is no need
                 // to keep going upward, since we already recorded it previously. At that point we know
                 // the drawables we found are in fact children of ours.
@@ -76,14 +77,13 @@ namespace osu.Framework.Graphics.Cursor
                 // are still our own responsibility to handle.
                 nestedTtcChildDrawables.UnionWith(
                     ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
-                    .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
+                                                               .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
 
                 // Ignore drawables whose effects are managed by a nested effect container.
                 if (nestedTtcChildDrawables.Contains(candidate))
                     continue;
 
-                TTarget target = candidate as TTarget;
-                if (target != null && target.IsHovered)
+                if (candidate is TTarget target && target.IsHovered)
                     // We found a valid candidate; keep track of it
                     targetChildren.Add(target);
             }
