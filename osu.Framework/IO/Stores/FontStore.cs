@@ -25,7 +25,7 @@ namespace osu.Framework.IO.Stores
         private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
 
         internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust: scaleAdjust, useAtlas: false)
+            : this(store, scaleAdjust: scaleAdjust, useAtlas: true)
         {
         }
 
