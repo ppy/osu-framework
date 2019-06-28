@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Lists;
 using osuTK;
 using osuTK.Graphics;
 
@@ -15,11 +18,12 @@ namespace osu.Framework.Tests.Visual.Drawables
     {
         private const int panel_count = 1024;
 
-        public TestSceneDelayedLoadUnloadWrapper()
-        {
-            FillFlowContainer<Container> flow;
-            ScrollContainer<Drawable> scroll;
+        private FillFlowContainer<Container> flow;
+        private ScrollContainer<Drawable> scroll;
 
+        [SetUp]
+        public void SetUp() => Schedule(() =>
+        {
             Children = new Drawable[]
             {
                 scroll = new BasicScrollContainer
@@ -35,39 +39,89 @@ namespace osu.Framework.Tests.Visual.Drawables
                     }
                 }
             };
+        });
 
-            for (int i = 1; i < panel_count; i++)
-                flow.Add(new Container
-                {
-                    Size = new Vector2(128),
-                    Children = new Drawable[]
+        [Test]
+        public void TestRemovedStillUnload()
+        {
+            WeakList<Container> references = new WeakList<Container>();
+
+            AddStep("populate panels", () =>
+            {
+                for (int i = 0; i < 16; i++)
+                    flow.Add(new Container
                     {
-                        new DelayedLoadUnloadWrapper(() => new Container
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            new DelayedLoadUnloadWrapper(() =>
                             {
-                                new TestBox { RelativeSizeAxes = Axes.Both }
-                            }
-                        }, 500, 2000),
-                        new SpriteText { Text = i.ToString() },
-                    }
-                });
+                                var container = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        new TestBox { RelativeSizeAxes = Axes.Both }
+                                    },
+                                };
 
-            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
+                                references.Add(container);
+
+                                return container;
+                            }, 500, 2000),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+            });
+
+            AddUntilStep("references counted", () => references.Count() == 16);
+            AddStep("Remove all panels", () => flow.Clear());
+            AddUntilStep("references lost", () =>
+            {
+                GC.Collect();
+                return !references.Any();
+            });
+        }
+
+        [Test]
+        public void TestManyChildrenUnload()
+        {
+            AddStep("populate panels", () =>
+            {
+                for (int i = 1; i < panel_count; i++)
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
+                        {
+                            new DelayedLoadUnloadWrapper(() => new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new TestBox { RelativeSizeAxes = Axes.Both }
+                                }
+                            }, 500, 2000),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+            });
+
+            Func<int> childrenWithAvatarsLoaded = () =>
+                flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
             int loadedCountInitial = 0;
             int loadedCountSecondary = 0;
 
-            AddUntilStep("wait some loaded", () => (loadedCountInitial = childrenWithAvatarsLoaded.Count()) > 5);
+            AddUntilStep("wait some loaded", () => (loadedCountInitial = childrenWithAvatarsLoaded()) > 5);
 
             AddStep("scroll down", () => scroll.ScrollToEnd());
 
-            AddUntilStep("wait more loaded", () => (loadedCountSecondary = childrenWithAvatarsLoaded.Count()) > loadedCountInitial);
+            AddUntilStep("wait more loaded", () => (loadedCountSecondary = childrenWithAvatarsLoaded()) > loadedCountInitial);
 
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
 
-            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded.Count() < loadedCountSecondary);
+            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadedCountSecondary);
         }
 
         public class TestBox : Container
