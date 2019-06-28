@@ -8,6 +8,7 @@
     <RootNamespace>osu.Framework.Tests.Android</RootNamespace>
     <AssemblyName>osu.Framework.Tests.Android</AssemblyName>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+    <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TestGameActivity.cs" />
