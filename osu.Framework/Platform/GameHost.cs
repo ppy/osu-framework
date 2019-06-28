@@ -397,7 +397,7 @@ namespace osu.Framework.Platform
             });
 
             // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-            await Task.Run(() => completionEvent.Wait());
+            await Task.Run(completionEvent.Wait);
 
             image.Mutate(c => c.Flip(FlipMode.Vertical));
 
