@@ -7,8 +7,10 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Lists;
+using osu.Framework.Tests.Visual.Containers;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -41,6 +43,62 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             };
         });
+
+        [Test]
+        public void TestUnloadViaScroll()
+        {
+            WeakList<Container> references = new WeakList<Container>();
+
+            AddStep("populate panels", () =>
+            {
+                references.Clear();
+
+                for (int i = 0; i < 16; i++)
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
+                        {
+                            new DelayedLoadUnloadWrapper(() =>
+                            {
+                                var container = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        new TestBox { RelativeSizeAxes = Axes.Both }
+                                    },
+                                };
+
+                                references.Add(container);
+
+                                return container;
+                            }, 500, 2000),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+
+                flow.Add(
+                    new Container
+                    {
+                        Size = new Vector2(128, 1280),
+                    });
+            });
+
+            AddUntilStep("references counted", () => references.Count() == 16);
+
+            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
+
+            AddStep("scroll to end", () => scroll.ScrollToEnd());
+
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+
+            AddUntilStep("references lost", () =>
+            {
+                GC.Collect();
+                return !references.Any();
+            });
+        }
 
         [Test]
         public void TestRemovedStillUnload()
