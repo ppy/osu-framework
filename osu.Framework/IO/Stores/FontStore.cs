@@ -24,12 +24,12 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust: scaleAdjust, useAtlas: true)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : this(store, scaleAdjust: scaleAdjust, useAtlas: false)
         {
         }
 
-        protected FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = true)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false)
             : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
@@ -45,14 +45,13 @@ namespace osu.Framework.IO.Stores
         {
             switch (store)
             {
-                case NestedFontStore fs:
-                    // share the main store's atlas.
-                    fs.Atlas = Atlas;
-                    nestedFontStores.Add(fs);
-                    return;
-
                 case FontStore fs:
-                    Logger.Log($"A font store is being nested without using {nameof(NestedFontStore)}. This will cause extra atlas overhead.", LoggingTarget.Performance, LogLevel.Debug);
+                    if (fs.Atlas == null)
+                    {
+                        // share the main store's atlas.
+                        fs.Atlas = Atlas;
+                    }
+
                     nestedFontStores.Add(fs);
                     return;
 
