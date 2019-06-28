@@ -46,15 +46,16 @@ namespace osu.Framework.IO.File
 
         public static void RemoveReadOnlyRecursive(string s)
         {
-            foreach (string f in Directory.GetFiles(s))
+            var directory = new DirectoryInfo(s);
+
+            foreach (var file in directory.GetFiles())
             {
-                FileInfo myFile = new FileInfo(f);
-                if (myFile.Attributes.HasFlag(FileAttributes.ReadOnly))
-                    myFile.Attributes &= ~FileAttributes.ReadOnly;
+                if (file.Attributes.HasFlag(FileAttributes.ReadOnly))
+                    file.Attributes &= ~FileAttributes.ReadOnly;
             }
 
-            foreach (string d in Directory.GetDirectories(s))
-                RemoveReadOnlyRecursive(d);
+            foreach (var d in directory.GetDirectories())
+                RemoveReadOnlyRecursive(d.FullName);
         }
 
         public static bool FileMove(string src, string dest, bool overwrite = true)
