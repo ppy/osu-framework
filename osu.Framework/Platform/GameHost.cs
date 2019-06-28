@@ -384,7 +384,7 @@ namespace osu.Framework.Platform
 
             var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
-            bool complete = false;
+            var completionEvent = new ManualResetEventSlim(false);
 
             DrawThread.Scheduler.Add(() =>
             {
@@ -393,15 +393,11 @@ namespace osu.Framework.Platform
 
                 GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
-                complete = true;
+                completionEvent.Set();
             });
 
             // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-            await Task.Run(() =>
-            {
-                while (!complete)
-                    Thread.Sleep(50);
-            });
+            await Task.Run(() => completionEvent.Wait());
 
             image.Mutate(c => c.Flip(FlipMode.Vertical));
 
