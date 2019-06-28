@@ -104,13 +104,16 @@ namespace osu.Framework.Graphics.Textures
             return res;
         }
 
+        /// <summary>
+        /// Add (allocate) a new texture in the atlas.
+        /// </summary>
+        /// <param name="width">The width of the requested texture.</param>
+        /// <param name="height">The height of the requested texture.</param>
+        /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
         internal TextureGL Add(int width, int height)
         {
-            if (width > atlasWidth)
-                throw new ArgumentOutOfRangeException(nameof(width), width, $"Must be less than this atlas' width ({atlasWidth}px).");
-
-            if (height > atlasHeight)
-                throw new ArgumentOutOfRangeException(nameof(height), height, $"Must be less than this atlas' height ({atlasHeight}px).");
+            if (width > atlasWidth || height > atlasHeight)
+                return null;
 
             lock (textureRetrievalLock)
             {
