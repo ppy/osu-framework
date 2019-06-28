@@ -58,10 +58,6 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentY = 0;
 
-            //may be zero in a headless context.
-            if (atlasWidth == 0 || atlasHeight == 0)
-                return;
-
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
@@ -70,8 +66,6 @@ namespace osu.Framework.Graphics.Textures
 
         private Vector2I findPosition(int width, int height)
         {
-            if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
-
             if (AtlasTexture == null)
             {
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
