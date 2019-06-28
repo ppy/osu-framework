@@ -53,17 +53,12 @@ namespace osu.Framework.Graphics.Textures
             this.filteringMode = filteringMode;
         }
 
+        private int exceedCount;
+
         public void Reset()
         {
             subTextureBounds.Clear();
             currentY = 0;
-
-            //may be zero in a headless context.
-            if (atlasWidth == 0 || atlasHeight == 0)
-                return;
-
-            if (AtlasTexture == null)
-                Logger.Log($"New TextureAtlas initialised {atlasWidth}x{atlasHeight}", LoggingTarget.Runtime, LogLevel.Debug);
 
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
@@ -73,11 +68,14 @@ namespace osu.Framework.Graphics.Textures
 
         private Vector2I findPosition(int width, int height)
         {
-            if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
-
-            if (currentY + height > atlasHeight)
+            if (AtlasTexture == null)
             {
-                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture", LoggingTarget.Performance);
+                Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
+                Reset();
+            }
+            else if (currentY + height > atlasHeight)
+            {
+                Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
 
@@ -104,19 +102,19 @@ namespace osu.Framework.Graphics.Textures
             return res;
         }
 
+        /// <summary>
+        /// Add (allocate) a new texture in the atlas.
+        /// </summary>
+        /// <param name="width">The width of the requested texture.</param>
+        /// <param name="height">The height of the requested texture.</param>
+        /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
         internal TextureGL Add(int width, int height)
         {
-            if (width > atlasWidth)
-                throw new ArgumentOutOfRangeException(nameof(width), width, $"Must be less than this atlas' width ({atlasWidth}px).");
-
-            if (height > atlasHeight)
-                throw new ArgumentOutOfRangeException(nameof(height), height, $"Must be less than this atlas' height ({atlasHeight}px).");
+            if (width > atlasWidth || height > atlasHeight)
+                return null;
 
             lock (textureRetrievalLock)
             {
-                if (AtlasTexture == null)
-                    Reset();
-
                 Vector2I position = findPosition(width, height);
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
