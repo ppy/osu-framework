@@ -18,7 +18,8 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
-        private readonly TextureAtlas atlas;
+
+        protected TextureAtlas Atlas;
 
         private const int max_atlas_size = 1024;
 
@@ -42,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
             if (useAtlas)
             {
                 int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
-                atlas = new TextureAtlas(size, size, filteringMode: filteringMode);
+                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode);
             }
         }
 
@@ -56,9 +57,9 @@ namespace osu.Framework.Graphics.Textures
 
             TextureGL glTexture = null;
 
-            if (atlas != null)
+            if (Atlas != null)
             {
-                if ((glTexture = atlas.Add(upload.Width, upload.Height)) == null)
+                if ((glTexture = Atlas.Add(upload.Width, upload.Height)) == null)
                     Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
             }
 

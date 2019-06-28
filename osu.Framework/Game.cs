@@ -147,11 +147,11 @@ namespace osu.Framework
             dependencies.Cache(Shaders);
 
             // base store is for user fonts
-            Fonts = new FontStore();
+            Fonts = new FontStore(useAtlas: true);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
-            Fonts.AddStore(localFonts = new FontStore());
+            Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
