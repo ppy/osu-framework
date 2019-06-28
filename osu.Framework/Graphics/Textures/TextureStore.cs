@@ -17,7 +17,8 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
-        private readonly TextureAtlas atlas;
+
+        protected TextureAtlas Atlas;
 
         /// <summary>
         /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Textures
             AddExtension(@"jpg");
 
             if (useAtlas)
-                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
+                Atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
         }
 
         private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
@@ -48,7 +49,7 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
+            var glTexture = Atlas != null ? Atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
             tex.SetData(upload);

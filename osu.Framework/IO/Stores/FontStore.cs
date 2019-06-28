@@ -24,8 +24,13 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
 
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : base(store, scaleAdjust: scaleAdjust)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : this(store, scaleAdjust: scaleAdjust, useAtlas: false)
+        {
+        }
+
+        protected FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = true)
+            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
@@ -40,7 +45,9 @@ namespace osu.Framework.IO.Stores
         {
             switch (store)
             {
-                case FontStore fs:
+                case NestedFontStore fs:
+                    // share the main store's atlas.
+                    fs.Atlas = Atlas;
                     nestedFontStores.Add(fs);
                     return;
 

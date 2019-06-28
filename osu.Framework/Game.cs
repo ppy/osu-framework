@@ -151,7 +151,7 @@ namespace osu.Framework
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
-            Fonts.AddStore(localFonts = new FontStore());
+            Fonts.AddStore(localFonts = new NestedFontStore());
 
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
             localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
