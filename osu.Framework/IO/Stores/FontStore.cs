@@ -51,6 +51,11 @@ namespace osu.Framework.IO.Stores
                     nestedFontStores.Add(fs);
                     return;
 
+                case FontStore fs:
+                    Logger.Log($"A font store is being nested without using {nameof(NestedFontStore)}. This will cause extra atlas overhead.", LoggingTarget.Performance, LogLevel.Debug);
+                    nestedFontStores.Add(fs);
+                    return;
+
                 case GlyphStore gs:
                     glyphStores.Add(gs);
                     queueLoad(gs);
