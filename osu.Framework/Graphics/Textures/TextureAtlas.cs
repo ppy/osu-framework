@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Textures
                 if (AtlasTexture == null)
                     Reset();
 
-                return new TextureWhitePixel(new TextureGLAtlasWhite(AtlasTexture));
+                return new TextureWhitePixel(new TextureGLAtlasWhite(AtlasTexture), Math.Max(atlasWidth, atlasHeight));
             }
         }
 
