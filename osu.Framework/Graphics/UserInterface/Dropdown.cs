@@ -215,7 +215,6 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
-
             Current.ValueChanged += selectionChanged;
 
             ItemSource.ItemsAdded += _ => setItems(ItemSource);
@@ -273,7 +272,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selectedItem = new DropdownMenuItem<T>(null, default);
             }
-            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
+            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
@@ -333,13 +332,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the menu body.
         /// </summary>
-        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+        protected abstract DropdownMenu CreateMenu();
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
+        public abstract class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
-            public DropdownMenu()
+            protected DropdownMenu()
                 : base(Direction.Vertical)
             {
                 StateChanged += clearPreselection;
@@ -362,7 +361,8 @@ namespace osu.Framework.Graphics.UserInterface
             protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
             protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
 
-            public DrawableDropdownMenuItem PreselectedItem => Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsPreSelected) ?? Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsSelected);
+            public DrawableDropdownMenuItem PreselectedItem => Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsPreSelected)
+                                                               ?? Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsSelected);
 
             public event Action<int> PreselectionConfirmed;
 
@@ -411,16 +411,18 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+
+            protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
             #region DrawableDropdownMenuItem
 
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-            public class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 public event Action<DropdownMenuItem<T>> PreselectionRequested;
 
-                public DrawableDropdownMenuItem(MenuItem item)
+                protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }

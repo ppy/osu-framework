@@ -45,23 +45,18 @@ namespace osu.Framework.Graphics.Batches
 
         #region Disposal
 
-        ~VertexBatch()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        protected void Dispose(bool disposing)
         {
             if (disposing)
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
-        });
+        }
 
         #endregion
 

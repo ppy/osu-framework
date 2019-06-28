@@ -214,7 +214,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Header.Origin = Anchor.TopRight;
             }
 
-            private class StyledDropdownMenu : DropdownMenu
+            private class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
             {
                 public StyledDropdownMenu()
                 {
