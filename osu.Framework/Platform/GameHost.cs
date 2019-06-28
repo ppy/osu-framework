@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -509,8 +508,6 @@ namespace osu.Framework.Platform
 
                 IsActive.BindValueChanged(active =>
                 {
-                    activeGCMode.TriggerChange();
-
                     if (active.NewValue)
                         OnActivated();
                     else
@@ -659,8 +656,6 @@ namespace osu.Framework.Platform
 
         private Bindable<bool> bypassFrontToBackPass;
 
-        private Bindable<GCLatencyMode> activeGCMode;
-
         private Bindable<FrameSync> frameSyncMode;
 
         private Bindable<string> ignoredInputHandlers;
@@ -697,9 +692,6 @@ namespace osu.Framework.Platform
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
-
-            activeGCMode = DebugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += e => { GCSettings.LatencyMode = IsActive.Value ? e.NewValue : GCLatencyMode.Interactive; };
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
