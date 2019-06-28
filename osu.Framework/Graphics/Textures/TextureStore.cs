@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
@@ -18,6 +19,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
         private readonly TextureAtlas atlas;
+
+        private const int max_atlas_size = 1024;
 
         /// <summary>
         /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
@@ -37,7 +40,10 @@ namespace osu.Framework.Graphics.Textures
             AddExtension(@"jpg");
 
             if (useAtlas)
-                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
+            {
+                int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
+                atlas = new TextureAtlas(size, size, filteringMode: filteringMode);
+            }
         }
 
         private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
