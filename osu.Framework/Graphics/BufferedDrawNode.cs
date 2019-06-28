@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The child <see cref="DrawNode"/> which is used to populate the <see cref="FrameBuffer"/>s with.
         /// </summary>
-        protected readonly DrawNode Child;
+        protected DrawNode Child { get; private set; }
 
         /// <summary>
         /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="FrameBuffer"/>s.
@@ -186,6 +186,14 @@ namespace osu.Framework.Graphics
         {
             GLWrapper.PopViewport();
             GLWrapper.PopMaskingInfo();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            Child?.Dispose();
+            Child = null;
         }
     }
 }

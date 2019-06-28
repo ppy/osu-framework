@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         ~VertexBuffer()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed)
                 return;
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
 
             IsDisposed = true;
-        });
+        }
 
         public virtual void Bind(bool forRendering)
         {
