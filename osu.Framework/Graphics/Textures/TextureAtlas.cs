@@ -62,9 +62,6 @@ namespace osu.Framework.Graphics.Textures
             if (atlasWidth == 0 || atlasHeight == 0)
                 return;
 
-            if (AtlasTexture == null)
-                Logger.Log($"New TextureAtlas initialised {atlasWidth}x{atlasHeight}", LoggingTarget.Runtime, LogLevel.Debug);
-
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
@@ -75,9 +72,14 @@ namespace osu.Framework.Graphics.Textures
         {
             if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
 
-            if (currentY + height > atlasHeight)
+            if (AtlasTexture == null)
             {
-                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture", LoggingTarget.Performance);
+                Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
+                Reset();
+            }
+            else if (currentY + height > atlasHeight)
+            {
+                Logger.Log($"TextureAtlas size exceeded; generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
 
@@ -117,9 +119,6 @@ namespace osu.Framework.Graphics.Textures
 
             lock (textureRetrievalLock)
             {
-                if (AtlasTexture == null)
-                    Reset();
-
                 Vector2I position = findPosition(width, height);
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
