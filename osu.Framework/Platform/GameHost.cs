@@ -37,6 +37,7 @@ using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
+using SixLabors.Memory;
 
 namespace osu.Framework.Platform
 {
@@ -85,6 +86,11 @@ namespace osu.Framework.Platform
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
         public virtual bool CanExit => true;
+
+        /// <summary>
+        /// Whether memory constraints should be considered before performance concerns.
+        /// </summary>
+        protected virtual bool LimitedMemoryEnvironment => false;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
@@ -439,6 +445,12 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            if (LimitedMemoryEnvironment)
+            {
+                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
+                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+            }
+
             DebugUtils.HostAssembly = game.GetType().Assembly;
 
             if (ExecutionState != ExecutionState.Idle)
