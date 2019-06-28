@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -29,13 +30,16 @@ namespace osu.Framework.Graphics.Containers
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
+            Debug.Assert(unloadSchedule == null);
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
         }
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
             unloadSchedule?.Cancel();
+            unloadSchedule = null;
         }
 
         private void checkForUnload()
@@ -52,7 +56,11 @@ namespace osu.Framework.Graphics.Containers
                 Content = null;
 
                 timeHidden = 0;
+
                 unloadSchedule?.Cancel();
+                unloadSchedule = null;
+
+                Unload();
             }
         }
     }

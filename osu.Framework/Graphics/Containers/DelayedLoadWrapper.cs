@@ -64,10 +64,10 @@ namespace osu.Framework.Graphics.Containers
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
 
-            if (!isIntersectingCache.IsValid)
+            if (!findParentCache.IsValid)
             {
                 computeIsIntersecting();
-                isIntersectingCache.Validate();
+                findParentCache.Validate();
             }
 
             if (!IsIntersecting)
@@ -91,8 +91,26 @@ namespace osu.Framework.Graphics.Containers
         {
             timeVisible = 0;
             loadTask = null;
+
             AddInternal(content);
             DelayedLoadComplete?.Invoke(content);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            loadScheduledDelegate?.Cancel();
+        }
+
+        protected void Unload()
+        {
+            loadScheduledDelegate?.Cancel();
+            loadScheduledDelegate = null;
+
+            findParentCache.Invalidate();
+            isIntersectingCache.Invalidate();
+            loadTask = null;
         }
 
         /// <summary>
@@ -113,29 +131,52 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
+        private Cached findParentCache = new Cached();
         private Cached isIntersectingCache = new Cached();
+
+        private ScheduledDelegate loadScheduledDelegate;
 
         protected bool IsIntersecting { get; private set; }
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
+        internal IOnScreenOptimisingContainer FindParentOptimisingContainer()
+        {
+            CompositeDrawable cursor = this;
+            while ((cursor = cursor.Parent) != null)
+                if (cursor is IOnScreenOptimisingContainer oc)
+                    return oc;
+
+            return null;
+        }
+
         private void computeIsIntersecting()
         {
             if (OptimisingContainer == null)
-            {
-                CompositeDrawable cursor = this;
-                while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
-                    OptimisingContainer = cursor as IOnScreenOptimisingContainer;
-            }
+                OptimisingContainer = FindParentOptimisingContainer();
 
             if (OptimisingContainer == null)
+            {
                 IsIntersecting = true;
+                isIntersectingCache.Validate();
+            }
             else
-                OptimisingContainer.ScheduleCheckAction(() => IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad));
+            {
+                if (loadScheduledDelegate == null)
+                    loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
+                    {
+                        if (!isIntersectingCache.IsValid)
+                        {
+                            IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) && OptimisingContainer == FindParentOptimisingContainer();
+                            isIntersectingCache.Validate();
+                        }
+                    });
+            }
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
+            findParentCache.Invalidate();
             isIntersectingCache.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }
