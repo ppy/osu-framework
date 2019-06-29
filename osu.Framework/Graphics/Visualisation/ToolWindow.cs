@@ -83,7 +83,6 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
                     Direction = FillDirection.Horizontal,
-                    Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight },
                     Children = new Drawable[]
                     {
                         ScrollContent = new BasicScrollContainer<Drawable>
@@ -95,6 +94,13 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 new CursorContainer()
             });
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            MainHorizontalContent.Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight };
         }
 
         protected override void PopIn() => this.FadeIn(100);
