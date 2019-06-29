@@ -183,6 +183,7 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
 
             updateCursorTarget();
+            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
         }
 
         private void updateCursorTarget()
@@ -285,12 +286,6 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             return base.OnClick(e);
-        }
-
-        protected override bool OnMouseMove(MouseMoveEvent e)
-        {
-            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return overlay.Target != null;
         }
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
