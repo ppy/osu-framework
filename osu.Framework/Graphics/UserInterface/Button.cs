@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Containers;
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkSlateGray,
+                        Colour = FrameworkColour.BlueGreen,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                     },
@@ -61,6 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             Origin = Anchor.Centre,
             Anchor = Anchor.Centre,
             Font = FrameworkFont.Regular,
+            Colour = FrameworkColour.Yellow
         };
 
         protected override bool OnClick(ClickEvent e)
