@@ -33,23 +33,6 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                // new GridContainer
-                // {
-                //     RelativeSizeAxes = Axes.Y,
-                //     AutoSizeAxes = Axes.X,
-                //     RowDimensions = new[]
-                //     {
-                //         new Dimension(GridSizeMode.AutoSize),
-                //         new Dimension(),
-                //     },
-                //     ColumnDimensions = new[]
-                //     {
-                //         new Dimension(GridSizeMode.AutoSize),
-                //     },
-                //     Content = new[]
-                //     {
-                //         new Drawable[]
-                //         {
                 new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
@@ -100,6 +83,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             base.LoadComplete();
 
+            // Used instead of GridContainer due to grid container's autosize failing to reduce size after increase.
             MainHorizontalContent.Padding = new MarginPadding { Top = TitleBar.HEIGHT + ToolbarContent.DrawHeight };
         }
 
