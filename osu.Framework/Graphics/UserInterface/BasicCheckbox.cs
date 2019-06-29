@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public bool RightHandedCheckbox
         {
@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Depth = float.MinValue,
-                        Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                        Font = FrameworkFont.Condensed
                     },
                 }
             };
