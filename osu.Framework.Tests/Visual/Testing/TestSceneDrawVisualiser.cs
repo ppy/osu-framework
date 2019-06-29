@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Visual.Testing
             typeof(TreeContainer),
             typeof(TreeContainerStatus),
             typeof(VisualisedDrawable),
+            typeof(ToolWindow)
         };
 
         [BackgroundDependencyLoader]

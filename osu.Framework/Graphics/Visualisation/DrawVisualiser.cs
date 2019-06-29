@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
+                    State = { BindTarget = State },
                     ChooseTarget = () =>
                     {
                         Searching = true;
@@ -138,14 +139,14 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.Depth = 0;
 
-            treeContainer.Child = targetVisualiser = visualiser;
+            treeContainer.Target = targetVisualiser = visualiser;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
             targetVisualiser = null;
-            treeContainer.Remove(visualiser);
+            treeContainer.Target = null;
 
             if (Target == null)
                 propertyDisplay.Hide();
@@ -307,7 +308,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
-            treeContainer.Clear();
+            treeContainer.Target = null;
 
             // We don't really know where the visualised drawables are, so we have to dispose them manually
             // This is done as an optimisation so that events aren't handled while the visualiser is hidden

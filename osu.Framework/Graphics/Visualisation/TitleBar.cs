@@ -13,12 +13,14 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly Drawable movableTarget;
 
-        public TitleBar(Drawable movableTarget)
+        public const float HEIGHT = 40;
+
+        public TitleBar(string title, string keyHelpText, Drawable movableTarget)
         {
             this.movableTarget = movableTarget;
 
             RelativeSizeAxes = Axes.X;
-            Size = new Vector2(1, 40);
+            Size = new Vector2(1, HEIGHT);
 
             InternalChildren = new Drawable[]
             {
@@ -32,27 +34,28 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
                     Direction = FillDirection.Horizontal,
+                    Spacing = new Vector2(10),
                     Children = new Drawable[]
                     {
                         new SpriteIcon
                         {
                             Size = new Vector2(20),
-                            Margin = new MarginPadding(10),
+                            Margin = new MarginPadding(10) { Right = 0 },
                             Icon = FontAwesome.Regular.Circle,
                         },
                         new SpriteText
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Text = "Draw Visualiser",
+                            Text = title,
                             Font = FrameworkFont.Condensed.With(weight: "Bold"),
-                            Colour = FrameworkColour.Yellow
+                            Colour = FrameworkColour.Yellow,
                         },
                         new SpriteText
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Text = " (Ctrl+F1 to toggle)",
+                            Text = keyHelpText,
                             Font = FrameworkFont.Condensed,
                             Colour = FrameworkColour.Yellow,
                             Alpha = 0.5f
