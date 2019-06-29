@@ -10,7 +10,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneExternalLinks: FrameworkTestScene
+    public class TestSceneExternalLinks : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
