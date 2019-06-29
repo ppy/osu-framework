@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Performance;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -18,6 +20,15 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
+        private static GlobalStatistic<int> loadedCount;
+
+        [BackgroundDependencyLoader]
+        private void load(IGlobalStatisticsTracker tracker)
+        {
+            if (loadedCount == null)
+                tracker.Register(loadedCount = new GlobalStatistic<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded"));
+        }
+
         private double timeHidden;
 
         private ScheduledDelegate unloadSchedule;
@@ -30,6 +41,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.EndDelayedLoad(content);
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
+            loadedCount.Value.Value++;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -48,6 +60,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
+                loadedCount.Value.Value--;
                 ClearInternal();
                 Content = null;
 
