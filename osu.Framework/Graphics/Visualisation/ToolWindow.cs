@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class ToolWindow : OverlayContainer
+    internal abstract class ToolWindow : OverlayContainer
     {
         public const float WIDTH = 500;
         public const float HEIGHT = 600;
@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected readonly FillFlowContainer MainHorizontalContent;
 
-        public ToolWindow(string title, string keyHelpText)
+        protected ToolWindow(string title, string keyHelpText)
         {
             AutoSizeAxes = Axes.X;
             Height = HEIGHT;
