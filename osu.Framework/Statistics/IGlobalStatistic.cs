@@ -3,7 +3,7 @@
 
 using osu.Framework.Bindables;
 
-namespace osu.Framework.Graphics.Performance
+namespace osu.Framework.Statistics
 {
     public interface IGlobalStatistic
     {

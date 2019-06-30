@@ -118,12 +118,6 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            dependencies.CacheAs<IGlobalStatisticsTracker>(globalStatistics = new GlobalStatisticsDisplay
-            {
-                Depth = float.MinValue / 2,
-                Position = new Vector2(100 + ToolWindow.WIDTH, 100)
-            });
-
             Audio = new AudioManager(Host.AudioThread, tracks, samples) { EventScheduler = Scheduler };
             dependencies.Cache(Audio);
 
@@ -210,8 +204,14 @@ namespace osu.Framework
 
                 case FrameworkAction.ToggleGlobalStatistics:
 
-                    if (globalStatistics.LoadState == LoadState.NotLoaded)
-                        LoadComponentAsync(globalStatistics, AddInternal);
+                    if (globalStatistics == null)
+                    {
+                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                        }, AddInternal);
+                    }
 
                     globalStatistics.ToggleVisibility();
                     return true;

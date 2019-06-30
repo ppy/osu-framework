@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Performance;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -23,10 +23,10 @@ namespace osu.Framework.Graphics.Containers
         private static GlobalStatistic<int> loadedCount;
 
         [BackgroundDependencyLoader]
-        private void load(IGlobalStatisticsTracker tracker)
+        private void load()
         {
             if (loadedCount == null)
-                tracker.Register(loadedCount = new GlobalStatistic<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded"));
+                GlobalStatistics.Register(loadedCount = new GlobalStatistic<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded"));
         }
 
         private double timeHidden;

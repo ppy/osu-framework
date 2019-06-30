@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Performance;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
@@ -20,10 +21,13 @@ namespace osu.Framework.Tests.Visual.Testing
 
             display.ToggleVisibility();
 
-            display.Register(new GlobalStatistic<double>("Drawable", "DelayedLoadWrapper")
+            var stat = new GlobalStatistic<double>("TestCase", "Test Statistic")
             {
                 Value = { Value = 10 }
-            });
+            };
+
+            AddStep("Register test statistic", () => GlobalStatistics.Register(stat));
+            AddStep("Change value", () => stat.Value.Value = 20);
         }
     }
 }

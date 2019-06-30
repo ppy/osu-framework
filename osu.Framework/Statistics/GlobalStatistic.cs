@@ -3,7 +3,7 @@
 
 using osu.Framework.Bindables;
 
-namespace osu.Framework.Graphics.Performance
+namespace osu.Framework.Statistics
 {
     public class GlobalStatistic<T> : IGlobalStatistic
     {
@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly Bindable<string> displayValue = new Bindable<string>();
 
-        public Bindable<T> Value { get; set; } = new Bindable<T>();
+        public Bindable<T> Value { get; } = new Bindable<T>();
 
         public GlobalStatistic(string group, string name)
         {

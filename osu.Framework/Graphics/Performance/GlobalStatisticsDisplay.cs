@@ -1,19 +1,19 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Performance
 {
     /// <summary>
     /// Tracks game statistics on a global.
     /// </summary>
-    [Cached(typeof(IGlobalStatisticsTracker))]
-    internal class GlobalStatisticsDisplay : ToolWindow, IGlobalStatisticsTracker
+    internal class GlobalStatisticsDisplay : ToolWindow
     {
         private readonly FillFlowContainer<StatisticsGroup> groups;
 
@@ -31,20 +31,31 @@ namespace osu.Framework.Graphics.Performance
             };
         }
 
-        public void Register(IGlobalStatistic stat) => Schedule(() =>
+        protected override void LoadComplete()
         {
-            var group = groups.FirstOrDefault(g => g.GroupName == stat.Group);
+            base.LoadComplete();
 
-            if (group == null)
-                groups.Add(group = new StatisticsGroup(stat.Group));
-            group.Add(stat);
+            GlobalStatistics.Statistics.ItemsAdded += add;
+            add(GlobalStatistics.Statistics);
+        }
+
+        private void add(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
+        {
+            foreach (var stat in stats)
+            {
+                var group = groups.FirstOrDefault(g => g.GroupName == stat.Group);
+
+                if (group == null)
+                    groups.Add(group = new StatisticsGroup(stat.Group));
+                group.Add(stat);
+            }
         });
 
         private class StatisticsGroup : CompositeDrawable
         {
             public string GroupName { get; }
 
-            private readonly FillFlowContainer items;
+            private readonly FillFlowContainer<StatisticsItem> items;
 
             public StatisticsGroup(string groupName)
             {
@@ -67,7 +78,7 @@ namespace osu.Framework.Graphics.Performance
                                 Text = GroupName,
                                 Font = FrameworkFont.Regular.With(weight: "Bold")
                             },
-                            items = new FillFlowContainer
+                            items = new FillFlowContainer<StatisticsItem>
                             {
                                 Padding = new MarginPadding { Left = 5 },
                                 RelativeSizeAxes = Axes.X,
@@ -79,12 +90,22 @@ namespace osu.Framework.Graphics.Performance
                 };
             }
 
-            public void Add(IGlobalStatistic stat) => items.Add(new StatisticsItem(stat));
+            public void Add(IGlobalStatistic stat)
+            {
+                if (items.Any(s => s.Statistic == stat))
+                    return;
+
+                items.Add(new StatisticsItem(stat));
+            }
 
             private class StatisticsItem : CompositeDrawable
             {
-                public StatisticsItem(IGlobalStatistic stat)
+                public readonly IGlobalStatistic Statistic;
+
+                public StatisticsItem(IGlobalStatistic statistic)
                 {
+                    Statistic = statistic;
+
                     SpriteText valueText;
 
                     RelativeSizeAxes = Axes.X;
@@ -96,7 +117,7 @@ namespace osu.Framework.Graphics.Performance
                         {
                             Font = FrameworkFont.Regular,
                             Colour = FrameworkColour.Yellow,
-                            Text = stat.Name,
+                            Text = Statistic.Name,
                             RelativeSizeAxes = Axes.X,
                             Width = 0.68f,
                         },
@@ -110,7 +131,7 @@ namespace osu.Framework.Graphics.Performance
                         },
                     };
 
-                    stat.DisplayValue.BindValueChanged(val => valueText.Text = val.NewValue, true);
+                    Statistic.DisplayValue.BindValueChanged(val => valueText.Text = val.NewValue, true);
                 }
             }
         }
