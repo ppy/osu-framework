@@ -20,16 +20,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected Box Background;
         protected SpriteText SpriteText;
 
-        public Action Action
-        {
-            get => action;
-            set
-            {
-                SpriteText.Colour = value == null ? Color4.White : ClickableColour;
-
-                action = value;
-            }
-        }
+        public Action Action { get; set; }
 
         public string Text
         {
@@ -38,7 +29,6 @@ namespace osu.Framework.Testing.Drawables.Steps
         }
 
         private Color4 lightColour = Color4.BlueViolet;
-        private Action action;
 
         public Color4 LightColour
         {
@@ -54,7 +44,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        protected virtual Color4 ClickableColour => FrameworkColour.Yellow;
+        protected virtual Color4 TextColour => FrameworkColour.Yellow;
 
         protected StepButton()
         {
@@ -79,6 +69,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     Font = new FontUsage("Roboto", 14, "Regular"),
                     X = 5,
                     Padding = new MarginPadding(5),
+                    Colour = TextColour
                 }
             };
 
