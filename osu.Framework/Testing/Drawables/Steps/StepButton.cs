@@ -20,7 +20,16 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected Box Background;
         protected SpriteText SpriteText;
 
-        public Action Action { get; set; }
+        public Action Action
+        {
+            get => action;
+            set
+            {
+                SpriteText.Colour = value == null ? Color4.White : ClickableColour;
+
+                action = value;
+            }
+        }
 
         public string Text
         {
@@ -29,6 +38,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         }
 
         private Color4 lightColour = Color4.BlueViolet;
+        private Action action;
 
         public Color4 LightColour
         {
@@ -43,6 +53,8 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
+
+        protected virtual Color4 ClickableColour => FrameworkColour.Yellow;
 
         protected StepButton()
         {
@@ -64,7 +76,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Font = new FontUsage(size: 14),
+                    Font = new FontUsage("Roboto", 14, "Regular"),
                     X = 5,
                     Padding = new MarginPadding(5),
                 }
@@ -76,7 +88,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             BorderThickness = 1.5f;
             BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
 
-            CornerRadius = 2;
             Masking = true;
         }
 
@@ -139,7 +150,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
-            SpriteText.Alpha = 0.8f;
+            SpriteText.FlashColour(Color4.White, 1000, Easing.OutQuint);
         }
 
         public override string ToString() => Text;
