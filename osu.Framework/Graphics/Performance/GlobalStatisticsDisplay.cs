@@ -25,7 +25,8 @@ namespace osu.Framework.Graphics.Performance
                 groups = new AlphabeticalFlow<StatisticsGroup>
                 {
                     Padding = new MarginPadding(5),
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Direction = FillDirection.Vertical,
                 },
             };
