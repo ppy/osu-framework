@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Performance
         {
             ScrollContent.Children = new Drawable[]
             {
-                groups = new FillFlowContainer<StatisticsGroup>
+                groups = new AlphabeticalFlow<StatisticsGroup>
                 {
                     Padding = new MarginPadding(5),
                     RelativeSizeAxes = Axes.Both,
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Performance
             }
         });
 
-        private class StatisticsGroup : CompositeDrawable
+        private class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
         {
             public string GroupName { get; }
 
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Performance
                                 Text = GroupName,
                                 Font = FrameworkFont.Regular.With(weight: "Bold")
                             },
-                            items = new FillFlowContainer<StatisticsItem>
+                            items = new AlphabeticalFlow<StatisticsItem>
                             {
                                 Padding = new MarginPadding { Left = 5 },
                                 RelativeSizeAxes = Axes.X,
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Performance
                 items.FirstOrDefault(s => s.Statistic == stat)?.Expire();
             }
 
-            private class StatisticsItem : CompositeDrawable
+            private class StatisticsItem : CompositeDrawable, IAlphabeticalSort
             {
                 public readonly IGlobalStatistic Statistic;
 
@@ -147,7 +147,21 @@ namespace osu.Framework.Graphics.Performance
 
                     Statistic.DisplayValue.BindValueChanged(val => valueText.Text = val.NewValue, true);
                 }
+
+                public string SortString => Statistic.Name;
             }
+
+            public string SortString => GroupName;
+        }
+
+        private interface IAlphabeticalSort
+        {
+            string SortString { get; }
+        }
+
+        private class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
+        {
+            public override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Cast<T>().OrderBy(d => d.SortString);
         }
     }
 }

@@ -28,6 +28,18 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("Register test statistic", () => GlobalStatistics.Register(stat));
             AddStep("Change value", () => stat.Bindable.Value = 20);
+
+            AddStep("Register statistics non-alphabetically", () =>
+            {
+                GlobalStatistics.Get<int>("ZZZZZ", "BBBBB");
+                GlobalStatistics.Get<int>("ZZZZZ", "AAAAA");
+            });
+
+            AddStep("Register groups non-alphabetically", () =>
+            {
+                GlobalStatistics.Get<int>("XXXXX", "BBBBB");
+                GlobalStatistics.Get<int>("TTTTT", "AAAAA");
+            });
         }
     }
 }
