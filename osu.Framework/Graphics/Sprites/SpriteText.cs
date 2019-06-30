@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics.Sprites
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
-        private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
 
         [Resolved]
         private FontStore store { get; set; }
@@ -225,6 +224,22 @@ namespace osu.Framework.Graphics.Sprites
                 shadowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Vector2 shadowOff = new Vector2(0, 0.06f);
+
+        public Vector2 ShadowOffset
+        {
+            get => shadowOff;
+            set
+            {
+                if (shadowOff == value)
+                    return;
+
+                shadowOff = value;
+
+                shadowOffsetCache.Invalidate();
             }
         }
 
@@ -648,7 +663,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private Cached<Vector2> shadowOffsetCache;
 
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOff * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
