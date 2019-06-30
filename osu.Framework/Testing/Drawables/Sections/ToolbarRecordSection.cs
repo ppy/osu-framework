@@ -59,7 +59,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Colour = FrameworkColour.Yellow,
                                 Text = "0",
-                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                                Font = FrameworkFont.Regular.With(fixedWidth: true)
                             },
                             new BasicSliderBar<int>
                             {
@@ -75,7 +75,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Text = "0",
-                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                                Font = FrameworkFont.Regular.With(fixedWidth: true)
                             },
                         }
                     },
