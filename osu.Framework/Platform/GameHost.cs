@@ -393,6 +393,7 @@ namespace osu.Framework.Platform
 
                     GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
+                    // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
                 });
 
