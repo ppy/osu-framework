@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Testing
                     new RepeatStepButton(null) { Text = nameof(RepeatStepButton) },
                     new ToggleStepButton(null) { Text = nameof(ToggleStepButton) },
                     new UntilStepButton(() => true) { Text = nameof(UntilStepButton) },
-                    new StepSlider<int>(nameof(StepSlider<int>), 0, 10, 5), 
+                    new StepSlider<int>(nameof(StepSlider<int>), 0, 10, 5),
                 }
             };
         }
