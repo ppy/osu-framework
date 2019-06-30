@@ -79,7 +79,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                             },
                         }
                     },
-                    recordButton = new RecordButton
+                    recordButton = new Button
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100,
@@ -120,22 +120,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                     playbackControls.Show();
                     break;
             }
-        }
-
-        private class RecordButton : Button
-        {
-            public RecordButton()
-            {
-                BackgroundColour = FrameworkColour.BlueGreen;
-            }
-
-            protected override SpriteText CreateText() => new SpriteText
-            {
-                Colour = FrameworkColour.Yellow,
-                Font = new FontUsage("Roboto", weight: "Regular"),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
         }
     }
 }
