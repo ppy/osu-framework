@@ -229,6 +229,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private Vector2 shadowOffset = new Vector2(0, 0.06f);
 
+        /// <summary>
+        /// The offset of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
         public Vector2 ShadowOffset
         {
             get => shadowOffset;
