@@ -169,7 +169,7 @@ namespace osu.Framework.Testing
                             Padding = new MarginPadding(10),
                             Child = new SpriteText
                             {
-                                Font = new FontUsage("RobotoCondensed", 16, "Regular"),
+                                Font = FrameworkFont.Condensed.With(size: 16),
                                 Text = Name,
                                 Margin = new MarginPadding { Bottom = 5 },
                             }

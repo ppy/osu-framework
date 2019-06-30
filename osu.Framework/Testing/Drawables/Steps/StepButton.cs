@@ -66,7 +66,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Font = new FontUsage("Roboto", 14, "Regular"),
+                    Font = FrameworkFont.Regular.With(size: 14),
                     X = 5,
                     Padding = new MarginPadding(5),
                     Colour = TextColour
