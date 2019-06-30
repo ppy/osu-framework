@@ -242,7 +242,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 shadowOffset = value;
 
-                Invalidate(Invalidation.DrawNode);
+                invalidate(true);
+                shadowOffsetCache.Invalidate();
             }
         }
 
