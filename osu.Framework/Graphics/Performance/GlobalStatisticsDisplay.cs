@@ -3,50 +3,12 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
 
 namespace osu.Framework.Graphics.Performance
 {
-    /// <summary>
-    /// A component which allows registering and tracking of
-    /// </summary>
-    public interface IGlobalStatisticsTracker
-    {
-        void Register(IGlobalStatistic stat);
-    }
-
-    public interface IGlobalStatistic
-    {
-        string Group { get; }
-
-        string Name { get; }
-
-        IBindable<string> DisplayValue { get; }
-    }
-
-    public class GlobalStatistic<T> : IGlobalStatistic
-    {
-        public string Group { get; }
-        public string Name { get; }
-
-        public IBindable<string> DisplayValue => displayValue;
-
-        private readonly Bindable<string> displayValue = new Bindable<string>();
-
-        public Bindable<T> Value { get; set; } = new Bindable<T>();
-
-        public GlobalStatistic(string group, string name)
-        {
-            Group = group;
-            Name = name;
-
-            Value.ValueChanged += val => displayValue.Value = val.NewValue.ToString();
-        }
-    }
-
     /// <summary>
     /// Tracks game statistics on a global.
     /// </summary>
