@@ -29,6 +29,8 @@ namespace osu.Framework.Graphics.Performance
                     Direction = FillDirection.Vertical,
                 },
             };
+
+            AddButton(@"clear all", GlobalStatistics.Clear);
         }
 
         protected override void LoadComplete()
@@ -36,8 +38,15 @@ namespace osu.Framework.Graphics.Performance
             base.LoadComplete();
 
             GlobalStatistics.Statistics.ItemsAdded += add;
+            GlobalStatistics.Statistics.ItemsRemoved += remove;
             add(GlobalStatistics.Statistics);
         }
+
+        private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
+        {
+            foreach (var stat in stats)
+                groups.FirstOrDefault(g => g.GroupName == stat.Group)?.Remove(stat);
+        });
 
         private void add(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
         {
@@ -96,6 +105,11 @@ namespace osu.Framework.Graphics.Performance
                     return;
 
                 items.Add(new StatisticsItem(stat));
+            }
+
+            public void Remove(IGlobalStatistic stat)
+            {
+                items.FirstOrDefault(s => s.Statistic == stat)?.Expire();
             }
 
             private class StatisticsItem : CompositeDrawable

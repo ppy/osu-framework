@@ -7,10 +7,24 @@ namespace osu.Framework.Statistics
 {
     public interface IGlobalStatistic
     {
+        /// <summary>
+        /// Statistic's visual grouping.
+        /// </summary>
         string Group { get; }
 
+        /// <summary>
+        /// Statistic's identifier.
+        /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// Human readable value.
+        /// </summary>
         IBindable<string> DisplayValue { get; }
+
+        /// <summary>
+        /// Clear the value of this statistic.
+        /// </summary>
+        void Clear();
     }
 }

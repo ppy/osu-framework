@@ -12,6 +12,8 @@ namespace osu.Framework.Statistics
 
         public IBindable<string> DisplayValue => displayValue;
 
+        public void Clear() => Bindable.SetDefault();
+
         private readonly Bindable<string> displayValue = new Bindable<string>();
 
         public Bindable<T> Bindable { get; } = new Bindable<T>();

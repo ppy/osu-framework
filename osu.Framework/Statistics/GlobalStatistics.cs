@@ -11,9 +11,10 @@ namespace osu.Framework.Statistics
     /// </summary>
     public static class GlobalStatistics
     {
-        internal static BindableList<IGlobalStatistic> Statistics { get; } = new BindableList<IGlobalStatistic>();
+        // ReSharper disable once InconsistentlySynchronizedField
+        internal static IBindableList<IGlobalStatistic> Statistics => statistics;
 
-        private static readonly object statistics_lock = new object();
+        private static readonly BindableList<IGlobalStatistic> statistics = new BindableList<IGlobalStatistic>();
 
         /// <summary>
         /// Register a new statistic type.
@@ -21,8 +22,8 @@ namespace osu.Framework.Statistics
         /// <param name="stat">The statistic to register.</param>
         public static void Register(IGlobalStatistic stat)
         {
-            lock (statistics_lock)
-                Statistics.Add(stat);
+            lock (statistics)
+                statistics.Add(stat);
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace osu.Framework.Statistics
         /// <returns></returns>
         public static GlobalStatistic<T> Get<T>(string group, string name)
         {
-            lock (statistics_lock)
+            lock (statistics)
             {
                 var existing = Statistics.OfType<GlobalStatistic<T>>().FirstOrDefault(s => s.Name == name && s.Group == group);
                 if (existing != null)
@@ -44,6 +45,15 @@ namespace osu.Framework.Statistics
                 var newStat = new GlobalStatistic<T>(group, name);
                 Register(newStat);
                 return newStat;
+            }
+        }
+
+        public static void Clear()
+        {
+            lock (statistics)
+            {
+                foreach (var stat in statistics)
+                    stat.Clear();
             }
         }
     }
