@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule?.Cancel();
                 unloadSchedule = null;
 
-                Unload();
+                CancelTasks();
             }
         }
     }

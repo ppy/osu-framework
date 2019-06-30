@@ -7,10 +7,8 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Lists;
-using osu.Framework.Tests.Visual.Containers;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -98,6 +96,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 GC.Collect();
                 return !references.Any();
             });
+
+            AddStep("scroll to start", () => scroll.ScrollToStart());
+
+            AddUntilStep("references restored", () => references.Count() == 16);
         }
 
         [Test]

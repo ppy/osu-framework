@@ -64,11 +64,7 @@ namespace osu.Framework.Graphics.Containers
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
 
-            if (!findParentCache.IsValid)
-            {
-                computeIsIntersecting();
-                findParentCache.Validate();
-            }
+            scheduleIsIntersecting();
 
             if (!IsIntersecting)
                 timeVisible = 0;
@@ -99,16 +95,14 @@ namespace osu.Framework.Graphics.Containers
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-
-            loadScheduledDelegate?.Cancel();
+            CancelTasks();
         }
 
-        protected void Unload()
+        protected void CancelTasks()
         {
             loadScheduledDelegate?.Cancel();
             loadScheduledDelegate = null;
 
-            findParentCache.Invalidate();
             isIntersectingCache.Invalidate();
             loadTask = null;
         }
@@ -150,10 +144,13 @@ namespace osu.Framework.Graphics.Containers
             return null;
         }
 
-        private void computeIsIntersecting()
+        private void scheduleIsIntersecting()
         {
-            if (OptimisingContainer == null)
+            if (!findParentCache.IsValid)
+            {
                 OptimisingContainer = FindParentOptimisingContainer();
+                findParentCache.Validate();
+            }
 
             if (OptimisingContainer == null)
             {
@@ -167,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         if (!isIntersectingCache.IsValid)
                         {
-                            IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) && OptimisingContainer == FindParentOptimisingContainer();
+                            IsIntersecting = OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) == true;
                             isIntersectingCache.Validate();
                         }
                     });
@@ -176,7 +173,12 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            findParentCache.Invalidate();
+            if (invalidation.HasFlag(Invalidation.Parent))
+            {
+                OptimisingContainer = null;
+                findParentCache.Invalidate();
+            }
+
             isIntersectingCache.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }
