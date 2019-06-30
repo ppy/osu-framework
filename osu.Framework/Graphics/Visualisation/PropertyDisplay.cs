@@ -30,16 +30,24 @@ namespace osu.Framework.Graphics.Visualisation
             Width = width;
             RelativeSizeAxes = Axes.Y;
 
-            AddInternal(new BasicScrollContainer<Drawable>
+            AddRangeInternal(new Drawable[]
             {
-                Padding = new MarginPadding(10),
-                RelativeSizeAxes = Axes.Both,
-                ScrollbarOverlapsContent = false,
-                Child = flow = new FillFlowContainer
+                new Box
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical
+                    Colour = FrameworkColour.GreenDarker,
+                    RelativeSizeAxes = Axes.Both,
+                },
+                new BasicScrollContainer<Drawable>
+                {
+                    Padding = new MarginPadding(10),
+                    RelativeSizeAxes = Axes.Both,
+                    ScrollbarOverlapsContent = false,
+                    Child = flow = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical
+                    }
                 }
             });
         }
@@ -127,12 +135,12 @@ namespace osu.Framework.Graphics.Visualisation
                                 new SpriteText
                                 {
                                     Text = info.Name,
-                                    Colour = Color4.LightBlue,
+                                    Colour = FrameworkColour.Yellow,
                                 },
                                 new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
-                                    Colour = Color4.MediumPurple,
+                                    Colour = FrameworkColour.YellowGreen,
                                 },
                                 valueText = new SpriteText
                                 {
