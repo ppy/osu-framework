@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
@@ -20,14 +19,7 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
-        private static GlobalStatistic<int> loadedCount;
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            if (loadedCount == null)
-                GlobalStatistics.Register(loadedCount = new GlobalStatistic<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded"));
-        }
+        private static readonly GlobalStatistic<int> loaded_count = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded");
 
         private double timeHidden;
 
@@ -40,14 +32,22 @@ namespace osu.Framework.Graphics.Containers
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
+
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
-            loadedCount.Value.Value++;
+            loaded_count.Value++;
         }
 
         protected override void Dispose(bool isDisposing)
         {
+            if (unloadSchedule != null)
+            {
+                unloadSchedule.Cancel();
+                unloadSchedule = null;
+
+                loaded_count.Value--;
+            }
+
             base.Dispose(isDisposing);
-            unloadSchedule?.Cancel();
         }
 
         private void checkForUnload()
@@ -60,12 +60,13 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
-                loadedCount.Value.Value--;
+                loaded_count.Value--;
                 ClearInternal();
                 Content = null;
 
                 timeHidden = 0;
                 unloadSchedule?.Cancel();
+                unloadSchedule = null;
             }
         }
     }

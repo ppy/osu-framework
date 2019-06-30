@@ -23,11 +23,11 @@ namespace osu.Framework.Tests.Visual.Testing
 
             var stat = new GlobalStatistic<double>("TestCase", "Test Statistic")
             {
-                Value = { Value = 10 }
+                Bindable = { Value = 10 }
             };
 
             AddStep("Register test statistic", () => GlobalStatistics.Register(stat));
-            AddStep("Change value", () => stat.Value.Value = 20);
+            AddStep("Change value", () => stat.Bindable.Value = 20);
         }
     }
 }
