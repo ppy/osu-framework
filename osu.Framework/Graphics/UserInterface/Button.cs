@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkSlateGray,
+                        Colour = FrameworkColour.BlueGreen,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                     },
@@ -61,6 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             Origin = Anchor.Centre,
             Anchor = Anchor.Centre,
             Font = FrameworkFont.Regular,
+            Colour = FrameworkColour.Yellow
         };
 
         protected override bool OnClick(ClickEvent e)
