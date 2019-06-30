@@ -7,7 +7,7 @@ namespace osu.Framework.Input.Bindings
     /// A drawable that handles scroll actions.
     /// </summary>
     /// <typeparam name="T">The type of bindings.</typeparam>
-    public interface IScrollBindingHandler<in T> : IKeyBindingHandler<T>
+    public interface IScrollBindingHandler<T> : IKeyBindingHandler<T>
         where T : struct
     {
         /// <summary>

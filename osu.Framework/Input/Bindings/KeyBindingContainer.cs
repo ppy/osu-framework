@@ -168,12 +168,12 @@ namespace osu.Framework.Input.Bindings
             {
                 // only want to release pressed actions if no existing bindings would still remain pressed
                 if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, matchingMode)))
-                    releasePressedActions();
+                    releasePressedActions(state);
             }
 
             foreach (var newBinding in newlyPressed)
             {
-                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>(), scrollAmount, isPrecise);
+                handled |= PropagatePressed(KeyBindingInputQueue, state, newBinding.GetAction<T>(), scrollAmount, isPrecise, repeat);
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if (simultaneousMode == SimultaneousBindingMode.None && handled)
@@ -183,22 +183,24 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
-        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
+        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, InputState state, T pressed, float scrollAmount = 0, bool isPrecise = false, bool repeat = false)
         {
             IDrawable handled = null;
 
             // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
             if (simultaneousMode == SimultaneousBindingMode.None)
-                releasePressedActions();
+                releasePressedActions(state);
 
             // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
+                var pressedAction = new KeyBindingPressEvent<T>(state, pressed, repeat);
+
                 pressedActions.Add(pressed);
                 if (scrollAmount != 0)
                     handled = drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
                 if (handled == null)
-                    handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                    handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressedAction));
             }
 
             if (handled != null)
@@ -210,10 +212,10 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Releases all pressed actions.
         /// </summary>
-        private void releasePressedActions()
+        private void releasePressedActions(InputState state)
         {
             foreach (var action in pressedActions)
-                KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+                KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(new KeyBindingReleaseEvent<T>(state, action)));
             pressedActions.Clear();
         }
 
@@ -234,13 +236,13 @@ namespace osu.Framework.Input.Bindings
 
                 var action = binding.GetAction<T>();
 
-                handled |= PropagateReleased(KeyBindingInputQueue, action);
+                handled |= PropagateReleased(KeyBindingInputQueue, state, action);
             }
 
             return handled;
         }
 
-        protected virtual bool PropagateReleased(IEnumerable<Drawable> drawables, T released)
+        protected virtual bool PropagateReleased(IEnumerable<Drawable> drawables, InputState state, T released)
         {
             IDrawable handled = null;
 
@@ -249,7 +251,7 @@ namespace osu.Framework.Input.Bindings
             // - are the last pressed binding with this action
             if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.GetAction<T>().Equals(released)))
             {
-                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(released));
+                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(new KeyBindingReleaseEvent<T>(state, released)));
                 pressedActions.Remove(released);
             }
 
@@ -259,9 +261,9 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
+        public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, GetContainingInputManager()?.CurrentState ?? new InputState(), released);
 
-        public void TriggerPressed(T pressed) => PropagatePressed(KeyBindingInputQueue, pressed);
+        public void TriggerPressed(T pressed) => PropagatePressed(KeyBindingInputQueue, GetContainingInputManager()?.CurrentState ?? new InputState(), pressed);
     }
 
     /// <summary>
@@ -296,14 +298,14 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once.
         /// If one action has multiple bindings, only the first will trigger an <see cref="IKeyBindingHandler{T}.OnPressed"/>.
-        /// The last binding to be released will trigger an <see cref="IKeyBindingHandler{T}.OnReleased(T)"/>.
+        /// The last binding to be released will trigger an <see cref="IKeyBindingHandler{T}.OnReleased"/>.
         /// </summary>
         Unique,
 
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time, as well as multiple times from different bindings. There may therefore be
         /// more than one action in an pressed state at once, as well as multiple consecutive <see cref="IKeyBindingHandler{T}.OnPressed"/> events
-        /// for a single action (followed by an eventual balancing number of <see cref="IKeyBindingHandler{T}.OnReleased(T)"/> events).
+        /// for a single action (followed by an eventual balancing number of <see cref="IKeyBindingHandler{T}.OnReleased"/> events).
         /// </summary>
         All,
     }

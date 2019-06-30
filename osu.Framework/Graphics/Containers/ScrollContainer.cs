@@ -584,12 +584,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!IsHandlingKeyboardScrolling)
                 return false;
 
-            switch (action.ActionType)
+            switch (e.Action.ActionType)
             {
                 case PlatformActionType.LineStart:
                     ScrollToStart();
@@ -604,7 +604,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public bool OnReleased(KeyBindingReleaseEvent<PlatformAction> e) => false;
 
         ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
     }

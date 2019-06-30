@@ -378,6 +378,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordNext:
+
                     if (!AllowWordNavigation)
                         amount = 1;
                     else
@@ -392,6 +393,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordPrevious:
+
                     if (!AllowWordNavigation)
                         amount = -1;
                     else
@@ -1029,9 +1031,9 @@ namespace osu.Framework.Graphics.UserInterface
                 this.textBox = textBox;
             }
 
-            public bool OnPressed(PlatformAction action) => textBox.HasFocus && textBox.handleAction(action);
+            public bool OnPressed(KeyBindingPressEvent<PlatformAction> e) => textBox.HasFocus && textBox.handleAction(e.Action);
 
-            public bool OnReleased(PlatformAction action) => false;
+            public bool OnReleased(KeyBindingReleaseEvent<PlatformAction> e) => false;
         }
     }
 }
