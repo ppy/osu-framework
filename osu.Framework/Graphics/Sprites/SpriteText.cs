@@ -227,17 +227,17 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Vector2 shadowOff = new Vector2(0, 0.06f);
+        private Vector2 shadowOffset = new Vector2(0, 0.06f);
 
         public Vector2 ShadowOffset
         {
-            get => shadowOff;
+            get => shadowOffset;
             set
             {
-                if (shadowOff == value)
+                if (shadowOffset == value)
                     return;
 
-                shadowOff = value;
+                shadowOffset = value;
 
                 shadowOffsetCache.Invalidate();
             }
@@ -663,7 +663,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private Cached<Vector2> shadowOffsetCache;
 
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOff * Font.Size) - ToScreenSpace(Vector2.Zero);
+        private Vector2 premultipliedShadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
