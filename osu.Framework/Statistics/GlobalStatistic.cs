@@ -14,14 +14,20 @@ namespace osu.Framework.Statistics
 
         private readonly Bindable<string> displayValue = new Bindable<string>();
 
-        public Bindable<T> Value { get; } = new Bindable<T>();
+        public Bindable<T> Bindable { get; } = new Bindable<T>();
+
+        public T Value
+        {
+            get => Bindable.Value;
+            set => Bindable.Value = value;
+        }
 
         public GlobalStatistic(string group, string name)
         {
             Group = group;
             Name = name;
 
-            Value.ValueChanged += val => displayValue.Value = val.NewValue.ToString();
+            Bindable.ValueChanged += val => displayValue.Value = val.NewValue.ToString();
         }
     }
 }
