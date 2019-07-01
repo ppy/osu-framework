@@ -17,16 +17,6 @@ namespace osu.Framework.Statistics
         private static readonly BindableList<IGlobalStatistic> statistics = new BindableList<IGlobalStatistic>();
 
         /// <summary>
-        /// Register a new statistic type.
-        /// </summary>
-        /// <param name="stat">The statistic to register.</param>
-        public static void Register(IGlobalStatistic stat)
-        {
-            lock (statistics)
-                statistics.Add(stat);
-        }
-
-        /// <summary>
         /// Retrieve a <see cref="IGlobalStatistic"/> of specified type.
         /// If no matching statistic already exists, a new instance is created and registered automatically.
         /// </summary>
@@ -43,7 +33,7 @@ namespace osu.Framework.Statistics
                     return existing;
 
                 var newStat = new GlobalStatistic<T>(group, name);
-                Register(newStat);
+                register(newStat);
                 return newStat;
             }
         }
@@ -55,6 +45,16 @@ namespace osu.Framework.Statistics
                 foreach (var stat in statistics)
                     stat.Clear();
             }
+        }
+
+        /// <summary>
+        /// Register a new statistic type.
+        /// </summary>
+        /// <param name="stat">The statistic to register.</param>
+        private static void register(IGlobalStatistic stat)
+        {
+            lock (statistics)
+                statistics.Add(stat);
         }
     }
 }

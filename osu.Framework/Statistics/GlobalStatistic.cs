@@ -8,11 +8,10 @@ namespace osu.Framework.Statistics
     public class GlobalStatistic<T> : IGlobalStatistic
     {
         public string Group { get; }
+
         public string Name { get; }
 
         public IBindable<string> DisplayValue => displayValue;
-
-        public void Clear() => Bindable.SetDefault();
 
         private readonly Bindable<string> displayValue = new Bindable<string>();
 
@@ -31,5 +30,7 @@ namespace osu.Framework.Statistics
 
             Bindable.ValueChanged += val => displayValue.Value = val.NewValue.ToString();
         }
+
+        public virtual void Clear() => Bindable.SetDefault();
     }
 }

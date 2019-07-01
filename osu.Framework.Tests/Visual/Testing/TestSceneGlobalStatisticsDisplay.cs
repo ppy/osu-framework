@@ -21,13 +21,12 @@ namespace osu.Framework.Tests.Visual.Testing
 
             display.ToggleVisibility();
 
-            var stat = new GlobalStatistic<double>("TestCase", "Test Statistic")
-            {
-                Bindable = { Value = 10 }
-            };
+            GlobalStatistic<double> stat = null;
 
-            AddStep("Register test statistic", () => GlobalStatistics.Register(stat));
-            AddStep("Change value", () => stat.Bindable.Value = 20);
+            AddStep("Register test statistic", () => stat = GlobalStatistics.Get<double>("TestCase", "Test Statistic"));
+
+            AddStep("Change value once", () => stat.Bindable.Value = 10);
+            AddStep("Change value again", () => stat.Bindable.Value = 20);
 
             AddStep("Register statistics non-alphabetically", () =>
             {
