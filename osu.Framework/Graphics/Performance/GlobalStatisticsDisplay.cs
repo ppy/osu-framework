@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Performance
                         },
                     };
 
-                    Statistic.DisplayValue.BindValueChanged(val => valueText.Text = val.NewValue, true);
+                    Statistic.DisplayValue.BindValueChanged(val => Schedule(() => valueText.Text = val.NewValue), true);
                 }
 
                 public string SortString => Statistic.Name;
