@@ -163,8 +163,8 @@ namespace osu.Framework.IO.Stores
 
             int pageWidth = pageInfo.Size.Width;
 
-            int charWidth = c.Width + c.XOffset + 1;
-            int charHeight = c.Height + c.YOffset + 1;
+            int charWidth = c.Width + c.XOffset;
+            int charHeight = c.Height + c.YOffset;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
 
@@ -178,7 +178,8 @@ namespace osu.Framework.IO.Stores
                     stream.Read(readBuffer, 0, pageWidth);
 
                     for (int x = 0; x < c.Width; x++)
-                        pixels[(y + c.YOffset) * charWidth + x + c.XOffset] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
+                        if (x + c.XOffset >= 0 && y + c.YOffset > 0) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
+                            pixels[(y + c.YOffset) * charWidth + (x + c.XOffset)] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
                 }
             }
 
