@@ -161,14 +161,14 @@ namespace osu.Framework.IO.Stores
             using (var stream = System.IO.File.OpenRead(pageInfo.Filename))
             {
                 var pixels = image.GetPixelSpan();
-                stream.Seek(pageWidth * c.YOffset, SeekOrigin.Current);
+                stream.Seek(pageWidth * c.Y, SeekOrigin.Current);
 
                 for (int y = 0; y < c.Height; y++)
                 {
                     stream.Read(readBuffer, 0, pageWidth);
 
-                    for (int x = c.XOffset; x < c.Width; x++)
-                        pixels[y * width + x] = new Rgba32(255, 255, 255, readBuffer[c.XOffset + x]);
+                    for (int x = 0; x < c.Width; x++)
+                        pixels[(y + c.YOffset) * width + x + c.XOffset] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
                 }
             }
 
