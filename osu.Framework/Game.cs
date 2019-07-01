@@ -181,6 +181,8 @@ namespace osu.Framework
 
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
+        private GlobalStatisticsDisplay globalStatistics;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -203,12 +205,27 @@ namespace osu.Framework
 
                     return true;
 
+                case FrameworkAction.ToggleGlobalStatistics:
+
+                    if (globalStatistics == null)
+                    {
+                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                        }, AddInternal);
+                    }
+
+                    globalStatistics.ToggleVisibility();
+                    return true;
+
                 case FrameworkAction.ToggleDrawVisualiser:
 
                     if (drawVisualiser == null)
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
+                            Position = new Vector2(100),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
