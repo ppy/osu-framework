@@ -117,23 +117,18 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        private readonly object fontLookupLock = new object();
-
         public override Texture Get(string name)
         {
             var found = base.Get(name);
 
-            lock (fontLookupLock)
+            if (found == null)
             {
-                if (found == null)
-                {
-                    foreach (var store in nestedFontStores)
-                        if ((found = store.Get(name)) != null)
-                            break;
-                }
-
-                return found;
+                foreach (var store in nestedFontStores)
+                    if ((found = store.Get(name)) != null)
+                        break;
             }
+
+            return found;
         }
 
         public float? GetBaseHeight(char c)
