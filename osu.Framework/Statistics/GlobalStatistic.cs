@@ -28,7 +28,7 @@ namespace osu.Framework.Statistics
             Group = group;
             Name = name;
 
-            Bindable.ValueChanged += val => displayValue.Value = val.NewValue.ToString();
+            Bindable.BindValueChanged(val => displayValue.Value = val.NewValue.ToString(), true);
         }
 
         public virtual void Clear() => Bindable.SetDefault();
