@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -30,6 +31,8 @@ namespace osu.Framework.IO.Stores
         protected BitmapFont Font => completionSource.Task.Result;
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
+
+        internal Storage CacheStorage;
 
         private Task fontLoadTask;
 
@@ -118,7 +121,7 @@ namespace osu.Framework.IO.Stores
 
                     string accessFilename = $"{filename.Replace("/", ".")}#{md5}";
 
-                    var existing = Directory.GetFiles(Environment.CurrentDirectory, accessFilename + "*").FirstOrDefault();
+                    var existing = CacheStorage.GetFiles(".", accessFilename + "*").FirstOrDefault();
 
                     if (existing != null)
                     {
@@ -131,6 +134,7 @@ namespace osu.Framework.IO.Stores
                     }
                     else
                     {
+                        // todo: use i# memoryallocator once netstandard supports stream operations
                         byte[] output = new byte[convert.Width * convert.Height];
 
                         var pxl = convert.GetPixelSpan();
@@ -140,7 +144,8 @@ namespace osu.Framework.IO.Stores
 
                         accessFilename += $"#{convert.Width}#{convert.Height}";
 
-                        System.IO.File.WriteAllBytes(accessFilename, output);
+                        using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
+                            outStream.Write(output, 0, output.Length);
 
                         pageLookup[c.Page] = pageInfo = new PageInfo
                         {
@@ -153,12 +158,12 @@ namespace osu.Framework.IO.Stores
 
             int pageWidth = pageInfo.Size.Width;
 
-            int width = c.Width + c.XOffset + 1;
-            int height = c.Height + c.YOffset + 1;
+            int charWidth = c.Width + c.XOffset + 1;
+            int charHeight = c.Height + c.YOffset + 1;
 
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, width, height, new Rgba32(255, 255, 255, 0));
+            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
 
-            using (var stream = System.IO.File.OpenRead(pageInfo.Filename))
+            using (var stream = CacheStorage.GetStream(pageInfo.Filename))
             {
                 var pixels = image.GetPixelSpan();
                 stream.Seek(pageWidth * c.Y, SeekOrigin.Current);
@@ -168,7 +173,7 @@ namespace osu.Framework.IO.Stores
                     stream.Read(readBuffer, 0, pageWidth);
 
                     for (int x = 0; x < c.Width; x++)
-                        pixels[(y + c.YOffset) * width + x + c.XOffset] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
+                        pixels[(y + c.YOffset) * charWidth + x + c.XOffset] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
                 }
             }
 

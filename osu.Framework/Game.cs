@@ -133,8 +133,10 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
+            var cacheStorage = Host.Storage.GetStorageForDirectory("cache/fonts/");
+
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true);
+            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
