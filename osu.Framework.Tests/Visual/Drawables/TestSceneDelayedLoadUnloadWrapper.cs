@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -141,7 +142,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
 
-            AddStep("Remove all panels", () => flow.Clear());
+            AddStep("Remove all panels", () => flow.Clear(false));
 
             AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
@@ -150,6 +151,66 @@ namespace osu.Framework.Tests.Visual.Drawables
                 GC.Collect();
                 return !references.Any();
             });
+        }
+
+        [Test]
+        public void TestRemoveThenAdd()
+        {
+            WeakList<Container> references = new WeakList<Container>();
+
+            int loadCount = 0;
+
+            AddStep("populate panels", () =>
+            {
+                references.Clear();
+                loadCount = 0;
+
+                for (int i = 0; i < 16; i++)
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
+                        {
+                            new DelayedLoadUnloadWrapper(() =>
+                            {
+                                TestBox testBox = null;
+                                var container = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        testBox = new TestBox { RelativeSizeAxes = Axes.Both }
+                                    },
+                                };
+
+                                testBox.OnLoadComplete += _ =>
+                                {
+                                    references.Add(container);
+                                    loadCount++;
+                                };
+
+                                return container;
+                            }, 500, 2000),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+            });
+
+            IReadOnlyList<Container> previousChildren = null;
+
+            AddUntilStep("all loaded", () => loadCount == 16);
+
+            AddStep("Remove all panels", () =>
+            {
+                previousChildren = flow.Children.ToList();
+                flow.Clear(false);
+            });
+
+            AddStep("Add panels back", () => flow.Children = previousChildren);
+
+            AddWaitStep("wait for potential unload", 20);
+
+            AddAssert("load count hasn't changed", () => loadCount == 16);
         }
 
         [Test]
