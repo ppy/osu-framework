@@ -145,9 +145,9 @@ namespace osu.Framework.Audio.Track
 
         private const int freq_data_length = 256;
 
-        private int currentFreqBufferIndex = 0;
+        private int currentFreqBufferIndex;
 
-        float[][] freqDataBuffers = new[]
+        private readonly float[][] freqDataBuffers =
         {
             new float[freq_data_length],
             new float[freq_data_length],
