@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.Primitives;
 
 namespace osu.Framework.IO.Stores
 {
@@ -27,8 +28,6 @@ namespace osu.Framework.IO.Stores
         private readonly ResourceStore<byte[]> store;
 
         protected BitmapFont Font => completionSource.Task.Result;
-
-        private readonly TimedExpiryCache<int, TextureUpload> texturePages = new TimedExpiryCache<int, TextureUpload>();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
@@ -98,55 +97,89 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
+        private readonly Dictionary<int, PageInfo> pageLookup = new Dictionary<int, PageInfo>();
+
+        private class PageInfo
+        {
+            public string Filename;
+            public Size Size;
+        }
+
         private TextureUpload loadCharacter(Character c)
         {
-            var page = getTexturePage(c.Page);
-            loadedGlyphCount++;
+            if (!pageLookup.TryGetValue(c.Page, out var pageInfo))
+            {
+                string filename = $@"{assetName}_{c.Page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
+
+                using (var stream = store.GetStream(filename))
+                using (var convert = Image.Load(stream))
+                {
+                    string md5 = stream.ComputeMD5Hash();
+
+                    string accessFilename = $"{filename.Replace("/", ".")}#{md5}";
+
+                    var existing = Directory.GetFiles(Environment.CurrentDirectory, accessFilename + "*").FirstOrDefault();
+
+                    if (existing != null)
+                    {
+                        var split = existing.Split('#');
+                        pageLookup[c.Page] = pageInfo = new PageInfo
+                        {
+                            Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
+                            Filename = existing
+                        };
+                    }
+                    else
+                    {
+                        byte[] output = new byte[convert.Width * convert.Height];
+
+                        var pxl = convert.GetPixelSpan();
+
+                        for (int i = 0; i < convert.Width * convert.Height; i++)
+                            output[i] = pxl[i].A;
+
+                        accessFilename += $"#{convert.Width}#{convert.Height}";
+
+                        System.IO.File.WriteAllBytes(accessFilename, output);
+
+                        pageLookup[c.Page] = pageInfo = new PageInfo
+                        {
+                            Size = new Size(convert.Width, convert.Height),
+                            Filename = accessFilename
+                        };
+                    }
+                }
+            }
+
+            int pageWidth = pageInfo.Size.Width;
 
             int width = c.Width + c.XOffset + 1;
             int height = c.Height + c.YOffset + 1;
 
-            var image = new Image<Rgba32>(width, height);
+            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, width, height, new Rgba32(255, 255, 255, 0));
 
-            var pixels = image.GetPixelSpan();
-            var span = page.Data;
-
-            for (int y = 0; y < height; y++)
+            using (var stream = System.IO.File.OpenRead(pageInfo.Filename))
             {
-                for (int x = 0; x < width; x++)
-                {
-                    int dest = y * width + x;
+                var pixels = image.GetPixelSpan();
+                stream.Seek(pageWidth * c.YOffset, SeekOrigin.Current);
 
-                    if (x >= c.XOffset && y >= c.YOffset && x - c.XOffset < c.Width && y - c.YOffset < c.Height)
-                        pixels[dest] = span[(c.Y + y - c.YOffset) * page.Width + (c.X + x - c.XOffset)];
-                    else
-                        pixels[dest] = new Rgba32(255, 255, 255, 0);
+                for (int y = 0; y < c.Height; y++)
+                {
+                    stream.Read(readBuffer, 0, pageWidth);
+
+                    for (int x = c.XOffset; x < c.Width; x++)
+                        pixels[y * width + x] = new Rgba32(255, 255, 255, readBuffer[c.XOffset + x]);
                 }
             }
 
             return new TextureUpload(image);
         }
 
-        private TextureUpload getTexturePage(int texturePage)
-        {
-            if (!texturePages.TryGetValue(texturePage, out TextureUpload t))
-            {
-                loadedPageCount++;
-                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = new TextureUpload(stream));
-            }
-
-            return t;
-        }
+        private readonly byte[] readBuffer = new byte[1024];
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
         public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
-
-        private int loadedPageCount;
-        private int loadedGlyphCount;
-
-        public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
 
         #region IDisposable Support
 
@@ -157,7 +190,6 @@ namespace osu.Framework.IO.Stores
             if (!isDisposed)
             {
                 isDisposed = true;
-                texturePages.Dispose();
             }
         }
 
