@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Statistics;
 using System.Diagnostics;
 using osu.Framework.Threading;
 
@@ -18,6 +19,8 @@ namespace osu.Framework.Graphics.Containers
             this.createContentFunction = createContentFunction;
             this.timeBeforeUnload = timeBeforeUnload;
         }
+
+        private static readonly GlobalStatistic<int> loaded_count = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded");
 
         private double timeHidden;
 
@@ -44,6 +47,7 @@ namespace osu.Framework.Graphics.Containers
             base.EndDelayedLoad(content);
             Debug.Assert(unloadSchedule == null);
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
+            loaded_count.Value++;
         }
 
         protected override void CancelTasks()
@@ -64,6 +68,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
+                loaded_count.Value--;
                 ClearInternal();
                 Content = null;
 
