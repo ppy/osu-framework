@@ -45,7 +45,9 @@ namespace osu.Framework.Graphics.Containers
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
+
             Debug.Assert(unloadSchedule == null);
+
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
             loaded_count.Value++;
         }
@@ -54,8 +56,13 @@ namespace osu.Framework.Graphics.Containers
         {
             base.CancelTasks();
 
-            unloadSchedule?.Cancel();
-            unloadSchedule = null;
+            if (unloadSchedule != null)
+            {
+                unloadSchedule?.Cancel();
+                unloadSchedule = null;
+
+                loaded_count.Value--;
+            }
         }
 
         private void checkForUnload()
@@ -68,7 +75,6 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
-                loaded_count.Value--;
                 ClearInternal();
                 Content = null;
 
