@@ -61,10 +61,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
+            scheduleIsIntersecting();
+
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
-
-            scheduleIsIntersecting();
 
             if (!IsIntersecting)
                 timeVisible = 0;
