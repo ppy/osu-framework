@@ -178,8 +178,13 @@ namespace osu.Framework.IO.Stores
                     stream.Read(readBuffer, 0, pageWidth);
 
                     for (int x = 0; x < c.Width; x++)
-                        if (x + c.XOffset >= 0 && y + c.YOffset > 0) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
-                            pixels[(y + c.YOffset) * charWidth + (x + c.XOffset)] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
+                    {
+                        int offsetX = x + c.XOffset;
+                        int offsetY = y + c.YOffset;
+
+                        if (offsetX >= 0 && offsetY > 0 && offsetX < charWidth && offsetY < charHeight) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
+                            pixels[offsetY * charWidth + offsetX] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
+                    }
                 }
             }
 
