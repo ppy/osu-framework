@@ -143,6 +143,16 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
         }
 
+        private const int freq_data_length = 256;
+
+        private int currentFreqBufferIndex = 0;
+
+        float[][] freqDataBuffers = new[]
+        {
+            new float[freq_data_length],
+            new float[freq_data_length],
+        };
+
         protected override void UpdateState()
         {
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
@@ -152,21 +162,25 @@ namespace osu.Framework.Audio.Track
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
 
+            currentFreqBufferIndex = (currentFreqBufferIndex + 1) % 2;
+            var currentBuffer = freqDataBuffers[currentFreqBufferIndex];
+
             if (leftChannel >= 0 && rightChannel >= 0)
             {
                 currentAmplitudes.LeftChannel = leftChannel;
                 currentAmplitudes.RightChannel = rightChannel;
-
-                float[] tempFrequencyData = new float[256];
-                Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
-                currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+                Bass.ChannelGetData(activeStream, currentBuffer, (int)DataFlags.FFT512);
             }
             else
             {
                 currentAmplitudes.LeftChannel = 0;
                 currentAmplitudes.RightChannel = 0;
-                currentAmplitudes.FrequencyAmplitudes = new float[256];
+
+                for (int i = 0; i < freq_data_length; i++)
+                    currentBuffer[i] = 0;
             }
+
+            currentAmplitudes.FrequencyAmplitudes = currentBuffer;
 
             base.UpdateState();
         }
