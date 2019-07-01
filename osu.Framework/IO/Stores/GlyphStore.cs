@@ -117,11 +117,12 @@ namespace osu.Framework.IO.Stores
                 using (var stream = store.GetStream(filename))
                 using (var convert = Image.Load(stream))
                 {
-                    string md5 = stream.ComputeMD5Hash();
+                    string streamMd5 = stream.ComputeMD5Hash();
+                    string filenameMd5 = filename.ComputeMD5Hash();
 
-                    string accessFilename = $"{filename.Replace("/", ".")}#{md5}";
+                    string accessFilename = $"{filenameMd5}#{streamMd5}";
 
-                    var existing = CacheStorage.GetFiles(".", accessFilename + "*").FirstOrDefault();
+                    var existing = CacheStorage.GetFiles(".", $"{accessFilename}*").FirstOrDefault();
 
                     if (existing != null)
                     {
@@ -141,6 +142,10 @@ namespace osu.Framework.IO.Stores
 
                         for (int i = 0; i < convert.Width * convert.Height; i++)
                             output[i] = pxl[i].A;
+
+                        // ensure any stale cached versions are deleted.
+                        foreach (var f in CacheStorage.GetFiles(".", $"{filenameMd5}*"))
+                            CacheStorage.Delete(f);
 
                         accessFilename += $"#{convert.Width}#{convert.Height}";
 
