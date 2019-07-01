@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (unloadSchedule != null)
             {
-                unloadSchedule?.Cancel();
+                unloadSchedule.Cancel();
                 unloadSchedule = null;
 
                 loaded_count.Value--;
