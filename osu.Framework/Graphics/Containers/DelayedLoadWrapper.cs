@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
             CancelTasks();
         }
 
-        protected void CancelTasks()
+        protected virtual void CancelTasks()
         {
             loadScheduledDelegate?.Cancel();
             loadScheduledDelegate = null;

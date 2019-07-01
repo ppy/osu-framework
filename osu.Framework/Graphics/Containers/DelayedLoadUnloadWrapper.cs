@@ -46,9 +46,9 @@ namespace osu.Framework.Graphics.Containers
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
         }
 
-        protected override void Dispose(bool isDisposing)
+        protected override void CancelTasks()
         {
-            base.Dispose(isDisposing);
+            base.CancelTasks();
 
             unloadSchedule?.Cancel();
             unloadSchedule = null;
@@ -68,9 +68,6 @@ namespace osu.Framework.Graphics.Containers
                 Content = null;
 
                 timeHidden = 0;
-
-                unloadSchedule?.Cancel();
-                unloadSchedule = null;
 
                 CancelTasks();
             }
