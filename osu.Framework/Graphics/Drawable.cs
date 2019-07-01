@@ -1441,7 +1441,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence | Invalidation.Parent);
 
                 if (parent != null)
                 {
@@ -1682,6 +1682,9 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Colour) > 0)
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
+
+            if ((invalidation & Invalidation.Parent) > 0)
+                alreadyInvalidated = false;
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 InvalidationID = invalidation_counter.Increment();
@@ -2290,6 +2293,11 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.IsPresent"/> has changed.
         /// </summary>
         Presence = 1 << 5,
+
+        /// <summary>
+        /// A <see cref="Drawable.Parent"/> has changed.
+        /// </summary>
+        Parent = 1 << 6,
 
         /// <summary>
         /// No invalidation.
