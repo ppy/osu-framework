@@ -173,7 +173,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             new DelayedLoadUnloadWrapper(() =>
                             {
-                                TestBox testBox = null;
+                                TestBox testBox;
                                 var container = new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
