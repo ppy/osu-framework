@@ -202,7 +202,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children = new Drawable[] { Header = CreateHeader(), Menu = CreateMenu() },
                 Direction = FillDirection.Vertical,
-                RelativeSizeAxes = Axes.X
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
             };
 
             Menu.RelativeSizeAxes = Axes.X;
