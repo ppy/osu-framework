@@ -30,8 +30,6 @@ namespace osu.Framework.Graphics.Performance
                     Direction = FillDirection.Vertical,
                 },
             };
-
-            AddButton(@"clear all", GlobalStatistics.Clear);
         }
 
         protected override void LoadComplete()
