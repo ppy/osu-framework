@@ -196,7 +196,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown()
         {
-            AddRangeInternal(new Drawable[] { Header = CreateHeader(), Menu = CreateMenu() });
+            AutoSizeAxes = Axes.Y;
+
+            InternalChild = new FillFlowContainer<Drawable>
+            {
+                Children = new Drawable[] { Header = CreateHeader(), Menu = CreateMenu() },
+                Direction = FillDirection.Vertical,
+                RelativeSizeAxes = Axes.X
+            };
 
             Menu.RelativeSizeAxes = Axes.X;
 
