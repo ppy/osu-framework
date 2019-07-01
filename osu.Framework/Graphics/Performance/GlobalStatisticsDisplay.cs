@@ -11,7 +11,7 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Graphics.Performance
 {
     /// <summary>
-    /// Tracks game statistics on a global.
+    /// Tracks global game statistics.
     /// </summary>
     internal class GlobalStatisticsDisplay : ToolWindow
     {
