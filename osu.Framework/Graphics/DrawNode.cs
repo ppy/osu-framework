@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics
             if (referenceCount.Decrement() != 0)
                 return;
 
-            Dispose(true);
+            GLWrapper.ScheduleDisposal(() => Dispose(true));
             GC.SuppressFinalize(this);
         }
 
