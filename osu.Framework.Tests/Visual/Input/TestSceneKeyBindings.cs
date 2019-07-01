@@ -487,9 +487,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             private float alphaTarget = 0.5f;
 
-            public bool OnPressed(TestAction action)
+            public bool OnPressed(KeyBindingPressEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
                     if (Concurrency != SimultaneousBindingMode.All)
                         Trace.Assert(OnPressedCount == OnReleasedCount);
@@ -508,9 +508,9 @@ namespace osu.Framework.Tests.Visual.Input
                 return false;
             }
 
-            public bool OnReleased(TestAction action)
+            public bool OnReleased(KeyBindingReleaseEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
                     ++OnReleasedCount;
                     if (Concurrency != SimultaneousBindingMode.All)

@@ -10,6 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -337,11 +338,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (IsSwitchable)
             {
-                switch (action.ActionType)
+                switch (e.Action.ActionType)
                 {
                     case PlatformActionType.DocumentNext:
                         SwitchTab(1);
@@ -356,7 +357,7 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public bool OnReleased(KeyBindingReleaseEvent<PlatformAction> e) => false;
 
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {

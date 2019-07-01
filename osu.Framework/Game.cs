@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
@@ -178,11 +179,12 @@ namespace osu.Framework
 
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
-        public bool OnPressed(FrameworkAction action)
+        public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
-            switch (action)
+            switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
+
                     switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
@@ -214,6 +216,7 @@ namespace osu.Framework
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
+
                     if (logOverlay == null)
                     {
                         LoadComponentAsync(logOverlay = new LogOverlay
@@ -233,7 +236,7 @@ namespace osu.Framework
             return false;
         }
 
-        public bool OnReleased(FrameworkAction action) => false;
+        public bool OnReleased(KeyBindingReleaseEvent<FrameworkAction> e) => false;
 
         public void Exit()
         {
