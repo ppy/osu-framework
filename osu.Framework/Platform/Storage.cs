@@ -91,8 +91,8 @@ namespace osu.Framework.Platform
         /// <returns>A more specific storage.</returns>
         public Storage GetStorageForDirectory(string path)
         {
-            if (!path.EndsWith("/"))
-                path += "/";
+            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
             GetFullPath(path, true);

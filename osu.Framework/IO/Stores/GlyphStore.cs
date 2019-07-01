@@ -122,7 +122,7 @@ namespace osu.Framework.IO.Stores
 
                     string accessFilename = $"{filenameMd5}#{streamMd5}";
 
-                    var existing = CacheStorage.GetFiles(".", $"{accessFilename}*").FirstOrDefault();
+                    var existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                     if (existing != null)
                     {
@@ -144,7 +144,7 @@ namespace osu.Framework.IO.Stores
                             output[i] = pxl[i].A;
 
                         // ensure any stale cached versions are deleted.
-                        foreach (var f in CacheStorage.GetFiles(".", $"{filenameMd5}*"))
+                        foreach (var f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
                             CacheStorage.Delete(f);
 
                         accessFilename += $"#{convert.Width}#{convert.Height}";
