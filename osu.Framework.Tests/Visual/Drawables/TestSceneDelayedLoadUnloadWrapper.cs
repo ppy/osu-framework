@@ -268,7 +268,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         RelativeSizeAxes = Axes.Both,
                         Children = new Drawable[]
                         {
-                            new TestNonRemovableBox { RelativeSizeAxes = Axes.Both }
+                            new TestBox { RelativeSizeAxes = Axes.Both }
                         }
                     }, 500, 2000);
 
@@ -297,13 +297,6 @@ namespace osu.Framework.Tests.Visual.Drawables
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
-        }
-
-        public class TestNonRemovableBox : TestBox
-        {
-            public override bool DisposeOnDeathRemoval => false;
-
-            public override bool RemoveWhenNotAlive => false;
         }
 
         public class TestBox : Container
