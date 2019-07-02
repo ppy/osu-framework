@@ -200,7 +200,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             InternalChild = new FillFlowContainer<Drawable>
             {
-                Children = new Drawable[] { Header = CreateHeader(), Menu = CreateMenu() },
+                Children = new Drawable[]
+                {
+                    Header = CreateHeader(),
+                    Menu = CreateMenu()
+                },
                 Direction = FillDirection.Vertical,
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y
