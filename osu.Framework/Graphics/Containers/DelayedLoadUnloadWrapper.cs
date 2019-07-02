@@ -20,7 +20,8 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
-        private static readonly GlobalStatistic<int> loaded_count = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded");
+        private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
+        private static readonly GlobalStatistic<int> loaded_unoptimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (unoptimised)");
 
         private double timeHidden;
 
@@ -56,6 +57,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
 
+        private bool contentLoaded;
+
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
@@ -63,14 +66,19 @@ namespace osu.Framework.Graphics.Containers
             content.LifetimeStart = lifetimeStart;
             content.LifetimeEnd = lifetimeEnd;
 
+            Debug.Assert(!contentLoaded);
             Debug.Assert(unloadSchedule == null);
+
+            contentLoaded = true;
 
             if (OptimisingContainer != null)
             {
                 unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
                 Debug.Assert(unloadSchedule != null);
-                loaded_count.Value++;
+                loaded_optimised.Value++;
             }
+            else
+                loaded_unoptimised.Value++;
         }
 
         protected override void CancelTasks()
@@ -82,8 +90,10 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule.Cancel();
                 unloadSchedule = null;
 
-                loaded_count.Value--;
+                loaded_optimised.Value--;
             }
+            else if (contentLoaded)
+                loaded_unoptimised.Value--;
         }
 
         private void checkForUnload()
