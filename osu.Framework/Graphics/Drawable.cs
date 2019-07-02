@@ -60,9 +60,11 @@ namespace osu.Framework.Graphics
         ~Drawable()
         {
             dispose(false);
+            finalize_disposals.Value++;
         }
 
-        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>("Drawable", $"Total {nameof(Drawable)}s");
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
+        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
         /// <summary>
         /// Disposes this drawable.
