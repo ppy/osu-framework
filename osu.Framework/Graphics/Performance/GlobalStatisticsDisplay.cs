@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -115,11 +116,13 @@ namespace osu.Framework.Graphics.Performance
             {
                 public readonly IGlobalStatistic Statistic;
 
+                private Cached valueCache = new Cached();
+
+                private readonly SpriteText valueText;
+
                 public StatisticsItem(IGlobalStatistic statistic)
                 {
                     Statistic = statistic;
-
-                    SpriteText valueText;
 
                     RelativeSizeAxes = Axes.X;
                     AutoSizeAxes = Axes.Y;
@@ -144,10 +147,21 @@ namespace osu.Framework.Graphics.Performance
                         },
                     };
 
-                    Statistic.DisplayValue.BindValueChanged(val => Schedule(() => valueText.Text = val.NewValue), true);
+                    Statistic.DisplayValue.BindValueChanged(val => valueCache.Invalidate(), true);
                 }
 
                 public string SortString => Statistic.Name;
+
+                protected override void Update()
+                {
+                    base.Update();
+
+                    if (!valueCache.IsValid)
+                    {
+                        valueText.Text = Statistic.DisplayValue.Value;
+                        valueCache.Validate();
+                    }
+                }
             }
 
             public string SortString => GroupName;
