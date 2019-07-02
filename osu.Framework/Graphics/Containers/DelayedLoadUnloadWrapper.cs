@@ -106,12 +106,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
+                Debug.Assert(contentLoaded);
+
                 ClearInternal();
                 Content = null;
 
                 timeHidden = 0;
 
                 CancelTasks();
+
+                contentLoaded = false;
             }
         }
     }
