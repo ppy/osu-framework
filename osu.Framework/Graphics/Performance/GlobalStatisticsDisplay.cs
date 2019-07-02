@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -116,8 +115,6 @@ namespace osu.Framework.Graphics.Performance
             {
                 public readonly IGlobalStatistic Statistic;
 
-                private Cached valueCache = new Cached();
-
                 private readonly SpriteText valueText;
 
                 public StatisticsItem(IGlobalStatistic statistic)
@@ -146,8 +143,6 @@ namespace osu.Framework.Graphics.Performance
                             Width = 0.3f,
                         },
                     };
-
-                    Statistic.DisplayValue.BindValueChanged(val => valueCache.Invalidate(), true);
                 }
 
                 public string SortString => Statistic.Name;
@@ -155,12 +150,7 @@ namespace osu.Framework.Graphics.Performance
                 protected override void Update()
                 {
                     base.Update();
-
-                    if (!valueCache.IsValid)
-                    {
-                        valueText.Text = Statistic.DisplayValue.Value;
-                        valueCache.Validate();
-                    }
+                    valueText.Text = Statistic.DisplayValue.Value;
                 }
             }
 
