@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void toggleDropdownViaClick(TestDropdown dropdown)
         {
-            InputManager.MoveMouseTo(dropdown.Children.First());
+            InputManager.MoveMouseTo(dropdown.Header);
             InputManager.Click(MouseButton.Left);
         }
 
