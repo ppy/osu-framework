@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
@@ -39,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 Add(timeText = new SpriteText
                 {
-                    Font = new FontUsage("RobotoCondensed", weight: "Regular", fixedWidth: true)
+                    Font = FrameworkFont.Condensed.With(fixedWidth: true)
                 });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
