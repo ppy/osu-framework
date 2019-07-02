@@ -44,8 +44,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        protected virtual Color4 TextColour => FrameworkColour.Yellow;
-
         protected StepButton()
         {
             InternalChildren = new Drawable[]
@@ -68,8 +66,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     Origin = Anchor.CentreLeft,
                     Font = FrameworkFont.Regular.With(size: 14),
                     X = 5,
-                    Padding = new MarginPadding(5),
-                    Colour = TextColour
+                    Padding = new MarginPadding(5)
                 }
             };
 
@@ -141,7 +138,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
-            SpriteText.FlashColour(Color4.White, 1000, Easing.OutQuint);
         }
 
         public override string ToString() => Text;
