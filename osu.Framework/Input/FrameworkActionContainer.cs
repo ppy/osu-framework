@@ -13,6 +13,7 @@ namespace osu.Framework.Input
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F2 }, FrameworkAction.ToggleGlobalStatistics),
             new KeyBinding(new[] { InputKey.Control, InputKey.F11 }, FrameworkAction.CycleFrameStatistics),
             new KeyBinding(new[] { InputKey.Control, InputKey.F10 }, FrameworkAction.ToggleLogOverlay),
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
@@ -27,6 +28,7 @@ namespace osu.Framework.Input
     {
         CycleFrameStatistics,
         ToggleDrawVisualiser,
+        ToggleGlobalStatistics,
         ToggleLogOverlay,
         ToggleFullscreen
     }

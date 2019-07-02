@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BasicDropdownHeader()
             {
-                var font = new FontUsage("RobotoCondensed", weight: "Regular");
+                var font = FrameworkFont.Condensed;
 
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override Drawable CreateContent() => new SpriteText
                 {
-                    Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                    Font = FrameworkFont.Condensed
                 };
             }
         }
