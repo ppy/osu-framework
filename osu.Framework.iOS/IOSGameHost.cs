@@ -88,7 +88,15 @@ namespace osu.Framework.iOS
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
-        public override void OpenUrlExternally(string url) => throw new NotImplementedException();
+        public override void OpenUrlExternally(string url)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            {
+                NSUrl nsurl = NSUrl.FromString(url);
+                if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
+                    UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
+            });
+        }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
