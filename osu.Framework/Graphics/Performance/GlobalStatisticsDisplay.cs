@@ -115,11 +115,11 @@ namespace osu.Framework.Graphics.Performance
             {
                 public readonly IGlobalStatistic Statistic;
 
+                private readonly SpriteText valueText;
+
                 public StatisticsItem(IGlobalStatistic statistic)
                 {
                     Statistic = statistic;
-
-                    SpriteText valueText;
 
                     RelativeSizeAxes = Axes.X;
                     AutoSizeAxes = Axes.Y;
@@ -143,11 +143,15 @@ namespace osu.Framework.Graphics.Performance
                             Width = 0.3f,
                         },
                     };
-
-                    Statistic.DisplayValue.BindValueChanged(val => Schedule(() => valueText.Text = val.NewValue), true);
                 }
 
                 public string SortString => Statistic.Name;
+
+                protected override void Update()
+                {
+                    base.Update();
+                    valueText.Text = Statistic.DisplayValue.Value;
+                }
             }
 
             public string SortString => GroupName;
