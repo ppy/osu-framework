@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Statistics;
+using System.Diagnostics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -27,18 +28,51 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool ShouldUnloadContent => timeBeforeUnload == 0 || timeHidden > timeBeforeUnload;
 
+        private double lifetimeStart = double.MinValue;
+
+        public override double LifetimeStart
+        {
+            get => base.Content?.LifetimeStart ?? lifetimeStart;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeStart = value;
+                lifetimeStart = value;
+            }
+        }
+
+        private double lifetimeEnd = double.MaxValue;
+
+        public override double LifetimeEnd
+        {
+            get => base.Content?.LifetimeEnd ?? lifetimeEnd;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeEnd = value;
+                lifetimeEnd = value;
+            }
+        }
+
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
 
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
 
+            content.LifetimeStart = lifetimeStart;
+            content.LifetimeEnd = lifetimeEnd;
+
+            Debug.Assert(unloadSchedule == null);
+
             unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
             loaded_count.Value++;
         }
 
-        protected override void Dispose(bool isDisposing)
+        protected override void CancelTasks()
         {
+            base.CancelTasks();
+
             if (unloadSchedule != null)
             {
                 unloadSchedule.Cancel();
@@ -46,8 +80,6 @@ namespace osu.Framework.Graphics.Containers
 
                 loaded_count.Value--;
             }
-
-            base.Dispose(isDisposing);
         }
 
         private void checkForUnload()
@@ -60,13 +92,12 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
-                loaded_count.Value--;
                 ClearInternal();
                 Content = null;
 
                 timeHidden = 0;
-                unloadSchedule?.Cancel();
-                unloadSchedule = null;
+
+                CancelTasks();
             }
         }
     }

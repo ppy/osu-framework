@@ -254,6 +254,21 @@ namespace osu.Framework.Extensions
             return hash;
         }
 
+        public static string ComputeMD5Hash(this string input)
+        {
+            StringBuilder hash = new StringBuilder();
+
+            using (var md5 = MD5.Create())
+            {
+                byte[] bytes = md5.ComputeHash(new UTF8Encoding().GetBytes(input));
+
+                for (int i = 0; i < bytes.Length; i++)
+                    hash.Append(bytes[i].ToString("x2"));
+
+                return hash.ToString();
+            }
+        }
+
         public static DisplayIndex GetIndex(this DisplayDevice display)
         {
             if (display == null) return DisplayIndex.Default;

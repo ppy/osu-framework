@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
 {
@@ -17,6 +18,8 @@ namespace osu.Framework.IO.Stores
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
 
         private readonly Func<(string, char), Texture> cachedTextureLookup;
+
+        private Storage cacheStorage;
 
         /// <summary>
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
@@ -29,10 +32,11 @@ namespace osu.Framework.IO.Stores
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null)
             : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
+            this.cacheStorage = cacheStorage;
         }
 
         protected override IEnumerable<string> GetFilenames(string name)
@@ -52,10 +56,17 @@ namespace osu.Framework.IO.Stores
                         fs.Atlas = Atlas;
                     }
 
+                    if (fs.cacheStorage == null)
+                        fs.cacheStorage = cacheStorage;
+
                     nestedFontStores.Add(fs);
                     return;
 
                 case GlyphStore gs:
+
+                    if (gs.CacheStorage == null)
+                        gs.CacheStorage = cacheStorage;
+
                     glyphStores.Add(gs);
                     queueLoad(gs);
                     break;
