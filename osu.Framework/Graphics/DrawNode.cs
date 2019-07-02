@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics
 
         ~DrawNode()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
