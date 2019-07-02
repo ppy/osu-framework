@@ -65,8 +65,12 @@ namespace osu.Framework.Graphics.Containers
 
             Debug.Assert(unloadSchedule == null);
 
-            unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
-            loaded_count.Value++;
+            if (OptimisingContainer != null)
+            {
+                unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
+                Debug.Assert(unloadSchedule != null);
+                loaded_count.Value++;
+            }
         }
 
         protected override void CancelTasks()
