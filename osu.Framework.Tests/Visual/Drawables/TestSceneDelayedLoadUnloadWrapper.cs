@@ -254,6 +254,46 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadedCountSecondary);
         }
 
+        [Test]
+        public void TestWrapperExpiry()
+        {
+            var wrappers = new List<DelayedLoadUnloadWrapper>();
+
+            AddStep("populate panels", () =>
+            {
+                for (int i = 1; i < 16; i++)
+                {
+                    var wrapper = new DelayedLoadUnloadWrapper(() => new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new TestBox { RelativeSizeAxes = Axes.Both }
+                        }
+                    }, 500, 2000);
+
+                    wrappers.Add(wrapper);
+
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
+                        {
+                            wrapper,
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+                }
+            });
+
+            Func<int> childrenWithAvatarsLoaded = () =>
+                flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().FirstOrDefault()?.Content?.IsLoaded ?? false);
+
+            AddUntilStep("wait some loaded", () => childrenWithAvatarsLoaded() > 5);
+            AddStep("expire wrappers", () => wrappers.ForEach(w => w.Expire()));
+            AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
+        }
+
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;

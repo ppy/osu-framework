@@ -28,16 +28,30 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool ShouldUnloadContent => timeBeforeUnload == 0 || timeHidden > timeBeforeUnload;
 
+        private double lifetimeStart = double.MinValue;
+
         public override double LifetimeStart
         {
-            get => base.Content?.LifetimeStart ?? double.MinValue;
-            set => throw new NotSupportedException();
+            get => base.Content?.LifetimeStart ?? lifetimeStart;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeStart = value;
+                lifetimeStart = value;
+            }
         }
+
+        private double lifetimeEnd = double.MaxValue;
 
         public override double LifetimeEnd
         {
-            get => base.Content?.LifetimeEnd ?? double.MaxValue;
-            set => throw new NotSupportedException();
+            get => base.Content?.LifetimeEnd ?? lifetimeEnd;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeEnd = value;
+                lifetimeEnd = value;
+            }
         }
 
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
@@ -45,6 +59,9 @@ namespace osu.Framework.Graphics.Containers
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
+
+            content.LifetimeStart = lifetimeStart;
+            content.LifetimeEnd = lifetimeEnd;
 
             Debug.Assert(unloadSchedule == null);
 

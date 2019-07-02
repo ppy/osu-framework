@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
@@ -232,9 +233,12 @@ namespace osu.Framework.Logging
         /// </summary>
         public string Filename => $@"{(Target?.ToString() ?? Name).ToLower()}.log";
 
+        private readonly GlobalStatistic<int> logCount;
+
         private Logger(LoggingTarget target = LoggingTarget.Runtime)
         {
             Target = target;
+            logCount = GlobalStatistics.Get<int>(nameof(Logger), target.ToString());
         }
 
         private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
@@ -278,6 +282,8 @@ namespace osu.Framework.Logging
                 return;
 
             ensureHeader();
+
+            logCount.Value++;
 
             message = ApplyFilters(message);
 
