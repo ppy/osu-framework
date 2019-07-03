@@ -29,18 +29,18 @@ namespace osu.Framework.Tests.IO
                 }
             });
 
-            while (testGame?.HasProcessed != true)
-                Thread.Sleep(10);
+            using (testGame?.HasProcessed)
+                testGame?.HasProcessed.Wait();
         }
 
         private class TestGame : Game
         {
-            public bool HasProcessed;
+            public readonly ManualResetEventSlim HasProcessed = new ManualResetEventSlim(false);
 
             protected override void Update()
             {
                 base.Update();
-                HasProcessed = true;
+                HasProcessed.Set();
             }
         }
 
