@@ -174,6 +174,39 @@ namespace osu.Framework.Tests.Threading
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestRepeatingDelayedDelegateCatchUp(bool performCatchUp)
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 500)
+            {
+                PerformRepeatCatchUpExecutions = performCatchUp
+            });
+
+            for (double d = 0; d <= 10000; d += 2000)
+            {
+                clock.Seek(d);
+
+                for (int i = 0; i < 10; i++)
+                    // allow catch-up to potentially occur.
+                    scheduler.Update();
+
+                int expectedInovations;
+
+                if (performCatchUp)
+                    expectedInovations = (int)(d / 500);
+                else
+                    expectedInovations = (int)(d / 2000);
+
+                Assert.AreEqual(expectedInovations, invocations);
+            }
+        }
+
         [Test]
         public void TestCancelAfterRepeatReschedule()
         {
