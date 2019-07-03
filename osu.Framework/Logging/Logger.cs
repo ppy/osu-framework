@@ -69,7 +69,7 @@ namespace osu.Framework.Logging
         public LoggingTarget? Target { get; }
 
         /// <summary>
-        /// The name of the logger. This will only have a value if <see cref="Target"/> is null.
+        /// The name of the logger.
         /// </summary>
         public string Name { get; }
 
