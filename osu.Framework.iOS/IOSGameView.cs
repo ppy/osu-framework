@@ -182,7 +182,7 @@ namespace osu.Framework.iOS
 
             public override bool CanPerform(Selector action, NSObject withSender)
             {
-                if (!softwareKeyboard && rawBlockedActions.Contains(action) || softwareKeyboard && softwareBlockedActions.Contains(action))
+                if ((!softwareKeyboard && rawBlockedActions.Contains(action)) || (softwareKeyboard && softwareBlockedActions.Contains(action))
                     return false;
 
                 return base.CanPerform(action, withSender);
