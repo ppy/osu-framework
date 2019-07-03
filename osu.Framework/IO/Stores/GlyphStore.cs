@@ -171,7 +171,7 @@ namespace osu.Framework.IO.Stores
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
 
-            using (var stream = System.IO.File.OpenRead(pageInfo.Filename))
+            using (var stream = CacheStorage.GetStream(pageInfo.Filename))
             {
                 var pixels = image.GetPixelSpan();
                 stream.Seek(pageWidth * c.Y, SeekOrigin.Current);
