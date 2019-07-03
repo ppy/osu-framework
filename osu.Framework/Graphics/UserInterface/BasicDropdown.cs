@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -23,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BasicDropdownHeader()
             {
-                var font = new FontUsage("RobotoCondensed", weight: "Regular");
+                var font = FrameworkFont.Condensed;
 
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
@@ -42,7 +43,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class BasicDropdownMenu : DropdownMenu
         {
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableBasicDropdownMenuItem(item);
+            protected override Menu CreateSubMenu() => new BasicMenu(Direction.Vertical);
+
+            protected override DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item) => new DrawableBasicDropdownMenuItem(item);
+
+            protected override ScrollContainer<Drawable> CreateScrollContainer(Direction direction) => new BasicScrollContainer(direction);
 
             private class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
@@ -57,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override Drawable CreateContent() => new SpriteText
                 {
-                    Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                    Font = FrameworkFont.Condensed
                 };
             }
         }

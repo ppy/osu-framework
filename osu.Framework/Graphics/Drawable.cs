@@ -54,12 +54,17 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            total_count.Value++;
         }
 
         ~Drawable()
         {
             dispose(false);
+            finalize_disposals.Value++;
         }
+
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
+        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
         /// <summary>
         /// Disposes this drawable.
@@ -86,6 +91,8 @@ namespace osu.Framework.Graphics
             {
                 if (IsDisposed)
                     return;
+
+                total_count.Value--;
 
                 Dispose(isDisposing);
 
@@ -1441,7 +1448,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence | Invalidation.Parent);
 
                 if (parent != null)
                 {
@@ -1682,6 +1689,9 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Colour) > 0)
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
+
+            if ((invalidation & Invalidation.Parent) > 0)
+                alreadyInvalidated = false;
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 InvalidationID = invalidation_counter.Increment();
@@ -2021,6 +2031,17 @@ namespace osu.Framework.Graphics
                 typeof(IKeyBindingHandler),
             };
 
+            private static readonly string[] positional_input_properties =
+            {
+                nameof(HandlePositionalInput),
+            };
+
+            private static readonly string[] non_positional_input_properties =
+            {
+                nameof(HandleNonPositionalInput),
+                nameof(AcceptsFocus),
+            };
+
             public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
 
             public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
@@ -2062,12 +2083,17 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                // check if HandlePositionalInput/HandleNonPositionalInput is overridden to manually specify that this type handles input.
-                var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
-                var property = type.GetProperty(handleInputPropertyName);
-                Debug.Assert(property != null);
-                if (property.DeclaringType != typeof(Drawable))
-                    return true;
+                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+
+                foreach (var inputProperty in inputProperties)
+                {
+                    var property = type.GetProperty(inputProperty);
+
+                    Debug.Assert(property != null);
+
+                    if (property.DeclaringType != typeof(Drawable))
+                        return true;
+                }
 
                 return false;
             }
@@ -2274,6 +2300,11 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.IsPresent"/> has changed.
         /// </summary>
         Presence = 1 << 5,
+
+        /// <summary>
+        /// A <see cref="Drawable.Parent"/> has changed.
+        /// </summary>
+        Parent = 1 << 6,
 
         /// <summary>
         /// No invalidation.

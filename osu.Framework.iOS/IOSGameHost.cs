@@ -76,6 +76,8 @@ namespace osu.Framework.iOS
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
+        protected override bool LimitedMemoryEnvironment => true;
+
         public override bool CanExit => false;
 
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
@@ -87,7 +89,15 @@ namespace osu.Framework.iOS
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
-        public override void OpenUrlExternally(string url) => throw new NotImplementedException();
+        public override void OpenUrlExternally(string url)
+        {
+            UIApplication.SharedApplication.InvokeOnMainThread(() =>
+            {
+                NSUrl nsurl = NSUrl.FromString(url);
+                if (UIApplication.SharedApplication.CanOpenUrl(nsurl))
+                    UIApplication.SharedApplication.OpenUrl(nsurl, new NSDictionary(), null);
+            });
+        }
 
         public override Clipboard GetClipboard() => new IOSClipboard(gameView);
 

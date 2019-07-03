@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
@@ -17,7 +18,10 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
-        private readonly TextureAtlas atlas;
+
+        protected TextureAtlas Atlas;
+
+        private const int max_atlas_size = 1024;
 
         /// <summary>
         /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
@@ -37,7 +41,10 @@ namespace osu.Framework.Graphics.Textures
             AddExtension(@"jpg");
 
             if (useAtlas)
-                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
+            {
+                int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
+                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode);
+            }
         }
 
         private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
@@ -48,9 +55,19 @@ namespace osu.Framework.Graphics.Textures
         {
             if (upload == null) return null;
 
-            var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
+            TextureGL glTexture = null;
+
+            if (Atlas != null)
+            {
+                if ((glTexture = Atlas.Add(upload.Width, upload.Height)) == null)
+                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
+            }
+
+            if (glTexture == null)
+                glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
+
             tex.SetData(upload);
 
             return tex;

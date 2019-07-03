@@ -154,13 +154,19 @@ The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, 
         [Test]
         public void TestMarkdownFromInternet()
         {
+            WebRequest req = null;
+
             AddStep("MarkdownFromInternet", () =>
             {
-                var req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
+                req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
                 req.Finished += () => Schedule(() => markdownContainer.Text = req.ResponseString);
 
                 Task.Run(() => req.PerformAsync());
             });
+
+            AddUntilStep("wait for request completed", () => req.Completed);
+
+            AddAssert("ensure content", () => !string.IsNullOrEmpty(markdownContainer.Text));
         }
 
         [Test]

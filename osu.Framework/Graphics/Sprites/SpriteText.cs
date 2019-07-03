@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics.Sprites
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
-        private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
 
         [Resolved]
         private FontStore store { get; set; }
@@ -225,6 +224,26 @@ namespace osu.Framework.Graphics.Sprites
                 shadowColour = value;
 
                 Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Vector2 shadowOffset = new Vector2(0, 0.06f);
+
+        /// <summary>
+        /// The offset of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Vector2 ShadowOffset
+        {
+            get => shadowOffset;
+            set
+            {
+                if (shadowOffset == value)
+                    return;
+
+                shadowOffset = value;
+
+                invalidate(true);
+                shadowOffsetCache.Invalidate();
             }
         }
 
@@ -648,7 +667,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private Cached<Vector2> shadowOffsetCache;
 
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
+        private Vector2 premultipliedShadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 

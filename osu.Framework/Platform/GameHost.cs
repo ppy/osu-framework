@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -37,6 +36,7 @@ using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
+using SixLabors.Memory;
 
 namespace osu.Framework.Platform
 {
@@ -85,6 +85,11 @@ namespace osu.Framework.Platform
         /// Whether this host can exit (mobile platforms, for instance, do not support exiting the app).
         /// </summary>
         public virtual bool CanExit => true;
+
+        /// <summary>
+        /// Whether memory constraints should be considered before performance concerns.
+        /// </summary>
+        protected virtual bool LimitedMemoryEnvironment => false;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
@@ -439,6 +444,12 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            if (LimitedMemoryEnvironment)
+            {
+                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
+                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+            }
+
             DebugUtils.HostAssembly = game.GetType().Assembly;
 
             if (ExecutionState != ExecutionState.Idle)
@@ -509,8 +520,6 @@ namespace osu.Framework.Platform
 
                 IsActive.BindValueChanged(active =>
                 {
-                    activeGCMode.TriggerChange();
-
                     if (active.NewValue)
                         OnActivated();
                     else
@@ -659,8 +668,6 @@ namespace osu.Framework.Platform
 
         private Bindable<bool> bypassFrontToBackPass;
 
-        private Bindable<GCLatencyMode> activeGCMode;
-
         private Bindable<FrameSync> frameSyncMode;
 
         private Bindable<string> ignoredInputHandlers;
@@ -697,9 +704,6 @@ namespace osu.Framework.Platform
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
-
-            activeGCMode = DebugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += e => { GCSettings.LatencyMode = IsActive.Value ? e.NewValue : GCLatencyMode.Interactive; };
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
