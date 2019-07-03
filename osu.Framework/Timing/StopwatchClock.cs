@@ -52,6 +52,20 @@ namespace osu.Framework.Timing
             }
         }
 
+        public new void Reset()
+        {
+            rateChangeUsed = 0;
+            rateChangeAccumulated = 0;
+            base.Reset();
+        }
+
+        public new void Restart()
+        {
+            rateChangeUsed = 0;
+            rateChangeAccumulated = 0;
+            base.Restart();
+        }
+
         public void ResetSpeedAdjustments() => Rate = 1;
 
         public bool Seek(double position)
