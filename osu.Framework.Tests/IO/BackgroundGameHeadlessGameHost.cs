@@ -17,11 +17,16 @@ namespace osu.Framework.Tests.IO
         public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
+            var gameCreated = new ManualResetEventSlim(false);
+
             Task.Run(() =>
             {
                 try
                 {
-                    Run(testGame = new TestGame());
+                    testGame = new TestGame();
+                    gameCreated.Set();
+
+                    Run(testGame);
                 }
                 catch
                 {
@@ -29,8 +34,11 @@ namespace osu.Framework.Tests.IO
                 }
             });
 
-            using (testGame?.HasProcessed)
-                testGame?.HasProcessed.Wait();
+            using (gameCreated)
+                gameCreated.Wait();
+
+            using (testGame.HasProcessed)
+                testGame.HasProcessed.Wait();
         }
 
         private class TestGame : Game
