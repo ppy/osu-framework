@@ -118,8 +118,8 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to this container and then set its layout position.
         /// </summary>
-        /// <param name="position">layout position of the new child</param>
-        /// <param name="drawable">drawable</param>
+        /// <param name="position">The layout position of the new child.</param>
+        /// <param name="drawable">The drawable which will be inserted into the container.</param>
         public void Insert(int position, T drawable)
         {
             Add(drawable);
