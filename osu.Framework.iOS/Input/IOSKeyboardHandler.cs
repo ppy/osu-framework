@@ -32,9 +32,9 @@ namespace osu.Framework.iOS.Input
             {
                 Key key = range.Location < IOSGameView.HiddenTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
 
-                // NOTE: this makes the assumption that Key.ControlLeft triggers the WordPrevious platform action
+                // NOTE: this makes the assumption that Key.AltLeft triggers the WordPrevious platform action
                 if (range.Length > 1)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.ControlLeft, true));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, true));
 
                 if (range.Length > 0)
                 {
@@ -43,7 +43,7 @@ namespace osu.Framework.iOS.Input
                 }
 
                 if (range.Length > 1)
-                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.ControlLeft, false));
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, false));
 
                 return;
             }

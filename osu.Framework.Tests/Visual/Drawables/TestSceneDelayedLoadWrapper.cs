@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedLoad : FrameworkTestScene
+    public class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
         private const int panel_count = 2048;
 

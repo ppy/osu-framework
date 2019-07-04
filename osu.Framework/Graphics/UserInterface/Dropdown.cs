@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -18,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -198,12 +197,17 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Vertical;
 
-            Children = new Drawable[]
+            InternalChild = new FillFlowContainer<Drawable>
             {
-                Header = CreateHeader(),
-                Menu = CreateMenu()
+                Children = new Drawable[]
+                {
+                    Header = CreateHeader(),
+                    Menu = CreateMenu()
+                },
+                Direction = FillDirection.Vertical,
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
             };
 
             Menu.RelativeSizeAxes = Axes.X;
@@ -230,7 +234,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selectedItem = new DropdownMenuItem<T>(null, default);
             }
-            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
+            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
@@ -287,18 +291,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(HoverEvent e) => true;
-
         /// <summary>
         /// Creates the menu body.
         /// </summary>
-        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+        protected abstract DropdownMenu CreateMenu();
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu
+        public abstract class DropdownMenu : Menu
         {
-            public DropdownMenu()
+            protected DropdownMenu()
                 : base(Direction.Vertical)
             {
             }
@@ -329,14 +331,16 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+
+            protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
             #region DrawableDropdownMenuItem
 
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-            public class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public DrawableDropdownMenuItem(MenuItem item)
+                protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }

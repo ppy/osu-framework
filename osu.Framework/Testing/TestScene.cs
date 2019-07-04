@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using NUnit.Framework.Internal;
 using osu.Framework.Development;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
@@ -159,13 +160,19 @@ namespace osu.Framework.Testing
                         Width = steps_width,
                         Depth = float.MinValue,
                         RelativeSizeAxes = Axes.Y,
-                        Padding = new MarginPadding(5),
                         Child = StepsContainer = new FillFlowContainer<Drawable>
                         {
                             Direction = FillDirection.Vertical,
-                            Spacing = new Vector2(5),
+                            Spacing = new Vector2(3),
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
+                            Padding = new MarginPadding(10),
+                            Child = new SpriteText
+                            {
+                                Font = FrameworkFont.Condensed.With(size: 16),
+                                Text = Name,
+                                Margin = new MarginPadding { Bottom = 5 },
+                            }
                         },
                     },
                     new Container

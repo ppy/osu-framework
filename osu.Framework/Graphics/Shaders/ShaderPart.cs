@@ -6,12 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart : IDisposable
+    internal class ShaderPart
     {
         internal const string BOUNDARY = @"----------------------{0}";
 
@@ -168,22 +167,5 @@ namespace osu.Framework.Graphics.Shaders
             Compiled = false;
             partID = -1;
         }
-
-        #region Disposal
-
-        ~ShaderPart()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delete);
-
-        #endregion
     }
 }

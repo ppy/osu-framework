@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Foundation;
 using ObjCRuntime;
 using UIKit;
@@ -114,6 +116,23 @@ namespace osu.Framework.iOS
 
             private int responderSemaphore;
 
+            private readonly IEnumerable<Selector> softwareBlockedActions = new[]
+            {
+                new Selector("cut:"),
+                new Selector("copy:"),
+                new Selector("select:"),
+                new Selector("selectAll:"),
+            };
+
+            private readonly IEnumerable<Selector> rawBlockedActions = new[]
+            {
+                new Selector("cut:"),
+                new Selector("copy:"),
+                new Selector("paste:"),
+                new Selector("select:"),
+                new Selector("selectAll:"),
+            };
+
             public override UITextSmartDashesType SmartDashesType => UITextSmartDashesType.No;
             public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
@@ -160,6 +179,14 @@ namespace osu.Framework.iOS
                 UIKeyCommand.Create(UIKeyCommand.UpArrow, 0, new Selector("keyPressed:")),
                 UIKeyCommand.Create(UIKeyCommand.DownArrow, 0, new Selector("keyPressed:"))
             };
+
+            public override bool CanPerform(Selector action, NSObject withSender)
+            {
+                if ((!softwareKeyboard && rawBlockedActions.Contains(action)) || (softwareKeyboard && softwareBlockedActions.Contains(action)))
+                    return false;
+
+                return base.CanPerform(action, withSender);
+            }
 
             [Export("keyPressed:")]
             private void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);
