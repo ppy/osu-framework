@@ -17,38 +17,43 @@ namespace osu.Framework.Tests.IO
         public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            var gameCreated = new ManualResetEventSlim(false);
-
-            Task.Run(() =>
+            using (var gameCreated = new ManualResetEventSlim(false))
             {
-                try
+                Task.Run(() =>
                 {
-                    testGame = new TestGame();
-                    gameCreated.Set();
+                    try
+                    {
+                        testGame = new TestGame();
+                        // ReSharper disable once AccessToDisposedClosure
+                        gameCreated.Set();
 
-                    Run(testGame);
-                }
-                catch
-                {
-                    // may throw an unobserved exception if we don't handle here.
-                }
-            });
+                        Run(testGame);
+                    }
+                    catch
+                    {
+                        // may throw an unobserved exception if we don't handle here.
+                    }
+                });
 
-            using (gameCreated)
                 gameCreated.Wait();
-
-            using (testGame.HasProcessed)
                 testGame.HasProcessed.Wait();
+            }
         }
 
         private class TestGame : Game
         {
-            public readonly ManualResetEventSlim HasProcessed = new ManualResetEventSlim(false);
+            internal readonly ManualResetEventSlim HasProcessed = new ManualResetEventSlim(false);
 
             protected override void Update()
             {
                 base.Update();
                 HasProcessed.Set();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                HasProcessed.Dispose();
+                base.Dispose(isDisposing);
             }
         }
 
