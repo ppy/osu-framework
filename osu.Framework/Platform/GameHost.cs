@@ -378,7 +378,7 @@ namespace osu.Framework.Platform
         /// Takes a screenshot of the game. The returned <see cref="Image{TPixel}"/> must be disposed by the caller when applicable.
         /// </summary>
         /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
-        public async Task<Image<Rgba32>> TakeScreenshotAsync()
+        public async ValueTask<Image<Rgba32>> TakeScreenshotAsync()
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
