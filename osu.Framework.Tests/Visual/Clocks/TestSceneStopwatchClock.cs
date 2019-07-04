@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Clocks
         public void TestTrackVirtual()
         {
             double? stoppedTime = null;
-            AddStep("Decouple clock", () =>
+            AddStep("Create TrackVirtual", () =>
             {
                 AddClock(trackVirtual = new TrackVirtual(60000));
                 trackVirtual.Start();
