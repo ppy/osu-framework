@@ -54,16 +54,20 @@ namespace osu.Framework.Timing
 
         public new void Reset()
         {
-            rateChangeUsed = 0;
-            rateChangeAccumulated = 0;
+            resetAccumulatedRate();
             base.Reset();
         }
 
         public new void Restart()
         {
-            rateChangeUsed = 0;
-            rateChangeAccumulated = 0;
+            resetAccumulatedRate();
             base.Restart();
+        }
+
+        private void resetAccumulatedRate()
+        {
+            rateChangeAccumulated = 0;
+            rateChangeUsed = 0;
         }
 
         public void ResetSpeedAdjustments() => Rate = 1;
