@@ -48,12 +48,12 @@ namespace osu.Framework.Graphics.Video
         {
             get
             {
-                if (!startTime.HasValue)
+                if (!VideoOffset.HasValue)
                     return 0;
 
-                if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+                if (Loop) return (Clock.CurrentTime - VideoOffset.Value) % Duration;
 
-                return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
+                return Math.Min(Clock.CurrentTime - VideoOffset.Value, Duration);
             }
         }
 
@@ -66,7 +66,10 @@ namespace osu.Framework.Graphics.Video
 
         internal int AvailableFrames => availableFrames.Count;
 
-        private double? startTime;
+        /// <summary>
+        /// Playback offset of the video
+        /// </summary>
+        public double? VideoOffset { get; set; }
 
         private readonly VideoDecoder decoder;
 
@@ -108,8 +111,8 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            if (!startTime.HasValue)
-                startTime = Clock.CurrentTime;
+            if (!VideoOffset.HasValue)
+                VideoOffset = Clock.CurrentTime;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
 
