@@ -14,7 +14,6 @@ namespace osu.Framework.Android.Input
 {
     class AndroidInputConnection : BaseInputConnection
     {
-
         static readonly Dictionary<char, char> shiftKeycodeMap = new Dictionary<char, char> {
             { '~', '`' }, { '!', '1' }, { '@', '2' }, { '#', '3' }, { '$', '4' },
             { '%', '5' }, { '^', '6' }, { '&', '7' }, { '*', '8' }, { '(', '9' },
@@ -103,6 +102,11 @@ namespace osu.Framework.Android.Input
             {
                 return Keycode.Num0 + (c - '0');
             }
+            return parseSymbolCharToKeycode(c);
+        }
+
+        private static Keycode parseSymbolCharToKeycode(char c)
+        {
             switch (c)
             {
                 case '+': return Keycode.Plus;

@@ -126,6 +126,5 @@ namespace osu.Framework.Android
             outAttrs.InputType = InputTypes.Null;
             return new AndroidInputConnection(this, true);
         }
-
     }
 }
