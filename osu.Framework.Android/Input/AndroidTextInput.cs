@@ -4,6 +4,7 @@
 using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
+using Android.Util;
 using osu.Framework.Input;
 using osuTK.Input;
 using System;
@@ -23,6 +24,12 @@ namespace osu.Framework.Android.Input
             this.view = view;
 
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
+        }
+
+        private void commitText(string text)
+        {
+            pending += text;
+            //Log.Info("osu!lazer", pending);
         }
 
         private void keyDown(Keycode arg, KeyEvent e)
@@ -71,11 +78,53 @@ namespace osu.Framework.Android.Input
                 }
             }
 
-            switch (arg)
+            if (upper)
             {
-                default:
-                    pending += upper ? e.DisplayLabel.ToString() : e.DisplayLabel.ToString().ToLower();
-                    break;
+                char toAdd;
+                switch (arg)
+                {
+                    case Keycode.Grave:
+                        toAdd = '~';
+                        break;
+                    case Keycode.Minus:
+                        toAdd = '_';
+                        break;
+                    case Keycode.Equals:
+                        toAdd = '+';
+                        break;
+                    case Keycode.LeftBracket:
+                        toAdd = '{';
+                        break;
+                    case Keycode.RightBracket:
+                        toAdd = '}';
+                        break;
+                    case Keycode.Backslash:
+                        toAdd = '|';
+                        break;
+                    case Keycode.Apostrophe:
+                        toAdd = '"';
+                        break;
+                    case Keycode.Semicolon:
+                        toAdd = ':';
+                        break;
+                    case Keycode.Slash:
+                        toAdd = '?';
+                        break;
+                    case Keycode.Period:
+                        toAdd = '>';
+                        break;
+                    case Keycode.Comma:
+                        toAdd = '<';
+                        break;
+                    default:
+                        toAdd = e.DisplayLabel;
+                        break;
+                }
+                pending += toAdd;
+            }
+            else
+            {
+                pending += e.DisplayLabel.ToString().ToLower();
             }
         }
 
@@ -88,12 +137,14 @@ namespace osu.Framework.Android.Input
         {
             inputMethodManager.ToggleSoftInput(ShowFlags.Forced, HideSoftInputFlags.None);
             view.KeyDown += keyDown;
+            view.CommitText += commitText;
         }
 
         public void Deactivate(object sender)
         {
             inputMethodManager.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
             view.KeyDown -= keyDown;
+            view.CommitText -= commitText;
         }
 
         public string GetPendingText()
@@ -102,6 +153,7 @@ namespace osu.Framework.Android.Input
             {
                 var oldPending = pending;
                 pending = string.Empty;
+                //Log.Info("osu!lazer", oldPending);
                 return oldPending;
             }
         }
