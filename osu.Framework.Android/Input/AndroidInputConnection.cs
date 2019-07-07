@@ -17,12 +17,33 @@ namespace osu.Framework.Android.Input
 {
     class AndroidInputConnection : BaseInputConnection
     {
-        static readonly Dictionary<char, char> shiftKeycodeMap = new Dictionary<char, char> {
+        static readonly Dictionary<char, char> shiftKeycodeMap = new Dictionary<char, char>
+        {
             { '~', '`' }, { '!', '1' }, { '@', '2' }, { '#', '3' }, { '$', '4' },
             { '%', '5' }, { '^', '6' }, { '&', '7' }, { '*', '8' }, { '(', '9' },
             { ')', '0' }, { '_', '-' }, { '+', '=' }, { '{', '[' }, { '}', ']' },
             { '|', '\\' }, { ':', ';' }, { '"', '\'' }, { '?', '/' }, { '>', '.' },
-            { '<', ',' } };
+            { '<', ',' }
+        };
+
+        static readonly Dictionary<char, Keycode> charToKeycodeMap = new Dictionary<char, Keycode>
+        {
+            { '+',  Keycode.Plus},
+                { '-',  Keycode.Minus},
+                { '*',  Keycode.Star},
+                { '/',  Keycode.Slash},
+                { '=',  Keycode.Equals},
+                { '@',  Keycode.At},
+                { '#',  Keycode.Pound},
+                { '\'',  Keycode.Apostrophe},
+                { '.',  Keycode.Period},
+                { '[',  Keycode.LeftBracket},
+                { ']',  Keycode.RightBracket},
+                { ';',  Keycode.Semicolon},
+                { '`',  Keycode.Grave},
+                { ' ',  Keycode.Space},
+                { ',',  Keycode.Comma},
+        };
 
         public AndroidGameView TargetView { get; set; }
 
