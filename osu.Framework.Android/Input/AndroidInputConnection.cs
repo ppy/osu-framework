@@ -28,21 +28,11 @@ namespace osu.Framework.Android.Input
 
         static readonly Dictionary<char, Keycode> charToKeycodeMap = new Dictionary<char, Keycode>
         {
-            { '+',  Keycode.Plus},
-                { '-',  Keycode.Minus},
-                { '*',  Keycode.Star},
-                { '/',  Keycode.Slash},
-                { '=',  Keycode.Equals},
-                { '@',  Keycode.At},
-                { '#',  Keycode.Pound},
-                { '\'',  Keycode.Apostrophe},
-                { '.',  Keycode.Period},
-                { '[',  Keycode.LeftBracket},
-                { ']',  Keycode.RightBracket},
-                { ';',  Keycode.Semicolon},
-                { '`',  Keycode.Grave},
-                { ' ',  Keycode.Space},
-                { ',',  Keycode.Comma},
+            { '+', Keycode.Plus }, { '-', Keycode.Minus }, { '*', Keycode.Star },
+            { '/', Keycode.Slash }, { '=', Keycode.Equals }, { '@', Keycode.At },
+            { '#', Keycode.Pound }, { '\'', Keycode.Apostrophe }, { '.', Keycode.Period },
+            { '[', Keycode.LeftBracket }, { ']', Keycode.RightBracket }, { ';', Keycode.Semicolon },
+            { '`', Keycode.Grave }, { ' ', Keycode.Space }, { ',', Keycode.Comma }
         };
 
         public AndroidGameView TargetView { get; set; }
@@ -131,25 +121,7 @@ namespace osu.Framework.Android.Input
 
         private static Keycode parseSymbolCharToKeycode(char c)
         {
-            switch (c)
-            {
-                case '+': return Keycode.Plus;
-                case '-': return Keycode.Minus;
-                case '*': return Keycode.Star;
-                case '/': return Keycode.Slash;
-                case '=': return Keycode.Equals;
-                case '@': return Keycode.At;
-                case '#': return Keycode.Pound;
-                case '\'': return Keycode.Apostrophe;
-                case '.': return Keycode.Period;
-                case '[': return Keycode.LeftBracket;
-                case ']': return Keycode.RightBracket;
-                case ';': return Keycode.Semicolon;
-                case '`': return Keycode.Grave;
-                case ' ': return Keycode.Space;
-                case ',': return Keycode.Comma;
-                default: return Keycode.Unknown;
-            }
+            return charToKeycodeMap.ContainsKey(c) ? charToKeycodeMap[c] : Keycode.Unknown;
         }
 
         public static bool NeedShiftPress(char c)
