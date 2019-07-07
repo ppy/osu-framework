@@ -28,7 +28,27 @@ namespace osu.Framework.Statistics
             Group = group;
             Name = name;
 
-            Bindable.BindValueChanged(val => displayValue.Value = val.NewValue.ToString(), true);
+            Bindable.BindValueChanged(val =>
+            {
+                switch (val.NewValue)
+                {
+                    case double d:
+                        displayValue.Value = d.ToString("#,0.##");
+                        break;
+
+                    case int i:
+                        displayValue.Value = i.ToString("#,0");
+                        break;
+
+                    case long l:
+                        displayValue.Value = l.ToString("#,0");
+                        break;
+
+                    default:
+                        displayValue.Value = val.NewValue.ToString();
+                        break;
+                }
+            }, true);
         }
 
         public virtual void Clear() => Bindable.SetDefault();

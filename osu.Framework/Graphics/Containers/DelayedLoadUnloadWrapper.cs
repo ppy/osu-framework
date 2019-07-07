@@ -20,7 +20,8 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
-        private static readonly GlobalStatistic<int> loaded_count = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s loaded");
+        private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
+        private static readonly GlobalStatistic<int> loaded_unoptimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (unoptimised)");
 
         private double timeHidden;
 
@@ -28,28 +29,56 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool ShouldUnloadContent => timeBeforeUnload == 0 || timeHidden > timeBeforeUnload;
 
+        private double lifetimeStart = double.MinValue;
+
         public override double LifetimeStart
         {
-            get => base.Content?.LifetimeStart ?? double.MinValue;
-            set => throw new NotSupportedException();
+            get => base.Content?.LifetimeStart ?? lifetimeStart;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeStart = value;
+                lifetimeStart = value;
+            }
         }
+
+        private double lifetimeEnd = double.MaxValue;
 
         public override double LifetimeEnd
         {
-            get => base.Content?.LifetimeEnd ?? double.MaxValue;
-            set => throw new NotSupportedException();
+            get => base.Content?.LifetimeEnd ?? lifetimeEnd;
+            set
+            {
+                if (base.Content != null)
+                    base.Content.LifetimeEnd = value;
+                lifetimeEnd = value;
+            }
         }
 
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
+
+        private bool contentLoaded;
 
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
 
+            content.LifetimeStart = lifetimeStart;
+            content.LifetimeEnd = lifetimeEnd;
+
+            Debug.Assert(!contentLoaded);
             Debug.Assert(unloadSchedule == null);
 
-            unloadSchedule = OptimisingContainer?.ScheduleCheckAction(checkForUnload);
-            loaded_count.Value++;
+            contentLoaded = true;
+
+            if (OptimisingContainer != null)
+            {
+                unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
+                Debug.Assert(unloadSchedule != null);
+                loaded_optimised.Value++;
+            }
+            else
+                loaded_unoptimised.Value++;
         }
 
         protected override void CancelTasks()
@@ -61,8 +90,10 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule.Cancel();
                 unloadSchedule = null;
 
-                loaded_count.Value--;
+                loaded_optimised.Value--;
             }
+            else if (contentLoaded)
+                loaded_unoptimised.Value--;
         }
 
         private void checkForUnload()
@@ -75,12 +106,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (ShouldUnloadContent)
             {
+                Debug.Assert(contentLoaded);
+
                 ClearInternal();
                 Content = null;
 
                 timeHidden = 0;
 
                 CancelTasks();
+
+                contentLoaded = false;
             }
         }
     }

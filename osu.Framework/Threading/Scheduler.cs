@@ -114,7 +114,8 @@ namespace osu.Framework.Threading
                                 if (timedTasks.Count > 1000)
                                     throw new ArgumentException("Too many timed tasks are in the queue!");
 
-                                sd.ExecutionTime += sd.RepeatInterval;
+                                sd.SetNextExecution(currentTimeLocal);
+
                                 tasksToSchedule.Add(sd);
                             }
                         }
@@ -282,6 +283,13 @@ namespace osu.Framework.Threading
         public readonly double RepeatInterval;
 
         /// <summary>
+        /// In the case of a repeating execution, setting this to true will allow the delegate to run more than once at already elapsed points in time in order to catch up to current.
+        /// This will ensure a consistent number of runs over real-time, even if the <see cref="Scheduler"/> running the delegate is suspended.
+        /// Setting to false will skip catch-up executions, ensuring a future time is used after each execution.
+        /// </summary>
+        public bool PerformRepeatCatchUpExecutions = true;
+
+        /// <summary>
         /// Whether this task has finished running.
         /// </summary>
         public bool Completed { get; private set; }
@@ -316,5 +324,13 @@ namespace osu.Framework.Threading
         public void Cancel() => Cancelled = true;
 
         public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
+
+        internal void SetNextExecution(double currentTime)
+        {
+            ExecutionTime += RepeatInterval;
+
+            if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
+                ExecutionTime = currentTime + RepeatInterval;
+        }
     }
 }

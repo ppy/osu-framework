@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -197,12 +197,17 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Vertical;
 
-            Children = new Drawable[]
+            InternalChild = new FillFlowContainer<Drawable>
             {
-                Header = CreateHeader(),
-                Menu = CreateMenu()
+                Children = new Drawable[]
+                {
+                    Header = CreateHeader(),
+                    Menu = CreateMenu()
+                },
+                Direction = FillDirection.Vertical,
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
             };
 
             Menu.RelativeSizeAxes = Axes.X;
@@ -229,7 +234,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selectedItem = new DropdownMenuItem<T>(null, default);
             }
-            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
+            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {

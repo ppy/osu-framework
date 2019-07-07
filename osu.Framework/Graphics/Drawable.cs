@@ -54,12 +54,17 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            total_count.Value++;
         }
 
         ~Drawable()
         {
             dispose(false);
+            finalize_disposals.Value++;
         }
+
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
+        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
         /// <summary>
         /// Disposes this drawable.
@@ -86,6 +91,8 @@ namespace osu.Framework.Graphics
             {
                 if (IsDisposed)
                     return;
+
+                total_count.Value--;
 
                 Dispose(isDisposing);
 
