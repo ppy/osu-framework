@@ -75,7 +75,10 @@ namespace osu.Framework.Tests.Clocks
         public void TestSeekNegativeAdjustRate()
         {
             var stopwatchClock = new StopwatchClock();
+
             stopwatchClock.Seek(-5000);
+            Assert.AreEqual(-5000, stopwatchClock.CurrentTime);
+
             stopwatchClock.Rate = 2.0f;
             stopwatchClock.Start();
 
@@ -83,7 +86,7 @@ namespace osu.Framework.Tests.Clocks
 
             stopwatchClock.Stop();
             var stoppedTime = stopwatchClock.CurrentTime;
-            Assert.Greater(stoppedTime, 0);
+            Assert.Less(stoppedTime, 0);
 
             stopwatchClock.Seek(stopwatchClock.CurrentTime);
 
