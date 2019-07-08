@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Clocks
         }
 
         [Test]
-        public void TestSeekCurrent()
+        public void TestSeekWhenNonZero()
         {
             var stopwatchClock = new StopwatchClock();
             stopwatchClock.Start();
