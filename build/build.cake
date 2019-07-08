@@ -20,6 +20,8 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var androidSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var iOSSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
@@ -86,6 +88,16 @@ Task("Compile")
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Minimal,
         });
+        NuGetRestore(androidSolution);
+        MSBuild(androidSolution, new MSBuildSettings {
+            Verbosity = Verbosity.Minimal,
+            MSBuildPlatform = MSBuildPlatform.x86,
+        });
+        NuGetRestore(iOSSolution);
+        MSBuild(iOSSolution, new MSBuildSettings {
+            Verbosity = Verbosity.Minimal,
+            MSBuildPlatform = MSBuildPlatform.x86,
+        });
     });
 
 Task("Test")
@@ -108,7 +120,7 @@ Task("Test")
 Task("InspectCode")
     .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
-    .Does(() => {
+    .DoesForEach(new [] { solution, androidSolution, iOSSolution }, solution => {
         var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
 
         InspectCode(solution, new InspectCodeSettings {
