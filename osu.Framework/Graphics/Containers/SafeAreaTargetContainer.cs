@@ -25,10 +25,10 @@ namespace osu.Framework.Graphics.Containers
         /// Setting this property will bind a new <see cref="BindableSafeArea"/> and unbind any previously bound bindables.
         /// Automatically bound to <see cref="GameWindow.SafeAreaPadding"/> if not assigned before injecting dependencies.
         /// </summary>
-        public BindableSafeArea SafeAreaPadding
+        internal BindableSafeArea SafeAreaPadding
         {
             get => safeAreaPadding;
-            internal set
+            set
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
