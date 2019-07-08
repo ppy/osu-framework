@@ -5,19 +5,14 @@ using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class EdgeSnappingContainer : EdgeSnappingContainer<Drawable>
-    {
-    }
-
     /// <summary>
-    /// A <see cref="Container{T}"/> that will apply negative <see cref="Container{T}.Padding"/> to snap the edges to
+    /// A <see cref="Container"/> that will apply negative <see cref="Container.Padding"/> to snap the edges to
     /// the nearest cached <see cref="ISnapTargetContainer"/>.
     /// Individual <see cref="Edges"/> may be snapped by setting the <see cref="SnappedEdges"/> property.
     /// Note that children within the negative padding will not be drawn if a parent <see cref="Drawable"/>
     /// has <see cref="CompositeDrawable.Masking"/> set to true.
     /// </summary>
-    public class EdgeSnappingContainer<T> : Container<T>
-        where T : Drawable
+    public class EdgeSnappingContainer : Container<Drawable>
     {
         [Resolved(CanBeNull = true)]
         private ISnapTargetContainer snapTargetContainer { get; set; }

@@ -6,18 +6,13 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SnapTargetContainer : SnapTargetContainer<Drawable>
-    {
-    }
-
     /// <summary>
-    /// A <see cref="Container{T}"/> that acts a target for <see cref="EdgeSnappingContainer{T}"/>s.
+    /// A <see cref="Container"/> that acts a target for <see cref="EdgeSnappingContainer"/>s.
     /// It is automatically cached as <see cref="ISnapTargetContainer"/> so that it may be resolved by any
-    /// child <see cref="EdgeSnappingContainer{T}"/>s.
+    /// child <see cref="EdgeSnappingContainer"/>s.
     /// </summary>
     [Cached(typeof(ISnapTargetContainer))]
-    public class SnapTargetContainer<T> : Container<T>, ISnapTargetContainer
-        where T : Drawable
+    public class SnapTargetContainer : Container<Drawable>, ISnapTargetContainer
     {
         public virtual RectangleF SnapRectangle => DrawRectangle;
 

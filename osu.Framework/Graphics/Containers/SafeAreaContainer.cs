@@ -8,17 +8,12 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SafeAreaContainer : SafeAreaContainer<Drawable>
-    {
-    }
-
     /// <summary>
-    /// An <see cref="EdgeSnappingContainer{T}"/> that can also apply a padding based on the safe areas of the nearest cached <see cref="SafeAreaTargetContainer{T}"/>.
+    /// An <see cref="EdgeSnappingContainer"/> that can also apply a padding based on the safe areas of the nearest cached <see cref="SafeAreaTargetContainer"/>.
     /// Padding will only be applied if the contents of this container would otherwise intersect the safe area margins relative to the associated target container.
     /// Padding may be applied to individual edges by setting the <see cref="SafeEdges"/> property.
     /// </summary>
-    public class SafeAreaContainer<T> : EdgeSnappingContainer<T>
-        where T : Drawable
+    public class SafeAreaContainer : EdgeSnappingContainer
     {
         [Resolved]
         private SafeAreaTargetContainer safeAreaTargetContainer { get; set; }
@@ -28,8 +23,8 @@ namespace osu.Framework.Graphics.Containers
         public override ISnapTargetContainer SnapTarget => safeAreaTargetContainer;
 
         /// <summary>
-        /// The <see cref="Edges"/> that should be automatically padded based on the target's <see cref="SafeAreaTargetContainer{T}.SafeAreaPadding"/>
-        /// Defaults to <see cref="Edges.All"/>. May not share edges with <see cref="EdgeSnappingContainer{T}.SnappedEdges"/>.
+        /// The <see cref="Edges"/> that should be automatically padded based on the target's <see cref="SafeAreaTargetContainer.SafeAreaPadding"/>
+        /// Defaults to <see cref="Edges.All"/>. May not share edges with <see cref="EdgeSnappingContainer.SnappedEdges"/>.
         /// </summary>
         public Edges SafeEdges { get; set; } = Edges.All;
 

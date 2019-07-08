@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
     public interface ISnapTargetContainer : IContainer
     {
         /// <summary>
-        /// The <see cref="RectangleF"/> that should be snapped to by any <see cref="EdgeSnappingContainer{T}"/>s.
+        /// The <see cref="RectangleF"/> that should be snapped to by any <see cref="EdgeSnappingContainer"/>s.
         /// </summary>
         RectangleF SnapRectangle { get; }
 
