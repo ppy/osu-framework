@@ -802,6 +802,7 @@ namespace osu.Framework.Platform
         #region IDisposable Support
 
         private bool isDisposed;
+
         private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
 
         protected virtual void Dispose(bool disposing)
