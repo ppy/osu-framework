@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Clocks
             var stoppedTime = stopwatchClock.CurrentTime;
             Assert.Greater(stoppedTime, 0);
 
-            stopwatchClock.Seek(stopwatchClock.CurrentTime);
+            stopwatchClock.Seek(stoppedTime);
 
             Assert.AreEqual(stoppedTime, stopwatchClock.CurrentTime);
         }
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Clocks
             var stoppedTime = stopwatchClock.CurrentTime;
             Assert.Less(stoppedTime, 0);
 
-            stopwatchClock.Seek(stopwatchClock.CurrentTime);
+            stopwatchClock.Seek(stoppedTime);
 
             Assert.AreEqual(stoppedTime, stopwatchClock.CurrentTime);
         }

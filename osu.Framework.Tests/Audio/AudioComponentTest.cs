@@ -101,14 +101,17 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestTrackVirtualSeekCurrent()
         {
-            var trackVirtual = new TrackVirtual(60000);
+            var trackVirtual = manager.Tracks.GetVirtual();
             trackVirtual.Start();
 
-            Thread.Sleep(1000);
+            waitAudioFrame();
+
+            Assert.Greater(trackVirtual.CurrentTime, 0);
 
             trackVirtual.Tempo.Value = 2.0f;
             trackVirtual.Frequency.Value = 2.0f;
-            trackVirtual.OnStateChanged();
+
+            waitAudioFrame();
 
             Assert.AreEqual(4.0f, trackVirtual.Rate);
 
@@ -116,7 +119,7 @@ namespace osu.Framework.Tests.Audio
             var stoppedTime = trackVirtual.CurrentTime;
             Assert.Greater(stoppedTime, 0);
 
-            trackVirtual.Seek(trackVirtual.CurrentTime);
+            trackVirtual.Seek(stoppedTime);
 
             Assert.AreEqual(stoppedTime, trackVirtual.CurrentTime);
         }
