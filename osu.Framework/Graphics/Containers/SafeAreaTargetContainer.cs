@@ -18,17 +18,17 @@ namespace osu.Framework.Graphics.Containers
     [Cached(typeof(SafeAreaTargetContainer))]
     public class SafeAreaTargetContainer : SnapTargetContainer
     {
-        private readonly IBindable<MarginPadding> safeAreaPadding = new BindableMarginPadding();
-        private IBindable<MarginPadding> boundSafeAreaPadding;
+        private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
+        private BindableSafeArea boundSafeAreaPadding;
 
         /// <summary>
-        /// Setting this property will bind a new <see cref="IBindable{MarginPadding}"/> and unbind any previously bound bindables.
+        /// Setting this property will bind a new <see cref="BindableSafeArea"/> and unbind any previously bound bindables.
         /// Automatically bound to <see cref="GameWindow.SafeAreaPadding"/> if not assigned before injecting dependencies.
         /// </summary>
-        public IBindable<MarginPadding> SafeAreaPadding
+        public BindableSafeArea SafeAreaPadding
         {
             get => safeAreaPadding;
-            set
+            internal set
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));

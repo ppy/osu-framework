@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Containers
             typeof(SnapTargetContainer)
         };
 
-        private readonly Bindable<MarginPadding> safeAreaPadding = new BindableMarginPadding();
+        private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
 
         private readonly Box safeAreaTopOverlay;
         private readonly Box safeAreaBottomOverlay;
@@ -170,11 +170,11 @@ namespace osu.Framework.Tests.Visual.Containers
             private readonly Bindable<float> safeAreaPaddingLeft;
             private readonly Bindable<float> safeAreaPaddingRight;
 
-            private readonly Bindable<MarginPadding> bindableMarginPadding;
+            private readonly BindableSafeArea bindableSafeArea;
 
-            public MarginPaddingControlsContainer(SafeAreaContainer snappingContainer, SafeAreaContainer safeContainer, Bindable<MarginPadding> bindableMarginPadding)
+            public MarginPaddingControlsContainer(SafeAreaContainer snappingContainer, SafeAreaContainer safeContainer, BindableSafeArea bindableSafeArea)
             {
-                this.bindableMarginPadding = bindableMarginPadding;
+                this.bindableSafeArea = bindableSafeArea;
 
                 safeAreaPaddingTop = new BindableFloat { MinValue = 0, MaxValue = 200 };
                 safeAreaPaddingBottom = new BindableFloat { MinValue = 0, MaxValue = 200 };
@@ -199,7 +199,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             private void updateMarginPadding(ValueChangedEvent<float> e)
             {
-                bindableMarginPadding.Value = new MarginPadding
+                bindableSafeArea.Value = new MarginPadding
                 {
                     Top = safeAreaPaddingTop.Value,
                     Bottom = safeAreaPaddingBottom.Value,

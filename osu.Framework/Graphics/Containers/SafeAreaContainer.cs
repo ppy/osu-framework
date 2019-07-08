@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         private SafeAreaTargetContainer safeAreaTargetContainer { get; set; }
 
-        private readonly IBindable<MarginPadding> safeAreaPadding = new BindableMarginPadding();
+        private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
 
         public override ISnapTargetContainer SnapTarget => safeAreaTargetContainer;
 
