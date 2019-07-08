@@ -25,9 +25,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Edges SnappedEdges { get; set; } = Edges.None;
 
-        protected override void UpdateAfterChildren()
+        protected override void UpdateAfterChildrenLife()
         {
-            base.UpdateAfterChildren();
+            base.UpdateAfterChildrenLife();
             UpdatePadding();
         }
 
