@@ -126,7 +126,7 @@ Task("InspectCode")
         var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport{solutionName}.xml");
 
         InspectCode(inspectSolution, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine("inspectcode" + solutionName),
+            CachesHome = tempDirectory.Combine($"inspectcode{solutionName}"),
             OutputFile = inspectcodereport,
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
