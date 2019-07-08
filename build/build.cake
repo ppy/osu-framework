@@ -121,6 +121,7 @@ Task("InspectCode")
     .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
     .DoesForEach(new [] { solution, androidSolution, iOSSolution }, inspectSolution => {
+        Information($"Inspecting {inspectSolution}");
         string solutionName = inspectSolution.GetFilenameWithoutExtension();
         var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport{solutionName}.xml");
 
