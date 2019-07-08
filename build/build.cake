@@ -109,17 +109,20 @@ Task("InspectCode")
     .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
     .Does(() => {
-        var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
+        foreach (var sln in GetFiles(rootDirectory.CombineWithFilePath("*.sln").FullPath))
+        {
+            var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
 
-        InspectCode(solution, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine("inspectcode"),
-            OutputFile = inspectcodereport,
-            ArgumentCustomization = args => args.Append("--verbosity=WARN")
-        });
+            InspectCode(sln, new InspectCodeSettings {
+                CachesHome = tempDirectory.Combine("inspectcode"),
+                OutputFile = inspectcodereport,
+                ArgumentCustomization = args => args.Append("--verbosity=WARN")
+            });
 
-        int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
-        if (returnCode != 0)
-            throw new Exception($"inspectcode failed with return code {returnCode}");
+            int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
+            if (returnCode != 0)
+                throw new Exception($"inspectcode failed with return code {returnCode}");
+        }
     });
 
 Task("CodeFileSanity")
