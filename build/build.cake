@@ -122,7 +122,7 @@ Task("InspectCode")
     .IsDependentOn("Compile")
     .DoesForEach(new [] { solution, androidSolution, iOSSolution }, inspectSolution => {
         Information($"Inspecting {inspectSolution}");
-        string solutionName = inspectSolution.GetFilenameWithoutExtension();
+        string solutionName = inspectSolution.GetFilenameWithoutExtension().FullPath;
         var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport{solutionName}.xml");
 
         InspectCode(inspectSolution, new InspectCodeSettings {
