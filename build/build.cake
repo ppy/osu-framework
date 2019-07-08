@@ -120,11 +120,12 @@ Task("Test")
 Task("InspectCode")
     .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
-    .DoesForEach(new [] { solution, androidSolution, iOSSolution }, solution => {
-        var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
+    .DoesForEach(new [] { solution, androidSolution, iOSSolution }, inspectSolution => {
+        string solutionName = inspectSolution.GetFilenameWithoutExtension();
+        var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport{solutionName}.xml");
 
-        InspectCode(solution, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine("inspectcode"),
+        InspectCode(inspectSolution, new InspectCodeSettings {
+            CachesHome = tempDirectory.Combine("inspectcode" + solutionName),
             OutputFile = inspectcodereport,
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
