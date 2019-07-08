@@ -73,7 +73,6 @@ namespace osu.Framework.Android
 
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            //Log.Info("osu!lazer", keyCode + " down " + e.ToString());
             switch (keyCode)
             {
                 // Do not consume Volume keys, so the system can handle them
@@ -96,7 +95,6 @@ namespace osu.Framework.Android
 
         public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
-            //Log.Info("osu!lazer", keyCode + " up " + e.ToString());
             KeyUp?.Invoke(keyCode, e);
             return true;
         }
@@ -115,10 +113,7 @@ namespace osu.Framework.Android
             host.Run(game);
         }
 
-        public override bool OnCheckIsTextEditor()
-        {
-            return true;
-        }
+        public override bool OnCheckIsTextEditor() => true;
 
         public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
         {

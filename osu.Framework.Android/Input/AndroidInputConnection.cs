@@ -44,10 +44,8 @@ namespace osu.Framework.Android.Input
 
         public override bool CommitText(ICharSequence text, int newCursorPosition)
         {
-            Log.Info("osu!lazer", "CommitText " + text);
             if (text.Length() != 0)
             {
-                //TargetView?.OnCommitText(text.ToString());
                 //direct commit some text is not supported by framework now, so we convert the input text to key events.
                 foreach (char c in text.ToArray())
                 {
@@ -66,29 +64,31 @@ namespace osu.Framework.Android.Input
                         SendKeyEvent(new KeyEvent(KeyEventActions.Up, keycode));
                     }
                 }
-                //KeyEvent ed = new KeyEvent(0, text.ToString(), 1, 0);
-                //SendKeyEvent(ed);
+
                 return true;
             }
+
             return base.CommitText(text, newCursorPosition);
         }
 
         public override bool SendKeyEvent(KeyEvent e)
         {
-            //Log.Info("osu!lazer", "SendKeyEvent " + e);
             switch (e.Action)
             {
                 case KeyEventActions.Down:
                     TargetView?.OnKeyDown(e.KeyCode, e);
                     return true;
+
                 case KeyEventActions.Up:
                     TargetView?.OnKeyUp(e.KeyCode, e);
                     return true;
+
                 case KeyEventActions.Multiple:
                     TargetView?.OnKeyDown(e.KeyCode, e);
                     TargetView?.OnKeyUp(e.KeyCode, e);
                     return true;
             }
+
             return base.SendKeyEvent(e);
         }
 
@@ -99,54 +99,34 @@ namespace osu.Framework.Android.Input
                 KeyEvent ed = new KeyEvent(KeyEventActions.Multiple, Keycode.Del);
                 SendKeyEvent(ed);
             }
+
             return true;
         }
 
         public static Keycode TryParseCharIntoKeycode(char c)
         {
-            if (c >= 'A' && c <= 'Z')
-            {
-                return Keycode.A + (c - 'A');
-            }
-            if (c >= 'a' && c <= 'z')
-            {
-                return Keycode.A + (c - 'a');
-            }
-            if (c >= '0' && c <= '9')
-            {
-                return Keycode.Num0 + (c - '0');
-            }
-            return parseSymbolCharToKeycode(c);
-        }
+            if(char.IsLetter(c))
+                return Keycode.A + (char.ToLower(c) - 'a');
 
-        private static Keycode parseSymbolCharToKeycode(char c)
-        {
+            if (char.IsDigit(c))
+                return Keycode.Num0 + (c - '0');
+
             return charToKeycodeMap.ContainsKey(c) ? charToKeycodeMap[c] : Keycode.Unknown;
         }
 
         public static bool NeedShiftPress(char c)
         {
-            if (c >= 'A' && c <= 'Z')
-            {
-                return true;
-            }
-            if (c >= 'a' && c <= 'z')
-            {
-                return false;
-            }
-            if (c >= '0' && c <= '9')
-            {
-                return false;
-            }
+            if (char.IsLetterOrDigit(c))
+                return char.IsUpper(c);
+
             return shiftKeycodeMap.ContainsKey(c);
         }
 
         public static char ToUnshiftChar(char c)
         {
-            if (c >= 'A' && c <= 'Z')
-            {
-                return (char)('a' + (c - 'A'));
-            }
+            if (char.IsLetter(c))
+                return char.ToLower(c);
+
             return shiftKeycodeMap.ContainsKey(c) ? shiftKeycodeMap[c] : c;
         }
     }
