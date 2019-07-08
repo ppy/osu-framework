@@ -3,7 +3,6 @@
 
 using System.Threading;
 using NUnit.Framework;
-using osu.Framework.Audio.Track;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Clocks
@@ -19,6 +18,8 @@ namespace osu.Framework.Tests.Clocks
 
             Thread.Sleep(1000);
 
+            Assert.Greater(stopwatchClock.CurrentTime, 0);
+
             stopwatchClock.Stop();
             stopwatchClock.Reset();
 
@@ -33,15 +34,20 @@ namespace osu.Framework.Tests.Clocks
 
             Thread.Sleep(1000);
 
-            stopwatchClock.Rate = 2.0f;
             stopwatchClock.Stop();
+            var stoppedTime = stopwatchClock.CurrentTime;
+            Assert.Greater(stoppedTime, 0);
+
+            stopwatchClock.Rate = 2.0f;
+            Assert.AreEqual(stoppedTime, stopwatchClock.CurrentTime);
+
             stopwatchClock.Reset();
 
             Assert.AreEqual(0, stopwatchClock.CurrentTime);
         }
 
         [Test]
-        public void TestSeekStopwatch()
+        public void TestSeekWhileStopped()
         {
             var stopwatchClock = new StopwatchClock();
             stopwatchClock.Seek(5000);
@@ -58,6 +64,8 @@ namespace osu.Framework.Tests.Clocks
 
             stopwatchClock.Stop();
             var stoppedTime = stopwatchClock.CurrentTime;
+            Assert.Greater(stoppedTime, 0);
+
             stopwatchClock.Seek(stopwatchClock.CurrentTime);
 
             Assert.AreEqual(stoppedTime, stopwatchClock.CurrentTime);
@@ -75,6 +83,8 @@ namespace osu.Framework.Tests.Clocks
 
             stopwatchClock.Stop();
             var stoppedTime = stopwatchClock.CurrentTime;
+            Assert.Greater(stoppedTime, 0);
+
             stopwatchClock.Seek(stopwatchClock.CurrentTime);
 
             Assert.AreEqual(stoppedTime, stopwatchClock.CurrentTime);
@@ -91,25 +101,6 @@ namespace osu.Framework.Tests.Clocks
             stopwatchClock.Stop();
 
             Assert.Less(stopwatchClock.CurrentTime, 0);
-        }
-
-        [Test]
-        public void TestTrackVirtualSeekCurrent()
-        {
-            var trackVirtual = new TrackVirtual(60000);
-            trackVirtual.Start();
-
-            Thread.Sleep(1000);
-
-            trackVirtual.Tempo.Value = 2.0f;
-            trackVirtual.Frequency.Value = 2.0f;
-            trackVirtual.OnStateChanged();
-
-            trackVirtual.Stop();
-            var stoppedTime = trackVirtual.CurrentTime;
-            trackVirtual.Seek(trackVirtual.CurrentTime);
-
-            Assert.AreEqual(stoppedTime, trackVirtual.CurrentTime);
         }
     }
 }
