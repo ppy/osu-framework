@@ -69,11 +69,10 @@ namespace osu.Framework.Tests.Visual.Containers
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                     },
-                    new SafeAreaTargetContainer
+                    new SafeAreaTargetContainer(safeAreaPadding)
                     {
                         Name = "Safe Area Target",
                         Size = new Vector2(500, 400),
-                        SafeAreaPadding = safeAreaPadding,
                         Children = new Drawable[]
                         {
                             new Box

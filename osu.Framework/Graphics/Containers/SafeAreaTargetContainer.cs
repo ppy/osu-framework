@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
@@ -13,38 +12,32 @@ namespace osu.Framework.Graphics.Containers
     /// the desired safe area margins. Should be used in conjunction with child <see cref="SafeAreaContainer"/>s.
     /// The root of the scenegraph contains an instance of this container, with <see cref="SafeAreaPadding"/> automatically bound
     /// to the host <see cref="GameWindow"/>'s <see cref="GameWindow.SafeAreaPadding"/>.
-    /// Developers may set a custom bindable for testing various safe area insets.
     /// </summary>
     [Cached(typeof(SafeAreaTargetContainer))]
     public class SafeAreaTargetContainer : SnapTargetContainer
     {
-        private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
-        private BindableSafeArea boundSafeAreaPadding;
+        private readonly bool usesCustomBinding;
+        
+        internal BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         /// <summary>
-        /// Setting this property will bind a new <see cref="BindableSafeArea"/> and unbind any previously bound bindables.
-        /// Automatically bound to <see cref="GameWindow.SafeAreaPadding"/> if not assigned before injecting dependencies.
+        /// Initialises a <see cref="SafeAreaTargetContainer"/> by optionally providing a custom <see cref="BindableSafeArea"/>.
+        /// If no such binding is provided, the container will default to <see cref="GameWindow.SafeAreaPadding"/>.
         /// </summary>
-        internal BindableSafeArea SafeAreaPadding
+        /// <param name="bindableSafeArea">The custom <see cref="BindableSafeArea"/> to bind to, if required.</param>
+        public SafeAreaTargetContainer(BindableSafeArea bindableSafeArea = null)
         {
-            get => safeAreaPadding;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+            usesCustomBinding = bindableSafeArea != null;
 
-                if (boundSafeAreaPadding != null)
-                    safeAreaPadding.UnbindFrom(boundSafeAreaPadding);
-
-                safeAreaPadding.BindTo(boundSafeAreaPadding = value);
-            }
+            if (bindableSafeArea != null)
+                SafeAreaPadding.BindTo(bindableSafeArea);
         }
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            if (boundSafeAreaPadding == null && host.Window != null)
-                SafeAreaPadding = host.Window.SafeAreaPadding;
+            if (!usesCustomBinding && host.Window != null)
+                SafeAreaPadding.BindTo(host.Window.SafeAreaPadding);
         }
     }
 }
