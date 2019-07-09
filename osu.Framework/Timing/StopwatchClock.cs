@@ -64,12 +64,6 @@ namespace osu.Framework.Timing
             base.Restart();
         }
 
-        private void resetAccumulatedRate()
-        {
-            rateChangeAccumulated = 0;
-            rateChangeUsed = 0;
-        }
-
         public void ResetSpeedAdjustments() => Rate = 1;
 
         public bool Seek(double position)
@@ -80,5 +74,11 @@ namespace osu.Framework.Timing
         }
 
         public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms)";
+
+        private void resetAccumulatedRate()
+        {
+            rateChangeAccumulated = 0;
+            rateChangeUsed = 0;
+        }
     }
 }
