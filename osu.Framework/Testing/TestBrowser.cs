@@ -114,7 +114,7 @@ namespace osu.Framework.Testing
 
         private Bindable<bool> showLogOverlay;
 
-        private BindableDouble audioRateAdjust = new BindableDouble(1);
+        private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
         private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
