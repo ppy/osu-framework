@@ -20,8 +20,8 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var androidSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var iOSSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var androidSolution = rootDirectory.CombineWithFilePath("osu-framework.Android.sln");
+var iOSSolution = rootDirectory.CombineWithFilePath("osu-framework.iOS.sln");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
