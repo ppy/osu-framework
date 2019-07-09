@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     public class SafeAreaTargetContainer : SnapTargetContainer
     {
         private readonly bool usesCustomBinding;
-        
+
         internal BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         /// <summary>
