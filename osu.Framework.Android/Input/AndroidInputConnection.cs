@@ -17,7 +17,6 @@ namespace osu.Framework.Android.Input
 {
     class AndroidInputConnection : BaseInputConnection
     {
-
         public AndroidGameView TargetView { get; set; }
 
         public AndroidInputConnection(AndroidGameView targetView, bool fullEditor) : base(targetView, fullEditor)
