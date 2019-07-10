@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
 {
@@ -18,6 +19,8 @@ namespace osu.Framework.IO.Stores
 
         private readonly Func<(string, char), Texture> cachedTextureLookup;
 
+        private Storage cacheStorage;
+
         /// <summary>
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
         /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
@@ -25,9 +28,15 @@ namespace osu.Framework.IO.Stores
         private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
 
         public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : base(store, scaleAdjust: scaleAdjust)
+            : this(store, scaleAdjust: scaleAdjust, useAtlas: false)
+        {
+        }
+
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null)
+            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
         {
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
+            this.cacheStorage = cacheStorage;
         }
 
         protected override IEnumerable<string> GetFilenames(string name)
@@ -41,10 +50,23 @@ namespace osu.Framework.IO.Stores
             switch (store)
             {
                 case FontStore fs:
+                    if (fs.Atlas == null)
+                    {
+                        // share the main store's atlas.
+                        fs.Atlas = Atlas;
+                    }
+
+                    if (fs.cacheStorage == null)
+                        fs.cacheStorage = cacheStorage;
+
                     nestedFontStores.Add(fs);
                     return;
 
                 case GlyphStore gs:
+
+                    if (gs.CacheStorage == null)
+                        gs.CacheStorage = cacheStorage;
+
                     glyphStores.Add(gs);
                     queueLoad(gs);
                     break;

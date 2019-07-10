@@ -24,6 +24,8 @@ namespace osu.Framework.IO.Stores
 
         public byte[] Get(string name)
         {
+            this.LogIfNonBackgroundThread(name);
+
             using (Stream stream = storage.GetStream(name))
             {
                 if (stream == null) return null;
@@ -36,6 +38,8 @@ namespace osu.Framework.IO.Stores
 
         public virtual async Task<byte[]> GetAsync(string name)
         {
+            this.LogIfNonBackgroundThread(name);
+
             using (Stream stream = storage.GetStream(name))
             {
                 if (stream == null) return null;
@@ -46,10 +50,15 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public Stream GetStream(string name) => storage.GetStream(name);
+        public Stream GetStream(string name)
+        {
+            this.LogIfNonBackgroundThread(name);
+
+            return storage.GetStream(name);
+        }
 
         public IEnumerable<string> GetAvailableResources() =>
-            storage.GetDirectories(string.Empty).SelectMany(storage.GetFiles);
+            storage.GetDirectories(string.Empty).SelectMany(d => storage.GetFiles(d));
 
         #region IDisposable Support
 

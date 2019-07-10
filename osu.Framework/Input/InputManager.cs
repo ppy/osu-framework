@@ -405,8 +405,11 @@ namespace osu.Framework.Input
             {
                 handleKeyUp(state, key);
 
-                keyboardRepeatKey = null;
-                keyboardRepeatTime = 0;
+                if (key == keyboardRepeatKey)
+                {
+                    keyboardRepeatKey = null;
+                    keyboardRepeatTime = 0;
+                }
             }
         }
 

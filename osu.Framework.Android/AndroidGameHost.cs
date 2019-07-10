@@ -31,6 +31,12 @@ namespace osu.Framework.Android
             Window = new AndroidGameWindow();
         }
 
+        protected override bool LimitedMemoryEnvironment => true;
+
+        public override bool CanExit => false;
+
+        public override bool OnScreenKeyboardOverlapsGameWindow => true;
+
         public override ITextInputSource GetTextInput()
             => new AndroidTextInput(gameView);
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -150,6 +151,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestLeasedBindable()
+        {
+            LeasedBindable<TestEnum?> leased = null;
+
+            AddStep("change value to test0", () => simpleTabcontrol.Current.Value = TestEnum.Test0);
+            AddStep("lease bindable", () => leased = simpleTabcontrol.Current.BeginLease(true));
+            AddStep("change value to test1", () => leased.Value = TestEnum.Test1);
+            AddAssert("value changed", () => simpleTabcontrol.Current.Value == TestEnum.Test1);
+            AddAssert("tab changed", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test1);
+            AddStep("end lease", () => leased.UnbindAll());
+        }
+
+        [Test]
         public void SelectNull()
         {
             AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
@@ -178,6 +192,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledTabControl : TabControl<TestEnum?>
         {
+            public new TabItem<TestEnum?> SelectedTab => base.SelectedTab;
+
             protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
             protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
@@ -198,7 +214,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Header.Origin = Anchor.TopRight;
             }
 
-            private class StyledDropdownMenu : DropdownMenu
+            private class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
             {
                 public StyledDropdownMenu()
                 {

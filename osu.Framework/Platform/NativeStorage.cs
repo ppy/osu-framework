@@ -38,7 +38,7 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
-        public override IEnumerable<string> GetFiles(string path) => getRelativePaths(Directory.GetFiles(GetFullPath(path)));
+        public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));
 
         private IEnumerable<string> getRelativePaths(IEnumerable<string> paths)
         {

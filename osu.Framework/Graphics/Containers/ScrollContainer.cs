@@ -3,31 +3,17 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : ScrollContainer<Drawable>
-    {
-        /// <summary>
-        /// Creates a scroll container.
-        /// </summary>
-        /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
-            : base(scrollDirection)
-        {
-        }
-    }
-
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+    public abstract class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -138,6 +124,8 @@ namespace osu.Framework.Graphics.Containers
 
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
 
+        private float scrollbarMovementExtent => Math.Max(DrawSize[ScrollDim] - Scrollbar.DrawSize[ScrollDim], 0);
+
         /// <summary>
         /// Clamp a value to the available scroll range.
         /// </summary>
@@ -177,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a scroll container.
         /// </summary>
         /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
+        protected ScrollContainer(Direction scrollDirection = Direction.Vertical)
         {
             ScrollDirection = scrollDirection;
 
@@ -217,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
         {
             var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
             if (size > 0)
-                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.DimSize / size, 1), 200, Easing.OutQuint);
+                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
@@ -362,7 +350,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(Clamp(value / Scrollbar.Size[ScrollDim]), false);
+        private void onScrollbarMovement(float value) => scrollTo(Clamp(fromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -508,92 +496,75 @@ namespace osu.Framework.Graphics.Containers
 
             if (ScrollDirection == Direction.Horizontal)
             {
-                Scrollbar.X = Current * Scrollbar.Size.X;
+                Scrollbar.X = toScrollbarPosition(Current);
                 content.X = -Current + scrollableExtent * content.RelativeAnchorPosition.X;
             }
             else
             {
-                Scrollbar.Y = Current * Scrollbar.Size.Y;
+                Scrollbar.Y = toScrollbarPosition(Current);
                 content.Y = -Current + scrollableExtent * content.RelativeAnchorPosition.Y;
             }
         }
 
         /// <summary>
-        /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
+        /// Converts a scroll position to a scrollbar position.
+        /// </summary>
+        /// <param name="scrollPosition">The absolute scroll position (e.g. <see cref="Current"/>).</param>
+        /// <returns>The scrollbar position.</returns>
+        private float toScrollbarPosition(float scrollPosition)
+        {
+            if (Precision.AlmostEquals(0, scrollableExtent))
+                return 0;
+
+            return scrollbarMovementExtent * (scrollPosition / scrollableExtent);
+        }
+
+        /// <summary>
+        /// Converts a scrollbar position to a scroll position.
+        /// </summary>
+        /// <param name="scrollbarPosition">The scrollbar position.</param>
+        /// <returns>The absolute scroll position.</returns>
+        private float fromScrollbarPosition(float scrollbarPosition)
+        {
+            if (Precision.AlmostEquals(0, scrollbarMovementExtent))
+                return 0;
+
+            return scrollableExtent * (scrollbarPosition / scrollbarMovementExtent);
+        }
+
+        /// <summary>
+        /// Creates the scrollbar for this <see cref="ScrollContainer{T}"/>.
         /// </summary>
         /// <param name="direction">The scrolling direction.</param>
-        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new ScrollbarContainer(direction);
+        protected abstract ScrollbarContainer CreateScrollbar(Direction direction);
 
-        protected internal class ScrollbarContainer : Container
+        protected internal abstract class ScrollbarContainer : Container
         {
-            internal Action<float> Dragged;
-
-            private const float dim_size = 10;
-
-            private readonly Color4 hoverColour = Color4.White;
-            private readonly Color4 defaultColour = Color4.Gray;
-            private readonly Color4 highlightColour = Color4.GreenYellow;
-
-            private readonly Box box;
-
             private float dragOffset;
 
-            private readonly int scrollDim;
+            internal Action<float> Dragged;
 
-            public ScrollbarContainer(Direction scrollDir)
+            protected readonly Direction ScrollDirection;
+
+            /// <summary>
+            /// The minimum size of this <see cref="ScrollbarContainer"/>. Defaults to the size in the non-scrolling direction.
+            /// </summary>
+            protected internal virtual float MinimumDimSize => Size[ScrollDirection == Direction.Vertical ? 0 : 1];
+
+            protected ScrollbarContainer(Direction direction)
             {
-                scrollDim = (int)scrollDir;
-                RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
-                Colour = defaultColour;
+                ScrollDirection = direction;
 
-                Blending = BlendingMode.Additive;
-
-                CornerRadius = 5;
-
-                const float margin = 3;
-
-                Margin = new MarginPadding
-                {
-                    Left = scrollDir == Direction.Vertical ? margin : 0,
-                    Right = scrollDir == Direction.Vertical ? margin : 0,
-                    Top = scrollDir == Direction.Horizontal ? margin : 0,
-                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
-                };
-
-                Masking = true;
-
-                Child = box = new Box { RelativeSizeAxes = Axes.Both };
-
-                ResizeTo(1);
+                RelativeSizeAxes = direction == Direction.Horizontal ? Axes.X : Axes.Y;
             }
 
-            public float DimSize => Size[scrollDim == 1 ? 0 : 1];
-
-            public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
-            {
-                Vector2 size = new Vector2(dim_size)
-                {
-                    [scrollDim] = val
-                };
-                this.ResizeTo(size, duration, easing);
-            }
+            public abstract void ResizeTo(float val, int duration = 0, Easing easing = Easing.None);
 
             protected override bool OnClick(ClickEvent e) => true;
 
-            protected override bool OnHover(HoverEvent e)
-            {
-                this.FadeColour(hoverColour, 100);
-                return true;
-            }
-
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                this.FadeColour(defaultColour, 100);
-            }
-
             protected override bool OnDragStart(DragStartEvent e)
             {
-                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
+                dragOffset = e.MousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
                 return true;
             }
 
@@ -601,26 +572,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (e.Button != MouseButton.Left) return false;
 
-                //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlightColour, 100);
-
-                dragOffset = Position[scrollDim];
+                dragOffset = Position[(int)ScrollDirection];
                 Dragged?.Invoke(dragOffset);
                 return true;
             }
 
-            protected override bool OnMouseUp(MouseUpEvent e)
-            {
-                if (e.Button != MouseButton.Left) return false;
-
-                box.FadeColour(Color4.White, 100);
-
-                return base.OnMouseUp(e);
-            }
-
             protected override bool OnDrag(DragEvent e)
             {
-                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
+                Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
                 return true;
             }
         }

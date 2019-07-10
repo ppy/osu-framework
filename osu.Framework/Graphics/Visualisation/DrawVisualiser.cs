@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
+                    State = { BindTarget = State },
                     ChooseTarget = () =>
                     {
                         Searching = true;
@@ -62,7 +63,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                             if (visualised != null)
                             {
-                                propertyDisplay.State = Visibility.Visible;
+                                propertyDisplay.Show();
                                 setHighlight(visualised);
                             }
                         }
@@ -74,7 +75,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         propertyDisplay.ToggleVisibility();
 
-                        if (propertyDisplay.State == Visibility.Visible)
+                        if (propertyDisplay.State.Value == Visibility.Visible)
                             setHighlight(targetVisualiser);
                     },
                 },
@@ -83,9 +84,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             propertyDisplay = treeContainer.PropertyDisplay;
 
-            propertyDisplay.StateChanged += visibility =>
+            propertyDisplay.State.ValueChanged += v =>
             {
-                switch (visibility)
+                switch (v.NewValue)
                 {
                     case Visibility.Hidden:
                         // Dehighlight everything automatically if property display is closed
@@ -129,7 +130,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.State = Visibility.Visible;
+                propertyDisplay.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -138,17 +139,17 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.Depth = 0;
 
-            treeContainer.Child = targetVisualiser = visualiser;
+            treeContainer.Target = targetVisualiser = visualiser;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
             targetVisualiser = null;
-            treeContainer.Remove(visualiser);
+            treeContainer.Target = null;
 
             if (Target == null)
-                propertyDisplay.State = Visibility.Hidden;
+                propertyDisplay.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
@@ -182,6 +183,7 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
 
             updateCursorTarget();
+            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
         }
 
         private void updateCursorTarget()
@@ -256,7 +258,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State == Visibility.Visible)
+            if (propertyDisplay.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
@@ -286,12 +288,6 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnClick(e);
         }
 
-        protected override bool OnMouseMove(MouseMoveEvent e)
-        {
-            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return overlay.Target != null;
-        }
-
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
 
         public VisualisedDrawable GetVisualiserFor(Drawable drawable)
@@ -307,7 +303,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
-            treeContainer.Clear();
+            treeContainer.Target = null;
 
             // We don't really know where the visualised drawables are, so we have to dispose them manually
             // This is done as an optimisation so that events aren't handled while the visualiser is hidden

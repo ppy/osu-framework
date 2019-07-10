@@ -18,7 +18,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Menu : CompositeDrawable, IStateful<MenuState>
+    public abstract class Menu : CompositeDrawable, IStateful<MenuState>
     {
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
@@ -39,12 +39,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly ScrollContainer<Container<DrawableMenuItem>> ContentContainer;
+        protected readonly ScrollContainer<Drawable> ContentContainer;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
         /// </summary>
-        protected readonly FillFlowContainer<DrawableMenuItem> ItemsContainer;
+        protected FillFlowContainer<DrawableMenuItem> ItemsContainer;
 
         /// <summary>
         /// The container that provides the masking effects for this <see cref="Menu"/>.
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="direction">The direction of layout for this menu.</param>
         /// <param name="topLevelMenu">Whether the resultant menu is always displayed in an open state (ie. a menu bar).</param>
-        public Menu(Direction direction, bool topLevelMenu = false)
+        protected Menu(Direction direction, bool topLevelMenu = false)
         {
             Direction = direction;
             TopLevelMenu = topLevelMenu;
@@ -94,12 +94,12 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new ScrollContainer<Container<DrawableMenuItem>>(direction)
+                        ContentContainer = CreateScrollContainer(direction).With(d =>
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = false,
-                            Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical }
-                        }
+                            d.RelativeSizeAxes = Axes.Both;
+                            d.Masking = false;
+                            d.Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical };
+                        })
                     }
                 },
                 submenuContainer = new Container<Menu>
@@ -532,22 +532,26 @@ namespace osu.Framework.Graphics.UserInterface
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
         /// <returns></returns>
-        protected virtual Menu CreateSubMenu() => new Menu(Direction.Vertical)
-        {
-            Anchor = Direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight
-        };
+        protected abstract Menu CreateSubMenu();
 
         /// <summary>
         /// Creates the visual representation for a <see cref="MenuItem"/>.
         /// </summary>
         /// <param name="item">The <see cref="MenuItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
-        protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
+        protected abstract DrawableMenuItem CreateDrawableMenuItem(MenuItem item);
+
+        /// <summary>
+        /// Creates the <see cref="ScrollContainer{T}"/> to hold the items of this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="direction">The scrolling direction.</param>
+        /// <returns>The <see cref="ScrollContainer{T}"/>.</returns>
+        protected abstract ScrollContainer<Drawable> CreateScrollContainer(Direction direction);
 
         #region DrawableMenuItem
 
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        public abstract class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -585,7 +589,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected readonly Container Foreground;
 
-            public DrawableMenuItem(MenuItem item)
+            protected DrawableMenuItem(MenuItem item)
             {
                 Item = item;
 
@@ -772,13 +776,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// If the <see cref="Drawable"/> returned implements <see cref="IHasText"/>, the text will be automatically
             /// updated when the <see cref="MenuItem.Text"/> is updated.
             /// </summary>
-            protected virtual Drawable CreateContent() => new SpriteText
-            {
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                Padding = new MarginPadding(5),
-                Font = new FontUsage(size: 17),
-            };
+            protected abstract Drawable CreateContent();
         }
 
         #endregion

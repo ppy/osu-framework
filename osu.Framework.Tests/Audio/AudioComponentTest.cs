@@ -98,6 +98,32 @@ namespace osu.Framework.Tests.Audio
             checkTrackCount(0);
         }
 
+        [Test]
+        public void TestTrackVirtualSeekCurrent()
+        {
+            var trackVirtual = manager.Tracks.GetVirtual();
+            trackVirtual.Start();
+
+            waitAudioFrame();
+
+            Assert.Greater(trackVirtual.CurrentTime, 0);
+
+            trackVirtual.Tempo.Value = 2.0f;
+            trackVirtual.Frequency.Value = 2.0f;
+
+            waitAudioFrame();
+
+            Assert.AreEqual(4.0f, trackVirtual.Rate);
+
+            trackVirtual.Stop();
+            var stoppedTime = trackVirtual.CurrentTime;
+            Assert.Greater(stoppedTime, 0);
+
+            trackVirtual.Seek(stoppedTime);
+
+            Assert.AreEqual(stoppedTime, trackVirtual.CurrentTime);
+        }
+
         private void checkTrackCount(int expected)
             => Assert.AreEqual(expected, ((TrackStore)manager.Tracks).Items.Count);
 
@@ -113,7 +139,7 @@ namespace osu.Framework.Tests.Audio
             {
                 thread.Scheduler.Add(() =>
                 {
-                    if (--count > 0)
+                    if (count-- > 0)
                         runScheduled();
                     else
                     {

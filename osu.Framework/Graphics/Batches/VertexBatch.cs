@@ -45,23 +45,18 @@ namespace osu.Framework.Graphics.Batches
 
         #region Disposal
 
-        ~VertexBatch()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        protected void Dispose(bool disposing)
         {
             if (disposing)
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
-        });
+        }
 
         #endregion
 
@@ -88,7 +83,7 @@ namespace osu.Framework.Graphics.Batches
 
             VertexBuffer<T> vertexBuffer = currentVertexBuffer;
 
-            if (!vertexBuffer.Vertices[currentVertex].Equals(v))
+            if (vertexBuffer.SetVertex(currentVertex, v))
             {
                 if (changeBeginIndex == -1)
                     changeBeginIndex = currentVertex;
@@ -96,10 +91,9 @@ namespace osu.Framework.Graphics.Batches
                 changeEndIndex = currentVertex + 1;
             }
 
-            vertexBuffer.Vertices[currentVertex] = v;
             ++currentVertex;
 
-            if (currentVertex >= vertexBuffer.Vertices.Length)
+            if (currentVertex >= vertexBuffer.Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);

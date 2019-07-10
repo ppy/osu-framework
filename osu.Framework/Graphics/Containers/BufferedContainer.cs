@@ -12,6 +12,7 @@ using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -108,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
             get => pixelSnapping;
             set
             {
-                if (sharedData?.MainBuffer.IsInitialized == true)
+                if (sharedData.MainBuffer.IsInitialized)
                     throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
 
                 pixelSnapping = value;
@@ -312,6 +313,33 @@ namespace osu.Framework.Graphics.Containers
 
             childrenUpdateVersion = updateVersion;
         }
+
+        /// <summary>
+        /// The blending which <see cref="BufferedContainerDrawNode"/> uses for the effect.
+        /// </summary>
+        public BlendingParameters DrawEffectBlending
+        {
+            get
+            {
+                BlendingParameters blending = EffectBlending;
+                if (blending.Mode == BlendingMode.Inherit)
+                    blending.Mode = Blending.Mode;
+
+                if (blending.RGBEquation == BlendingEquation.Inherit)
+                    blending.RGBEquation = Blending.RGBEquation;
+
+                if (blending.AlphaEquation == BlendingEquation.Inherit)
+                    blending.AlphaEquation = Blending.AlphaEquation;
+
+                return blending;
+            }
+        }
+
+        /// <summary>
+        /// Creates a view which can be added to a container to display the content of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <returns>The view.</returns>
+        public BufferedContainerView<T> CreateView() => new BufferedContainerView<T>(this, sharedData);
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 

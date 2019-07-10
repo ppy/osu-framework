@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using CoreGraphics;
 using UIKit;
 
@@ -11,6 +12,14 @@ namespace osu.Framework.iOS
         public override bool PrefersStatusBarHidden() => true;
 
         public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures => UIRectEdge.All;
+
+        public override void DidReceiveMemoryWarning()
+        {
+            base.DidReceiveMemoryWarning();
+
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+            GC.Collect();
+        }
 
         public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {

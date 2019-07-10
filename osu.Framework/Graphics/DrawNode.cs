@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
@@ -42,7 +43,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The <see cref="Drawable"/> which this <see cref="DrawNode"/> draws.
         /// </summary>
-        protected readonly IDrawable Source;
+        protected IDrawable Source { get; private set; }
 
         private readonly AtomicCounter referenceCount = new AtomicCounter();
 
@@ -78,13 +79,16 @@ namespace osu.Framework.Graphics
         /// Draws this <see cref="DrawNode"/> to the screen.
         /// </summary>
         /// <remarks>
-        /// This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.<br />
-        /// The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.<br />
+        /// Subclasses must invoke <code>base.Draw()</code> prior to drawing vertices.
         /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+
+            // This is the back-to-front (BTF) pass. The back-buffer depth test function used is GL_LESS.
+            // The depth test will fail for samples that overlap the opaque interior of this <see cref="DrawNode"/> and any <see cref="DrawNode"/>s above this one.
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -122,10 +126,14 @@ namespace osu.Framework.Graphics
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
         /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
         /// </summary>
+        /// <remarks>
+        /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
+        /// </remarks>
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawColourInfo.Blending);
+            GLWrapper.SetDrawDepth(drawDepth);
         }
 
         /// <summary>
@@ -146,7 +154,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage);
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -160,7 +168,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage);
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -175,7 +183,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -190,7 +198,7 @@ namespace osu.Framework.Graphics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawDepth, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.
@@ -241,6 +249,25 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Draws a <see cref="FrameBuffer"/> to the screen.
+        /// </summary>
+        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
+        /// <param name="vertexQuad">The destination vertices.</param>
+        /// <param name="drawColour">The colour to draw the <paramref name="frameBuffer"/> with.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that the frame buffer area  should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the frame buffer should be blended.</param>
+        protected void DrawFrameBuffer(FrameBuffer frameBuffer, Quad vertexQuad, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null,
+                                       Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        {
+            // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
+            RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
+
+            if (frameBuffer.Texture.Bind())
+                DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
+        }
+
+        /// <summary>
         /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.
         /// Invoke <see cref="Dispose"/> to remove the reference.
         /// </summary>
@@ -251,7 +278,7 @@ namespace osu.Framework.Graphics
 
         ~DrawNode()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
@@ -259,12 +286,13 @@ namespace osu.Framework.Graphics
             if (referenceCount.Decrement() != 0)
                 return;
 
-            Dispose(true);
+            GLWrapper.ScheduleDisposal(() => Dispose(true));
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
+            Source = null;
         }
     }
 }

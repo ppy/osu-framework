@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
@@ -60,6 +61,45 @@ namespace osu.Framework.Logging
         {
             private get => storage;
             set => storage = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>
+        /// The target for which this logger logs information. This will only be null if the logger has a name.
+        /// </summary>
+        public LoggingTarget? Target { get; }
+
+        /// <summary>
+        /// The name of the logger.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the name of the file that this logger is logging to.
+        /// </summary>
+        public string Filename => $@"{Name}.log";
+
+        private readonly GlobalStatistic<int> logCount;
+
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+
+        private Logger(LoggingTarget target = LoggingTarget.Runtime)
+            : this(target.ToString(), false)
+        {
+            Target = target;
+        }
+
+        private Logger(string name, bool checkedReserved)
+        {
+            name = name.ToLower();
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
+
+            if (checkedReserved && reserved_names.Contains(name))
+                throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
+
+            Name = name;
+            logCount = GlobalStatistics.Get<int>(nameof(Logger), Name);
         }
 
         /// <summary>
@@ -129,9 +169,10 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, target, null, level);
+            log(message, target, null, level, outputToListeners: outputToListeners);
         }
 
         /// <summary>
@@ -140,19 +181,20 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="name">The logger name (file).</param>
         /// <param name="level">The verbosity level.</param>
-        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose)
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
-            log(message, null, name, level);
+            log(message, null, name, level, outputToListeners: outputToListeners);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null)
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level, exception);
+                    GetLogger(target.Value).Add(message, level, exception, outputToListeners);
                 else
-                    GetLogger(loggerName).Add(message, level, exception);
+                    GetLogger(loggerName).Add(message, level, exception, outputToListeners);
             }
             catch
             {
@@ -207,45 +249,12 @@ namespace osu.Framework.Logging
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
-                    static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name);
+                    static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name, true);
                     l.clear();
                 }
 
                 return l;
             }
-        }
-
-        /// <summary>
-        /// The target for which this logger logs information. This will only be null if the logger has a name.
-        /// </summary>
-        public LoggingTarget? Target { get; }
-
-        /// <summary>
-        /// The name of the logger. This will only have a value if <see cref="Target"/> is null.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the name of the file that this logger is logging to.
-        /// </summary>
-        public string Filename => $@"{(Target?.ToString() ?? Name).ToLower()}.log";
-
-        private Logger(LoggingTarget target = LoggingTarget.Runtime)
-        {
-            Target = target;
-        }
-
-        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
-
-        private Logger(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
-
-            if (reserved_names.Contains(name.ToLower()))
-                throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
-
-            Name = name;
         }
 
         /// <summary>
@@ -264,8 +273,9 @@ namespace osu.Framework.Logging
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
-            add(message, level, exception, OutputToListeners);
+        /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
+            add(message, level, exception, outputToListeners && OutputToListeners);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
 
@@ -275,6 +285,8 @@ namespace osu.Framework.Logging
                 return;
 
             ensureHeader();
+
+            logCount.Value++;
 
             message = ApplyFilters(message);
 
@@ -316,7 +328,7 @@ namespace osu.Framework.Logging
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}");
+                            consoleLog($"[{Name}:{level.ToString().ToLower()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
@@ -387,7 +399,7 @@ namespace osu.Framework.Logging
             headerAdded = true;
 
             add("----------------------------------------------------------", outputToListeners: false);
-            add($"{Target} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
+            add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
             add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
             add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);

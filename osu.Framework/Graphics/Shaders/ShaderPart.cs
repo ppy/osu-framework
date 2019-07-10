@@ -6,12 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart : IDisposable
+    internal class ShaderPart
     {
         internal const string BOUNDARY = @"----------------------{0}";
 
@@ -24,6 +23,8 @@ namespace osu.Framework.Graphics.Shaders
         internal bool Compiled;
 
         internal ShaderType Type;
+
+        private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
 
         private int partID = -1;
 
@@ -43,7 +44,7 @@ namespace osu.Framework.Graphics.Shaders
 
             this.manager = manager;
 
-            shaderCodes.Add(loadFile(data));
+            shaderCodes.Add(loadFile(data, true));
             shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
             if (shaderCodes.Count == 0)
@@ -52,7 +53,7 @@ namespace osu.Framework.Graphics.Shaders
             HasCode = true;
         }
 
-        private string loadFile(byte[] bytes)
+        private string loadFile(byte[] bytes, bool mainFile)
         {
             if (bytes == null)
                 return null;
@@ -86,7 +87,7 @@ namespace osu.Framework.Graphics.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName)) + '\n';
+                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -104,6 +105,16 @@ namespace osu.Framework.Graphics.Shaders
                             });
                         }
                     }
+                }
+
+                if (mainFile && isVertexShader)
+                {
+                    string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+
+                    string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                    backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                    code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                 }
 
                 return code;
@@ -156,22 +167,5 @@ namespace osu.Framework.Graphics.Shaders
             Compiled = false;
             partID = -1;
         }
-
-        #region Disposal
-
-        ~ShaderPart()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delete);
-
-        #endregion
     }
 }
