@@ -28,7 +28,8 @@ namespace osu.Framework.Android.Input
 
         private void commitText(string text)
         {
-            pending += text;
+            OnNewImeComposition?.Invoke(text);
+            OnNewImeResult?.Invoke(text);
         }
 
         private void keyDown(Keycode arg, KeyEvent e)

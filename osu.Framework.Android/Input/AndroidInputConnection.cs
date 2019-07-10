@@ -17,23 +17,6 @@ namespace osu.Framework.Android.Input
 {
     class AndroidInputConnection : BaseInputConnection
     {
-        static readonly Dictionary<char, char> shiftKeycodeMap = new Dictionary<char, char>
-        {
-            { '~', '`' }, { '!', '1' }, { '@', '2' }, { '#', '3' }, { '$', '4' },
-            { '%', '5' }, { '^', '6' }, { '&', '7' }, { '*', '8' }, { '(', '9' },
-            { ')', '0' }, { '_', '-' }, { '+', '=' }, { '{', '[' }, { '}', ']' },
-            { '|', '\\' }, { ':', ';' }, { '"', '\'' }, { '?', '/' }, { '>', '.' },
-            { '<', ',' }
-        };
-
-        static readonly Dictionary<char, Keycode> charToKeycodeMap = new Dictionary<char, Keycode>
-        {
-            { '+', Keycode.Plus }, { '-', Keycode.Minus }, { '*', Keycode.Star },
-            { '/', Keycode.Slash }, { '=', Keycode.Equals }, { '@', Keycode.At },
-            { '#', Keycode.Pound }, { '\'', Keycode.Apostrophe }, { '.', Keycode.Period },
-            { '[', Keycode.LeftBracket }, { ']', Keycode.RightBracket }, { ';', Keycode.Semicolon },
-            { '`', Keycode.Grave }, { ' ', Keycode.Space }, { ',', Keycode.Comma }
-        };
 
         public AndroidGameView TargetView { get; set; }
 
@@ -46,25 +29,7 @@ namespace osu.Framework.Android.Input
         {
             if (text.Length() != 0)
             {
-                //direct commit some text is not supported by framework now, so we convert the input text to key events.
-                foreach (char c in text.ToArray())
-                {
-                    bool needShift = NeedShiftPress(c);
-                    Keycode keycode = TryParseCharIntoKeycode(ToUnshiftChar(c));
-                    if (needShift)
-                    {
-                        SendKeyEvent(new KeyEvent(0, 0, KeyEventActions.Down, Keycode.ShiftLeft, 0, MetaKeyStates.ShiftOn | MetaKeyStates.ShiftLeftOn));
-                        SendKeyEvent(new KeyEvent(0, 0, KeyEventActions.Down, keycode, 0, MetaKeyStates.ShiftOn | MetaKeyStates.ShiftLeftOn));
-                        SendKeyEvent(new KeyEvent(0, 0, KeyEventActions.Up, keycode, 0, MetaKeyStates.ShiftOn | MetaKeyStates.ShiftLeftOn));
-                        SendKeyEvent(new KeyEvent(0, 0, KeyEventActions.Up, Keycode.ShiftLeft, 0, MetaKeyStates.ShiftOn | MetaKeyStates.ShiftLeftOn));
-                    }
-                    else
-                    {
-                        SendKeyEvent(new KeyEvent(KeyEventActions.Down, keycode));
-                        SendKeyEvent(new KeyEvent(KeyEventActions.Up, keycode));
-                    }
-                }
-
+                TargetView.OnCommitText(text.ToString());
                 return true;
             }
 
@@ -101,33 +66,6 @@ namespace osu.Framework.Android.Input
             }
 
             return true;
-        }
-
-        public static Keycode TryParseCharIntoKeycode(char c)
-        {
-            if(char.IsLetter(c))
-                return Keycode.A + (char.ToLower(c) - 'a');
-
-            if (char.IsDigit(c))
-                return Keycode.Num0 + (c - '0');
-
-            return charToKeycodeMap.ContainsKey(c) ? charToKeycodeMap[c] : Keycode.Unknown;
-        }
-
-        public static bool NeedShiftPress(char c)
-        {
-            if (char.IsLetterOrDigit(c))
-                return char.IsUpper(c);
-
-            return shiftKeycodeMap.ContainsKey(c);
-        }
-
-        public static char ToUnshiftChar(char c)
-        {
-            if (char.IsLetter(c))
-                return char.ToLower(c);
-
-            return shiftKeycodeMap.ContainsKey(c) ? shiftKeycodeMap[c] : c;
         }
     }
 }
