@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
         private ISafeArea safeArea { get; set; }
 
         /// <summary>
-        /// The <see cref="Edges"/> that should bypass the defined <see cref="ISafeArea" /> o bleed to the screen edge.
+        /// The <see cref="Edges"/> that should bypass the defined <see cref="ISafeArea" /> to bleed to the screen edge.
         /// Defaults to <see cref="Edges.None"/>.
         /// </summary>
         public Edges SafeAreaOverrideEdges { get; set; } = Edges.None;

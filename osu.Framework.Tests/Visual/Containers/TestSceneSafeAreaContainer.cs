@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Child = createGridContainer(10, 10),
             };
 
-            var safeAreaBackgroun = new SafeAreaContainer
+            var safeAreaBackground = new SafeAreaContainer
             {
                 Name = "Overriding Container",
                 RelativeSizeAxes = Axes.Both,
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new MarginPaddingControlsContainer(safeAreaBackgroun, safeAreaGrid, safeAreaPadding)
+                    new MarginPaddingControlsContainer(safeAreaBackground, safeAreaGrid, safeAreaPadding)
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Size = new Vector2(400, 300),
                                 Children = new Drawable[]
                                 {
-                                    safeAreaBackgroun,
+                                    safeAreaBackground,
                                     safeAreaGrid,
                                 }
                             },
@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             private class MarginPaddingControl : FillFlowContainer
             {
-                public MarginPaddingControl(SafeAreaContainer safeAreaBackgroun, SafeAreaContainer safeAreaGrid, string title, Bindable<float> bindable, Edges edge)
+                public MarginPaddingControl(SafeAreaContainer safeAreaBackground, SafeAreaContainer safeAreaGrid, string title, Bindable<float> bindable, Edges edge)
                 {
                     SpriteText valueText;
                     BasicCheckbox overrideCheckbox;
@@ -255,9 +255,9 @@ namespace osu.Framework.Tests.Visual.Containers
                     overrideCheckbox.Current.ValueChanged += e =>
                     {
                         if (e.NewValue)
-                            safeAreaBackgroun.SafeAreaOverrideEdges |= edge;
+                            safeAreaBackground.SafeAreaOverrideEdges |= edge;
                         else
-                            safeAreaBackgroun.SafeAreaOverrideEdges &= ~edge;
+                            safeAreaBackground.SafeAreaOverrideEdges &= ~edge;
                     };
 
                     safeCheckbox.Current.ValueChanged += e =>

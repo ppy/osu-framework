@@ -16,6 +16,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         RectangleF AvailableNonSafeSpace { get; }
 
+        /// <summary>
+        /// The padding which should be applied to confine a child to the safe area.
+        /// </summary>
         BindableSafeArea SafeAreaPadding { get; }
 
         /// <summary>
