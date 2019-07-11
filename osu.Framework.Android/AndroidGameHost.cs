@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Android.App;
+using Android.Content;
+using Android.Content.PM;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Input;
 using osu.Framework.Graphics.Textures;
@@ -10,6 +14,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using AndroidUri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
@@ -45,7 +50,30 @@ namespace osu.Framework.Android
             => new AndroidStorage(baseName, this);
 
         public override void OpenFileExternally(string filename)
-            => throw new NotImplementedException();
+        {
+            if (!File.Exists(filename))
+            {
+                openFolderExternally(filename);
+                return;
+            }
+        }
+
+        private void openFolderExternally(string filename)
+        {
+            Context context = Application.Context.ApplicationContext;
+            PackageManager pm = context.PackageManager;
+            var contentUri = AndroidUri.Parse(filename);
+
+            Intent intent = new Intent(Intent.ActionView);
+            intent.SetDataAndType(contentUri, "resource/folder");
+            intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+            if (intent.ResolveActivity(pm) == null)
+                return;
+            var chooserIntent = Intent.CreateChooser(intent, "Choose your file manager");
+            chooserIntent.SetFlags(ActivityFlags.ClearTop);
+            chooserIntent.SetFlags(ActivityFlags.NewTask);
+            context.StartActivity(chooserIntent);
+        }
 
         public override void OpenUrlExternally(string url)
             => throw new NotImplementedException();

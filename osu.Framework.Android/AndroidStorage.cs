@@ -18,11 +18,5 @@ namespace osu.Framework.Android
         {
             return Application.Context.GetExternalFilesDir(string.Empty).ToString();
         }
-
-        public override void OpenInNativeExplorer()
-        {
-            //Not needed now.
-            throw new NotImplementedException();
-        }
     }
 }
