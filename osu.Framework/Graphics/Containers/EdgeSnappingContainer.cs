@@ -31,9 +31,9 @@ namespace osu.Framework.Graphics.Containers
             UpdatePadding();
         }
 
-        protected void UpdatePadding() => Padding = SnappedPadding();
+        protected void UpdatePadding() => Padding = GetSnappedPadding();
 
-        protected virtual MarginPadding SnappedPadding()
+        protected virtual MarginPadding GetSnappedPadding()
         {
             if (SnapTarget == null)
                 return new MarginPadding();

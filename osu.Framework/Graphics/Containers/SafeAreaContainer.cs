@@ -35,12 +35,12 @@ namespace osu.Framework.Graphics.Containers
             safeAreaPadding.BindTo(safeAreaTargetContainer.SafeAreaPadding);
         }
 
-        protected override MarginPadding SnappedPadding()
+        protected override MarginPadding GetSnappedPadding()
         {
             if ((SafeEdges & SnappedEdges) != Edges.None)
                 throw new InvalidOperationException($"A {nameof(SafeAreaContainer)}'s {nameof(SafeEdges)} may not share edges with its {nameof(SnappedEdges)}.");
 
-            MarginPadding basePadding = base.SnappedPadding();
+            MarginPadding basePadding = base.GetSnappedPadding();
 
             if (SnapTarget == null)
                 return basePadding;
