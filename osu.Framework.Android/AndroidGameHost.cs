@@ -51,11 +51,12 @@ namespace osu.Framework.Android
 
         public override void OpenFileExternally(string filename)
         {
-            if (!File.Exists(filename))
+            if (Directory.Exists(filename))
             {
                 openFolderExternally(filename);
                 return;
             }
+            throw new NotImplementedException();
         }
 
         private void openFolderExternally(string filename)
