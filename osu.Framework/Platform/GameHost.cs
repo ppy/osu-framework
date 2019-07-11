@@ -34,7 +34,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.IO.File;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 
@@ -480,8 +479,6 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
-                FileSafety.DeleteCleanupDirectory();
-
                 var assembly = DebugUtils.GetEntryAssembly();
                 string assemblyPath = DebugUtils.GetEntryPath();
 
@@ -611,7 +608,11 @@ namespace osu.Framework.Platform
             {
                 Child = new FrameworkActionContainer
                 {
-                    Child = game
+                    Child = new SafeAreaDefiningContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Child = game
+                    }
                 }
             };
 

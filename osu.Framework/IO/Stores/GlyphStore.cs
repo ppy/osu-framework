@@ -166,6 +166,9 @@ namespace osu.Framework.IO.Stores
             int charWidth = c.Width + c.XOffset;
             int charHeight = c.Height + c.YOffset;
 
+            if (readBuffer == null)
+                readBuffer = new byte[pageWidth];
+
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
 
             using (var stream = CacheStorage.GetStream(pageInfo.Filename))
@@ -175,7 +178,7 @@ namespace osu.Framework.IO.Stores
 
                 for (int y = 0; y < c.Height; y++)
                 {
-                    stream.Read(readBuffer, 0, pageWidth);
+                    stream.Read(readBuffer, c.X, c.Width);
 
                     for (int x = 0; x < c.Width; x++)
                     {
@@ -183,7 +186,7 @@ namespace osu.Framework.IO.Stores
                         int offsetY = y + c.YOffset;
 
                         if (offsetX >= 0 && offsetY > 0 && offsetX < charWidth && offsetY < charHeight) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
-                            pixels[offsetY * charWidth + offsetX] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
+                            pixels[offsetY * charWidth + offsetX] = new Rgba32(255, 255, 255, readBuffer[x]);
                     }
                 }
             }
@@ -191,7 +194,7 @@ namespace osu.Framework.IO.Stores
             return new TextureUpload(image);
         }
 
-        private readonly byte[] readBuffer = new byte[1024];
+        private byte[] readBuffer;
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
