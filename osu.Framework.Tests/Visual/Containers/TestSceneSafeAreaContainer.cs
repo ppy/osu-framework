@@ -19,10 +19,7 @@ namespace osu.Framework.Tests.Visual.Containers
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(SafeAreaContainer),
-            typeof(SafeAreaTargetContainer),
-            typeof(EdgeSnappingContainer),
-            typeof(SnapTargetContainer)
+            typeof(SafeAreaDefiningContainer),
         };
 
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
@@ -34,24 +31,22 @@ namespace osu.Framework.Tests.Visual.Containers
 
         public TestSceneSafeAreaContainer()
         {
-            var safeContainer = new SafeAreaContainer
+            var safeAreaGrid = new SafeAreaContainer
             {
                 Name = "Padding Container",
-                SafeEdges = Edges.None,
-                SnappedEdges = Edges.None,
+                SafeAreaOverrideEdges = Edges.None,
                 RelativeSizeAxes = Axes.Both,
                 Child = createGridContainer(10, 10),
             };
 
-            var snappingContainer = new SafeAreaContainer
+            var safeAreaBackgroun = new SafeAreaContainer
             {
-                Name = "Snapping Container",
+                Name = "Overriding Container",
                 RelativeSizeAxes = Axes.Both,
-                SafeEdges = Edges.None,
-                SnappedEdges = Edges.None,
+                SafeAreaOverrideEdges = Edges.None,
                 Child = new Box
                 {
-                    Name = "Snapping Background",
+                    Name = "Overriding Background",
                     Colour = Color4.Blue,
                     RelativeSizeAxes = Axes.Both
                 },
@@ -64,12 +59,12 @@ namespace osu.Framework.Tests.Visual.Containers
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new MarginPaddingControlsContainer(snappingContainer, safeContainer, safeAreaPadding)
+                    new MarginPaddingControlsContainer(safeAreaBackgroun, safeAreaGrid, safeAreaPadding)
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                     },
-                    new SafeAreaTargetContainer(safeAreaPadding)
+                    new SafeAreaDefiningContainer(safeAreaPadding)
                     {
                         Name = "Safe Area Target",
                         Size = new Vector2(500, 400),
@@ -87,8 +82,8 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Size = new Vector2(400, 300),
                                 Children = new Drawable[]
                                 {
-                                    snappingContainer,
-                                    safeContainer,
+                                    safeAreaBackgroun,
+                                    safeAreaGrid,
                                 }
                             },
                             safeAreaLeftOverlay = new Box
@@ -171,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             private readonly BindableSafeArea bindableSafeArea;
 
-            public MarginPaddingControlsContainer(SafeAreaContainer snappingContainer, SafeAreaContainer safeContainer, BindableSafeArea bindableSafeArea)
+            public MarginPaddingControlsContainer(SafeAreaContainer safeAreaBackgroun, SafeAreaContainer safeAreaGrid, BindableSafeArea bindableSafeArea)
             {
                 this.bindableSafeArea = bindableSafeArea;
 
@@ -184,10 +179,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 Spacing = new Vector2(10);
                 Children = new Drawable[]
                 {
-                    new MarginPaddingControl(snappingContainer, safeContainer, "Top", safeAreaPaddingTop, Edges.Top),
-                    new MarginPaddingControl(snappingContainer, safeContainer, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
-                    new MarginPaddingControl(snappingContainer, safeContainer, "Left", safeAreaPaddingLeft, Edges.Left),
-                    new MarginPaddingControl(snappingContainer, safeContainer, "Right", safeAreaPaddingRight, Edges.Right),
+                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Top", safeAreaPaddingTop, Edges.Top),
+                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
+                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Left", safeAreaPaddingLeft, Edges.Left),
+                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Right", safeAreaPaddingRight, Edges.Right),
                 };
 
                 safeAreaPaddingTop.ValueChanged += updateMarginPadding;
@@ -209,10 +204,10 @@ namespace osu.Framework.Tests.Visual.Containers
 
             private class MarginPaddingControl : FillFlowContainer
             {
-                public MarginPaddingControl(SafeAreaContainer snappingContainer, SafeAreaContainer safeContainer, string title, Bindable<float> bindable, Edges edge)
+                public MarginPaddingControl(SafeAreaContainer safeAreaBackgroun, SafeAreaContainer safeAreaGrid, string title, Bindable<float> bindable, Edges edge)
                 {
                     SpriteText valueText;
-                    BasicCheckbox snapCheckbox;
+                    BasicCheckbox overrideCheckbox;
                     BasicCheckbox safeCheckbox;
 
                     Direction = FillDirection.Horizontal;
@@ -243,34 +238,34 @@ namespace osu.Framework.Tests.Visual.Containers
                         },
                         new SpriteText
                         {
-                            Text = "Snap",
+                            Text = "Background Override",
                             Origin = Anchor.CentreLeft,
                             Anchor = Anchor.CentreLeft,
                         },
-                        snapCheckbox = new BasicCheckbox(),
+                        overrideCheckbox = new BasicCheckbox(),
                         new SpriteText
                         {
-                            Text = "Safe",
+                            Text = "Grid Override",
                             Origin = Anchor.CentreLeft,
                             Anchor = Anchor.CentreLeft,
                         },
                         safeCheckbox = new BasicCheckbox()
                     };
 
-                    snapCheckbox.Current.ValueChanged += e =>
+                    overrideCheckbox.Current.ValueChanged += e =>
                     {
                         if (e.NewValue)
-                            snappingContainer.SnappedEdges |= edge;
+                            safeAreaBackgroun.SafeAreaOverrideEdges |= edge;
                         else
-                            snappingContainer.SnappedEdges &= ~edge;
+                            safeAreaBackgroun.SafeAreaOverrideEdges &= ~edge;
                     };
 
                     safeCheckbox.Current.ValueChanged += e =>
                     {
                         if (e.NewValue)
-                            safeContainer.SafeEdges |= edge;
+                            safeAreaGrid.SafeAreaOverrideEdges |= edge;
                         else
-                            safeContainer.SafeEdges &= ~edge;
+                            safeAreaGrid.SafeAreaOverrideEdges &= ~edge;
                     };
 
                     bindable.ValueChanged += e => valueText.Text = $"{e.NewValue:F1}";

@@ -611,7 +611,7 @@ namespace osu.Framework.Platform
             {
                 Child = new FrameworkActionContainer
                 {
-                    Child = new SafeAreaTargetContainer
+                    Child = new SafeAreaDefiningContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = game

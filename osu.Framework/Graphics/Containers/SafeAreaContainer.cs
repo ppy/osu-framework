@@ -4,59 +4,75 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// An <see cref="EdgeSnappingContainer"/> that can also apply a padding based on the safe areas of the nearest cached <see cref="SafeAreaTargetContainer"/>.
+    /// An <see cref="Container"/> that can also apply a padding based on the safe areas of the nearest cached <see cref="SafeAreaDefiningContainer"/>.
     /// Padding will only be applied if the contents of this container would otherwise intersect the safe area margins relative to the associated target container.
-    /// Padding may be applied to individual edges by setting the <see cref="SafeEdges"/> property.
     /// </summary>
-    public class SafeAreaContainer : EdgeSnappingContainer
+    public class SafeAreaContainer : Container
     {
-        [Resolved]
-        private SafeAreaTargetContainer safeAreaTargetContainer { get; set; }
-
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
-
-        public override ISnapTargetContainer SnapTarget => safeAreaTargetContainer;
-
-        /// <summary>
-        /// The <see cref="Edges"/> that should be automatically padded based on the target's <see cref="SafeAreaTargetContainer.SafeAreaPadding"/>
-        /// Defaults to <see cref="Edges.All"/>. May not share edges with <see cref="EdgeSnappingContainer.SnappedEdges"/>.
-        /// </summary>
-        public Edges SafeEdges { get; set; } = Edges.All;
 
         [BackgroundDependencyLoader]
         private void load()
         {
             safeAreaPadding.ValueChanged += _ => PaddingCache.Invalidate();
-            safeAreaPadding.BindTo(safeAreaTargetContainer.SafeAreaPadding);
+            safeAreaPadding.BindTo(safeArea.SafeAreaPadding);
         }
 
-        protected override MarginPadding GetSnappedPadding()
+        [Resolved(CanBeNull = true)]
+        private ISafeArea safeArea { get; set; }
+
+        /// <summary>
+        /// The <see cref="Edges"/> that should bypass the defined <see cref="ISafeArea" /> o bleed to the screen edge.
+        /// Defaults to <see cref="Edges.None"/>.
+        /// </summary>
+        public Edges SafeAreaOverrideEdges { get; set; } = Edges.None;
+
+        protected readonly Cached PaddingCache = new Cached();
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((SafeEdges & SnappedEdges) != Edges.None)
-                throw new InvalidOperationException($"A {nameof(SafeAreaContainer)}'s {nameof(SafeEdges)} may not share edges with its {nameof(SnappedEdges)}.");
+            if (invalidation.HasFlag(Invalidation.Parent))
+                PaddingCache.Invalidate();
 
-            MarginPadding basePadding = base.GetSnappedPadding();
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
 
-            if (SnapTarget == null)
-                return basePadding;
+        protected override void UpdateAfterChildrenLife()
+        {
+            base.UpdateAfterChildrenLife();
 
-            var snapRect = SnapTarget.SnapRectangle;
-            var safeArea = safeAreaPadding.Value;
-            var paddedRect = new RectangleF(snapRect.X + safeArea.Left, snapRect.Y + safeArea.Top, snapRect.Width - safeArea.TotalHorizontal, snapRect.Height - safeArea.TotalVertical);
-            var localTopLeft = SnapTarget.ToSpaceOfOtherDrawable(paddedRect.TopLeft, this);
-            var localBottomRight = SnapTarget.ToSpaceOfOtherDrawable(paddedRect.BottomRight, this);
+            if (!PaddingCache.IsValid)
+            {
+                Padding = getPadding();
+                PaddingCache.Validate();
+            }
+        }
+
+        private MarginPadding getPadding()
+        {
+            if (safeArea == null)
+                return new MarginPadding();
+
+            var nonSafeLocalSpace = safeArea.ExpandRectangleToSpaceOfOtherDrawable(this);
+
+            var nonSafe = safeArea.AvailableNonSafeSpace;
+
+            var paddedRect = new RectangleF(nonSafe.X + safeAreaPadding.Value.Left, nonSafe.Y + safeAreaPadding.Value.Top, nonSafe.Width - safeAreaPadding.Value.TotalHorizontal, nonSafe.Height - safeAreaPadding.Value.TotalVertical);
+            var localTopLeft = safeArea.ToSpaceOfOtherDrawable(paddedRect.TopLeft, this);
+            var localBottomRight = safeArea.ToSpaceOfOtherDrawable(paddedRect.BottomRight, this);
 
             return new MarginPadding
             {
-                Left = SafeEdges.HasFlag(Edges.Left) ? Math.Max(0, localTopLeft.X) : basePadding.Left,
-                Right = SafeEdges.HasFlag(Edges.Right) ? Math.Max(0, DrawSize.X - localBottomRight.X) : basePadding.Right,
-                Top = SafeEdges.HasFlag(Edges.Top) ? Math.Max(0, localTopLeft.Y) : basePadding.Top,
-                Bottom = SafeEdges.HasFlag(Edges.Bottom) ? Math.Max(0, DrawSize.Y - localBottomRight.Y) : basePadding.Bottom
+                Left = SafeAreaOverrideEdges.HasFlag(Edges.Left) ? nonSafeLocalSpace.TopLeft.X : Math.Max(0, localTopLeft.X),
+                Right = SafeAreaOverrideEdges.HasFlag(Edges.Right) ? DrawRectangle.BottomRight.X - nonSafeLocalSpace.BottomRight.X : Math.Max(0, DrawSize.X - localBottomRight.X),
+                Top = SafeAreaOverrideEdges.HasFlag(Edges.Top) ? nonSafeLocalSpace.TopLeft.Y : Math.Max(0, localTopLeft.Y),
+                Bottom = SafeAreaOverrideEdges.HasFlag(Edges.Bottom) ? DrawRectangle.BottomRight.Y - nonSafeLocalSpace.BottomRight.Y : Math.Max(0, DrawSize.Y - localBottomRight.Y)
             };
         }
     }

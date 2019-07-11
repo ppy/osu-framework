@@ -56,9 +56,9 @@ namespace osu.Framework.Testing.Drawables
                     AutoSizeAxes = Axes.Y,
                     Children = new Drawable[]
                     {
-                        new EdgeSnappingContainer
+                        new SafeAreaContainer
                         {
-                            SnappedEdges = Edges.Left,
+                            SafeAreaOverrideEdges = Edges.Left,
                             RelativeSizeAxes = Axes.Both,
                             Child = content = new Container { RelativeSizeAxes = Axes.Both },
                         },

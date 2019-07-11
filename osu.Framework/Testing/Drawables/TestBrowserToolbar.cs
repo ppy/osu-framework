@@ -21,9 +21,9 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                new EdgeSnappingContainer
+                new SafeAreaContainer
                 {
-                    SnappedEdges = Edges.Top | Edges.Right,
+                    SafeAreaOverrideEdges = Edges.Top | Edges.Right,
                     RelativeSizeAxes = Axes.Both,
                     Child = new Box
                     {

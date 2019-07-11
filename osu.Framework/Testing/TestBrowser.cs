@@ -144,9 +144,9 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        new EdgeSnappingContainer
+                        new SafeAreaContainer
                         {
-                            SnappedEdges = Edges.Right | Edges.Bottom,
+                            SafeAreaOverrideEdges = Edges.Right | Edges.Bottom,
                             RelativeSizeAxes = Axes.Both,
                             Child = testContentContainer = new Container
                             {
@@ -191,9 +191,9 @@ namespace osu.Framework.Testing
                     Size = new Vector2(test_list_width, 1),
                     Children = new Drawable[]
                     {
-                        new EdgeSnappingContainer
+                        new SafeAreaContainer
                         {
-                            SnappedEdges = Edges.Left | Edges.Top | Edges.Bottom,
+                            SafeAreaOverrideEdges = Edges.Left | Edges.Top | Edges.Bottom,
                             RelativeSizeAxes = Axes.Both,
                             Child = new Box
                             {
