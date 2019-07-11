@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -113,13 +114,17 @@ namespace osu.Framework.Testing
 
         private Bindable<bool> showLogOverlay;
 
+        private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
+
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
+
+            audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
             var resources = game.Resources;
 
@@ -262,7 +267,11 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
+            PlaybackRate.BindValueChanged(e =>
+            {
+                rateAdjustClock.Rate = e.NewValue;
+                audioRateAdjust.Value = e.NewValue;
+            }, true);
         }
 
         protected override void Dispose(bool isDisposing)
