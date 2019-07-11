@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load()
         {
-            safeAreaPadding.ValueChanged += _ => UpdatePadding();
+            safeAreaPadding.ValueChanged += _ => PaddingCache.Invalidate();
             safeAreaPadding.BindTo(safeAreaTargetContainer.SafeAreaPadding);
         }
 

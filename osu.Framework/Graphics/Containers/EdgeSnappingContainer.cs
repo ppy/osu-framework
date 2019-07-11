@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -25,13 +26,26 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Edges SnappedEdges { get; set; } = Edges.None;
 
+        protected readonly Cached PaddingCache = new Cached();
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if (invalidation.HasFlag(Invalidation.Parent))
+                PaddingCache.Invalidate();
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         protected override void UpdateAfterChildrenLife()
         {
             base.UpdateAfterChildrenLife();
-            UpdatePadding();
-        }
 
-        protected void UpdatePadding() => Padding = GetSnappedPadding();
+            if (!PaddingCache.IsValid)
+            {
+                Padding = GetSnappedPadding();
+                PaddingCache.Validate();
+            }
+        }
 
         protected virtual MarginPadding GetSnappedPadding()
         {
