@@ -440,6 +440,7 @@ namespace osu.Framework.Platform
             Window?.Close();
             stopAllThreads();
             ExecutionState = ExecutionState.Stopped;
+            stoppedEvent.Set();
         }
 
         public void Run(Game game)
@@ -802,6 +803,8 @@ namespace osu.Framework.Platform
 
         private bool isDisposed;
 
+        private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
+
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
@@ -813,14 +816,15 @@ namespace osu.Framework.Platform
                 throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
 
             // Delay disposal until the game has exited
-            while (ExecutionState > ExecutionState.Stopped)
-                Thread.Sleep(10);
+            stoppedEvent.Wait();
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
 
             Root?.Dispose();
             Root = null;
+
+            stoppedEvent.Dispose();
 
             Config?.Dispose();
             DebugConfig?.Dispose();
