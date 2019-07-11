@@ -26,6 +26,23 @@ namespace osu.Framework.Android.Input
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
+        public void Deactivate(object sender)
+        {
+            inputMethodManager.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
+            view.KeyDown -= keyDown;
+            view.CommitText -= commitText;
+        }
+
+        public string GetPendingText()
+        {
+            lock (pendingLock)
+            {
+                var oldPending = pending;
+                pending = string.Empty;
+                return oldPending;
+            }
+        }
+
         private void commitText(string text)
         {
             OnNewImeComposition?.Invoke(text);
@@ -158,23 +175,6 @@ namespace osu.Framework.Android.Input
             inputMethodManager.ToggleSoftInput(ShowFlags.Forced, HideSoftInputFlags.None);
             view.KeyDown += keyDown;
             view.CommitText += commitText;
-        }
-
-        public void Deactivate(object sender)
-        {
-            inputMethodManager.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
-            view.KeyDown -= keyDown;
-            view.CommitText -= commitText;
-        }
-
-        public string GetPendingText()
-        {
-            lock (pendingLock)
-            {
-                var oldPending = pending;
-                pending = string.Empty;
-                return oldPending;
-            }
         }
     }
 }
