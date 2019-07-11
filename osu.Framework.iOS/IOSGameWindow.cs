@@ -7,17 +7,12 @@ using osu.Framework.Platform;
 using osu.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using osu.Framework.Bindables;
 
 namespace osu.Framework.iOS
 {
     public class IOSGameWindow : GameWindow
     {
         internal static IOSGameView GameView;
-
-        private readonly BindableMarginPadding safeAreaPadding = new BindableMarginPadding();
-
-        public override IBindable<MarginPadding> SafeAreaPadding => safeAreaPadding;
 
         public IOSGameWindow()
             : base(GameView)
@@ -58,7 +53,7 @@ namespace osu.Framework.iOS
 
         private void onResize(object sender, EventArgs e)
         {
-            safeAreaPadding.Value = new MarginPadding
+            SafeAreaPadding.Value = new MarginPadding
             {
                 Top = (float)GameView.SafeArea.Top * GameView.Scale,
                 Left = (float)GameView.SafeArea.Left * GameView.Scale,
