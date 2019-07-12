@@ -23,9 +23,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Logging;
 using osu.Framework.MathUtils;
-using osu.Framework.Screens;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -268,6 +266,7 @@ namespace osu.Framework.Graphics.Containers
 
             InternalChildren?.ForEach(c => c.Dispose());
 
+            // Explicitly dispose of drawables that have not been added to the hierarchy yet
             foreach (var componentList in loadComponentsList)
             foreach (Drawable d in componentList)
                 if (!d.IsLoaded)
