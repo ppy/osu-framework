@@ -78,8 +78,6 @@ namespace osu.Framework.Graphics.Containers
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
-        private readonly WeakList<Drawable> loadingComponents = new WeakList<Drawable>();
-
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -140,10 +138,12 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            foreach (var d in components)
+            OnDispose += () =>
             {
-                loadingComponents.Add(d);
-            }
+                foreach (var d in components)
+                    if (!d.IsLoaded)
+                        d.Dispose();
+            };
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
@@ -151,6 +151,11 @@ namespace osu.Framework.Graphics.Containers
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
+                    foreach (var d in components)
+                    {
+                        d.Dispose();
+                    }
+
                     linkedSource.Dispose();
                     return;
                 }
@@ -268,11 +273,6 @@ namespace osu.Framework.Graphics.Containers
             disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
-
-            // Explicitly dispose of drawables that have not been added to the hierarchy yet
-            foreach (var d in loadingComponents)
-                if (!d.IsLoaded)
-                    d.Dispose();
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
