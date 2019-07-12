@@ -23,7 +23,9 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
+using osu.Framework.Screens;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -77,6 +79,8 @@ namespace osu.Framework.Graphics.Containers
         private CancellationTokenSource disposalCancellationSource;
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+
+        private readonly List<IEnumerable<Drawable>> loadComponentsList = new List<IEnumerable<Drawable>>();
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -137,6 +141,8 @@ namespace osu.Framework.Graphics.Containers
 
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
+
+            loadComponentsList.Add(components);
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
@@ -261,6 +267,11 @@ namespace osu.Framework.Graphics.Containers
             disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
+
+            foreach (var componentList in loadComponentsList)
+            foreach (Drawable d in componentList)
+                if (!d.IsLoaded)
+                    d.Dispose();
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
