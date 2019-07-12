@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource disposalCancellationSource;
 
-        private readonly WeakList<Drawable> loadingComponents = new WeakList<Drawable>();
+        private WeakList<Drawable> loadingComponents;
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
@@ -140,10 +140,19 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
+            if (loadingComponents == null)
+                loadingComponents = new WeakList<Drawable>();
+
             foreach (var d in components)
             {
                 loadingComponents.Add(d);
-                d.OnLoadComplete += _ => loadingComponents.Remove(d);
+                d.OnLoadComplete += _ =>
+                {
+                    loadingComponents.Remove(d);
+
+                    if (!loadingComponents.Any())
+                        loadingComponents = null;
+                };
             }
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
@@ -270,7 +279,7 @@ namespace osu.Framework.Graphics.Containers
 
             InternalChildren?.ForEach(c => c.Dispose());
 
-            foreach (var d in loadingComponents)
+            foreach (var d in loadingComponents ?? Enumerable.Empty<Drawable>())
                 if (!d.IsLoaded)
                     d.Dispose();
 
