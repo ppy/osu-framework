@@ -151,11 +151,6 @@ namespace osu.Framework.Graphics.Containers
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
-                    foreach (var d in components)
-                    {
-                        d.Dispose();
-                    }
-
                     linkedSource.Dispose();
                     return;
                 }
