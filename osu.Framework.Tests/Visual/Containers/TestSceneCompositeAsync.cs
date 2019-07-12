@@ -19,14 +19,17 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("Add new composite", () =>
             {
+                disposed = false;
                 Add(comp = new AsyncLoadingContainer());
                 comp.ChildContainer.OnDispose += () => disposed = true;
             });
+
             AddStep("Dispose composite", () =>
             {
                 Remove(comp);
                 comp.Dispose();
             });
+
             AddAssert("Is disposed", () => disposed);
         }
 
