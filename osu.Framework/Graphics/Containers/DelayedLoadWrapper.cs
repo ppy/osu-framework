@@ -100,8 +100,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual void CancelTasks()
         {
-            loadScheduledDelegate?.Cancel();
-            loadScheduledDelegate = null;
+            cancelLoadScheduledDelegate();
 
             isIntersectingCache.Invalidate();
             loadTask = null;
@@ -125,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached findParentCache = new Cached();
+        private Cached optimisingContainerCache = new Cached();
         private Cached isIntersectingCache = new Cached();
 
         private ScheduledDelegate loadScheduledDelegate;
@@ -146,10 +145,10 @@ namespace osu.Framework.Graphics.Containers
 
         private void scheduleIsIntersecting()
         {
-            if (!findParentCache.IsValid)
+            if (!optimisingContainerCache.IsValid)
             {
                 OptimisingContainer = FindParentOptimisingContainer();
-                findParentCache.Validate();
+                optimisingContainerCache.Validate();
             }
 
             if (OptimisingContainer == null)
@@ -162,9 +161,9 @@ namespace osu.Framework.Graphics.Containers
                 if (loadScheduledDelegate == null)
                     loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
                     {
-                        // clean up tasks if we have lost sight of the OptimisingContainer that was used to schedule upon.
-                        if (!DelayedLoadCompleted && !findParentCache.IsValid)
-                            CancelTasks();
+                        // clean up this task immediately if we have lost sight of the OptimisingContainer that was used to schedule upon.
+                        if (!optimisingContainerCache.IsValid)
+                            cancelLoadScheduledDelegate();
 
                         if (!isIntersectingCache.IsValid)
                         {
@@ -175,12 +174,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private void cancelLoadScheduledDelegate()
+        {
+            loadScheduledDelegate?.Cancel();
+            loadScheduledDelegate = null;
+        }
+
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (invalidation.HasFlag(Invalidation.Parent))
             {
                 OptimisingContainer = null;
-                findParentCache.Invalidate();
+                optimisingContainerCache.Invalidate();
             }
 
             isIntersectingCache.Invalidate();
