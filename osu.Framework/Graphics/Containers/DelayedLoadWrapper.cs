@@ -162,6 +162,10 @@ namespace osu.Framework.Graphics.Containers
                 if (loadScheduledDelegate == null)
                     loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
                     {
+                        // clean up tasks if we have lost sight of the OptimisingContainer that was used to schedule upon.
+                        if (!DelayedLoadCompleted && !findParentCache.IsValid)
+                            CancelTasks();
+
                         if (!isIntersectingCache.IsValid)
                         {
                             IsIntersecting = OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) == true;
