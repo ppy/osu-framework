@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
-        private readonly List<IEnumerable<Drawable>> loadingComponents = new List<IEnumerable<Drawable>>();
+        private readonly List<Drawable> loadingComponents = new List<Drawable>();
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            loadingComponents.Add(components);
+            loadingComponents.AddRange(components as IEnumerable<Drawable>);
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
@@ -267,8 +267,7 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             // Explicitly dispose of drawables that have not been added to the hierarchy yet
-            foreach (var componentList in loadingComponents)
-            foreach (Drawable d in componentList)
+            foreach (var d in loadingComponents)
                 if (!d.IsLoaded)
                     d.Dispose();
 
