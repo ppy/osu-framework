@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="500" height="500" src="assets/o!f Logo Large FC.svg">
+  <img width="500" src="assets/o!f Logo Large FC.svg">
 </p>
 
 # osu!framework
