@@ -146,13 +146,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var d in components)
             {
                 loadingComponents.Add(d);
-                d.OnLoadComplete += _ =>
-                {
-                    loadingComponents.Remove(d);
-
-                    if (!loadingComponents.Any())
-                        loadingComponents = null;
-                };
+                d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
