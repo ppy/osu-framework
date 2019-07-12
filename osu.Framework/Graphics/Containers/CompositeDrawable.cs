@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
-        private readonly List<Drawable> loadingComponents = new List<Drawable>();
+        private List<Drawable> loadingComponents = new List<Drawable>();
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -271,6 +271,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!d.IsLoaded)
                     d.Dispose();
 
+            loadingComponents = null;
             OnAutoSize = null;
             schedulerAfterChildren = null;
 
