@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     });
             });
 
-            AddUntilStep("references counted", () => references.Count() == 16);
+            AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
             AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
 
@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     });
             });
 
-            AddUntilStep("references counted", () => references.Count() == 16);
+            AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
             AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
 
