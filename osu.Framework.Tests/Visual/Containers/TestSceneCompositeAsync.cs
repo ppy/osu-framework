@@ -4,12 +4,15 @@
 using NUnit.Framework;
 using osu.Framework.Graphics.Containers;
 
-namespace osu.Framework.Tests.Visual.Drawables
+namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneCompositeAsync : FrameworkTestScene
     {
+        [SetUp]
+        public void SetUp() => Schedule(Clear);
+
         [Test]
-        public void TestAddToComposite()
+        public void TestAddToCompositeAsync()
         {
             AsyncLoadingContainer comp = null;
             bool disposed = false;
