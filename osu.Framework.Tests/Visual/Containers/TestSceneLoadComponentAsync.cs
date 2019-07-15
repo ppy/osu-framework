@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCompositeAsync : FrameworkTestScene
+    public class TestSceneLoadComponentAsync : FrameworkTestScene
     {
         [Test]
         public void TestUnpublishedChildStillDisposed()
