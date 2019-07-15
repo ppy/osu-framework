@@ -275,8 +275,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (loadingComponents != null)
                 foreach (var d in loadingComponents)
-                    if (!d.IsLoaded) // TODO: add comment if this is actually necessary explaining why.
-                        d.Dispose();
+                    d.Dispose();
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
