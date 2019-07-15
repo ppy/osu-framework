@@ -2,44 +2,40 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneCompositeAsync : FrameworkTestScene
     {
-        [SetUp]
-        public void SetUp() => Schedule(Clear);
-
         [Test]
-        public void TestAddToCompositeAsync()
+        public void TestUnpublishedChildStillDisposed()
         {
-            AsyncLoadingContainer comp = null;
-            bool disposed = false;
+            AsyncChildLoadingComposite composite = null;
 
-            AddStep("Add new composite", () =>
-            {
-                disposed = false;
-                Add(comp = new AsyncLoadingContainer());
-                comp.ChildContainer.OnDispose += () => disposed = true;
-            });
+            AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
 
-            AddStep("Dispose composite", () =>
-            {
-                Remove(comp);
-                comp.Dispose();
-            });
+            AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
 
-            AddAssert("Is disposed", () => disposed);
+            AddStep("Dispose composite", Clear);
+
+            AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
         }
 
-        private class AsyncLoadingContainer : CompositeDrawable
+        private class AsyncChildLoadingComposite : CompositeDrawable
         {
-            public Container ChildContainer { get; } = new Container();
+            public Container AsyncChild { get; } = new Container();
+
+            public bool AsyncChildDisposed { get; private set; }
 
             protected override void LoadComplete()
             {
-                LoadComponentAsync(ChildContainer);
+                AsyncChild.OnDispose += () => AsyncChildDisposed = true;
+
+                // load but never add to hierarchy
+                LoadComponentAsync(AsyncChild);
+
                 base.LoadComplete();
             }
         }
