@@ -35,11 +35,10 @@ namespace osu.Framework.Input.Handlers.Joystick
                     {
                         foreach (var device in devices)
                         {
-                            if (device.RawState.Equals(device.LastRawState))
+                            if (device.RawState.Equals(device.LastRawState) || !device.RawState.IsConnected)
                                 continue;
 
-                            var newState = new OsuTKJoystickState(device);
-                            handleState(device, newState);
+                            handleState(device, new OsuTKJoystickState(device));
                             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                         }
                     }, 0, 0));
