@@ -994,6 +994,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = children[i];
 
+                if (!drawable.IsLoaded)
+                    continue;
+
                 if (!drawable.IsProxy)
                 {
                     if (!drawable.IsPresent)
