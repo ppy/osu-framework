@@ -999,18 +999,16 @@ namespace osu.Framework.Graphics.Containers
                     if (!drawable.IsPresent)
                         continue;
 
+                    if (drawable.IsMaskedAway)
+                        continue;
+
                     CompositeDrawable composite = drawable as CompositeDrawable;
 
                     if (composite?.CanBeFlattened == true)
                     {
-                        if (!composite.IsMaskedAway)
-                            addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
-
+                        addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
                         continue;
                     }
-
-                    if (drawable.IsMaskedAway)
-                        continue;
                 }
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
