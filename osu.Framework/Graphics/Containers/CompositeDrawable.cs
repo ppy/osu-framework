@@ -1681,9 +1681,19 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
-            if (currentTargetSize != newSize)
-                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+            var currentTransform = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform));
+
+            if ((currentTransform?.EndValue ?? Size) != newSize)
+            {
+                if (duration == 0)
+                {
+                    if (currentTransform != null)
+                        ClearTransforms(false, nameof(baseSize));
+                    baseSize = newSize;
+                }
+                else
+                    this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+            }
         }
 
         /// <summary>
