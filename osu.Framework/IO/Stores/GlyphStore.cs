@@ -166,7 +166,7 @@ namespace osu.Framework.IO.Stores
             int charWidth = c.Width + c.XOffset;
             int charHeight = c.Height + c.YOffset;
 
-            if (readBuffer == null)
+            if (readBuffer == null || readBuffer.Length < pageWidth)
                 readBuffer = new byte[pageWidth];
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
