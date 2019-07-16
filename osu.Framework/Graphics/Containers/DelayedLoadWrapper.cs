@@ -182,7 +182,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 OptimisingContainer = null;
                 optimisingContainerCache.Invalidate();
+
+                // Cancel the load task and allow the unload to take place by assuming the intersection is no longer valid
                 cancelLoadScheduledDelegate();
+                IsIntersecting = false;
             }
 
             isIntersectingCache.Invalidate();
