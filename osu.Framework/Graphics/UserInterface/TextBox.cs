@@ -163,6 +163,33 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += e => { Text = e.NewValue; };
         }
 
+        [BackgroundDependencyLoader]
+        private void load(GameHost host)
+        {
+            textInput = host.GetTextInput();
+            clipboard = host.GetClipboard();
+
+            if (textInput != null)
+            {
+                textInput.OnNewImeComposition += delegate(string s)
+                {
+                    textUpdateScheduler.Add(() => onImeComposition(s));
+                    cursorAndLayout.Invalidate();
+                };
+                textInput.OnNewImeResult += delegate
+                {
+                    textUpdateScheduler.Add(onImeResult);
+                    cursorAndLayout.Invalidate();
+                };
+            }
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            textUpdateScheduler.SetCurrentThread(MainThread);
+        }
+
         public virtual bool OnPressed(PlatformAction action)
         {
             int? amount = null;
@@ -277,33 +304,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         public virtual bool OnReleased(PlatformAction action) => false;
-
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            textInput = host.GetTextInput();
-            clipboard = host.GetClipboard();
-
-            if (textInput != null)
-            {
-                textInput.OnNewImeComposition += delegate(string s)
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += delegate
-                {
-                    textUpdateScheduler.Add(onImeResult);
-                    cursorAndLayout.Invalidate();
-                };
-            }
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            textUpdateScheduler.SetCurrentThread(MainThread);
-        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
