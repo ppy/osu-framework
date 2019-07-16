@@ -323,7 +323,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Cached cursorAndLayout = new Cached();
 
-        private bool handleAction(PlatformAction action)
+        protected virtual bool HandleAction(PlatformAction action)
         {
             int? amount = null;
 
@@ -1029,7 +1029,7 @@ namespace osu.Framework.Graphics.UserInterface
                 this.textBox = textBox;
             }
 
-            public bool OnPressed(PlatformAction action) => textBox.HasFocus && textBox.handleAction(action);
+            public bool OnPressed(PlatformAction action) => textBox.HasFocus && textBox.HandleAction(action);
 
             public bool OnReleased(PlatformAction action) => false;
         }
