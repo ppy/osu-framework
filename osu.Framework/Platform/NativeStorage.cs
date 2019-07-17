@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
@@ -33,7 +34,7 @@ namespace osu.Framework.Platform
                 Directory.Delete(path, true);
         }
 
-        public override void Delete(string path) => File.Delete(GetFullPath(path));
+        public override void Delete(string path) => FileSafety.FileDelete(GetFullPath(path));
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
