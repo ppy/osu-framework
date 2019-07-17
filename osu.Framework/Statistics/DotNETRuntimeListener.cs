@@ -5,14 +5,15 @@ using System.Diagnostics.Tracing;
 
 namespace osu.Framework.Statistics
 {
+    // https://medium.com/criteo-labs/c-in-process-clr-event-listeners-with-net-core-2-2-ef4075c14e87
     internal sealed class DotNetRuntimeListener : EventListener
     {
         private const int gc_keyword = 0x0000001;
 
-        // Called whenever an EventSource is created.
+        private const string statistics_grouping = "GC";
+
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            // Watch for the .NET runtime EventSource and enable all of its events.
             if (eventSource.Name.Equals("Microsoft-Windows-DotNETRuntime"))
             {
                 EnableEvents(
@@ -23,21 +24,20 @@ namespace osu.Framework.Statistics
             }
         }
 
-        // Called whenever an event is written.
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
             switch (eventData.EventId)
             {
-                case 1: // GCStart_V1
-                    GlobalStatistics.Get<int>("GC", $"Collections Gen{eventData.Payload[1]}").Value++;
+                case 1: // GCStart_V1 https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
+                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{eventData.Payload[1]}").Value++;
                     break;
 
-                case 4: // GCHeapStats_V1
+                case 4: // GCHeapStats_V1 https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
-                        GlobalStatistics.Get<ulong>("GC", $"Size Gen{i / 2}").Value = (ulong)eventData.Payload[i];
+                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)eventData.Payload[i];
 
-                    GlobalStatistics.Get<ulong>("GC", "Finalization queue length").Value = (ulong)eventData.Payload[9];
-                    GlobalStatistics.Get<uint>("GC", "Pinned objects").Value = (uint)eventData.Payload[10];
+                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)eventData.Payload[9];
+                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)eventData.Payload[10];
                     break;
             }
         }
