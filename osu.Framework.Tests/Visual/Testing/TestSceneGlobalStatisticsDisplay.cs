@@ -25,8 +25,8 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("Register test statistic", () => stat = GlobalStatistics.Get<double>("TestCase", "Test Statistic"));
 
-            AddStep("Change value once", () => stat.Bindable.Value = 10);
-            AddStep("Change value again", () => stat.Bindable.Value = 20);
+            AddStep("Change value once", () => stat.Value = 10);
+            AddStep("Change value again", () => stat.Value = 20);
 
             AddStep("Register statistics non-alphabetically", () =>
             {

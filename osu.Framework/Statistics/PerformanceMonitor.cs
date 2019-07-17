@@ -95,7 +95,7 @@ namespace osu.Framework.Statistics
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
 
-        public bool HandleGC = true;
+        public bool HandleGC = false;
 
         private readonly Dictionary<StatisticsCounterType, GlobalStatistic<long>> globalStatistics = new Dictionary<StatisticsCounterType, GlobalStatistic<long>>();
 
