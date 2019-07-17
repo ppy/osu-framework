@@ -15,31 +15,33 @@ namespace osu.Framework.Statistics
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
             if (eventSource.Name.Equals("Microsoft-Windows-DotNETRuntime"))
+                EnableEvents(eventSource, EventLevel.Verbose, (EventKeywords)gc_keyword);
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs data)
+        {
+            switch ((EventType)data.EventId)
             {
-                EnableEvents(
-                    eventSource,
-                    EventLevel.Verbose,
-                    (EventKeywords)(gc_keyword)
-                );
+                case EventType.GCStart_V1:
+                    // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
+                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
+                    break;
+
+                case EventType.GCHeapStats_V1:
+                    // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
+                    for (int i = 0; i <= 6; i += 2)
+                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i];
+
+                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload[9];
+                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload[10];
+                    break;
             }
         }
 
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        private enum EventType
         {
-            switch (eventData.EventId)
-            {
-                case 1: // GCStart_V1 https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
-                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{eventData.Payload[1]}").Value++;
-                    break;
-
-                case 4: // GCHeapStats_V1 https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
-                    for (int i = 0; i <= 6; i += 2)
-                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)eventData.Payload[i];
-
-                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)eventData.Payload[9];
-                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)eventData.Payload[10];
-                    break;
-            }
+            GCStart_V1 = 1,
+            GCHeapStats_V1 = 4,
         }
     }
 }
