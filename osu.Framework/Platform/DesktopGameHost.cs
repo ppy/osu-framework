@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Development;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -27,6 +28,12 @@ namespace osu.Framework.Platform
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
+        }
+
+        protected override bool IsAnotherInstanceAlreadyRunning(out Mutex mutex)
+        {
+            mutex = new Mutex(true, $"Global\\{DebugUtils.HostAssembly.ManifestModule.Name}", out var createdNew);
+            return !createdNew;
         }
 
         protected override void SetupForRun()
