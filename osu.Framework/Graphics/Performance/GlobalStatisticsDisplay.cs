@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Performance
                 protected override void Update()
                 {
                     base.Update();
-                    valueText.Text = Statistic.DisplayValue.Value;
+                    valueText.Text = Statistic.DisplayValue;
                 }
             }
 
