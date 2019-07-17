@@ -95,7 +95,7 @@ namespace osu.Framework.Platform
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
-        protected virtual bool IsAnotherInstanceAlreadyRunning(out Mutex mutex)
+        protected virtual bool IsAnotherInstanceAlreadyRunning(Game game, out Mutex mutex)
         {
             mutex = null;
             return false;
@@ -467,7 +467,7 @@ namespace osu.Framework.Platform
                     throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
                 Mutex globalMutex = null;
-                if (!game.AllowMultipleInstances && IsAnotherInstanceAlreadyRunning(out globalMutex))
+                if (!game.AllowMultipleInstances && IsAnotherInstanceAlreadyRunning(game, out globalMutex))
                     throw new InvalidOperationException("There is already one running instance of a game.");
 
                 try
