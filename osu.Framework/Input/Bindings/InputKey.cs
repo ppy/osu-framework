@@ -342,6 +342,7 @@ namespace osu.Framework.Input.Bindings
         /// The media stop key.
         /// </summary>
         Stop = 69,
+
         /// <summary>
         /// The media volume up key.
         /// </summary>
