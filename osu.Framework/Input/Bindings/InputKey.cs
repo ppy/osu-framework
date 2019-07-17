@@ -329,436 +329,470 @@ namespace osu.Framework.Input.Bindings
         Sleep = 66,
 
         /// <summary>
+        /// The media mute key.
+        /// </summary>
+        Mute = 67,
+
+        /// <summary>
+        /// The media play / pause key.
+        /// </summary>
+        PlayPause = 68,
+
+        /// <summary>
+        /// The media stop key.
+        /// </summary>
+        Stop = 69,
+        /// <summary>
+        /// The media volume up key.
+        /// </summary>
+        VolumeUp = 70,
+
+        /// <summary>
+        /// The media volume down key.
+        /// </summary>
+        VolumeDown = 71,
+
+        /// <summary>
+        /// The media previous key.
+        /// </summary>
+        TrackPrevious = 72,
+
+        /// <summary>
+        /// The media next key.
+        /// </summary>
+        TrackNext = 73,
+
+        /// <summary>
         /// The keypad 0 key.
         /// </summary>
-        Keypad0 = 67,
+        Keypad0 = 74,
 
         /// <summary>
         /// The keypad 1 key.
         /// </summary>
-        Keypad1 = 68,
+        Keypad1 = 75,
 
         /// <summary>
         /// The keypad 2 key.
         /// </summary>
-        Keypad2 = 69,
+        Keypad2 = 76,
 
         /// <summary>
         /// The keypad 3 key.
         /// </summary>
-        Keypad3 = 70,
+        Keypad3 = 77,
 
         /// <summary>
         /// The keypad 4 key.
         /// </summary>
-        Keypad4 = 71,
+        Keypad4 = 78,
 
         /// <summary>
         /// The keypad 5 key.
         /// </summary>
-        Keypad5 = 72,
+        Keypad5 = 79,
 
         /// <summary>
         /// The keypad 6 key.
         /// </summary>
-        Keypad6 = 73,
+        Keypad6 = 80,
 
         /// <summary>
         /// The keypad 7 key.
         /// </summary>
-        Keypad7 = 74,
+        Keypad7 = 81,
 
         /// <summary>
         /// The keypad 8 key.
         /// </summary>
-        Keypad8 = 75,
+        Keypad8 = 82,
 
         /// <summary>
         /// The keypad 9 key.
         /// </summary>
-        Keypad9 = 76,
+        Keypad9 = 83,
 
         /// <summary>
         /// The keypad divide key.
         /// </summary>
-        KeypadDivide = 77,
+        KeypadDivide = 84,
 
         /// <summary>
         /// The keypad multiply key.
         /// </summary>
-        KeypadMultiply = 78,
+        KeypadMultiply = 85,
 
         /// <summary>
         /// The keypad subtract key.
         /// </summary>
-        KeypadSubtract = 79,
+        KeypadSubtract = 86,
 
         /// <summary>
         /// The keypad minus key (equivalent to KeypadSubtract).
         /// </summary>
-        KeypadMinus = 79,
+        KeypadMinus = KeypadSubtract,
 
         /// <summary>
         /// The keypad add key.
         /// </summary>
-        KeypadAdd = 80,
+        KeypadAdd = 87,
 
         /// <summary>
         /// The keypad plus key (equivalent to KeypadAdd).
         /// </summary>
-        KeypadPlus = 80,
+        KeypadPlus = KeypadAdd,
 
         /// <summary>
         /// The keypad decimal key.
         /// </summary>
-        KeypadDecimal = 81,
+        KeypadDecimal = 88,
 
         /// <summary>
         /// The keypad period key (equivalent to KeypadDecimal).
         /// </summary>
-        KeypadPeriod = 81,
+        KeypadPeriod = KeypadDecimal,
 
         /// <summary>
         /// The keypad enter key.
         /// </summary>
-        KeypadEnter = 82,
+        KeypadEnter = 89,
 
         /// <summary>
         /// The A key.
         /// </summary>
-        A = 83,
+        A = 90,
 
         /// <summary>
         /// The B key.
         /// </summary>
-        B = 84,
+        B = 91,
 
         /// <summary>
         /// The C key.
         /// </summary>
-        C = 85,
+        C = 92,
 
         /// <summary>
         /// The D key.
         /// </summary>
-        D = 86,
+        D = 93,
 
         /// <summary>
         /// The E key.
         /// </summary>
-        E = 87,
+        E = 94,
 
         /// <summary>
         /// The F key.
         /// </summary>
-        F = 88,
+        F = 95,
 
         /// <summary>
         /// The G key.
         /// </summary>
-        G = 89,
+        G = 96,
 
         /// <summary>
         /// The H key.
         /// </summary>
-        H = 90,
+        H = 97,
 
         /// <summary>
         /// The I key.
         /// </summary>
-        I = 91,
+        I = 98,
 
         /// <summary>
         /// The J key.
         /// </summary>
-        J = 92,
+        J = 99,
 
         /// <summary>
         /// The K key.
         /// </summary>
-        K = 93,
+        K = 100,
 
         /// <summary>
         /// The L key.
         /// </summary>
-        L = 94,
+        L = 101,
 
         /// <summary>
         /// The M key.
         /// </summary>
-        M = 95,
+        M = 102,
 
         /// <summary>
         /// The N key.
         /// </summary>
-        N = 96,
+        N = 103,
 
         /// <summary>
         /// The O key.
         /// </summary>
-        O = 97,
+        O = 104,
 
         /// <summary>
         /// The P key.
         /// </summary>
-        P = 98,
+        P = 105,
 
         /// <summary>
         /// The Q key.
         /// </summary>
-        Q = 99,
+        Q = 106,
 
         /// <summary>
         /// The R key.
         /// </summary>
-        R = 100,
+        R = 107,
 
         /// <summary>
         /// The S key.
         /// </summary>
-        S = 101,
+        S = 108,
 
         /// <summary>
         /// The T key.
         /// </summary>
-        T = 102,
+        T = 109,
 
         /// <summary>
         /// The U key.
         /// </summary>
-        U = 103,
+        U = 110,
 
         /// <summary>
         /// The V key.
         /// </summary>
-        V = 104,
+        V = 111,
 
         /// <summary>
         /// The W key.
         /// </summary>
-        W = 105,
+        W = 112,
 
         /// <summary>
         /// The X key.
         /// </summary>
-        X = 106,
+        X = 113,
 
         /// <summary>
         /// The Y key.
         /// </summary>
-        Y = 107,
+        Y = 114,
 
         /// <summary>
         /// The Z key.
         /// </summary>
-        Z = 108,
+        Z = 115,
 
         /// <summary>
         /// The number 0 key.
         /// </summary>
-        Number0 = 109,
+        Number0 = 116,
 
         /// <summary>
         /// The number 1 key.
         /// </summary>
-        Number1 = 110,
+        Number1 = 117,
 
         /// <summary>
         /// The number 2 key.
         /// </summary>
-        Number2 = 111,
+        Number2 = 118,
 
         /// <summary>
         /// The number 3 key.
         /// </summary>
-        Number3 = 112,
+        Number3 = 119,
 
         /// <summary>
         /// The number 4 key.
         /// </summary>
-        Number4 = 113,
+        Number4 = 120,
 
         /// <summary>
         /// The number 5 key.
         /// </summary>
-        Number5 = 114,
+        Number5 = 121,
 
         /// <summary>
         /// The number 6 key.
         /// </summary>
-        Number6 = 115,
+        Number6 = 122,
 
         /// <summary>
         /// The number 7 key.
         /// </summary>
-        Number7 = 116,
+        Number7 = 123,
 
         /// <summary>
         /// The number 8 key.
         /// </summary>
-        Number8 = 117,
+        Number8 = 124,
 
         /// <summary>
         /// The number 9 key.
         /// </summary>
-        Number9 = 118,
+        Number9 = 125,
 
         /// <summary>
         /// The tilde key.
         /// </summary>
-        Tilde = 119,
+        Tilde = 126,
 
         /// <summary>
         /// The grave key (equivaent to Tilde).
         /// </summary>
-        Grave = 119,
+        Grave = Tilde,
 
         /// <summary>
         /// The minus key.
         /// </summary>
-        Minus = 120,
+        Minus = 127,
 
         /// <summary>
         /// The plus key.
         /// </summary>
-        Plus = 121,
+        Plus = 128,
 
         /// <summary>
         /// The left bracket key.
         /// </summary>
-        BracketLeft = 122,
+        BracketLeft = 129,
 
         /// <summary>
         /// The left bracket key (equivalent to BracketLeft).
         /// </summary>
-        LBracket = 122,
+        LBracket = BracketLeft,
 
         /// <summary>
         /// The right bracket key.
         /// </summary>
-        BracketRight = 123,
+        BracketRight = 130,
 
         /// <summary>
         /// The right bracket key (equivalent to BracketRight).
         /// </summary>
-        RBracket = 123,
+        RBracket = BracketRight,
 
         /// <summary>
         /// The semicolon key.
         /// </summary>
-        Semicolon = 124,
+        Semicolon = 131,
 
         /// <summary>
         /// The quote key.
         /// </summary>
-        Quote = 125,
+        Quote = 132,
 
         /// <summary>
         /// The comma key.
         /// </summary>
-        Comma = 126,
+        Comma = 133,
 
         /// <summary>
         /// The period key.
         /// </summary>
-        Period = 127,
+        Period = 134,
 
         /// <summary>
         /// The slash key.
         /// </summary>
-        Slash = 128,
+        Slash = 135,
 
         /// <summary>
         /// The backslash key.
         /// </summary>
-        BackSlash = 129,
+        BackSlash = 136,
 
         /// <summary>
         /// The secondary backslash key.
         /// </summary>
-        NonUSBackSlash = 130,
+        NonUSBackSlash = 137,
 
         /// <summary>
         /// Indicates the last available keyboard key.
         /// </summary>
-        LastKey = 131,
+        LastKey = 138,
 
-        FirstMouseButton = 132,
+        FirstMouseButton = 139,
 
         /// <summary>
         /// The left mouse button.
         /// </summary>
-        MouseLeft = 132,
+        MouseLeft = 139,
 
         /// <summary>
         /// The middle mouse button.
         /// </summary>
-        MouseMiddle = 133,
+        MouseMiddle = 140,
 
         /// <summary>
         /// The right mouse button.
         /// </summary>
-        MouseRight = 134,
+        MouseRight = 141,
 
         /// <summary>
         /// The first extra mouse button.
         /// </summary>
-        ExtraMouseButton1 = 135,
+        ExtraMouseButton1 = 142,
 
         /// <summary>
         /// The second extra mouse button.
         /// </summary>
-        ExtraMouseButton2 = 136,
+        ExtraMouseButton2 = 143,
 
         /// <summary>
         /// The third extra mouse button.
         /// </summary>
-        ExtraMouseButton3 = 137,
+        ExtraMouseButton3 = 144,
 
         /// <summary>
         /// The fourth extra mouse button.
         /// </summary>
-        ExtraMouseButton4 = 138,
+        ExtraMouseButton4 = 145,
 
         /// <summary>
         /// The fifth extra mouse button.
         /// </summary>
-        ExtraMouseButton5 = 139,
+        ExtraMouseButton5 = 146,
 
         /// <summary>
         /// The sixth extra mouse button.
         /// </summary>
-        ExtraMouseButton6 = 140,
+        ExtraMouseButton6 = 147,
 
         /// <summary>
         /// The seventh extra mouse button.
         /// </summary>
-        ExtraMouseButton7 = 141,
+        ExtraMouseButton7 = 148,
 
         /// <summary>
         /// The eigth extra mouse button.
         /// </summary>
-        ExtraMouseButton8 = 142,
+        ExtraMouseButton8 = 149,
 
         /// <summary>
         /// The ninth extra mouse button.
         /// </summary>
-        ExtraMouseButton9 = 143,
+        ExtraMouseButton9 = 150,
 
         /// <summary>
         /// Indicates the last available mouse button.
         /// </summary>
-        MouseLastButton = 144,
+        MouseLastButton = 151,
 
         /// <summary>
         /// Mouse wheel rolled up.
         /// </summary>
-        MouseWheelUp = 145,
+        MouseWheelUp = 152,
 
         /// <summary>
         /// Mouse wheel rolled down.
         /// </summary>
-        MouseWheelDown = 146,
+        MouseWheelDown = 153,
 
         /// <summary>
         /// Indicates the first available joystick button.
