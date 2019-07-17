@@ -30,6 +30,9 @@ namespace osu.Framework.Statistics
                     case long l:
                         return l.ToString("#,0");
 
+                    case ulong l:
+                        return l.ToString("#,0");
+
                     default:
                         return value.ToString();
                 }
