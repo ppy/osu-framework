@@ -95,6 +95,12 @@ namespace osu.Framework.Platform
 
         public virtual Task SendMessageAsync(IpcMessage message) => throw new NotSupportedException("This platform does not implement IPC.");
 
+        protected virtual bool IsAnotherInstanceAlreadyRunning(out Mutex mutex)
+        {
+            mutex = null;
+            return false;
+        }
+
         /// <summary>
         /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
@@ -460,6 +466,10 @@ namespace osu.Framework.Platform
                 if (ExecutionState != ExecutionState.Idle)
                     throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
+                Mutex globalMutex = null;
+                if (!game.AllowMultipleInstances && IsAnotherInstanceAlreadyRunning(out globalMutex))
+                    throw new InvalidOperationException("There is already one running instance of a game.");
+
                 try
                 {
                     toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
@@ -566,6 +576,8 @@ namespace osu.Framework.Platform
                 }
                 finally
                 {
+                    globalMutex?.ReleaseMutex();
+
                     // Close the window and stop all threads
                     PerformExit(true);
                 }

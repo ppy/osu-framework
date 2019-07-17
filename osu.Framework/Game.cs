@@ -26,6 +26,8 @@ namespace osu.Framework
 {
     public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
     {
+        public virtual bool AllowMultipleInstances => true;
+
         public IWindow Window => Host?.Window;
 
         public ResourceStore<byte[]> Resources { get; private set; }
