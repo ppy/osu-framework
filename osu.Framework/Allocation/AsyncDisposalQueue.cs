@@ -34,9 +34,8 @@ namespace osu.Framework.Allocation
                     while (disposal_queue.Count > 0)
                     {
                         var toDispose = disposal_queue.Dequeue();
-                        toDispose.Dispose();
-
                         last_disposal.Value = toDispose.ToString();
+                        toDispose.Dispose();
                     }
                 }
             });
