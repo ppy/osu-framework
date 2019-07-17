@@ -243,10 +243,10 @@ namespace osu.Framework.Input.Bindings
                     return "Media Play";
 
                 case InputKey.TrackNext:
-                    return "Media Previous";
+                    return "Media Next";
 
                 case InputKey.TrackPrevious:
-                    return "Media Next";
+                    return "Media Previous";
 
                 case InputKey.MouseLeft:
                     return "M1";
