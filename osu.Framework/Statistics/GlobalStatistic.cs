@@ -34,7 +34,7 @@ namespace osu.Framework.Statistics
                         return l.ToString("#,0");
 
                     default:
-                        return value.ToString();
+                        return value?.ToString() ?? string.Empty;
                 }
             }
         }

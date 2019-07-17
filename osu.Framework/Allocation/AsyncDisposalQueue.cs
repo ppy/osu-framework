@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Allocation
 {
@@ -12,6 +13,8 @@ namespace osu.Framework.Allocation
     /// </summary>
     internal static class AsyncDisposalQueue
     {
+        private static readonly GlobalStatistic<string> last_disposal = GlobalStatistics.Get<string>("Drawable", "Last disposal");
+
         private static readonly Queue<IDisposable> disposal_queue = new Queue<IDisposable>();
 
         private static Task runTask;
@@ -29,7 +32,11 @@ namespace osu.Framework.Allocation
                 lock (disposal_queue)
                 {
                     while (disposal_queue.Count > 0)
-                        disposal_queue.Dequeue().Dispose();
+                    {
+                        var toDispose = disposal_queue.Dequeue();
+                        last_disposal.Value = toDispose.ToString();
+                        toDispose.Dispose();
+                    }
                 }
             });
         }
