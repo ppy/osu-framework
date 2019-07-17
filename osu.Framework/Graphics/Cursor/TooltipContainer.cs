@@ -236,13 +236,16 @@ namespace osu.Framework.Graphics.Cursor
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         protected virtual void RefreshTooltip(ITooltip tooltip, IHasTooltip tooltipTarget)
         {
-            if (tooltipTarget != null && hasValidTooltip(tooltipTarget))
+            bool isValid = tooltipTarget != null && hasValidTooltip(tooltipTarget);
+
+            if (isValid)
             {
                 tooltip.TooltipText = tooltipTarget.TooltipText;
                 tooltip.Refresh();
             }
 
-            tooltip.Move(computeTooltipPosition());
+            if (isValid || tooltip.IsPresent)
+                tooltip.Move(computeTooltipPosition());
         }
 
         protected override void UpdateAfterChildren()
