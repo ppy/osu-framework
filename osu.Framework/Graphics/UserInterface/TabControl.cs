@@ -125,16 +125,7 @@ namespace osu.Framework.Graphics.UserInterface
             TabContainer.TabVisibilityChanged = updateDropdown;
             TabContainer.ChildrenEnumerable = tabMap.Values;
 
-            Current.ValueChanged += newSelection =>
-            {
-                var newTab = Current.Value != null ? tabMap[Current.Value] : null;
-
-                if (IsLoaded)
-                    selectTab(newTab);
-                else
-                    //will be handled in LoadComplete
-                    SelectedTab = newTab;
-            };
+            Current.ValueChanged += newSelection => selectTab(Current.Value != null ? tabMap[Current.Value] : null);
         }
 
         protected override void Update()
@@ -151,9 +142,7 @@ namespace osu.Framework.Graphics.UserInterface
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (SelectedTab != null)
-                SelectTab(SelectedTab);
-            else if (TabContainer.Children.Any())
+            if (!Current.Disabled && SelectedTab == null && TabContainer.Children.Any())
                 SelectTab(TabContainer.Children.First());
         }
 
