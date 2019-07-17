@@ -76,6 +76,8 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource disposalCancellationSource;
 
+        private WeakList<Drawable> loadingComponents;
+
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
         /// <summary>
@@ -137,6 +139,15 @@ namespace osu.Framework.Graphics.Containers
 
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
+
+            if (loadingComponents == null)
+                loadingComponents = new WeakList<Drawable>();
+
+            foreach (var d in components)
+            {
+                loadingComponents.Add(d);
+                d.OnLoadComplete += _ => loadingComponents.Remove(d);
+            }
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
@@ -261,6 +272,10 @@ namespace osu.Framework.Graphics.Containers
             disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
+
+            if (loadingComponents != null)
+                foreach (var d in loadingComponents)
+                    d.Dispose();
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
