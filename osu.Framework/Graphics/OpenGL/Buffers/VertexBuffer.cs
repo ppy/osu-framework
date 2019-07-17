@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Development;
+using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             this.usage = usage;
 
-            vertices = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(amountVertices);
+            vertices = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(amountVertices, AllocationOptions.Clean);
         }
 
         /// <summary>
