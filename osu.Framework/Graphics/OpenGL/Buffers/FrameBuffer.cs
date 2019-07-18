@@ -104,7 +104,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Dispose();
-            attachedRenderBuffers.Clear();
 
             isDisposed = true;
         }
