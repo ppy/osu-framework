@@ -18,20 +18,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
-        private readonly IEnumerable<TestEnum> items;
+        private readonly TestEnum[] items;
 
-        private readonly StyledTabControl pinnedAndAutoSort;
-        private readonly StyledTabControl switchingTabControl;
-        private readonly PlatformActionContainer platformActionContainer;
-        private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
-        private readonly StyledTabControl removeAllTabControl;
-        private readonly StyledMultilineTabControl multilineTabControl;
-        private readonly StyledTabControl simpleTabcontrol;
+        private StyledTabControl pinnedAndAutoSort;
+        private StyledTabControl switchingTabControl;
+        private PlatformActionContainer platformActionContainer;
+        private StyledTabControlWithoutDropdown withoutDropdownTabControl;
+        private StyledTabControl removeAllTabControl;
+        private StyledMultilineTabControl multilineTabControl;
+        private StyledTabControl simpleTabcontrol;
 
         public TestSceneTabControl()
         {
-            items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
+            items = (TestEnum[])Enum.GetValues(typeof(TestEnum));
+        }
 
+        [SetUp]
+        public void Setup() => Schedule(() =>
+        {
             Add(new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -82,7 +86,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
             pinnedAndAutoSort.PinItem(TestEnum.Test5);
-        }
+        });
 
         [Test]
         public void Basic()
@@ -136,8 +140,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
-            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count());
+            AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Length);
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -146,8 +150,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
 
-            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Count());
-            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Count());
+            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Length);
+            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Length);
         }
 
         [Test]
@@ -161,6 +165,35 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("value changed", () => simpleTabcontrol.Current.Value == TestEnum.Test1);
             AddAssert("tab changed", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test1);
             AddStep("end lease", () => leased.UnbindAll());
+        }
+
+        [Test]
+        public void TestDisabledBindable()
+        {
+            Bindable<TestEnum?> bindable;
+
+            AddStep("add tabcontrol", () =>
+            {
+                bindable = new Bindable<TestEnum?> { Value = TestEnum.Test2 };
+
+                simpleTabcontrol = new StyledTabControl
+                {
+                    Size = new Vector2(200, 30)
+                };
+
+                foreach (var item in items)
+                    simpleTabcontrol.AddItem(item);
+
+                bindable.Disabled = true;
+                simpleTabcontrol.Current = bindable;
+
+                Child = simpleTabcontrol;
+            });
+
+            AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test2);
+
+            // Todo: Should not fail
+            // AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test0].Click());
         }
 
         [Test]
@@ -192,6 +225,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledTabControl : TabControl<TestEnum?>
         {
+            public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
+
             public new TabItem<TestEnum?> SelectedTab => base.SelectedTab;
 
             protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
@@ -214,7 +249,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Header.Origin = Anchor.TopRight;
             }
 
-            private class StyledDropdownMenu : DropdownMenu
+            private class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
             {
                 public StyledDropdownMenu()
                 {

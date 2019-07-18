@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Development;
+using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -14,10 +16,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         protected static readonly int STRIDE = VertexUtils<DepthWrappingVertex<T>>.STRIDE;
 
-        private readonly DepthWrappingVertex<T>[] vertices;
-
         private readonly BufferUsageHint usage;
 
+        private IMemoryOwner<DepthWrappingVertex<T>> vertices;
         private bool isInitialised;
         private int vboId;
 
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             this.usage = usage;
 
-            vertices = new DepthWrappingVertex<T>[amountVertices];
+            vertices = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(amountVertices, AllocationOptions.Clean);
         }
 
         /// <summary>
@@ -36,10 +37,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <returns>Whether the vertex changed.</returns>
         public bool SetVertex(int vertexIndex, T vertex)
         {
-            bool isNewVertex = !vertices[vertexIndex].Equals(vertex) || vertices[vertexIndex].BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
+            bool isNewVertex = !vertices.Memory.Span[vertexIndex].Equals(vertex) || vertices.Memory.Span[vertexIndex].BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
 
-            vertices[vertexIndex].Vertex = vertex;
-            vertices[vertexIndex].BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth;
+            vertices.Memory.Span[vertexIndex].Vertex = vertex;
+            vertices.Memory.Span[vertexIndex].BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth;
 
             return isNewVertex;
         }
@@ -47,7 +48,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// Gets the number of vertices in this <see cref="VertexBuffer{T}"/>.
         /// </summary>
-        public int Size => vertices.Length;
+        public int Size => vertices.Memory.Length;
 
         /// <summary>
         /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
@@ -61,12 +62,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
 
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * STRIDE), IntPtr.Zero, usage);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Memory.Length * STRIDE), IntPtr.Zero, usage);
         }
 
         ~VertexBuffer()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
@@ -77,10 +78,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(() =>
+        protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed)
                 return;
+
+            vertices.Dispose();
+            vertices = null;
 
             if (isInitialised)
             {
@@ -89,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
 
             IsDisposed = true;
-        });
+        }
 
         public virtual void Bind(bool forRendering)
         {
@@ -118,7 +122,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Draw()
         {
-            DrawRange(0, vertices.Length);
+            DrawRange(0, vertices.Memory.Length);
         }
 
         public void DrawRange(int startIndex, int endIndex)
@@ -133,7 +137,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Update()
         {
-            UpdateRange(0, vertices.Length);
+            UpdateRange(0, vertices.Memory.Length);
         }
 
         public void UpdateRange(int startIndex, int endIndex)
@@ -141,7 +145,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Bind(false);
 
             int amountVertices = endIndex - startIndex;
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(amountVertices * STRIDE), ref vertices[startIndex]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(amountVertices * STRIDE), ref vertices.Memory.Span[startIndex]);
 
             Unbind();
 

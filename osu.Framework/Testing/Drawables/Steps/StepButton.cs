@@ -64,9 +64,9 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Font = new FontUsage(size: 14),
+                    Font = FrameworkFont.Regular.With(size: 14),
                     X = 5,
-                    Padding = new MarginPadding(5),
+                    Padding = new MarginPadding(5)
                 }
             };
 
@@ -76,7 +76,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             BorderThickness = 1.5f;
             BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
 
-            CornerRadius = 2;
             Masking = true;
         }
 
@@ -139,7 +138,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
-            SpriteText.Alpha = 0.8f;
         }
 
         public override string ToString() => Text;

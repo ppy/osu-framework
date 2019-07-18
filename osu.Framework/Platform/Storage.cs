@@ -79,16 +79,24 @@ namespace osu.Framework.Platform
         /// Retrieve a list of files at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
+        /// <param name="pattern">An optional search pattern. Accepts "*" wildcard.</param>
         /// <returns>A list of files in the path, relative to the path of this storage.</returns>
-        public abstract IEnumerable<string> GetFiles(string path);
+        public abstract IEnumerable<string> GetFiles(string path, string pattern = "*");
 
         /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.
+        /// Creates the path if not existing.
         /// </summary>
         /// <param name="path">The subdirectory to use as a root.</param>
         /// <returns>A more specific storage.</returns>
         public Storage GetStorageForDirectory(string path)
         {
+            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                path += Path.DirectorySeparatorChar;
+
+            // create non-existing path.
+            GetFullPath(path, true);
+
             var clone = (Storage)MemberwiseClone();
             clone.SubDirectory = path;
             return clone;

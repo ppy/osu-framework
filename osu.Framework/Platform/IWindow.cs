@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics;
 using osuTK;
 using osuTK.Platform;
 
@@ -72,11 +71,11 @@ namespace osu.Framework.Platform
         IBindable<bool> IsActive { get; }
 
         /// <summary>
-        /// Provides a <see cref="IBindable{MarginPadding}"/> that can be used to keep track of the "safe area" insets on mobile
+        /// Provides a <see cref="BindableSafeArea"/> that can be used to keep track of the "safe area" insets on mobile
         /// devices. This usually corresponds to areas of the screen hidden under notches and rounded corners.
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
-        IBindable<MarginPadding> SafeAreaPadding { get; }
+        BindableSafeArea SafeAreaPadding { get; }
 
         /// <summary>
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.

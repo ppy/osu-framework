@@ -76,6 +76,8 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource disposalCancellationSource;
 
+        private WeakList<Drawable> loadingComponents;
+
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
 
         /// <summary>
@@ -137,6 +139,15 @@ namespace osu.Framework.Graphics.Containers
 
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
+
+            if (loadingComponents == null)
+                loadingComponents = new WeakList<Drawable>();
+
+            foreach (var d in components)
+            {
+                loadingComponents.Add(d);
+                d.OnLoadComplete += _ => loadingComponents.Remove(d);
+            }
 
             return Task.Factory.StartNew(() => loadComponents(components, deps), linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
@@ -261,6 +272,10 @@ namespace osu.Framework.Graphics.Containers
             disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
+
+            if (loadingComponents != null)
+                foreach (var d in loadingComponents)
+                    d.Dispose();
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
@@ -994,23 +1009,24 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = children[i];
 
+                if (!drawable.IsLoaded)
+                    continue;
+
                 if (!drawable.IsProxy)
                 {
                     if (!drawable.IsPresent)
+                        continue;
+
+                    if (drawable.IsMaskedAway)
                         continue;
 
                     CompositeDrawable composite = drawable as CompositeDrawable;
 
                     if (composite?.CanBeFlattened == true)
                     {
-                        if (!composite.IsMaskedAway)
-                            addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
-
+                        addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
                         continue;
                     }
-
-                    if (drawable.IsMaskedAway)
-                        continue;
                 }
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
@@ -1680,9 +1696,19 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
-            if (currentTargetSize != newSize)
-                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+            var currentTransform = Transforms.Count == 0 ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
+
+            if ((currentTransform?.EndValue ?? Size) != newSize)
+            {
+                if (duration == 0)
+                {
+                    if (currentTransform != null)
+                        ClearTransforms(false, nameof(baseSize));
+                    baseSize = newSize;
+                }
+                else
+                    this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+            }
         }
 
         /// <summary>

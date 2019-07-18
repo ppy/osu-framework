@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -18,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -43,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => MenuItems.Select(i => i.Value);
             set
             {
-                if (usingItemSource)
+                if (boundItemSource != null)
                     throw new InvalidOperationException($"Cannot manually set {nameof(Items)} when an {nameof(ItemSource)} is bound.");
 
                 setItems(value);
@@ -66,7 +65,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private readonly IBindableList<T> itemSource = new BindableList<T>();
-        private bool usingItemSource;
+        private IBindableList<T> boundItemSource;
 
         /// <summary>
         /// Allows the developer to assign an <see cref="IBindableList{T}"/> as the source
@@ -77,13 +76,11 @@ namespace osu.Framework.Graphics.UserInterface
             get => itemSource;
             set
             {
-                itemSource.UnbindBindings();
-                usingItemSource = value != null;
-
                 if (value == null)
-                    setItems(null);
-                else
-                    itemSource.BindTo(value);
+                    throw new ArgumentNullException(nameof(value));
+
+                if (boundItemSource != null) itemSource.UnbindFrom(boundItemSource);
+                itemSource.BindTo(boundItemSource = value);
             }
         }
 
@@ -100,7 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value selected by the menu item.</param>
         protected void AddDropdownItem(string text, T value)
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
 
             addDropdownItem(text, value);
@@ -129,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value of the menu item to be removed.</param>
         public bool RemoveDropdownItem(T value)
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually remove items when an {nameof(ItemSource)} is bound.");
 
             return removeDropdownItem(value);
@@ -200,12 +197,17 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Vertical;
 
-            Children = new Drawable[]
+            InternalChild = new FillFlowContainer<Drawable>
             {
-                Header = CreateHeader(),
-                Menu = CreateMenu()
+                Children = new Drawable[]
+                {
+                    Header = CreateHeader(),
+                    Menu = CreateMenu()
+                },
+                Direction = FillDirection.Vertical,
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
             };
 
             Menu.RelativeSizeAxes = Axes.X;
@@ -232,7 +234,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selectedItem = new DropdownMenuItem<T>(null, default);
             }
-            else if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue)))
+            else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {
                 if (!itemMap.TryGetValue(args.NewValue, out selectedItem))
                 {
@@ -249,7 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void ClearItems()
         {
-            if (usingItemSource)
+            if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually clear items when an {nameof(ItemSource)} is bound.");
 
             clearItems();
@@ -289,18 +291,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(HoverEvent e) => true;
-
         /// <summary>
         /// Creates the menu body.
         /// </summary>
-        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+        protected abstract DropdownMenu CreateMenu();
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu
+        public abstract class DropdownMenu : Menu
         {
-            public DropdownMenu()
+            protected DropdownMenu()
                 : base(Direction.Vertical)
             {
             }
@@ -331,14 +331,16 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+            protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
+
+            protected abstract DrawableDropdownMenuItem CreateDrawableDropdownMenuItem(MenuItem item);
 
             #region DrawableDropdownMenuItem
 
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-            public class DrawableDropdownMenuItem : DrawableMenuItem
+            public abstract class DrawableDropdownMenuItem : DrawableMenuItem
             {
-                public DrawableDropdownMenuItem(MenuItem item)
+                protected DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }
