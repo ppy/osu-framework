@@ -96,8 +96,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void Unbind()
         {
             GLWrapper.UnbindFrameBuffer(frameBuffer);
-            foreach (var r in attachedRenderBuffers)
-                r.Unbind();
         }
 
         #region Disposal
