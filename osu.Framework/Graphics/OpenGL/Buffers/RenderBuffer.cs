@@ -2,41 +2,24 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    public class RenderBuffer : IDisposable
+    internal class RenderBuffer : IDisposable
     {
-        public Vector2 Size = Vector2.One;
-        public RenderbufferInternalFormat Format { get; }
-
-        private int renderBuffer = -1;
+        private readonly RenderbufferInternalFormat format;
+        private readonly int renderBuffer;
 
         public RenderBuffer(RenderbufferInternalFormat format)
         {
-            Format = format;
-        }
+            this.format = format;
 
-        /// <summary>
-        /// Binds the renderbuffer to the specfied framebuffer.
-        /// </summary>
-        /// <param name="frameBuffer">The framebuffer this renderbuffer should be bound to.</param>
-        internal void Bind(int frameBuffer)
-        {
-            if (renderBuffer == -1)
-                renderBuffer = GL.GenRenderbuffer();
-
+            renderBuffer = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
 
-            // Make sure the framebuffer we want to attach to is bound
-            GLWrapper.BindFrameBuffer(frameBuffer);
-
-            switch (Format)
+            switch (format)
             {
                 case RenderbufferInternalFormat.DepthComponent16:
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
@@ -52,8 +35,23 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
                     break;
             }
+        }
 
-            GLWrapper.UnbindFrameBuffer(frameBuffer);
+        private Vector2 size;
+
+        internal Vector2 Size
+        {
+            get => size;
+            set
+            {
+                if (size == value)
+                    return;
+
+                size = value;
+
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
+            }
         }
 
         #region Disposal
