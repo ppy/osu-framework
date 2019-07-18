@@ -1,5 +1,9 @@
 #ifdef GL_ES
 	precision mediump float;
+#else
+    // Since glsl 1.1 doesn't define precision qualifiers but GL_ES does, 
+    // Define them as nothing to avoid compilation issues.
+    #define highp
 #endif
 
 #include "sh_Utils.h"
@@ -27,13 +31,15 @@ uniform float g_InnerCornerRadius;
 
 float distanceFromRoundedRect(vec2 offset, float radius)
 {
-	vec2 maskingPosition = v_MaskingPosition + offset;
+	// highp precision is required for calculations that operate on position
+	// screen coordinates may need higher precision on higher resolution phones.
+	highp vec2 maskingPosition = v_MaskingPosition + offset;
 
 	// Compute offset distance from masking rect in masking space.
-	vec2 topLeftOffset = g_MaskingRect.xy - maskingPosition;
-	vec2 bottomRightOffset = maskingPosition - g_MaskingRect.zw;
+	highp vec2 topLeftOffset = g_MaskingRect.xy - maskingPosition;
+	highp vec2 bottomRightOffset = maskingPosition - g_MaskingRect.zw;
 
-	vec2 distanceFromShrunkRect = max(
+	highp vec2 distanceFromShrunkRect = max(
 		bottomRightOffset + vec2(radius),
 		topLeftOffset + vec2(radius));
 
