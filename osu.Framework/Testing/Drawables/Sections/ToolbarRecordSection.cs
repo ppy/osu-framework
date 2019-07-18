@@ -59,7 +59,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Colour = FrameworkColour.Yellow,
                                 Text = "0",
-                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                                Font = FrameworkFont.Regular.With(fixedWidth: true)
                             },
                             new BasicSliderBar<int>
                             {
@@ -75,11 +75,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Text = "0",
-                                Font = new FontUsage("Roboto", weight: "Regular", fixedWidth: true)
+                                Font = FrameworkFont.Regular.With(fixedWidth: true)
                             },
                         }
                     },
-                    recordButton = new RecordButton
+                    recordButton = new Button
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100,
@@ -120,22 +120,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                     playbackControls.Show();
                     break;
             }
-        }
-
-        private class RecordButton : Button
-        {
-            public RecordButton()
-            {
-                BackgroundColour = FrameworkColour.BlueGreen;
-            }
-
-            protected override SpriteText CreateText() => new SpriteText
-            {
-                Colour = FrameworkColour.Yellow,
-                Font = new FontUsage("Roboto", weight: "Regular"),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
         }
     }
 }

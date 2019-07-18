@@ -54,12 +54,17 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            total_count.Value++;
         }
 
         ~Drawable()
         {
             dispose(false);
+            finalize_disposals.Value++;
         }
+
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
+        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
         /// <summary>
         /// Disposes this drawable.
@@ -86,6 +91,8 @@ namespace osu.Framework.Graphics
             {
                 if (IsDisposed)
                     return;
+
+                total_count.Value--;
 
                 Dispose(isDisposing);
 
@@ -1441,7 +1448,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence | Invalidation.Parent);
 
                 if (parent != null)
                 {
@@ -1682,6 +1689,9 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Colour) > 0)
                 alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
+
+            if ((invalidation & Invalidation.Parent) > 0)
+                alreadyInvalidated = false;
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 InvalidationID = invalidation_counter.Increment();
@@ -2292,6 +2302,11 @@ namespace osu.Framework.Graphics
         Presence = 1 << 5,
 
         /// <summary>
+        /// A <see cref="Drawable.Parent"/> has changed.
+        /// </summary>
+        Parent = 1 << 6,
+
+        /// <summary>
         /// No invalidation.
         /// </summary>
         None = 0,
@@ -2371,6 +2386,22 @@ namespace osu.Framework.Graphics
         Y = 1 << 1,
 
         Both = X | Y,
+    }
+
+    [Flags]
+    public enum Edges
+    {
+        None = 0,
+
+        Top = 1 << 0,
+        Left = 1 << 1,
+        Bottom = 1 << 2,
+        Right = 1 << 3,
+
+        Horizontal = Left | Right,
+        Vertical = Top | Bottom,
+
+        All = Top | Left | Bottom | Right,
     }
 
     public enum Direction

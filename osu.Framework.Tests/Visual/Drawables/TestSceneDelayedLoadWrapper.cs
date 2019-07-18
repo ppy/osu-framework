@@ -14,7 +14,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneDelayedLoad : FrameworkTestScene
+    public class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
         private const int panel_count = 2048;
 
@@ -23,13 +23,13 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void TestManyChildren(bool instant)
         {
             FillFlowContainer<Container> flow = null;
-            ScrollContainer<Drawable> scroll = null;
+            TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll = null;
 
             AddStep("create children", () =>
             {
                 Children = new Drawable[]
                 {
-                    scroll = new BasicScrollContainer
+                    scroll = new TestSceneDelayedLoadUnloadWrapper.TestScrollContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Children = new Drawable[]
@@ -69,6 +69,10 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddWaitStep("wait more", 10);
             AddAssert("some loaded", () => childrenWithAvatarsLoaded().Count() > 5);
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
+
+            AddStep("Remove all panels", () => flow.Clear(false));
+
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
         public class TestBox : Container

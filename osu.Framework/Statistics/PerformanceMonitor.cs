@@ -27,9 +27,10 @@ namespace osu.Framework.Statistics
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
+
         private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
-        internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
+        internal bool[] ActiveCounters => activeCounters;
 
         public bool EnablePerformanceProfiling
         {
@@ -40,12 +41,14 @@ namespace osu.Framework.Statistics
         private double consumptionTime;
 
         internal ThrottledFrameClock Clock;
+        private readonly Thread thread;
 
         public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
 
         internal PerformanceMonitor(ThrottledFrameClock clock, Thread thread, IEnumerable<StatisticsCounterType> counters)
         {
             Clock = clock;
+            this.thread = thread;
             currentFrame = FramesHeap.ReserveObject();
 
             foreach (var c in counters)
@@ -92,7 +95,9 @@ namespace osu.Framework.Statistics
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
 
-        public bool HandleGC = true;
+        public bool HandleGC = false;
+
+        private readonly Dictionary<StatisticsCounterType, GlobalStatistic<long>> globalStatistics = new Dictionary<StatisticsCounterType, GlobalStatistic<long>>();
 
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.
@@ -103,7 +108,15 @@ namespace osu.Framework.Statistics
             for (int i = 0; i < activeCounters.Length; ++i)
                 if (activeCounters[i])
                 {
-                    currentFrame.Counts[(StatisticsCounterType)i] = FrameStatistics.COUNTERS[i];
+                    var count = FrameStatistics.COUNTERS[i];
+                    var type = (StatisticsCounterType)i;
+
+                    if (!globalStatistics.TryGetValue(type, out var global))
+                        globalStatistics[type] = global = GlobalStatistics.Get<long>(thread.Name, type.ToString());
+
+                    global.Value = count;
+                    currentFrame.Counts[type] = count;
+
                     FrameStatistics.COUNTERS[i] = 0;
                 }
 

@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
-using osu.Framework.Extensions.Color4Extensions;
 using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
@@ -33,15 +32,9 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 isHighlighted = value;
 
+                updateColours();
                 if (value)
-                {
-                    highlightBackground.FadeIn();
                     Expand();
-                }
-                else
-                {
-                    highlightBackground.FadeOut();
-                }
             }
         }
 
@@ -49,8 +42,8 @@ namespace osu.Framework.Graphics.Visualisation
         public Action<VisualisedDrawable> HighlightTarget;
 
         private Box background;
-        private Box highlightBackground;
         private SpriteText text;
+        private SpriteText text2;
         private Drawable previewBox;
         private Drawable activityInvalidate;
         private Drawable activityAutosize;
@@ -76,69 +69,83 @@ namespace osu.Framework.Graphics.Visualisation
 
             var spriteTarget = Target as Sprite;
 
-            AddRange(new[]
+            AddRange(new Drawable[]
             {
-                activityInvalidate = new Box
-                {
-                    Colour = Color4.Yellow,
-                    Size = new Vector2(2, line_height),
-                    Position = new Vector2(6, 0),
-                    Alpha = 0
-                },
-                activityLayout = new Box
-                {
-                    Colour = Color4.Orange,
-                    Size = new Vector2(2, line_height),
-                    Position = new Vector2(3, 0),
-                    Alpha = 0
-                },
-                activityAutosize = new Box
-                {
-                    Colour = Color4.Red,
-                    Size = new Vector2(2, line_height),
-                    Position = new Vector2(0, 0),
-                    Alpha = 0
-                },
-                previewBox = spriteTarget?.Texture == null
-                    ? previewBox = new Box { Colour = Color4.White }
-                    : new Sprite
-                    {
-                        // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
-                        Texture = new Texture(spriteTarget.Texture.TextureGL),
-                        Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
-                    },
-                new Container
-                {
-                    AutoSizeAxes = Axes.Both,
-                    Position = new Vector2(24, -3),
-                    Children = new Drawable[]
-                    {
-                        background = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(1, 0.8f),
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Colour = Color4.Transparent,
-                        },
-                        highlightBackground = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(1, 0.8f),
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Colour = Color4.Khaki.Opacity(0.4f),
-                            Alpha = 0
-                        },
-                        text = new SpriteText()
-                    }
-                },
                 flow = new VisualisedDrawableFlow
                 {
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Position = new Vector2(10, 14)
+                    Position = new Vector2(10, 20)
+                },
+                new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Children = new[]
+                    {
+                        background = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(100, 1), // a bit of a hack, but works well enough.
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Colour = Color4.Transparent,
+                        },
+                        activityInvalidate = new Box
+                        {
+                            Colour = Color4.Yellow,
+                            Size = new Vector2(2, line_height),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(6, 0),
+                            Alpha = 0
+                        },
+                        activityLayout = new Box
+                        {
+                            Colour = Color4.Orange,
+                            Size = new Vector2(2, line_height),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(3, 0),
+                            Alpha = 0
+                        },
+                        activityAutosize = new Box
+                        {
+                            Colour = Color4.Red,
+                            Size = new Vector2(2, line_height),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(0, 0),
+                            Alpha = 0
+                        },
+                        previewBox = spriteTarget?.Texture == null
+                            ? previewBox = new Box
+                            {
+                                Colour = Color4.White,
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                            }
+                            : new Sprite
+                            {
+                                // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
+                                Texture = new Texture(spriteTarget.Texture.TextureGL),
+                                Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                            },
+                        new FillFlowContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Horizontal,
+                            Spacing = new Vector2(5),
+                            Position = new Vector2(24, 0),
+                            Children = new Drawable[]
+                            {
+                                text = new SpriteText(),
+                                text2 = new SpriteText()
+                            }
+                        },
+                    }
                 },
             });
 
@@ -156,6 +163,7 @@ namespace osu.Framework.Graphics.Visualisation
             base.LoadComplete();
 
             attachEvents();
+            updateColours();
         }
 
         private void attachEvents()
@@ -251,14 +259,36 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnHover(HoverEvent e)
         {
-            background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
+            updateColours();
             return base.OnHover(e);
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            background.Colour = Color4.Transparent;
+            updateColours();
             base.OnHoverLost(e);
+        }
+
+        private void updateColours()
+        {
+            if (isHighlighted)
+            {
+                background.Colour = FrameworkColour.YellowGreen;
+                text.Colour = FrameworkColour.Blue;
+                text2.Colour = FrameworkColour.Blue;
+            }
+            else if (IsHovered)
+            {
+                background.Colour = FrameworkColour.BlueGreen;
+                text.Colour = Color4.White;
+                text2.Colour = FrameworkColour.YellowGreen;
+            }
+            else
+            {
+                background.Colour = Color4.Transparent;
+                text.Colour = Color4.White;
+                text2.Colour = FrameworkColour.YellowGreen;
+            }
         }
 
         protected override bool OnMouseDown(MouseDownEvent e)
@@ -347,10 +377,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 
-            text.Text = $"{Target} ({Target.DrawPosition.X:#,0},{Target.DrawPosition.Y:#,0}) {Target.DrawSize.X:#,0}x{Target.DrawSize.Y:#,0}"
-                        + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
-
-            text.Colour = !isExpanded && childCount > 0 ? Color4.LightBlue : Color4.White;
+            text.Text = Target.ToString();
+            text2.Text = $"({Target.DrawPosition.X:#,0},{Target.DrawPosition.Y:#,0}) {Target.DrawSize.X:#,0}x{Target.DrawSize.Y:#,0}"
+                         + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
 
             Alpha = Target.IsPresent ? 1 : 0.3f;
         }
