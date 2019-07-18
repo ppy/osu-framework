@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
                 Padding = new MarginPadding(2),
-                Font = new FontUsage("RobotoCondensed", weight: "Regular"),
+                Font = FrameworkFont.Condensed,
             };
         }
     }

@@ -58,7 +58,7 @@ namespace osu.Framework.IO.Stores
         }
 
         public IEnumerable<string> GetAvailableResources() =>
-            storage.GetDirectories(string.Empty).SelectMany(storage.GetFiles);
+            storage.GetDirectories(string.Empty).SelectMany(d => storage.GetFiles(d));
 
         #region IDisposable Support
 

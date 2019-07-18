@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
@@ -133,8 +134,10 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
+            var cacheStorage = Host.Storage.GetStorageForDirectory(Path.Combine("cache", "fonts"));
+
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true);
+            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
@@ -178,6 +181,8 @@ namespace osu.Framework
 
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
+        private GlobalStatisticsDisplay globalStatistics;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -200,12 +205,27 @@ namespace osu.Framework
 
                     return true;
 
+                case FrameworkAction.ToggleGlobalStatistics:
+
+                    if (globalStatistics == null)
+                    {
+                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                        }, AddInternal);
+                    }
+
+                    globalStatistics.ToggleVisibility();
+                    return true;
+
                 case FrameworkAction.ToggleDrawVisualiser:
 
                     if (drawVisualiser == null)
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
+                            Position = new Vector2(100),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
