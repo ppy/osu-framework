@@ -21,12 +21,12 @@ namespace osu.Framework.Graphics.UserInterface
             TextFlow.Height = 0.75f;
         }
 
-        protected override Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage("RobotoCondensed", CalculatedTextSize, "Regular") };
+        protected override Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: CalculatedTextSize) };
 
         protected override SpriteText CreatePlaceholder() => new SpriteText
         {
             Colour = FrameworkColour.YellowGreen,
-            Font = new FontUsage("RobotoCondensed", weight: "Regular"),
+            Font = FrameworkFont.Condensed,
             Anchor = Anchor.CentreLeft,
             Origin = Anchor.CentreLeft,
         };

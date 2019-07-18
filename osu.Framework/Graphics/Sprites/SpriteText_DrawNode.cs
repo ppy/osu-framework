@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shadow)
                 {
                     shadowColour = Source.ShadowColour;
-                    shadowOffset = Source.shadowOffset;
+                    shadowOffset = Source.premultipliedShadowOffset;
                 }
             }
 

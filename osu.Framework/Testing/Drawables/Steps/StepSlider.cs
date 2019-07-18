@@ -52,7 +52,6 @@ namespace osu.Framework.Testing.Drawables.Steps
                 },
             });
 
-            CornerRadius = 2;
             Masking = true;
 
             spriteText.Anchor = Anchor.CentreLeft;
