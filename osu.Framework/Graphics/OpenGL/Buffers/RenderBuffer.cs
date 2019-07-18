@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             get => size;
             set
             {
-                if (size == value)
+                if (value.X <= size.X && value.Y <= size.Y)
                     return;
 
                 size = value;
