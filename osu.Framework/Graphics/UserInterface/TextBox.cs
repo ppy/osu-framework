@@ -25,7 +25,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>
+    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Colour = BackgroundUnfocused,
                     RelativeSizeAxes = Axes.Both,
                 },
-                TextContainer = new TextBoxPlatformBindingHandler(this)
+                TextContainer = new Container
                 {
                     AutoSizeAxes = Axes.X,
                     RelativeSizeAxes = Axes.Y,
@@ -189,6 +189,121 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
             textUpdateScheduler.SetCurrentThread(MainThread);
         }
+
+        public virtual bool OnPressed(PlatformAction action)
+        {
+            int? amount = null;
+
+            if (!HasFocus)
+                return false;
+
+            if (!HandleLeftRightArrows &&
+                action.ActionMethod == PlatformActionMethod.Move &&
+                (action.ActionType == PlatformActionType.CharNext || action.ActionType == PlatformActionType.CharPrevious))
+                return false;
+
+            switch (action.ActionType)
+            {
+                // Clipboard
+                case PlatformActionType.Cut:
+                case PlatformActionType.Copy:
+                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+
+                    clipboard?.SetText(SelectedText);
+                    if (action.ActionType == PlatformActionType.Cut)
+                        removeCharacterOrSelection();
+                    return true;
+
+                case PlatformActionType.Paste:
+                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                    string pending = textInput?.GetPendingText();
+
+                    if (string.IsNullOrEmpty(pending))
+                        pending = clipboard?.GetText();
+
+                    InsertString(pending);
+                    return true;
+
+                case PlatformActionType.SelectAll:
+                    selectionStart = 0;
+                    selectionEnd = text.Length;
+                    cursorAndLayout.Invalidate();
+                    return true;
+
+                // Cursor Manipulation
+                case PlatformActionType.CharNext:
+                    amount = 1;
+                    break;
+
+                case PlatformActionType.CharPrevious:
+                    amount = -1;
+                    break;
+
+                case PlatformActionType.LineEnd:
+                    amount = text.Length;
+                    break;
+
+                case PlatformActionType.LineStart:
+                    amount = -text.Length;
+                    break;
+
+                case PlatformActionType.WordNext:
+                    if (!AllowWordNavigation)
+                        amount = 1;
+                    else
+                    {
+                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
+                        while (searchNext < Text.Length && text[searchNext] == ' ')
+                            searchNext++;
+                        int nextSpace = text.IndexOf(' ', searchNext);
+                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    }
+
+                    break;
+
+                case PlatformActionType.WordPrevious:
+                    if (!AllowWordNavigation)
+                        amount = -1;
+                    else
+                    {
+                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        while (searchPrev > 0 && text[searchPrev] == ' ')
+                            searchPrev--;
+                        int lastSpace = text.LastIndexOf(' ', searchPrev);
+                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    }
+
+                    break;
+            }
+
+            if (amount.HasValue)
+            {
+                switch (action.ActionMethod)
+                {
+                    case PlatformActionMethod.Move:
+                        resetSelection();
+                        moveSelection(amount.Value, false);
+                        break;
+
+                    case PlatformActionMethod.Select:
+                        moveSelection(amount.Value, true);
+                        break;
+
+                    case PlatformActionMethod.Delete:
+                        if (selectionLength == 0)
+                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
+                        if (selectionLength > 0)
+                            removeCharacterOrSelection();
+                        break;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public virtual bool OnReleased(PlatformAction action) => false;
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
@@ -322,116 +437,6 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
         private Cached cursorAndLayout = new Cached();
-
-        private bool handleAction(PlatformAction action)
-        {
-            int? amount = null;
-
-            if (!HandleLeftRightArrows &&
-                action.ActionMethod == PlatformActionMethod.Move &&
-                (action.ActionType == PlatformActionType.CharNext || action.ActionType == PlatformActionType.CharPrevious))
-                return false;
-
-            switch (action.ActionType)
-            {
-                // Clipboard
-                case PlatformActionType.Cut:
-                case PlatformActionType.Copy:
-                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                    clipboard?.SetText(SelectedText);
-                    if (action.ActionType == PlatformActionType.Cut)
-                        removeCharacterOrSelection();
-                    return true;
-
-                case PlatformActionType.Paste:
-                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
-
-                    if (string.IsNullOrEmpty(pending))
-                        pending = clipboard?.GetText();
-
-                    InsertString(pending);
-                    return true;
-
-                case PlatformActionType.SelectAll:
-                    selectionStart = 0;
-                    selectionEnd = text.Length;
-                    cursorAndLayout.Invalidate();
-                    return true;
-
-                // Cursor Manipulation
-                case PlatformActionType.CharNext:
-                    amount = 1;
-                    break;
-
-                case PlatformActionType.CharPrevious:
-                    amount = -1;
-                    break;
-
-                case PlatformActionType.LineEnd:
-                    amount = text.Length;
-                    break;
-
-                case PlatformActionType.LineStart:
-                    amount = -text.Length;
-                    break;
-
-                case PlatformActionType.WordNext:
-                    if (!AllowWordNavigation)
-                        amount = 1;
-                    else
-                    {
-                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
-                        while (searchNext < Text.Length && text[searchNext] == ' ')
-                            searchNext++;
-                        int nextSpace = text.IndexOf(' ', searchNext);
-                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
-                    }
-
-                    break;
-
-                case PlatformActionType.WordPrevious:
-                    if (!AllowWordNavigation)
-                        amount = -1;
-                    else
-                    {
-                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
-                        while (searchPrev > 0 && text[searchPrev] == ' ')
-                            searchPrev--;
-                        int lastSpace = text.LastIndexOf(' ', searchPrev);
-                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
-                    }
-
-                    break;
-            }
-
-            if (amount.HasValue)
-            {
-                switch (action.ActionMethod)
-                {
-                    case PlatformActionMethod.Move:
-                        resetSelection();
-                        moveSelection(amount.Value, false);
-                        break;
-
-                    case PlatformActionMethod.Select:
-                        moveSelection(amount.Value, true);
-                        break;
-
-                    case PlatformActionMethod.Delete:
-                        if (selectionLength == 0)
-                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
-                        if (selectionLength > 0)
-                            removeCharacterOrSelection();
-                        break;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
 
         private void moveSelection(int offset, bool expand)
         {
@@ -1018,20 +1023,6 @@ namespace osu.Framework.Graphics.UserInterface
                     Colour = Color4.White,
                 };
             }
-        }
-
-        private class TextBoxPlatformBindingHandler : Container, IKeyBindingHandler<PlatformAction>
-        {
-            private readonly TextBox textBox;
-
-            public TextBoxPlatformBindingHandler(TextBox textBox)
-            {
-                this.textBox = textBox;
-            }
-
-            public bool OnPressed(PlatformAction action) => textBox.HasFocus && textBox.handleAction(action);
-
-            public bool OnReleased(PlatformAction action) => false;
         }
     }
 }

@@ -61,14 +61,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
+            scheduleIsIntersecting();
+
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
-
-            if (!isIntersectingCache.IsValid)
-            {
-                computeIsIntersecting();
-                isIntersectingCache.Validate();
-            }
 
             if (!IsIntersecting)
                 timeVisible = 0;
@@ -91,8 +87,23 @@ namespace osu.Framework.Graphics.Containers
         {
             timeVisible = 0;
             loadTask = null;
+
             AddInternal(content);
             DelayedLoadComplete?.Invoke(content);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            CancelTasks();
+        }
+
+        protected virtual void CancelTasks()
+        {
+            cancelLoadScheduledDelegate();
+
+            isIntersectingCache.Invalidate();
+            loadTask = null;
         }
 
         /// <summary>
@@ -113,29 +124,70 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
+        private Cached optimisingContainerCache = new Cached();
         private Cached isIntersectingCache = new Cached();
+
+        private ScheduledDelegate loadScheduledDelegate;
 
         protected bool IsIntersecting { get; private set; }
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        private void computeIsIntersecting()
+        internal IOnScreenOptimisingContainer FindParentOptimisingContainer()
         {
-            if (OptimisingContainer == null)
+            CompositeDrawable cursor = this;
+            while ((cursor = cursor.Parent) != null)
+                if (cursor is IOnScreenOptimisingContainer oc)
+                    return oc;
+
+            return null;
+        }
+
+        private void scheduleIsIntersecting()
+        {
+            if (!optimisingContainerCache.IsValid)
             {
-                CompositeDrawable cursor = this;
-                while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
-                    OptimisingContainer = cursor as IOnScreenOptimisingContainer;
+                OptimisingContainer = FindParentOptimisingContainer();
+                optimisingContainerCache.Validate();
             }
 
             if (OptimisingContainer == null)
+            {
                 IsIntersecting = true;
+                isIntersectingCache.Validate();
+            }
             else
-                OptimisingContainer.ScheduleCheckAction(() => IsIntersecting = OptimisingContainer.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad));
+            {
+                if (loadScheduledDelegate == null)
+                    loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
+                    {
+                        if (!isIntersectingCache.IsValid)
+                        {
+                            IsIntersecting = OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) == true;
+                            isIntersectingCache.Validate();
+                        }
+                    });
+            }
+        }
+
+        private void cancelLoadScheduledDelegate()
+        {
+            loadScheduledDelegate?.Cancel();
+            loadScheduledDelegate = null;
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
+            if (invalidation.HasFlag(Invalidation.Parent))
+            {
+                OptimisingContainer = null;
+                optimisingContainerCache.Invalidate();
+
+                // Cancel the load task and allow the unload to take place by assuming the intersection is no longer valid
+                cancelLoadScheduledDelegate();
+                IsIntersecting = false;
+            }
+
             isIntersectingCache.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }

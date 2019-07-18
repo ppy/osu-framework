@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -113,13 +114,17 @@ namespace osu.Framework.Testing
 
         private Bindable<bool> showLogOverlay;
 
+        private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
+
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
+
+            audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
 
             var resources = game.Resources;
 
@@ -144,33 +149,38 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        testContentContainer = new Container
+                        new SafeAreaContainer
                         {
-                            Clock = framedClock,
+                            SafeAreaOverrideEdges = Edges.Right | Edges.Bottom,
                             RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 50 },
-                            Child = compilingNotice = new Container
+                            Child = testContentContainer = new Container
                             {
-                                Alpha = 0,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Masking = true,
-                                Depth = float.MinValue,
-                                CornerRadius = 5,
-                                AutoSizeAxes = Axes.Both,
-                                Children = new Drawable[]
+                                Clock = framedClock,
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding { Top = 50 },
+                                Child = compilingNotice = new Container
                                 {
-                                    new Box
+                                    Alpha = 0,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Masking = true,
+                                    Depth = float.MinValue,
+                                    CornerRadius = 5,
+                                    AutoSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
                                     {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.Black,
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.Black,
+                                        },
+                                        new SpriteText
+                                        {
+                                            Font = new FontUsage(size: 30),
+                                            Text = @"Compiling new version..."
+                                        }
                                     },
-                                    new SpriteText
-                                    {
-                                        Font = new FontUsage(size: 30),
-                                        Text = @"Compiling new version..."
-                                    }
-                                },
+                                }
                             }
                         },
                         toolbar = new TestBrowserToolbar
@@ -186,10 +196,15 @@ namespace osu.Framework.Testing
                     Size = new Vector2(test_list_width, 1),
                     Children = new Drawable[]
                     {
-                        new Box
+                        new SafeAreaContainer
                         {
-                            Colour = FrameworkColour.GreenDark,
-                            RelativeSizeAxes = Axes.Both
+                            SafeAreaOverrideEdges = Edges.Left | Edges.Top | Edges.Bottom,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = new Box
+                            {
+                                Colour = FrameworkColour.GreenDark,
+                                RelativeSizeAxes = Axes.Both
+                            }
                         },
                         new FillFlowContainer
                         {
@@ -207,11 +222,13 @@ namespace osu.Framework.Testing
                                     },
                                     Height = 25,
                                     RelativeSizeAxes = Axes.X,
-                                    PlaceholderText = "type to search"
+                                    PlaceholderText = "type to search",
+                                    Depth = -1,
                                 },
                                 new BasicScrollContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    Masking = false,
                                     Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
                                     {
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
@@ -250,7 +267,11 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
+            PlaybackRate.BindValueChanged(e =>
+            {
+                rateAdjustClock.Rate = e.NewValue;
+                audioRateAdjust.Value = e.NewValue;
+            }, true);
         }
 
         protected override void Dispose(bool isDisposing)

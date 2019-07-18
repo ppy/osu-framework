@@ -99,6 +99,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Dictionary<T, TabItem<T>> tabMap;
 
+        private bool firstSelection = true;
+
         protected TabControl()
         {
             Dropdown = CreateDropdown();
@@ -125,16 +127,7 @@ namespace osu.Framework.Graphics.UserInterface
             TabContainer.TabVisibilityChanged = updateDropdown;
             TabContainer.ChildrenEnumerable = tabMap.Values;
 
-            Current.ValueChanged += newSelection =>
-            {
-                var newTab = Current.Value != null ? tabMap[Current.Value] : null;
-
-                if (IsLoaded)
-                    selectTab(newTab);
-                else
-                    //will be handled in LoadComplete
-                    SelectedTab = newTab;
-            };
+            Current.ValueChanged += _ => firstSelection = false;
         }
 
         protected override void Update()
@@ -151,10 +144,10 @@ namespace osu.Framework.Graphics.UserInterface
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (SelectedTab != null)
-                SelectTab(SelectedTab);
-            else if (TabContainer.Children.Any())
-                SelectTab(TabContainer.Children.First());
+            if (firstSelection && !Current.Disabled && Items.Any())
+                Current.Value = Items.First();
+
+            Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
         }
 
         /// <summary>

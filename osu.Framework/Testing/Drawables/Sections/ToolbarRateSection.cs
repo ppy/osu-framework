@@ -37,7 +37,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                         {
                             Padding = new MarginPadding(5) { Right = 0 },
                             Text = "Rate:",
-                            Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                            Font = FrameworkFont.Condensed
                         },
                         clickableReset = new ClickableContainer
                         {
@@ -47,7 +47,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Padding = new MarginPadding(5),
                                 Width = 45,
                                 Colour = FrameworkColour.Yellow,
-                                Font = new FontUsage("RobotoCondensed", weight: "Regular")
+                                Font = FrameworkFont.Condensed
                             },
                         },
                         rateAdjustSlider = new BasicSliderBar<double>
