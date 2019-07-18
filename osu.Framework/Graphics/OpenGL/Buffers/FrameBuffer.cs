@@ -18,33 +18,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
-        #region Disposal
-
-        ~FrameBuffer()
-        {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (isDisposed)
-                return;
-
-            GLWrapper.DeleteFrameBuffer(frameBuffer);
-
-            isDisposed = true;
-        }
-
-        #endregion
-
         public bool IsInitialized { get; private set; }
 
         public void Initialize(bool withTexture = true, All filteringMode = All.Linear)
@@ -126,5 +99,32 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             foreach (var r in attachedRenderBuffers)
                 r.Unbind();
         }
+
+        #region Disposal
+
+        ~FrameBuffer()
+        {
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            GLWrapper.DeleteFrameBuffer(frameBuffer);
+
+            isDisposed = true;
+        }
+
+        #endregion
     }
 }
