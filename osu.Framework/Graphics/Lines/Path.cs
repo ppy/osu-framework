@@ -161,17 +161,16 @@ namespace osu.Framework.Graphics.Lines
             return segmentsBacking;
         }
 
-        private Texture texture = Texture.WhitePixel;
+        private Texture texture;
 
         protected Texture Texture
         {
-            get => texture;
+            get => texture ?? Texture.WhitePixel;
             set
             {
                 if (texture == value)
                     return;
 
-                texture?.Dispose();
                 texture = value;
 
                 Invalidate(Invalidation.DrawNode);
