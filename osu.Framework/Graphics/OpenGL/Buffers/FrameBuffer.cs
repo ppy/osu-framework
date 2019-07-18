@@ -38,10 +38,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            isDisposed = true;
+            GLWrapper.DeleteFrameBuffer(frameBuffer);
 
-            GLWrapper.DeleteFramebuffer(frameBuffer);
-            frameBuffer = -1;
+            isDisposed = true;
         }
 
         #endregion
