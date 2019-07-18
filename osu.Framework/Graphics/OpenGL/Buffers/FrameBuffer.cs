@@ -120,6 +120,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GLWrapper.DeleteFrameBuffer(frameBuffer);
 
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Dispose();
+            attachedRenderBuffers.Clear();
+
             isDisposed = true;
         }
 
