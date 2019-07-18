@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                         break;
 
                     case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
 
