@@ -48,8 +48,6 @@ namespace osu.Framework.Graphics.Lines
 
             int textureWidth = (int)PathRadius * 2;
 
-            var texture = new Texture(textureWidth, 1);
-
             //initialise background
             var raw = new Image<Rgba32>(textureWidth, 1);
 
@@ -63,6 +61,7 @@ namespace osu.Framework.Graphics.Lines
                 raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
+            var texture = new TextureWithRefCount(textureWidth, 1, true);
             texture.SetData(new TextureUpload(raw));
             Texture = texture;
 

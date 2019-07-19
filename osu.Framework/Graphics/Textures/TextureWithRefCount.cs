@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -16,6 +17,11 @@ namespace osu.Framework.Graphics.Textures
             : base(textureGl)
         {
             textureGl.Reference();
+        }
+
+        public TextureWithRefCount(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+            : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
+        {
         }
 
         internal int ReferenceCount => base.TextureGL.ReferenceCount;
