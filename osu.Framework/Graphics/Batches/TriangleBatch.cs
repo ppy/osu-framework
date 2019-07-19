@@ -3,11 +3,15 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Batches
 {
+    /// <summary>
+    /// A batch to be used when drawing triangles with <see cref="TextureGLSingle.DrawTriangle"/>.
+    /// </summary>
     public class TriangleBatch<T> : VertexBatch<T>
         where T : struct, IEquatable<T>, IVertex
     {
@@ -21,7 +25,7 @@ namespace osu.Framework.Graphics.Batches
         private class TriangleVertexBuffer : LinearVertexBuffer<T>
         {
             public TriangleVertexBuffer(int size, BufferUsageHint dynamicDraw)
-                : base(size * 6, PrimitiveType.Triangles, dynamicDraw)
+                : base(size * TextureGLSingle.VERTICES_PER_TRIANGLE, PrimitiveType.Triangles, dynamicDraw)
             {
             }
         }

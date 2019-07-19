@@ -141,6 +141,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
+        public const int VERTICES_PER_TRIANGLE = 6;
+
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null)
         {
@@ -215,6 +217,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
+
+        public const int VERTICES_PER_QUAD = 4;
 
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null)
