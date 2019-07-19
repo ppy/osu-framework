@@ -171,6 +171,7 @@ namespace osu.Framework.Graphics.Lines
                 if (texture == value)
                     return;
 
+                texture?.Dispose();
                 texture = value;
 
                 Invalidate(Invalidation.DrawNode);
