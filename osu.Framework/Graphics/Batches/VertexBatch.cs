@@ -78,12 +78,18 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
+            if (currentIndex < VertexBuffers.Count && currentVertex >= currentVertexBuffer.Size)
+            {
+                Draw();
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
+                lastVertex = currentVertex = 0;
+            }
+
+            // currentIndex will change after Draw() above, so this cannot be in an else-condition
             while (currentIndex >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
-            VertexBuffer<T> vertexBuffer = currentVertexBuffer;
-
-            if (vertexBuffer.SetVertex(currentVertex, v))
+            if (currentVertexBuffer.SetVertex(currentVertex, v))
             {
                 if (changeBeginIndex == -1)
                     changeBeginIndex = currentVertex;
@@ -92,13 +98,6 @@ namespace osu.Framework.Graphics.Batches
             }
 
             ++currentVertex;
-
-            if (currentVertex >= vertexBuffer.Size)
-            {
-                Draw();
-                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
-                lastVertex = currentVertex = 0;
-            }
         }
 
         /// <summary>
