@@ -1,9 +1,9 @@
 #ifdef GL_ES
 	precision mediump float;
 #else
-    // Since glsl 1.1 doesn't define precision qualifiers but GL_ES does, 
-    // Define them as nothing to avoid compilation issues.
-    #define highp
+	// Since glsl 1.1 doesn't define precision qualifiers but GL_ES does, 
+	// Define them as nothing to avoid compilation issues.
+	#define highp
 #endif
 
 #include "sh_Utils.h"
