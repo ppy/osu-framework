@@ -13,7 +13,6 @@ using System;
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -68,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// The vertex batch used for child triangles during the front-to-back pass.
             /// </summary>
-            private LinearBatch<TexturedVertex2D> triangleBatch;
+            private TriangleBatch<TexturedVertex2D> triangleBatch;
 
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
@@ -190,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
                 if (mayHaveOwnVertexBatch(clampedAmountChildren) && (triangleBatch == null || triangleBatch.Size < clampedAmountChildren))
                 {
                     // The same general idea as updateQuadBatch(), except that each child draws up to 3 vertices * 6 triangles after quad-quad intersection
-                    triangleBatch = new LinearBatch<TexturedVertex2D>(clampedAmountChildren * 2 * 3, 500, PrimitiveType.Triangles);
+                    triangleBatch = new TriangleBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
                 }
             }
 

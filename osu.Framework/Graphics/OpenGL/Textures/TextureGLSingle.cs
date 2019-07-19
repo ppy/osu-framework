@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
             // grouping of vertices into primitives.
-            LinearBatch<TexturedVertex2D> triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
+            TriangleBatch<TexturedVertex2D> triangleBatch = new TriangleBatch<TexturedVertex2D>(512, 128);
             default_triangle_action = triangleBatch.AddAction;
         }
 
