@@ -193,6 +193,9 @@ namespace osu.Framework.Graphics.Lines
         {
             base.Dispose(isDisposing);
 
+            texture?.Dispose();
+            texture = null;
+
             sharedData.Dispose();
         }
     }
