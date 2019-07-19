@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
             // grouping of vertices into primitives.
-            LinearBatch<TexturedVertex2D> triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
+            TriangleBatch<TexturedVertex2D> triangleBatch = new TriangleBatch<TexturedVertex2D>(512, 128);
             default_triangle_action = triangleBatch.AddAction;
         }
 
@@ -141,6 +141,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
+        public const int VERTICES_PER_TRIANGLE = 6;
+
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null)
         {
@@ -215,6 +217,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
+
+        public const int VERTICES_PER_QUAD = 4;
 
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null)
