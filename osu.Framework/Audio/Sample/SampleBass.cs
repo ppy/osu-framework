@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -26,6 +27,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
+            loaded_sample_bytes.Value -= loadedBytes;
             Bass.SampleFree(sampleId);
             base.Dispose(disposing);
         }
@@ -39,9 +41,15 @@ namespace osu.Framework.Audio.Sample
 
         public int CreateChannel() => Bass.SampleGetChannel(sampleId);
 
+        private long loadedBytes;
+
+        private static readonly GlobalStatistic<long> loaded_sample_bytes = GlobalStatistics.Get<long>("Native", nameof(SampleBass));
+
         private int loadSample(byte[] data)
         {
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
+
+            loaded_sample_bytes.Value += loadedBytes = data.Length;
 
             if (RuntimeInfo.SupportsJIT)
                 return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);
