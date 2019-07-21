@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// This is true iff <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
+        /// This is true if <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
         /// </summary>
         public bool IsLoaded => loadState >= LoadState.Loaded;
 
