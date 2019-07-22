@@ -29,7 +29,7 @@ namespace osu.Framework.Input
         protected override bool Prioritised => true;
 
         /// <summary>
-        /// Propagate key-binding input to the game, which contains logic for handling <see cref="FrameworkAction"/>s
+        /// Prioritize the <see cref="Game"/> for input, which handles the toggling of framework overlays.
         /// </summary>
         protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(game);
     }
