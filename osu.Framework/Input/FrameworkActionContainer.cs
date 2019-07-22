@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
@@ -21,9 +22,9 @@ namespace osu.Framework.Input
 
         private readonly Game game;
 
-        public FrameworkActionContainer(Game game = null)
+        public FrameworkActionContainer(Game game)
         {
-            this.game = game;
+            this.game = game ?? throw new ArgumentNullException();
         }
 
         protected override bool Prioritised => true;
@@ -31,7 +32,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Prioritize the <see cref="Game"/> for input, which handles the toggling of framework overlays.
         /// </summary>
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => game == null ? base.KeyBindingInputQueue : base.KeyBindingInputQueue.Prepend(game);
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(game);
     }
 
     public enum FrameworkAction
