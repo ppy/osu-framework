@@ -9,7 +9,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool allowMultipleInstances = false, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        internal LinuxGameHost(string gameName, bool allowMultipleInstances = true, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, allowMultipleInstances, bindIPC, toolkitOptions, portableInstallation)
         {
         }

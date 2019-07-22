@@ -12,7 +12,7 @@ namespace osu.Framework
 {
     public static class Host
     {
-        public static DesktopGameHost GetSuitableHost(string gameName, bool allowMultipleInstances = false, bool bindIPC = false, bool portableInstallation = false)
+        public static DesktopGameHost GetSuitableHost(string gameName, bool allowMultipleInstances = true, bool bindIPC = false, bool portableInstallation = false)
         {
             var toolkitOptions = new ToolkitOptions
             {

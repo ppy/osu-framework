@@ -27,7 +27,7 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool allowMultipleInstances = false, bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        protected DesktopGameHost(string gameName = @"", bool allowMultipleInstances = true, bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
         {
             this.allowMultipleInstances = allowMultipleInstances;
@@ -39,7 +39,7 @@ namespace osu.Framework.Platform
         {
             var manifestModuleName = DebugUtils.HostAssembly.ManifestModule.Name;
             mutex = new Mutex(true, $"Global\\{manifestModuleName}", out var createdNew);
-            if (allowMultipleInstances && !createdNew)
+            if (!allowMultipleInstances && !createdNew)
                 throw new InvalidOperationException($"Only one instance of {manifestModuleName} is allowed");
 
             //todo: yeah.
