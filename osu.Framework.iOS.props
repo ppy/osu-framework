@@ -115,5 +115,7 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
+    <!--Workaround for https://github.com/ppy/osu/issues/5392-->
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.0" />
   </ItemGroup>
 </Project>

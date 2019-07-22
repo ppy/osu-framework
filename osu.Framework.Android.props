@@ -62,5 +62,7 @@
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <!--Workaround for https://github.com/ppy/osu/issues/5392-->
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.0" />
   </ItemGroup>
 </Project>
