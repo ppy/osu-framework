@@ -612,7 +612,7 @@ namespace osu.Framework.Platform
             var root = game.CreateUserInputManager();
             root.Child = new PlatformActionContainer
             {
-                Child = new FrameworkActionContainer(game)
+                Child = new FrameworkActionContainer
                 {
                     Child = new SafeAreaDefiningContainer
                     {

@@ -1,10 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Input
@@ -20,19 +17,7 @@ namespace osu.Framework.Input
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
-        private readonly Game game;
-
-        public FrameworkActionContainer(Game game)
-        {
-            this.game = game ?? throw new ArgumentNullException();
-        }
-
         protected override bool Prioritised => true;
-
-        /// <summary>
-        /// Prioritize the <see cref="Game"/> for input, which handles the toggling of framework overlays.
-        /// </summary>
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(game);
     }
 
     public enum FrameworkAction
