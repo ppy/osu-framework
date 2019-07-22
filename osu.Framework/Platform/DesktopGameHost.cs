@@ -54,9 +54,9 @@ namespace osu.Framework.Platform
             Debug.Assert(ipcProvider == null);
 
             ipcProvider = new TcpIpcProvider();
-            IsPrimaryInstance = ipcProvider.Bind();
+            IsListeningIpc = ipcProvider.Bind();
 
-            if (IsPrimaryInstance)
+            if (IsListeningIpc)
             {
                 ipcProvider.MessageReceived += OnMessageReceived;
 

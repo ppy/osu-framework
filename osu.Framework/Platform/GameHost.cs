@@ -53,7 +53,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        public bool IsListeningIpc { get; protected set; }
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.

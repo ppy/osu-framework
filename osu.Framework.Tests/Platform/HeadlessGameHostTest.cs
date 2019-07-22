@@ -19,8 +19,8 @@ namespace osu.Framework.Tests.Platform
             using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
             using (var client = new BackgroundGameHeadlessGameHost(@"client", true))
             {
-                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
-                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
+                Assert.IsTrue(server.IsListeningIpc, @"Server wasn't able to bind");
+                Assert.IsFalse(client.IsListeningIpc, @"Client was able to bind when it shouldn't have been able to");
 
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
