@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,25 +20,28 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
+        private Mutex mutex;
+        private readonly bool allowMultipleInstances;
+
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        protected DesktopGameHost(string gameName = @"", bool allowMultipleInstances = false, bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
         {
+            this.allowMultipleInstances = allowMultipleInstances;
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
         }
 
-        protected override bool IsAnotherInstanceAlreadyRunning(out Mutex mutex)
-        {
-            mutex = new Mutex(true, $"Global\\{DebugUtils.HostAssembly.ManifestModule.Name}", out var createdNew);
-            return !createdNew;
-        }
-
         protected override void SetupForRun()
         {
+            var manifestModuleName = DebugUtils.HostAssembly.ManifestModule.Name;
+            mutex = new Mutex(true, $"Global\\{manifestModuleName}", out var createdNew);
+            if (allowMultipleInstances && !createdNew)
+                throw new InvalidOperationException($"Only one instance of {manifestModuleName} is allowed");
+
             //todo: yeah.
             Architecture.SetIncludePath();
 
@@ -105,6 +109,12 @@ namespace osu.Framework.Platform
         }
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
+
+        protected override void PerformExit(bool immediately)
+        {
+            mutex?.ReleaseMutex();
+            base.PerformExit(immediately);
+        }
 
         protected override void Dispose(bool isDisposing)
         {

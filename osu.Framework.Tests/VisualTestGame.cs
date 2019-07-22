@@ -12,8 +12,6 @@ namespace osu.Framework.Tests
 {
     internal class VisualTestGame : TestGame
     {
-        public override bool AllowMultipleInstances => false;
-
         [BackgroundDependencyLoader]
         private void load()
         {
