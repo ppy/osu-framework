@@ -31,7 +31,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Prioritize the <see cref="Game"/> for input, which handles the toggling of framework overlays.
         /// </summary>
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(game);
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => game == null ? base.KeyBindingInputQueue : base.KeyBindingInputQueue.Prepend(game);
     }
 
     public enum FrameworkAction
