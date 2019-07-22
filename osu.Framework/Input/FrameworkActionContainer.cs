@@ -8,7 +8,7 @@ using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Input
 {
-    public class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
+    internal class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
     {
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
@@ -19,9 +19,19 @@ namespace osu.Framework.Input
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
+        private readonly Game game;
+
+        public FrameworkActionContainer(Game game = null)
+        {
+            this.game = game;
+        }
+
         protected override bool Prioritised => true;
 
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(Children.First());
+        /// <summary>
+        /// Propagate key-binding input to the game, which contains logic for handling <see cref="FrameworkAction"/>s
+        /// </summary>
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(game);
     }
 
     public enum FrameworkAction
