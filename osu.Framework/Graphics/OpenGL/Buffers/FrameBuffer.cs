@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             frameBuffer = GL.GenFramebuffer();
 
-            Texture = new TextureBufferBacking(filteringMode);
+            Texture = new FrameBufferTexture(filteringMode);
 
             Bind();
 
@@ -108,9 +108,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #endregion
 
-        private class TextureBufferBacking : TextureGLSingle
+        private class FrameBufferTexture : TextureGLSingle
         {
-            public TextureBufferBacking(All filteringMode = All.Linear)
+            public FrameBufferTexture(All filteringMode = All.Linear)
                 : base(1, 1, true, filteringMode)
             {
                 SetData(new TextureUpload());
