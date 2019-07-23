@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public int Size => vertices.Memory.Length;
 
-        private static readonly GlobalStatistic<long> loaded_vertex_bytes = GlobalStatistics.Get<long>("Native", nameof(DepthWrappingVertex<T>));
+        private static readonly GlobalStatistic<long> loaded_vertex_bytes = GlobalStatistics.Get<long>("Native", nameof(VertexBuffer<T>));
 
         /// <summary>
         /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
