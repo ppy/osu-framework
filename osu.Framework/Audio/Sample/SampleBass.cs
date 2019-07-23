@@ -22,13 +22,21 @@ namespace osu.Framework.Audio.Sample
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            EnqueueAction(() => { sampleId = loadSample(data); });
+            EnqueueAction(() =>
+            {
+                sampleId = loadSample(data);
+                loaded_sample_bytes.Value += loadedBytes = data.Length;
+            });
         }
 
         protected override void Dispose(bool disposing)
         {
-            loaded_sample_bytes.Value -= loadedBytes;
-            Bass.SampleFree(sampleId);
+            if (IsLoaded)
+            {
+                Bass.SampleFree(sampleId);
+                loaded_sample_bytes.Value -= loadedBytes;
+            }
+
             base.Dispose(disposing);
         }
 
@@ -48,8 +56,6 @@ namespace osu.Framework.Audio.Sample
         private int loadSample(byte[] data)
         {
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
-
-            loaded_sample_bytes.Value += loadedBytes = data.Length;
 
             if (RuntimeInfo.SupportsJIT)
                 return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);
