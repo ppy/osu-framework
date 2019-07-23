@@ -50,6 +50,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public int Size => vertices.Memory.Length;
 
+        private static readonly GlobalStatistic<long> loaded_vertex_bytes = GlobalStatistics.Get<long>("Native", nameof(VertexBuffer<T>));
+
         /// <summary>
         /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
         /// </summary>
@@ -62,7 +64,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 VertexUtils<DepthWrappingVertex<T>>.Bind();
 
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Memory.Length * STRIDE), IntPtr.Zero, usage);
+            int size = Size * STRIDE;
+
+            loaded_vertex_bytes.Value += size;
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
         }
 
         ~VertexBuffer()
@@ -83,12 +88,16 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (IsDisposed)
                 return;
 
+            int size = Size * STRIDE;
+
             vertices.Dispose();
             vertices = null;
 
             if (isInitialised)
             {
                 Unbind();
+
+                loaded_vertex_bytes.Value -= size;
                 GL.DeleteBuffer(vboId);
             }
 

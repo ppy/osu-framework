@@ -82,6 +82,45 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             GL.DeleteTextures(1, new[] { disposableId });
 
             textureId = 0;
+
+            loadedBytes.Value -= getMemoryUsage();
+        }
+
+        #endregion
+
+        #region Memory Tracking
+
+        private GlobalStatistic<long> loadedBytes;
+        private List<long> levelMemoryUsage = new List<long>();
+
+        private void updateMemoryUsage(int level, long newUsage)
+        {
+            if (loadedBytes == null)
+            {
+                loadedBytes = GlobalStatistics.Get<long>("Native", GetType().Name);
+                levelMemoryUsage = new List<long>();
+            }
+
+            long before = getMemoryUsage();
+
+            while (level >= levelMemoryUsage.Count)
+                levelMemoryUsage.Add(0);
+
+            levelMemoryUsage[level] = newUsage;
+
+            long after = getMemoryUsage();
+
+            loadedBytes.Value += after - before;
+        }
+
+        private long getMemoryUsage()
+        {
+            long usage = 0;
+
+            for (int i = 0; i < levelMemoryUsage.Count; i++)
+                usage += levelMemoryUsage[i];
+
+            return usage;
         }
 
         #endregion
@@ -406,7 +445,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     GLWrapper.BindTexture(this);
 
                 if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
+                {
+                    updateMemoryUsage(upload.Level, width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                }
                 else
                 {
                     initializeLevel(upload.Level, width, height);
@@ -447,7 +489,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             using (var image = new Image<Rgba32>(width, height))
                 fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
+                {
+                    updateMemoryUsage(level, width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
+                }
         }
     }
 }
