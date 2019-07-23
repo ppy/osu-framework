@@ -760,6 +760,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         MouseWheelDown = 146,
 
+        /// <summary>
         /// The media mute key.
         /// </summary>
         Mute = 256,
