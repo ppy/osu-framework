@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             ref var currentVertex = ref vertexMemory.Span[vertexIndex];
 
-            bool isNewVertex = !currentVertex.Equals(vertex) || currentVertex.BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
+            bool isNewVertex = !currentVertex.Vertex.Equals(vertex) || currentVertex.BackbufferDrawDepth != GLWrapper.BackbufferDrawDepth;
 
             currentVertex.Vertex = vertex;
             currentVertex.BackbufferDrawDepth = GLWrapper.BackbufferDrawDepth;
