@@ -37,10 +37,15 @@ namespace osu.Framework.Platform
 
         protected override void SetupForRun()
         {
-            var manifestModuleName = DebugUtils.HostAssembly.ManifestModule.Name;
-            mutex = new Mutex(true, $"Global\\{manifestModuleName}", out var createdNew);
-            if (!allowMultipleInstances && !createdNew)
-                throw new InvalidOperationException($"Only one instance of {manifestModuleName} is allowed");
+            if (!allowMultipleInstances)
+            {
+                var manifestModuleName = DebugUtils.HostAssembly.ManifestModule.Name;
+                mutex = new Mutex(true, $"Global\\{manifestModuleName}", out var createdNew);
+                if (!createdNew)
+                    throw new InvalidOperationException($"Only one instance of {manifestModuleName} is allowed");
+
+                CleanupRequested += () => mutex?.ReleaseMutex();
+            }
 
             //todo: yeah.
             Architecture.SetIncludePath();
@@ -109,12 +114,6 @@ namespace osu.Framework.Platform
         }
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
-
-        protected override void PerformExit(bool immediately)
-        {
-            mutex?.ReleaseMutex();
-            base.PerformExit(immediately);
-        }
 
         protected override void Dispose(bool isDisposing)
         {

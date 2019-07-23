@@ -16,8 +16,8 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
-            using (var client = new BackgroundGameHeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(@"server", bindIPC: true))
+            using (var client = new BackgroundGameHeadlessGameHost(@"client", bindIPC: true))
             {
                 Assert.IsTrue(server.IsListeningIpc, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsListeningIpc, @"Client was able to bind when it shouldn't have been able to");

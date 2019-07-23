@@ -566,11 +566,15 @@ namespace osu.Framework.Platform
                 }
                 finally
                 {
+                    CleanupRequested?.Invoke();
+
                     // Close the window and stop all threads
                     PerformExit(true);
                 }
             }
         }
+
+        protected event Action CleanupRequested;
 
         /// <summary>
         /// Prepare this game host for <see cref="Run"/>.

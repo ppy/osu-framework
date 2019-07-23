@@ -26,8 +26,8 @@ namespace osu.Framework.Platform
 
         protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation: portableInstallation)
+        public HeadlessGameHost(string gameName = @"", bool allowMultipleInstances = true, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName, allowMultipleInstances, bindIPC, portableInstallation: portableInstallation)
         {
             this.realtime = realtime;
         }

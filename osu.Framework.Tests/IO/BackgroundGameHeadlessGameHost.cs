@@ -14,8 +14,8 @@ namespace osu.Framework.Tests.IO
     {
         private TestGame testGame;
 
-        public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, realtime, portableInstallation)
+        public BackgroundGameHeadlessGameHost(string gameName = @"", bool allowMultipleInstances = true, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName, allowMultipleInstances, bindIPC, realtime, portableInstallation)
         {
             using (var gameCreated = new ManualResetEventSlim(false))
             {
