@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using osu.Framework.Development;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -39,10 +38,9 @@ namespace osu.Framework.Platform
         {
             if (!allowMultipleInstances)
             {
-                var manifestModuleName = DebugUtils.HostAssembly.ManifestModule.Name;
-                mutex = new Mutex(true, $"Global\\{manifestModuleName}", out var createdNew);
+                mutex = new Mutex(true, $"Global\\{Name}", out var createdNew);
                 if (!createdNew)
-                    throw new InvalidOperationException($"Only one instance of {manifestModuleName} is allowed");
+                    throw new InvalidOperationException($"Only one instance of {Name} is allowed");
 
                 CleanupRequested += () => mutex?.ReleaseMutex();
             }
