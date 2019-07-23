@@ -1,9 +1,6 @@
-#ifdef GL_ES
-	precision mediump float;
-#else
-	// Since glsl 1.1 doesn't define precision qualifiers but GL_ES does, 
-	// Define them as nothing to avoid compilation issues.
+#ifndef GL_ES
 	#define highp
+	#define mediump
 	#define lowp
 #endif
 
@@ -11,7 +8,7 @@
 
 varying highp vec2 v_MaskingPosition;
 varying lowp vec4 v_Colour;
-varying vec2 v_TexCoord;
+varying mediump vec2 v_TexCoord;
 varying highp vec4 v_TexRect;
 varying highp vec2 v_BlendRange;
 
@@ -21,16 +18,16 @@ uniform highp vec4 g_MaskingRect;
 uniform highp float g_BorderThickness;
 uniform lowp vec4 g_BorderColour;
 
-uniform float g_MaskingBlendRange;
+uniform mediump float g_MaskingBlendRange;
 
-uniform float g_AlphaExponent;
+uniform lowp float g_AlphaExponent;
 
 uniform highp vec2 g_EdgeOffset;
 
 uniform bool g_DiscardInner;
 uniform highp float g_InnerCornerRadius;
 
-float distanceFromRoundedRect(highp vec2 offset, highp float radius)
+highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
 	highp vec2 maskingPosition = v_MaskingPosition + offset;
 
@@ -52,7 +49,7 @@ float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 		return length(max(vec2(0.0), distanceFromShrunkRect));
 }
 
-float distanceFromDrawingRect()
+highp float distanceFromDrawingRect()
 {
 	highp vec2 topLeftOffset = v_TexRect.xy - v_TexCoord;
 	topLeftOffset = vec2(
@@ -71,7 +68,7 @@ float distanceFromDrawingRect()
 void main(void)
 {
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
-	float alphaFactor = 1.0;
+	lowp float alphaFactor = 1.0;
 	lowp vec4 texel = texture2D(m_Sampler, v_TexCoord, -0.9);
 
 	// Discard inner pixels
