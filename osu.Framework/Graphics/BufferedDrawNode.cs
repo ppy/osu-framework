@@ -147,6 +147,7 @@ namespace osu.Framework.Graphics
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
+            // todo: this is currently doing a second bind (after unbinding in the Size call). can likely be optimised away.
             frameBuffer.Bind();
 
             return new ValueInvokeOnDisposal(frameBuffer.Unbind);

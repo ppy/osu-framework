@@ -156,6 +156,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             PushDepthInfo(new DepthInfo(writeDepth: true));
 
+            GL.Disable(EnableCap.ScissorTest);
+
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
@@ -181,6 +183,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             currentClearInfo = clearInfo;
+
+            GL.Enable(EnableCap.ScissorTest);
 
             PopDepthInfo();
         }

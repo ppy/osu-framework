@@ -261,7 +261,7 @@ namespace osu.Framework.Graphics
                                        Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
-            RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
+            RectangleF textureRect = new RectangleF(0, frameBuffer.Size.Y, frameBuffer.Size.X, -frameBuffer.Size.Y);
 
             if (frameBuffer.Texture.Bind())
                 DrawQuad(frameBuffer.Texture, vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage, blendRangeOverride);
