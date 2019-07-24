@@ -23,6 +23,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -197,6 +198,16 @@ namespace osu.Framework.Platform
         {
             this.toolkitOptions = toolkitOptions;
             Name = gameName;
+        }
+
+        /// <summary>
+        /// Performs a GC collection and frees all framework caches.
+        /// This is a blocking call and should not be invoked during periods of user activity unless memory is critical.
+        /// </summary>
+        public void Collect()
+        {
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+            GC.Collect();
         }
 
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
