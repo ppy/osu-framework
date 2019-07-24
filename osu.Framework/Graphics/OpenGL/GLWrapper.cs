@@ -630,11 +630,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             frame_buffer_stack.Pop();
 
-            FlushCurrentBatch();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
+            if (frame_buffer_stack.Peek() != frameBuffer)
+            {
+                FlushCurrentBatch();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
 
-            GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
-            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+                GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
+                GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
+            }
         }
 
         /// <summary>
