@@ -142,15 +142,7 @@ namespace osu.Framework.Graphics
         protected ValueInvokeOnDisposal BindFrameBuffer(FrameBuffer frameBuffer)
         {
             if (!frameBuffer.IsInitialized)
-                frameBuffer.Initialize(true, filteringMode);
-
-            if (formats != null)
-            {
-                // These additional render buffers are only required if e.g. depth
-                // or stencil information needs to also be stored somewhere.
-                foreach (var f in formats)
-                    frameBuffer.Attach(f);
-            }
+                frameBuffer.Initialise(filteringMode, formats);
 
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;

@@ -161,11 +161,11 @@ namespace osu.Framework.Graphics.Lines
             return segmentsBacking;
         }
 
-        private Texture texture = Texture.WhitePixel;
+        private Texture texture;
 
         protected Texture Texture
         {
-            get => texture;
+            get => texture ?? Texture.WhitePixel;
             set
             {
                 if (texture == value)
@@ -192,6 +192,9 @@ namespace osu.Framework.Graphics.Lines
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
+            texture?.Dispose();
+            texture = null;
 
             sharedData.Dispose();
         }

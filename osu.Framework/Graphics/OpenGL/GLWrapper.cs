@@ -634,10 +634,10 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Deletes a framebuffer.
+        /// Deletes a frame buffer.
         /// </summary>
-        /// <param name="frameBuffer">The framebuffer to delete.</param>
-        internal static void DeleteFramebuffer(int frameBuffer)
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        internal static void DeleteFrameBuffer(int frameBuffer)
         {
             if (frameBuffer == -1) return;
 
