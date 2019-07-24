@@ -206,6 +206,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Collect()
         {
+            FrameBufferTextureCache.Purge();
+
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
             GC.Collect();
         }
