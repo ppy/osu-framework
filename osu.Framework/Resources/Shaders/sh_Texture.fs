@@ -1,13 +1,9 @@
-#ifdef GL_ES
-	precision mediump float;
-#endif
-
 #include "sh_Utils.h"
 
-varying vec4 v_Colour;
-varying vec2 v_TexCoord;
+varying lowp vec4 v_Colour;
+varying mediump vec2 v_TexCoord;
 
-uniform sampler2D m_Sampler;
+uniform lowp sampler2D m_Sampler;
 
 void main(void)
 {

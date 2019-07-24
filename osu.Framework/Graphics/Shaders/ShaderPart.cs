@@ -107,14 +107,19 @@ namespace osu.Framework.Graphics.Shaders
                     }
                 }
 
-                if (mainFile && isVertexShader)
+                if (mainFile)
                 {
-                    string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
 
-                    string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+                    if (isVertexShader)
+                    {
+                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                    backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                    code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                    }
                 }
 
                 return code;

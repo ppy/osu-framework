@@ -1,9 +1,3 @@
-#ifndef GL_ES
-	#define highp
-	#define mediump
-	#define lowp
-#endif
-
 #include "sh_Utils.h"
 
 varying highp vec2 v_MaskingPosition;
@@ -12,7 +6,7 @@ varying mediump vec2 v_TexCoord;
 varying highp vec4 v_TexRect;
 varying highp vec2 v_BlendRange;
 
-uniform sampler2D m_Sampler;
+uniform lowp sampler2D m_Sampler;
 uniform highp float g_CornerRadius;
 uniform highp vec4 g_MaskingRect;
 uniform highp float g_BorderThickness;
