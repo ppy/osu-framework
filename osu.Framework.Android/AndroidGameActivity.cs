@@ -18,7 +18,7 @@ namespace osu.Framework.Android
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
             base.OnTrimMemory(level);
-            gameView.Host?.PurgeCaches();
+            gameView.Host?.Collect();
         }
 
         protected override void OnCreate(Bundle savedInstanceState)
