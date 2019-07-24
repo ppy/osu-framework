@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Shaders
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+\\s+[^\\s]+([^;]+);");
+        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+([^;]+);");
 
         private readonly ShaderManager manager;
 
@@ -98,10 +98,12 @@ namespace osu.Framework.Graphics.Shaders
 
                         if (inputMatch.Success)
                         {
+                            var attribName = inputMatch.Groups[1].Value.Trim().Split(' ');
+
                             ShaderInputs.Add(new ShaderInputInfo
                             {
                                 Location = lastShaderInputIndex++,
-                                Name = inputMatch.Groups[1].Value.Trim()
+                                Name = attribName[attribName.Length - 1]
                             });
                         }
                     }
