@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.Shaders
 #endif
 
             if (!Compiled)
-                delete();
+                throw new Shader.ShaderNotCompiledException($"A {typeof(ShaderPart)} could not be compiled: {Name}");
 
             return Compiled;
         }

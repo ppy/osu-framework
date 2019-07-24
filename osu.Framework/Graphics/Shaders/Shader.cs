@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
@@ -144,6 +145,9 @@ namespace osu.Framework.Graphics.Shaders
         {
             if (!IsLoaded)
                 Compile();
+
+            if (!IsLoaded)
+                throw new ShaderNotCompiledException($"A {typeof(Shader)} failed to compile and could not be linked: {name}");
         }
 
         public void Bind()
@@ -187,5 +191,13 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         public static implicit operator int(Shader shader) => shader.programID;
+
+        public class ShaderNotCompiledException : Exception
+        {
+            public ShaderNotCompiledException(string message)
+                : base(message)
+            {
+            }
+        }
     }
 }
