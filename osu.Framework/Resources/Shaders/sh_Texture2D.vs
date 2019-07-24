@@ -3,7 +3,7 @@
 attribute highp vec2 m_Position;
 attribute lowp vec4 m_Colour;
 attribute mediump vec2 m_TexCoord;
-attribute highpp vec4 m_TexRect;
+attribute highp vec4 m_TexRect;
 attribute highp vec2 m_BlendRange;
 
 varying highp vec2 v_MaskingPosition;
