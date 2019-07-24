@@ -7,7 +7,7 @@ attribute mediump vec2 m_TexCoord;
 varying highp vec2 v_MaskingPosition;
 varying lowp vec4 v_Colour;
 varying mediump vec2 v_TexCoord;
-varying highpp vec4 v_TexRect;
+varying highp vec4 v_TexRect;
 varying highp vec2 v_BlendRange;
 
 uniform mat4 g_ProjMatrix;
