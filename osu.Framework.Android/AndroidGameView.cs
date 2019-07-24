@@ -19,8 +19,8 @@ namespace osu.Framework.Android
 
         private readonly Game game;
 
-        public event Action<Keycode, KeyEvent> KeyDown;
-        public event Action<Keycode, KeyEvent> KeyUp;
+        public new event Action<Keycode, KeyEvent> KeyDown;
+        public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
 
