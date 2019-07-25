@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
@@ -13,10 +14,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     internal static class FrameBufferTextureCache
     {
-        private static readonly SortedList<TextureGLSingle> available_textures = new SortedList<TextureGLSingle>((x, y) => (x.Width * x.Height).CompareTo(y.Width * y.Height));
+        private static readonly List<TextureGLSingle> available_textures = new List<TextureGLSingle>();
 
         private static readonly GlobalStatistic<int> stat_total = GlobalStatistics.Get<int>("Native", $"{nameof(FrameBufferTextureCache)} total");
         private static readonly GlobalStatistic<int> stat_in_use = GlobalStatistics.Get<int>("Native", $"{nameof(FrameBufferTextureCache)} in use");
+
+        private static readonly IComparer<TextureGLSingle> comparer = new ComparisonComparer<TextureGLSingle>(((x, y) => (x.Width * x.Height).CompareTo(y.Width * y.Height)));
 
         /// <summary>
         /// Retrieve a texture matching the specified criteria. A new texture will be allocated if no match is available.
@@ -55,7 +58,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             lock (available_textures)
             {
-                available_textures.Add(texture);
+                if (available_textures.Contains(texture))
+                    throw new InvalidOperationException("Returned texture was previously returned");
+
+                int index = available_textures.BinarySearch(texture, comparer);
+
+                if (index < 0)
+                {
+                    index = ~index;
+                }
+
+                available_textures.Insert(index, texture);
                 stat_in_use.Value--;
             }
         }
