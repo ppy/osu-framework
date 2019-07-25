@@ -136,6 +136,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<T> Content => content;
 
+        protected override bool ConfinePositionalInput => true;
+
         /// <summary>
         /// Whether we are currently scrolled as far as possible into the scroll direction.
         /// </summary>

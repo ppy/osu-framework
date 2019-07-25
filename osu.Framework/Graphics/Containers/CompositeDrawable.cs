@@ -1221,12 +1221,18 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        /// <summary>
+        /// Whether or not this Drawable should block its children from receiving input outside of its
+        /// draw rectangle regardless of whether or not they are masked away.
+        /// </summary>
+        protected virtual bool ConfinePositionalInput => false;
+
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
             if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
-            if (Masking && !ReceivePositionalInputAt(screenSpacePos))
+            if ((Masking || ConfinePositionalInput) && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
