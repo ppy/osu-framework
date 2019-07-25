@@ -94,6 +94,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 SetData(new TextureUpload());
                 Upload();
             }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                throw new InvalidOperationException($"{nameof(FrameBufferTexture)} should not be disposed");
+            }
         }
     }
 }
