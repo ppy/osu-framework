@@ -160,20 +160,25 @@ namespace osu.Framework.Graphics.Lines
                 if (boundsCache.IsValid)
                     return boundsCache.Value;
 
-                float minX = 0;
-                float minY = 0;
-                float maxX = 0;
-                float maxY = 0;
-
-                foreach (var v in vertices)
+                if (vertices.Count > 0)
                 {
-                    minX = Math.Min(minX, v.X - PathRadius);
-                    minY = Math.Min(minY, v.Y - PathRadius);
-                    maxX = Math.Max(maxX, v.X + PathRadius);
-                    maxY = Math.Max(maxY, v.Y + PathRadius);
+                    float minX = float.MaxValue;
+                    float minY = float.MaxValue;
+                    float maxX = float.MinValue;
+                    float maxY = float.MinValue;
+
+                    foreach (var v in vertices)
+                    {
+                        minX = Math.Min(minX, v.X - PathRadius);
+                        minY = Math.Min(minY, v.Y - PathRadius);
+                        maxX = Math.Max(maxX, v.X + PathRadius);
+                        maxY = Math.Max(maxY, v.Y + PathRadius);
+                    }
+
+                    return boundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
                 }
 
-                return boundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
+                return boundsCache.Value = new RectangleF(0, 0, 0, 0);
             }
         }
 
