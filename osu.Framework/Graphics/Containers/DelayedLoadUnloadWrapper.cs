@@ -63,22 +63,26 @@ namespace osu.Framework.Graphics.Containers
         {
             base.EndDelayedLoad(content);
 
-            content.LifetimeStart = lifetimeStart;
-            content.LifetimeEnd = lifetimeEnd;
-
-            Debug.Assert(!contentLoaded);
-            Debug.Assert(unloadSchedule == null);
-
-            contentLoaded = true;
-
-            if (OptimisingContainer != null)
+            // schedule ensure OptimisingContainer is valid at the time we check for it.
+            Schedule(() =>
             {
-                unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
-                Debug.Assert(unloadSchedule != null);
-                loaded_optimised.Value++;
-            }
-            else
-                loaded_unoptimised.Value++;
+                content.LifetimeStart = lifetimeStart;
+                content.LifetimeEnd = lifetimeEnd;
+
+                Debug.Assert(!contentLoaded);
+                Debug.Assert(unloadSchedule == null);
+
+                contentLoaded = true;
+
+                if (OptimisingContainer != null)
+                {
+                    unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
+                    Debug.Assert(unloadSchedule != null);
+                    loaded_optimised.Value++;
+                }
+                else
+                    loaded_unoptimised.Value++;
+            });
         }
 
         protected override void CancelTasks()
