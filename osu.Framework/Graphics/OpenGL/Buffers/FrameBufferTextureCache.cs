@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Lists;
 using osu.Framework.Statistics;
 using osuTK.Graphics.ES30;
 
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     internal static class FrameBufferTextureCache
     {
-        private static readonly List<TextureGLSingle> available_textures = new List<TextureGLSingle>();
+        private static readonly SortedList<TextureGLSingle> available_textures = new SortedList<TextureGLSingle>((x, y) => (x.Width * x.Height).CompareTo(y.Width * y.Height));
 
         private static readonly GlobalStatistic<int> stat_total = GlobalStatistics.Get<int>("Native", $"{nameof(FrameBufferTextureCache)} total");
         private static readonly GlobalStatistic<int> stat_in_use = GlobalStatistics.Get<int>("Native", $"{nameof(FrameBufferTextureCache)} in use");
