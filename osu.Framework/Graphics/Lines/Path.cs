@@ -74,6 +74,18 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
+        public override Axes RelativeSizeAxes
+        {
+            get => base.RelativeSizeAxes;
+            set
+            {
+                if ((AutoSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
+
+                base.RelativeSizeAxes = value;
+            }
+        }
+
         private Axes autoSizeAxes;
 
         /// <summary>
