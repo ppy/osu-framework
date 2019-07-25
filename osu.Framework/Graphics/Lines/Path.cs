@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -18,6 +19,11 @@ namespace osu.Framework.Graphics.Lines
         public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
         private IShader pathShader;
+
+        public Path()
+        {
+            AutoSizeAxes = Axes.Both;
+        }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -37,10 +43,10 @@ namespace osu.Framework.Graphics.Lines
                 vertices.Clear();
                 vertices.AddRange(value);
 
-                recomputeBounds();
-
+                boundsCache.Invalidate();
                 segmentsCache.Invalidate();
-                Invalidate(Invalidation.DrawNode);
+
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -60,10 +66,114 @@ namespace osu.Framework.Graphics.Lines
                 if (pathRadius == value) return;
 
                 pathRadius = value;
-                recomputeBounds();
 
+                boundsCache.Invalidate();
                 segmentsCache.Invalidate();
-                Invalidate(Invalidation.DrawNode);
+
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
+
+        private Axes autoSizeAxes;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. the bounds of the vertices.
+        /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public virtual Axes AutoSizeAxes
+        {
+            get => autoSizeAxes;
+            set
+            {
+                if (value == autoSizeAxes)
+                    return;
+
+                if ((RelativeSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
+
+                autoSizeAxes = value;
+                OnSizingChanged();
+            }
+        }
+
+        public override float Width
+        {
+            get
+            {
+                if (AutoSizeAxes.HasFlag(Axes.X))
+                    return base.Width = bounds.Width;
+
+                return base.Width;
+            }
+            set
+            {
+                if ((AutoSizeAxes & Axes.X) != 0)
+                    throw new InvalidOperationException($"The width of a {nameof(Path)} with {nameof(AutoSizeAxes)} can not be set manually.");
+
+                base.Width = value;
+            }
+        }
+
+        public override float Height
+        {
+            get
+            {
+                if (AutoSizeAxes.HasFlag(Axes.Y))
+                    return base.Height = bounds.Height;
+
+                return base.Height;
+            }
+            set
+            {
+                if ((AutoSizeAxes & Axes.Y) != 0)
+                    throw new InvalidOperationException($"The height of a {nameof(Path)} with {nameof(AutoSizeAxes)} can not be set manually.");
+
+                base.Height = value;
+            }
+        }
+
+        public override Vector2 Size
+        {
+            get
+            {
+                if (AutoSizeAxes != Axes.None)
+                    return base.Size = bounds.Size;
+
+                return base.Size;
+            }
+            set
+            {
+                if ((AutoSizeAxes & Axes.Both) != 0)
+                    throw new InvalidOperationException($"The Size of a {nameof(Path)} with {nameof(AutoSizeAxes)} can not be set manually.");
+
+                base.Size = value;
+            }
+        }
+
+        private Cached<RectangleF> boundsCache;
+
+        private RectangleF bounds
+        {
+            get
+            {
+                if (boundsCache.IsValid)
+                    return boundsCache.Value;
+
+                float minX = 0;
+                float minY = 0;
+                float maxX = 0;
+                float maxY = 0;
+
+                foreach (var v in vertices)
+                {
+                    minX = Math.Min(minX, v.X - PathRadius);
+                    minY = Math.Min(minY, v.Y - PathRadius);
+                    maxX = Math.Max(maxX, v.X + PathRadius);
+                    maxY = Math.Max(maxY, v.Y + PathRadius);
+                }
+
+                return boundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
             }
         }
 
@@ -79,7 +189,7 @@ namespace osu.Framework.Graphics.Lines
             return false;
         }
 
-        public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);
+        public Vector2 PositionInBoundingBox(Vector2 pos) => pos - bounds.TopLeft;
 
         public void ClearVertices()
         {
@@ -87,59 +197,21 @@ namespace osu.Framework.Graphics.Lines
                 return;
 
             vertices.Clear();
-            resetBounds();
 
-            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = 0;
-            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = 0;
-
+            boundsCache.Invalidate();
             segmentsCache.Invalidate();
-            Invalidate(Invalidation.DrawNode);
+
+            Invalidate(Invalidation.DrawSize);
         }
 
         public void AddVertex(Vector2 pos)
         {
             vertices.Add(pos);
-            expandBounds(pos);
 
+            boundsCache.Invalidate();
             segmentsCache.Invalidate();
-            Invalidate(Invalidation.DrawNode);
-        }
 
-        private float minX;
-        private float minY;
-        private float maxX;
-        private float maxY;
-
-        private RectangleF bounds => new RectangleF(minX, minY, maxX - minX, maxY - minY);
-
-        /// <summary>
-        /// Adjust the height and width of this Path depending on the position of the vertices and its radius.
-        /// </summary>
-        /// <remarks>
-        /// Keep in mind that the height will factor in PathRadius twice, once at the top and once on the bottom of the rectangle.
-        /// </remarks>
-        private void expandBounds(Vector2 pos)
-        {
-            if (pos.X - PathRadius < minX) minX = pos.X - PathRadius;
-            if (pos.Y - PathRadius < minY) minY = pos.Y - PathRadius;
-            if (pos.X + PathRadius > maxX) maxX = pos.X + PathRadius;
-            if (pos.Y + PathRadius > maxY) maxY = pos.Y + PathRadius;
-
-            RectangleF b = bounds;
-            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = b.Width;
-            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = b.Height;
-        }
-
-        private void resetBounds()
-        {
-            minX = minY = maxX = maxY = 0;
-        }
-
-        private void recomputeBounds()
-        {
-            resetBounds();
-            foreach (Vector2 pos in vertices)
-                expandBounds(pos);
+            Invalidate(Invalidation.DrawSize);
         }
 
         private readonly List<Line> segmentsBacking = new List<Line>();
@@ -152,7 +224,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (vertices.Count > 1)
             {
-                Vector2 offset = new Vector2(minX, minY);
+                Vector2 offset = bounds.TopLeft;
                 for (int i = 0; i < vertices.Count - 1; ++i)
                     segmentsBacking.Add(new Line(vertices[i] - offset, vertices[i + 1] - offset));
             }
