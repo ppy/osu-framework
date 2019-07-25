@@ -46,6 +46,37 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
+        [Test]
+        public void TestMultipleInstancesAllowed()
+        {
+            testMultipleInstancesInternal(nameof(TestMultipleInstancesAllowed), true);
+        }
+
+        [Test]
+        public void TestMultipleInstancesNotAllowed()
+        {
+            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestMultipleInstancesNotAllowed), false));
+        }
+
+        private void testMultipleInstancesInternal(string gameName, bool allowMultipleInstances)
+        {
+            using (var host1 = new HeadlessGameHost(gameName, allowMultipleInstances))
+            using (var host2 = new HeadlessGameHost(gameName, allowMultipleInstances))
+            {
+                host1.Run(new TestGame());
+                host2.Run(new TestGame());
+            }
+        }
+
+        private class TestGame : Game
+        {
+            protected override void Update()
+            {
+                base.Update();
+                Exit();
+            }
+        }
+
         private class Foobar
         {
             public string Bar;
