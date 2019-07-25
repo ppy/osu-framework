@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Lines
                 vertices.Clear();
                 vertices.AddRange(value);
 
-                boundsCache.Invalidate();
+                vertexBoundsCache.Invalidate();
                 segmentsCache.Invalidate();
 
                 Invalidate(Invalidation.DrawSize);
@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Lines
 
                 pathRadius = value;
 
-                boundsCache.Invalidate();
+                vertexBoundsCache.Invalidate();
                 segmentsCache.Invalidate();
 
                 Invalidate(Invalidation.DrawSize);
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Lines
             get
             {
                 if (AutoSizeAxes.HasFlag(Axes.X))
-                    return base.Width = bounds.Width;
+                    return base.Width = vertexBounds.Width;
 
                 return base.Width;
             }
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Lines
             get
             {
                 if (AutoSizeAxes.HasFlag(Axes.Y))
-                    return base.Height = bounds.Height;
+                    return base.Height = vertexBounds.Height;
 
                 return base.Height;
             }
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Lines
             get
             {
                 if (AutoSizeAxes != Axes.None)
-                    return base.Size = bounds.Size;
+                    return base.Size = vertexBounds.Size;
 
                 return base.Size;
             }
@@ -163,14 +163,14 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached<RectangleF> boundsCache;
+        private Cached<RectangleF> vertexBoundsCache;
 
-        private RectangleF bounds
+        private RectangleF vertexBounds
         {
             get
             {
-                if (boundsCache.IsValid)
-                    return boundsCache.Value;
+                if (vertexBoundsCache.IsValid)
+                    return vertexBoundsCache.Value;
 
                 if (vertices.Count > 0)
                 {
@@ -187,10 +187,10 @@ namespace osu.Framework.Graphics.Lines
                         maxY = Math.Max(maxY, v.Y + PathRadius);
                     }
 
-                    return boundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
+                    return vertexBoundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
                 }
 
-                return boundsCache.Value = new RectangleF(0, 0, 0, 0);
+                return vertexBoundsCache.Value = new RectangleF(0, 0, 0, 0);
             }
         }
 
@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Lines
             return false;
         }
 
-        public Vector2 PositionInBoundingBox(Vector2 pos) => pos - bounds.TopLeft;
+        public Vector2 PositionInBoundingBox(Vector2 pos) => pos - vertexBounds.TopLeft;
 
         public void ClearVertices()
         {
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Lines
 
             vertices.Clear();
 
-            boundsCache.Invalidate();
+            vertexBoundsCache.Invalidate();
             segmentsCache.Invalidate();
 
             Invalidate(Invalidation.DrawSize);
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Lines
         {
             vertices.Add(pos);
 
-            boundsCache.Invalidate();
+            vertexBoundsCache.Invalidate();
             segmentsCache.Invalidate();
 
             Invalidate(Invalidation.DrawSize);
@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics.Lines
 
             if (vertices.Count > 1)
             {
-                Vector2 offset = bounds.TopLeft;
+                Vector2 offset = vertexBounds.TopLeft;
                 for (int i = 0; i < vertices.Count - 1; ++i)
                     segmentsBacking.Add(new Line(vertices[i] - offset, vertices[i + 1] - offset));
             }
