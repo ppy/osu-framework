@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -14,32 +15,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private int frameBuffer = -1;
 
-        public TextureGL Texture { get; private set; }
+        internal TextureGLSingle Texture { get; private set; }
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
-        public bool IsInitialized { get; private set; }
+        private RenderbufferInternalFormat[] renderBufferFormats;
+
+        private All filteringMode;
 
         public void Initialise(All filteringMode = All.Linear, RenderbufferInternalFormat[] renderBufferFormats = null)
         {
-            frameBuffer = GL.GenFramebuffer();
-
-            Texture = new FrameBufferTexture(filteringMode);
-
-            Bind();
-
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
-            GLWrapper.BindTexture(null);
-
-            if (renderBufferFormats != null)
-            {
-                foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new RenderBuffer(format));
-            }
-
-            Unbind();
-
-            IsInitialized = true;
+            this.renderBufferFormats = renderBufferFormats;
+            this.filteringMode = filteringMode;
         }
 
         private Vector2 size = Vector2.One;
@@ -57,15 +44,47 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 size = value;
 
-                Texture.Width = (int)Math.Ceiling(size.X);
-                Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUpload());
-                Texture.Upload();
+                int requestedWidth = (int)Math.Ceiling(size.X);
+                int requestedHeight = (int)Math.Ceiling(size.Y);
+
+                if (!IsInitialized)
+                {
+                    Debug.Assert(Texture == null);
+                    Debug.Assert(frameBuffer == -1);
+
+                    IsInitialized = true;
+
+                    frameBuffer = GL.GenFramebuffer();
+
+                    Bind();
+
+                    Texture = FrameBufferTextureCache.Get(requestedWidth, requestedHeight, filteringMode);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+                    GLWrapper.BindTexture(null);
+
+                    if (renderBufferFormats != null)
+                    {
+                        foreach (var format in renderBufferFormats)
+                            attachedRenderBuffers.Add(new RenderBuffer(format));
+                    }
+
+                    Unbind();
+                }
+
+                if (Texture.Width < requestedWidth || Texture.Height < requestedHeight)
+                {
+                    Texture.Width = Math.Max(Texture.Width, requestedWidth);
+                    Texture.Height = Math.Max(Texture.Height, requestedHeight);
+                    Texture.SetData(new TextureUpload());
+                    Texture.Upload();
+                }
 
                 foreach (var buffer in attachedRenderBuffers)
                     buffer.Size = value;
             }
         }
+
+        public bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Binds the framebuffer.
@@ -106,19 +125,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             foreach (var buffer in attachedRenderBuffers)
                 buffer.Dispose();
 
+            if (Texture != null)
+            {
+                FrameBufferTextureCache.Return(Texture);
+                Texture = null;
+            }
+
             isDisposed = true;
         }
 
         #endregion
-
-        private class FrameBufferTexture : TextureGLSingle
-        {
-            public FrameBufferTexture(All filteringMode = All.Linear)
-                : base(1, 1, true, filteringMode)
-            {
-                SetData(new TextureUpload());
-                Upload();
-            }
-        }
     }
 }

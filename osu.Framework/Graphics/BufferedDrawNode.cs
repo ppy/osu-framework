@@ -97,10 +97,7 @@ namespace osu.Framework.Graphics
                         // We need to draw children as if they were zero-based to the top-left of the texture.
                         // We can do this by adding a translation component to our (orthogonal) projection matrix.
                         GLWrapper.PushOrtho(screenSpaceDrawRectangle);
-                        GLWrapper.Clear(new ClearInfo(backgroundColour));
-
                         Child.Draw(vertexAction);
-
                         GLWrapper.PopOrtho();
                     }
 
@@ -147,7 +144,10 @@ namespace osu.Framework.Graphics
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
+            // todo: this is currently doing a second bind (after unbinding in the Size call). can likely be optimised away.
             frameBuffer.Bind();
+
+            GLWrapper.Clear(new ClearInfo(backgroundColour));
 
             return new ValueInvokeOnDisposal(frameBuffer.Unbind);
         }

@@ -23,6 +23,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
@@ -205,6 +206,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Collect()
         {
+            FrameBufferTextureCache.Purge();
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
             GC.Collect();
         }

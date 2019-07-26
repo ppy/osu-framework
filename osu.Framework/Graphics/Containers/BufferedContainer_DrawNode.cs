@@ -68,12 +68,12 @@ namespace osu.Framework.Graphics.Containers
 
                 if (blurRadius.X > 0 || blurRadius.Y > 0)
                 {
-                    GL.Disable(EnableCap.ScissorTest);
+                    GLWrapper.PushScissorState(false);
 
                     if (blurRadius.X > 0) drawBlurredFrameBuffer(blurRadius.X, blurSigma.X, blurRotation);
                     if (blurRadius.Y > 0) drawBlurredFrameBuffer(blurRadius.Y, blurSigma.Y, blurRotation + 90);
 
-                    GL.Enable(EnableCap.ScissorTest);
+                    GLWrapper.PopScissorState();
                 }
             }
 
@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
-                    DrawFrameBuffer(current, new RectangleF(0, 0, current.Texture.Width, current.Texture.Height), ColourInfo.SingleColour(Color4.White));
+                    DrawFrameBuffer(current, new RectangleF(0, 0, size.X, size.Y), ColourInfo.SingleColour(Color4.White));
                     blurShader.Unbind();
                 }
             }
