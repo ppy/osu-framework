@@ -1230,14 +1230,14 @@ namespace osu.Framework.Graphics.Containers
         /// </remarks>
         /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
         /// <returns>True if the subtree should receive input at the given screen-space position.</returns>
-        protected virtual bool ReceiveSubTreePositionalInputAt(Vector2 screenSpacePos) => !Masking || ReceivePositionalInputAt(screenSpacePos);
+        protected virtual bool ReceivePositionalInputAtSubTree(Vector2 screenSpacePos) => !Masking || ReceivePositionalInputAt(screenSpacePos);
 
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
             if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
-            if (!ReceiveSubTreePositionalInputAt(screenSpacePos))
+            if (!ReceivePositionalInputAtSubTree(screenSpacePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
