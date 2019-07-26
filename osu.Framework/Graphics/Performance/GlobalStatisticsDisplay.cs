@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -16,6 +17,8 @@ namespace osu.Framework.Graphics.Performance
     internal class GlobalStatisticsDisplay : ToolWindow
     {
         private readonly FillFlowContainer<StatisticsGroup> groups;
+
+        private DotNetRuntimeListener listener;
 
         public GlobalStatisticsDisplay()
             : base("Global Statistics", "(Ctrl+F2 to toggle)")
@@ -32,13 +35,21 @@ namespace osu.Framework.Graphics.Performance
             };
         }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            listener = new DotNetRuntimeListener();
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
             GlobalStatistics.Statistics.ItemsAdded += add;
             GlobalStatistics.Statistics.ItemsRemoved += remove;
-            add(GlobalStatistics.Statistics);
+
+            // ToArray is to guard against collection modification in underlying bindable.
+            add(GlobalStatistics.Statistics.ToArray());
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
@@ -165,6 +176,12 @@ namespace osu.Framework.Graphics.Performance
         private class AlphabeticalFlow<T> : FillFlowContainer<T> where T : Drawable, IAlphabeticalSort
         {
             public override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Cast<T>().OrderBy(d => d.SortString);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            listener?.Dispose();
         }
     }
 }

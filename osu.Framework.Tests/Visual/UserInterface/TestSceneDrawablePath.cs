@@ -4,9 +4,11 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -160,6 +162,52 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 };
             });
+        }
+
+        [Test]
+        public void TestSizing()
+        {
+            Path path = null;
+
+            AddStep("create autosize path", () =>
+            {
+                Child = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    Child = path = new Path
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        PathRadius = 10,
+                        Vertices = new List<Vector2>
+                        {
+                            Vector2.Zero,
+                            new Vector2(100, 0)
+                        },
+                    }
+                };
+            });
+
+            AddAssert("size = (120, 20)", () => Precision.AlmostEquals(new Vector2(120, 20), path.DrawSize));
+
+            AddStep("make path relative-sized", () =>
+            {
+                path.AutoSizeAxes = Axes.None;
+                path.RelativeSizeAxes = Axes.Both;
+                path.Size = Vector2.One;
+            });
+
+            AddAssert("size = (200, 200)", () => Precision.AlmostEquals(new Vector2(200), path.DrawSize));
+
+            AddStep("make path absolute-sized", () =>
+            {
+                path.RelativeSizeAxes = Axes.None;
+                path.Size = new Vector2(100);
+            });
+
+            AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
         }
     }
 }
