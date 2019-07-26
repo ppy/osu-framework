@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -11,6 +12,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly RenderbufferInternalFormat format;
         private readonly int renderBuffer;
+
+        private static readonly GlobalStatistic<long> loaded_bytes = GlobalStatistics.Get<long>("Native", nameof(RenderBuffer));
+
+        private readonly int sizePerPixel;
 
         public RenderBuffer(RenderbufferInternalFormat format)
         {
@@ -23,21 +28,26 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 case RenderbufferInternalFormat.DepthComponent16:
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 2;
                     break;
 
                 case RenderbufferInternalFormat.Rgb565:
                 case RenderbufferInternalFormat.Rgb5A1:
                 case RenderbufferInternalFormat.Rgba4:
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 2;
                     break;
 
                 case RenderbufferInternalFormat.StencilIndex8:
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 1;
                     break;
             }
         }
 
         private Vector2 size;
+
+        private int sizeInMemory => (int)(size.X * size.Y * sizePerPixel);
 
         internal Vector2 Size
         {
@@ -47,7 +57,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (value.X <= size.X && value.Y <= size.Y)
                     return;
 
+                loaded_bytes.Value -= sizeInMemory;
+
                 size = value;
+
+                loaded_bytes.Value += sizeInMemory;
 
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
@@ -75,7 +89,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 return;
 
             if (renderBuffer != -1)
+            {
+                loaded_bytes.Value -= sizeInMemory;
                 GL.DeleteRenderbuffer(renderBuffer);
+            }
 
             isDisposed = true;
         }

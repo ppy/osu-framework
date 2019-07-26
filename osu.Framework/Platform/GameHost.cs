@@ -199,6 +199,16 @@ namespace osu.Framework.Platform
             Name = gameName;
         }
 
+        /// <summary>
+        /// Performs a GC collection and frees all framework caches.
+        /// This is a blocking call and should not be invoked during periods of user activity unless memory is critical.
+        /// </summary>
+        public void Collect()
+        {
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
+            GC.Collect();
+        }
+
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
@@ -447,128 +457,125 @@ namespace osu.Framework.Platform
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            using (new DotNetRuntimeListener())
+            if (LimitedMemoryEnvironment)
             {
-                if (LimitedMemoryEnvironment)
+                // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
+                SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+            }
+
+            DebugUtils.HostAssembly = game.GetType().Assembly;
+
+            if (ExecutionState != ExecutionState.Idle)
+                throw new InvalidOperationException("A game that has already been run cannot be restarted.");
+
+            try
+            {
+                toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+
+                AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
+                TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
+
+                RegisterThread(DrawThread = new DrawThread(DrawFrame)
                 {
-                    // recommended middle-ground https://github.com/SixLabors/docs/blob/master/articles/ImageSharp/MemoryManagement.md#working-in-memory-constrained-environments
-                    SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
+                    OnThreadStart = DrawInitialize,
+                });
+
+                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+                {
+                    OnThreadStart = UpdateInitialize,
+                    Monitor = { HandleGC = true },
+                });
+
+                RegisterThread(InputThread = new InputThread());
+                RegisterThread(AudioThread = new AudioThread());
+
+                Trace.Listeners.Clear();
+                Trace.Listeners.Add(new ThrowingTraceListener());
+
+                var assembly = DebugUtils.GetEntryAssembly();
+                string assemblyPath = DebugUtils.GetEntryPath();
+
+                Logger.GameIdentifier = Name;
+                Logger.VersionIdentifier = assembly.GetName().Version.ToString();
+
+                if (assemblyPath != null)
+                    Environment.CurrentDirectory = assemblyPath;
+
+                Dependencies.CacheAs(this);
+                Dependencies.CacheAs(Storage = GetStorage(Name));
+
+                SetupForRun();
+
+                ExecutionState = ExecutionState.Running;
+
+                SetupConfig(game.GetFrameworkConfigDefaults());
+
+                if (Window != null)
+                {
+                    Window.SetupWindow(Config);
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    IsActive.BindTo(Window.IsActive);
                 }
 
-                DebugUtils.HostAssembly = game.GetType().Assembly;
+                resetInputHandlers();
 
-                if (ExecutionState != ExecutionState.Idle)
-                    throw new InvalidOperationException("A game that has already been run cannot be restarted.");
+                foreach (var t in threads)
+                    t.Start();
+
+                DrawThread.WaitUntilInitialized();
+                bootstrapSceneGraph(game);
+
+                frameSyncMode.TriggerChange();
+                ignoredInputHandlers.TriggerChange();
+
+                IsActive.BindValueChanged(active =>
+                {
+                    if (active.NewValue)
+                        OnActivated();
+                    else
+                        OnDeactivated();
+                }, true);
 
                 try
                 {
-                    toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
-
-                    AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
-                    TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
-
-                    RegisterThread(DrawThread = new DrawThread(DrawFrame)
-                    {
-                        OnThreadStart = DrawInitialize,
-                    });
-
-                    RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
-                    {
-                        OnThreadStart = UpdateInitialize,
-                        Monitor = { HandleGC = true },
-                    });
-
-                    RegisterThread(InputThread = new InputThread());
-                    RegisterThread(AudioThread = new AudioThread());
-
-                    Trace.Listeners.Clear();
-                    Trace.Listeners.Add(new ThrowingTraceListener());
-
-                    var assembly = DebugUtils.GetEntryAssembly();
-                    string assemblyPath = DebugUtils.GetEntryPath();
-
-                    Logger.GameIdentifier = Name;
-                    Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-                    if (assemblyPath != null)
-                        Environment.CurrentDirectory = assemblyPath;
-
-                    Dependencies.CacheAs(this);
-                    Dependencies.CacheAs(Storage = GetStorage(Name));
-
-                    SetupForRun();
-
-                    ExecutionState = ExecutionState.Running;
-
-                    SetupConfig(game.GetFrameworkConfigDefaults());
-
                     if (Window != null)
                     {
-                        Window.SetupWindow(Config);
-                        Window.Title = $@"osu!framework (running ""{Name}"")";
+                        Window.KeyDown += window_KeyDown;
 
-                        IsActive.BindTo(Window.IsActive);
-                    }
+                        Window.ExitRequested += OnExitRequested;
+                        Window.Exited += OnExited;
 
-                    resetInputHandlers();
-
-                    foreach (var t in threads)
-                        t.Start();
-
-                    DrawThread.WaitUntilInitialized();
-                    bootstrapSceneGraph(game);
-
-                    frameSyncMode.TriggerChange();
-                    ignoredInputHandlers.TriggerChange();
-
-                    IsActive.BindValueChanged(active =>
-                    {
-                        if (active.NewValue)
-                            OnActivated();
-                        else
-                            OnDeactivated();
-                    }, true);
-
-                    try
-                    {
-                        if (Window != null)
+                        Window.UpdateFrame += delegate
                         {
-                            Window.KeyDown += window_KeyDown;
+                            inputPerformanceCollectionPeriod?.Dispose();
+                            InputThread.RunUpdate();
+                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                        };
 
-                            Window.ExitRequested += OnExitRequested;
-                            Window.Exited += OnExited;
-
-                            Window.UpdateFrame += delegate
-                            {
-                                inputPerformanceCollectionPeriod?.Dispose();
-                                InputThread.RunUpdate();
-                                inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                            };
-
-                            Window.Closed += delegate
-                            {
-                                //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                                //to avoid GL operations running post-cleanup).
-                                stopAllThreads();
-                            };
-
-                            Window.Run();
-                        }
-                        else
+                        Window.Closed += delegate
                         {
-                            while (ExecutionState != ExecutionState.Stopped)
-                                InputThread.RunUpdate();
-                        }
+                            //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                            //to avoid GL operations running post-cleanup).
+                            stopAllThreads();
+                        };
+
+                        Window.Run();
                     }
-                    catch (OutOfMemoryException)
+                    else
                     {
+                        while (ExecutionState != ExecutionState.Stopped)
+                            InputThread.RunUpdate();
                     }
                 }
-                finally
+                catch (OutOfMemoryException)
                 {
-                    // Close the window and stop all threads
-                    PerformExit(true);
                 }
+            }
+            finally
+            {
+                // Close the window and stop all threads
+                PerformExit(true);
             }
         }
 
@@ -873,7 +880,6 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Left }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.BackSpace }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Delete }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.BackSpace }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
