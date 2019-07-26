@@ -10,8 +10,8 @@ namespace osu.Framework.iOS
 {
     internal class GameViewController : UIViewController
     {
-        private readonly IOSGameView view;
-        private readonly GameHost host;
+        private readonly IOSGameView gameView;
+        private readonly GameHost gameHost;
 
         public override bool PrefersStatusBarHidden() => true;
 
@@ -20,22 +20,24 @@ namespace osu.Framework.iOS
         public GameViewController(IOSGameView view, GameHost host)
         {
             View = view;
-            this.host = host;
+
+            gameView = view;
+            gameHost = host;
         }
 
         public override void DidReceiveMemoryWarning()
         {
             base.DidReceiveMemoryWarning();
-            host.Collect();
+            gameHost.Collect();
         }
 
         public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {
             coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
             UIView.AnimationsEnabled = false;
-            base.ViewWillTransitionToSize(toSize, coordinator);
 
-            view.RequestResizeFrameBuffer();
+            base.ViewWillTransitionToSize(toSize, coordinator);
+            gameView.RequestResizeFrameBuffer();
         }
     }
 }
