@@ -174,10 +174,10 @@ namespace osu.Framework.Graphics.Lines
 
                 if (vertices.Count > 0)
                 {
-                    float minX = float.MaxValue;
-                    float minY = float.MaxValue;
-                    float maxX = float.MinValue;
-                    float maxY = float.MinValue;
+                    float minX = 0;
+                    float minY = 0;
+                    float maxX = 0;
+                    float maxY = 0;
 
                     foreach (var v in vertices)
                     {
