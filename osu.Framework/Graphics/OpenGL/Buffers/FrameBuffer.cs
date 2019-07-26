@@ -18,53 +18,26 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
-        #region Disposal
-
-        ~FrameBuffer()
-        {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
-            GLWrapper.DeleteFramebuffer(frameBuffer);
-            frameBuffer = -1;
-        }
-
-        #endregion
-
         public bool IsInitialized { get; private set; }
 
-        public void Initialize(bool withTexture = true, All filteringMode = All.Linear)
+        public void Initialise(All filteringMode = All.Linear, RenderbufferInternalFormat[] renderBufferFormats = null)
         {
             frameBuffer = GL.GenFramebuffer();
 
-            if (withTexture)
+            Texture = new FrameBufferTexture(filteringMode);
+
+            Bind();
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+            GLWrapper.BindTexture(null);
+
+            if (renderBufferFormats != null)
             {
-                Texture = new TextureGLSingle(1, 1, true, filteringMode);
-                Texture.SetData(new TextureUpload());
-                Texture.Upload();
-
-                Bind();
-
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
-                GLWrapper.BindTexture(null);
-
-                Unbind();
+                foreach (var format in renderBufferFormats)
+                    attachedRenderBuffers.Add(new RenderBuffer(format));
             }
+
+            Unbind();
 
             IsInitialized = true;
         }
@@ -88,44 +61,64 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 Texture.Height = (int)Math.Ceiling(size.Y);
                 Texture.SetData(new TextureUpload());
                 Texture.Upload();
+
+                foreach (var buffer in attachedRenderBuffers)
+                    buffer.Size = value;
             }
-        }
-
-        /// <summary>
-        /// Attaches a RenderBuffer to this framebuffer.
-        /// </summary>
-        /// <param name="format">The type of RenderBuffer to attach.</param>
-        public void Attach(RenderbufferInternalFormat format)
-        {
-            if (attachedRenderBuffers.Exists(r => r.Format == format))
-                return;
-
-            attachedRenderBuffers.Add(new RenderBuffer(format));
         }
 
         /// <summary>
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
-        public void Bind()
-        {
-            GLWrapper.BindFrameBuffer(frameBuffer);
-
-            foreach (var r in attachedRenderBuffers)
-            {
-                r.Size = Size;
-                r.Bind(frameBuffer);
-            }
-        }
+        public void Bind() => GLWrapper.BindFrameBuffer(frameBuffer);
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind()
+        public void Unbind() => GLWrapper.UnbindFrameBuffer(frameBuffer);
+
+        #region Disposal
+
+        ~FrameBuffer()
         {
-            GLWrapper.UnbindFrameBuffer(frameBuffer);
-            foreach (var r in attachedRenderBuffers)
-                r.Unbind();
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            Texture?.Dispose();
+            Texture = null;
+
+            GLWrapper.DeleteFrameBuffer(frameBuffer);
+
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Dispose();
+
+            isDisposed = true;
+        }
+
+        #endregion
+
+        private class FrameBufferTexture : TextureGLSingle
+        {
+            public FrameBufferTexture(All filteringMode = All.Linear)
+                : base(1, 1, true, filteringMode)
+            {
+                SetData(new TextureUpload());
+                Upload();
+            }
         }
     }
 }

@@ -2,32 +2,77 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    public class RenderBuffer : IDisposable
+    internal class RenderBuffer : IDisposable
     {
-        private static readonly Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>> render_buffer_cache = new Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>>();
+        private readonly RenderbufferInternalFormat format;
+        private readonly int renderBuffer;
 
-        public Vector2 Size = Vector2.One;
-        public RenderbufferInternalFormat Format { get; }
+        private static readonly GlobalStatistic<long> loaded_bytes = GlobalStatistics.Get<long>("Native", nameof(RenderBuffer));
 
-        private RenderBufferInfo info;
-        private bool isDisposed;
+        private readonly int sizePerPixel;
 
         public RenderBuffer(RenderbufferInternalFormat format)
         {
-            Format = format;
+            this.format = format;
+
+            renderBuffer = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+
+            switch (format)
+            {
+                case RenderbufferInternalFormat.DepthComponent16:
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 2;
+                    break;
+
+                case RenderbufferInternalFormat.Rgb565:
+                case RenderbufferInternalFormat.Rgb5A1:
+                case RenderbufferInternalFormat.Rgba4:
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 2;
+                    break;
+
+                case RenderbufferInternalFormat.StencilIndex8:
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    sizePerPixel = 1;
+                    break;
+            }
+        }
+
+        private Vector2 size;
+
+        private int sizeInMemory => (int)(size.X * size.Y * sizePerPixel);
+
+        internal Vector2 Size
+        {
+            get => size;
+            set
+            {
+                if (value.X <= size.X && value.Y <= size.Y)
+                    return;
+
+                loaded_bytes.Value -= sizeInMemory;
+
+                size = value;
+
+                loaded_bytes.Value += sizeInMemory;
+
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
+            }
         }
 
         #region Disposal
 
         ~RenderBuffer()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
@@ -36,101 +81,22 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
+        private bool isDisposed;
+
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
 
-            isDisposed = true;
+            if (renderBuffer != -1)
+            {
+                loaded_bytes.Value -= sizeInMemory;
+                GL.DeleteRenderbuffer(renderBuffer);
+            }
 
-            Unbind();
+            isDisposed = true;
         }
 
         #endregion
-
-        /// <summary>
-        /// Binds the renderbuffer to the specfied framebuffer.
-        /// </summary>
-        /// <param name="frameBuffer">The framebuffer this renderbuffer should be bound to.</param>
-        internal void Bind(int frameBuffer)
-        {
-            // Check if we're already bound
-            if (info != null)
-                return;
-
-            if (!render_buffer_cache.ContainsKey(Format))
-                render_buffer_cache[Format] = new Stack<RenderBufferInfo>();
-
-            // Make sure we have renderbuffers available
-            if (render_buffer_cache[Format].Count == 0)
-                render_buffer_cache[Format].Push(new RenderBufferInfo
-                {
-                    RenderBufferID = GL.GenRenderbuffer(),
-                    FrameBufferID = -1
-                });
-
-            // Get a renderbuffer from the cache
-            info = render_buffer_cache[Format].Pop();
-
-            // Check if we need to update the size
-            if (info.Size != Size)
-            {
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, info.RenderBufferID);
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
-
-                info.Size = Size;
-            }
-
-            // For performance reasons, we only need to re-bind the renderbuffer to
-            // the framebuffer if it is not already attached to it
-            if (info.FrameBufferID != frameBuffer)
-            {
-                // Make sure the framebuffer we want to attach to is bound
-                GLWrapper.BindFrameBuffer(frameBuffer);
-
-                switch (Format)
-                {
-                    case RenderbufferInternalFormat.DepthComponent16:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
-                        break;
-
-                    case RenderbufferInternalFormat.Rgb565:
-                    case RenderbufferInternalFormat.Rgb5A1:
-                    case RenderbufferInternalFormat.Rgba4:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
-                        break;
-
-                    case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
-                        break;
-                }
-
-                GLWrapper.UnbindFrameBuffer(frameBuffer);
-            }
-
-            info.FrameBufferID = frameBuffer;
-        }
-
-        /// <summary>
-        /// Unbinds the renderbuffer.
-        /// <para>The renderbuffer will remain internally attached to the framebuffer.</para>
-        /// </summary>
-        internal void Unbind()
-        {
-            if (info == null)
-                return;
-
-            // Return the renderbuffer to the cache
-            render_buffer_cache[Format].Push(info);
-
-            info = null;
-        }
-
-        private class RenderBufferInfo
-        {
-            public int RenderBufferID;
-            public int FrameBufferID;
-            public Vector2 Size;
-        }
     }
 }
