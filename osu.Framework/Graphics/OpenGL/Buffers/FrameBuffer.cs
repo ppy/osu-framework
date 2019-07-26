@@ -98,6 +98,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
+            Texture?.Dispose();
+            Texture = null;
+
             GLWrapper.DeleteFrameBuffer(frameBuffer);
 
             foreach (var buffer in attachedRenderBuffers)
