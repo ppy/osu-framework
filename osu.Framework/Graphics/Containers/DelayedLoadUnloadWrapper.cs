@@ -63,12 +63,12 @@ namespace osu.Framework.Graphics.Containers
         {
             base.EndDelayedLoad(content);
 
+            content.LifetimeStart = lifetimeStart;
+            content.LifetimeEnd = lifetimeEnd;
+
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             Schedule(() =>
             {
-                content.LifetimeStart = lifetimeStart;
-                content.LifetimeEnd = lifetimeEnd;
-
                 Debug.Assert(!contentLoaded);
                 Debug.Assert(unloadSchedule == null);
 
