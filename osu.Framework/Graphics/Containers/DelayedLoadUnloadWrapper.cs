@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.EndDelayedLoad(content);
 
-            // schedule ensure OptimisingContainer is valid at the time we check for it.
+            // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             Schedule(() =>
             {
                 content.LifetimeStart = lifetimeStart;
