@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Framework.Caching;
@@ -289,7 +290,9 @@ namespace osu.Framework.Bindables
             if (Bindings == null)
                 return;
 
-            foreach (var b in Bindings)
+            // ToArray required as this may be called from an async disposal thread.
+            // This can lead to deadlocks since each child is also enumerating its Bindings.
+            foreach (var b in Bindings.ToArray())
                 b.Unbind(this);
 
             Bindings.Clear();
