@@ -1221,12 +1221,23 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        /// <summary>
+        /// Determines whether the subtree of this <see cref="CompositeDrawable"/> should receive positional input when the mouse is at the given screen-space position.
+        /// </summary>
+        /// <remarks>
+        /// By default, the subtree of this <see cref="CompositeDrawable"/> always receives input when masking is turned off, and only receives input if this
+        /// <see cref="CompositeDrawable"/> also receives input when masking is turned on.
+        /// </remarks>
+        /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
+        /// <returns>True if the subtree should receive input at the given screen-space position.</returns>
+        protected virtual bool ReceivePositionalInputAtSubTree(Vector2 screenSpacePos) => !Masking || ReceivePositionalInputAt(screenSpacePos);
+
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
             if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
-            if (Masking && !ReceivePositionalInputAt(screenSpacePos))
+            if (!ReceivePositionalInputAtSubTree(screenSpacePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
