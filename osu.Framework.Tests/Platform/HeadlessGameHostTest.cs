@@ -49,19 +49,25 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestMultipleInstancesAllowed()
         {
-            testMultipleInstancesInternal(nameof(TestMultipleInstancesAllowed), true);
+            testMultipleInstancesInternal(nameof(TestMultipleInstancesAllowed), true, true);
         }
 
         [Test]
         public void TestMultipleInstancesNotAllowed()
         {
-            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestMultipleInstancesNotAllowed), false));
+            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestMultipleInstancesNotAllowed), false, false));
         }
 
-        private void testMultipleInstancesInternal(string gameName, bool allowMultipleInstances)
+        [Test]
+        public void TestAllowMultipleInstancesChanged()
         {
-            using (var host1 = new HeadlessGameHost(gameName, allowMultipleInstances))
-            using (var host2 = new HeadlessGameHost(gameName, allowMultipleInstances))
+            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestAllowMultipleInstancesChanged), false, true));
+        }
+
+        private void testMultipleInstancesInternal(string gameName, bool allowMultipleInstancesHost1, bool allowMultipleInstancesHost2)
+        {
+            using (var host1 = new HeadlessGameHost(gameName, allowMultipleInstancesHost1))
+            using (var host2 = new HeadlessGameHost(gameName, allowMultipleInstancesHost2))
             {
                 host1.Run(new TestGame());
                 host2.Run(new TestGame());
