@@ -36,14 +36,18 @@ namespace osu.Framework.Platform
 
         protected override void SetupForRun()
         {
+            var globalMutexName = $"Global\\{Name}";
+
             if (!allowMultipleInstances)
             {
-                mutex = new Mutex(true, $"Global\\{Name}", out var createdNew);
+                mutex = new Mutex(true, globalMutexName, out var createdNew);
                 if (!createdNew)
                     throw new InvalidOperationException($"Only one instance of {Name} is allowed");
 
                 CleanupRequested += () => mutex?.ReleaseMutex();
             }
+            else if (Mutex.TryOpenExisting(globalMutexName, out mutex))
+                throw new InvalidOperationException($"Only one instance of {Name} is allowed");
 
             //todo: yeah.
             Architecture.SetIncludePath();
