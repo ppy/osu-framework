@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using osu.Framework.Android.Graphics.Textures;
+using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
@@ -52,6 +55,9 @@ namespace osu.Framework.Android
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
+
+        public override VideoDecoder CreateVideoDecoder(Stream stream)
+            => new AndroidVideoDecoder(stream);
 
         protected override void PerformExit(bool immediately)
         {
