@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private bool isInitialised;
         private int vboId;
 
+        static VertexBuffer()
+        {
+            // seed ahead-of-time compiler for iOS
+            System.Runtime.CompilerServices.Unsafe.SizeOf<DepthWrappingVertex<T>>();
+        }
+
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
             this.usage = usage;
