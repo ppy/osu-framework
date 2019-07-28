@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <DefaultMtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate</DefaultMtouchExtraArgs>
+    <DefaultMtouchExtraArgs>--nolinkaway</DefaultMtouchExtraArgs>
+    <DefaultMtouchGccFlags>-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate</DefaultMtouchGccFlags>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
@@ -22,7 +23,7 @@
     <DeviceSpecificBuild>false</DeviceSpecificBuild>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
-    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
+    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -gcc_flags "$(DefaultMtouchGccFlags)"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
     <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
@@ -42,7 +43,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
-    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
+    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -gcc_flags "$(DefaultMtouchGccFlags)"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
     <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
@@ -60,7 +61,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
-    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
+    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -gcc_flags "$(DefaultMtouchGccFlags)"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
     <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
@@ -84,7 +85,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
-    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
+    <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -gcc_flags "$(DefaultMtouchGccFlags)"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
     <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
@@ -96,6 +97,13 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="mscorlib" />
+  </ItemGroup>
+  <ItemGroup>
+    <NativeReference Include="..\osu.Framework.NativeLibs\ios\*.a">
+      <Kind>Static</Kind>
+      <SmartLink>False</SmartLink>
+      <ForceLoad>True</ForceLoad>
+    </NativeReference>
   </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.17.1" />
