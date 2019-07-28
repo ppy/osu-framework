@@ -10,8 +10,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
 using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -91,6 +93,8 @@ namespace osu.Framework.Graphics.Video
 
         private readonly ConcurrentQueue<Texture> availableTextures;
 
+        private ObjectHandle<VideoDecoder> handle;
+
         protected readonly FfmpegFuncs FfmpegFuncs;
 
         public bool Looping;
@@ -120,6 +124,7 @@ namespace osu.Framework.Graphics.Video
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
             availableTextures = new ConcurrentQueue<Texture>();
+            handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
         }
 
         /// <summary>
@@ -198,43 +203,53 @@ namespace osu.Framework.Graphics.Video
             return frames;
         }
 
-        private int readPacket(void* opaque, byte* bufferPtr, int bufferSize)
+        [MonoPInvokeCallback(typeof(avio_alloc_context_read_packet))]
+        private static int readPacket(void* opaque, byte* bufferPtr, int bufferSize)
         {
-            if (bufferSize != managedContextBuffer.Length)
-                managedContextBuffer = new byte[bufferSize];
+            var handle = new ObjectHandle<VideoDecoder>((IntPtr)opaque);
+            if (!handle.GetTarget(out VideoDecoder decoder))
+                return 0;
 
-            var bytesRead = videoStream.Read(managedContextBuffer, 0, bufferSize);
-            Marshal.Copy(managedContextBuffer, 0, (IntPtr)bufferPtr, bytesRead);
+            if (bufferSize != decoder.managedContextBuffer.Length)
+                decoder.managedContextBuffer = new byte[bufferSize];
+
+            var bytesRead = decoder.videoStream.Read(decoder.managedContextBuffer, 0, bufferSize);
+            Marshal.Copy(decoder.managedContextBuffer, 0, (IntPtr)bufferPtr, bytesRead);
             return bytesRead;
         }
 
-        private long seek(void* opaque, long offset, int whence)
+        [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
+        private static long seek(void* opaque, long offset, int whence)
         {
-            if (!videoStream.CanSeek)
+            var handle = new ObjectHandle<VideoDecoder>((IntPtr)opaque);
+            if (!handle.GetTarget(out VideoDecoder decoder))
+                return -1;
+
+            if (!decoder.videoStream.CanSeek)
                 throw new InvalidOperationException("Tried seeking on a video sourced by a non-seekable stream.");
 
             switch (whence)
             {
                 case StdIo.SEEK_CUR:
-                    videoStream.Seek(offset, SeekOrigin.Current);
+                    decoder.videoStream.Seek(offset, SeekOrigin.Current);
                     break;
 
                 case StdIo.SEEK_END:
-                    videoStream.Seek(offset, SeekOrigin.End);
+                    decoder.videoStream.Seek(offset, SeekOrigin.End);
                     break;
 
                 case StdIo.SEEK_SET:
-                    videoStream.Seek(offset, SeekOrigin.Begin);
+                    decoder.videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
 
                 case ffmpeg.AVSEEK_SIZE:
-                    return videoStream.Length;
+                    return decoder.videoStream.Length;
 
                 default:
                     return -1;
             }
 
-            return videoStream.Position;
+            return decoder.videoStream.Position;
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -248,7 +263,7 @@ namespace osu.Framework.Graphics.Video
             managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
             seekCallback = seek;
-            formatContext->pb = FfmpegFuncs.avio_alloc_context(contextBuffer, context_buffer_size, 0, null, readPacketCallback, null, seekCallback);
+            formatContext->pb = FfmpegFuncs.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
             if (FfmpegFuncs.avformat_open_input(&fcPtr, "dummy", null, null) < 0)
                 throw new Exception("Error opening file.");
 
@@ -490,6 +505,11 @@ namespace osu.Framework.Graphics.Video
 
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();
+
+            if (disposing)
+            {
+                handle.Dispose();
+            }
         }
 
         #endregion
