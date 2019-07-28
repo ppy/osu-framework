@@ -4,7 +4,6 @@
 using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
-using Android.Util;
 using osu.Framework.Input;
 using osuTK.Input;
 using System;
