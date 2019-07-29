@@ -79,7 +79,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.ScissorTest);
 
             IsInitialized = true;
         }
@@ -128,6 +127,7 @@ namespace osu.Framework.Graphics.OpenGL
             scissor_rect_stack.Clear();
             frame_buffer_stack.Clear();
             depth_stack.Clear();
+            scissor_state_stack.Clear();
 
             BindFrameBuffer(DefaultFrameBuffer);
 
@@ -136,6 +136,7 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = RectangleI.Empty;
             Ortho = RectangleF.Empty;
 
+            PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
             PushMaskingInfo(new MaskingInfo
             {
@@ -155,7 +156,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void Clear(ClearInfo clearInfo)
         {
             PushDepthInfo(new DepthInfo(writeDepth: true));
-
+            PushScissorState(false);
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
@@ -182,7 +183,40 @@ namespace osu.Framework.Graphics.OpenGL
 
             currentClearInfo = clearInfo;
 
+            PopScissorState();
             PopDepthInfo();
+        }
+
+        private static readonly Stack<bool> scissor_state_stack = new Stack<bool>();
+
+        private static bool currentScissorState;
+
+        public static void PushScissorState(bool enabled)
+        {
+            scissor_state_stack.Push(enabled);
+            setScissorState(enabled);
+        }
+
+        public static void PopScissorState()
+        {
+            Trace.Assert(scissor_state_stack.Count > 1);
+
+            scissor_state_stack.Pop();
+
+            setScissorState(scissor_state_stack.Peek());
+        }
+
+        private static void setScissorState(bool enabled)
+        {
+            if (enabled == currentScissorState)
+                return;
+
+            currentScissorState = enabled;
+
+            if (enabled)
+                GL.Enable(EnableCap.ScissorTest);
+            else
+                GL.Disable(EnableCap.ScissorTest);
         }
 
         /// <summary>
