@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -55,7 +56,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public int Size => vertexMemory.Length;
 
-        private static readonly GlobalStatistic<long> loaded_vertex_bytes = GlobalStatistics.Get<long>("Native", nameof(VertexBuffer<T>));
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         /// <summary>
         /// Initialises this <see cref="VertexBuffer{T}"/>. Guaranteed to be run on the draw thread.
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             int size = Size * STRIDE;
 
-            loaded_vertex_bytes.Value += size;
+            memoryLease = NativeMemoryTracker.AddMemory(this, size);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
         }
 
@@ -93,8 +94,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (IsDisposed)
                 return;
 
-            int size = Size * STRIDE;
-
             memoryOwner.Dispose();
             memoryOwner = null;
             vertexMemory = null;
@@ -103,7 +102,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 Unbind();
 
-                loaded_vertex_bytes.Value -= size;
+                memoryLease?.Dispose();
                 GL.DeleteBuffer(vboId);
             }
 
