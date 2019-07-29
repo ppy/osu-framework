@@ -14,9 +14,6 @@ namespace osu.Framework.iOS.Graphics.Video
         private const string dll_name = "__Internal";
 
         [DllImport(dll_name)]
-        public static extern int av_strerror(int errnum, byte* errbuf, ulong errbuf_size);
-
-        [DllImport(dll_name)]
         public static extern AVFrame* av_frame_alloc();
 
         [DllImport(dll_name)]
