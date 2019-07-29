@@ -6,7 +6,7 @@ using osu.Framework.Allocation;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using osu.Framework.Statistics;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -15,6 +15,8 @@ namespace osu.Framework.Audio.Sample
         private volatile int sampleId;
 
         public override bool IsLoaded => sampleId != 0;
+
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         internal SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
             : base(concurrency)
@@ -25,7 +27,7 @@ namespace osu.Framework.Audio.Sample
             EnqueueAction(() =>
             {
                 sampleId = loadSample(data);
-                loaded_sample_bytes.Value += loadedBytes = data.Length;
+                memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
             });
         }
 
@@ -34,7 +36,7 @@ namespace osu.Framework.Audio.Sample
             if (IsLoaded)
             {
                 Bass.SampleFree(sampleId);
-                loaded_sample_bytes.Value -= loadedBytes;
+                memoryLease?.Dispose();
             }
 
             base.Dispose(disposing);
@@ -48,10 +50,6 @@ namespace osu.Framework.Audio.Sample
         }
 
         public int CreateChannel() => Bass.SampleGetChannel(sampleId);
-
-        private long loadedBytes;
-
-        private static readonly GlobalStatistic<long> loaded_sample_bytes = GlobalStatistics.Get<long>("Native", nameof(SampleBass));
 
         private int loadSample(byte[] data)
         {

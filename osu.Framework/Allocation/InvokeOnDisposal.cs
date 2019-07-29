@@ -31,7 +31,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Disposes this instance, calling the initially captured action.
         /// </summary>
-        public void Dispose()
+        public virtual void Dispose()
         {
             //no isDisposed check here so we can reuse these instances multiple times to save on allocations.
             action();
