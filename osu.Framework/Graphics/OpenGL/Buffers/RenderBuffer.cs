@@ -20,7 +20,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.format = format;
 
             renderBuffer = GL.GenRenderbuffer();
+
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+
+            // OpenGL docs don't specify that this is required, but seems to be required on some platforms
+            // to correctly attach in the GL.FramebufferRenderbuffer() call below
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, 1, 1);
 
             switch (format)
             {
