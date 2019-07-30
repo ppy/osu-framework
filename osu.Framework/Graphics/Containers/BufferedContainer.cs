@@ -25,17 +25,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
     {
-        /// <summary>
-        /// Constructs an empty buffered container.
-        /// </summary>
-        /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
-        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
-        /// This amounts to setting the texture filtering mode to "nearest".</param>
+        /// <inheritdoc />
         public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
             : base(formats, pixelSnapping)
         {
         }
-    };
+    }
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -220,7 +215,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats, bool pixelSnapping)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
         {
             sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
         }
