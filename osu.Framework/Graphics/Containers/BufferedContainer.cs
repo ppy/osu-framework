@@ -223,9 +223,6 @@ namespace osu.Framework.Graphics.Containers
         public BufferedContainer(RenderbufferInternalFormat[] formats, bool pixelSnapping)
         {
             sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
-
-            // The initial draw cannot be cached, and thus we need to initialize with a forced draw.
-            ForceRedraw();
         }
 
         [BackgroundDependencyLoader]
