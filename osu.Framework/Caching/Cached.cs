@@ -6,11 +6,6 @@ using System;
 
 namespace osu.Framework.Caching
 {
-    public static class StaticCached
-    {
-        internal static bool BypassCache = false;
-    }
-
     public struct Cached<T>
     {
         private T value;
@@ -35,7 +30,7 @@ namespace osu.Framework.Caching
 
         private bool isValid;
 
-        public bool IsValid => !StaticCached.BypassCache && isValid;
+        public bool IsValid => isValid;
 
         public static implicit operator T(Cached<T> value) => value.Value;
 
@@ -60,7 +55,7 @@ namespace osu.Framework.Caching
     {
         private bool isValid;
 
-        public bool IsValid => !StaticCached.BypassCache && isValid;
+        public bool IsValid => isValid;
 
         /// <summary>
         /// Invalidate the cache of this object.
