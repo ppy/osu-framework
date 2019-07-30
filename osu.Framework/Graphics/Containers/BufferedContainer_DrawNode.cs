@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osuTK;
-using osuTK.Graphics.ES30;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.MathUtils;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -36,9 +36,8 @@ namespace osu.Framework.Graphics.Containers
 
             private IShader blurShader;
 
-            public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData, RenderbufferInternalFormat[] formats = null,
-                                             bool pixelSnapping = false)
-                : base(source, new CompositeDrawableDrawNode(source), sharedData, formats, pixelSnapping)
+            public BufferedContainerDrawNode(BufferedContainer<T> source, BufferedContainerDrawNodeSharedData sharedData)
+                : base(source, new CompositeDrawableDrawNode(source), sharedData)
             {
             }
 
@@ -129,8 +128,8 @@ namespace osu.Framework.Graphics.Containers
 
         private class BufferedContainerDrawNodeSharedData : BufferedDrawNodeSharedData
         {
-            public BufferedContainerDrawNodeSharedData()
-                : base(2)
+            public BufferedContainerDrawNodeSharedData(RenderbufferInternalFormat[] formats, bool pixelSnapping)
+                : base(2, formats, pixelSnapping)
             {
             }
         }
