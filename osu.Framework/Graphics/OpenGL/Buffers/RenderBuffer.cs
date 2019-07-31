@@ -57,6 +57,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             get => size;
             set
             {
+                value = Vector2.Clamp(value, Vector2.One, new Vector2(GLWrapper.MaxRenderBufferSize));
+
                 if (value.X <= size.X && value.Y <= size.Y)
                     return;
 
@@ -64,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 size = value;
 
-                memoryLease = NativeMemoryTracker.AddMemory(this, (int)(size.X * size.Y * sizePerPixel));
+                memoryLease = NativeMemoryTracker.AddMemory(this, (long)(size.X * size.Y * sizePerPixel));
 
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
