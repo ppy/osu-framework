@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using osu.Framework.Graphics.Shaders;
 
-namespace osu.Framework.Tests.IO
+namespace osu.Framework.Tests.Graphics
 {
     [TestFixture]
     public class ShaderRegexTest
@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNonAttribute()
         {
-            const string test_string = "varying vec3 name";
+            const string test_string = "varying vec3 name;";
             performInvalidAttributeTest(test_string);
         }
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNoPrecisionQualifier()
         {
-            const string test_string = "attribute float name";
+            const string test_string = "attribute float name;";
             performValidAttributeTest(test_string);
         }
 
