@@ -146,20 +146,8 @@ namespace osu.Framework.Graphics.Shaders
             GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
             Compiled = compileResult == 1;
 
-#if DEBUG
-            string compileLog = GL.GetShaderInfoLog(this);
-            Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
-            Log.AppendLine($"\tCompiled: {Compiled}");
-
             if (!Compiled)
-            {
-                Log.AppendLine("\tLog:");
-                Log.AppendLine('\t' + compileLog);
-            }
-#endif
-
-            if (!Compiled)
-                throw new Shader.ShaderNotCompiledException($"A {typeof(ShaderPart)} could not be compiled: {Name}");
+                throw new Shader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }

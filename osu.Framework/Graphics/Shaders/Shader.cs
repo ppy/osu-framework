@@ -55,99 +55,85 @@ namespace osu.Framework.Graphics.Shaders
             }
 
             GL.LinkProgram(this);
-
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out int linkResult);
-            string linkLog = GL.GetProgramInfoLog(this);
-
-            Log.AppendLine(string.Format(ShaderPart.BOUNDARY, name));
-            Log.AppendLine($"Linked: {linkResult == 1}");
-
-            if (linkResult == 0)
-            {
-                Log.AppendLine("Log:");
-                Log.AppendLine(linkLog);
-            }
 
             foreach (var part in parts)
                 GL.DetachShader(this, part);
 
             IsLoaded = linkResult == 1;
 
-            if (IsLoaded)
+            if (!IsLoaded)
+                throw new ProgramLinkingFailedException(name, GL.GetProgramInfoLog(this));
+
+            // Obtain all the shader uniforms
+            GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
+            uniformsArray = new IUniform[uniformCount];
+
+            for (int i = 0; i < uniformCount; i++)
             {
-                // Obtain all the shader uniforms
-                GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
-                uniformsArray = new IUniform[uniformCount];
+                GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
-                for (int i = 0; i < uniformCount; i++)
+                IUniform createUniform<T>(string name)
+                    where T : struct
                 {
-                    GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
+                    int location = GL.GetUniformLocation(this, name);
 
-                    IUniform createUniform<T>(string name)
-                        where T : struct
-                    {
-                        int location = GL.GetUniformLocation(this, name);
+                    if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
 
-                        if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
-
-                        return new Uniform<T>(this, name, location);
-                    }
-
-                    IUniform uniform;
-
-                    switch (type)
-                    {
-                        case ActiveUniformType.Bool:
-                            uniform = createUniform<bool>(uniformName);
-                            break;
-
-                        case ActiveUniformType.Float:
-                            uniform = createUniform<float>(uniformName);
-                            break;
-
-                        case ActiveUniformType.Int:
-                            uniform = createUniform<int>(uniformName);
-                            break;
-
-                        case ActiveUniformType.FloatMat3:
-                            uniform = createUniform<Matrix3>(uniformName);
-                            break;
-
-                        case ActiveUniformType.FloatMat4:
-                            uniform = createUniform<Matrix4>(uniformName);
-                            break;
-
-                        case ActiveUniformType.FloatVec2:
-                            uniform = createUniform<Vector2>(uniformName);
-                            break;
-
-                        case ActiveUniformType.FloatVec3:
-                            uniform = createUniform<Vector3>(uniformName);
-                            break;
-
-                        case ActiveUniformType.FloatVec4:
-                            uniform = createUniform<Vector4>(uniformName);
-                            break;
-
-                        default:
-                            continue;
-                    }
-
-                    uniformsArray[i] = uniform;
-                    Uniforms.Add(uniformName, uniformsArray[i]);
+                    return new Uniform<T>(this, name, location);
                 }
 
-                GlobalPropertyManager.Register(this);
+                IUniform uniform;
+
+                switch (type)
+                {
+                    case ActiveUniformType.Bool:
+                        uniform = createUniform<bool>(uniformName);
+                        break;
+
+                    case ActiveUniformType.Float:
+                        uniform = createUniform<float>(uniformName);
+                        break;
+
+                    case ActiveUniformType.Int:
+                        uniform = createUniform<int>(uniformName);
+                        break;
+
+                    case ActiveUniformType.FloatMat3:
+                        uniform = createUniform<Matrix3>(uniformName);
+                        break;
+
+                    case ActiveUniformType.FloatMat4:
+                        uniform = createUniform<Matrix4>(uniformName);
+                        break;
+
+                    case ActiveUniformType.FloatVec2:
+                        uniform = createUniform<Vector2>(uniformName);
+                        break;
+
+                    case ActiveUniformType.FloatVec3:
+                        uniform = createUniform<Vector3>(uniformName);
+                        break;
+
+                    case ActiveUniformType.FloatVec4:
+                        uniform = createUniform<Vector4>(uniformName);
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                uniformsArray[i] = uniform;
+                Uniforms.Add(uniformName, uniformsArray[i]);
             }
+
+            GlobalPropertyManager.Register(this);
         }
 
         internal void EnsureLoaded()
         {
             if (!IsLoaded)
                 Compile();
-
-            if (!IsLoaded)
-                throw new ShaderNotCompiledException($"A {typeof(Shader)} failed to compile and could not be linked: {name}");
         }
 
         public void Bind()
@@ -192,10 +178,18 @@ namespace osu.Framework.Graphics.Shaders
 
         public static implicit operator int(Shader shader) => shader.programID;
 
-        public class ShaderNotCompiledException : Exception
+        public class PartCompilationFailedException : Exception
         {
-            public ShaderNotCompiledException(string message)
-                : base(message)
+            public PartCompilationFailedException(string partName, string log)
+                : base($"A {typeof(ShaderPart)} failed to compile: {partName}:\n{log.Trim()}")
+            {
+            }
+        }
+
+        public class ProgramLinkingFailedException : Exception
+        {
+            public ProgramLinkingFailedException(string programName, string log)
+                : base($"A {typeof(Shader)} failed to link: {programName}:\n{log.Trim()}")
             {
             }
         }
