@@ -14,6 +14,8 @@ namespace osu.Framework.Graphics.Shaders
     {
         internal const string BOUNDARY = @"----------------------{0}";
 
+        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
+
         internal StringBuilder Log = new StringBuilder();
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
@@ -33,7 +35,7 @@ namespace osu.Framework.Graphics.Shaders
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)");
+        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
 
         private readonly ShaderManager manager;
 
