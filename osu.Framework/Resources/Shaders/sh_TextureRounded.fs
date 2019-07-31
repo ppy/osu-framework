@@ -3,8 +3,8 @@
 varying highp vec2 v_MaskingPosition;
 varying lowp vec4 v_Colour;
 varying mediump vec2 v_TexCoord;
-varying highp vec4 v_TexRect;
-varying highp vec2 v_BlendRange;
+varying mediump vec4 v_TexRect;
+varying mediump vec2 v_BlendRange;
 
 uniform lowp sampler2D m_Sampler;
 uniform highp float g_CornerRadius;
