@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using osuTK;
 using osuTK.Graphics.ES30;
@@ -12,8 +11,6 @@ namespace osu.Framework.Graphics.Shaders
 {
     public class Shader : IShader
     {
-        internal StringBuilder Log = new StringBuilder();
-
         public bool IsLoaded { get; private set; }
 
         internal bool IsBound;
@@ -38,7 +35,6 @@ namespace osu.Framework.Graphics.Shaders
             parts.RemoveAll(p => p == null);
             Uniforms.Clear();
             uniformsArray = null;
-            Log.Clear();
 
             if (parts.Count == 0)
                 return;

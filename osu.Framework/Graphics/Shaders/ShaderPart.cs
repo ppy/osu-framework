@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using osuTK.Graphics.ES30;
 
@@ -13,8 +12,6 @@ namespace osu.Framework.Graphics.Shaders
     internal class ShaderPart
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
-
-        internal StringBuilder Log = new StringBuilder();
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
