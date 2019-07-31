@@ -12,8 +12,6 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal class ShaderPart
     {
-        internal const string BOUNDARY = @"----------------------{0}";
-
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
         internal StringBuilder Log = new StringBuilder();
