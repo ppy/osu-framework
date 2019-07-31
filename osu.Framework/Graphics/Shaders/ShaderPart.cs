@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Shaders
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?[^\\s]+\\s+([^\\s;]+)\\s*;");
+        private readonly Regex shaderInputRegex = new Regex("(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?[^\\s]+\\s+([^\\s;]+)\\s*;");
 
         private readonly ShaderManager manager;
 
