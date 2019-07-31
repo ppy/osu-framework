@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
         /// <summary>
         /// Tests whether the result of a <see cref="Container{T}.Contains(T)"/> operation is valid between multiple containers.
-        /// This tests whether the comparator + equality operation in <see cref="CompositeDrawable.IndexOfInternal(Graphics.Drawable)"/> is valid.
+        /// This tests whether the comparator + equality operation in <see cref="CompositeDrawable.IndexOfInternal(Drawable)"/> is valid.
         /// </summary>
         [Test]
         public void TestContainerContains()
