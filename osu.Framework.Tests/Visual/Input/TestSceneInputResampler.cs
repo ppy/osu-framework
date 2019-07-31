@@ -54,7 +54,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new UserDrawnPath
                 {
                     DrawText = text[2],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                 },
@@ -78,7 +77,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new SmoothedUserDrawnPath
                 {
                     DrawText = text[5],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                     InputResampler = new InputResampler(),
@@ -103,7 +101,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new SmoothedUserDrawnPath
                 {
                     DrawText = text[5],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                     InputResampler = new InputResampler
@@ -162,10 +159,13 @@ namespace osu.Framework.Tests.Visual.Input
             public ArcPath(bool raw, bool keepFraction, InputResampler inputResampler, Texture texture, Color4 colour, SpriteText output)
             {
                 InputResampler = inputResampler;
-                const int target_raw = 1024;
+
+                AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.Both;
                 Texture = texture;
                 Colour = colour;
+
+                const int target_raw = 1024;
 
                 for (int i = 0; i < target_raw; i++)
                 {
@@ -185,6 +185,12 @@ namespace osu.Framework.Tests.Visual.Input
         private class UserDrawnPath : SmoothedPath
         {
             public SpriteText DrawText;
+
+            public UserDrawnPath()
+            {
+                AutoSizeAxes = Axes.None;
+                RelativeSizeAxes = Axes.Both;
+            }
 
             protected virtual void AddUserVertex(Vector2 v) => AddRawVertex(v);
 

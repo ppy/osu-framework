@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Statistics;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -13,8 +13,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private readonly RenderbufferInternalFormat format;
         private readonly int renderBuffer;
 
-        private static readonly GlobalStatistic<long> loaded_bytes = GlobalStatistics.Get<long>("Native", nameof(RenderBuffer));
-
         private readonly int sizePerPixel;
 
         public RenderBuffer(RenderbufferInternalFormat format)
@@ -22,7 +20,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.format = format;
 
             renderBuffer = GL.GenRenderbuffer();
+
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+
+            // OpenGL docs don't specify that this is required, but seems to be required on some platforms
+            // to correctly attach in the GL.FramebufferRenderbuffer() call below
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, 1, 1);
 
             switch (format)
             {
@@ -47,7 +50,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private Vector2 size;
 
-        private int sizeInMemory => (int)(size.X * size.Y * sizePerPixel);
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         internal Vector2 Size
         {
@@ -57,11 +60,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 if (value.X <= size.X && value.Y <= size.Y)
                     return;
 
-                loaded_bytes.Value -= sizeInMemory;
+                memoryLease?.Dispose();
 
                 size = value;
 
-                loaded_bytes.Value += sizeInMemory;
+                memoryLease = NativeMemoryTracker.AddMemory(this, (int)(size.X * size.Y * sizePerPixel));
 
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
@@ -90,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             if (renderBuffer != -1)
             {
-                loaded_bytes.Value -= sizeInMemory;
+                memoryLease?.Dispose();
                 GL.DeleteRenderbuffer(renderBuffer);
             }
 

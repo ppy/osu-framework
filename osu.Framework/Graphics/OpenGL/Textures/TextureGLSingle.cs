@@ -12,6 +12,7 @@ using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -83,34 +84,29 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             textureId = 0;
 
-            loadedBytes.Value -= getMemoryUsage();
+            memoryLease?.Dispose();
         }
 
         #endregion
 
         #region Memory Tracking
 
-        private GlobalStatistic<long> loadedBytes;
         private List<long> levelMemoryUsage = new List<long>();
+
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         private void updateMemoryUsage(int level, long newUsage)
         {
-            if (loadedBytes == null)
-            {
-                loadedBytes = GlobalStatistics.Get<long>("Native", GetType().Name);
+            if (levelMemoryUsage == null)
                 levelMemoryUsage = new List<long>();
-            }
-
-            long before = getMemoryUsage();
 
             while (level >= levelMemoryUsage.Count)
                 levelMemoryUsage.Add(0);
 
             levelMemoryUsage[level] = newUsage;
 
-            long after = getMemoryUsage();
-
-            loadedBytes.Value += after - before;
+            memoryLease?.Dispose();
+            memoryLease = NativeMemoryTracker.AddMemory(this, getMemoryUsage());
         }
 
         private long getMemoryUsage()
