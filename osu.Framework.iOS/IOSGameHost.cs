@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using Foundation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
@@ -13,6 +14,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using UIKit;
 
