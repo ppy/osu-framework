@@ -47,6 +47,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 3);
                 }
 
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, TriangleIndexData.EBO_ID);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
+
+                TriangleIndexData.MaxAmountIndices = amountIndices;
             }
         }
 
