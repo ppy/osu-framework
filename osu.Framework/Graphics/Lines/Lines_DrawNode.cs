@@ -16,13 +16,14 @@ using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
 {
-    public partial class Path
+    public partial class Lines
     {
-        private class PathDrawNode : DrawNode
+        private class LinesDrawNode : DrawNode
         {
             public const int MAX_RES = 24;
+            public const float JOIN_DISTANCE = 1;
 
-            protected new Path Source => (Path)base.Source;
+            protected new Lines Source => (Lines)base.Source;
 
             private readonly List<Line> segments = new List<Line>();
 
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Lines
             private readonly LinearBatch<TexturedVertex3D> halfCircleBatch = new LinearBatch<TexturedVertex3D>(MAX_RES * 100 * 3, 10, PrimitiveType.Triangles);
             private readonly QuadBatch<TexturedVertex3D> quadBatch = new QuadBatch<TexturedVertex3D>(200, 10);
 
-            public PathDrawNode(Path source)
+            public LinesDrawNode(Lines source)
                 : base(source)
             {
             }
@@ -47,12 +48,12 @@ namespace osu.Framework.Graphics.Lines
                 base.ApplyState();
 
                 segments.Clear();
-                segments.AddRange(Source.segments);
+                segments.AddRange(Source.Segments);
 
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
-                pathShader = Source.pathShader;
+                pathShader = Source.PathShader;
             }
 
             private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
@@ -189,7 +190,18 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Line nextLine = segments[i];
                     float nextTheta = nextLine.Theta;
-                    addLineCap(line.EndPoint, theta, nextTheta - theta, texRect);
+
+                    if ((line.EndPoint - nextLine.StartPoint).LengthSquared < JOIN_DISTANCE * JOIN_DISTANCE)
+                    {
+                        // joining line segments
+                        addLineCap(line.EndPoint, theta, nextTheta - theta, texRect);
+                    }
+                    else
+                    {
+                        // separate line segments
+                        addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
+                        addLineCap(nextLine.StartPoint, nextTheta + MathHelper.Pi, MathHelper.Pi, texRect);
+                    }
 
                     line = nextLine;
                     theta = nextTheta;
