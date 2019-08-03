@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using osu.Framework.MathUtils;
 using osuTK;
@@ -164,6 +165,18 @@ namespace osu.Framework.Graphics.Primitives
         /// It's the end of the world as we know it
         /// </summary>
         public Matrix4 EndWorldMatrix() => Matrix4.CreateRotationZ(Theta) * Matrix4.CreateTranslation(EndPoint.X, EndPoint.Y, 0);
+
+        /// <summary>
+        /// An enumerable of Vector2 points which contains the start and end point of this line.
+        /// </summary>
+        public IEnumerable<Vector2> Vertices
+        {
+            get
+            {
+                yield return StartPoint;
+                yield return EndPoint;
+            }
+        }
 
         public override string ToString() => $"{StartPoint} -> {EndPoint}";
     }
