@@ -222,7 +222,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = bottomColour.Linear,
             });
-            vertexAction(new TexturedVertex2Dk
+            vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
                 TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
