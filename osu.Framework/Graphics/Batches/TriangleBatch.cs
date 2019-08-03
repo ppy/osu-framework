@@ -20,6 +20,6 @@ namespace osu.Framework.Graphics.Batches
         {
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer() => new TriangleVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
+        protected override VertexBuffer<T> CreateVertexBuffer() => new QuadVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
     }
 }
