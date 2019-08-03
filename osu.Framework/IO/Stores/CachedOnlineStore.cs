@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
 {
-    public class CachedOnlineStore : OnlineStore
+    public abstract class CachedOnlineStore : OnlineStore
     {
-        public virtual string CachePath => Path.GetTempPath();
+        protected abstract string CachePath { get; }
 
-        public virtual TimeSpan Duration => TimeSpan.FromDays(7);
+        protected virtual TimeSpan Duration => TimeSpan.FromDays(7);
 
-        public CachedOnlineStore()
+        protected CachedOnlineStore()
         {
             Clear();
         }
