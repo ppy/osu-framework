@@ -59,7 +59,7 @@ namespace osu.Framework.iOS
 
         protected override void SetupForRun()
         {
-            Logger.Storage = IOSStorage.GetStorageForDirectory(Path.Combine("..", "..", "Documents", "logs"));
+            Logger.Storage = Storage.GetStorageForDirectory(Path.Combine("..", "..", "Documents", "logs"));
 
             base.SetupForRun();
             IOSGameWindow.GameView = gameView;
