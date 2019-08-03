@@ -49,7 +49,13 @@ namespace osu.Framework.IO.Stores
         {
             var targetPath = Path.Combine(CachePath, createHash64(url).ToString());
 
-            data = System.IO.File.Exists(targetPath) ? System.IO.File.ReadAllBytes(targetPath) : null;
+            if (System.IO.File.Exists(targetPath))
+            {
+                data = System.IO.File.ReadAllBytes(targetPath);
+                System.IO.File.SetLastAccessTime(targetPath, DateTime.Now);
+            }
+            else
+                data = null;
 
             return targetPath;
         }
