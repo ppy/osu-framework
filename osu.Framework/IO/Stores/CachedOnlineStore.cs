@@ -24,7 +24,7 @@ namespace osu.Framework.IO.Stores
             var targetPath = getCached(url, out var data);
 
             if (data == null && (data = await base.GetAsync(url)) != null)
-                System.IO.File.WriteAllBytes(targetPath, data);
+                cache(targetPath, data);
 
             return data;
         }
@@ -34,9 +34,15 @@ namespace osu.Framework.IO.Stores
             var targetPath = getCached(url, out var data);
 
             if (data == null && (data = base.Get(url)) != null)
-                System.IO.File.WriteAllBytes(targetPath, data);
+                cache(targetPath, data);
 
             return data;
+        }
+
+        private void cache(string targetPath, byte[] data)
+        {
+            Directory.CreateDirectory(CachePath);
+            System.IO.File.WriteAllBytes(targetPath, data);
         }
 
         private string getCached(string url, out byte[] data)
