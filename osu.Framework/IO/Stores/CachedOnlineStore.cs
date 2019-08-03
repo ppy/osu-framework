@@ -19,11 +19,34 @@ namespace osu.Framework.IO.Stores
             Clear();
         }
 
-        public override Task<byte[]> GetAsync(string url) => throw new NotImplementedException();
+        public override async Task<byte[]> GetAsync(string url)
+        {
+            var targetPath = getCached(url, out var data);
 
-        public override byte[] Get(string url) => throw new NotImplementedException();
+            if (data == null && (data = await base.GetAsync(url)) != null)
+                System.IO.File.WriteAllBytes(targetPath, data);
 
-        public override Stream GetStream(string url) => throw new NotImplementedException();
+            return data;
+        }
+
+        public override byte[] Get(string url)
+        {
+            var targetPath = getCached(url, out var data);
+
+            if (data == null && (data = base.Get(url)) != null)
+                System.IO.File.WriteAllBytes(targetPath, data);
+
+            return data;
+        }
+
+        private string getCached(string url, out byte[] data)
+        {
+            var targetPath = Path.Combine(CachePath, createHash64(url).ToString());
+
+            data = System.IO.File.Exists(targetPath) ? System.IO.File.ReadAllBytes(targetPath) : null;
+
+            return targetPath;
+        }
 
         public void Clear()
         {
