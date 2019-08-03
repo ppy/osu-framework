@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Lines
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
-                pathShader = Source.pathShader;
+                pathShader = Source.PathShader;
             }
 
             private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
@@ -190,6 +190,7 @@ namespace osu.Framework.Graphics.Lines
                 {
                     Line nextLine = segments[i];
                     float nextTheta = nextLine.Theta;
+
                     if ((line.EndPoint - nextLine.StartPoint).LengthSquared < JOIN_DISTANCE * JOIN_DISTANCE)
                     {
                         // joining line segments

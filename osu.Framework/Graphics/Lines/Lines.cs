@@ -21,9 +21,9 @@ namespace osu.Framework.Graphics.Lines
     {
         public IShader RoundedTextureShader { get; private set; }
         public IShader TextureShader { get; private set; }
-        protected IShader pathShader;
+        public IShader PathShader { get; protected set; }
 
-        public Lines()
+        protected Lines()
         {
             AutoSizeAxes = Axes.Both;
         }
@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Lines
         {
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+            PathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         public override Axes RelativeSizeAxes
