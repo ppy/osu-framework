@@ -20,14 +20,6 @@ namespace osu.Framework.Graphics.Batches
         {
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer() => new TriangleVertexBuffer(Size, BufferUsageHint.DynamicDraw);
-
-        private class TriangleVertexBuffer : LinearVertexBuffer<T>
-        {
-            public TriangleVertexBuffer(int size, BufferUsageHint dynamicDraw)
-                : base(size * TextureGLSingle.VERTICES_PER_TRIANGLE, PrimitiveType.Triangles, dynamicDraw)
-            {
-            }
-        }
+        protected override VertexBuffer<T> CreateVertexBuffer() => new TriangleVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
     }
 }
