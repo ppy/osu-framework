@@ -50,6 +50,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             }
         }
 
+        public override void Bind(bool forRendering)
+        {
+            base.Bind(forRendering);
+
+            if (forRendering)
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, TriangleIndexData.EBO_ID);
+        }
+
         protected override int ToElements(int vertices) => 3 * vertices / 2;
 
         protected override int ToElementIndex(int vertexIndex) => 3 * vertexIndex / 2;
