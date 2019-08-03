@@ -56,6 +56,10 @@ namespace osu.Framework.IO.Stores
         public void Clear(TimeSpan duration)
         {
             var cacheDirectory = new DirectoryInfo(CachePath);
+
+            if (!cacheDirectory.Exists)
+                return;
+
             var cachedFiles = cacheDirectory.GetFiles();
 
             foreach (var cachedFile in cachedFiles)
