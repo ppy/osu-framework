@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
-        public const int VERTICES_PER_TRIANGLE = 6;
+        public const int VERTICES_PER_TRIANGLE = 4;
 
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null)
@@ -198,7 +198,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
-            // Left triangle half
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
@@ -223,25 +222,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = bottomColour.Linear,
             });
-
-            // Right triangle half
-            vertexAction(new TexturedVertex2D
-            {
-                Position = vertexTriangle.P0,
-                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
-                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                BlendRange = inflationAmount,
-                Colour = topColour.Linear,
-            });
-            vertexAction(new TexturedVertex2D
-            {
-                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
-                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                BlendRange = inflationAmount,
-                Colour = bottomColour.Linear,
-            });
-            vertexAction(new TexturedVertex2D
+            vertexAction(new TexturedVertex2Dk
             {
                 Position = vertexTriangle.P2,
                 TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
