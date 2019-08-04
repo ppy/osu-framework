@@ -40,7 +40,12 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Information about how masking of children should be carried out.
             /// </summary>
-            private MaskingInfo? maskingInfo;
+            private MaskingInfo maskingInfo;
+
+            /// <summary>
+            /// Information about whether the masking should be carried out.
+            /// </summary>
+            private bool isMasking;
 
             /// <summary>
             /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
@@ -88,9 +93,10 @@ namespace osu.Framework.Graphics.Containers
                 float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
                 RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
 
-                maskingInfo = !Source.Masking
-                    ? (MaskingInfo?)null
-                    : new MaskingInfo
+                isMasking = Source.Masking;
+                if (isMasking)
+                {
+                    maskingInfo = new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
                         MaskingRect = Source.DrawRectangle,
@@ -105,6 +111,7 @@ namespace osu.Framework.Graphics.Containers
                         BlendRange = blendRange,
                         AlphaExponent = 1,
                     };
+                }
 
                 edgeEffect = Source.EdgeEffect;
                 screenSpaceMaskingQuad = null;
@@ -116,18 +123,18 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawEdgeEffect()
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
+                if (!isMasking || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
 
-                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
+                RectangleF effectRect = maskingInfo.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
 
                 if (!screenSpaceMaskingQuad.HasValue)
                     screenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
-                MaskingInfo edgeEffectMaskingInfo = maskingInfo.Value;
+                MaskingInfo edgeEffectMaskingInfo = maskingInfo;
                 edgeEffectMaskingInfo.MaskingRect = effectRect;
                 edgeEffectMaskingInfo.ScreenSpaceAABB = screenSpaceMaskingQuad.Value.AABB;
-                edgeEffectMaskingInfo.CornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
+                edgeEffectMaskingInfo.CornerRadius = maskingInfo.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
                 edgeEffectMaskingInfo.BorderThickness = 0;
                 // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
                 // the edge effect along its radius using the same rounded-corners shader.
@@ -135,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
                 edgeEffectMaskingInfo.AlphaExponent = 2;
                 edgeEffectMaskingInfo.EdgeOffset = edgeEffect.Offset;
                 edgeEffectMaskingInfo.Hollow = edgeEffect.Hollow;
-                edgeEffectMaskingInfo.HollowCornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius;
+                edgeEffectMaskingInfo.HollowCornerRadius = maskingInfo.CornerRadius + edgeEffect.Radius;
 
                 GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
@@ -156,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
                     // with a hollow edge effect.
-                    new Vector2(maskingInfo.Value.BlendRange));
+                    new Vector2(maskingInfo.BlendRange));
 
                 Shader.Unbind();
 
@@ -205,9 +212,9 @@ namespace osu.Framework.Graphics.Containers
 
                 drawEdgeEffect();
 
-                if (maskingInfo != null)
+                if (isMasking)
                 {
-                    MaskingInfo info = maskingInfo.Value;
+                    ref var info = ref maskingInfo;
                     if (info.BorderThickness > 0)
                         info.BorderColour *= DrawColourInfo.Colour.AverageColour;
 
@@ -218,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
                     for (int i = 0; i < Children.Count; i++)
                         Children[i].Draw(vertexAction);
 
-                if (maskingInfo != null)
+                if (isMasking)
                     GLWrapper.PopMaskingInfo();
             }
 
@@ -247,8 +254,8 @@ namespace osu.Framework.Graphics.Containers
                     if (triangleBatch != null)
                         vertexAction = triangleBatch.AddAction;
 
-                    if (maskingInfo != null)
-                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                    if (isMasking)
+                        GLWrapper.PushMaskingInfo(maskingInfo);
                 }
 
                 // We still need to invoke this method recursively for all children so their depth value is updated
@@ -261,7 +268,7 @@ namespace osu.Framework.Graphics.Containers
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
-                    if (maskingInfo != null)
+                    if (isMasking)
                         GLWrapper.PopMaskingInfo();
                 }
             }
