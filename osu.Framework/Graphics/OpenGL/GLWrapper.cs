@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL
         public const int MAX_DRAW_NODES = 3;
 
         private static MaskingInfo currentMaskingInfo;
-        public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo; 
+        public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
