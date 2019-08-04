@@ -31,7 +31,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
 
-        public static MaskingInfo CurrentMaskingInfo { get; private set; }
+        private static MaskingInfo currentMaskingInfo;
+        public static ref readonly MaskingInfo CurrentMaskingInfo { get => ref currentMaskingInfo; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
@@ -469,7 +470,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
         }
 
-        private static void setMaskingInfo(MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
+        private static void setMaskingInfo(in MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
         {
             FlushCurrentBatch();
 
@@ -544,13 +545,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
         /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
-        public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        public static void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             masking_stack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, true, overwritePreviousScissor);
         }
 
@@ -567,7 +568,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, false, true);
         }
 
