@@ -94,6 +94,7 @@ namespace osu.Framework.Graphics.Containers
                 RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
 
                 isMasking = Source.Masking;
+
                 if (isMasking)
                 {
                     maskingInfo = new MaskingInfo
