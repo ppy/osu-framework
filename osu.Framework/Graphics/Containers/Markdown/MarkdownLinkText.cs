@@ -49,14 +49,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText(),
-                    Action = ClickAction,
+                    Action = OnLinkPressed,
                 }
             };
 
             spriteText.Text = text;
         }
 
-        protected virtual void ClickAction() => host.OpenUrlExternally(Url);
+        protected virtual void OnLinkPressed() => host.OpenUrlExternally(Url);
 
         public virtual SpriteText CreateSpriteText()
         {
