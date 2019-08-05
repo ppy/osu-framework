@@ -38,10 +38,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Both;
         }
 
-        protected override void LoadComplete()
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.LoadComplete();
-
             SpriteText spriteText;
             InternalChildren = new Drawable[]
             {
