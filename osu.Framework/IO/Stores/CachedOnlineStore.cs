@@ -14,11 +14,6 @@ namespace osu.Framework.IO.Stores
 
         protected virtual TimeSpan Duration => TimeSpan.FromDays(7);
 
-        protected CachedOnlineStore()
-        {
-            Clear();
-        }
-
         public override async Task<byte[]> GetAsync(string url)
         {
             var targetPath = getCached(url, out var data);
