@@ -3,8 +3,8 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -42,7 +42,7 @@ namespace osu.Framework.IO.Stores
 
         private string getCached(string url, out byte[] data)
         {
-            var targetPath = Path.Combine(CachePath, createHash64(url).ToString());
+            var targetPath = Path.Combine(CachePath, url.ComputeMD5Hash());
 
             if (System.IO.File.Exists(targetPath))
             {
@@ -72,17 +72,6 @@ namespace osu.Framework.IO.Stores
             foreach (var cachedFile in cachedFiles)
                 if (DateTime.Now - cachedFile.LastAccessTime > duration)
                     cachedFile.Delete();
-        }
-
-        private ulong createHash64(string str)
-        {
-            var utf8 = Encoding.UTF8.GetBytes(str);
-            var value = (ulong)utf8.Length;
-
-            for (int n = 0; n < utf8.Length; n++)
-                value += (ulong)utf8[n] << (n * 5 % 56);
-
-            return value;
         }
     }
 }
