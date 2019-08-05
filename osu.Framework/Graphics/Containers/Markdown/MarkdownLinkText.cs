@@ -23,6 +23,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         private readonly string text;
         private readonly string url;
 
@@ -34,9 +37,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Both;
         }
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        protected override void LoadComplete()
         {
+            base.LoadComplete();
+
             SpriteText spriteText;
             InternalChildren = new Drawable[]
             {
@@ -44,12 +48,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText(),
-                    Action = () => host.OpenUrlExternally(url)
+                    Action = () => ClickAction(),
                 }
             };
 
             spriteText.Text = text;
         }
+
+        protected virtual void ClickAction() => host.OpenUrlExternally(url);
 
         public virtual SpriteText CreateSpriteText()
         {
