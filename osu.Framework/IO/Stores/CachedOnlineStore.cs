@@ -55,23 +55,29 @@ namespace osu.Framework.IO.Stores
             return targetPath;
         }
 
-        public void Clear()
+        public int Clear()
         {
-            Clear(Duration);
+            return Clear(Duration);
         }
 
-        public void Clear(TimeSpan duration)
+        public int Clear(TimeSpan duration)
         {
+            var removed = 0;
             var cacheDirectory = new DirectoryInfo(CachePath);
 
-            if (!cacheDirectory.Exists)
-                return;
+            if (cacheDirectory.Exists)
+            {
+                var cachedFiles = cacheDirectory.GetFiles();
 
-            var cachedFiles = cacheDirectory.GetFiles();
+                foreach (var cachedFile in cachedFiles)
+                    if (DateTime.Now - cachedFile.LastAccessTime > duration)
+                    {
+                        cachedFile.Delete();
+                        removed++;
+                    }
+            }
 
-            foreach (var cachedFile in cachedFiles)
-                if (DateTime.Now - cachedFile.LastAccessTime > duration)
-                    cachedFile.Delete();
+            return removed;
         }
     }
 }
