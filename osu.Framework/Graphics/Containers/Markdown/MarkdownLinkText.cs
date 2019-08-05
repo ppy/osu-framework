@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText(),
-                    Action = () => ClickAction(),
+                    Action = ClickAction,
                 }
             };
 
