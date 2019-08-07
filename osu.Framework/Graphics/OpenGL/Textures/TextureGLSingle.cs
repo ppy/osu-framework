@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = topColour.Linear,
