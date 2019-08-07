@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Batches
         {
         }
 
+        //We can re-use the QuadVertexBuffer as both Triangles and Quads have four Vertices and six indices.
         protected override VertexBuffer<T> CreateVertexBuffer() => new QuadVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
     }
 }
