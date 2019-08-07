@@ -5,77 +5,73 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Extensions;
+using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
 {
-    public abstract class CachedOnlineStore : OnlineStore
+    public class CachedOnlineStore : OnlineStore
     {
-        protected abstract string CachePath { get; }
+        private readonly Storage cacheStorage;
+        public readonly TimeSpan Duration;
 
-        protected virtual TimeSpan Duration => TimeSpan.FromDays(7);
+        public CachedOnlineStore(GameHost host, string name, TimeSpan duration)
+        {
+            cacheStorage = host.Storage.GetStorageForDirectory(Path.Combine("cache", name));
+            Duration = duration;
+        }
 
         public override async Task<byte[]> GetAsync(string url)
         {
-            var targetPath = getCached(url, out var data);
+            var data = getCached(url);
 
             if (data == null && (data = await base.GetAsync(url)) != null)
-                cache(targetPath, data);
+                cache(url, data);
 
             return data;
         }
 
         public override byte[] Get(string url)
         {
-            var targetPath = getCached(url, out var data);
+            var data = getCached(url);
 
             if (data == null && (data = base.Get(url)) != null)
-                cache(targetPath, data);
+                cache(url, data);
 
             return data;
         }
 
-        private void cache(string targetPath, byte[] data)
+        private void cache(string url, byte[] data)
         {
-            Directory.CreateDirectory(CachePath);
-            System.IO.File.WriteAllBytes(targetPath, data);
+            using (var stream = cacheStorage.GetStream(url.ComputeMD5Hash(), FileAccess.Write, FileMode.Create))
+                stream.Write(data, 0, data.Length);
         }
 
-        private string getCached(string url, out byte[] data)
+        // TODO set last access time
+        private byte[] getCached(string url)
         {
-            var targetPath = Path.Combine(CachePath, url.ComputeMD5Hash());
+            byte[] data = null;
+            var fileName = url.ComputeMD5Hash();
 
-            if (System.IO.File.Exists(targetPath))
-            {
-                data = System.IO.File.ReadAllBytes(targetPath);
-                System.IO.File.SetLastAccessTime(targetPath, DateTime.Now);
-            }
-            else
-                data = null;
+            if (cacheStorage.Exists(fileName))
+                using (var stream = cacheStorage.GetStream(fileName))
+                    stream.Read(data = new byte[stream.Length], 0, int.MaxValue);
 
-            return targetPath;
+            return data;
         }
 
-        public int Clear()
-        {
-            return Clear(Duration);
-        }
+        public int Clear() => Clear(Duration);
 
         public int Clear(TimeSpan duration)
         {
             var removed = 0;
-            var cacheDirectory = new DirectoryInfo(CachePath);
+            var cachedFiles = cacheStorage.GetFiles(string.Empty);
 
-            if (cacheDirectory.Exists)
-            {
-                var cachedFiles = cacheDirectory.GetFiles();
-
-                foreach (var cachedFile in cachedFiles)
-                    if (DateTime.Now - cachedFile.LastAccessTime > duration)
-                    {
-                        cachedFile.Delete();
-                        removed++;
-                    }
-            }
+            foreach (var cachedFile in cachedFiles)
+                if (DateTime.Now - cacheStorage.GetLastAccessTime(cachedFile) > duration)
+                {
+                    cacheStorage.Delete(cachedFile);
+                    removed++;
+                }
 
             return removed;
         }
