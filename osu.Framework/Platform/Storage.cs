@@ -91,6 +91,13 @@ namespace osu.Framework.Platform
         public abstract DateTime GetCreationTime(string path);
 
         /// <summary>
+        /// Sets the date and time the file was created.
+        /// </summary>
+        /// <param name="path">The file for which to set the creation date and time information.</param>
+        /// <param name="creationTime">A DateTime containing the value to set for the creation date and time of path. This value is expressed in local time.</param>
+        public abstract void SetCreationTime(string path, DateTime creationTime);
+
+        /// <summary>
         /// Returns the date and time the specified file was last accessed.
         /// </summary>
         /// <param name="path">The file for which to obtain access date and time information.</param>
@@ -98,11 +105,25 @@ namespace osu.Framework.Platform
         public abstract DateTime GetLastAccessTime(string path);
 
         /// <summary>
+        /// Sets the date and time the specified file was last accessed.
+        /// </summary>
+        /// <param name="path">The file for which to set the access date and time information.</param>
+        /// <param name="lastAccessTime">A DateTime containing the value to set for the last access date and time of path. This value is expressed in local time.</param>
+        public abstract void SetLastAccessTime(string path, DateTime lastAccessTime);
+
+        /// <summary>
         /// Returns the date and time the specified file was last written to.
         /// </summary>
         /// <param name="path">The file for which to obtain write date and time information.</param>
         /// <returns>A DateTime structure set to the date and time that the specified file was last written to. This value is expressed in local time.</returns>
         public abstract DateTime GetLastWriteTime(string path);
+
+        /// <summary>
+        /// Sets the date and time that the specified file was last written to.
+        /// </summary>
+        /// <param name="path">The file for which to set the date and time information.</param>
+        /// <param name="lastWriteTime">A DateTime containing the value to set for the last write date and time of path. This value is expressed in local time.</param>
+        public abstract void SetLastWriteTime(string path, DateTime lastWriteTime);
 
         /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.
