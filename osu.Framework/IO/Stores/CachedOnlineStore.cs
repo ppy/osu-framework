@@ -46,15 +46,18 @@ namespace osu.Framework.IO.Stores
                 stream.Write(data, 0, data.Length);
         }
 
-        // TODO set last access time
         private byte[] getCached(string url)
         {
             byte[] data = null;
             var fileName = url.ComputeMD5Hash();
 
             if (cacheStorage.Exists(fileName))
+            {
                 using (var stream = cacheStorage.GetStream(fileName))
                     stream.Read(data = new byte[stream.Length], 0, int.MaxValue);
+
+                cacheStorage.SetLastAccessTime(fileName, DateTime.Now);
+            }
 
             return data;
         }
