@@ -5,8 +5,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Tests.Visual.Containers
@@ -177,6 +179,60 @@ namespace osu.Framework.Tests.Visual.Containers
             }
 
             Assert.That(disposed, Is.EqualTo(shouldDispose));
+        }
+
+        [Test]
+        public void TestAsyncLoadClearWhileAsyncDisposing()
+        {
+            Container safeContainer = null;
+            DelayedLoadDrawable drawable = null;
+
+            // We are testing a disposal deadlock scenario. When the test runner exits, it will attempt to dispose the game hierarchy,
+            // and will fall into the deadlocked state itself. For this reason an intermediate "safe" container is used, which is
+            // removed from the hierarchy immediately after use and is thus not disposed when the test runner exits.
+            // This does NOT free up the LoadComponentAsync thread pool for use by other tests - that thread is in a deadlocked state forever.
+            AddStep("add safe container", () => Add(safeContainer = new Container()));
+
+            // Get the drawable into an async loading state
+            AddStep("begin async load", () =>
+            {
+                safeContainer.LoadComponentAsync(drawable = new DelayedLoadDrawable(), _ => { });
+                Remove(safeContainer);
+            });
+
+            AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
+
+            // Make the async disposal queue attempt to dispose the drawable
+            AddStep("enqueue async disposal", () => AsyncDisposalQueue.Enqueue(drawable));
+            AddWaitStep("wait for disposal task to run", 10);
+
+            // Clear the contents of the drawable, causing a second async disposal
+            AddStep("allow load", () => drawable.AllowLoad.Set());
+
+            AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
+        }
+
+        private class DelayedLoadDrawable : CompositeDrawable
+        {
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
+
+            public bool HasCleared { get; private set; }
+
+            public DelayedLoadDrawable()
+            {
+                InternalChild = new Box();
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException();
+
+                ClearInternal();
+
+                HasCleared = true;
+            }
         }
     }
 }
