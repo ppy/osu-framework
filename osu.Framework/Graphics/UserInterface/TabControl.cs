@@ -386,15 +386,23 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
 
+            /// <summary>
+            /// The next item that would flow back into the visible tab items if a tab would be removed.
+            /// Returns null if no tabs are hidden.
+            /// </summary>
+            private TabItem<T> topHiddenItem => (TabItem<T>)AliveInternalChildren.FirstOrDefault(d => !TabItems.Contains(d));
+
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
                 foreach (var child in Children)
                     child.Y = 0;
 
                 var result = base.ComputeLayoutPositions().ToArray();
-                int i = 0;
 
-                foreach (var child in FlowingChildren.OfType<TabItem<T>>())
+                // In the event that we allow multiline, we want the re-flow logic below to never be hit, so initialize to infinity.
+                float rightPosition = float.MaxValue;
+
+                foreach (var (i, child) in TabItems.Select((item, index) => (index, item)))
                 {
                     bool isVisible = allowMultiline || result[i].Y == 0;
                     updateChildIfNeeded(child, isVisible);
@@ -402,7 +410,24 @@ namespace osu.Framework.Graphics.UserInterface
                     if (isVisible)
                         yield return result[i];
 
-                    i++;
+                    // Keep track of the rightpost position where a valid item could be placed on the topmost line.
+                    if (!allowMultiline && result[i].Y == 0)
+                        rightPosition = result[i].X + child.Width;
+                }
+
+                // If our new visible elements would be less than what we could potentially display
+                // pop the topmost hidden element until we fill the line again
+                while (topHiddenItem?.Width + rightPosition < ChildSize.X)
+                {
+                    var item = topHiddenItem;
+
+                    if (item == null)
+                        break;
+
+                    updateChildIfNeeded(item, true);
+                    yield return new Vector2(rightPosition, 0);
+
+                    rightPosition = rightPosition + item.Width;
                 }
             }
 

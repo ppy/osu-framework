@@ -36,6 +36,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUp]
         public void Setup() => Schedule(() =>
         {
+            Clear();
+
             Add(new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -205,6 +207,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
         }
 
+        [Test]
+        public void TestRemovingFromDropdown()
+        {
+            AddStep("Remove test3", () => simpleTabcontrol.RemoveItem(TestEnum.Test3));
+            AddAssert("Test 4 is visible", () => simpleTabcontrol.TabMap[TestEnum.Test4].IsPresent);
+            AddUntilStep("Remove all items", () =>
+            {
+                simpleTabcontrol.RemoveItem(simpleTabcontrol.Items.First());
+                return !simpleTabcontrol.Dropdown.Items.Any();
+            });
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
@@ -228,6 +242,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
 
             public new TabItem<TestEnum?> SelectedTab => base.SelectedTab;
+
+            public new Dropdown<TestEnum?> Dropdown => base.Dropdown;
 
             protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
