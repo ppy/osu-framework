@@ -64,7 +64,6 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             private QuadBatch<TexturedVertex2D> quadBatch;
 
-
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
             {
