@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Android.App;
 using Android.Content;
 using osu.Framework.Android.Graphics.Textures;
