@@ -29,14 +29,15 @@ namespace osu.Framework.Allocation
 
             runTask = Task.Run(() =>
             {
+                IDisposable[] itemsToDispose;
+
                 lock (disposal_queue)
+                    itemsToDispose = disposal_queue.ToArray();
+
+                foreach (var item in itemsToDispose)
                 {
-                    while (disposal_queue.Count > 0)
-                    {
-                        var toDispose = disposal_queue.Dequeue();
-                        last_disposal.Value = toDispose.ToString();
-                        toDispose.Dispose();
-                    }
+                    last_disposal.Value = item.ToString();
+                    item.Dispose();
                 }
             });
         }
