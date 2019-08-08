@@ -40,6 +40,20 @@ namespace osu.Framework.IO.Stores
             return data;
         }
 
+        public override Stream GetStream(string url)
+        {
+            var bytes = getCached(url);
+
+            if (bytes != null)
+                return new MemoryStream(bytes);
+
+            var stream = base.GetStream(url);
+            stream.Read(bytes = new byte[stream.Length], 0, int.MaxValue);
+            cache(url, bytes);
+
+            return stream;
+        }
+
         private void cache(string url, byte[] data)
         {
             using (var stream = cacheStorage.GetStream(url.ComputeMD5Hash(), FileAccess.Write, FileMode.Create))

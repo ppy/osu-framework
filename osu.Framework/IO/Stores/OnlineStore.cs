@@ -51,7 +51,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public Stream GetStream(string url)
+        public virtual Stream GetStream(string url)
         {
             var ret = Get(url);
 
