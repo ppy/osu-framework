@@ -40,6 +40,18 @@ namespace osu.Framework.Platform
 
         public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));
 
+        public override DateTime GetCreationTime(string path) => File.GetCreationTime(GetFullPath(path));
+
+        public override void SetCreationTime(string path, DateTime creationTime) => File.SetCreationTime(GetFullPath(path), creationTime);
+
+        public override DateTime GetLastAccessTime(string path) => File.GetLastAccessTime(GetFullPath(path));
+
+        public override void SetLastAccessTime(string path, DateTime lastAccessTime) => File.SetLastAccessTime(GetFullPath(path), lastAccessTime);
+
+        public override DateTime GetLastWriteTime(string path) => File.GetLastWriteTime(GetFullPath(path));
+
+        public override void SetLastWriteTime(string path, DateTime lastWriteTime) => File.SetLastWriteTime(GetFullPath(path), lastWriteTime);
+
         private IEnumerable<string> getRelativePaths(IEnumerable<string> paths)
         {
             string basePath = Path.GetFullPath(GetFullPath(string.Empty));
