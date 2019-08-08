@@ -15,14 +15,14 @@ namespace osu.Framework.Allocation
     {
         private static readonly GlobalStatistic<string> last_disposal = GlobalStatistics.Get<string>("Drawable", "Last disposal");
 
-        private static readonly Queue<IDisposable> disposal_queue = new Queue<IDisposable>();
+        private static readonly List<IDisposable> disposal_queue = new List<IDisposable>();
 
         private static Task runTask;
 
         public static void Enqueue(IDisposable disposable)
         {
             lock (disposal_queue)
-                disposal_queue.Enqueue(disposable);
+                disposal_queue.Add(disposable);
 
             if (runTask?.Status < TaskStatus.Running)
                 return;
