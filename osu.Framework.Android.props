@@ -49,6 +49,12 @@
     <None Include="$(MSBuildThisFileDirectory)\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
+    <AndroidNativeLibrary Include="..\osu.Framework.Android\armeabi-v7a\*.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\osu.Framework.Android\arm64-v8a\*.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
