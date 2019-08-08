@@ -32,7 +32,10 @@ namespace osu.Framework.Allocation
                 IDisposable[] itemsToDispose;
 
                 lock (disposal_queue)
+                {
                     itemsToDispose = disposal_queue.ToArray();
+                    disposal_queue.Clear();
+                }
 
                 foreach (var item in itemsToDispose)
                 {
