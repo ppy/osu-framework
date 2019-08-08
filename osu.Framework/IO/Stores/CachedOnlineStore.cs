@@ -48,7 +48,7 @@ namespace osu.Framework.IO.Stores
                 return new MemoryStream(bytes);
 
             var stream = base.GetStream(url);
-            stream.Read(bytes = new byte[stream.Length], 0, int.MaxValue);
+            stream.Read(bytes = new byte[stream.Length], 0, bytes.Length);
             cache(url, bytes);
 
             return stream;
@@ -68,7 +68,7 @@ namespace osu.Framework.IO.Stores
             if (cacheStorage.Exists(fileName))
             {
                 using (var stream = cacheStorage.GetStream(fileName))
-                    stream.Read(data = new byte[stream.Length], 0, int.MaxValue);
+                    stream.Read(data = new byte[stream.Length], 0, data.Length);
 
                 cacheStorage.SetLastAccessTime(fileName, DateTime.Now);
             }
