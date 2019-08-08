@@ -14,9 +14,9 @@ namespace osu.Framework.IO.Stores
         private readonly Storage cacheStorage;
         public readonly TimeSpan Duration;
 
-        public CachedOnlineStore(GameHost host, string name, TimeSpan duration)
+        public CachedOnlineStore(Storage cacheStorage, TimeSpan duration)
         {
-            cacheStorage = host.Storage.GetStorageForDirectory(Path.Combine("cache", name));
+            this.cacheStorage = cacheStorage;
             Duration = duration;
         }
 
