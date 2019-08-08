@@ -9,8 +9,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
-using System;
-using System.Collections.Generic;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 
@@ -27,7 +25,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
     {
-    };
+        /// <inheritdoc />
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+            : base(formats, pixelSnapping)
+        {
+        }
+    }
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -94,25 +97,6 @@ namespace osu.Framework.Graphics.Containers
 
                 blurRotation = value;
                 ForceRedraw();
-            }
-        }
-
-        private bool pixelSnapping;
-
-        /// <summary>
-        /// Whether the framebuffer's position is snapped to the nearest pixel when blitting.
-        /// Since the framebuffer's texels have the same size as pixels, this amounts to setting
-        /// the texture filtering mode to "nearest".
-        /// </summary>
-        public bool PixelSnapping
-        {
-            get => pixelSnapping;
-            set
-            {
-                if (sharedData.MainBuffer.IsInitialized)
-                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
-
-                pixelSnapping = value;
             }
         }
 
@@ -223,14 +207,17 @@ namespace osu.Framework.Graphics.Containers
 
         private IShader blurShader;
 
+        private readonly BufferedContainerDrawNodeSharedData sharedData;
+
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
-        public BufferedContainer()
+        /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
+        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".</param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
         {
-            // The initial draw cannot be cached, and thus we need to initialize
-            // with a forced draw.
-            ForceRedraw();
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
         }
 
         [BackgroundDependencyLoader]
@@ -241,30 +228,7 @@ namespace osu.Framework.Graphics.Containers
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
-        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
-
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData, attachedFormats.ToArray(), PixelSnapping);
-
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
-
-        /// <summary>
-        /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
-        /// be a depth component, such that the framebuffer can hold fragment depth information.
-        /// </summary>
-        /// <param name="format">The component format to attach.</param>
-        public void Attach(RenderbufferInternalFormat format)
-        {
-            if (attachedFormats.Exists(f => f == format))
-                return;
-
-            attachedFormats.Add(format);
-        }
-
-        /// <summary>
-        /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
-        /// </summary>
-        /// <param name="format">The component format to detach.</param>
-        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 

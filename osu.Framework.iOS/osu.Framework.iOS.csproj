@@ -35,4 +35,12 @@
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.111" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
   </ItemGroup>
+  <ItemGroup>
+    <NativeLibs Include="$(MSBuildThisFileDirectory)\*.a" />
+    <None Include="@(NativeLibs)">
+      <Pack>true</Pack>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
