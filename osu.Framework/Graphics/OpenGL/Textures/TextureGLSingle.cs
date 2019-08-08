@@ -25,18 +25,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public const int MAX_MIPMAP_LEVELS = 3;
 
         private static readonly Action<TexturedVertex2D> default_quad_action;
-        private static readonly Action<TexturedVertex2D> default_triangle_action;
+        //private static readonly Action<TexturedVertex2D> default_triangle_action;
 
         static TextureGLSingle()
         {
             QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
             default_quad_action = quadBatch.AddAction;
-
-            // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-            // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-            // grouping of vertices into primitives.
-            TriangleBatch<TexturedVertex2D> triangleBatch = new TriangleBatch<TexturedVertex2D>(512, 128);
-            default_triangle_action = triangleBatch.AddAction;
         }
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
@@ -189,7 +183,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
-                vertexAction = default_triangle_action;
+                vertexAction = default_quad_action;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
