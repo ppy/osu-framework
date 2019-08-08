@@ -37,10 +37,14 @@ namespace osu.Framework.Allocation
                     disposal_queue.Clear();
                 }
 
-                foreach (var item in itemsToDispose)
+                for (int i = 0; i < itemsToDispose.Length; i++)
                 {
+                    ref var item = ref itemsToDispose[i];
+
                     last_disposal.Value = item.ToString();
                     item.Dispose();
+
+                    item = null;
                 }
             });
         }
