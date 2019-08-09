@@ -221,6 +221,12 @@ namespace osu.Framework.Graphics.Containers
                 // Assume that if we can't increment the depth value, no child can, thus nothing will be drawn.
                 if (canIncrement)
                 {
+                    updateQuadBatch();
+
+                    // Prefer to use own vertex batch instead of the parent-owned one.
+                    if (quadBatch != null)
+                        vertexAction = quadBatch.AddAction;
+
                     if (maskingInfo != null)
                         GLWrapper.PushMaskingInfo(maskingInfo.Value);
                 }
