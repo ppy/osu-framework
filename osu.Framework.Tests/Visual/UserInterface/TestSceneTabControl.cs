@@ -208,13 +208,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestRemovingFromDropdown()
+        public void TestRemovingTabMovesOutFromDropdown()
         {
             AddStep("Remove test3", () => simpleTabcontrol.RemoveItem(TestEnum.Test3));
             AddAssert("Test 4 is visible", () => simpleTabcontrol.TabMap[TestEnum.Test4].IsPresent);
-            AddUntilStep("Remove all items", () =>
+
+            AddUntilStep("Remove all visible items", () =>
             {
-                simpleTabcontrol.RemoveItem(simpleTabcontrol.Items.First());
+                simpleTabcontrol.RemoveItem(simpleTabcontrol.Items.First(d => simpleTabcontrol.TabMap[d].IsPresent));
                 return !simpleTabcontrol.Dropdown.Items.Any();
             });
         }
