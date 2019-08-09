@@ -6,7 +6,7 @@ using System;
 
 namespace osu.Framework.Caching
 {
-    public struct Cached<T>
+    public class Cached<T>
     {
         private T value;
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Caching
         }
     }
 
-    public struct Cached
+    public class Cached
     {
         private bool isValid;
 
