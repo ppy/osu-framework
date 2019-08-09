@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached textureCache = new Cached();
+        private readonly Cached textureCache = new Cached();
 
         protected void InvalidateTexture()
         {
