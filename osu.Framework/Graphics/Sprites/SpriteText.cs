@@ -425,7 +425,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached charactersCache = new Cached();
+        private readonly Cached charactersCache = new Cached();
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
         /// <summary>
@@ -628,7 +628,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool useFixedWidthForCharacter(char character) => Font.FixedWidth && UseFixedWidthForCharacter(character);
 
-        private Cached screenSpaceCharactersCache = new Cached();
+        private readonly Cached screenSpaceCharactersCache = new Cached();
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -662,10 +662,10 @@ namespace osu.Framework.Graphics.Sprites
             screenSpaceCharactersCache.Validate();
         }
 
-        private Cached<float> constantWidthCache;
+        private readonly Cached<float> constantWidthCache = new Cached<float>();
         private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
 
-        private Cached<Vector2> shadowOffsetCache;
+        private readonly Cached<Vector2> shadowOffsetCache = new Cached<Vector2>();
 
         private Vector2 premultipliedShadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
