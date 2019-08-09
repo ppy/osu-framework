@@ -2273,7 +2273,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
         /// is assumed unless indicated by additional flags.
         /// </summary>
-        DrawInfo = 1 << 0,
+        DrawInfo = 1,
 
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
@@ -2344,7 +2344,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The vertical counterpart is at "Top" position.
         /// </summary>
-        y0 = 1 << 0,
+        y0 = 1,
 
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
@@ -2382,7 +2382,7 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
-        X = 1 << 0,
+        X = 1,
         Y = 1 << 1,
 
         Both = X | Y,
@@ -2393,7 +2393,7 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
-        Top = 1 << 0,
+        Top = 1,
         Left = 1 << 1,
         Bottom = 1 << 2,
         Right = 1 << 3,

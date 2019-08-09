@@ -125,13 +125,13 @@ namespace osu.Framework.Tests.Bindables
 
         private class CustomObj
         {
-            public Bindable<int> Bindable1 = new Bindable<int>();
-            public Bindable<int> Bindable2 = new Bindable<int>();
+            public readonly Bindable<int> Bindable1 = new Bindable<int>();
+            public readonly Bindable<int> Bindable2 = new Bindable<int>();
         }
 
         private class CustomObj2
         {
-            public BindableInt Bindable = new BindableInt { MaxValue = 100 };
+            public readonly BindableInt Bindable = new BindableInt { MaxValue = 100 };
         }
     }
 }
