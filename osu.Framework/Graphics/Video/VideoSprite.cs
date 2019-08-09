@@ -91,9 +91,7 @@ namespace osu.Framework.Graphics.Video
 
         public VideoSprite([NotNull] Stream stream)
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
-
-            this.stream = stream;
+            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
         public VideoSprite(string filename)
