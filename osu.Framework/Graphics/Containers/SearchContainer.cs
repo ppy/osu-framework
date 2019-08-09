@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
             filterValid.Invalidate();
         }
 
-        private Cached filterValid = new Cached();
+        private readonly Cached filterValid = new Cached();
 
         protected override void Update()
         {

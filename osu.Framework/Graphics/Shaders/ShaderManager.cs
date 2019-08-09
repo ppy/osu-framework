@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using osu.Framework.IO.Stores;
-using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
@@ -81,21 +79,7 @@ namespace osu.Framework.Graphics.Shaders
                 createShaderPart(fragment, ShaderType.FragmentShader)
             };
 
-            shader = new Shader($"{vertex}/{fragment}", parts);
-
-            if (!shader.IsLoaded)
-            {
-                StringBuilder logContents = new StringBuilder();
-                logContents.AppendLine($@"Loading shader {vertex}/{fragment}");
-                logContents.Append(shader.Log);
-                foreach (ShaderPart p in parts)
-                    logContents.Append(p.Log);
-                Logger.Log(logContents.ToString().Trim('\n'), LoggingTarget.Runtime, LogLevel.Debug);
-            }
-
-            shaderCache[tuple] = shader;
-
-            return shader;
+            return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
         }
     }
 
