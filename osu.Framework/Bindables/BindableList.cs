@@ -29,7 +29,7 @@ namespace osu.Framework.Bindables
 
         private readonly List<T> collection = new List<T>();
 
-        private Cached<WeakReference<BindableList<T>>> weakReferenceCache;
+        private readonly Cached<WeakReference<BindableList<T>>> weakReferenceCache = new Cached<WeakReference<BindableList<T>>>();
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 

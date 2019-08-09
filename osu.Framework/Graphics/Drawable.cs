@@ -734,7 +734,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Cached<Vector2> drawSizeBacking;
+        private readonly Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
 
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
@@ -1511,7 +1511,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
 
-        private Cached<Quad> screenSpaceDrawQuadBacking;
+        private readonly Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
@@ -1520,7 +1520,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad();
 
-        private Cached<DrawInfo> drawInfoBacking;
+        private readonly Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         private DrawInfo computeDrawInfo()
         {
@@ -1542,7 +1542,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : drawInfoBacking.Value = computeDrawInfo();
 
-        private Cached<DrawColourInfo> drawColourInfoBacking;
+        private readonly Cached<DrawColourInfo> drawColourInfoBacking = new Cached<DrawColourInfo>();
 
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
@@ -1594,7 +1594,7 @@ namespace osu.Framework.Graphics
             return ci;
         }
 
-        private Cached<Vector2> requiredParentSizeToFitBacking;
+        private readonly Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
 
         private Vector2 computeRequiredParentSizeToFit()
         {
