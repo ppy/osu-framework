@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public const int MAX_MIPMAP_LEVELS = 3;
 
         private static readonly Action<TexturedVertex2D> default_quad_action;
-        //private static readonly Action<TexturedVertex2D> default_triangle_action;
 
         static TextureGLSingle()
         {
