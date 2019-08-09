@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private readonly Table table;
 
-        private Cached columnDefinitionCache = new Cached();
-        private Cached rowDefinitionCache = new Cached();
+        private readonly Cached columnDefinitionCache = new Cached();
+        private readonly Cached rowDefinitionCache = new Cached();
 
         public MarkdownTable(Table table)
         {
