@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 

@@ -587,6 +587,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual void SetupForRun()
         {
+            Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
         private void resetInputHandlers()
