@@ -57,8 +57,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             get => size;
             set
             {
-                if (value.X <= size.X && value.Y <= size.Y)
-                    return;
+                // Todo: Investigate why this causes crashes on iOS
+                // if (value.X <= size.X && value.Y <= size.Y)
+                //     return;
 
                 memoryLease?.Dispose();
 
