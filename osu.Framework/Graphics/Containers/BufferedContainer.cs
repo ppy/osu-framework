@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics.Containers
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private Cached screenSpaceSizeBacking = new Cached();
+        private readonly Cached screenSpaceSizeBacking = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
