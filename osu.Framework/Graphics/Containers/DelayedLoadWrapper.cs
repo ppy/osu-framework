@@ -124,8 +124,8 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached optimisingContainerCache = new Cached();
-        private Cached isIntersectingCache = new Cached();
+        private readonly Cached optimisingContainerCache = new Cached();
+        private readonly Cached isIntersectingCache = new Cached();
 
         private ScheduledDelegate loadScheduledDelegate;
 
