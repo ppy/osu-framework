@@ -163,6 +163,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
 
+        /// <summary>
+        /// Gets the children in this <see cref="FlowContainer{T}"/> in the order which they would be processed in a flow layout,
+        /// regardless of whether or not they are displayed right now.
+        /// </summary>
+        protected IEnumerable<Drawable> ChildrenByLayoutOrder => AliveInternalChildren.OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
+
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
         private void performLayout()
