@@ -9,17 +9,30 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
 {
+    /// <summary>
+    /// An <see cref="OnlineStore"/> with file system caching
+    /// </summary>
     public class CachedOnlineStore : OnlineStore
     {
         private readonly Storage cacheStorage;
         public readonly TimeSpan Duration;
 
+        /// <summary>
+        /// Constructs a <see cref="CachedOnlineStore"/>
+        /// </summary>
+        /// <param name="cacheStorage">A <see cref="Storage"/> which will be used as a cache</param>
+        /// <param name="duration">A <see cref="TimeSpan"/> since last file access after which it will be considered expired</param>
         public CachedOnlineStore(Storage cacheStorage, TimeSpan duration)
         {
             this.cacheStorage = cacheStorage;
             Duration = duration;
         }
 
+        /// <summary>
+        /// Retrieves an object from cache if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/> 
+        /// </summary>
+        /// <param name="url">The address of the object.</param>
+        /// <returns>The object.</returns>
         public override async Task<byte[]> GetAsync(string url)
         {
             var data = getCached(url);
@@ -30,6 +43,11 @@ namespace osu.Framework.IO.Stores
             return data;
         }
 
+        /// <summary>
+        /// Retrieves an object from cache if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/> 
+        /// </summary>
+        /// <param name="url">The address of the object.</param>
+        /// <returns>The object.</returns>
         public override byte[] Get(string url)
         {
             var data = getCached(url);
@@ -54,12 +72,22 @@ namespace osu.Framework.IO.Stores
             return stream;
         }
 
+        /// <summary>
+        /// Writes data to the cache <see cref="Storage"/>
+        /// </summary>
+        /// <param name="url">The address of the object.</param>
+        /// <param name="data">The object.</param>
         private void cache(string url, byte[] data)
         {
             using (var stream = cacheStorage.GetStream(url.ComputeMD5Hash(), FileAccess.Write, FileMode.Create))
                 stream.Write(data, 0, data.Length);
         }
 
+        /// <summary>
+        /// Retrieves an object from cache.
+        /// </summary>
+        /// <param name="url">The address of the object.</param>
+        /// <returns>The object or <value>null</value> if there in no suitable object in the cache.</returns>
         private byte[] getCached(string url)
         {
             byte[] data = null;
@@ -78,6 +106,11 @@ namespace osu.Framework.IO.Stores
 
         public int Clear() => Clear(Duration);
 
+        /// <summary>
+        /// Clears cache
+        /// </summary>
+        /// <param name="duration">A <see cref="TimeSpan"/> since last file access after which it will be considered expired</param>
+        /// <returns>The number of removed object</returns>
         public int Clear(TimeSpan duration)
         {
             var removed = 0;
