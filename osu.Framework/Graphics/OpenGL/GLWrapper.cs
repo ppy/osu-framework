@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
-        private static bool isEmbedded;
+        public static bool IsEmbedded { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (IsInitialized) return;
 
             if (host.Window is GameWindow win)
-                isEmbedded = win.IsEmbedded;
+                IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                if (isEmbedded)
+                if (IsEmbedded)
                 {
                     // GL ES only supports glClearDepthf
                     // See: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glClearDepthf.xhtml
