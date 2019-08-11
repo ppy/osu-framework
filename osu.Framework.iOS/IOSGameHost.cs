@@ -17,6 +17,7 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -107,7 +108,7 @@ namespace osu.Framework.iOS
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream) => new IOSVideoDecoder(stream);
+        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {

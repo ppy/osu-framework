@@ -912,8 +912,9 @@ namespace osu.Framework.Platform
         /// decoder implementation.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
+        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
     }
 
     /// <summary>

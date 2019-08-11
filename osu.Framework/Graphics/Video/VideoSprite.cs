@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -63,6 +64,8 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool IsFaulted => decoder.IsFaulted;
 
+        public readonly IBindable<VideoDecoder.DecoderState> State = new Bindable<VideoDecoder.DecoderState>();
+
         internal double CurrentFrameTime => lastFrame?.Time ?? 0;
 
         internal int AvailableFrames => availableFrames.Count;
@@ -102,7 +105,8 @@ namespace osu.Framework.Graphics.Video
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost)
         {
-            decoder = gameHost.CreateVideoDecoder(stream);
+            decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
+            State.BindTo(decoder.State);
             decoder.StartDecoding();
         }
 

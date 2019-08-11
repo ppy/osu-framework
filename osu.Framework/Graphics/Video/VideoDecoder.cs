@@ -11,9 +11,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
@@ -54,11 +56,24 @@ namespace osu.Framework.Graphics.Video
         public bool CanSeek => videoStream.CanSeek;
 
         /// <summary>
-        /// The current decoding state.
+        /// The current decoding state, exposed as a bindable.
         /// </summary>
-        public DecoderState State => state;
+        public IBindable<DecoderState> State => bindableState;
 
-        private volatile DecoderState state;
+        private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+        private volatile DecoderState volatileState;
+
+        private DecoderState state
+        {
+            get => volatileState;
+            set
+            {
+                volatileState = value;
+                scheduler?.AddOnce(() => bindableState.Value = value);
+            }
+        }
+
+        private readonly Scheduler scheduler;
 
         // libav-context-related
         private AVFormatContext* formatContext;
@@ -104,8 +119,9 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
         /// <param name="filename">The path to the file that should be decoded.</param>
-        public VideoDecoder(string filename)
-            : this(File.OpenRead(filename))
+        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
+        public VideoDecoder(string filename, Scheduler scheduler)
+            : this(File.OpenRead(filename), scheduler)
         {
         }
 
@@ -113,10 +129,12 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
         /// <param name="videoStream">The stream that should be decoded.</param>
-        public VideoDecoder(Stream videoStream)
+        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
+        public VideoDecoder(Stream videoStream, Scheduler scheduler)
         {
             ffmpeg = CreateFuncs();
 
+            this.scheduler = scheduler;
             this.videoStream = videoStream;
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");

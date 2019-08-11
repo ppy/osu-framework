@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Android.Graphics.Video
 {
@@ -79,13 +80,13 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_swscale)]
         public static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public AndroidVideoDecoder(string filename)
-            : base(filename)
+        public AndroidVideoDecoder(string filename, Scheduler scheduler)
+            : base(filename, scheduler)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public AndroidVideoDecoder(Stream videoStream, Scheduler scheduler)
+            : base(videoStream, scheduler)
         {
         }
 
