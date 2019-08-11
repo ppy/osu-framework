@@ -303,11 +303,14 @@ namespace osu.Framework.Graphics.Video
             readPacketCallback = readPacket;
             seekCallback = seek;
             formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
-            if (ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null) < 0)
-                throw new Exception("Error opening file.");
 
-            if (ffmpeg.avformat_find_stream_info(formatContext, null) < 0)
-                throw new Exception("Could not find stream info.");
+            int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
+            if (openInputResult < 0)
+                throw new Exception($"Error {openInputResult} opening file or stream.");
+
+            int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
+            if (findStreamInfoResult < 0)
+                throw new Exception($"Error {findStreamInfoResult} finding stream info.");
 
             var nStreams = formatContext->nb_streams;
 
@@ -322,10 +325,11 @@ namespace osu.Framework.Graphics.Video
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
                     if (codecPtr == null)
-                        throw new Exception("Could not find codec.");
+                        throw new Exception($"Couldn't find codec with id: {codecParams.codec_id}");
 
-                    if (ffmpeg.avcodec_open2(stream->codec, codecPtr, null) < 0)
-                        throw new Exception("Could not open codec.");
+                    int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
+                    if (openCodecResult < 0)
+                        throw new Exception($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
 
                     frame = ffmpeg.av_frame_alloc();
                     ffmpegFrame = ffmpeg.av_frame_alloc();
@@ -337,7 +341,7 @@ namespace osu.Framework.Graphics.Video
                     var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;
                     var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
-                        throw new Exception("Could not fill image arrays");
+                        throw new Exception("Couldn't fill image arrays.");
 
                     for (uint j = 0; j < byte_ptrArray4.Size; ++j)
                     {
@@ -373,8 +377,9 @@ namespace osu.Framework.Graphics.Video
 
                             if (packet->stream_index == stream->index)
                             {
-                                if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
-                                    throw new Exception("Error sending packet.");
+                                int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
+                                if (sendPacketResult < 0)
+                                    throw new Exception($"Error {sendPacketResult} sending packet.");
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
@@ -444,8 +449,9 @@ namespace osu.Framework.Graphics.Video
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.Log($"VideoDecoder faulted: {e}");
                 state = DecoderState.Faulted;
             }
             finally
