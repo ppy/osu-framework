@@ -100,7 +100,7 @@ namespace osu.Framework.Bindables
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
+        private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
 
         private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
