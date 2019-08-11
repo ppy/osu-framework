@@ -110,7 +110,7 @@ namespace osu.Framework.IO.Stores
         /// Clears cache
         /// </summary>
         /// <param name="duration">A <see cref="TimeSpan"/> since last file access after which it will be considered expired</param>
-        /// <returns>The number of removed object</returns>
+        /// <returns>The number of removed objects</returns>
         public int Clear(TimeSpan duration)
         {
             var removed = 0;
