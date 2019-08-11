@@ -29,7 +29,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Retrieves an object from cache if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/> 
+        /// Retrieves an object from cache asynchronously if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/>
         /// </summary>
         /// <param name="url">The address of the object.</param>
         /// <returns>The object.</returns>
@@ -44,7 +44,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Retrieves an object from cache if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/> 
+        /// Retrieves an object from cache if it is possible. Otherwise calls an <see cref="OnlineStore"/> implementation and caches its result."/>
         /// </summary>
         /// <param name="url">The address of the object.</param>
         /// <returns>The object.</returns>
