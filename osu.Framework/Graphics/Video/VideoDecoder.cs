@@ -14,6 +14,7 @@ using osu.Framework.Allocation;
 using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Platform;
+using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -138,7 +139,7 @@ namespace osu.Framework.Graphics.Video
 
             decoderCommands.Enqueue(() =>
             {
-                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), FFmpeg.AutoGen.ffmpeg.AVSEEK_FLAG_BACKWARD);
+                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), AGffmpeg.AVSEEK_FLAG_BACKWARD);
                 skipOutputUntilTime = targetTimestamp;
             });
         }
@@ -242,7 +243,7 @@ namespace osu.Framework.Graphics.Video
                     decoder.videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
 
-                case FFmpeg.AutoGen.ffmpeg.AVSEEK_SIZE:
+                case AGffmpeg.AVSEEK_SIZE:
                     return decoder.videoStream.Length;
 
                 default:
@@ -375,7 +376,7 @@ namespace osu.Framework.Graphics.Video
                                 }
                             }
                         }
-                        else if (readFrameResult == FFmpeg.AutoGen.ffmpeg.AVERROR_EOF)
+                        else if (readFrameResult == AGffmpeg.AVERROR_EOF)
                         {
                             if (Looping)
                                 Seek(0);
@@ -420,27 +421,27 @@ namespace osu.Framework.Graphics.Video
 
         protected virtual FfmpegFuncs CreateFuncs() => new FfmpegFuncs
         {
-            av_frame_alloc = ffmpeg.av_frame_alloc,
-            av_frame_free = ffmpeg.av_frame_free,
-            av_image_fill_arrays = ffmpeg.av_image_fill_arrays,
-            av_image_get_buffer_size = ffmpeg.av_image_get_buffer_size,
-            av_malloc = ffmpeg.av_malloc,
-            av_packet_alloc = ffmpeg.av_packet_alloc,
-            av_packet_free = ffmpeg.av_packet_free,
-            av_read_frame = ffmpeg.av_read_frame,
-            av_seek_frame = ffmpeg.av_seek_frame,
-            avcodec_find_decoder = ffmpeg.avcodec_find_decoder,
-            avcodec_open2 = ffmpeg.avcodec_open2,
-            avcodec_receive_frame = ffmpeg.avcodec_receive_frame,
-            avcodec_send_packet = ffmpeg.avcodec_send_packet,
-            avformat_alloc_context = ffmpeg.avformat_alloc_context,
-            avformat_close_input = ffmpeg.avformat_close_input,
-            avformat_find_stream_info = ffmpeg.avformat_find_stream_info,
-            avformat_open_input = ffmpeg.avformat_open_input,
-            avio_alloc_context = ffmpeg.avio_alloc_context,
-            sws_freeContext = ffmpeg.sws_freeContext,
-            sws_getContext = ffmpeg.sws_getContext,
-            sws_scale = ffmpeg.sws_scale
+            av_frame_alloc = AGffmpeg.av_frame_alloc,
+            av_frame_free = AGffmpeg.av_frame_free,
+            av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
+            av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
+            av_malloc = AGffmpeg.av_malloc,
+            av_packet_alloc = AGffmpeg.av_packet_alloc,
+            av_packet_free = AGffmpeg.av_packet_free,
+            av_read_frame = AGffmpeg.av_read_frame,
+            av_seek_frame = AGffmpeg.av_seek_frame,
+            avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
+            avcodec_open2 = AGffmpeg.avcodec_open2,
+            avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
+            avcodec_send_packet = AGffmpeg.avcodec_send_packet,
+            avformat_alloc_context = AGffmpeg.avformat_alloc_context,
+            avformat_close_input = AGffmpeg.avformat_close_input,
+            avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
+            avformat_open_input = AGffmpeg.avformat_open_input,
+            avio_alloc_context = AGffmpeg.avio_alloc_context,
+            sws_freeContext = AGffmpeg.sws_freeContext,
+            sws_getContext = AGffmpeg.sws_getContext,
+            sws_scale = AGffmpeg.sws_scale
         };
 
         #region Disposal
