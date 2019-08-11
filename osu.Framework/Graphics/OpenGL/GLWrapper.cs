@@ -301,6 +301,7 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
                 lastBoundTexture = texture;
+                lastTextureUnit = unit;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
