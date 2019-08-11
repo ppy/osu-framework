@@ -89,7 +89,7 @@ namespace osu.Framework.Android.Graphics.Video
         {
         }
 
-        protected override FfmpegFuncs CreateFuncs() => new FfmpegFuncs
+        protected override FFmpegFuncs CreateFuncs() => new FFmpegFuncs
         {
             av_frame_alloc = av_frame_alloc,
             av_frame_free = av_frame_free,

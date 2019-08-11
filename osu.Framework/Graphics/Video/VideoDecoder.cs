@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Video
 
         private ObjectHandle<VideoDecoder> handle;
 
-        private readonly FfmpegFuncs ffmpeg;
+        private readonly FFmpegFuncs ffmpeg;
 
         public bool Looping;
 
@@ -419,7 +419,7 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        protected virtual FfmpegFuncs CreateFuncs() => new FfmpegFuncs
+        protected virtual FFmpegFuncs CreateFuncs() => new FFmpegFuncs
         {
             av_frame_alloc = AGffmpeg.av_frame_alloc,
             av_frame_free = AGffmpeg.av_frame_free,
