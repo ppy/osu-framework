@@ -262,6 +262,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static IVertexBatch lastActiveBatch;
+        private static TextureUnit lastTextureUnit;
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -291,12 +292,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// Binds a texture to darw with.
         /// </summary>
         /// <param name="texture"></param>
-        public static void BindTexture(TextureGL texture)
+        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            if (lastBoundTexture != texture)
+            if (lastBoundTexture != texture || lastTextureUnit != unit)
             {
                 FlushCurrentBatch();
 
+                GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
                 lastBoundTexture = texture;
 
