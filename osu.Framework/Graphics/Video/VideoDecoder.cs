@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (volatileState != value)
+                if (bindableState.Value != value)
                     scheduler?.AddOnce(() => bindableState.Value = value);
 
                 volatileState = value;
