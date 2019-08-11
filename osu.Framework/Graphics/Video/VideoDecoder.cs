@@ -14,6 +14,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using SixLabors.ImageSharp.PixelFormats;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
@@ -182,7 +183,18 @@ namespace osu.Framework.Graphics.Video
         {
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
-                prepareDecoding();
+            {
+                try
+                {
+                    prepareDecoding();
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"VideoDecoder faulted: {e}");
+                    state = DecoderState.Faulted;
+                    return;
+                }
+            }
 
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
             decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
