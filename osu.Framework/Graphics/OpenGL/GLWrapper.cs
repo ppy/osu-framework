@@ -291,7 +291,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="texture"></param>
+        /// <param name="texture">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
         public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
             if (lastBoundTexture != texture || lastTextureUnit != unit)
