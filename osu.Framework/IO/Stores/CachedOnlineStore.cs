@@ -21,7 +21,7 @@ namespace osu.Framework.IO.Stores
         /// Constructs a <see cref="CachedOnlineStore"/>
         /// </summary>
         /// <param name="cacheStorage">A <see cref="Storage"/> which will be used as a cache</param>
-        /// <param name="duration">A <see cref="TimeSpan"/> since last file access after which it will be considered expired</param>
+        /// <param name="duration">The amount of time since last access after which a file will be considered expired.</param>
         public CachedOnlineStore(Storage cacheStorage, TimeSpan duration)
         {
             this.cacheStorage = cacheStorage;
