@@ -64,6 +64,9 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool IsFaulted => decoder.IsFaulted;
 
+        /// <summary>
+        /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
+        /// </summary>
         public readonly IBindable<VideoDecoder.DecoderState> State = new Bindable<VideoDecoder.DecoderState>();
 
         internal double CurrentFrameTime => lastFrame?.Time ?? 0;

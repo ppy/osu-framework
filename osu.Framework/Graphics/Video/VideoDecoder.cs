@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Video
         public bool CanSeek => videoStream.CanSeek;
 
         /// <summary>
-        /// The current decoding state, exposed as a bindable.
+        /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
         /// </summary>
         public IBindable<DecoderState> State => bindableState;
 
