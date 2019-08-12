@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osuTK;
 using osuTK.Input;
@@ -77,7 +78,9 @@ namespace osu.Framework.Graphics.Cursor
                     menu.Items = menuTarget.ContextMenuItems;
 
                     menu.Position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                    relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
+
+                    updateRelativePosition();
+
                     menu.Open();
                     return true;
 
@@ -90,8 +93,26 @@ namespace osu.Framework.Graphics.Cursor
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-            if (menu.State == MenuState.Open && menuTarget != null)
-                menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
+
+            if (menu.State != MenuState.Open || menuTarget == null) return;
+
+            ensureWithinBounds();
+            menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
         }
+
+        private void ensureWithinBounds()
+        {
+            Vector2 overflow = menu.Position + menu.DrawSize - DrawSize;
+
+            if (overflow.X > 0 || overflow.Y > 0)
+            {
+                menu.X -= Math.Max(0, overflow.X);
+                menu.Y -= Math.Max(0, overflow.Y);
+
+                updateRelativePosition();
+            }
+        }
+
+        private void updateRelativePosition() => relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
     }
 }
