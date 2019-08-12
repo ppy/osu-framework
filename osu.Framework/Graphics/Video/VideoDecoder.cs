@@ -547,10 +547,7 @@ namespace osu.Framework.Graphics.Video
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();
 
-            if (disposing)
-            {
-                handle.Dispose();
-            }
+            handle.Dispose();
         }
 
         #endregion
