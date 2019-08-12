@@ -111,8 +111,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
-
-            lastBoundTexture = null;
+            
+            lastBoundTexture = new TextureGL[16];
             lastActiveBatch = null;
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
@@ -262,8 +262,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static IVertexBatch lastActiveBatch;
-        private static TextureUnit lastTextureUnit;
-
+        
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -284,9 +283,10 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL lastBoundTexture;
+        private static TextureGL[] lastBoundTexture;
 
-        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
+        internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => lastBoundTexture[GetTextureUnitId(unit)] is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
@@ -295,14 +295,15 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="unit">The texture unit to bind it to.</param>
         public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            if (lastBoundTexture != texture || lastTextureUnit != unit)
+            var index = GetTextureUnitId(unit);
+
+            if (lastBoundTexture[index] != texture)
             {
                 FlushCurrentBatch();
 
                 GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                lastBoundTexture = texture;
-                lastTextureUnit = unit;
+                lastBoundTexture[index] = texture;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
