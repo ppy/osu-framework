@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => stream->duration * timeBaseInSeconds * 1000;
+        public double Duration => stream == null ? 0 : stream->duration * timeBaseInSeconds * 1000;
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
         /// </summary>
-        public double FrameRate => stream->avg_frame_rate.GetValue();
+        public double FrameRate => stream == null ? 0 : stream->avg_frame_rate.GetValue();
 
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
