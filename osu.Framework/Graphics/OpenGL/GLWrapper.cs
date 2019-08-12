@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
 
-            lastBoundTexture = new TextureGL[16];
+            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             lastActiveBatch = null;
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
@@ -283,10 +283,10 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL[] lastBoundTexture;
+        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
-        internal static bool AtlasTextureIsBound(TextureUnit unit) => lastBoundTexture[GetTextureUnitId(unit)] is TextureGLAtlas;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
@@ -297,13 +297,13 @@ namespace osu.Framework.Graphics.OpenGL
         {
             var index = GetTextureUnitId(unit);
 
-            if (lastBoundTexture[index] != texture)
+            if (last_bound_texture[index] != texture)
             {
                 FlushCurrentBatch();
 
                 GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                lastBoundTexture[index] = texture;
+                last_bound_texture[index] = texture;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
