@@ -289,17 +289,11 @@ namespace osu.Framework.Graphics.Video
         private void prepareDecoding()
         {
             const int context_buffer_size = 4096;
-            AVFormatContext* fcPtr;
 
-            try
-            {
-                formatContext = fcPtr = ffmpeg.avformat_alloc_context();
-            }
-            catch (PlatformNotSupportedException)
-            {
-                throw new Exception("Couldn't load native FFmpeg libraries.");
-            }
-
+            // the first call to FFmpeg will throw an exception if the libraries cannot be found
+            // this will be safely handled in StartDecoding()
+            var fcPtr = ffmpeg.avformat_alloc_context();
+            formatContext = fcPtr;
             contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
