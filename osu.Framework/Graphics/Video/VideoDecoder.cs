@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Video
 
         private readonly FFmpegFuncs ffmpeg;
 
-        public bool Looping;
+        internal bool Looping;
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.

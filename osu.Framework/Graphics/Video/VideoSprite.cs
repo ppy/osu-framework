@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being played. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => decoder.Duration;
+        public double Duration => decoder?.Duration ?? 0;
 
         /// <summary>
         /// True if the video has finished playing, false otherwise.
@@ -38,9 +38,17 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool Loop
         {
-            get => decoder.Looping;
-            set => decoder.Looping = value;
+            get => loop;
+            set
+            {
+                if (decoder != null)
+                    decoder.Looping = value;
+
+                loop = value;
+            }
         }
+
+        private bool loop;
 
         /// <summary>
         /// The current position of the video playback. The playback position is automatically calculated based on the clock of the VideoSprite.
@@ -62,7 +70,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if this VideoSprites decoding process has faulted.
         /// </summary>
-        public bool IsFaulted => decoder.IsFaulted;
+        public bool IsFaulted => decoder?.IsFaulted ?? false;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -109,6 +117,7 @@ namespace osu.Framework.Graphics.Video
         private void load(GameHost gameHost)
         {
             decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
+            decoder.Looping = Loop;
             State.BindTo(decoder.State);
             decoder.StartDecoding();
         }
@@ -167,7 +176,7 @@ namespace osu.Framework.Graphics.Video
             base.Dispose(isDisposing);
 
             isDisposed = true;
-            decoder.Dispose();
+            decoder?.Dispose();
 
             foreach (var f in availableFrames)
                 f.Texture.Dispose();
