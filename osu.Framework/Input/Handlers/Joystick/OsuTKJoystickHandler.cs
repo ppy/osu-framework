@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                             handleState(device, new OsuTKJoystickState(device));
                             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                         }
-                    }, 0, 500));
+                    }, 0, 0));
                 }
                 else
                 {
