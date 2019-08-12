@@ -227,6 +227,27 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.NonUSBackSlash:
                     return "\\";
 
+                case InputKey.Mute:
+                    return "Mute";
+
+                case InputKey.VolumeDown:
+                    return "Vol. Down";
+
+                case InputKey.VolumeUp:
+                    return "Vol. Up";
+
+                case InputKey.Stop:
+                    return "Media Stop";
+
+                case InputKey.PlayPause:
+                    return "Media Play";
+
+                case InputKey.TrackNext:
+                    return "Media Next";
+
+                case InputKey.TrackPrevious:
+                    return "Media Previous";
+
                 case InputKey.MouseLeft:
                     return "M1";
 
