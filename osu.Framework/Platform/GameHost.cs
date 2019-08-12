@@ -394,30 +394,28 @@ namespace osu.Framework.Platform
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
-            var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
-
-            bool complete = false;
-
-            DrawThread.Scheduler.Add(() =>
+            using (var completionEvent = new ManualResetEventSlim(false))
             {
-                if (GraphicsContext.CurrentContext == null)
-                    throw new GraphicsContextMissingException();
+                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
-                GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                DrawThread.Scheduler.Add(() =>
+                {
+                    if (GraphicsContext.CurrentContext == null)
+                        throw new GraphicsContextMissingException();
 
-                complete = true;
-            });
+                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
-            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-            await Task.Run(() =>
-            {
-                while (!complete)
-                    Thread.Sleep(50);
-            });
+                    // ReSharper disable once AccessToDisposedClosure
+                    completionEvent.Set();
+                });
 
-            image.Mutate(c => c.Flip(FlipMode.Vertical));
+                // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
+                await Task.Run(completionEvent.Wait);
 
-            return image;
+                image.Mutate(c => c.Flip(FlipMode.Vertical));
+
+                return image;
+            }
         }
 
         public ExecutionState ExecutionState { get; private set; }
