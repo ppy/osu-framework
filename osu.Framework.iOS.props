@@ -107,7 +107,7 @@
   </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.17.1" />
-    <PackageReference Include="FFmpeg.AutoGen" Version="4.1.0.5" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
