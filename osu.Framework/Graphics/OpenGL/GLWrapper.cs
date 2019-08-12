@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
-            
+
             lastBoundTexture = new TextureGL[16];
             lastActiveBatch = null;
             lastBlendingInfo = new BlendingInfo();
@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static IVertexBatch lastActiveBatch;
-        
+
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
