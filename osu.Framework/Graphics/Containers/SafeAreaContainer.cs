@@ -31,7 +31,17 @@ namespace osu.Framework.Graphics.Containers
         /// The <see cref="Edges"/> that should bypass the defined <see cref="ISafeArea" /> to bleed to the screen edge.
         /// Defaults to <see cref="Edges.None"/>.
         /// </summary>
-        public Edges SafeAreaOverrideEdges { get; set; } = Edges.None;
+        public Edges SafeAreaOverrideEdges
+        {
+            get => safeAreaOverrideEdges;
+            set
+            {
+                safeAreaOverrideEdges = value;
+                PaddingCache.Invalidate();
+            }
+        }
+
+        private Edges safeAreaOverrideEdges = Edges.None;
 
         protected readonly Cached PaddingCache = new Cached();
 

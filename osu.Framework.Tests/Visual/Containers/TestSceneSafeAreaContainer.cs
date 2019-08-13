@@ -20,6 +20,7 @@ namespace osu.Framework.Tests.Visual.Containers
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(SafeAreaDefiningContainer),
+            typeof(SafeAreaContainer),
         };
 
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
@@ -258,8 +259,6 @@ namespace osu.Framework.Tests.Visual.Containers
                             safeAreaBackground.SafeAreaOverrideEdges |= edge;
                         else
                             safeAreaBackground.SafeAreaOverrideEdges &= ~edge;
-
-                        safeAreaBackground.Invalidate(Invalidation.Parent);
                     };
 
                     safeCheckbox.Current.ValueChanged += e =>
@@ -268,8 +267,6 @@ namespace osu.Framework.Tests.Visual.Containers
                             safeAreaGrid.SafeAreaOverrideEdges |= edge;
                         else
                             safeAreaGrid.SafeAreaOverrideEdges &= ~edge;
-
-                        safeAreaGrid.Invalidate(Invalidation.Parent);
                     };
 
                     bindable.ValueChanged += e => valueText.Text = $"{e.NewValue:F1}";
