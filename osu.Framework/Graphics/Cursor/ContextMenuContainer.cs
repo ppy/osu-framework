@@ -78,7 +78,6 @@ namespace osu.Framework.Graphics.Cursor
                     menu.Items = menuTarget.ContextMenuItems;
 
                     targetRelativePosition = menuTarget.ToLocalSpace(e.ScreenSpaceMousePosition);
-                    ToLocalSpace(e.ScreenSpaceMousePosition);
 
                     menu.Open();
                     return true;
