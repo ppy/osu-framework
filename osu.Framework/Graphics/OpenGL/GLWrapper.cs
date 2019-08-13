@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
-        private static bool isEmbedded;
+        public static bool IsEmbedded { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (IsInitialized) return;
 
             if (host.Window is GameWindow win)
-                isEmbedded = win.IsEmbedded;
+                IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
 
-            lastBoundTexture = null;
+            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             lastActiveBatch = null;
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                if (isEmbedded)
+                if (IsEmbedded)
                 {
                     // GL ES only supports glClearDepthf
                     // See: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glClearDepthf.xhtml
@@ -285,22 +285,27 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL lastBoundTexture;
+        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
 
-        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
+        internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="texture"></param>
-        public static void BindTexture(TextureGL texture)
+        /// <param name="texture">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
+        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            if (lastBoundTexture != texture)
+            var index = GetTextureUnitId(unit);
+
+            if (last_bound_texture[index] != texture)
             {
                 FlushCurrentBatch();
 
+                GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                lastBoundTexture = texture;
+                last_bound_texture[index] = texture;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }

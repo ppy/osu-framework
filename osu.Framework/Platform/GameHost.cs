@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
@@ -35,6 +36,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 
@@ -392,30 +394,28 @@ namespace osu.Framework.Platform
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
-            var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
-
-            bool complete = false;
-
-            DrawThread.Scheduler.Add(() =>
+            using (var completionEvent = new ManualResetEventSlim(false))
             {
-                if (GraphicsContext.CurrentContext == null)
-                    throw new GraphicsContextMissingException();
+                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
-                GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                DrawThread.Scheduler.Add(() =>
+                {
+                    if (GraphicsContext.CurrentContext == null)
+                        throw new GraphicsContextMissingException();
 
-                complete = true;
-            });
+                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
-            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-            await Task.Run(() =>
-            {
-                while (!complete)
-                    Thread.Sleep(50);
-            });
+                    // ReSharper disable once AccessToDisposedClosure
+                    completionEvent.Set();
+                });
 
-            image.Mutate(c => c.Flip(FlipMode.Vertical));
+                // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
+                await Task.Run(completionEvent.Wait);
 
-            return image;
+                image.Mutate(c => c.Flip(FlipMode.Vertical));
+
+                return image;
+            }
         }
 
         public ExecutionState ExecutionState { get; private set; }
@@ -904,6 +904,15 @@ namespace osu.Framework.Platform
         /// <returns>A texture loader store.</returns>
         public virtual IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new TextureLoaderStore(underlyingStore);
+
+        /// <summary>
+        /// Create a <see cref="VideoDecoder"/> with the given stream. May be overridden by platforms that require a different
+        /// decoder implementation.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to decode.</param>
+        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
+        /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
     }
 
     /// <summary>
