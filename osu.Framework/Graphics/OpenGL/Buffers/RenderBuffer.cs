@@ -57,6 +57,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Bind(Vector2 size)
         {
+            size = Vector2.Clamp(size, Vector2.One, new Vector2(GLWrapper.MaxRenderBufferSize));
+
             // See: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_multisampled_render_to_texture.txt
             //    + https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithEAGLContexts/WorkingwithEAGLContexts.html
             // OpenGL ES allows the driver to discard renderbuffer contents after they are presented to the screen, so the storage must always be re-initialised for embedded devices.
