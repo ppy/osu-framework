@@ -16,7 +16,10 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    internal interface ICanBeTabbedTo
+    /// <summary>
+    /// An interface that allows an element to be tabbed-to if its contained inside a <see cref="TabbableContentContainer"/>
+    /// </summary>
+    internal interface ITabbableContainer
     {
         /// <summary>
         /// Whether this element can be tabbed to.
@@ -27,6 +30,14 @@ namespace osu.Framework.Graphics.Containers
     public class TabbableContentContainer<T> : Container<T>
         where T : Drawable
     {
+        private InputManager inputManager;
+
+        protected override void LoadComplete()
+        {
+            inputManager = GetContainingInputManager();
+            base.LoadComplete();
+        }
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (e.Key != Key.Tab)
@@ -35,9 +46,7 @@ namespace osu.Framework.Graphics.Containers
             var nextTab = nextTabStop(e.ShiftPressed);
 
             if (nextTab != null)
-            {
-                GetContainingInputManager().ChangeFocus(nextTab);
-            }
+                inputManager.ChangeFocus(nextTab);
 
             return nextTab != null;
         }
@@ -53,15 +62,17 @@ namespace osu.Framework.Graphics.Containers
             stack.Push(this); // Extra push for circular tabbing
             stack.Push(this);
 
-            bool currentTargetFound = false;
+            // This gets set to true when the current focused drawable has been traversed by the search
+            // Once found, the next traversed drawable that can be tabbed to will be selected.
+            bool focusedDrawableFound = false;
 
             while (stack.Count > 0)
             {
                 var drawable = stack.Pop();
 
-                if (!currentTargetFound)
-                    currentTargetFound = drawable.HasFocus;
-                else if (drawable != this && drawable is ICanBeTabbedTo tabbable && tabbable.CanBeTabbedTo)
+                if (!focusedDrawableFound)
+                    focusedDrawableFound = drawable.HasFocus;
+                else if (drawable != this && drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
                 if (drawable is CompositeDrawable composite)
@@ -69,10 +80,12 @@ namespace osu.Framework.Graphics.Containers
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;
 
-                    if (!currentTargetFound)
+                    if (!focusedDrawableFound)
                     {
-                        // Find self, to know starting point
-                        int index = newChildren.FindIndex(d => d.HasFocus && d is ICanBeTabbedTo);
+                        // Find tbe current focused drawable to use as a pivot to find the next target
+                        int index = newChildren.IndexOf(inputManager.FocusedDrawable);
+
+                        // Limit the search to the direction which contains the next target
                         if (index != -1)
                             bound = reverse ? index + 1 : index;
                     }
