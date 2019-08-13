@@ -101,6 +101,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestWrappingTabTest()
+        {
+            performTabToTest(text4, text1);
+        }
+
+        [Test]
         public void TestTabInReverse()
         {
             performTabToTest(text2, text1, true);
