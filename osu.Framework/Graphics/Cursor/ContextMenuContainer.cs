@@ -98,17 +98,15 @@ namespace osu.Framework.Graphics.Cursor
 
             Vector2 overflow = pos + menu.DrawSize - DrawSize;
 
-            if (overflow.X > 0 || overflow.Y > 0)
-            {
+            if (overflow.X > 0)
                 pos.X -= MathHelper.Clamp(overflow.X, 0, menu.DrawWidth);
+            if (overflow.Y > 0)
                 pos.Y -= MathHelper.Clamp(overflow.Y, 0, menu.DrawHeight);
-            }
 
-            if (pos.X < 0 || pos.Y < 0)
-            {
+            if (pos.X < 0)
                 pos.X += MathHelper.Clamp(-pos.X, 0, menu.DrawWidth);
+            if (pos.Y < 0)
                 pos.Y += MathHelper.Clamp(-pos.Y, 0, menu.DrawHeight);
-            }
 
             menu.Position = pos;
         }
