@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && !tab.Pinned)
+            if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
 
             // Deactivate previously selected tab
