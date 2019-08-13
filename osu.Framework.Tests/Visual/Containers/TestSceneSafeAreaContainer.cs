@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             private readonly BindableSafeArea bindableSafeArea;
 
-            public MarginPaddingControlsContainer(SafeAreaContainer safeAreaBackgroun, SafeAreaContainer safeAreaGrid, BindableSafeArea bindableSafeArea)
+            public MarginPaddingControlsContainer(SafeAreaContainer safeAreaBackground, SafeAreaContainer safeAreaGrid, BindableSafeArea bindableSafeArea)
             {
                 this.bindableSafeArea = bindableSafeArea;
 
@@ -179,10 +179,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 Spacing = new Vector2(10);
                 Children = new Drawable[]
                 {
-                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Top", safeAreaPaddingTop, Edges.Top),
-                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
-                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Left", safeAreaPaddingLeft, Edges.Left),
-                    new MarginPaddingControl(safeAreaBackgroun, safeAreaGrid, "Right", safeAreaPaddingRight, Edges.Right),
+                    new MarginPaddingControl(safeAreaBackground, safeAreaGrid, "Top", safeAreaPaddingTop, Edges.Top),
+                    new MarginPaddingControl(safeAreaBackground, safeAreaGrid, "Bottom", safeAreaPaddingBottom, Edges.Bottom),
+                    new MarginPaddingControl(safeAreaBackground, safeAreaGrid, "Left", safeAreaPaddingLeft, Edges.Left),
+                    new MarginPaddingControl(safeAreaBackground, safeAreaGrid, "Right", safeAreaPaddingRight, Edges.Right),
                 };
 
                 safeAreaPaddingTop.ValueChanged += updateMarginPadding;
@@ -258,6 +258,8 @@ namespace osu.Framework.Tests.Visual.Containers
                             safeAreaBackground.SafeAreaOverrideEdges |= edge;
                         else
                             safeAreaBackground.SafeAreaOverrideEdges &= ~edge;
+
+                        safeAreaBackground.Invalidate(Invalidation.Parent);
                     };
 
                     safeCheckbox.Current.ValueChanged += e =>
@@ -266,6 +268,8 @@ namespace osu.Framework.Tests.Visual.Containers
                             safeAreaGrid.SafeAreaOverrideEdges |= edge;
                         else
                             safeAreaGrid.SafeAreaOverrideEdges &= ~edge;
+
+                        safeAreaGrid.Invalidate(Invalidation.Parent);
                     };
 
                     bindable.ValueChanged += e => valueText.Text = $"{e.NewValue:F1}";
