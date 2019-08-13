@@ -196,9 +196,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             // AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test0].Click());
         }
 
-        [Test]
-        public void SelectNull()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void SelectNull(bool autoSort)
         {
+            AddStep($"Set autosort to {autoSort}", () => simpleTabcontrol.AutoSort = autoSort);
             AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
             AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
             AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
