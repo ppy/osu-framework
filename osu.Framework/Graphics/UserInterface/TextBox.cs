@@ -25,7 +25,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public class TextBox : CompositeDrawable, ICanBeTabbedTo, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool CommitOnFocusLost { get; set; }
 
-        public override bool CanBeTabbedTo => !ReadOnly;
+        public virtual bool CanBeTabbedTo => !ReadOnly;
 
         private ITextInputSource textInput;
         private Clipboard clipboard;
@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true;
             CornerRadius = 3;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Background = new Box
                 {

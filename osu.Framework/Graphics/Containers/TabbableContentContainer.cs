@@ -3,64 +3,65 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class TabbableContainer : TabbableContainer<Drawable>
+    /// <summary>
+    /// A container that handles tabbing to and from elements contained in it.
+    /// </summary>
+    public class TabbableContentContainer : TabbableContentContainer<Drawable>
     {
     }
 
-    /// <summary>
-    /// This interface is used for recognizing <see cref="TabbableContainer{T}"/> of any type without reflection.
-    /// </summary>
-    internal interface ITabbableContainer
+    internal interface ICanBeTabbedTo
     {
         /// <summary>
-        /// Whether this <see cref="ITabbableContainer"/> can be tabbed to.
+        /// Whether this element can be tabbed to.
         /// </summary>
         bool CanBeTabbedTo { get; }
     }
 
-    public class TabbableContainer<T> : Container<T>, ITabbableContainer
+    public class TabbableContentContainer<T> : Container<T>
         where T : Drawable
     {
-        /// <summary>
-        /// Whether this <see cref="TabbableContainer{T}"/> can be tabbed to.
-        /// </summary>
-        public virtual bool CanBeTabbedTo => true;
-
-        /// <summary>
-        /// Allows for tabbing between multiple levels within the TabbableContentContainer.
-        /// </summary>
-        public CompositeDrawable TabbableContentContainer { private get; set; }
-
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (TabbableContentContainer == null || e.Key != Key.Tab)
+            if (e.Key != Key.Tab)
                 return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
-            return true;
+            var nextTab = nextTabStop(e.ShiftPressed);
+
+            if (nextTab != null)
+            {
+                GetContainingInputManager().ChangeFocus(nextTab);
+            }
+
+            return nextTab != null;
         }
 
-        private Drawable nextTabStop(CompositeDrawable target, bool reverse)
+        /// <summary>
+        /// Perform a depth-first search for the next drawable that is able to be tabbed to.
+        /// </summary>
+        /// <param name="reverse"> The direction to perform the search. </param>
+        /// <returns> The next tab target. </returns>
+        private Drawable nextTabStop(bool reverse)
         {
             Stack<Drawable> stack = new Stack<Drawable>();
-            stack.Push(target); // Extra push for circular tabbing
-            stack.Push(target);
+            stack.Push(this); // Extra push for circular tabbing
+            stack.Push(this);
 
-            bool started = false;
+            bool currentTargetFound = false;
 
             while (stack.Count > 0)
             {
                 var drawable = stack.Pop();
 
-                if (!started)
-                    started = ReferenceEquals(drawable, this);
-                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
+                if (!currentTargetFound)
+                    currentTargetFound = drawable.HasFocus;
+                else if (drawable != this && drawable is ICanBeTabbedTo tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
                 if (drawable is CompositeDrawable composite)
@@ -68,10 +69,10 @@ namespace osu.Framework.Graphics.Containers
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;
 
-                    if (!started)
+                    if (!currentTargetFound)
                     {
                         // Find self, to know starting point
-                        int index = newChildren.IndexOf(this);
+                        int index = newChildren.FindIndex(d => d.HasFocus && d is ICanBeTabbedTo);
                         if (index != -1)
                             bound = reverse ? index + 1 : index;
                     }
