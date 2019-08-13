@@ -115,6 +115,10 @@ namespace osu.Framework.Graphics.Shaders
                         uniform = createUniform<Vector4>(uniformName);
                         break;
 
+                    case ActiveUniformType.Sampler2D:
+                        uniform = createUniform<int>(uniformName);
+                        break;
+
                     default:
                         continue;
                 }
