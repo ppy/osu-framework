@@ -108,8 +108,7 @@ namespace osu.Framework.Graphics
         public bool Equals(BlendingParameters other) =>
             other.BlendingFactors.Equals(BlendingFactors)
             && other.RGBEquation == RGBEquation
-            && other.AlphaEquation == AlphaEquation
-            && other.Mode == Mode;
+            && other.AlphaEquation == AlphaEquation;
 
         public override string ToString() => $"BlendingParameter Mode: {Mode} BlendingFactor: {BlendingFactors} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
     }
