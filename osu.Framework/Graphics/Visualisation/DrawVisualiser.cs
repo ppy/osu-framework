@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Quad? oldMaskingQuad = maskingQuad;
 
                     // BufferedContainers implicitly mask via their frame buffer
-                    if (Masking || composite is BufferedContainer)
+                    if (composite.Masking || composite is BufferedContainer)
                         maskingQuad = composite.ScreenSpaceDrawQuad;
 
                     for (int i = composite.AliveInternalChildren.Count - 1; i >= 0; i--)
