@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private readonly FillFlowContainer settingsBox;
 
-        private bool inCustomMode = false;
+        private bool inCustomMode;
 
         public TestSceneBlending()
         {
@@ -253,7 +253,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             if (colourModeDropdown.Current.Value == BlendingMode.Custom)
             {
-                if(!inCustomMode)
+                if (!inCustomMode)
                     switchToCustomBlending();
 
                 newBlending.BlendingFactors = new BlendingFactors(blendingSrcDropdown.Current.Value, blendingDestDropdown.Current.Value,
@@ -263,11 +263,13 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
             else
             {
-                switchOffCustomBlending();
+                if (inCustomMode)
+                    switchOffCustomBlending();
+
                 inCustomMode = false;
             }
 
-            Logger.Log(newBlending.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
+            Logger.Log("Changed blending mode to: " + newBlending, LoggingTarget.Runtime, LogLevel.Debug);
 
             foregroundContainer.Blending = newBlending;
         }
