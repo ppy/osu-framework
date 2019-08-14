@@ -16,8 +16,6 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
-        private int loaded;
-
         private const int panel_count = 2048;
 
         [TestCase(false)]
@@ -26,6 +24,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             FillFlowContainer<Container> flow = null;
             TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll = null;
+            int loaded = 0;
 
             AddStep("create children", () =>
             {
