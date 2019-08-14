@@ -113,8 +113,8 @@ void main(void)
 		return;
 	}
 
-	lowp vec4 dest = v_Colour * texel * alphaFactor;
-	lowp vec4 src = vec4(g_BorderColour.rgb, g_BorderColour.a) * (1.0 - colourWeight);
+	lowp vec4 dest = v_Colour * texel * alphaFactor * colourWeight;
+	lowp vec4 src = vec4(g_BorderColour.rgb, g_BorderColour.a * (1.0 - colourWeight));
 
 	gl_FragColor = toSRGB(blend(src, dest));
 }
