@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An interface that allows an element to be tabbed-to if its contained inside a <see cref="TabbableContentContainer"/>
     /// </summary>
-    internal interface ITabbableContainer
+    internal interface ITabTarget
     {
         /// <summary>
         /// Whether this element can be tabbed to.
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!focusedDrawableFound)
                     focusedDrawableFound = drawable.HasFocus;
-                else if (drawable != this && drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
+                else if (drawable != this && drawable is ITabTarget tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
                 if (drawable is CompositeDrawable composite)

@@ -25,7 +25,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : CompositeDrawable, ITabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public class TextBox : CompositeDrawable, ITabTarget, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
