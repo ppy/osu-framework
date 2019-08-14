@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
@@ -213,6 +214,13 @@ namespace osu.Framework.Graphics.Visualisation
 
                     if (compositeTarget == null)
                         compositeTarget = composite;
+
+                    if (composite.Masking
+                        && (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
+                            || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
+                    {
+                        drawableTarget = composite;
+                    }
                 }
                 else if (!(drawable is Component))
                     drawableTarget = drawable;
