@@ -1,8 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -244,11 +246,11 @@ namespace osu.Framework.Graphics.Visualisation
                 }
                 else
                 {
-                    // Special case for full-screen overlays that act as input receptors, but don't display anything
-                    if (!drawable.HasCustomDrawNode)
+                    if (!validForTarget(drawable))
                         return;
 
-                    if (!validForTarget(drawable))
+                    // Special case for full-screen overlays that act as input receptors, but don't display anything
+                    if (!hasCustomDrawNode(drawable))
                         return;
 
                     drawableTarget = drawable;
@@ -259,6 +261,18 @@ namespace osu.Framework.Graphics.Visualisation
             bool validForTarget(Drawable drawable)
                 => drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position)
                    && maskingQuad?.Contains(inputManager.CurrentState.Mouse.Position) != false;
+        }
+
+        private static readonly Dictionary<Type, bool> has_custom_drawnode_cache = new Dictionary<Type, bool>();
+
+        private bool hasCustomDrawNode(Drawable drawable)
+        {
+            var type = drawable.GetType();
+
+            if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
+                return existing;
+
+            return has_custom_drawnode_cache[type] = GetType().GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
         }
 
         public bool Searching { get; private set; }
