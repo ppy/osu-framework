@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
                 return existing;
 
-            return has_custom_drawnode_cache[type] = GetType().GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
+            return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
         }
 
         public bool Searching { get; private set; }
