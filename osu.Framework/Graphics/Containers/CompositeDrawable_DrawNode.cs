@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Containers
 
                 GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
-                GLWrapper.SetBlend(new BlendingInfo(edgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
+                GLWrapper.SetBlend(new BlendingParameters(edgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
                 Shader.Bind();
 

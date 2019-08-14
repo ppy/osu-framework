@@ -1560,6 +1560,9 @@ namespace osu.Framework.Graphics
                 if (localBlending.Mode == BlendingMode.Inherit)
                     localBlending.Mode = Parent.Blending.Mode;
 
+                if (localBlending.Mode == BlendingMode.Custom)
+                    localBlending.BlendingFactors = Parent.Blending.BlendingFactors; //copy blending settings from parent if custom
+
                 if (localBlending.RGBEquation == BlendingEquation.Inherit)
                     localBlending.RGBEquation = Parent.Blending.RGBEquation;
 
@@ -1567,7 +1570,7 @@ namespace osu.Framework.Graphics
                     localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
-            ci.Blending = new BlendingInfo(localBlending);
+            ci.Blending = localBlending;
 
             ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 

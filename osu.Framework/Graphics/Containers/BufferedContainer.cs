@@ -289,6 +289,9 @@ namespace osu.Framework.Graphics.Containers
                 if (blending.Mode == BlendingMode.Inherit)
                     blending.Mode = Blending.Mode;
 
+                if (blending.Mode == BlendingMode.Custom)
+                    blending.BlendingFactors = Blending.BlendingFactors; //in custom mode we also need to copy blending factor
+                
                 if (blending.RGBEquation == BlendingEquation.Inherit)
                     blending.RGBEquation = Blending.RGBEquation;
 

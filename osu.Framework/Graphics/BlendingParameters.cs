@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
@@ -10,10 +11,23 @@ namespace osu.Framework.Graphics
     /// </summary>
     public struct BlendingParameters : IEquatable<BlendingParameters>
     {
+        public BlendingFactors BlendingFactors { get; set; }
+
+        private BlendingMode _mode;
+
         /// <summary>
         /// Gets or sets <see cref="BlendingMode"/> to use.
         /// </summary>
-        public BlendingMode Mode;
+        public BlendingMode Mode
+        {
+            get => _mode;
+            set
+            {
+                _mode = value;
+                if(_mode != BlendingMode.Custom)
+                    BlendingFactors = new BlendingFactors(value);
+            }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="BlendingEquation"/> to use for the RGB components of the blend.
@@ -25,6 +39,47 @@ namespace osu.Framework.Graphics
         /// </summary>
         public BlendingEquation AlphaEquation;
 
+        /// <summary>
+        /// Gets the <see cref="BlendEquationMode"/> for the currently specified RGB Equation.
+        /// </summary>
+        public BlendEquationMode RGBEquationMode => translateEquation(RGBEquation);
+
+        /// <summary>
+        /// Gets the <see cref="BlendEquationMode"/> for the currently specified Alpha Equation.
+        /// </summary>
+        public BlendEquationMode AlphaEquationMode => translateEquation(AlphaEquation);
+        
+        private static BlendEquationMode translateEquation(BlendingEquation blendingEquation)
+        {
+            switch (blendingEquation)
+            {
+                default:
+                case BlendingEquation.Inherit:
+                case BlendingEquation.Add:
+                    return BlendEquationMode.FuncAdd;
+
+                case BlendingEquation.Min:
+                    return BlendEquationMode.Min;
+
+                case BlendingEquation.Max:
+                    return BlendEquationMode.Max;
+
+                case BlendingEquation.Subtract:
+                    return BlendEquationMode.FuncSubtract;
+
+                case BlendingEquation.ReverseSubtract:
+                    return BlendEquationMode.FuncReverseSubtract;
+            }
+        }
+
+        public BlendingParameters(BlendingMode mode)
+        {
+            RGBEquation = default;
+            AlphaEquation = default;
+            BlendingFactors = new BlendingFactors(mode);
+            _mode = mode;
+        }
+
         public static implicit operator BlendingParameters(BlendingMode blendingMode) => new BlendingParameters { Mode = blendingMode };
 
         public static implicit operator BlendingParameters(BlendingEquation blendingEquation) => new BlendingParameters
@@ -33,7 +88,77 @@ namespace osu.Framework.Graphics
             AlphaEquation = blendingEquation
         };
 
-        public bool Equals(BlendingParameters other) => other.Mode == Mode && other.RGBEquation == RGBEquation && other.AlphaEquation == AlphaEquation;
+        public bool IsDisabled =>
+            BlendingFactors.IsDisabled
+            && RGBEquation == BlendingEquation.Add
+            && AlphaEquation == BlendingEquation.Add;
+
+        public bool Equals(BlendingParameters other) =>
+            other.BlendingFactors.Equals(BlendingFactors)
+            && other.RGBEquation == RGBEquation
+            && other.AlphaEquation == AlphaEquation
+            && other.Mode == Mode;
+
+        public override string ToString() => $"BlendingParameter Mode: {Mode} BlendingFactor: {BlendingFactors} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
+    }
+
+    public struct BlendingFactors : IEquatable<BlendingFactors>
+    {
+        public readonly BlendingFactorSrc Source;
+        public readonly BlendingFactorDest Destination;
+        public readonly BlendingFactorSrc SourceAlpha;
+        public readonly BlendingFactorDest DestinationAlpha;
+
+        public BlendingFactors(BlendingMode mode)
+        {
+            switch (mode)
+            {
+                case BlendingMode.Custom:
+                case BlendingMode.Inherit:
+                case BlendingMode.Mixture:
+                    Source = BlendingFactorSrc.SrcAlpha;
+                    Destination = BlendingFactorDest.OneMinusSrcAlpha;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.One;
+                    break;
+
+                case BlendingMode.Additive:
+                    Source = BlendingFactorSrc.SrcAlpha;
+                    Destination = BlendingFactorDest.One;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.One;
+                    break;
+
+                default:
+                    Source = BlendingFactorSrc.One;
+                    Destination = BlendingFactorDest.Zero;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.Zero;
+                    break;
+            }
+        }
+
+        public BlendingFactors(BlendingFactorSrc source, BlendingFactorDest destination, BlendingFactorSrc sourceAlpha, BlendingFactorDest destinationAlpha)
+        {
+            Source = source;
+            Destination = destination;
+            SourceAlpha = sourceAlpha;
+            DestinationAlpha = destinationAlpha;
+        }
+
+        public bool Equals(BlendingFactors other) =>
+            other.Source == Source
+            && other.Destination == Destination
+            && other.SourceAlpha == SourceAlpha
+            && other.DestinationAlpha == DestinationAlpha;
+
+        public bool IsDisabled =>
+            Source == BlendingFactorSrc.One
+            && Destination == BlendingFactorDest.Zero
+            && SourceAlpha == BlendingFactorSrc.One
+            && DestinationAlpha == BlendingFactorDest.Zero;
+
+        public override string ToString() => $"{Source}/{Destination}/{SourceAlpha}/{DestinationAlpha}";
     }
 
     public enum BlendingMode
@@ -52,6 +177,11 @@ namespace osu.Framework.Graphics
         /// Purely additive (by a factor of the colour's alpha) blending.
         /// </summary>
         Additive,
+
+        /// <summary>
+        /// The blending mode will be manually provided.
+        /// </summary>
+        Custom,
 
         /// <summary>
         /// No alpha blending whatsoever.
