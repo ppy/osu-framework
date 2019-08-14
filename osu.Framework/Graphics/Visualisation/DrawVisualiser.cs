@@ -237,9 +237,12 @@ namespace osu.Framework.Graphics.Visualisation
                         compositeTarget = composite;
 
                     // Allow targeting composites that don't have any content but display a border/glow
-                    if (composite.Masking
-                        && (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
-                            || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0))
+
+                    if (!composite.Masking)
+                        return;
+
+                    if (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
+                        || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0)
                     {
                         drawableTarget = composite;
                     }
