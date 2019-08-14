@@ -1558,10 +1558,12 @@ namespace osu.Framework.Graphics
             if (Parent != null)
             {
                 if (localBlending.Mode == BlendingMode.Inherit)
+                {
                     localBlending.Mode = Parent.Blending.Mode;
 
-                if (localBlending.Mode == BlendingMode.Custom)
-                    localBlending.BlendingFactors = Parent.Blending.BlendingFactors; //copy blending settings from parent if custom
+                    if (Parent.Blending.Mode == BlendingMode.Custom)
+                        localBlending.BlendingFactors = Parent.Blending.BlendingFactors; //copy blending settings from parent if custom
+                }
 
                 if (localBlending.RGBEquation == BlendingEquation.Inherit)
                     localBlending.RGBEquation = Parent.Blending.RGBEquation;
