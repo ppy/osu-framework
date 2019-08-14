@@ -13,21 +13,25 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
+using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
     internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables
     {
+        public Vector2 ToolPosition
+        {
+            get => treeContainer.Position;
+            set => treeContainer.Position = value;
+        }
+
         [Cached]
         private readonly TreeContainer treeContainer;
 
         private VisualisedDrawable highlightedTarget;
-
         private readonly PropertyDisplay propertyDisplay;
-
         private readonly InfoOverlay overlay;
-
         private InputManager inputManager;
 
         public DrawVisualiser()
