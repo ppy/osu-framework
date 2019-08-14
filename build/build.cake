@@ -1,5 +1,5 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.21"
+#addin "nuget:?package=CodeFileSanity&version=0.0.24"
 #addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.1.1"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
@@ -20,8 +20,8 @@ var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
 var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var androidSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
-var iOSSolution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var androidSolution = rootDirectory.CombineWithFilePath("osu-framework.Android.sln");
+var iOSSolution = rootDirectory.CombineWithFilePath("osu-framework.iOS.sln");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
@@ -66,6 +66,7 @@ Task("Clean")
     .Does(() => {
         EnsureDirectoryExists(artifactsDirectory);
         CleanDirectory(artifactsDirectory);
+        CleanDirectory(tempDirectory);
     });
 
 Task("RunHttpBin")
@@ -88,16 +89,15 @@ Task("Compile")
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Minimal,
         });
-        NuGetRestore(androidSolution);
-        MSBuild(androidSolution, new MSBuildSettings {
+
+        var mobileSettings = new MSBuildSettings {
             Verbosity = Verbosity.Minimal,
             MSBuildPlatform = MSBuildPlatform.x86,
-        });
-        NuGetRestore(iOSSolution);
-        MSBuild(iOSSolution, new MSBuildSettings {
-            Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86,
-        });
+            NoLogo = true,
+        }.WithTarget("Restore;Build");
+
+        MSBuild(androidSolution, mobileSettings);
+        MSBuild(iOSSolution, mobileSettings);
     });
 
 Task("Test")
@@ -122,11 +122,11 @@ Task("InspectCode")
     .IsDependentOn("Compile")
     .DoesForEach(new [] { solution, androidSolution, iOSSolution }, inspectSolution => {
         string solutionName = inspectSolution.GetFilenameWithoutExtension().FullPath;
-        var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport{solutionName}.xml");
+        var inspectcodereport = tempDirectory.CombineWithFilePath($"inspectcodereport.{solutionName}.xml");
         Information($"Inspecting {solutionName}");
 
         InspectCode(inspectSolution, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine($"inspectcode{solutionName}"),
+            CachesHome = tempDirectory.Combine($"inspectcode-{solutionName}"),
             OutputFile = inspectcodereport,
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
         });
