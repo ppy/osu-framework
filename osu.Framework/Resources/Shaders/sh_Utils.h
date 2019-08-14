@@ -27,3 +27,12 @@ lowp vec4 toSRGB(lowp vec4 colour)
 	// The following implementation using mix and step may be faster, but stackoverflow indicates it is in fact a lot slower on some GPUs.
 	//return vec4(mix(colour.rgb * 12.92, 1.055 * pow(colour.rgb, vec3(1.0 / GAMMA)) - vec3(0.055), step(0.0031308, colour.rgb)), colour.a);
 }
+
+lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
+{
+    float final_alpha = src.a + dst.a * (1.0 - src.a);
+    return vec4(
+        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha,
+        final_alpha
+    );
+}
