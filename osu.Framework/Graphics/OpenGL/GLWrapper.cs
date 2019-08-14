@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
-        private static bool isEmbedded;
+        public static bool IsEmbedded { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
+        public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
         private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
 
@@ -70,16 +71,16 @@ namespace osu.Framework.Graphics.OpenGL
             if (IsInitialized) return;
 
             if (host.Window is GameWindow win)
-                isEmbedded = win.IsEmbedded;
+                IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
+            MaxRenderBufferSize = GL.GetInteger(GetPName.MaxRenderbufferSize);
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.ScissorTest);
 
             IsInitialized = true;
         }
@@ -113,7 +114,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
 
-            lastBoundTexture = null;
+            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             lastActiveBatch = null;
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
@@ -128,6 +129,7 @@ namespace osu.Framework.Graphics.OpenGL
             scissor_rect_stack.Clear();
             frame_buffer_stack.Clear();
             depth_stack.Clear();
+            scissor_state_stack.Clear();
 
             BindFrameBuffer(DefaultFrameBuffer);
 
@@ -136,6 +138,7 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = RectangleI.Empty;
             Ortho = RectangleF.Empty;
 
+            PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
             PushMaskingInfo(new MaskingInfo
             {
@@ -155,13 +158,13 @@ namespace osu.Framework.Graphics.OpenGL
         public static void Clear(ClearInfo clearInfo)
         {
             PushDepthInfo(new DepthInfo(writeDepth: true));
-
+            PushScissorState(false);
             if (clearInfo.Colour != currentClearInfo.Colour)
                 GL.ClearColor(clearInfo.Colour);
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
-                if (isEmbedded)
+                if (IsEmbedded)
                 {
                     // GL ES only supports glClearDepthf
                     // See: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glClearDepthf.xhtml
@@ -182,7 +185,40 @@ namespace osu.Framework.Graphics.OpenGL
 
             currentClearInfo = clearInfo;
 
+            PopScissorState();
             PopDepthInfo();
+        }
+
+        private static readonly Stack<bool> scissor_state_stack = new Stack<bool>();
+
+        private static bool currentScissorState;
+
+        public static void PushScissorState(bool enabled)
+        {
+            scissor_state_stack.Push(enabled);
+            setScissorState(enabled);
+        }
+
+        public static void PopScissorState()
+        {
+            Trace.Assert(scissor_state_stack.Count > 1);
+
+            scissor_state_stack.Pop();
+
+            setScissorState(scissor_state_stack.Peek());
+        }
+
+        private static void setScissorState(bool enabled)
+        {
+            if (enabled == currentScissorState)
+                return;
+
+            currentScissorState = enabled;
+
+            if (enabled)
+                GL.Enable(EnableCap.ScissorTest);
+            else
+                GL.Disable(EnableCap.ScissorTest);
         }
 
         /// <summary>
@@ -249,22 +285,27 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL lastBoundTexture;
+        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
 
-        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
+        internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="texture"></param>
-        public static void BindTexture(TextureGL texture)
+        /// <param name="texture">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
+        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            if (lastBoundTexture != texture)
+            var index = GetTextureUnitId(unit);
+
+            if (last_bound_texture[index] != texture)
             {
                 FlushCurrentBatch();
 
+                GL.ActiveTexture(unit);
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                lastBoundTexture = texture;
+                last_bound_texture[index] = texture;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
@@ -634,10 +675,10 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Deletes a framebuffer.
+        /// Deletes a frame buffer.
         /// </summary>
-        /// <param name="frameBuffer">The framebuffer to delete.</param>
-        internal static void DeleteFramebuffer(int frameBuffer)
+        /// <param name="frameBuffer">The frame buffer to delete.</param>
+        internal static void DeleteFrameBuffer(int frameBuffer)
         {
             if (frameBuffer == -1) return;
 

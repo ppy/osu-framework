@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics.Containers
             return words.ToArray();
         }
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
 
         private void computeLayout()
         {

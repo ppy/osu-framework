@@ -66,19 +66,23 @@ namespace osu.Framework.Graphics.Containers
             content.LifetimeStart = lifetimeStart;
             content.LifetimeEnd = lifetimeEnd;
 
-            Debug.Assert(!contentLoaded);
-            Debug.Assert(unloadSchedule == null);
-
-            contentLoaded = true;
-
-            if (OptimisingContainer != null)
+            // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
+            Schedule(() =>
             {
-                unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
-                Debug.Assert(unloadSchedule != null);
-                loaded_optimised.Value++;
-            }
-            else
-                loaded_unoptimised.Value++;
+                Debug.Assert(!contentLoaded);
+                Debug.Assert(unloadSchedule == null);
+
+                contentLoaded = true;
+
+                if (OptimisingContainer != null)
+                {
+                    unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
+                    Debug.Assert(unloadSchedule != null);
+                    loaded_optimised.Value++;
+                }
+                else
+                    loaded_unoptimised.Value++;
+            });
         }
 
         protected override void CancelTasks()

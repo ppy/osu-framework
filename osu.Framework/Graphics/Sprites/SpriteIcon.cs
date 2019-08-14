@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
         private Container shadowVisibility;
 
         private FontStore store;

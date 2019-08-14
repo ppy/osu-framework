@@ -18,6 +18,95 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
+        private bool isInitialised;
+
+        private readonly All filteringMode;
+        private readonly RenderbufferInternalFormat[] renderBufferFormats;
+
+        public FrameBuffer(RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
+        {
+            this.renderBufferFormats = renderBufferFormats;
+            this.filteringMode = filteringMode;
+        }
+
+        private Vector2 size = Vector2.One;
+
+        /// <summary>
+        /// Sets the size of the texture of this frame buffer.
+        /// </summary>
+        public Vector2 Size
+        {
+            get => size;
+            set
+            {
+                if (value == size)
+                    return;
+
+                size = value;
+
+                if (isInitialised)
+                {
+                    Texture.Width = (int)Math.Ceiling(size.X);
+                    Texture.Height = (int)Math.Ceiling(size.Y);
+
+                    Texture.SetData(new TextureUpload());
+                    Texture.Upload();
+                }
+            }
+        }
+
+        private void initialise()
+        {
+            frameBuffer = GL.GenFramebuffer();
+            Texture = new FrameBufferTexture(Size, filteringMode);
+
+            GLWrapper.BindFrameBuffer(frameBuffer);
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+            GLWrapper.BindTexture(null);
+
+            if (renderBufferFormats != null)
+            {
+                foreach (var format in renderBufferFormats)
+                    attachedRenderBuffers.Add(new RenderBuffer(format));
+            }
+        }
+
+        /// <summary>
+        /// Binds the framebuffer.
+        /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
+        /// </summary>
+        public void Bind()
+        {
+            if (!isInitialised)
+            {
+                initialise();
+                isInitialised = true;
+            }
+            else
+            {
+                // Buffer is bound during initialisation
+                GLWrapper.BindFrameBuffer(frameBuffer);
+            }
+
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Bind(Size);
+        }
+
+        /// <summary>
+        /// Unbinds the framebuffer.
+        /// </summary>
+        public void Unbind()
+        {
+            // See: https://community.arm.com/developer/tools-software/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
+            // Unbinding renderbuffers causes an invalidation of the relevant attachment of this framebuffer on embedded devices, causing the renderbuffers to remain transient.
+            // This must be done _before_ the framebuffer is flushed via the framebuffer unbind process, otherwise the renderbuffer may be copied to system memory.
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Unbind();
+
+            GLWrapper.UnbindFrameBuffer(frameBuffer);
+        }
+
         #region Disposal
 
         ~FrameBuffer()
@@ -38,94 +127,42 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            isDisposed = true;
+            if (isInitialised)
+            {
+                Texture?.Dispose();
+                Texture = null;
 
-            GLWrapper.DeleteFramebuffer(frameBuffer);
-            frameBuffer = -1;
+                GLWrapper.DeleteFrameBuffer(frameBuffer);
+
+                foreach (var buffer in attachedRenderBuffers)
+                    buffer.Dispose();
+            }
+
+            isDisposed = true;
         }
 
         #endregion
 
-        public bool IsInitialized { get; private set; }
-
-        public void Initialize(bool withTexture = true, All filteringMode = All.Linear)
+        private class FrameBufferTexture : TextureGLSingle
         {
-            frameBuffer = GL.GenFramebuffer();
-
-            if (withTexture)
+            public FrameBufferTexture(Vector2 size, All filteringMode = All.Linear)
+                : base((int)Math.Ceiling(size.X), (int)Math.Ceiling(size.Y), true, filteringMode)
             {
-                Texture = new TextureGLSingle(1, 1, true, filteringMode);
-                Texture.SetData(new TextureUpload());
-                Texture.Upload();
-
-                Bind();
-
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
-                GLWrapper.BindTexture(null);
-
-                Unbind();
+                SetData(new TextureUpload());
+                Upload();
             }
 
-            IsInitialized = true;
-        }
-
-        private Vector2 size = Vector2.One;
-
-        /// <summary>
-        /// Sets the size of the texture of this frame buffer.
-        /// </summary>
-        public Vector2 Size
-        {
-            get => size;
-            set
+            public override int Width
             {
-                if (value == size)
-                    return;
-
-                size = value;
-
-                Texture.Width = (int)Math.Ceiling(size.X);
-                Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUpload());
-                Texture.Upload();
+                get => base.Width;
+                set => base.Width = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
-        }
 
-        /// <summary>
-        /// Attaches a RenderBuffer to this framebuffer.
-        /// </summary>
-        /// <param name="format">The type of RenderBuffer to attach.</param>
-        public void Attach(RenderbufferInternalFormat format)
-        {
-            if (attachedRenderBuffers.Exists(r => r.Format == format))
-                return;
-
-            attachedRenderBuffers.Add(new RenderBuffer(format));
-        }
-
-        /// <summary>
-        /// Binds the framebuffer.
-        /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
-        /// </summary>
-        public void Bind()
-        {
-            GLWrapper.BindFrameBuffer(frameBuffer);
-
-            foreach (var r in attachedRenderBuffers)
+            public override int Height
             {
-                r.Size = Size;
-                r.Bind(frameBuffer);
+                get => base.Height;
+                set => base.Height = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
-        }
-
-        /// <summary>
-        /// Unbinds the framebuffer.
-        /// </summary>
-        public void Unbind()
-        {
-            GLWrapper.UnbindFrameBuffer(frameBuffer);
-            foreach (var r in attachedRenderBuffers)
-                r.Unbind();
         }
     }
 }

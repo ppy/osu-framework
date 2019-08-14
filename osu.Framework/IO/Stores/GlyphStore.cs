@@ -166,32 +166,41 @@ namespace osu.Framework.IO.Stores
             int charWidth = c.Width + c.XOffset;
             int charHeight = c.Height + c.YOffset;
 
+            if (readBuffer == null || readBuffer.Length < pageWidth)
+                readBuffer = new byte[pageWidth];
+
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
+
+            // in the case negative offsets are specified, we want to avoid writing pixels incorrectly to the output.
+            // this is a weird case and seems to only occur with italics fonts (and only in the x direction).
+            // y is accounted for as a safety measure.
+            int xOffset = Math.Max(0, -c.XOffset);
+            int yOffset = Math.Max(0, -c.YOffset);
 
             using (var stream = CacheStorage.GetStream(pageInfo.Filename))
             {
                 var pixels = image.GetPixelSpan();
-                stream.Seek(pageWidth * c.Y, SeekOrigin.Current);
+                stream.Seek(pageWidth * (c.Y + yOffset), SeekOrigin.Current);
 
-                for (int y = 0; y < c.Height; y++)
+                // the spritesheet may have unused pixels trimmed
+                int readableHeight = Math.Min(c.Height, pageInfo.Size.Height - c.Y);
+                int readableWidth = Math.Min(c.Width, pageWidth - c.X);
+
+                for (int y = yOffset; y < readableHeight; y++)
                 {
                     stream.Read(readBuffer, 0, pageWidth);
 
-                    for (int x = 0; x < c.Width; x++)
-                    {
-                        int offsetX = x + c.XOffset;
-                        int offsetY = y + c.YOffset;
+                    int writeOffset = (y + c.YOffset) * charWidth + c.XOffset;
 
-                        if (offsetX >= 0 && offsetY > 0 && offsetX < charWidth && offsetY < charHeight) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
-                            pixels[offsetY * charWidth + offsetX] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
-                    }
+                    for (int x = xOffset; x < readableWidth; x++)
+                        pixels[writeOffset + x] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
                 }
             }
 
             return new TextureUpload(image);
         }
 
-        private readonly byte[] readBuffer = new byte[1024];
+        private byte[] readBuffer;
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 

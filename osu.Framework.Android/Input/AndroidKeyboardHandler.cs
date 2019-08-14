@@ -49,8 +49,10 @@ namespace osu.Framework.Android.Input
             {
                 case Keycode.Back:
                     return Key.Escape;
+
                 case Keycode.Del:
                     return Key.Back;
+
                 default:
                     if (Enum.TryParse(key, out Key result))
                         return result;
