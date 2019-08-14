@@ -254,6 +254,7 @@ namespace osu.Framework.Graphics
 
             RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
             RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
+            HasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
 
             RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
             RequestsPositionalInputSubTree = RequestsPositionalInput;
@@ -1958,6 +1959,11 @@ namespace osu.Framework.Graphics
         /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
         internal bool RequestsPositionalInput { get; private set; }
+
+        /// <summary>
+        /// Whether this drawable has overridden <see cref="CreateDrawNode"/>.
+        /// </summary>
+        internal bool HasCustomDrawNode { get; private set; }
 
         /// <summary>
         /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable

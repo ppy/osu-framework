@@ -229,6 +229,9 @@ namespace osu.Framework.Graphics.Visualisation
                 if (drawable.AlwaysPresent && Precision.AlmostEquals(drawable.Alpha, 0f))
                     return false;
 
+                if (!drawable.HasCustomDrawNode)
+                    return false;
+
                 bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position);
                 // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
                 // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
