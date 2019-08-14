@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Visualisation
             // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
             void findTarget(Drawable drawable)
             {
-                if (drawable == this || drawable is CursorContainer || drawable is Component)
+                if (drawable == this || drawable is Component)
                     return;
 
                 if (!drawable.IsPresent)
