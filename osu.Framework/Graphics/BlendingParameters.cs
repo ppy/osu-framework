@@ -11,19 +11,19 @@ namespace osu.Framework.Graphics
     /// </summary>
     public struct BlendingParameters : IEquatable<BlendingParameters>
     {
-        private BlendingFactors _blendingFactors;
-        private BlendingMode _mode;
+        private BlendingFactors blendingFactors;
+        private BlendingMode mode;
 
         /// <summary>
         /// The blending factors that represent the current blending mode.
         /// </summary>
         public BlendingFactors BlendingFactors
         {
-            get => _blendingFactors;
+            get => blendingFactors;
             set
             {
-                _blendingFactors = value;
-                _mode = BlendingMode.Custom;
+                blendingFactors = value;
+                mode = BlendingMode.Custom;
             }
         }
 
@@ -32,12 +32,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public BlendingMode Mode
         {
-            get => _mode;
+            get => mode;
             set
             {
-                _mode = value;
-                if (_mode != BlendingMode.Custom)
-                    _blendingFactors = new BlendingFactors(value);
+                mode = value;
+                if (mode != BlendingMode.Custom)
+                    blendingFactors = new BlendingFactors(value);
             }
         }
 
@@ -88,8 +88,8 @@ namespace osu.Framework.Graphics
         {
             RGBEquation = default;
             AlphaEquation = default;
-            _blendingFactors = new BlendingFactors(mode);
-            _mode = mode;
+            blendingFactors = new BlendingFactors(mode);
+            this.mode = mode;
         }
 
         public static implicit operator BlendingParameters(BlendingMode blendingMode) => new BlendingParameters { Mode = blendingMode };
