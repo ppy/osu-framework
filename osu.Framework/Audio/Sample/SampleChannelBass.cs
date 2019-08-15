@@ -106,9 +106,6 @@ namespace osu.Framework.Audio.Sample
 
             EnqueueAction(() =>
             {
-                if (Looping)
-                    Bass.ChannelRemoveFlag(channel, BassFlags.Loop);
-
                 Bass.ChannelStop(channel);
                 // ChannelStop frees the channel.
                 channel = 0;
