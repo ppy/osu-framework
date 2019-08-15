@@ -46,7 +46,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// States if this component should repeat.
         /// </summary>
-        public bool Looping { get; set; }
+        public virtual bool Looping { get; set; }
 
         /// <summary>
         /// Invoked when the component should loop.
