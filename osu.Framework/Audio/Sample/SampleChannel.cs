@@ -20,8 +20,6 @@ namespace osu.Framework.Audio.Sample
             this.onPlay = onPlay;
         }
 
-        protected override void OnLooping() => Play();
-
         public virtual void Play(bool restart = true)
         {
             if (IsDisposed)

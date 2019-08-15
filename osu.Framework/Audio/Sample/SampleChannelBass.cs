@@ -51,10 +51,17 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
+                if (channel != 0 && Looping)
+                    // Remove looping flag from old channel to prevent endless playbacks
+                    Bass.ChannelRemoveFlag(channel, BassFlags.Loop);
+
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
+
+                if (Looping)
+                    Bass.ChannelAddFlag(channel, BassFlags.Loop);
             });
 
             InvalidateState();
@@ -86,6 +93,9 @@ namespace osu.Framework.Audio.Sample
 
             EnqueueAction(() =>
             {
+                if (Looping)
+                    Bass.ChannelRemoveFlag(channel, BassFlags.Loop);
+
                 Bass.ChannelStop(channel);
                 // ChannelStop frees the channel.
                 channel = 0;
