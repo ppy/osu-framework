@@ -61,7 +61,17 @@ namespace osu.Framework.Tests.Visual.Drawables
                             BackgroundColour = Color4.White,
                             Text = "gray should match 2",
                             Alpha = 0.5f,
-                        }
+                        },
+                        new IssueButton(borderColour: Color4.Gray)
+                        {
+                            OverlayColour = Color4.Gray,
+                            Text = "gray to gray bg"
+                        },
+                        new IssueButton(borderColour: Color4.Gray)
+                        {
+                            OverlayColour = Color4.White.Opacity(0.5f),
+                            Text = "gray to transparent white bg"
+                        },
                     }
                 }
             };
@@ -71,7 +81,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             public Color4? OverlayColour;
 
-            public IssueButton(bool drawBorder = true)
+            public IssueButton(bool drawBorder = true, Color4? borderColour = null)
             {
                 AutoSizeAxes = Axes.None;
                 Size = new Vector2(200);
@@ -84,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Content.MaskingSmoothness = 20;
                     Content.BorderThickness = 40;
 
-                    Content.BorderColour = Color4.Red;
+                    Content.BorderColour = borderColour ?? Color4.Red;
                 }
             }
 
