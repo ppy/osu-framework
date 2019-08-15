@@ -142,10 +142,6 @@ namespace osu.Framework.Audio.Track
         protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
-
-            if (Looping && HasCompleted)
-                Restart();
-
             base.UpdateState();
         }
     }
