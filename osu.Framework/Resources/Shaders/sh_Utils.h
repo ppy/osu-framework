@@ -32,9 +32,9 @@ lowp vec4 toSRGB(lowp vec4 colour)
 // see http://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha.html
 lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
 {
-    float final_alpha = src.a + dst.a * (1.0 - src.a);
+    lowp float finalAlpha = src.a + dst.a * (1.0 - src.a);
     return vec4(
-        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha,
-        final_alpha
+        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
+        finalAlpha
     );
 }
