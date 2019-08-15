@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             Drawable[][] boxes = Enumerable.Range(1, rows).Select(row => Enumerable.Range(1, columns).Select(column => new Box
             {
-                Colour = new Color4(1f, 0.2f + (row * 0.8f) / rows, 0.2f + (column * 0.8f) / columns, 1f),
+                Colour = new Color4(1f, 0.2f + row * 0.8f / rows, 0.2f + column * 0.8f / columns, 1f),
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.7f),
                 Anchor = Anchor.Centre,

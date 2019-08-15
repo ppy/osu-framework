@@ -94,10 +94,10 @@ Task("Compile")
             Verbosity = Verbosity.Minimal,
             MSBuildPlatform = MSBuildPlatform.x86,
             NoLogo = true,
-        }.WithTarget("Restore;Build");
+        };
 
-        MSBuild(androidSolution, mobileSettings);
-        MSBuild(iOSSolution, mobileSettings);
+        MSBuild(androidSolution, mobileSettings.WithTarget("Restore;Build"));
+        MSBuild(iOSSolution, mobileSettings.WithTarget("Restore;Build").WithProperty("Platform", "iPhone"));
     });
 
 Task("Test")

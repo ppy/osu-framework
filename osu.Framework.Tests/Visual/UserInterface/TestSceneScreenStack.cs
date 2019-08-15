@@ -629,7 +629,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                 Clear();
-                Add(stack = new ScreenStack(baseScreen = new TestScreen(), true)
+                Add(stack = new ScreenStack(baseScreen = new TestScreen())
                 {
                     RelativeSizeAxes = Axes.Both
                 });

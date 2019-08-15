@@ -47,7 +47,7 @@ namespace osu.Framework.Allocation
         {
             unchecked
             {
-                var hashCode = (Name != null ? Name.GetHashCode() : 0);
+                var hashCode = Name != null ? Name.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (Parent != null ? Parent.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Type != null ? Type.GetHashCode() : 0);
                 return hashCode;

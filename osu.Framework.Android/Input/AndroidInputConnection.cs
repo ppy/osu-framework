@@ -7,7 +7,7 @@ using Java.Lang;
 
 namespace osu.Framework.Android.Input
 {
-    class AndroidInputConnection : BaseInputConnection
+    internal class AndroidInputConnection : BaseInputConnection
     {
         public AndroidGameView TargetView { get; set; }
 

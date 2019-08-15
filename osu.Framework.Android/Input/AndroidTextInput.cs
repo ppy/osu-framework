@@ -5,7 +5,6 @@ using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Input;
-using osuTK.Input;
 using System;
 using System.Linq;
 
@@ -50,7 +49,6 @@ namespace osu.Framework.Android.Input
 
         private void keyDown(Keycode arg, KeyEvent e)
         {
-            Key key = AndroidKeyboardHandler.GetKeyCodeAsKey(arg);
             string keynum = arg.ToString();
             bool upper = e.IsShiftPressed;
 
