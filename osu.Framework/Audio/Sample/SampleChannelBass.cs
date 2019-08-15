@@ -74,8 +74,8 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            base.UpdateState();
             playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
+            base.UpdateState();
         }
 
         public override void Stop()
