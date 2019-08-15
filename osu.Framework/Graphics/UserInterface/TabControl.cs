@@ -399,8 +399,7 @@ namespace osu.Framework.Graphics.UserInterface
                     bool isVisible = allowMultiline || result[i].Y == 0;
                     updateChildIfNeeded(child, isVisible);
 
-                    if (isVisible)
-                        yield return result[i];
+                    yield return result[i];
 
                     i++;
                 }
