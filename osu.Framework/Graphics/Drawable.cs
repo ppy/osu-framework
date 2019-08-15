@@ -1461,6 +1461,25 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <see cref="T"/> is found.</returns>
+        internal T FindClosestParent<T>() where T : IDrawable
+        {
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+                if (cursor is T match)
+                    return match;
+
+            return default;
+        }
+
+        /// <summary>
         /// Refers to the original if this drawable was created via
         /// <see cref="CreateProxy"/>. Otherwise refers to this.
         /// </summary>
