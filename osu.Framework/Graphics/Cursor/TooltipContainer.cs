@@ -301,9 +301,12 @@ namespace osu.Framework.Graphics.Cursor
                 set => SetContent(value);
             }
 
-            public bool SetContent(object content)
+            public virtual bool SetContent(object content)
             {
-                text.Text = content.ToString();
+                if (!(content is string contentString))
+                    return false;
+
+                text.Text = contentString;
                 return true;
             }
 

@@ -147,9 +147,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public object TooltipContent { get; }
 
-            public CustomTooltipSpriteText(string displayedContent, object tooltipContent = null)
+            public CustomTooltipSpriteText(string displayedContent, string tooltipContent = null)
             {
-                TooltipContent = tooltipContent ?? displayedContent;
+                TooltipContent = new CustomContent(tooltipContent ?? displayedContent);
 
                 AutoSizeAxes = Axes.Both;
                 Children = new[]
@@ -161,7 +161,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public ITooltip GetCustomTooltip() => new TooltipContainer.Tooltip { Colour = Color4.Blue };
+            public ITooltip GetCustomTooltip() => new CustomTooltip { Colour = Color4.Blue };
+
+            private class CustomContent
+            {
+                public readonly string Text;
+
+                public CustomContent(string text)
+                {
+                    Text = text;
+                }
+            }
+
+            private class CustomTooltip : TooltipContainer.Tooltip
+            {
+                public override bool SetContent(object content)
+                {
+                    if (!(content is CustomContent custom))
+                        return false;
+
+                    base.SetContent(custom.Text);
+                    return true;
+                }
+            }
         }
 
         private class TooltipSpriteText : Container, IHasTooltip
