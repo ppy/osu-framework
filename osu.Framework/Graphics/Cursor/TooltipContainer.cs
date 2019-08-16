@@ -45,16 +45,6 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual ITooltip CreateTooltip() => new Tooltip();
 
-        private bool hasValidTooltip(ITooltipContentProvider target)
-        {
-            var targetContent = getTargetContent(target);
-
-            if (targetContent is string strContent)
-                return !string.IsNullOrEmpty(strContent);
-
-            return targetContent != null;
-        }
-
         private readonly Container content;
         protected override Container<Drawable> Content => content;
 
@@ -184,6 +174,16 @@ namespace osu.Framework.Graphics.Cursor
         private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
         private double lastRecordedPositionTime;
 
+        private bool hasValidTooltip(ITooltipContentProvider target)
+        {
+            var targetContent = getTargetContent(target);
+
+            if (targetContent is string strContent)
+                return !string.IsNullOrEmpty(strContent);
+
+            return targetContent != null;
+        }
+
         private ITooltipContentProvider lastCandidate;
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.Cursor
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
             if (inputManager.DraggedDrawable is IHasCustomTooltip customDraggedTarget)
-                return customDraggedTarget;
+                return hasValidTooltip(customDraggedTarget) ? customDraggedTarget : null;
 
             ITooltipContentProvider targetCandidate = FindTargets().Find(hasValidTooltip);
 
