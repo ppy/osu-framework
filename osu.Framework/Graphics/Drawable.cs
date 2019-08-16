@@ -2042,6 +2042,7 @@ namespace osu.Framework.Graphics
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
+                typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
             };
 
