@@ -41,12 +41,6 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        private void toggleLoopFlag(bool value) => EnqueueAction(() =>
-        {
-            if (channel != 0)
-                Bass.ChannelFlags(channel, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
-        });
-
         public override bool Looping
         {
             get => base.Looping;
@@ -113,5 +107,11 @@ namespace osu.Framework.Audio.Sample
         }
 
         public override bool Playing => playing;
+
+        private void toggleLoopFlag(bool value) => EnqueueAction(() =>
+        {
+            if (channel != 0)
+                Bass.ChannelFlags(channel, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
+        });
     }
 }
