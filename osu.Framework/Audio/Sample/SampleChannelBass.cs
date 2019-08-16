@@ -67,7 +67,7 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                // Remove looping flag from old channel to prevent endless playbacks
+                // Remove looping flag from previous channel to prevent endless playback
                 toggleLoopFlag(false);
 
                 // We are creating a new channel for every playback, since old channels may
