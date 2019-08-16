@@ -90,6 +90,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             new TooltipSpriteText("this text has a tooltip!"),
                             new InstantTooltipSpriteText("this text has an instant tooltip!"),
                             new CustomTooltipSpriteText("this one is custom!"),
+                            new CustomTooltipSpriteText("this one is also!"),
                             new TooltipSpriteText("this text has an empty tooltip!", string.Empty),
                             new TooltipSpriteText("this text has a nulled tooltip!", null),
                             new TooltipTextbox
@@ -161,7 +162,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public ITooltip GetCustomTooltip() => new CustomTooltip { Colour = Color4.Blue };
+            public ITooltip GetCustomTooltip() => new CustomTooltip();
 
             private class CustomContent
             {
@@ -175,6 +176,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private class CustomTooltip : TooltipContainer.Tooltip
             {
+                private static int i;
+
+                public CustomTooltip()
+                {
+                    AddRangeInternal(new Drawable[]
+                    {
+                        new Box
+                        {
+                            Anchor = Anchor.BottomLeft,
+                            Colour = Color4.Black,
+                            RelativeSizeAxes = Axes.X,
+                            Height = 12,
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.BottomLeft,
+                            Font = FontUsage.Default.With(size: 12),
+                            Colour = Color4.Yellow,
+                            Text = $"Custom tooltip instance {i++}"
+                        }
+                    });
+                }
+
                 public override bool SetContent(object content)
                 {
                     if (!(content is CustomContent custom))
