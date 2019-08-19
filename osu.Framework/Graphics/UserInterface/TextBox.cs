@@ -436,7 +436,7 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
-        private Cached cursorAndLayout = new Cached();
+        private readonly Cached cursorAndLayout = new Cached();
 
         private void moveSelection(int offset, bool expand)
         {
@@ -731,7 +731,7 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyDown(e) || consumingText;
         }
 
-        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0) && key != Key.KeypadEnter;
+        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0 && key <= Key.NonUSBackSlash) && key != Key.KeypadEnter;
 
         /// <summary>
         /// Removes focus from this <see cref="TextBox"/> if it currently has focus.

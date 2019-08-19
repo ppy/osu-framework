@@ -97,8 +97,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Bind as active texture.
         /// </summary>
+        /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind();
+        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.

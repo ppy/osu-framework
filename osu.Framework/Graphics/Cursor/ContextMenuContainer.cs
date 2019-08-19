@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Linq;
 using osuTK;
 using osuTK.Input;
@@ -21,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
         private readonly Menu menu;
 
         private IHasContextMenu menuTarget;
-        private Vector2 relativeCursorPosition;
+        private Vector2 targetRelativePosition;
 
         /// <summary>
         /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="Menu"/>.
@@ -29,6 +30,7 @@ namespace osu.Framework.Graphics.Cursor
         protected abstract Menu CreateMenu();
 
         private readonly Container content;
+
         protected override Container<Drawable> Content => content;
 
         /// <summary>
@@ -76,22 +78,52 @@ namespace osu.Framework.Graphics.Cursor
 
                     menu.Items = menuTarget.ContextMenuItems;
 
-                    menu.Position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                    relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
+                    targetRelativePosition = menuTarget.ToLocalSpace(e.ScreenSpaceMousePosition);
+
                     menu.Open();
                     return true;
 
                 default:
-                    menu.Close();
+                    cancelDisplay();
                     return false;
             }
+        }
+
+        private void cancelDisplay()
+        {
+            Debug.Assert(menu != null);
+
+            menu.Close();
+            menuTarget = null;
         }
 
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-            if (menu.State == MenuState.Open && menuTarget != null)
-                menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
+
+            if (menu.State != MenuState.Open || menuTarget == null) return;
+
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this)
+            {
+                cancelDisplay();
+                return;
+            }
+
+            Vector2 pos = menuTarget.ToSpaceOfOtherDrawable(targetRelativePosition, this);
+
+            Vector2 overflow = pos + menu.DrawSize - DrawSize;
+
+            if (overflow.X > 0)
+                pos.X -= MathHelper.Clamp(overflow.X, 0, menu.DrawWidth);
+            if (overflow.Y > 0)
+                pos.Y -= MathHelper.Clamp(overflow.Y, 0, menu.DrawHeight);
+
+            if (pos.X < 0)
+                pos.X += MathHelper.Clamp(-pos.X, 0, menu.DrawWidth);
+            if (pos.Y < 0)
+                pos.Y += MathHelper.Clamp(-pos.Y, 0, menu.DrawHeight);
+
+            menu.Position = pos;
         }
     }
 }

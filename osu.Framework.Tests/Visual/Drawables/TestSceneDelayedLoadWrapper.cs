@@ -24,9 +24,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             FillFlowContainer<Container> flow = null;
             TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll = null;
+            int loaded = 0;
 
             AddStep("create children", () =>
             {
+                loaded = 0;
+
                 Children = new Drawable[]
                 {
                     scroll = new TestSceneDelayedLoadUnloadWrapper.TestScrollContainer
@@ -54,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 RelativeSizeAxes = Axes.Both,
                                 Children = new Drawable[]
                                 {
-                                    new TestBox { RelativeSizeAxes = Axes.Both }
+                                    new TestBox(() => loaded++) { RelativeSizeAxes = Axes.Both }
                                 }
                             }, instant ? 0 : 500),
                             new SpriteText { Text = i.ToString() },
@@ -64,10 +67,19 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             var childrenWithAvatarsLoaded = new Func<IEnumerable<Drawable>>(() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false));
 
-            AddWaitStep("wait for load", 10);
-            AddStep("scroll down", () => scroll.ScrollToEnd());
-            AddWaitStep("wait more", 10);
-            AddAssert("some loaded", () => childrenWithAvatarsLoaded().Count() > 5);
+            int loadCount1 = 0;
+
+            AddUntilStep("wait for load", () => loaded > 0);
+
+            AddStep("scroll down", () =>
+            {
+                loadCount1 = loaded;
+                scroll.ScrollToEnd();
+            });
+
+            AddWaitStep("wait some more", 10);
+
+            AddUntilStep("more loaded", () => loaded > loadCount1);
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
 
             AddStep("Remove all panels", () => flow.Clear(false));
@@ -77,14 +89,19 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         public class TestBox : Container
         {
-            public TestBox()
+            private readonly Action onLoadAction;
+
+            public TestBox(Action onLoadAction)
             {
+                this.onLoadAction = onLoadAction;
                 RelativeSizeAxes = Axes.Both;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
+                onLoadAction?.Invoke();
+
                 Child = new SpriteText
                 {
                     Colour = Color4.Yellow,
