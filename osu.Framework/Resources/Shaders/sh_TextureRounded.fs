@@ -106,14 +106,15 @@ void main(void)
 
 	highp float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	lowp float colourWeight = min(borderStart - dist, 1.0);
-	
+
 	if (colourWeight <= 0.0)
 	{
 		gl_FragColor = toSRGB(vec4(g_BorderColour.rgb, g_BorderColour.a * alphaFactor));
 		return;
 	}
 
-	gl_FragColor = toSRGB(
-		colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel +
-		(1.0 - colourWeight) * g_BorderColour);
+	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
+	lowp vec4 src = vec4(g_BorderColour.rgb, g_BorderColour.a * (1.0 - colourWeight));
+
+	gl_FragColor = blend(toSRGB(src), toSRGB(dest));
 }

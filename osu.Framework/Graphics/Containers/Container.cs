@@ -290,7 +290,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Determines over how many pixels the alpha component smoothly fades out when an inner <see cref="EdgeEffect"/> or <see cref="BorderThickness"/> is present.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public new float MaskingSmoothness
