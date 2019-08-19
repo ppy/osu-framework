@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Android.App;
-using Android.Content;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Input;
 using osu.Framework.Graphics.Textures;
@@ -12,7 +10,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
@@ -51,13 +48,7 @@ namespace osu.Framework.Android
             => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
-        {
-            var activity = (Activity)gameView.Context;
-
-            using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
-                if (intent.ResolveActivity(activity.PackageManager) != null)
-                    activity.StartActivity(intent);
-        }
+            => throw new NotImplementedException();
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);

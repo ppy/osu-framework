@@ -18,28 +18,24 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
     {
-        public string TooltipText => Url;
+        public string TooltipText => url;
 
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }
 
-        [Resolved]
-        private GameHost host { get; set; }
-
         private readonly string text;
-
-        protected readonly string Url;
+        private readonly string url;
 
         public MarkdownLinkText(string text, LinkInline linkInline)
         {
             this.text = text;
-            Url = linkInline.Url ?? string.Empty;
+            url = linkInline.Url ?? string.Empty;
 
             AutoSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost host)
         {
             SpriteText spriteText;
             InternalChildren = new Drawable[]
@@ -48,14 +44,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText(),
-                    Action = OnLinkPressed,
+                    Action = () => host.OpenUrlExternally(url)
                 }
             };
 
             spriteText.Text = text;
         }
-
-        protected virtual void OnLinkPressed() => host.OpenUrlExternally(Url);
 
         public virtual SpriteText CreateSpriteText()
         {
