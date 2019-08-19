@@ -4,8 +4,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using osu.Framework.Extensions;
-using osu.Framework.Platform;
+using MonkeyCache;
+using MonkeyCache.FileStore;
 
 namespace osu.Framework.IO.Stores
 {
@@ -14,17 +14,17 @@ namespace osu.Framework.IO.Stores
     /// </summary>
     public class CachedOnlineStore : OnlineStore
     {
-        private readonly Storage cacheStorage;
+        private readonly IBarrel cache;
         public readonly TimeSpan Duration;
 
         /// <summary>
         /// Constructs a <see cref="CachedOnlineStore"/>
         /// </summary>
-        /// <param name="cacheStorage">A <see cref="Storage"/> which will be used as a cache</param>
+        /// <param name="cachePath"></param>
         /// <param name="duration">The amount of time since last access after which a file will be considered expired.</param>
-        public CachedOnlineStore(Storage cacheStorage, TimeSpan duration)
+        public CachedOnlineStore(string cachePath, TimeSpan duration)
         {
-            this.cacheStorage = cacheStorage;
+            cache = Barrel.Create(cachePath);
             Duration = duration;
         }
 
@@ -35,10 +35,11 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public override async Task<byte[]> GetAsync(string url)
         {
-            var data = getCached(url);
+            if (!cache.IsExpired(url))
+                return cache.Get<byte[]>(url);
 
-            if (data == null && (data = await base.GetAsync(url)) != null)
-                cache(url, data);
+            var data = await base.GetAsync(url);
+            cache.Add(url, data, Duration);
 
             return data;
         }
@@ -50,78 +51,40 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public override byte[] Get(string url)
         {
-            var data = getCached(url);
+            if (!cache.IsExpired(url))
+                return cache.Get<byte[]>(url);
 
-            if (data == null && (data = base.Get(url)) != null)
-                cache(url, data);
+            var data = base.Get(url);
+            cache.Add(url, data, Duration);
 
             return data;
         }
 
         public override Stream GetStream(string url)
         {
-            var bytes = getCached(url);
-
-            if (bytes != null)
-                return new MemoryStream(bytes);
+            if (!cache.IsExpired(url))
+                return cache.Get<Stream>(url);
 
             var stream = base.GetStream(url);
-            stream.Read(bytes = new byte[stream.Length], 0, bytes.Length);
-            cache(url, bytes);
+            cache.Add(url, stream, Duration);
 
             return stream;
         }
 
         /// <summary>
-        /// Writes data to the cache <see cref="Storage"/>
-        /// </summary>
-        /// <param name="url">The address of the object.</param>
-        /// <param name="data">The object.</param>
-        private void cache(string url, byte[] data)
-        {
-            using (var stream = cacheStorage.GetStream(url.ComputeMD5Hash(), FileAccess.Write, FileMode.Create))
-                stream.Write(data, 0, data.Length);
-        }
-
-        /// <summary>
-        /// Retrieves an object from cache.
-        /// </summary>
-        /// <param name="url">The address of the object.</param>
-        /// <returns>The object or <value>null</value> if there in no suitable object in the cache.</returns>
-        private byte[] getCached(string url)
-        {
-            byte[] data = null;
-            var fileName = url.ComputeMD5Hash();
-
-            if (cacheStorage.Exists(fileName))
-            {
-                using (var stream = cacheStorage.GetStream(fileName))
-                    stream.Read(data = new byte[stream.Length], 0, data.Length);
-
-                cacheStorage.SetLastAccessTime(fileName, DateTime.Now);
-            }
-
-            return data;
-        }
-
-        public int Clear() => Clear(Duration);
-
-        /// <summary>
         /// Clears cache
         /// </summary>
-        /// <param name="duration">A <see cref="TimeSpan"/> since last file access after which it will be considered expired</param>
         /// <returns>The number of removed objects</returns>
-        public int Clear(TimeSpan duration)
+        public int Clear()
         {
             var removed = 0;
-            var cachedFiles = cacheStorage.GetFiles(string.Empty);
+            var expiredEntries = cache.GetKeys(CacheState.Expired);
 
-            foreach (var cachedFile in cachedFiles)
-                if (DateTime.Now - cacheStorage.GetLastAccessTime(cachedFile) > duration)
-                {
-                    cacheStorage.Delete(cachedFile);
-                    removed++;
-                }
+            foreach (var expiredEntry in expiredEntries)
+            {
+                cache.Empty(expiredEntry);
+                removed++;
+            }
 
             return removed;
         }
