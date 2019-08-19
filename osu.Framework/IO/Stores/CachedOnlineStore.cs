@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using MonkeyCache;
-using MonkeyCache.FileStore;
 
 namespace osu.Framework.IO.Stores
 {
@@ -22,9 +21,9 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="cachePath"></param>
         /// <param name="duration">The amount of time since last access after which a file will be considered expired.</param>
-        public CachedOnlineStore(string cachePath, TimeSpan duration)
+        public CachedOnlineStore(IBarrel cache, TimeSpan duration)
         {
-            cache = Barrel.Create(cachePath);
+            this.cache = cache;
             Duration = duration;
         }
 
@@ -63,10 +62,13 @@ namespace osu.Framework.IO.Stores
         public override Stream GetStream(string url)
         {
             if (!cache.IsExpired(url))
-                return cache.Get<Stream>(url);
+                return new MemoryStream(cache.Get<byte[]>(url));
 
             var stream = base.GetStream(url);
-            cache.Add(url, stream, Duration);
+
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+            cache.Add(url, bytes, Duration);
 
             return stream;
         }
