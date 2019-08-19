@@ -11,14 +11,11 @@ namespace osu.Framework.Graphics.Cursor
     public interface ITooltip : IDrawable
     {
         /// <summary>
-        /// The text to display on the tooltip.
+        /// Set new content be displayed on this tooltip.
         /// </summary>
-        string TooltipText { set; }
-
-        /// <summary>
-        /// Refreshes the tooltip, updating potential non-text elements such as textures and colours.
-        /// </summary>
-        void Refresh();
+        /// <param name="content">The content to be displayed.</param>
+        /// <returns>Whether this <see cref="ITooltip"/> can display the provided content.</returns>
+        bool SetContent(object content);
 
         /// <summary>
         /// Moves the tooltip to the given position. May use easing.
