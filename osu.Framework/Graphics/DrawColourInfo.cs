@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics
         public DrawColourInfo(ColourInfo? colour = null, BlendingParameters? blending = null)
         {
             Colour = colour ?? ColourInfo.SingleColour(Color4.White);
-            Blending = blending ?? new BlendingParameters(BlendingMode.Inherit);
+            Blending = blending ?? BlendingParameters.Inherit;
         }
 
         public bool Equals(DrawColourInfo other) => Colour.Equals(other.Colour) && Blending.Equals(other.Blending);

@@ -340,8 +340,8 @@ namespace osu.Framework.Graphics.OpenGL
                 lastBlendingEnabledState = true;
 
                 GL.BlendEquationSeparate(blendingParameters.RGBEquationMode, blendingParameters.AlphaEquationMode);
-                GL.BlendFuncSeparate(blendingParameters.BlendingFactors.Source, blendingParameters.BlendingFactors.Destination,
-                    blendingParameters.BlendingFactors.SourceAlpha, blendingParameters.BlendingFactors.DestinationAlpha);
+                GL.BlendFuncSeparate(blendingParameters.SourceBlendingFactor, blendingParameters.DestinationBlendingFactor,
+                    blendingParameters.SourceAlphaBlendingFactor, blendingParameters.DestinationAlphaBlendingFactor);
             }
 
             lastBlendingParameters = blendingParameters;

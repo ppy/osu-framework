@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
                 FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
 
-                GLWrapper.SetBlend(new BlendingParameters(BlendingMode.None));
+                GLWrapper.SetBlend(BlendingParameters.None);
 
                 using (BindFrameBuffer(target))
                 {

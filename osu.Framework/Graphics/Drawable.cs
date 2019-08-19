@@ -1556,21 +1556,9 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
-                if (localBlending.Mode == BlendingMode.Inherit)
-                {
-                    localBlending.Mode = Parent.Blending.Mode;
+                localBlending.CopyFromParent(Parent.Blending);
 
-                    if (Parent.Blending.Mode == BlendingMode.Custom)
-                        localBlending.BlendingFactors = Parent.Blending.BlendingFactors; //copy blending settings from parent if custom
-                }
-
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
-
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
+            localBlending.ApplyDefaultToInherited();
 
             ci.Blending = localBlending;
 

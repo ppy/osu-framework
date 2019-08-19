@@ -11,35 +11,27 @@ namespace osu.Framework.Graphics
     /// </summary>
     public struct BlendingParameters : IEquatable<BlendingParameters>
     {
-        private BlendingFactors blendingFactors;
-        private BlendingMode mode;
+        #region Public Members
 
         /// <summary>
-        /// The blending factors that represent the current blending mode.
+        /// The blending factor for the source color of the blend.
         /// </summary>
-        public BlendingFactors BlendingFactors
-        {
-            get => blendingFactors;
-            set
-            {
-                blendingFactors = value;
-                mode = BlendingMode.Custom;
-            }
-        }
+        public BlendingType Source;
 
         /// <summary>
-        /// Gets or sets <see cref="BlendingMode"/> to use.
+        /// The blending factor for the destination color of the blend.
         /// </summary>
-        public BlendingMode Mode
-        {
-            get => mode;
-            set
-            {
-                mode = value;
-                if (mode != BlendingMode.Custom)
-                    blendingFactors = new BlendingFactors(value);
-            }
-        }
+        public BlendingType Destination;
+
+        /// <summary>
+        /// The blending factor for the source alpha of the blend.
+        /// </summary>
+        public BlendingType SourceAlpha;
+
+        /// <summary>
+        /// The blending factor for the destination alpha of the blend.
+        /// </summary>
+        public BlendingType DestinationAlpha;
 
         /// <summary>
         /// Gets or sets the <see cref="BlendingEquation"/> to use for the RGB components of the blend.
@@ -51,6 +43,54 @@ namespace osu.Framework.Graphics
         /// </summary>
         public BlendingEquation AlphaEquation;
 
+        #endregion
+
+        #region Default Blending Parameter Types
+
+        public static BlendingParameters None => new BlendingParameters
+        {
+            Source = BlendingType.One,
+            Destination = BlendingType.Zero,
+            SourceAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.Zero,
+            RGBEquation = BlendingEquation.Add,
+            AlphaEquation = BlendingEquation.Add,
+        };
+
+        public static BlendingParameters Inherit => new BlendingParameters
+        {
+            Source = BlendingType.Inherit,
+            Destination = BlendingType.Inherit,
+            SourceAlpha = BlendingType.Inherit,
+            DestinationAlpha = BlendingType.Inherit,
+            RGBEquation = BlendingEquation.Inherit,
+            AlphaEquation = BlendingEquation.Inherit,
+        };
+
+        public static BlendingParameters Mixture => new BlendingParameters
+        {
+            Source = BlendingType.SrcAlpha,
+            Destination = BlendingType.OneMinusSrcAlpha,
+            SourceAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.One,
+            RGBEquation = BlendingEquation.Add,
+            AlphaEquation = BlendingEquation.Add,
+        };
+
+        public static BlendingParameters Additive => new BlendingParameters
+        {
+            Source = BlendingType.SrcAlpha,
+            Destination = BlendingType.One,
+            SourceAlpha = BlendingType.One,
+            DestinationAlpha = BlendingType.One,
+            RGBEquation = BlendingEquation.Add,
+            AlphaEquation = BlendingEquation.Add,
+        };
+
+        #endregion
+
+        #region GL Type Getters
+
         /// <summary>
         /// Gets the <see cref="BlendEquationMode"/> for the currently specified RGB Equation.
         /// </summary>
@@ -60,6 +100,127 @@ namespace osu.Framework.Graphics
         /// Gets the <see cref="BlendEquationMode"/> for the currently specified Alpha Equation.
         /// </summary>
         public BlendEquationMode AlphaEquationMode => translateEquation(AlphaEquation);
+
+        /// <summary>
+        /// Gets the <see cref="BlendingFactorSrc"/> for the currently specified source blending mode.
+        /// </summary>
+        public BlendingFactorSrc SourceBlendingFactor => translateBlendingFactorSrc(Source);
+
+        /// <summary>
+        /// Gets the <see cref="BlendingFactorDest"/> for the currently specified destination blending mode.
+        /// </summary>
+        public BlendingFactorDest DestinationBlendingFactor => translateBlendingFactorDest(Destination);
+
+        /// <summary>
+        /// Gets the <see cref="BlendingFactorSrc"/> for the currently specified source alpha mode.
+        /// </summary>
+        public BlendingFactorSrc SourceAlphaBlendingFactor => translateBlendingFactorSrc(SourceAlpha);
+
+        /// <summary>
+        /// Gets the <see cref="BlendingFactorDest"/> for the currently specified destination alpha mode.
+        /// </summary>
+        public BlendingFactorDest DestinationAlphaBlendingFactor => translateBlendingFactorDest(DestinationAlpha);
+
+        private static BlendingFactorSrc translateBlendingFactorSrc(BlendingType factor)
+        {
+            switch (factor)
+            {
+                case BlendingType.ConstantAlpha:
+                    return BlendingFactorSrc.ConstantAlpha;
+
+                case BlendingType.ConstantColor:
+                    return BlendingFactorSrc.ConstantColor;
+
+                case BlendingType.DstAlpha:
+                    return BlendingFactorSrc.DstAlpha;
+
+                case BlendingType.DstColor:
+                    return BlendingFactorSrc.DstColor;
+
+                case BlendingType.One:
+                    return BlendingFactorSrc.One;
+
+                case BlendingType.OneMinusConstantAlpha:
+                    return BlendingFactorSrc.OneMinusConstantAlpha;
+
+                case BlendingType.OneMinusConstantColor:
+                    return BlendingFactorSrc.OneMinusConstantColor;
+
+                case BlendingType.OneMinusDstAlpha:
+                    return BlendingFactorSrc.OneMinusDstAlpha;
+
+                case BlendingType.OneMinusDstColor:
+                    return BlendingFactorSrc.OneMinusDstColor;
+
+                case BlendingType.OneMinusSrcAlpha:
+                    return BlendingFactorSrc.OneMinusSrcColor;
+
+                case BlendingType.SrcAlpha:
+                    return BlendingFactorSrc.SrcAlpha;
+
+                case BlendingType.SrcAlphaSaturate:
+                    return BlendingFactorSrc.SrcAlphaSaturate;
+
+                case BlendingType.SrcColor:
+                    return BlendingFactorSrc.SrcColor;
+
+                default:
+                case BlendingType.Zero:
+                    return BlendingFactorSrc.Zero;
+            }
+        }
+
+        private static BlendingFactorDest translateBlendingFactorDest(BlendingType factor)
+        {
+            switch (factor)
+            {
+                case BlendingType.ConstantAlpha:
+                    return BlendingFactorDest.ConstantAlpha;
+
+                case BlendingType.ConstantColor:
+                    return BlendingFactorDest.ConstantColor;
+
+                case BlendingType.DstAlpha:
+                    return BlendingFactorDest.DstAlpha;
+
+                case BlendingType.DstColor:
+                    return BlendingFactorDest.DstColor;
+
+                case BlendingType.One:
+                    return BlendingFactorDest.One;
+
+                case BlendingType.OneMinusConstantAlpha:
+                    return BlendingFactorDest.OneMinusConstantAlpha;
+
+                case BlendingType.OneMinusConstantColor:
+                    return BlendingFactorDest.OneMinusConstantColor;
+
+                case BlendingType.OneMinusDstAlpha:
+                    return BlendingFactorDest.OneMinusDstAlpha;
+
+                case BlendingType.OneMinusDstColor:
+                    return BlendingFactorDest.OneMinusDstColor;
+
+                case BlendingType.OneMinusSrcAlpha:
+                    return BlendingFactorDest.OneMinusSrcAlpha;
+
+                case BlendingType.OneMinusSrcColor:
+                    return BlendingFactorDest.OneMinusSrcColor;
+
+                case BlendingType.SrcAlpha:
+                    return BlendingFactorDest.SrcAlpha;
+
+                case BlendingType.SrcAlphaSaturate:
+                    return BlendingFactorDest.SrcAlphaSaturate;
+
+                case BlendingType.SrcColor:
+                    return BlendingFactorDest.SrcColor;
+
+                default:
+                case BlendingType.Zero:
+                    return BlendingFactorDest.Zero;
+            }
+        }
 
         private static BlendEquationMode translateEquation(BlendingEquation blendingEquation)
         {
@@ -84,120 +245,94 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public BlendingParameters(BlendingMode mode)
+        #endregion
+
+        /// <summary>
+        /// Copy all properties that are marked as inherited from a parent <see cref="BlendingParameters"/> object.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="BlendingParameters"/> from which to copy inherited properties.</param>
+        public void CopyFromParent(BlendingParameters parent)
         {
-            RGBEquation = default;
-            AlphaEquation = default;
-            blendingFactors = new BlendingFactors(mode);
-            this.mode = mode;
+            if (Source == BlendingType.Inherit)
+                Source = parent.Source;
+
+            if (Destination == BlendingType.Inherit)
+                Destination = parent.Destination;
+
+            if (SourceAlpha == BlendingType.Inherit)
+                SourceAlpha = parent.SourceAlpha;
+
+            if (DestinationAlpha == BlendingType.Inherit)
+                DestinationAlpha = parent.DestinationAlpha;
+
+            if (RGBEquation == BlendingEquation.Inherit)
+                RGBEquation = parent.RGBEquation;
+
+            if (AlphaEquation == BlendingEquation.Inherit)
+                AlphaEquation = parent.AlphaEquation;
         }
 
-        public static implicit operator BlendingParameters(BlendingMode blendingMode) => new BlendingParameters { Mode = blendingMode };
-
-        public static implicit operator BlendingParameters(BlendingEquation blendingEquation) => new BlendingParameters
+        /// <summary>
+        /// Any properties marked as inherited will have their blending mode changed to the default type. This can occur when a root element is set to inherited.
+        /// </summary>
+        public void ApplyDefaultToInherited()
         {
-            RGBEquation = blendingEquation,
-            AlphaEquation = blendingEquation
-        };
+            if (Source == BlendingType.Inherit)
+                Source = BlendingType.SrcAlpha;
 
-        public bool IsDisabled =>
-            BlendingFactors.IsDisabled
-            && RGBEquation == BlendingEquation.Add
-            && AlphaEquation == BlendingEquation.Add;
+            if (Destination == BlendingType.Inherit)
+                Destination = BlendingType.OneMinusSrcAlpha;
+
+            if (SourceAlpha == BlendingType.Inherit)
+                SourceAlpha = BlendingType.One;
+
+            if (DestinationAlpha == BlendingType.Inherit)
+                DestinationAlpha = BlendingType.One;
+
+            if (RGBEquation == BlendingEquation.Inherit)
+                RGBEquation = BlendingEquation.Add;
+
+            if (AlphaEquation == BlendingEquation.Inherit)
+                AlphaEquation = BlendingEquation.Add;
+        }
 
         public bool Equals(BlendingParameters other) =>
-            other.BlendingFactors.Equals(BlendingFactors)
-            && other.RGBEquation == RGBEquation
-            && other.AlphaEquation == AlphaEquation;
-
-        public override string ToString() => $"BlendingParameter Mode: {Mode} BlendingFactor: {BlendingFactors} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
-    }
-
-    public struct BlendingFactors : IEquatable<BlendingFactors>
-    {
-        public readonly BlendingFactorSrc Source;
-        public readonly BlendingFactorDest Destination;
-        public readonly BlendingFactorSrc SourceAlpha;
-        public readonly BlendingFactorDest DestinationAlpha;
-
-        public BlendingFactors(BlendingMode mode)
-        {
-            switch (mode)
-            {
-                case BlendingMode.Custom:
-                case BlendingMode.Inherit:
-                case BlendingMode.Mixture:
-                    Source = BlendingFactorSrc.SrcAlpha;
-                    Destination = BlendingFactorDest.OneMinusSrcAlpha;
-                    SourceAlpha = BlendingFactorSrc.One;
-                    DestinationAlpha = BlendingFactorDest.One;
-                    break;
-
-                case BlendingMode.Additive:
-                    Source = BlendingFactorSrc.SrcAlpha;
-                    Destination = BlendingFactorDest.One;
-                    SourceAlpha = BlendingFactorSrc.One;
-                    DestinationAlpha = BlendingFactorDest.One;
-                    break;
-
-                default:
-                    Source = BlendingFactorSrc.One;
-                    Destination = BlendingFactorDest.Zero;
-                    SourceAlpha = BlendingFactorSrc.One;
-                    DestinationAlpha = BlendingFactorDest.Zero;
-                    break;
-            }
-        }
-
-        public BlendingFactors(BlendingFactorSrc source, BlendingFactorDest destination, BlendingFactorSrc sourceAlpha, BlendingFactorDest destinationAlpha)
-        {
-            Source = source;
-            Destination = destination;
-            SourceAlpha = sourceAlpha;
-            DestinationAlpha = destinationAlpha;
-        }
-
-        public bool Equals(BlendingFactors other) =>
             other.Source == Source
             && other.Destination == Destination
             && other.SourceAlpha == SourceAlpha
-            && other.DestinationAlpha == DestinationAlpha;
+            && other.DestinationAlpha == DestinationAlpha
+            && other.RGBEquation == RGBEquation
+            && other.AlphaEquation == AlphaEquation;
 
         public bool IsDisabled =>
-            Source == BlendingFactorSrc.One
-            && Destination == BlendingFactorDest.Zero
-            && SourceAlpha == BlendingFactorSrc.One
-            && DestinationAlpha == BlendingFactorDest.Zero;
+            Source == BlendingType.One
+            && Destination == BlendingType.Zero
+            && SourceAlpha == BlendingType.One
+            && DestinationAlpha == BlendingType.Zero
+            && RGBEquation == BlendingEquation.Add
+            && AlphaEquation == BlendingEquation.Add;
 
-        public override string ToString() => $"{Source}/{Destination}/{SourceAlpha}/{DestinationAlpha}";
+        public override string ToString() => $"BlendingParameter: Factor: {Source}/{Destination}/{SourceAlpha}/{DestinationAlpha} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
     }
 
-    public enum BlendingMode
+    public enum BlendingType
     {
-        /// <summary>
-        /// Inherits from parent.
-        /// </summary>
         Inherit = 0,
-
-        /// <summary>
-        /// Mixes with existing colour by a factor of the colour's alpha.
-        /// </summary>
-        Mixture,
-
-        /// <summary>
-        /// Purely additive (by a factor of the colour's alpha) blending.
-        /// </summary>
-        Additive,
-
-        /// <summary>
-        /// The blending mode will be manually provided.
-        /// </summary>
-        Custom,
-
-        /// <summary>
-        /// No alpha blending whatsoever.
-        /// </summary>
-        None,
+        ConstantAlpha,
+        ConstantColor,
+        DstAlpha,
+        DstColor,
+        One,
+        OneMinusConstantAlpha,
+        OneMinusConstantColor,
+        OneMinusDstAlpha,
+        OneMinusDstColor,
+        OneMinusSrcAlpha,
+        OneMinusSrcColor,
+        SrcAlpha,
+        SrcAlphaSaturate,
+        SrcColor,
+        Zero
     }
 
     public enum BlendingEquation
