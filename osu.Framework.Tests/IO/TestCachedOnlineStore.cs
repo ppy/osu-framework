@@ -98,7 +98,12 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestClearExpired()
         {
-            throw new NotImplementedException();
+            onlineStore = new CachedOnlineStore(onlineStoreCache = Barrel.Create(new TemporaryNativeStorage(Guid.NewGuid().ToString()).GetFullPath(string.Empty)), TimeSpan.FromMilliseconds(1));
+
+            onlineStore.Get(ru_flag_url);
+            onlineStore.Get(jp_flag_url);
+
+            Assert.That(onlineStore.Clear(), Is.EqualTo(2));
         }
     }
 }
