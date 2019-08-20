@@ -724,7 +724,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c);
+            return store.Get(Font.FontName, c)?.Texture ?? store.Get(null, c)?.Texture;
         }
 
         /// <summary>
