@@ -89,6 +89,73 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        /// <summary>
+        /// Copy all properties that are marked as inherited from a parent <see cref="BlendingParameters"/> object.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="BlendingParameters"/> from which to copy inherited properties.</param>
+        public void CopyFromParent(BlendingParameters parent)
+        {
+            if (Source == BlendingType.Inherit)
+                Source = parent.Source;
+
+            if (Destination == BlendingType.Inherit)
+                Destination = parent.Destination;
+
+            if (SourceAlpha == BlendingType.Inherit)
+                SourceAlpha = parent.SourceAlpha;
+
+            if (DestinationAlpha == BlendingType.Inherit)
+                DestinationAlpha = parent.DestinationAlpha;
+
+            if (RGBEquation == BlendingEquation.Inherit)
+                RGBEquation = parent.RGBEquation;
+
+            if (AlphaEquation == BlendingEquation.Inherit)
+                AlphaEquation = parent.AlphaEquation;
+        }
+
+        /// <summary>
+        /// Any properties marked as inherited will have their blending mode changed to the default type. This can occur when a root element is set to inherited.
+        /// </summary>
+        public void ApplyDefaultToInherited()
+        {
+            if (Source == BlendingType.Inherit)
+                Source = BlendingType.SrcAlpha;
+
+            if (Destination == BlendingType.Inherit)
+                Destination = BlendingType.OneMinusSrcAlpha;
+
+            if (SourceAlpha == BlendingType.Inherit)
+                SourceAlpha = BlendingType.One;
+
+            if (DestinationAlpha == BlendingType.Inherit)
+                DestinationAlpha = BlendingType.One;
+
+            if (RGBEquation == BlendingEquation.Inherit)
+                RGBEquation = BlendingEquation.Add;
+
+            if (AlphaEquation == BlendingEquation.Inherit)
+                AlphaEquation = BlendingEquation.Add;
+        }
+
+        public bool Equals(BlendingParameters other) =>
+            other.Source == Source
+            && other.Destination == Destination
+            && other.SourceAlpha == SourceAlpha
+            && other.DestinationAlpha == DestinationAlpha
+            && other.RGBEquation == RGBEquation
+            && other.AlphaEquation == AlphaEquation;
+
+        public bool IsDisabled =>
+            Source == BlendingType.One
+            && Destination == BlendingType.Zero
+            && SourceAlpha == BlendingType.One
+            && DestinationAlpha == BlendingType.Zero
+            && RGBEquation == BlendingEquation.Add
+            && AlphaEquation == BlendingEquation.Add;
+
+        public override string ToString() => $"BlendingParameter: Factor: {Source}/{Destination}/{SourceAlpha}/{DestinationAlpha} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
+
         #region GL Type Getters
 
         /// <summary>
@@ -246,72 +313,5 @@ namespace osu.Framework.Graphics
         }
 
         #endregion
-
-        /// <summary>
-        /// Copy all properties that are marked as inherited from a parent <see cref="BlendingParameters"/> object.
-        /// </summary>
-        /// <param name="parent">The parent <see cref="BlendingParameters"/> from which to copy inherited properties.</param>
-        public void CopyFromParent(BlendingParameters parent)
-        {
-            if (Source == BlendingType.Inherit)
-                Source = parent.Source;
-
-            if (Destination == BlendingType.Inherit)
-                Destination = parent.Destination;
-
-            if (SourceAlpha == BlendingType.Inherit)
-                SourceAlpha = parent.SourceAlpha;
-
-            if (DestinationAlpha == BlendingType.Inherit)
-                DestinationAlpha = parent.DestinationAlpha;
-
-            if (RGBEquation == BlendingEquation.Inherit)
-                RGBEquation = parent.RGBEquation;
-
-            if (AlphaEquation == BlendingEquation.Inherit)
-                AlphaEquation = parent.AlphaEquation;
-        }
-
-        /// <summary>
-        /// Any properties marked as inherited will have their blending mode changed to the default type. This can occur when a root element is set to inherited.
-        /// </summary>
-        public void ApplyDefaultToInherited()
-        {
-            if (Source == BlendingType.Inherit)
-                Source = BlendingType.SrcAlpha;
-
-            if (Destination == BlendingType.Inherit)
-                Destination = BlendingType.OneMinusSrcAlpha;
-
-            if (SourceAlpha == BlendingType.Inherit)
-                SourceAlpha = BlendingType.One;
-
-            if (DestinationAlpha == BlendingType.Inherit)
-                DestinationAlpha = BlendingType.One;
-
-            if (RGBEquation == BlendingEquation.Inherit)
-                RGBEquation = BlendingEquation.Add;
-
-            if (AlphaEquation == BlendingEquation.Inherit)
-                AlphaEquation = BlendingEquation.Add;
-        }
-
-        public bool Equals(BlendingParameters other) =>
-            other.Source == Source
-            && other.Destination == Destination
-            && other.SourceAlpha == SourceAlpha
-            && other.DestinationAlpha == DestinationAlpha
-            && other.RGBEquation == RGBEquation
-            && other.AlphaEquation == AlphaEquation;
-
-        public bool IsDisabled =>
-            Source == BlendingType.One
-            && Destination == BlendingType.Zero
-            && SourceAlpha == BlendingType.One
-            && DestinationAlpha == BlendingType.Zero
-            && RGBEquation == BlendingEquation.Add
-            && AlphaEquation == BlendingEquation.Add;
-
-        public override string ToString() => $"BlendingParameter: Factor: {Source}/{Destination}/{SourceAlpha}/{DestinationAlpha} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
     }
 }
