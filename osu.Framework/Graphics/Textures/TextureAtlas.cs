@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Textures
         // We are adding an extra padding on top of the padding required by
         // mipmap blending in order to support smooth edges without antialiasing which requires
         // inflating texture rectangles.
-        private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
+        private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) * Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
         internal TextureGLSingle AtlasTexture;
