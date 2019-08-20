@@ -200,24 +200,24 @@ namespace osu.Framework.IO.Stores
             glyphStores.ForEach(g => g.Dispose());
         }
 
-        private sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
+        internal sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
         {
             public Texture Texture { get; }
 
-            public float XOffset => glyph.XOffset * scaleAdjustment;
-            public float YOffset => glyph.YOffset * scaleAdjustment;
-            public float XAdvance => glyph.XAdvance * scaleAdjustment;
+            public float XOffset => glyph.XOffset * ScaleAdjustment;
+            public float YOffset => glyph.YOffset * ScaleAdjustment;
+            public float XAdvance => glyph.XAdvance * ScaleAdjustment;
             public char Character => glyph.Character;
-            public float Width => Texture.Width * scaleAdjustment;
-            public float Height => Texture.Height * scaleAdjustment;
+            public float Width => Texture.Width * ScaleAdjustment;
+            public float Height => Texture.Height * ScaleAdjustment;
 
+            public readonly float ScaleAdjustment;
             private readonly CharacterGlyph glyph;
-            private readonly float scaleAdjustment;
 
             public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scaleAdjustment)
             {
                 this.glyph = glyph;
-                this.scaleAdjustment = scaleAdjustment;
+                this.ScaleAdjustment = scaleAdjustment;
 
                 Texture = texture;
             }
@@ -225,7 +225,7 @@ namespace osu.Framework.IO.Stores
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public float GetKerning<T>(T lastGlyph)
                 where T : ICharacterGlyph
-                => glyph.GetKerning(lastGlyph) * scaleAdjustment;
+                => glyph.GetKerning(lastGlyph) * ScaleAdjustment;
         }
     }
 }
