@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Text
         {
             var builder = new TextBuilder(fontStore, normal_font);
 
-            Assert.That(builder.TextSize, Is.EqualTo(Vector2.Zero));
+            Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace osu.Framework.Tests.Text
             builder.AddText("a");
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.TextSize, Is.EqualTo(Vector2.Zero));
+            Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
 
             builder.AddText("a");
 
@@ -268,7 +268,7 @@ namespace osu.Framework.Tests.Text
             builder.AddText("a");
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.TextSize, Is.EqualTo(new Vector2(x_advance, font_size)));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance, font_size)));
 
             builder.AddText("a");
 
@@ -288,12 +288,12 @@ namespace osu.Framework.Tests.Text
             builder.AddText("a");
             builder.RemoveLastCharacter();
 
-            Assert.That(builder.TextSize, Is.EqualTo(new Vector2(x_advance, font_size)));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance, font_size)));
 
             builder.AddText("a");
 
             Assert.That(builder.Characters[1].DrawRectangle.TopLeft, Is.EqualTo(new Vector2(x_advance + spacing.X + kerning + x_offset, y_offset)));
-            Assert.That(builder.TextSize, Is.EqualTo(new Vector2(x_advance + spacing.X + kerning + x_advance, font_size)));
+            Assert.That(builder.Bounds, Is.EqualTo(new Vector2(x_advance + spacing.X + kerning + x_advance, font_size)));
         }
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
-            Assert.That(builder.TextSize, Is.EqualTo(Vector2.Zero));
+            Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
         private struct TestFontUsage
