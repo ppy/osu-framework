@@ -119,11 +119,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private BlendingParameters effectBlending;
+        private BlendingParameters effectBlending = BlendingParameters.Inherit;
 
         /// <summary>
-        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
-        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingType.Inherit"/>.
+        /// <see cref="BlendingType.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public BlendingParameters EffectBlending
@@ -286,14 +286,9 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 BlendingParameters blending = EffectBlending;
-                if (blending.Mode == BlendingMode.Inherit)
-                    blending.Mode = Blending.Mode;
 
-                if (blending.RGBEquation == BlendingEquation.Inherit)
-                    blending.RGBEquation = Blending.RGBEquation;
-
-                if (blending.AlphaEquation == BlendingEquation.Inherit)
-                    blending.AlphaEquation = Blending.AlphaEquation;
+                blending.CopyFromParent(Blending);
+                blending.ApplyDefaultToInherited();
 
                 return blending;
             }
