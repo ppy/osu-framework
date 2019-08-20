@@ -7,17 +7,17 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 
 namespace osu.Framework.IO.Stores
 {
-    public class FontStore : TextureStore
+    public class FontStore : TextureStore, ITexturedGlyphLookupStore
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
-
-        private readonly Func<(string, char), Texture> cachedTextureLookup;
 
         private Storage cacheStorage;
 
@@ -25,17 +25,16 @@ namespace osu.Framework.IO.Stores
         /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
         /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
         /// </summary>
-        private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
+        private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
 
         public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust: scaleAdjust, useAtlas: false)
+            : this(store, scaleAdjust, false)
         {
         }
 
         internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null)
             : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
         {
-            cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
             this.cacheStorage = cacheStorage;
         }
 
@@ -131,6 +130,33 @@ namespace osu.Framework.IO.Stores
             return found;
         }
 
+        public ITexturedCharacterGlyph Get(string fontName, char character)
+        {
+            var key = (fontName, character);
+
+            if (namespacedGlyphCache.TryGetValue(key, out var existing))
+                return existing;
+
+            string textureName = string.IsNullOrEmpty(fontName) ? character.ToString() : $"{fontName}/{character}";
+
+            foreach (var store in glyphStores)
+            {
+                if ((string.IsNullOrEmpty(fontName) || fontName == store.FontName) && store.HasGlyph(character))
+                    return namespacedGlyphCache[key] = new TexturedCharacterGlyph(store.Get(character), Get(textureName), 1 / ScaleAdjust);
+            }
+
+            foreach (var store in nestedFontStores)
+            {
+                var glyph = store.Get(fontName, character);
+                if (glyph != null)
+                    return namespacedGlyphCache[key] = glyph;
+            }
+
+            return namespacedGlyphCache[key] = null;
+        }
+
+        public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
+
         public float? GetBaseHeight(char c)
         {
             foreach (var store in glyphStores)
@@ -174,6 +200,32 @@ namespace osu.Framework.IO.Stores
             glyphStores.ForEach(g => g.Dispose());
         }
 
-        public Texture GetCharacter(string fontName, char charName) => namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
+        private sealed class TexturedCharacterGlyph : ITexturedCharacterGlyph
+        {
+            public Texture Texture { get; }
+
+            public float XOffset => glyph.XOffset * scaleAdjustment;
+            public float YOffset => glyph.YOffset * scaleAdjustment;
+            public float XAdvance => glyph.XAdvance * scaleAdjustment;
+            public char Character => glyph.Character;
+            public float Width => Texture.Width * scaleAdjustment;
+            public float Height => Texture.Height * scaleAdjustment;
+
+            private readonly CharacterGlyph glyph;
+            private readonly float scaleAdjustment;
+
+            public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scaleAdjustment)
+            {
+                this.glyph = glyph;
+                this.scaleAdjustment = scaleAdjustment;
+
+                Texture = texture;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public float GetKerning<T>(T lastGlyph)
+                where T : ICharacterGlyph
+                => glyph.GetKerning(lastGlyph) * scaleAdjustment;
+        }
     }
 }
