@@ -18,7 +18,8 @@ namespace osu.Framework.Graphics.Textures
         // We are adding an extra padding on top of the padding required by
         // mipmap blending in order to support smooth edges without antialiasing which requires
         // inflating texture rectangles.
-        private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
+        internal const int PADDING = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) * Sprite.MAX_EDGE_SMOOTHNESS;
+        internal const int WHITE_PIXEL_SIZE = 3 * (1 << TextureGLSingle.MAX_MIPMAP_LEVELS);
 
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
         internal TextureGLSingle AtlasTexture;
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly int atlasWidth;
         private readonly int atlasHeight;
 
-        private int currentY;
+        private Vector2I currentPosition;
 
         private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
@@ -58,12 +59,14 @@ namespace osu.Framework.Graphics.Textures
         public void Reset()
         {
             subTextureBounds.Clear();
-            currentY = 0;
+            currentPosition = Vector2I.Zero;
 
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
-            using (var whiteTex = Add(3, 3))
+            using (var whiteTex = Add(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE))
                 whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
+
+            currentPosition = new Vector2I(Math.Max(currentPosition.X, PADDING), PADDING);
         }
 
         private Vector2I findPosition(int width, int height)
@@ -73,33 +76,28 @@ namespace osu.Framework.Graphics.Textures
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-            else if (currentY + height > atlasHeight)
+            else if (currentPosition.Y + height > atlasHeight - PADDING)
             {
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-
-            // Super naive implementation only going from left to right.
-            Vector2I res = new Vector2I(0, currentY);
-
-            int maxY = currentY;
-
-            foreach (RectangleI bounds in subTextureBounds)
+            else if (currentPosition.X + width > atlasWidth - PADDING)
             {
-                // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                res.X = Math.Max(res.X, bounds.Right + padding);
-                maxY = Math.Max(maxY, bounds.Bottom);
-            }
+                int maxY = 0;
 
-            if (res.X + width > atlasWidth)
-            {
-                // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                currentY = maxY + padding;
+                foreach (RectangleI bounds in subTextureBounds)
+                    maxY = Math.Max(maxY, bounds.Bottom + PADDING);
+
                 subTextureBounds.Clear();
-                res = findPosition(width, height);
+                currentPosition = new Vector2I(PADDING, maxY);
+
+                return findPosition(width, height);
             }
 
-            return res;
+            var result = currentPosition;
+            currentPosition.X += width + PADDING;
+
+            return result;
         }
 
         /// <summary>
