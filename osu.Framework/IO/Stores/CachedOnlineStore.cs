@@ -13,13 +13,18 @@ namespace osu.Framework.IO.Stores
     /// </summary>
     public class CachedOnlineStore : OnlineStore
     {
+        /// <summary>
+        /// Fired on getting item from cache. This event is required for testing.
+        /// </summary>
+        public event Action<string> CacheItemReturned;
+
         private readonly IBarrel cache;
         public readonly TimeSpan Duration;
 
         /// <summary>
         /// Constructs a <see cref="CachedOnlineStore"/>
         /// </summary>
-        /// <param name="cachePath"></param>
+        /// <param name="cache"><see cref="IBarrel"/> implementation used for caching</param>
         /// <param name="duration">The amount of time since last access after which a file will be considered expired.</param>
         public CachedOnlineStore(IBarrel cache, TimeSpan duration)
         {
@@ -35,7 +40,10 @@ namespace osu.Framework.IO.Stores
         public override async Task<byte[]> GetAsync(string url)
         {
             if (!cache.IsExpired(url))
+            {
+                CacheItemReturned?.Invoke(url);
                 return cache.Get<byte[]>(url);
+            }
 
             var data = await base.GetAsync(url);
             cache.Add(url, data, Duration);
@@ -51,7 +59,10 @@ namespace osu.Framework.IO.Stores
         public override byte[] Get(string url)
         {
             if (!cache.IsExpired(url))
+            {
+                CacheItemReturned?.Invoke(url);
                 return cache.Get<byte[]>(url);
+            }
 
             var data = base.Get(url);
             cache.Add(url, data, Duration);
@@ -62,7 +73,10 @@ namespace osu.Framework.IO.Stores
         public override Stream GetStream(string url)
         {
             if (!cache.IsExpired(url))
+            {
+                CacheItemReturned?.Invoke(url);
                 return new MemoryStream(cache.Get<byte[]>(url));
+            }
 
             var stream = base.GetStream(url);
 

@@ -42,7 +42,14 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGetFromCache()
         {
-            throw new NotImplementedException();
+            var cacheItemReturned = false;
+            onlineStore.CacheItemReturned += _ => { cacheItemReturned = true; };
+
+            onlineStore.Get(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.False);
+
+            onlineStore.Get(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.True);
         }
 
         [Test]
@@ -56,7 +63,14 @@ namespace osu.Framework.Tests.IO
         [Test]
         public async Task TestGetFromCacheAsync()
         {
-            throw new NotImplementedException();
+            var cacheItemReturned = false;
+            onlineStore.CacheItemReturned += _ => { cacheItemReturned = true; };
+
+            await onlineStore.GetAsync(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.False);
+
+            await onlineStore.GetAsync(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.True);
         }
 
         [Test]
@@ -66,6 +80,19 @@ namespace osu.Framework.Tests.IO
             var stream = onlineStore.GetStream(ru_flag_url);
             Assert.That(stream, Is.Not.Null);
             Assert.That(onlineStoreCache.Exists(ru_flag_url), Is.True);
+        }
+
+        [Test]
+        public void TestGetStreamFromCache()
+        {
+            var cacheItemReturned = false;
+            onlineStore.CacheItemReturned += _ => { cacheItemReturned = true; };
+
+            onlineStore.GetStream(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.False);
+
+            onlineStore.GetStream(ru_flag_url);
+            Assert.That(cacheItemReturned, Is.True);
         }
 
         [Test]
