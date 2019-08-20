@@ -74,13 +74,16 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Equals(loadableIcon, loadedIcon)) return;
 
-            var texture = store.Get(loadableIcon.FontName, Icon.Icon).Texture;
+            var glyph = store.Get(loadableIcon.FontName, Icon.Icon);
 
-            spriteMain.Texture = texture;
-            spriteShadow.Texture = texture;
+            if (glyph != null)
+            {
+                spriteMain.Texture = glyph.Texture;
+                spriteShadow.Texture = glyph.Texture;
 
-            if (Size == Vector2.Zero)
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(glyph.Width, glyph.Height);
+            }
 
             loadedIcon = loadableIcon;
         }
