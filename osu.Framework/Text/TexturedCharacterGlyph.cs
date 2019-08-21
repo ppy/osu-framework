@@ -23,7 +23,7 @@ namespace osu.Framework.Text
         public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scaleAdjustment)
         {
             this.glyph = glyph;
-            this.ScaleAdjustment = scaleAdjustment;
+            ScaleAdjustment = scaleAdjustment;
 
             Texture = texture;
         }
