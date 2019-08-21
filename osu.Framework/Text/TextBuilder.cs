@@ -192,7 +192,13 @@ namespace osu.Framework.Text
             if (removedCharacter.OnNewLine)
             {
                 // Move up to the previous line
-                currentPos.Y -= currentLineHeight + spacing.Y;
+                currentPos.Y -= currentLineHeight;
+
+                // If this is the first line (ie. there are no characters remaining) we shouldn't be removing the spacing,
+                // as there is no spacing applied to the first line.
+                if (Characters.Count > 0)
+                    currentPos.Y -= spacing.Y;
+
                 currentPos.X = 0;
 
                 if (previousCharacter != null)
