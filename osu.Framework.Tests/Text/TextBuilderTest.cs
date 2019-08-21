@@ -244,7 +244,7 @@ namespace osu.Framework.Tests.Text
         [Test]
         public void TestRemoveFirstCharacterResetsCurrentPosition()
         {
-            var builder = new TextBuilder(fontStore, normal_font);
+            var builder = new TextBuilder(fontStore, normal_font, spacing: spacing);
 
             builder.AddText("a");
             builder.RemoveLastCharacter();
@@ -253,6 +253,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset));
             Assert.That(builder.Characters[0].DrawRectangle.Left, Is.EqualTo(x_offset));
         }
 
@@ -272,6 +273,7 @@ namespace osu.Framework.Tests.Text
 
             builder.AddText("a");
 
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(y_offset));
             Assert.That(builder.Characters[1].DrawRectangle.Left, Is.EqualTo(x_advance + spacing.X + kerning + x_offset));
         }
 
