@@ -34,8 +34,8 @@ namespace osu.Framework.Tests.IO
             var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans", 'a');
             var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Bold", 'a');
 
-            Assert.That(normalGlyph.ScaleAdjustment, Is.EqualTo(1f / 100));
-            Assert.That(boldGlyph.ScaleAdjustment, Is.EqualTo(1f / 10));
+            Assert.That(normalGlyph.Scale, Is.EqualTo(1f / 100));
+            Assert.That(boldGlyph.Scale, Is.EqualTo(1f / 10));
         }
 
         [OneTimeTearDown]

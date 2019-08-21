@@ -10,27 +10,36 @@ namespace osu.Framework.Text
     {
         public Texture Texture { get; }
 
-        public float XOffset => glyph.XOffset * ScaleAdjustment;
-        public float YOffset => glyph.YOffset * ScaleAdjustment;
-        public float XAdvance => glyph.XAdvance * ScaleAdjustment;
+        public float XOffset => glyph.XOffset * Scale;
+        public float YOffset => glyph.YOffset * Scale;
+        public float XAdvance => glyph.XAdvance * Scale;
         public char Character => glyph.Character;
-        public float Width => Texture.Width * ScaleAdjustment;
-        public float Height => Texture.Height * ScaleAdjustment;
+        public float Width => Texture.Width * Scale;
+        public float Height => Texture.Height * Scale;
 
-        public readonly float ScaleAdjustment;
+        /// <summary>
+        /// An adjustment factor in scale. This is applied to all other returned metric properties.
+        /// </summary>
+        public readonly float Scale;
+
         private readonly CharacterGlyph glyph;
 
-        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scaleAdjustment)
+        /// <summary>
+        /// Create a new <see cref="TexturedCharacterGlyph"/> instance.
+        /// </summary>
+        /// <param name="glyph">The glyph.</param>
+        /// <param name="texture">The texture.</param>
+        /// <param name="scale">A scale factor to apply to exposed glyph metrics.</param>
+        public TexturedCharacterGlyph(CharacterGlyph glyph, Texture texture, float scale = 1)
         {
             this.glyph = glyph;
-            ScaleAdjustment = scaleAdjustment;
-
+            Scale = scale;
             Texture = texture;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float GetKerning<T>(T lastGlyph)
             where T : ICharacterGlyph
-            => glyph.GetKerning(lastGlyph) * ScaleAdjustment;
+            => glyph.GetKerning(lastGlyph) * Scale;
     }
 }
