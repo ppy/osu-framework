@@ -46,7 +46,7 @@ namespace osu.Framework.Text
         private bool addingEllipsis;
         private bool ellipsisAdded;
 
-        protected override bool CanAddCharacters => base.CanAddCharacters && !ellipsisAdded || addingEllipsis;
+        protected override bool CanAddCharacters => (base.CanAddCharacters && !ellipsisAdded) || addingEllipsis;
 
         protected override bool HasAvailableSpace(float length) => base.HasAvailableSpace(length) || addingEllipsis;
 
