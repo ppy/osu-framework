@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawOriginal && effectPlacement == EffectPlacement.InFront)
                     base.DrawContents();
 
-                GLWrapper.SetBlend(new BlendingInfo(effectBlending));
+                GLWrapper.SetBlend(effectBlending);
 
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(effectColour);
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
                 FrameBuffer current = SharedData.CurrentEffectBuffer;
                 FrameBuffer target = SharedData.GetNextEffectBuffer();
 
-                GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
+                GLWrapper.SetBlend(BlendingParameters.None);
 
                 using (BindFrameBuffer(target))
                 {
