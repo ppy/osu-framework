@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Performance
                 Font = new FontUsage(fixedWidth: true);
             }
 
-            protected override char[] NeverFixedWidthCharacters { get; } = { ',', '.', ' ' };
+            protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
         }
     }
 }

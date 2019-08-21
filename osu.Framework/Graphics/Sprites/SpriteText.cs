@@ -566,9 +566,9 @@ namespace osu.Framework.Graphics.Sprites
         #endregion
 
         /// <summary>
-        /// The characters for which fixed-width spacing should never be applied. Defaults to (".", ",", ":", " ") if null.
+        /// The characters that should be excluded from fixed-width application. Defaults to (".", ",", ":", " ") if null.
         /// </summary>
-        protected virtual char[] NeverFixedWidthCharacters { get; } = null;
+        protected virtual char[] FixedWidthExcludeCharacters { get; } = null;
 
         /// <summary>
         /// The character to fallback to use if a character glyph lookup failed.
@@ -582,24 +582,24 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>The <see cref="TextBuilder"/>.</returns>
         protected virtual TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
         {
-            var neverFixedWidthCharacters = NeverFixedWidthCharacters ?? default_never_fixed_width_characters;
+            var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
             float maxWidth = requiresAutoSizedWidth ? float.PositiveInfinity : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
 
             if (AllowMultiline)
             {
                 return new MultilineTextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    neverFixedWidthCharacters, FallbackCharacter);
+                    excludeCharacters, FallbackCharacter);
             }
 
             if (Truncate)
             {
                 return new TruncatingTextBuilder(store, Font, maxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    neverFixedWidthCharacters, FallbackCharacter);
+                    excludeCharacters, FallbackCharacter);
             }
 
             return new TextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                neverFixedWidthCharacters, FallbackCharacter);
+                excludeCharacters, FallbackCharacter);
         }
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();

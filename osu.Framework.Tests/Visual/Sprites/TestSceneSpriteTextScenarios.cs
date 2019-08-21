@@ -238,7 +238,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Font = new FontUsage(fixedWidth: true);
             }
 
-            protected override char[] NeverFixedWidthCharacters { get; } = { ' ' };
+            protected override char[] FixedWidthExcludeCharacters { get; } = { ' ' };
         }
 
         private class LocalisableTestContainer : Container
