@@ -79,20 +79,22 @@ namespace osu.Framework.Text
         public void AddText(string text)
         {
             foreach (var c in text)
-                AddCharacter(c);
+                if (!AddCharacter(c))
+                    break;
         }
 
         /// <summary>
         /// Appends a character to this <see cref="TextBuilder"/>.
         /// </summary>
         /// <param name="character">The character to append.</param>
-        public void AddCharacter(char character)
+        /// <returns>Whether characters can still be added.</returns>
+        public bool AddCharacter(char character)
         {
             if (!CanAddCharacters)
-                return;
+                return false;
 
             if (!tryCreateGlyph(character, out var glyph))
-                return;
+                return true;
 
             // For each character that is added:
             // 1. Add the kerning to the current position if required.
@@ -116,7 +118,7 @@ namespace osu.Framework.Text
                 OnWidthExceeded();
 
                 if (!CanAddCharacters)
-                    return;
+                    return false;
             }
 
             // The kerning is only added after it is guaranteed that the character will be added, to not leave the current position in a bad state
@@ -131,6 +133,7 @@ namespace osu.Framework.Text
             currentNewLine = false;
 
             Bounds = Vector2.ComponentMax(Bounds, currentPos + new Vector2(0, currentLineHeight));
+            return true;
         }
 
         /// <summary>
@@ -241,7 +244,7 @@ namespace osu.Framework.Text
         /// Whether there is enough space in the available text bounds.
         /// </summary>
         /// <param name="length">The space requested.</param>
-        protected bool HasAvailableSpace(float length) => currentPos.X + length <= maxWidth;
+        protected virtual bool HasAvailableSpace(float length) => currentPos.X + length <= maxWidth;
 
         /// <summary>
         /// Retrieves the height of a glyph.
