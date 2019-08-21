@@ -48,6 +48,8 @@ namespace osu.Framework.Text
 
         protected override bool CanAddCharacters => base.CanAddCharacters && !ellipsisAdded || addingEllipsis;
 
+        protected override bool HasAvailableSpace(float length) => base.HasAvailableSpace(length) || addingEllipsis;
+
         protected override void OnWidthExceeded()
         {
             if (addingEllipsis)
@@ -83,7 +85,7 @@ namespace osu.Framework.Text
                     if (Characters[Characters.Count - 1].IsWhiteSpace())
                         continue;
 
-                    if (HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[Characters.Count - 1]) + spacing.X + ellipsisWidth))
+                    if (base.HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[Characters.Count - 1]) + spacing.X + ellipsisWidth))
                         break;
                 }
 
