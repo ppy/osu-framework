@@ -273,7 +273,7 @@ namespace osu.Framework.Text
 
         private readonly Cached<float> constantWidthCache = new Cached<float>();
 
-        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph('m')?.Width ?? 0;
+        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph('D')?.Width ?? 0;
 
         private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
         {
@@ -287,7 +287,7 @@ namespace osu.Framework.Text
 
             // Array.IndexOf is used to avoid LINQ
             if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
-                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth());
+                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, Math.Max(fontStoreGlyph.XAdvance, getConstantWidth()));
             else
                 glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size);
 
