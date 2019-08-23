@@ -10,7 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestSceneButtonGroup : VisibilityContainer, IHasFilterableChildren
+    internal class TestGroupButton : VisibilityContainer, IHasFilterableChildren
     {
         public IEnumerable<string> FilterTerms => headerButton?.FilterTerms ?? Enumerable.Empty<string>();
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Testing.Drawables
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
         private readonly FillFlowContainer<TestSceneButton> buttonFlow;
-        private readonly TestSceneHeaderButton headerButton;
+        private readonly TestButton headerButton;
 
         public readonly TestGroup Group;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
-        public TestSceneButtonGroup(Action<Type> loadTest, TestGroup group)
+        public TestGroupButton(Action<Type> loadTest, TestGroup group)
         {
             var tests = group.TestTypes;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Testing.Drawables
             bool hasHeader = tests.Length > 1;
 
             if (hasHeader)
-                buttonFlow.Add(headerButton = new TestSceneHeaderButton(group.Name)
+                buttonFlow.Add(headerButton = new TestButton(group.Name)
                 {
                     Action = ToggleVisibility
                 });
