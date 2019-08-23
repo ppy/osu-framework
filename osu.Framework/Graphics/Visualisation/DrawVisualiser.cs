@@ -18,7 +18,8 @@ using osuTK;
 namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
-    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables
+    // Implementing IRequireHighFrequencyMousePosition is necessary to gain the ability to block high frequency mouse position updates.
+    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
     {
         public Vector2 ToolPosition
         {
@@ -110,7 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
             inputManager = GetContainingInputManager();
         }
 
-        protected override bool BlockPositionalInput => Searching;
+        protected override bool Handle(UIEvent e) => Searching;
 
         protected override void PopIn()
         {
