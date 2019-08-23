@@ -54,7 +54,6 @@ namespace osu.Framework.Testing.Drawables
                     Size = new Vector2(10),
                     Icon = FontAwesome.Solid.ChevronDown,
                     Colour = Color4.White,
-                    Y = -1,
                     Margin = new MarginPadding { Right = left_box_width + 5 },
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
