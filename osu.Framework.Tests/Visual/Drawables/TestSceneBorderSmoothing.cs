@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         new IssueButton
                         {
                             OverlayColour = Color4.White.Opacity(0.5f),
-                            Text = "transparent white bg"
+                            Text = "0.5 white bg"
                         },
                         new IssueButton
                         {
@@ -75,6 +75,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     }
                 }
             };
+
+            AddSliderStep("adjust alpha", 0f, 1f, 1, val => Child.Alpha = val);
         }
 
         private class IssueButton : Button
