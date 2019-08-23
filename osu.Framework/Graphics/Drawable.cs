@@ -1461,6 +1461,25 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <see cref="T"/> is found.</returns>
+        internal T FindClosestParent<T>() where T : IDrawable
+        {
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+                if (cursor is T match)
+                    return match;
+
+            return default;
+        }
+
+        /// <summary>
         /// Refers to the original if this drawable was created via
         /// <see cref="CreateProxy"/>. Otherwise refers to this.
         /// </summary>
@@ -1556,18 +1575,11 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
-                if (localBlending.Mode == BlendingMode.Inherit)
-                    localBlending.Mode = Parent.Blending.Mode;
+                localBlending.CopyFromParent(Parent.Blending);
 
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+            localBlending.ApplyDefaultToInherited();
 
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
-
-            ci.Blending = new BlendingInfo(localBlending);
+            ci.Blending = localBlending;
 
             ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
@@ -2023,6 +2035,7 @@ namespace osu.Framework.Graphics
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
+                typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
             };
 

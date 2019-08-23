@@ -416,7 +416,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                 if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
                 {
-                    updateMemoryUsage(upload.Level, width * height * 4);
+                    updateMemoryUsage(upload.Level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                 }
                 else
@@ -460,7 +460,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             using (var image = new Image<Rgba32>(width, height))
                 fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
                 {
-                    updateMemoryUsage(level, width * height * 4);
+                    updateMemoryUsage(level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
                 }
         }

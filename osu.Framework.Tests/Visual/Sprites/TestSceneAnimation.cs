@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load()
             {
                 for (int i = 0; i <= 9; i++)
-                    AddFrame(new Texture(fontStore.GetCharacter(null, i.ToString()[0]).TextureGL) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
+                    AddFrame(new Texture(fontStore.Get(null, i.ToString()[0]).Texture.TextureGL) { ScaleAdjust = 1 + i / 2 }, 1000.0 / 60 * 6);
             }
         }
     }

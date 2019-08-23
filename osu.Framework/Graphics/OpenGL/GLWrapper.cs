@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
+        public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
         private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
 
@@ -76,6 +77,7 @@ namespace osu.Framework.Graphics.OpenGL
             reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
+            MaxRenderBufferSize = GL.GetInteger(GetPName.MaxRenderbufferSize);
 
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
@@ -114,7 +116,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             lastActiveBatch = null;
-            lastBlendingInfo = new BlendingInfo();
+            lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
 
             foreach (var b in batch_reset_list)
@@ -309,21 +311,21 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        private static BlendingInfo lastBlendingInfo;
+        private static BlendingParameters lastBlendingParameters;
         private static bool? lastBlendingEnabledState;
 
         /// <summary>
         /// Sets the blending function to draw with.
         /// </summary>
-        /// <param name="blendingInfo">The info we should use to update the active state.</param>
-        public static void SetBlend(BlendingInfo blendingInfo)
+        /// <param name="blendingParameters">The info we should use to update the active state.</param>
+        public static void SetBlend(BlendingParameters blendingParameters)
         {
-            if (lastBlendingInfo.Equals(blendingInfo))
+            if (lastBlendingParameters.Equals(blendingParameters))
                 return;
 
             FlushCurrentBatch();
 
-            if (blendingInfo.IsDisabled)
+            if (blendingParameters.IsDisabled)
             {
                 if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
                     GL.Disable(EnableCap.Blend);
@@ -337,11 +339,12 @@ namespace osu.Framework.Graphics.OpenGL
 
                 lastBlendingEnabledState = true;
 
-                GL.BlendEquationSeparate(blendingInfo.RGBEquation, blendingInfo.AlphaEquation);
-                GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+                GL.BlendEquationSeparate(blendingParameters.RGBEquationMode, blendingParameters.AlphaEquationMode);
+                GL.BlendFuncSeparate(blendingParameters.SourceBlendingFactor, blendingParameters.DestinationBlendingFactor,
+                    blendingParameters.SourceAlphaBlendingFactor, blendingParameters.DestinationAlphaBlendingFactor);
             }
 
-            lastBlendingInfo = blendingInfo;
+            lastBlendingParameters = blendingParameters;
         }
 
         private static readonly Stack<RectangleI> viewport_stack = new Stack<RectangleI>();
