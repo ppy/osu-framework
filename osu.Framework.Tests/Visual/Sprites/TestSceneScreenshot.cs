@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Masking = true,
                 BorderColour = Color4.Green,
                 BorderThickness = 2,
-                Children = new Drawable[]
+                Children = new[]
                 {
                     background = new Box
                     {
