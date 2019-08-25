@@ -1,36 +1,69 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
-    public class AudioComponentTest : AudioTest
+    public class AudioComponentTest
     {
+        private AudioThread thread;
+        private NamespacedResourceStore<byte[]> store;
+        private AudioManager manager;
+
+        [SetUp]
+        public void SetUp()
+        {
+            Architecture.SetIncludePath();
+
+            thread = new AudioThread();
+            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+
+            manager = new AudioManager(thread, store, store);
+
+            thread.Start();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Assert.IsFalse(thread.Exited);
+
+            thread.Exit();
+
+            Thread.Sleep(500);
+
+            Assert.IsTrue(thread.Exited);
+        }
+
         [Test]
         public void TestNestedStoreAdjustments()
         {
-            var customStore = Manager.GetSampleStore(new ResourceStore<byte[]>());
+            var customStore = manager.GetSampleStore(new ResourceStore<byte[]>());
 
-            checkAggregateVolume(Manager.Samples, 1);
+            checkAggregateVolume(manager.Samples, 1);
             checkAggregateVolume(customStore, 1);
 
-            Manager.Samples.Volume.Value = 0.5;
+            manager.Samples.Volume.Value = 0.5;
 
-            WaitAudioFrame();
+            waitAudioFrame();
 
-            checkAggregateVolume(Manager.Samples, 0.5);
+            checkAggregateVolume(manager.Samples, 0.5);
             checkAggregateVolume(customStore, 0.5);
 
             customStore.Volume.Value = 0.5;
 
-            WaitAudioFrame();
+            waitAudioFrame();
 
-            checkAggregateVolume(Manager.Samples, 0.5);
+            checkAggregateVolume(manager.Samples, 0.5);
             checkAggregateVolume(customStore, 0.25);
         }
 
@@ -42,9 +75,9 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestVirtualTrack()
         {
-            var track = Manager.Tracks.GetVirtual();
+            var track = manager.Tracks.GetVirtual();
 
-            WaitAudioFrame();
+            waitAudioFrame();
 
             checkTrackCount(1);
 
@@ -52,7 +85,7 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(0, track.CurrentTime);
 
             track.Start();
-            WaitAudioFrame();
+            waitAudioFrame();
 
             Assert.Greater(track.CurrentTime, 0);
 
@@ -60,7 +93,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(track.IsRunning);
 
             track.Dispose();
-            WaitAudioFrame();
+            waitAudioFrame();
 
             checkTrackCount(0);
         }
@@ -68,17 +101,17 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestTrackVirtualSeekCurrent()
         {
-            var trackVirtual = Manager.Tracks.GetVirtual();
+            var trackVirtual = manager.Tracks.GetVirtual();
             trackVirtual.Start();
 
-            WaitAudioFrame();
+            waitAudioFrame();
 
             Assert.Greater(trackVirtual.CurrentTime, 0);
 
             trackVirtual.Tempo.Value = 2.0f;
             trackVirtual.Frequency.Value = 2.0f;
 
-            WaitAudioFrame();
+            waitAudioFrame();
 
             Assert.AreEqual(4.0f, trackVirtual.Rate);
 
@@ -92,6 +125,32 @@ namespace osu.Framework.Tests.Audio
         }
 
         private void checkTrackCount(int expected)
-            => Assert.AreEqual(expected, ((TrackStore)Manager.Tracks).Items.Count);
+            => Assert.AreEqual(expected, ((TrackStore)manager.Tracks).Items.Count);
+
+        /// <summary>
+        /// Block for a specified number of audio thread frames.
+        /// </summary>
+        /// <param name="count">The number of frames to wait for. Two frames is generally considered safest.</param>
+        private void waitAudioFrame(int count = 2)
+        {
+            var cts = new TaskCompletionSource<bool>();
+
+            void runScheduled()
+            {
+                thread.Scheduler.Add(() =>
+                {
+                    if (count-- > 0)
+                        runScheduled();
+                    else
+                    {
+                        cts.SetResult(true);
+                    }
+                });
+            }
+
+            runScheduled();
+
+            Task.WaitAll(cts.Task);
+        }
     }
 }
