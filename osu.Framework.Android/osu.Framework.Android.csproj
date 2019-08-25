@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+﻿<Project Sdk="MSBuild.Sdk.Extras/2.0.41">
   <PropertyGroup Label="Project">
     <TargetFramework>monoandroid80</TargetFramework>
     <OutputType>Library</OutputType>
@@ -41,4 +41,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <!-- https://github.com/onovotny/MSBuildSdkExtras/issues/181 -->
+  <Target Name="_RemoveNonExistingResgenFile" BeforeTargets="CoreCompile" Condition="'$(_AndroidResourceDesignerFile)' != '' And !Exists('$(_AndroidResourceDesignerFile)')">
+    <ItemGroup>
+      <Compile Remove="$(_AndroidResourceDesignerFile)"/>
+    </ItemGroup>
+  </Target>
 </Project>
