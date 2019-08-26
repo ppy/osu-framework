@@ -24,11 +24,14 @@ namespace osu.Framework.Audio.Sample
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            EnqueueAction(() =>
+            if (data.Length > 0)
             {
-                sampleId = loadSample(data);
-                memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
-            });
+                EnqueueAction(() =>
+                {
+                    sampleId = loadSample(data);
+                    memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
+                });
+            }
         }
 
         protected override void Dispose(bool disposing)
