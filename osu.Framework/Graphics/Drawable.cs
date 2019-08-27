@@ -1915,7 +1915,7 @@ namespace osu.Framework.Graphics
                     return OnJoystickRelease(joystickRelease);
 
                 default:
-                    return false;
+                    return Handle(e);
             }
         }
 
