@@ -119,9 +119,5 @@ namespace osu.Framework.Graphics.Sprites
                 return hashCode;
             }
         }
-
-        #region Obsolete
-
-        #endregion
     }
 }
