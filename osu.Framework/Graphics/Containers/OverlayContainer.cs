@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
 
                     break;
 
-                default:
+                case MouseEvent _:
                     if (BlockPositionalInput)
                         return true;
 
