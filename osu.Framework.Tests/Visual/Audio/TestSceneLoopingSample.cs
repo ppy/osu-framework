@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Audio
             AddAssert("is still playing", () => sampleChannel.Playing);
 
             AddStep("disable looping", () => sampleChannel.Looping = false);
-            AddAssert("not playing", () => !sampleChannel.Playing);
+            AddUntilStep("ensure stops", () => !sampleChannel.Playing);
         }
 
         [Test]
