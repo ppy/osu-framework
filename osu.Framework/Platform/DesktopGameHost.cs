@@ -81,6 +81,7 @@ namespace osu.Framework.Platform
                 new OsuTKMouseHandler(),
                 new OsuTKKeyboardHandler(),
                 new OsuTKJoystickHandler(),
+                new MidiInputHandler(),
             };
 
             var defaultDisabled = new InputHandler[]

@@ -53,7 +53,7 @@ namespace osu.Framework.Input
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
         /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
-        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new JoystickState());
+        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new JoystickState(), new MidiState());
 
         /// <summary>
         /// The last processed state.
@@ -429,6 +429,20 @@ namespace osu.Framework.Input
             }
         }
 
+        protected virtual void HandleMidiKeyStateChange(MidiStateChangeEvent midiKeyStateChange)
+        {
+            var state = midiKeyStateChange.State;
+            var key = midiKeyStateChange.Button;
+            var kind = midiKeyStateChange.Kind;
+
+            if (kind == ButtonStateChangeKind.Pressed) {
+                handleMidiKeyDown(state, key);
+            }
+            else {
+                handleMidiKeyUp(state, key);
+            }
+        }
+
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
             switch (inputStateChange)
@@ -451,6 +465,10 @@ namespace osu.Framework.Input
 
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
+                    return;
+
+                case MidiStateChangeEvent midiKeyStateChange:
+                    HandleMidiKeyStateChange(midiKeyStateChange);
                     return;
             }
         }
@@ -494,6 +512,10 @@ namespace osu.Framework.Input
         private bool handleJoystickPress(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
 
         private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
+
+        private bool handleMidiKeyDown(InputState state, MidiKey key) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiDownEvent(state, key));
+
+        private bool handleMidiKeyUp(InputState state, MidiKey key) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiUpEvent(state, key));
 
         /// <summary>
         /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.

@@ -1910,6 +1910,12 @@ namespace osu.Framework.Graphics
                 case JoystickReleaseEvent joystickRelease:
                     return OnJoystickRelease(joystickRelease);
 
+                case MidiDownEvent midiDown:
+                    return OnMidiDown(midiDown);
+
+                case MidiUpEvent midiUp:
+                    return OnMidiUp(midiUp);
+
                 default:
                     return Handle(e);
             }
@@ -1954,6 +1960,8 @@ namespace osu.Framework.Graphics
         protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+        protected virtual bool OnMidiDown(MidiDownEvent e) => Handle(e);
+        protected virtual bool OnMidiUp(MidiUpEvent e) => Handle(e);
 
         #endregion
 
