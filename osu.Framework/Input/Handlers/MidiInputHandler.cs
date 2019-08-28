@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Commons.Music.Midi;
@@ -22,6 +23,16 @@ namespace osu.Framework.Input.Handlers
 
         public override bool Initialize(GameHost host)
         {
+            // Try to initialize. This can throw on Linux if asound cannot be found.
+            try {
+                var unused = MidiAccessManager.Default.Inputs.ToList();
+            } catch (Exception e) {
+                Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
+                    ? "Couldn't list input devices, is libasound2-dev installed?"
+                    : "Couldn't list input devices.");
+                return false;
+            }
+
             Enabled.BindValueChanged(e =>
             {
                 if (e.NewValue)
