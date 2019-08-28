@@ -60,7 +60,13 @@ namespace osu.Framework.Graphics
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds) => Original.UpdateSubTreeMasking(this, maskingBounds);
+            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+            {
+                if (Original.IsDisposed)
+                    return false;
+
+                return Original.UpdateSubTreeMasking(this, maskingBounds);
+            }
 
             private class ProxyDrawNode : DrawNode
             {
@@ -98,6 +104,9 @@ namespace osu.Framework.Graphics
                         return null;
 
                     if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
+                        return null;
+
+                    if (target.IsDisposed)
                         return null;
 
                     return target;
