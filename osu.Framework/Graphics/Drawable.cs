@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
+        protected internal bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
@@ -102,10 +102,6 @@ namespace osu.Framework.Graphics
 
                 OnUpdate = null;
                 OnInvalidate = null;
-
-                // If this Drawable is disposed, then we need to also
-                // stop remotely rendering it.
-                proxy?.Dispose();
 
                 OnDispose?.Invoke();
                 OnDispose = null;
