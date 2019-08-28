@@ -46,7 +46,7 @@ namespace osu.Framework.Android
             => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
+            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
 
         protected override Storage GetStorage(string baseName)
             => new AndroidStorage(baseName, this);
