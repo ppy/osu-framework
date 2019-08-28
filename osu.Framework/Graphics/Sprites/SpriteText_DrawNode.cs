@@ -68,30 +68,14 @@ namespace osu.Framework.Graphics.Sprites
                         shadowQuad.BottomLeft += shadowOffset;
                         shadowQuad.BottomRight += shadowOffset;
 
-                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction);
+                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
                 }
 
                 Shader.Unbind();
             }
-        }
-
-        /// <summary>
-        /// A character of a <see cref="SpriteText"/> provided with local space coordinates.
-        /// </summary>
-        internal struct CharacterPart
-        {
-            /// <summary>
-            /// The local-space rectangle for the character to be drawn in.
-            /// </summary>
-            public RectangleF DrawRectangle;
-
-            /// <summary>
-            /// The texture to draw the character with.
-            /// </summary>
-            public Texture Texture;
         }
 
         /// <summary>
@@ -103,6 +87,11 @@ namespace osu.Framework.Graphics.Sprites
             /// The screen-space quad for the character to be drawn in.
             /// </summary>
             public Quad DrawQuad;
+
+            /// <summary>
+            /// Extra padding for the character's texture.
+            /// </summary>
+            public Vector2 InflationPercentage;
 
             /// <summary>
             /// The texture to draw the character with.

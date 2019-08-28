@@ -36,10 +36,20 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             if (!Current.Disabled)
+            {
                 Current.Value = !Current.Value;
+                OnUserChange(Current.Value);
+            }
 
             base.OnClick(e);
             return true;
+        }
+
+        /// <summary>
+        /// Triggered when the value is changed based on end-user input to this control.
+        /// </summary>
+        protected virtual void OnUserChange(bool value)
+        {
         }
     }
 }

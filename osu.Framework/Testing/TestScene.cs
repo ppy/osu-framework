@@ -327,7 +327,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
         protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
             => AddUntilStep(description, waitUntilTrueDelegate);
 
@@ -339,7 +339,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")]
+        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
         protected void AddWaitStep(int waitCount, string description = null)
             => AddWaitStep(description, waitCount);
 

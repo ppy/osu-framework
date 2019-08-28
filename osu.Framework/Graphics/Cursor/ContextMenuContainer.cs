@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Linq;
 using osuTK;
 using osuTK.Input;
@@ -83,9 +84,17 @@ namespace osu.Framework.Graphics.Cursor
                     return true;
 
                 default:
-                    menu.Close();
+                    cancelDisplay();
                     return false;
             }
+        }
+
+        private void cancelDisplay()
+        {
+            Debug.Assert(menu != null);
+
+            menu.Close();
+            menuTarget = null;
         }
 
         protected override void UpdateAfterChildren()
@@ -93,6 +102,12 @@ namespace osu.Framework.Graphics.Cursor
             base.UpdateAfterChildren();
 
             if (menu.State != MenuState.Open || menuTarget == null) return;
+
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this)
+            {
+                cancelDisplay();
+                return;
+            }
 
             Vector2 pos = menuTarget.ToSpaceOfOtherDrawable(targetRelativePosition, this);
 

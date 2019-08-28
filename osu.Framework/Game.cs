@@ -24,7 +24,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -225,7 +225,7 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
-                            Position = new Vector2(100),
+                            ToolPosition = new Vector2(100),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
