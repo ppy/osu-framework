@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Audio
             this.samples = samples;
         }
 
-        [Test]
+        [Test, Ignore("Needs no audio device support")]
         public void TestLoopingToggle()
         {
             AddStep("create sample", createSample);
@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Audio
             AddUntilStep("ensure stops", () => !sampleChannel.Playing);
         }
 
-        [Test]
+        [Test, Ignore("Needs no audio device support")]
         public void TestStopWhileLooping()
         {
             AddStep("create sample", createSample);
