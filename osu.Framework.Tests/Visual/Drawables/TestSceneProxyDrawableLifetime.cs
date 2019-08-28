@@ -46,9 +46,12 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Box box = null;
             Drawable proxy = null;
+            bool lifetimeChanged = false;
 
             AddStep("add proxy", () =>
             {
+                lifetimeChanged = false;
+
                 Add(box = new Box
                 {
                     Anchor = Anchor.Centre,
@@ -56,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Size = new Vector2(100)
                 });
 
-                Add(proxy = box.CreateProxy());
+                Add(proxy = box.CreateProxy().With(d => d.LifetimeChanged += _ => lifetimeChanged = true));
             });
 
             AddStep("set lifetimes", () =>
@@ -65,6 +68,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 box.LifetimeEnd = Time.Current + 5000;
             });
 
+            AddAssert("lifetime changed", () => lifetimeChanged);
             AddAssert("lifetime transferred from box", () => proxy.LifetimeStart == box.LifetimeStart && proxy.LifetimeEnd == box.LifetimeEnd);
         }
 
