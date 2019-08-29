@@ -11,7 +11,7 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 
-namespace osu.Framework.Input.Handlers
+namespace osu.Framework.Input.Handlers.Midi
 {
     public class MidiInputHandler : InputHandler
     {
