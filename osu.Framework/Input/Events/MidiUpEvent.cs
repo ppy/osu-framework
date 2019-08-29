@@ -8,9 +8,9 @@ namespace osu.Framework.Input.Events
 {
     public class MidiUpEvent : MidiEvent
     {
-        // TODO: velocity
-
         public MidiUpEvent([NotNull] InputState state, MidiKey key)
-            : base(state, key, 0) { }
+            : base(state, key, 0)
+        {
+        }
     }
 }

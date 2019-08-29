@@ -436,10 +436,12 @@ namespace osu.Framework.Input
             var kind = midiKeyStateChange.Kind;
             var velocity = midiKeyStateChange.Velocity;
 
-            if (kind == ButtonStateChangeKind.Pressed) {
+            if (kind == ButtonStateChangeKind.Pressed)
+            {
                 handleMidiKeyDown(state, key, velocity);
             }
-            else {
+            else
+            {
                 handleMidiKeyUp(state, key);
             }
         }

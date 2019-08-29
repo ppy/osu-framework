@@ -13,7 +13,9 @@ namespace osu.Framework.Input.StateChanges
         public readonly bool IsPressed;
 
         public MidiKeyInput(MidiKey button, bool isPressed)
-            : this(button, 0, isPressed) { }
+            : this(button, 0, isPressed)
+        {
+        }
 
         public MidiKeyInput(MidiKey button, byte velocity, bool isPressed)
         {

@@ -31,9 +31,12 @@ namespace osu.Framework.Input.Handlers.Midi
         public override bool Initialize(GameHost host)
         {
             // Try to initialize. This can throw on Linux if asound cannot be found.
-            try {
+            try
+            {
                 var unused = MidiAccessManager.Default.Inputs.ToList();
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
                     ? "Couldn't list input devices, is libasound2-dev installed?"
                     : "Couldn't list input devices.");
@@ -46,10 +49,12 @@ namespace osu.Framework.Input.Handlers.Midi
                 {
                     host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
                 }
-                else {
+                else
+                {
                     scheduledRefreshDevices?.Cancel();
 
-                    foreach (var value in openedDevices.Values) {
+                    foreach (var value in openedDevices.Values)
+                    {
                         value.MessageReceived -= onMidiMessageReceived;
                     }
 
@@ -65,10 +70,12 @@ namespace osu.Framework.Input.Handlers.Midi
             var inputs = MidiAccessManager.Default.Inputs.ToList();
 
             // check removed devices
-            foreach (string key in openedDevices.Keys.ToArray()) {
+            foreach (string key in openedDevices.Keys.ToArray())
+            {
                 var value = openedDevices[key];
 
-                if (inputs.All(i => i.Id != key)) {
+                if (inputs.All(i => i.Id != key))
+                {
                     value.MessageReceived -= onMidiMessageReceived;
                     openedDevices.Remove(key);
 
@@ -77,8 +84,10 @@ namespace osu.Framework.Input.Handlers.Midi
             }
 
             // check added devices
-            foreach (IMidiPortDetails input in inputs) {
-                if (openedDevices.All(x => x.Key != input.Id)) {
+            foreach (IMidiPortDetails input in inputs)
+            {
+                if (openedDevices.All(x => x.Key != input.Id))
+                {
                     var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
                     newInput.MessageReceived += onMidiMessageReceived;
                     openedDevices[input.Id] = newInput;
@@ -93,7 +102,8 @@ namespace osu.Framework.Input.Handlers.Midi
             Debug.Assert(sender is IMidiInput);
             var senderId = ((IMidiInput)sender).Details.Id;
 
-            for (int i = e.Start; i < e.Length;) {
+            for (int i = e.Start; i < e.Length;)
+            {
                 readEvent(e.Data, senderId, ref i, out byte eventType, out byte key, out byte velocity);
                 dispatchEvent(eventType, key, velocity);
             }
@@ -103,17 +113,22 @@ namespace osu.Framework.Input.Handlers.Midi
         {
             byte statusType = data[i++];
 
-            if (statusType <= 0x7F) {
+            if (statusType <= 0x7F)
+            {
                 // This is a running status, re-use the event type from the previous message
                 eventType = runningStatus[senderId];
                 key = statusType;
                 velocity = data[i++];
-            } else if (statusType >= 0xF8) {
+            }
+            else if (statusType >= 0xF8)
+            {
                 // Events F8 through FF do not reset the last known status byte
                 eventType = statusType;
                 key = data[i++];
                 velocity = data[i++];
-            } else if (statusType >= 0xF0) {
+            }
+            else if (statusType >= 0xF0)
+            {
                 // Events F0 through F7 reset the running status
                 eventType = statusType;
                 key = data[i++];
@@ -121,7 +136,9 @@ namespace osu.Framework.Input.Handlers.Midi
 
                 if (runningStatus.ContainsKey(senderId))
                     runningStatus.Remove(senderId);
-            } else {
+            }
+            else
+            {
                 // normal event, update running status
                 eventType = statusType;
                 key = data[i++];
@@ -135,7 +152,8 @@ namespace osu.Framework.Input.Handlers.Midi
         {
             Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
 
-            switch (eventType) {
+            switch (eventType)
+            {
                 case MidiEvent.NoteOn when velocity != 0:
                     Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 64f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));

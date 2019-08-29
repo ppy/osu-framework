@@ -28,7 +28,7 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public IEnumerable<MidiKey> PressedKeys => CurrentState.Midi.Keys;
 
-        public MidiEvent([NotNull] InputState state, MidiKey key, byte velocity)
+        protected MidiEvent([NotNull] InputState state, MidiKey key, byte velocity)
             : base(state)
         {
             Key = key;
