@@ -9,6 +9,7 @@ using Commons.Music.Midi;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Input.Handlers.Midi
@@ -157,12 +158,14 @@ namespace osu.Framework.Input.Handlers.Midi
                 case MidiEvent.NoteOn when velocity != 0:
                     Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 64f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
+                    FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
                     break;
 
                 case MidiEvent.NoteOff:
                 case MidiEvent.NoteOn when velocity == 0:
                     Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 64f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
+                    FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
                     break;
             }
         }
