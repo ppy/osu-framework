@@ -434,9 +434,10 @@ namespace osu.Framework.Input
             var state = midiKeyStateChange.State;
             var key = midiKeyStateChange.Button;
             var kind = midiKeyStateChange.Kind;
+            var velocity = midiKeyStateChange.Velocity;
 
             if (kind == ButtonStateChangeKind.Pressed) {
-                handleMidiKeyDown(state, key);
+                handleMidiKeyDown(state, key, velocity);
             }
             else {
                 handleMidiKeyUp(state, key);
@@ -513,7 +514,7 @@ namespace osu.Framework.Input
 
         private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
 
-        private bool handleMidiKeyDown(InputState state, MidiKey key) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiDownEvent(state, key));
+        private bool handleMidiKeyDown(InputState state, MidiKey key, byte velocity) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiDownEvent(state, key, velocity));
 
         private bool handleMidiKeyUp(InputState state, MidiKey key) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiUpEvent(state, key));
 

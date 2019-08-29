@@ -128,7 +128,7 @@ namespace osu.Framework.Input.Handlers
                 switch (eventType) {
                     case MidiEvent.NoteOn when velocity != 0:
                         Logger.Log($"NoteOn: {(MidiKey)key}/{velocity/64f:P}");
-                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, true));
+                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                         break;
 
                     case MidiEvent.NoteOff:

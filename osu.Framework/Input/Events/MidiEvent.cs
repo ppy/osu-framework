@@ -11,6 +11,7 @@ namespace osu.Framework.Input.Events
     public abstract class MidiEvent : UIEvent
     {
         public readonly MidiKey Key;
+        public readonly byte Velocity;
 
         /// <summary>
         /// Whether a specific key is pressed.
@@ -27,10 +28,11 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public IEnumerable<MidiKey> PressedKeys => CurrentState.Midi.Keys;
 
-        public MidiEvent([NotNull] InputState state, MidiKey key)
+        public MidiEvent([NotNull] InputState state, MidiKey key, byte velocity)
             : base(state)
         {
-            this.Key = key;
+            Key = key;
+            Velocity = velocity;
         }
 
         public override string ToString() => $"{GetType().ReadableName()}({Key})";

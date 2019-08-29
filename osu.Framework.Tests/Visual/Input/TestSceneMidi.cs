@@ -85,7 +85,9 @@ namespace osu.Framework.Tests.Visual.Input
                 if (e.Key != key)
                     return base.OnMidiDown(e);
 
-                background.FadeIn(100, Easing.OutQuint);
+                const float base_opacity = 0.25f; // to make a velocity of 1 not completely invisible
+
+                background.FadeTo(base_opacity + e.Velocity / 128f * (1 - base_opacity), 100, Easing.OutQuint);
                 return true;
             }
 
