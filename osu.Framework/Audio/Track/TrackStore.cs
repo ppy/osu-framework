@@ -16,6 +16,8 @@ namespace osu.Framework.Audio.Track
         internal TrackStore(IResourceStore<byte[]> store)
         {
             this.store = store;
+
+            (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
         public Track GetVirtual(double length = double.PositiveInfinity)
