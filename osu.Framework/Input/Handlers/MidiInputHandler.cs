@@ -26,7 +26,7 @@ namespace osu.Framework.Input.Handlers
         /// The last event for each midi device. This is required for Running Status (repeat messages sent without
         /// event type).
         /// </summary>
-        private readonly Dictionary<string, byte> lastEvents = new Dictionary<string, byte>();
+        private readonly Dictionary<string, byte> runningStatus = new Dictionary<string, byte>();
 
         public override bool Initialize(GameHost host)
         {
@@ -91,6 +91,7 @@ namespace osu.Framework.Input.Handlers
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
         {
             Debug.Assert(sender is IMidiInput);
+            var senderId = ((IMidiInput)sender).Details.Id;
 
             var events = MidiEvent.Convert(e.Data, e.Start, e.Length);
 
@@ -99,23 +100,39 @@ namespace osu.Framework.Input.Handlers
                 var key = midiEvent.Msb;
                 var velocity = midiEvent.Lsb;
 
-                if (eventType <= 0x7F) {
+                if (eventType <= 0x7F)
+                {
+                    // This is a running status, re-use the event type from the previous message
                     velocity = key;
                     key = eventType;
-                    eventType = lastEvents[((IMidiInput)sender).Details.Id];
-                } else {
-                    lastEvents[((IMidiInput)sender).Details.Id] = eventType;
+                    eventType = runningStatus[senderId];
+                }
+                else if (eventType >= 0xF8)
+                {
+                    // Events F8 through FF do not reset the last known status byte
+                }
+                else if (eventType >= 0xF0)
+                {
+                    // Events F0 through F7 reset the running status
+                    if (runningStatus.ContainsKey(senderId))
+                        runningStatus.Remove(senderId);
+                }
+                else
+                {
+                    // normal event, update running status
+                    runningStatus[senderId] = eventType;
                 }
 
                 Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
 
                 switch (eventType) {
-                    case MidiEvent.NoteOn:
+                    case MidiEvent.NoteOn when velocity != 0:
                         Logger.Log($"NoteOn: {(MidiKey)key}/{velocity/64f:P}");
                         PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, true));
                         break;
 
                     case MidiEvent.NoteOff:
+                    case MidiEvent.NoteOn when velocity == 0:
                         Logger.Log($"NoteOff: {(MidiKey)key}/{velocity/64f:P}");
                         PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
                         break;
