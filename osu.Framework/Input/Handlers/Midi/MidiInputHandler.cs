@@ -93,50 +93,59 @@ namespace osu.Framework.Input.Handlers.Midi
             Debug.Assert(sender is IMidiInput);
             var senderId = ((IMidiInput)sender).Details.Id;
 
-            var events = MidiEvent.Convert(e.Data, e.Start, e.Length);
+            for (int i = e.Start; i < e.Length;) {
+                readEvent(e.Data, senderId, ref i, out byte eventType, out byte key, out byte velocity);
+                dispatchEvent(eventType, key, velocity);
+            }
+        }
 
-            foreach (MidiEvent midiEvent in events) {
-                var eventType = midiEvent.StatusByte;
-                var key = midiEvent.Msb;
-                var velocity = midiEvent.Lsb;
+        private void readEvent(byte[] data, string senderId, ref int i, out byte eventType, out byte key, out byte velocity)
+        {
+            byte statusType = data[i++];
 
-                if (eventType <= 0x7F)
-                {
-                    // This is a running status, re-use the event type from the previous message
-                    velocity = key;
-                    key = eventType;
-                    eventType = runningStatus[senderId];
-                }
-                else if (eventType >= 0xF8)
-                {
-                    // Events F8 through FF do not reset the last known status byte
-                }
-                else if (eventType >= 0xF0)
-                {
-                    // Events F0 through F7 reset the running status
-                    if (runningStatus.ContainsKey(senderId))
-                        runningStatus.Remove(senderId);
-                }
-                else
-                {
-                    // normal event, update running status
-                    runningStatus[senderId] = eventType;
-                }
+            if (statusType <= 0x7F) {
+                // This is a running status, re-use the event type from the previous message
+                eventType = runningStatus[senderId];
+                key = statusType;
+                velocity = data[i++];
+            } else if (statusType >= 0xF8) {
+                // Events F8 through FF do not reset the last known status byte
+                eventType = statusType;
+                key = data[i++];
+                velocity = data[i++];
+            } else if (statusType >= 0xF0) {
+                // Events F0 through F7 reset the running status
+                eventType = statusType;
+                key = data[i++];
+                velocity = data[i++];
 
-                Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
+                if (runningStatus.ContainsKey(senderId))
+                    runningStatus.Remove(senderId);
+            } else {
+                // normal event, update running status
+                eventType = statusType;
+                key = data[i++];
+                velocity = data[i++];
 
-                switch (eventType) {
-                    case MidiEvent.NoteOn when velocity != 0:
-                        Logger.Log($"NoteOn: {(MidiKey)key}/{velocity/64f:P}");
-                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
-                        break;
+                runningStatus[senderId] = eventType;
+            }
+        }
 
-                    case MidiEvent.NoteOff:
-                    case MidiEvent.NoteOn when velocity == 0:
-                        Logger.Log($"NoteOff: {(MidiKey)key}/{velocity/64f:P}");
-                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
-                        break;
-                }
+        private void dispatchEvent(byte eventType, byte key, byte velocity)
+        {
+            Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
+
+            switch (eventType) {
+                case MidiEvent.NoteOn when velocity != 0:
+                    Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 64f:P}");
+                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
+                    break;
+
+                case MidiEvent.NoteOff:
+                case MidiEvent.NoteOn when velocity == 0:
+                    Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 64f:P}");
+                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
+                    break;
             }
         }
     }
