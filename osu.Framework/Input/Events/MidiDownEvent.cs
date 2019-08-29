@@ -8,8 +8,6 @@ namespace osu.Framework.Input.Events
 {
     public class MidiDownEvent : MidiEvent
     {
-        // TODO: velocity
-
         public MidiDownEvent([NotNull] InputState state, MidiKey key, byte velocity)
             : base(state, key, velocity)
         {
