@@ -161,7 +161,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Dispose(isDisposing);
 
-            halfCircleBatch.Dispose();
+            halfCircleBatch?.Dispose();
         }
     }
 }
