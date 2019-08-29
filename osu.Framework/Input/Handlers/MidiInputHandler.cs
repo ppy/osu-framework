@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Commons.Music.Midi;
 using osu.Framework.Input.StateChanges;
@@ -20,6 +21,12 @@ namespace osu.Framework.Input.Handlers
         private ScheduledDelegate scheduledRefreshDevices;
 
         private readonly Dictionary<string, IMidiInput> openedDevices = new Dictionary<string, IMidiInput>();
+
+        /// <summary>
+        /// The last event for each midi device. This is required for Running Status (repeat messages sent without
+        /// event type).
+        /// </summary>
+        private readonly Dictionary<string, byte> lastEvents = new Dictionary<string, byte>();
 
         public override bool Initialize(GameHost host)
         {
@@ -83,22 +90,34 @@ namespace osu.Framework.Input.Handlers
 
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
         {
+            Debug.Assert(sender is IMidiInput);
+
             var events = MidiEvent.Convert(e.Data, e.Start, e.Length);
 
             foreach (MidiEvent midiEvent in events) {
+                var eventType = midiEvent.StatusByte;
                 var key = midiEvent.Msb;
                 var velocity = midiEvent.Lsb;
-                Logger.Log("Event " + midiEvent);
 
-                switch (midiEvent.EventType) {
+                if (eventType <= 0x7F) {
+                    velocity = key;
+                    key = eventType;
+                    eventType = lastEvents[((IMidiInput)sender).Details.Id];
+                } else {
+                    lastEvents[((IMidiInput)sender).Details.Id] = eventType;
+                }
+
+                Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
+
+                switch (eventType) {
                     case MidiEvent.NoteOn:
                         Logger.Log($"NoteOn: {(MidiKey)key}/{velocity/64f:P}");
-                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)midiEvent.Msb, true));
+                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, true));
                         break;
 
                     case MidiEvent.NoteOff:
                         Logger.Log($"NoteOff: {(MidiKey)key}/{velocity/64f:P}");
-                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)midiEvent.Msb, false));
+                        PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
                         break;
                 }
             }
