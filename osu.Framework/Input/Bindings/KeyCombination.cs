@@ -100,6 +100,9 @@ namespace osu.Framework.Input.Bindings
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.MidiA0)
+                return key.ToString().Substring("Midi".Length).Replace("Sharp", "#");
+
             if (key >= InputKey.FirstJoystickHatRightButton)
                 return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton + 1} Right";
             if (key >= InputKey.FirstJoystickHatLeftButton)
@@ -343,6 +346,8 @@ namespace osu.Framework.Input.Bindings
             return InputKey.None;
         }
 
+        public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);
+
         public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
             List<InputKey> keys = new List<InputKey>();
@@ -385,6 +390,9 @@ namespace osu.Framework.Input.Bindings
 
             if (state.Joystick != null)
                 keys.AddRange(state.Joystick.Buttons.Select(FromJoystickButton));
+
+            if (state.Midi != null)
+                keys.AddRange(state.Midi.Keys.Select(FromMidiKey));
 
             return new KeyCombination(keys);
         }

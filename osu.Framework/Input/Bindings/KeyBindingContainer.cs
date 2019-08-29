@@ -126,6 +126,12 @@ namespace osu.Framework.Input.Bindings
                 case JoystickReleaseEvent joystickRelease:
                     return handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
 
+                case MidiDownEvent midiDown:
+                    return handleNewPressed(state, KeyCombination.FromMidiKey(midiDown.Key), false);
+
+                case MidiUpEvent midiUp:
+                    return handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
+
                 case ScrollEvent scroll:
                 {
                     var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);

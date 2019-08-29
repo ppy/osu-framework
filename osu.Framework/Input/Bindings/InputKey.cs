@@ -1869,5 +1869,449 @@ namespace osu.Framework.Input.Bindings
         /// Joystick hat 4 right button.
         /// </summary>
         JoystickHat4Right,
+
+        #region MIDI
+
+        /// <summary>
+        /// A0 key on a MIDI input device.
+        /// </summary>
+        MidiA0,
+
+        /// <summary>
+        /// A#0 key on a MIDI input device.
+        /// </summary>
+        MidiASharp0,
+
+        /// <summary>
+        /// B0 key on a MIDI input device.
+        /// </summary>
+        MidiB0,
+
+        /// <summary>
+        /// C1 key on a MIDI input device.
+        /// </summary>
+        MidiC1,
+
+        /// <summary>
+        /// C#1 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp1,
+
+        /// <summary>
+        /// D1 key on a MIDI input device.
+        /// </summary>
+        MidiD1,
+
+        /// <summary>
+        /// D#1 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp1,
+
+        /// <summary>
+        /// E1 key on a MIDI input device.
+        /// </summary>
+        MidiE1,
+
+        /// <summary>
+        /// F1 key on a MIDI input device.
+        /// </summary>
+        MidiF1,
+
+        /// <summary>
+        /// F#1 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp1,
+
+        /// <summary>
+        /// G1 key on a MIDI input device.
+        /// </summary>
+        MidiG1,
+
+        /// <summary>
+        /// G#1 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp1,
+
+        /// <summary>
+        /// A1 key on a MIDI input device.
+        /// </summary>
+        MidiA1,
+
+        /// <summary>
+        /// A#1 key on a MIDI input device.
+        /// </summary>
+        MidiASharp1,
+
+        /// <summary>
+        /// B1 key on a MIDI input device.
+        /// </summary>
+        MidiB1,
+
+        /// <summary>
+        /// C2 key on a MIDI input device.
+        /// </summary>
+        MidiC2,
+
+        /// <summary>
+        /// C#2 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp2,
+
+        /// <summary>
+        /// D2 key on a MIDI input device.
+        /// </summary>
+        MidiD2,
+
+        /// <summary>
+        /// D#2 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp2,
+
+        /// <summary>
+        /// E2 key on a MIDI input device.
+        /// </summary>
+        MidiE2,
+
+        /// <summary>
+        /// F2 key on a MIDI input device.
+        /// </summary>
+        MidiF2,
+
+        /// <summary>
+        /// F#2 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp2,
+
+        /// <summary>
+        /// G2 key on a MIDI input device.
+        /// </summary>
+        MidiG2,
+
+        /// <summary>
+        /// G#2 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp2,
+
+        /// <summary>
+        /// A2 key on a MIDI input device.
+        /// </summary>
+        MidiA2,
+
+        /// <summary>
+        /// A#2 key on a MIDI input device.
+        /// </summary>
+        MidiASharp2,
+
+        /// <summary>
+        /// B2 key on a MIDI input device.
+        /// </summary>
+        MidiB2,
+
+        /// <summary>
+        /// C3 key on a MIDI input device.
+        /// </summary>
+        MidiC3,
+
+        /// <summary>
+        /// C#3 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp3,
+
+        /// <summary>
+        /// D3 key on a MIDI input device.
+        /// </summary>
+        MidiD3,
+
+        /// <summary>
+        /// D#3 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp3,
+
+        /// <summary>
+        /// E3 key on a MIDI input device.
+        /// </summary>
+        MidiE3,
+
+        /// <summary>
+        /// F3 key on a MIDI input device.
+        /// </summary>
+        MidiF3,
+
+        /// <summary>
+        /// F#3 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp3,
+
+        /// <summary>
+        /// G3 key on a MIDI input device.
+        /// </summary>
+        MidiG3,
+
+        /// <summary>
+        /// G#3 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp3,
+
+        /// <summary>
+        /// A3 key on a MIDI input device.
+        /// </summary>
+        MidiA3,
+
+        /// <summary>
+        /// A#3 key on a MIDI input device.
+        /// </summary>
+        MidiASharp3,
+
+        /// <summary>
+        /// B3 key on a MIDI input device.
+        /// </summary>
+        MidiB3,
+
+        /// <summary>
+        /// C4 key on a MIDI input device.
+        /// </summary>
+        MidiC4,
+
+        /// <summary>
+        /// C#4 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp4,
+
+        /// <summary>
+        /// D4 key on a MIDI input device.
+        /// </summary>
+        MidiD4,
+
+        /// <summary>
+        /// D#4 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp4,
+
+        /// <summary>
+        /// E4 key on a MIDI input device.
+        /// </summary>
+        MidiE4,
+
+        /// <summary>
+        /// F4 key on a MIDI input device.
+        /// </summary>
+        MidiF4,
+
+        /// <summary>
+        /// F#4 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp4,
+
+        /// <summary>
+        /// G4 key on a MIDI input device.
+        /// </summary>
+        MidiG4,
+
+        /// <summary>
+        /// G#4 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp4,
+
+        /// <summary>
+        /// A4 key on a MIDI input device.
+        /// </summary>
+        MidiA4,
+
+        /// <summary>
+        /// A#4 key on a MIDI input device.
+        /// </summary>
+        MidiASharp4,
+
+        /// <summary>
+        /// B4 key on a MIDI input device.
+        /// </summary>
+        MidiB4,
+
+        /// <summary>
+        /// C5 key on a MIDI input device.
+        /// </summary>
+        MidiC5,
+
+        /// <summary>
+        /// C#5 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp5,
+
+        /// <summary>
+        /// D5 key on a MIDI input device.
+        /// </summary>
+        MidiD5,
+
+        /// <summary>
+        /// D#5 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp5,
+
+        /// <summary>
+        /// E5 key on a MIDI input device.
+        /// </summary>
+        MidiE5,
+
+        /// <summary>
+        /// F5 key on a MIDI input device.
+        /// </summary>
+        MidiF5,
+
+        /// <summary>
+        /// F#5 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp5,
+
+        /// <summary>
+        /// G5 key on a MIDI input device.
+        /// </summary>
+        MidiG5,
+
+        /// <summary>
+        /// G#5 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp5,
+
+        /// <summary>
+        /// A5 key on a MIDI input device.
+        /// </summary>
+        MidiA5,
+
+        /// <summary>
+        /// A#5 key on a MIDI input device.
+        /// </summary>
+        MidiASharp5,
+
+        /// <summary>
+        /// B5 key on a MIDI input device.
+        /// </summary>
+        MidiB5,
+
+        /// <summary>
+        /// C6 key on a MIDI input device.
+        /// </summary>
+        MidiC6,
+
+        /// <summary>
+        /// C#6 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp6,
+
+        /// <summary>
+        /// D6 key on a MIDI input device.
+        /// </summary>
+        MidiD6,
+
+        /// <summary>
+        /// D#6 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp6,
+
+        /// <summary>
+        /// E6 key on a MIDI input device.
+        /// </summary>
+        MidiE6,
+
+        /// <summary>
+        /// F6 key on a MIDI input device.
+        /// </summary>
+        MidiF6,
+
+        /// <summary>
+        /// F#6 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp6,
+
+        /// <summary>
+        /// G6 key on a MIDI input device.
+        /// </summary>
+        MidiG6,
+
+        /// <summary>
+        /// G#6 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp6,
+
+        /// <summary>
+        /// A6 key on a MIDI input device.
+        /// </summary>
+        MidiA6,
+
+        /// <summary>
+        /// A#6 key on a MIDI input device.
+        /// </summary>
+        MidiASharp6,
+
+        /// <summary>
+        /// B6 key on a MIDI input device.
+        /// </summary>
+        MidiB6,
+
+        /// <summary>
+        /// C7 key on a MIDI input device.
+        /// </summary>
+        MidiC7,
+
+        /// <summary>
+        /// C#7 key on a MIDI input device.
+        /// </summary>
+        MidiCSharp7,
+
+        /// <summary>
+        /// D7 key on a MIDI input device.
+        /// </summary>
+        MidiD7,
+
+        /// <summary>
+        /// D#7 key on a MIDI input device.
+        /// </summary>
+        MidiDSharp7,
+
+        /// <summary>
+        /// E7 key on a MIDI input device.
+        /// </summary>
+        MidiE7,
+
+        /// <summary>
+        /// F7 key on a MIDI input device.
+        /// </summary>
+        MidiF7,
+
+        /// <summary>
+        /// F#7 key on a MIDI input device.
+        /// </summary>
+        MidiFSharp7,
+
+        /// <summary>
+        /// G7 key on a MIDI input device.
+        /// </summary>
+        MidiG7,
+
+        /// <summary>
+        /// G#7 key on a MIDI input device.
+        /// </summary>
+        MidiGSharp7,
+
+        /// <summary>
+        /// A7 key on a MIDI input device.
+        /// </summary>
+        MidiA7,
+
+        /// <summary>
+        /// A#7 key on a MIDI input device.
+        /// </summary>
+        MidiASharp7,
+
+        /// <summary>
+        /// B7 key on a MIDI input device.
+        /// </summary>
+        MidiB7,
+
+        /// <summary>
+        /// C8 key on a MIDI input device.
+        /// </summary>
+        MidiC8,
+
+        #endregion
     }
 }
