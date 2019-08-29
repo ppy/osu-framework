@@ -103,8 +103,6 @@ namespace osu.Framework.Audio
 
             AudioDevice.ValueChanged += onDeviceChanged;
 
-            trackStore.AddExtension(@"mp3");
-
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
                 var store = new TrackStore(trackStore);
