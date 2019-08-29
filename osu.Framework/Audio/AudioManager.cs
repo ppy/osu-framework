@@ -105,9 +105,6 @@ namespace osu.Framework.Audio
 
             trackStore.AddExtension(@"mp3");
 
-            sampleStore.AddExtension(@"wav");
-            sampleStore.AddExtension(@"mp3");
-
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
                 var store = new TrackStore(trackStore);

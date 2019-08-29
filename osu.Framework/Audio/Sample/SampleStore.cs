@@ -24,6 +24,9 @@ namespace osu.Framework.Audio.Sample
         internal SampleStore(IResourceStore<byte[]> store)
         {
             this.store = store;
+
+            (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
+            (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
         public SampleChannel Get(string name)
