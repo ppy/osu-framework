@@ -29,6 +29,8 @@ namespace osu.Framework.Audio.Sample
             channel = 0;
         }
 
+        private bool pausedOnStart;
+
         internal override void OnStateChanged()
         {
             base.OnStateChanged();
@@ -38,6 +40,16 @@ namespace osu.Framework.Audio.Sample
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * AggregateFrequency.Value);
+            }
+
+            if (AggregateFrequency.Value == 0 && playing)
+            {
+                Bass.ChannelPause(channel);
+            }
+            else if (AggregateFrequency.Value > 0 && (Bass.ChannelIsActive(channel) == PlaybackState.Paused || pausedOnStart))
+            {
+                pausedOnStart = false;
+                Bass.ChannelPlay(channel);
             }
         }
 
@@ -73,22 +85,28 @@ namespace osu.Framework.Audio.Sample
 
             InvalidateState();
 
-            EnqueueAction(() =>
-            {
-                if (channel != 0)
-                    Bass.ChannelPlay(channel, restart);
-            });
-
             // Needs to happen on the main thread such that
             // Played does not become true for a short moment.
             playing = true;
 
             base.Play(restart);
+
+            if (AggregateFrequency.Value == 0)
+            {
+                pausedOnStart = true;
+                return;
+            }
+
+            EnqueueAction(() =>
+            {
+                if (channel != 0)
+                    Bass.ChannelPlay(channel, restart);
+            });
         }
 
         protected override void UpdateState()
         {
-            playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
+            playing = channel != 0 && (Bass.ChannelIsActive(channel) != 0 || pausedOnStart);
             base.UpdateState();
         }
 
