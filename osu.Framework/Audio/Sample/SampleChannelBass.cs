@@ -3,6 +3,7 @@
 
 using System;
 using ManagedBass;
+using osuTK;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -39,7 +40,7 @@ namespace osu.Framework.Audio.Sample
             {
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * AggregateFrequency.Value);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, bassFreq);
             }
 
             if (AggregateFrequency.Value == 0 && playing)
@@ -52,6 +53,8 @@ namespace osu.Framework.Audio.Sample
                 Bass.ChannelPlay(channel);
             }
         }
+
+        private double bassFreq => MathHelper.Clamp(initialFrequency * AggregateFrequency.Value, 100, 100000);
 
         public override bool Looping
         {
