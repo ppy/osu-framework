@@ -17,12 +17,6 @@ namespace osu.Framework.Testing.Drawables
         private int actionIndex;
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
-        private readonly ScrollContainer<Drawable> scroll;
-
-        public StepsContainer()
-        {
-            scroll = Parent as ScrollContainer<Drawable>;
-        }
 
         public void RunAll(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
@@ -46,8 +40,9 @@ namespace osu.Framework.Testing.Drawables
             {
                 if (loadableStep != null)
                 {
-                    if (loadableStep.IsMaskedAway && scroll != null)
-                        scroll.ScrollTo(loadableStep);
+                    if (loadableStep.IsMaskedAway)
+                        (Parent.Parent as ScrollContainer<Drawable>)?.ScrollTo(loadableStep);
+
                     loadableStep.PerformStep();
                 }
             }
