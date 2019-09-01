@@ -533,7 +533,7 @@ namespace osu.Framework.Testing
                 b.Current = CurrentTest.GetType();
         }
 
-        private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
+        internal class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
         {
             private readonly bool catchErrors;
             private bool hasCaught;

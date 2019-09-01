@@ -41,7 +41,7 @@ namespace osu.Framework.Testing.Drawables
                 if (loadableStep != null)
                 {
                     if (loadableStep.IsMaskedAway)
-                        (Parent.Parent as ScrollContainer<Drawable>)?.ScrollTo(loadableStep);
+                        FindClosestParent<BasicScrollContainer>()?.ScrollTo(loadableStep);
 
                     loadableStep.PerformStep();
                 }
@@ -84,7 +84,7 @@ namespace osu.Framework.Testing.Drawables
                 return;
             }
 
-            if (Parent != null)
+            if (FindClosestParent<TestSceneTestRunner.TestRunner>() != null || FindClosestParent<TestBrowser.ErrorCatchingDelayedLoadWrapper>() != null)
                 stepRunner = Scheduler.AddDelayed(() => runNext(onCompletion, onError, stopCondition), TimePerAction);
         }
 
