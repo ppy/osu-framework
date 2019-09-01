@@ -15,12 +15,12 @@ namespace osu.Framework.Tests.Visual.Containers
     {
         public TestSceneCoordinateSpaces()
         {
-            AddStep("0-1 space", () => loadCase(0));
-            AddStep("0-150 space", () => loadCase(1));
-            AddStep("50-200 space", () => loadCase(2));
-            AddStep("150-(-50) space", () => loadCase(3));
-            AddStep("0-300 space", () => loadCase(4));
-            AddStep("-250-250 space", () => loadCase(5));
+            Steps.AddStep("0-1 space", () => loadCase(0));
+            Steps.AddStep("0-150 space", () => loadCase(1));
+            Steps.AddStep("50-200 space", () => loadCase(2));
+            Steps.AddStep("150-(-50) space", () => loadCase(3));
+            Steps.AddStep("0-300 space", () => loadCase(4));
+            Steps.AddStep("-250-250 space", () => loadCase(5));
         }
 
         private void loadCase(int i)

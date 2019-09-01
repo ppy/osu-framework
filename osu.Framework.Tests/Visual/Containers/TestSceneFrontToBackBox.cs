@@ -20,28 +20,28 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager debugConfig)
         {
-            AddToggleStep("disable front to back", val => debugConfig.Set(DebugSetting.BypassFrontToBackPass, val));
+            Steps.AddToggleStep("disable front to back", val => debugConfig.Set(DebugSetting.BypassFrontToBackPass, val));
         }
 
         [Test]
         public void TestOpaqueBoxWithMixedBlending()
         {
             createBox();
-            AddAssert("renders interior", () => blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("renders interior", () => blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestTransparentBoxWithMixedBlending()
         {
             createBox(b => b.Alpha = 0.5f);
-            AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestOpaqueBoxWithAdditiveBlending()
         {
             createBox(b => b.Blending = BlendingParameters.Additive);
-            AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 b.Alpha = 0.5f;
             });
 
-            AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [TestCase(BlendingEquation.Max)]
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 b.Blending = blending;
             });
 
-            AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [TestCase(BlendingEquation.Max)]
@@ -85,10 +85,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 b.Blending = blending;
             });
 
-            AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
+            Steps.AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
-        private void createBox(Action<Box> setupAction = null) => AddStep("create box", () =>
+        private void createBox(Action<Box> setupAction = null) => Steps.AddStep("create box", () =>
         {
             Clear();
 

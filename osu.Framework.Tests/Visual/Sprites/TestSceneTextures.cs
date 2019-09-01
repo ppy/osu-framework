@@ -39,22 +39,22 @@ namespace osu.Framework.Tests.Visual.Sprites
             Avatar avatar2 = null;
             TextureWithRefCount texture = null;
 
-            AddStep("add disposable sprite", () => avatar1 = addSprite("https://a.ppy.sh/3"));
-            AddStep("add disposable sprite", () => avatar2 = addSprite("https://a.ppy.sh/3"));
+            Steps.AddStep("add disposable sprite", () => avatar1 = addSprite("https://a.ppy.sh/3"));
+            Steps.AddStep("add disposable sprite", () => avatar2 = addSprite("https://a.ppy.sh/3"));
 
-            AddUntilStep("wait for texture load", () => (texture = (TextureWithRefCount)avatar1.Texture) != null && avatar2.Texture != null);
+            Steps.AddUntilStep("wait for texture load", () => (texture = (TextureWithRefCount)avatar1.Texture) != null && avatar2.Texture != null);
 
-            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
-            AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
+            Steps.AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
+            Steps.AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
 
-            AddStep("dispose children", () =>
+            Steps.AddStep("dispose children", () =>
             {
                 Clear();
                 avatar1.Dispose();
                 avatar2.Dispose();
             });
 
-            AddUntilStep("gl textures disposed", () => texture.ReferenceCount == 0);
+            Steps.AddUntilStep("gl textures disposed", () => texture.ReferenceCount == 0);
         }
 
         /// <summary>
@@ -65,10 +65,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Texture texture = null;
 
-            AddStep("get texture", () => texture = largeStore.Get("https://a.ppy.sh/3"));
-            AddStep("dispose texture", () => texture.Dispose());
+            Steps.AddStep("get texture", () => texture = largeStore.Get("https://a.ppy.sh/3"));
+            Steps.AddStep("dispose texture", () => texture.Dispose());
 
-            AddAssert("texture is not available", () => !texture.Available);
+            Steps.AddAssert("texture is not available", () => !texture.Available);
         }
 
         /// <summary>
@@ -79,10 +79,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Texture texture = null;
 
-            AddStep("get texture", () => texture = normalStore.Get("https://a.ppy.sh/3"));
-            AddStep("dispose texture", () => texture.Dispose());
+            Steps.AddStep("get texture", () => texture = normalStore.Get("https://a.ppy.sh/3"));
+            Steps.AddStep("dispose texture", () => texture.Dispose());
 
-            AddAssert("texture is still available", () => texture.Available);
+            Steps.AddAssert("texture is still available", () => texture.Available);
         }
 
         private Avatar addSprite(string url)

@@ -172,12 +172,12 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 }
             });
 
-            AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
-            AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
-            AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
-            AddStep(@"body inset", () => { textFlowContainer.ContentIndent += 4; });
-            AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
-            AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
+            Steps.AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
+            Steps.AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
+            Steps.AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
+            Steps.AddStep(@"body inset", () => { textFlowContainer.ContentIndent += 4; });
+            Steps.AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
+            Steps.AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
         }
 
         private class LineBaseBox : Box, IHasLineBaseHeight

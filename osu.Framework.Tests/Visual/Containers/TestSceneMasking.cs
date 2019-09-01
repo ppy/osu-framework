@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Containers
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                AddStep(testNames[i], delegate { loadTest(test); });
+                Steps.AddStep(testNames[i], delegate { loadTest(test); });
             }
 
             loadTest(0);

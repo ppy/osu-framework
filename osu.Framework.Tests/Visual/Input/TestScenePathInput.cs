@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Visual.Input
             return base.OnMouseMove(e);
         }
 
-        private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>
+        private void addPath(string name, params Vector2[] vertices) => Steps.AddStep(name, () =>
         {
             path.PathRadius = path_width;
             path.Vertices = vertices.ToList();
@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void test(Vector2 position, bool shouldReceivePositionalInput)
         {
-            AddAssert($"Test @ {position} = {shouldReceivePositionalInput}", () =>
+            Steps.AddAssert($"Test @ {position} = {shouldReceivePositionalInput}", () =>
             {
                 testPoint.Position = position;
                 return path.ReceivePositionalInputAt(path.ToScreenSpace(position)) == shouldReceivePositionalInput;

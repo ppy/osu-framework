@@ -18,41 +18,41 @@ namespace osu.Framework.Tests.Visual.Containers
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
+            Steps.AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
         }
 
         [Test]
         public void TestUnpublishedChildDisposal()
         {
-            AddStep("Allow load", () => composite.AllowChildLoad());
+            Steps.AddStep("Allow load", () => composite.AllowChildLoad());
 
-            AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
+            Steps.AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
 
-            AddStep("Dispose composite", Clear);
+            Steps.AddStep("Dispose composite", Clear);
 
-            AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
+            Steps.AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
         }
 
         [Test]
         public void TestUnpublishedChildLoadBlockDisposal()
         {
-            AddUntilStep("Wait for child load began", () => composite.AsyncChildLoadBegan);
+            Steps.AddUntilStep("Wait for child load began", () => composite.AsyncChildLoadBegan);
 
-            AddStep("Dispose composite", Clear);
+            Steps.AddStep("Dispose composite", Clear);
 
-            AddWaitStep("Wait for potential disposal", 50);
+            Steps.AddWaitStep("Wait for potential disposal", 50);
 
-            AddAssert("Composite not yet disposed", () => !composite.IsDisposed);
+            Steps.AddAssert("Composite not yet disposed", () => !composite.IsDisposed);
 
-            AddAssert("Child not yet disposed", () => !composite.AsyncChildDisposed);
+            Steps.AddAssert("Child not yet disposed", () => !composite.AsyncChildDisposed);
 
-            AddStep("Allow load", () => composite.AllowChildLoad());
+            Steps.AddStep("Allow load", () => composite.AllowChildLoad());
 
-            AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
+            Steps.AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
 
-            AddUntilStep("Composite was disposed", () => composite.IsDisposed);
+            Steps.AddUntilStep("Composite was disposed", () => composite.IsDisposed);
 
-            AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
+            Steps.AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
         }
 
         private class AsyncChildLoadingComposite : CompositeDrawable

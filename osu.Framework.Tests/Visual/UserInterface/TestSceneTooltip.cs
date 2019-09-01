@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 RelativeSizeAxes = Axes.Both,
             });
 
-            AddToggleStep("Cursor-less tooltip", generateTest);
+            Steps.AddToggleStep("Cursor-less tooltip", generateTest);
             generateTest(false);
         }
 

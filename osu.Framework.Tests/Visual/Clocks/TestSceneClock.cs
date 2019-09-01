@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual.Clocks
                 RelativeSizeAxes = Axes.Both,
             };
 
-            AddStep("clear all", () =>
+            Steps.AddStep("clear all", () =>
             {
                 fill.Clear();
                 lastClock = null;

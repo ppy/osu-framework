@@ -72,18 +72,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var testBindable = basic.Current.GetBoundCopy();
 
-            AddAssert("is unchecked", () => !basic.Current.Value);
-            AddAssert("bindable unchecked", () => !testBindable.Value);
+            Steps.AddAssert("is unchecked", () => !basic.Current.Value);
+            Steps.AddAssert("bindable unchecked", () => !testBindable.Value);
 
-            AddStep("switch bindable directly", () => basic.Current.Value = true);
+            Steps.AddStep("switch bindable directly", () => basic.Current.Value = true);
 
-            AddAssert("is checked", () => basic.Current.Value);
-            AddAssert("bindable checked", () => testBindable.Value);
+            Steps.AddAssert("is checked", () => basic.Current.Value);
+            Steps.AddAssert("bindable checked", () => testBindable.Value);
 
-            AddStep("change bindable", () => basic.Current = new Bindable<bool>());
+            Steps.AddStep("change bindable", () => basic.Current = new Bindable<bool>());
 
-            AddAssert("is unchecked", () => !basic.Current.Value);
-            AddAssert("bindable unchecked", () => !testBindable.Value);
+            Steps.AddAssert("is unchecked", () => !basic.Current.Value);
+            Steps.AddAssert("bindable unchecked", () => !testBindable.Value);
         }
     }
 }

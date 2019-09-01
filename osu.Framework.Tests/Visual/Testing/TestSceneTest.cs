@@ -36,23 +36,23 @@ namespace osu.Framework.Tests.Visual.Testing
                     testRunCount++;
             });
 
-            AddStep("dummy step", () => { });
+            Steps.AddStep("dummy step", () => { });
         }
 
         [Test]
         public void Test1()
         {
-            AddStep("increment run count", () => testRunCount++);
-            AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            Steps.AddStep("increment run count", () => testRunCount++);
+            Steps.AddAssert("correct setup run count", () => testRunCount == setupRun);
+            Steps.AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         [Test]
         public void Test2()
         {
-            AddStep("increment run count", () => testRunCount++);
-            AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            Steps.AddStep("increment run count", () => testRunCount++);
+            Steps.AddAssert("correct setup run count", () => testRunCount == setupRun);
+            Steps.AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Testing
                 base.RunTestBlocking(test);
 
                 // This will only ever trigger via NUnit
-                Assert.That(test.StepsContainer, Has.Count.GreaterThan(0));
+                Assert.That(test.Steps, Has.Count.GreaterThan(0));
             }
         }
     }

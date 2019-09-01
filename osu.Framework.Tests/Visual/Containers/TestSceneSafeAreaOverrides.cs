@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Containers
             bool rightOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Right);
             bool bottomOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Bottom);
 
-            AddAssert($"\"{container.Name}\" overrides correctly", () =>
+            Steps.AddAssert($"\"{container.Name}\" overrides correctly", () =>
                 leftOverridden == container.SafeAreaContainer.Padding.Left < 0
                 && topOverridden == container.SafeAreaContainer.Padding.Top < 0
                 && rightOverridden == container.SafeAreaContainer.Padding.Right < 0

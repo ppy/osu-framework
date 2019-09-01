@@ -56,11 +56,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Child = sim = new TestRigidBodySimulation { RelativeSizeAxes = Axes.Both };
 
-            AddStep("Reset bodies", reset);
+            Steps.AddStep("Reset bodies", reset);
 
-            AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
-            AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
-            AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
+            Steps.AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
+            Steps.AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
+            Steps.AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
 
             reset();
         }

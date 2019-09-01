@@ -69,26 +69,26 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void FocusedOverlayTakesFocusOnShow()
         {
-            AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
+            Steps.AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
             checkNotFocused(() => overlay);
 
-            AddStep("show overlay", () => overlay.Show());
+            Steps.AddStep("show overlay", () => overlay.Show());
             checkFocused(() => overlay);
 
-            AddStep("hide overlay", () => overlay.Hide());
+            Steps.AddStep("hide overlay", () => overlay.Hide());
             checkNotFocused(() => overlay);
         }
 
         [Test]
         public void FocusedOverlayLosesFocusOnClickAway()
         {
-            AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
+            Steps.AddAssert("overlay not visible", () => overlay.State.Value == Visibility.Hidden);
             checkNotFocused(() => overlay);
 
-            AddStep("show overlay", () => overlay.Show());
+            Steps.AddStep("show overlay", () => overlay.Show());
             checkFocused(() => overlay);
 
-            AddStep("click away", () =>
+            Steps.AddStep("click away", () =>
             {
                 InputManager.MoveMouseTo(Vector2.One);
                 InputManager.Click(MouseButton.Left);
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             checkFocused(() => requestingFocus);
 
-            AddStep("click away", () =>
+            Steps.AddStep("click away", () =>
             {
                 InputManager.MoveMouseTo(Vector2.One);
                 InputManager.Click(MouseButton.Left);
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             checkFocused(() => requestingFocus);
 
-            AddStep("click top left", () =>
+            Steps.AddStep("click top left", () =>
             {
                 InputManager.MoveMouseTo(focusTopLeft);
                 InputManager.Click(MouseButton.Left);
@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkFocused(() => focusTopLeft);
 
-            AddStep("click bottom right", () =>
+            Steps.AddStep("click bottom right", () =>
             {
                 InputManager.MoveMouseTo(focusBottomRight);
                 InputManager.Click(MouseButton.Left);
@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void ShowOverlayInteractions()
         {
-            AddStep("click bottom left", () =>
+            Steps.AddStep("click bottom left", () =>
             {
                 InputManager.MoveMouseTo(focusBottomLeft);
                 InputManager.Click(MouseButton.Left);
@@ -145,52 +145,52 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkFocused(() => focusBottomLeft);
 
-            AddStep("show overlay", () => overlay.Show());
+            Steps.AddStep("show overlay", () => overlay.Show());
 
             checkFocused(() => overlay);
             checkNotFocused(() => focusBottomLeft);
 
             // click is blocked by overlay so doesn't select bottom left first click
-            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            Steps.AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkFocused(() => requestingFocus);
 
             // second click selects bottom left
-            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            Steps.AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkFocused(() => focusBottomLeft);
 
             // further click has no effect
-            AddStep("click", () => InputManager.Click(MouseButton.Left));
+            Steps.AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkFocused(() => focusBottomLeft);
         }
 
         [Test]
         public void InputPropagation()
         {
-            AddStep("Focus bottom left", () =>
+            Steps.AddStep("Focus bottom left", () =>
             {
                 InputManager.MoveMouseTo(focusBottomLeft);
                 InputManager.Click(MouseButton.Left);
             });
-            AddStep("Press a key (blocking)", () =>
+            Steps.AddStep("Press a key (blocking)", () =>
             {
                 InputManager.PressKey(Key.A);
                 InputManager.ReleaseKey(Key.A);
             });
-            AddAssert("Received the key", () =>
+            Steps.AddAssert("Received the key", () =>
                 focusBottomLeft.KeyDownCount == 1 && focusBottomLeft.KeyUpCount == 1 &&
                 focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 1);
-            AddStep("Press a joystick (non blocking)", () =>
+            Steps.AddStep("Press a joystick (non blocking)", () =>
             {
                 InputManager.PressJoystickButton(JoystickButton.Button1);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("Received the joystick button", () =>
+            Steps.AddAssert("Received the joystick button", () =>
                 focusBottomLeft.JoystickPressCount == 1 && focusBottomLeft.JoystickReleaseCount == 1 &&
                 focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
         }
 
-        private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
-        private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
+        private void checkFocused(Func<Drawable> d) => Steps.AddAssert("check focus", () => d().HasFocus);
+        private void checkNotFocused(Func<Drawable> d) => Steps.AddAssert("check not focus", () => !d().HasFocus);
 
         private class FocusOverlay : FocusedOverlayContainer
         {

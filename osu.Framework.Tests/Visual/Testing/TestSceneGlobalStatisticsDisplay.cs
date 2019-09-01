@@ -23,18 +23,18 @@ namespace osu.Framework.Tests.Visual.Testing
 
             GlobalStatistic<double> stat = null;
 
-            AddStep("Register test statistic", () => stat = GlobalStatistics.Get<double>("TestCase", "Test Statistic"));
+            Steps.AddStep("Register test statistic", () => stat = GlobalStatistics.Get<double>("TestCase", "Test Statistic"));
 
-            AddStep("Change value once", () => stat.Value = 10);
-            AddStep("Change value again", () => stat.Value = 20);
+            Steps.AddStep("Change value once", () => stat.Value = 10);
+            Steps.AddStep("Change value again", () => stat.Value = 20);
 
-            AddStep("Register statistics non-alphabetically", () =>
+            Steps.AddStep("Register statistics non-alphabetically", () =>
             {
                 GlobalStatistics.Get<int>("ZZZZZ", "BBBBB");
                 GlobalStatistics.Get<int>("ZZZZZ", "AAAAA");
             });
 
-            AddStep("Register groups non-alphabetically", () =>
+            Steps.AddStep("Register groups non-alphabetically", () =>
             {
                 GlobalStatistics.Get<int>("XXXXX", "BBBBB");
                 GlobalStatistics.Get<int>("TTTTT", "AAAAA");

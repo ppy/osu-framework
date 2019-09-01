@@ -101,16 +101,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(false)]
         public void SliderBar(bool disabled)
         {
-            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+            Steps.AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
-            AddStep("Click at 25% mark", () =>
+            Steps.AddStep("Click at 25% mark", () =>
             {
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
             checkValue(-5, disabled);
-            AddStep("Press left arrow key", () =>
+            Steps.AddStep("Press left arrow key", () =>
             {
                 var before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 sliderBar.IsHovered = before;
             });
             checkValue(-6, disabled);
-            AddStep("Click at 75% mark, holding shift", () =>
+            Steps.AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.5f)));
@@ -132,18 +132,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void checkValue(int expected, bool disabled)
         {
             if (disabled)
-                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
+                Steps.AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
             else
-                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
+                Steps.AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void TransferValueOnCommit(bool disabled)
         {
-            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+            Steps.AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
-            AddStep("Click at 80% mark", () =>
+            Steps.AddStep("Click at 80% mark", () =>
             {
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.8f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
@@ -151,13 +151,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(6, disabled);
 
             // These steps are broken up so we can see each of the steps being performed independently
-            AddStep("Move Cursor",
+            Steps.AddStep("Move Cursor",
                 () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.75f, 0.5f))); });
-            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
-            AddStep("Drag",
+            Steps.AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            Steps.AddStep("Drag",
                 () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
             checkValue(6, disabled);
-            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            Steps.AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(-5, disabled);
         }
 

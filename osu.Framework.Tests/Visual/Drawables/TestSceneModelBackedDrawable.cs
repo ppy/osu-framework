@@ -31,8 +31,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestEmptyDefaultState()
         {
-            AddStep("setup", () => createModelBackedDrawable(false));
-            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
+            Steps.AddStep("setup", () => createModelBackedDrawable(false));
+            Steps.AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () =>
+            Steps.AddStep("setup", () =>
             {
                 createModelBackedDrawable(false);
                 backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestDrawableModel firstModel = null;
             TestDrawableModel secondModel = null;
 
-            AddStep("setup", () =>
+            Steps.AddStep("setup", () =>
             {
                 createModelBackedDrawable(hasIntermediate);
                 backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
@@ -64,10 +64,10 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             assertDrawableVisibility(1, () => firstModel);
 
-            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            Steps.AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
             assertIntermediateVisibility(hasIntermediate, () => firstModel);
 
-            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            Steps.AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
             assertDrawableVisibility(2, () => secondModel);
         }
 
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestDrawableModel secondModel = null;
             TestDrawableModel thirdModel = null;
 
-            AddStep("setup", () =>
+            Steps.AddStep("setup", () =>
             {
                 createModelBackedDrawable(hasIntermediate);
                 backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
@@ -87,16 +87,16 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             assertDrawableVisibility(1, () => firstModel);
 
-            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            Steps.AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
             assertIntermediateVisibility(hasIntermediate, () => firstModel);
 
-            AddStep("set third model", () => backedDrawable.Model = new TestModel(thirdModel = new TestDrawableModel(3)));
+            Steps.AddStep("set third model", () => backedDrawable.Model = new TestModel(thirdModel = new TestDrawableModel(3)));
             assertIntermediateVisibility(hasIntermediate, () => firstModel);
 
-            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            Steps.AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
             assertIntermediateVisibility(hasIntermediate, () => firstModel);
 
-            AddStep("allow third model to load", () => thirdModel.AllowLoad.Set());
+            Steps.AddStep("allow third model to load", () => thirdModel.AllowLoad.Set());
             assertDrawableVisibility(3, () => thirdModel);
         }
 
@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestDrawableModel firstModel = null;
             TestDrawableModel secondModel = null;
 
-            AddStep("setup", () =>
+            Steps.AddStep("setup", () =>
             {
                 createModelBackedDrawable(hasIntermediate);
                 backedDrawable.Model = new TestModel(firstModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
@@ -115,13 +115,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             assertDrawableVisibility(1, () => firstModel);
 
-            AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
+            Steps.AddStep("set second model", () => backedDrawable.Model = new TestModel(secondModel = new TestDrawableModel(2)));
             assertIntermediateVisibility(hasIntermediate, () => firstModel);
 
-            AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
+            Steps.AddStep("allow second model to load", () => secondModel.AllowLoad.Set());
             assertDrawableVisibility(2, () => secondModel);
 
-            AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
+            Steps.AddStep("allow first model to load", () => firstModel.AllowLoad.Set());
             assertDrawableVisibility(2, () => secondModel);
         }
 
@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("setup", () =>
+            Steps.AddStep("setup", () =>
             {
                 createModelBackedDrawable(false, true);
                 backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()));
@@ -138,21 +138,21 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             assertDrawableVisibility(1, () => drawableModel);
 
-            AddStep("set null model", () => backedDrawable.Model = null);
-            AddUntilStep("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
+            Steps.AddStep("set null model", () => backedDrawable.Model = null);
+            Steps.AddUntilStep("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
         }
 
         private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
         {
             if (hasIntermediate)
-                AddAssert("no drawable visible", () => backedDrawable.DisplayedDrawable == null);
+                Steps.AddAssert("no drawable visible", () => backedDrawable.DisplayedDrawable == null);
             else
-                AddUntilStep("last drawable visible", () => backedDrawable.DisplayedDrawable == getLastFunc());
+                Steps.AddUntilStep("last drawable visible", () => backedDrawable.DisplayedDrawable == getLastFunc());
         }
 
         private void assertDrawableVisibility(int id, Func<Drawable> getFunc)
         {
-            AddUntilStep($"model {id} visible", () => backedDrawable.DisplayedDrawable == getFunc());
+            Steps.AddUntilStep($"model {id} visible", () => backedDrawable.DisplayedDrawable == getFunc());
         }
 
         private class TestModel

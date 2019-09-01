@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void showResources<T>(IEnumerable<string> resources, Func<string, T> fetch)
         {
-            AddStep("list resources", () =>
+            Steps.AddStep("list resources", () =>
             {
                 flow.Clear();
 
@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     flow.Add(new ResourceDisplay(resourceName, fetch(resourceName)));
             });
 
-            AddAssert("ensure all loaded", () => flow.Children.All(rd => rd.Resource != null));
+            Steps.AddAssert("ensure all loaded", () => flow.Children.All(rd => rd.Resource != null));
         }
 
         private class ResourceDisplay : Container

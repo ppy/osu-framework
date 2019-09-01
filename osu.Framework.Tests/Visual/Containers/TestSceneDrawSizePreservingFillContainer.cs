@@ -46,15 +46,15 @@ namespace osu.Framework.Tests.Visual.Containers
                 }
             };
 
-            AddStep("Strategy: Minimum", () => fillContainer.Strategy = DrawSizePreservationStrategy.Minimum);
-            AddStep("Strategy: Maximum", () => fillContainer.Strategy = DrawSizePreservationStrategy.Maximum);
-            AddStep("Strategy: Average", () => fillContainer.Strategy = DrawSizePreservationStrategy.Average);
-            AddStep("Strategy: Separate", () => fillContainer.Strategy = DrawSizePreservationStrategy.Separate);
+            Steps.AddStep("Strategy: Minimum", () => fillContainer.Strategy = DrawSizePreservationStrategy.Minimum);
+            Steps.AddStep("Strategy: Maximum", () => fillContainer.Strategy = DrawSizePreservationStrategy.Maximum);
+            Steps.AddStep("Strategy: Average", () => fillContainer.Strategy = DrawSizePreservationStrategy.Average);
+            Steps.AddStep("Strategy: Separate", () => fillContainer.Strategy = DrawSizePreservationStrategy.Separate);
 
-            AddSliderStep("Width", 50, 650, 500, v => Child.Width = v);
-            AddSliderStep("Height", 50, 650, 500, v => Child.Height = v);
+            Steps.AddSliderStep("Width", 50, 650, 500, v => Child.Width = v);
+            Steps.AddSliderStep("Height", 50, 650, 500, v => Child.Height = v);
 
-            AddStep("Override Size to 1x1", () => Child.Size = Vector2.One);
+            Steps.AddStep("Override Size to 1x1", () => Child.Size = Vector2.One);
         }
     }
 }

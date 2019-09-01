@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Box box = null;
             Drawable proxy = null;
 
-            AddStep("add proxy", () =>
+            Steps.AddStep("add proxy", () =>
             {
                 Add(box = new Box
                 {
@@ -32,13 +32,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Add(proxy = box.CreateProxy());
             });
 
-            AddAssert("proxy should be alive", () => proxy.ShouldBeAlive);
-            AddAssert("proxy is alive", () => proxy.IsAlive);
+            Steps.AddAssert("proxy should be alive", () => proxy.ShouldBeAlive);
+            Steps.AddAssert("proxy is alive", () => proxy.IsAlive);
 
-            AddStep("expire box", () => box.Expire());
+            Steps.AddStep("expire box", () => box.Expire());
 
-            AddAssert("proxy should not be alive", () => !proxy.ShouldBeAlive);
-            AddAssert("proxy is not alive", () => !proxy.IsAlive);
+            Steps.AddAssert("proxy should not be alive", () => !proxy.ShouldBeAlive);
+            Steps.AddAssert("proxy is not alive", () => !proxy.IsAlive);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Drawable proxy = null;
             bool lifetimeChanged = false;
 
-            AddStep("add proxy", () =>
+            Steps.AddStep("add proxy", () =>
             {
                 lifetimeChanged = false;
 
@@ -62,14 +62,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Add(proxy = box.CreateProxy().With(d => d.LifetimeChanged += _ => lifetimeChanged = true));
             });
 
-            AddStep("set lifetimes", () =>
+            Steps.AddStep("set lifetimes", () =>
             {
                 box.LifetimeStart = Time.Current - 5000;
                 box.LifetimeEnd = Time.Current + 5000;
             });
 
-            AddAssert("lifetime changed", () => lifetimeChanged);
-            AddAssert("lifetime transferred from box", () => proxy.LifetimeStart == box.LifetimeStart && proxy.LifetimeEnd == box.LifetimeEnd);
+            Steps.AddAssert("lifetime changed", () => lifetimeChanged);
+            Steps.AddAssert("lifetime transferred from box", () => proxy.LifetimeStart == box.LifetimeStart && proxy.LifetimeEnd == box.LifetimeEnd);
         }
 
         [Test]
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             Box box = null;
             Drawable proxy = null;
 
-            AddStep("add proxy", () =>
+            Steps.AddStep("add proxy", () =>
             {
                 Add(container = new Container
                 {
@@ -96,10 +96,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 container.Add(proxy = box.CreateProxy());
             });
 
-            AddStep("expire box", () => box.Expire(true));
+            Steps.AddStep("expire box", () => box.Expire(true));
 
-            AddAssert("box removed", () => !container.Contains(box));
-            AddAssert("proxy removed", () => !container.Contains(proxy));
+            Steps.AddAssert("box removed", () => !container.Contains(box));
+            Steps.AddAssert("proxy removed", () => !container.Contains(proxy));
         }
     }
 }

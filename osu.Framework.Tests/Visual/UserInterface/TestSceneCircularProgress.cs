@@ -87,29 +87,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 },
             };
 
-            AddStep("Forward", delegate { setRotationMode(1); });
-            AddStep("Backward", delegate { setRotationMode(2); });
-            AddStep("Transition Focus", delegate { setRotationMode(3); });
-            AddStep("Transition Focus 2", delegate { setRotationMode(4); });
-            AddStep("Forward/Backward", delegate { setRotationMode(0); });
+            Steps.AddStep("Forward", delegate { setRotationMode(1); });
+            Steps.AddStep("Backward", delegate { setRotationMode(2); });
+            Steps.AddStep("Transition Focus", delegate { setRotationMode(3); });
+            Steps.AddStep("Transition Focus 2", delegate { setRotationMode(4); });
+            Steps.AddStep("Forward/Backward", delegate { setRotationMode(0); });
 
-            AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
-            AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
-            AddStep("2D Graident Texture", delegate { setTexture(3); });
-            AddStep("White Texture", delegate { setTexture(0); });
+            Steps.AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
+            Steps.AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
+            Steps.AddStep("2D Graident Texture", delegate { setTexture(3); });
+            Steps.AddStep("White Texture", delegate { setTexture(0); });
 
-            AddStep("Red Colour", delegate { setColour(1); });
-            AddStep("Horzontal Gradient Colour", delegate { setColour(2); });
-            AddStep("Vertical Gradient Colour", delegate { setColour(3); });
-            AddStep("2D Gradient Colour", delegate { setColour(4); });
-            AddStep("White Colour", delegate { setColour(0); });
+            Steps.AddStep("Red Colour", delegate { setColour(1); });
+            Steps.AddStep("Horzontal Gradient Colour", delegate { setColour(2); });
+            Steps.AddStep("Vertical Gradient Colour", delegate { setColour(3); });
+            Steps.AddStep("2D Gradient Colour", delegate { setColour(4); });
+            Steps.AddStep("White Colour", delegate { setColour(0); });
 
-            AddStep("Forward Transform", delegate { transform(0); });
-            AddStep("Backward Transform", delegate { transform(1); });
-            AddStep("Fwd/Bwd Transform", delegate { transform(2); });
-            AddStep("Easing Transform", delegate { transform(3); });
+            Steps.AddStep("Forward Transform", delegate { transform(0); });
+            Steps.AddStep("Backward Transform", delegate { transform(1); });
+            Steps.AddStep("Fwd/Bwd Transform", delegate { transform(2); });
+            Steps.AddStep("Easing Transform", delegate { transform(3); });
 
-            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
+            Steps.AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
         }
 
         protected override void Update()

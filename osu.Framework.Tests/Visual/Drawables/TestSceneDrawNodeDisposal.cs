@@ -80,7 +80,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var drawableRefs = new List<WeakReference>();
 
             // Add the children to the hierarchy, and build weak-reference wrappers around them
-            AddStep("create hierarchy", () =>
+            Steps.AddStep("create hierarchy", () =>
             {
                 drawableRefs.Clear();
                 buildReferencesRecursive(child);
@@ -103,11 +103,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             });
 
-            AddWaitStep("wait for some draw nodes", GLWrapper.MAX_DRAW_NODES);
+            Steps.AddWaitStep("wait for some draw nodes", GLWrapper.MAX_DRAW_NODES);
 
             // Clear the parent to ensure no references are held via drawables themselves,
             // and remove the parent to ensure that the parent maintains references to the child draw nodes
-            AddStep("clear + remove parent container", () =>
+            Steps.AddStep("clear + remove parent container", () =>
             {
                 parentContainer.Clear();
                 Remove(parentContainer);
@@ -118,17 +118,17 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             // Wait for all drawables to get disposed
             DisposalMarker disposalMarker = null;
-            AddStep("add disposal marker", () => AsyncDisposalQueue.Enqueue(disposalMarker = new DisposalMarker()));
-            AddUntilStep("wait for drawables to dispose", () => disposalMarker.Disposed);
+            Steps.AddStep("add disposal marker", () => AsyncDisposalQueue.Enqueue(disposalMarker = new DisposalMarker()));
+            Steps.AddUntilStep("wait for drawables to dispose", () => disposalMarker.Disposed);
 
             // Induce the collection of drawables
-            AddStep("invoke GC", () =>
+            Steps.AddStep("invoke GC", () =>
             {
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             });
 
-            AddUntilStep("all drawable references lost", () => !drawableRefs.Any(r => r.IsAlive));
+            Steps.AddUntilStep("all drawable references lost", () => !drawableRefs.Any(r => r.IsAlive));
         }
 
         private class NonFlattenedContainer : Container

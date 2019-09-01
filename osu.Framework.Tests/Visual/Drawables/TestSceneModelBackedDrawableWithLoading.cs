@@ -28,14 +28,14 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestNonImmediateTransform()
         {
-            AddStep("setup", () => createModelBackedDrawable(false));
+            Steps.AddStep("setup", () => createModelBackedDrawable(false));
             addUsageSteps();
         }
 
         [Test]
         public void TestTransformImmediately()
         {
-            AddStep("setup", () => createModelBackedDrawable(true));
+            Steps.AddStep("setup", () => createModelBackedDrawable(true));
             addUsageSteps();
         }
 
@@ -43,13 +43,13 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             TestDrawableModel drawableModel = null;
 
-            AddStep("load first model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
-            AddWaitStep("wait a bit", 5);
-            AddStep("finish load", () => drawableModel.AllowLoad.Set());
-            AddWaitStep("wait a bit", 5);
-            AddStep("load second model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
-            AddWaitStep("wait a bit", 5);
-            AddStep("finish load", () => drawableModel.AllowLoad.Set());
+            Steps.AddStep("load first model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
+            Steps.AddWaitStep("wait a bit", 5);
+            Steps.AddStep("finish load", () => drawableModel.AllowLoad.Set());
+            Steps.AddWaitStep("wait a bit", 5);
+            Steps.AddStep("load second model", () => backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel()));
+            Steps.AddWaitStep("wait a bit", 5);
+            Steps.AddStep("finish load", () => drawableModel.AllowLoad.Set());
         }
 
         private class TestModelBackedDrawable : ModelBackedDrawable<TestModel>

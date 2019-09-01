@@ -15,8 +15,8 @@ namespace osu.Framework.Tests.Visual.Containers
     {
         private void addDepthSteps(DepthBox box, Container container)
         {
-            AddStep($@"bring forward {box.Name}", () => container.ChangeChildDepth(box, box.Depth - 1));
-            AddStep($@"send backward {box.Name}", () => container.ChangeChildDepth(box, box.Depth + 1));
+            Steps.AddStep($@"bring forward {box.Name}", () => container.ChangeChildDepth(box, box.Depth - 1));
+            Steps.AddStep($@"send backward {box.Name}", () => container.ChangeChildDepth(box, box.Depth + 1));
         }
 
         public TestSceneDynamicDepth()

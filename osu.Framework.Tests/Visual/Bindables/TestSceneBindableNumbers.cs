@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Bindables
 
         public TestSceneBindableNumbers()
         {
-            AddStep("Reset", () =>
+            Steps.AddStep("Reset", () =>
             {
                 setValue(0);
                 setPrecision(1);
@@ -33,10 +33,10 @@ namespace osu.Framework.Tests.Visual.Bindables
             testInvalidPrecision();
             testFractionalPrecision();
 
-            AddSliderStep("Min value", -100, 100, -100, setMin);
-            AddSliderStep("Max value", -100, 100, 100, setMax);
-            AddSliderStep("Value", -100, 100, 0, setValue);
-            AddSliderStep("Precision", 1, 10, 1, setPrecision);
+            Steps.AddSliderStep("Min value", -100, 100, -100, setMin);
+            Steps.AddSliderStep("Max value", -100, 100, 100, setMax);
+            Steps.AddSliderStep("Value", -100, 100, 0, setValue);
+            Steps.AddSliderStep("Precision", 1, 10, 1, setPrecision);
 
             Child = new GridContainer
             {
@@ -62,8 +62,8 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testBasic()
         {
-            AddStep("Value = 10", () => setValue(10));
-            AddAssert("Check = 10", () => checkExact(10));
+            Steps.AddStep("Value = 10", () => setValue(10));
+            Steps.AddAssert("Check = 10", () => checkExact(10));
         }
 
         /// <summary>
@@ -71,13 +71,13 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testPrecision3()
         {
-            AddStep("Precision = 3", () => setPrecision(3));
-            AddStep("Value = 4", () => setValue(3));
-            AddAssert("Check = 3", () => checkExact(3));
-            AddStep("Value = 5", () => setValue(5));
-            AddAssert("Check = 6", () => checkExact(6));
-            AddStep("Value = 59", () => setValue(59));
-            AddAssert("Check = 60", () => checkExact(60));
+            Steps.AddStep("Precision = 3", () => setPrecision(3));
+            Steps.AddStep("Value = 4", () => setValue(3));
+            Steps.AddAssert("Check = 3", () => checkExact(3));
+            Steps.AddStep("Value = 5", () => setValue(5));
+            Steps.AddAssert("Check = 6", () => checkExact(6));
+            Steps.AddStep("Value = 59", () => setValue(59));
+            Steps.AddAssert("Check = 60", () => checkExact(60));
         }
 
         /// <summary>
@@ -85,9 +85,9 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testPrecision10()
         {
-            AddStep("Precision = 10", () => setPrecision(10));
-            AddStep("Value = 6", () => setValue(6));
-            AddAssert("Check = 10", () => checkExact(10));
+            Steps.AddStep("Precision = 10", () => setPrecision(10));
+            Steps.AddStep("Value = 6", () => setValue(6));
+            Steps.AddAssert("Check = 10", () => checkExact(10));
         }
 
         /// <summary>
@@ -95,13 +95,13 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testMinMaxWithoutPrecision()
         {
-            AddStep("Precision = 1", () => setPrecision(1));
-            AddStep("Min = -30", () => setMin(-30));
-            AddStep("Max = 30", () => setMax(30));
-            AddStep("Value = -50", () => setValue(-50));
-            AddAssert("Check = -30", () => checkExact(-30));
-            AddStep("Value = 50", () => setValue(50));
-            AddAssert("Check = 30", () => checkExact(30));
+            Steps.AddStep("Precision = 1", () => setPrecision(1));
+            Steps.AddStep("Min = -30", () => setMin(-30));
+            Steps.AddStep("Max = 30", () => setMax(30));
+            Steps.AddStep("Value = -50", () => setValue(-50));
+            Steps.AddAssert("Check = -30", () => checkExact(-30));
+            Steps.AddStep("Value = 50", () => setValue(50));
+            Steps.AddAssert("Check = 30", () => checkExact(30));
         }
 
         /// <summary>
@@ -110,13 +110,13 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testMinMaxWithPrecision()
         {
-            AddStep("Precision = 5", () => setPrecision(5));
-            AddStep("Min = -27", () => setMin(-27));
-            AddStep("Max = 27", () => setMax(27));
-            AddStep("Value = -30", () => setValue(-30));
-            AddAssert("Check = -25", () => checkExact(-25));
-            AddStep("Value = 30", () => setValue(30));
-            AddAssert("Check = 25", () => checkExact(25));
+            Steps.AddStep("Precision = 5", () => setPrecision(5));
+            Steps.AddStep("Min = -27", () => setMin(-27));
+            Steps.AddStep("Max = 27", () => setMax(27));
+            Steps.AddStep("Value = -30", () => setValue(-30));
+            Steps.AddAssert("Check = -25", () => checkExact(-25));
+            Steps.AddStep("Value = 30", () => setValue(30));
+            Steps.AddAssert("Check = 25", () => checkExact(25));
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testInvalidPrecision()
         {
-            AddAssert("Precision = 0 throws", () =>
+            Steps.AddAssert("Precision = 0 throws", () =>
             {
                 try
                 {
@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Bindables
                 }
             });
 
-            AddAssert("Precision = -1 throws", () =>
+            Steps.AddAssert("Precision = -1 throws", () =>
             {
                 try
                 {
@@ -157,11 +157,11 @@ namespace osu.Framework.Tests.Visual.Bindables
         /// </summary>
         private void testFractionalPrecision()
         {
-            AddStep("Precision = 2.25/2", () => setPrecision(2.25));
-            AddStep("Value = 3.3/3", () => setValue(3.3));
-            AddAssert("Check = 2.25/4", () => checkExact(2.25m, 4));
-            AddStep("Value = 4.17/4", () => setValue(4.17));
-            AddAssert("Check = 4.5/4", () => checkExact(4.5m, 4));
+            Steps.AddStep("Precision = 2.25/2", () => setPrecision(2.25));
+            Steps.AddStep("Value = 3.3/3", () => setValue(3.3));
+            Steps.AddAssert("Check = 2.25/4", () => checkExact(2.25m, 4));
+            Steps.AddStep("Value = 4.17/4", () => setValue(4.17));
+            Steps.AddAssert("Check = 4.5/4", () => checkExact(4.5m, 4));
         }
 
         private bool checkExact(decimal value) => checkExact(value, value);

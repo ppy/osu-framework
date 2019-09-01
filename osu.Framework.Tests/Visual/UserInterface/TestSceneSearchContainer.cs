@@ -95,15 +95,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             setTerm("multi");
             checkCount(1);
-            AddStep("Add new filtered item", () => search.Add(new SearchableText { Text = "not visible" }));
+            Steps.AddStep("Add new filtered item", () => search.Add(new SearchableText { Text = "not visible" }));
             checkCount(1);
-            AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
+            Steps.AddStep("Add new unfiltered item", () => search.Add(new SearchableText { Text = "multi visible" }));
             checkCount(2);
         }
 
         private void checkCount(int count)
         {
-            AddAssert("Visible children: " + count, () => count == countSearchableText(search));
+            Steps.AddAssert("Visible children: " + count, () => count == countSearchableText(search));
         }
 
         private int countSearchableText(CompositeDrawable container)
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void setTerm(string term)
         {
-            AddStep("Search term: " + term, () => textBox.Text = term);
+            Steps.AddStep("Search term: " + term, () => textBox.Text = term);
         }
 
         private class HeaderContainer : Container, IHasFilterableChildren

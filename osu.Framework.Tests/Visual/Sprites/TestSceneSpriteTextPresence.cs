@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             Container container = null;
             SpriteText text = null;
 
-            AddStep("reset", () =>
+            Steps.AddStep("reset", () =>
             {
                 Child = container = new Container
                 {
@@ -46,11 +46,11 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddAssert("is present", () => text.IsPresent);
-            AddAssert("height == 12", () => Precision.AlmostEquals(12, container.Height));
-            AddStep("empty text", () => text.Text = string.Empty);
-            AddAssert("not present", () => !text.IsPresent);
-            AddAssert("height == 0", () => Precision.AlmostEquals(0, container.Height));
+            Steps.AddAssert("is present", () => text.IsPresent);
+            Steps.AddAssert("height == 12", () => Precision.AlmostEquals(12, container.Height));
+            Steps.AddStep("empty text", () => text.Text = string.Empty);
+            Steps.AddAssert("not present", () => !text.IsPresent);
+            Steps.AddAssert("height == 0", () => Precision.AlmostEquals(0, container.Height));
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             Container container = null;
             SpriteText text = null;
 
-            AddStep("reset", () =>
+            Steps.AddStep("reset", () =>
             {
                 Child = container = new Container
                 {
@@ -85,11 +85,11 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddAssert("is present", () => text.IsPresent);
-            AddAssert("height == 12", () => Precision.AlmostEquals(12, container.Height));
-            AddStep("empty text", () => text.Text = string.Empty);
-            AddAssert("is present", () => text.IsPresent);
-            AddAssert("height == 0", () => Precision.AlmostEquals(0, container.Height));
+            Steps.AddAssert("is present", () => text.IsPresent);
+            Steps.AddAssert("height == 12", () => Precision.AlmostEquals(12, container.Height));
+            Steps.AddStep("empty text", () => text.Text = string.Empty);
+            Steps.AddAssert("is present", () => text.IsPresent);
+            Steps.AddAssert("height == 0", () => Precision.AlmostEquals(0, container.Height));
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestPresenceRemainsTheSameDuringFlow()
         {
-            AddStep("reset", () =>
+            Steps.AddStep("reset", () =>
             {
                 Child = new FillFlowContainer
                 {
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddWaitStep("wait for some update frames", 2);
+            Steps.AddWaitStep("wait for some update frames", 2);
         }
 
         private class AlwaysPresentSpriteText : SpriteText

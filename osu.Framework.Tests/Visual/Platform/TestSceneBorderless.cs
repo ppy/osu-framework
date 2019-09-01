@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Platform
             }
 
             refreshScreens();
-            AddStep("set up screens", refreshScreens);
+            Steps.AddStep("set up screens", refreshScreens);
 
             const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
@@ -157,21 +157,21 @@ namespace osu.Framework.Tests.Visual.Platform
                 if (display == null) break;
 
                 // set up window
-                AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
-                AddStep("center window on screen " + i, () => window.CentreToScreen(display));
+                Steps.AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
+                Steps.AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
+                Steps.AddStep("center window on screen " + i, () => window.CentreToScreen(display));
 
                 // borderless alignment tests
-                AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
-                AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
-                AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplay == display);
+                Steps.AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
+                Steps.AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
+                Steps.AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
+                Steps.AddAssert("check current screen", () => window.CurrentDisplay == display);
 
                 // verify the window size is restored correctly
-                AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
-                AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
-                AddAssert("check current screen", () => window.CurrentDisplay == display);
+                Steps.AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
+                Steps.AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
+                Steps.AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
+                Steps.AddAssert("check current screen", () => window.CurrentDisplay == display);
             }
         }
 

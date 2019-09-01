@@ -11,11 +11,11 @@ namespace osu.Framework.Tests.Visual.Clocks
         {
             base.LoadComplete();
 
-            AddStep("add stopwatch", () => AddClock(new StopwatchClock(true)));
-            AddStep("add framed", () => AddClock(new FramedClock()));
-            AddStep("add lag", () => AddClock(new LaggyFramedClock()));
-            AddStep("add interpolating", () => AddClock(new InterpolatingFramedClock()));
-            AddStep("add decoupled", () => AddClock(new DecoupleableInterpolatingFramedClock()));
+            Steps.AddStep("add stopwatch", () => AddClock(new StopwatchClock(true)));
+            Steps.AddStep("add framed", () => AddClock(new FramedClock()));
+            Steps.AddStep("add lag", () => AddClock(new LaggyFramedClock()));
+            Steps.AddStep("add interpolating", () => AddClock(new InterpolatingFramedClock()));
+            Steps.AddStep("add decoupled", () => AddClock(new DecoupleableInterpolatingFramedClock()));
         }
     }
 }

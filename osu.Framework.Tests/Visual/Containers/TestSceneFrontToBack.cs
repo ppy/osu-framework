@@ -38,8 +38,8 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager debugConfig)
         {
-            AddStep("add more drawables", addMoreDrawables);
-            AddToggleStep("disable front to back", val =>
+            Steps.AddStep("add more drawables", addMoreDrawables);
+            Steps.AddToggleStep("disable front to back", val =>
             {
                 debugConfig.Set(DebugSetting.BypassFrontToBackPass, val);
                 Invalidate(Invalidation.DrawNode); // reset counts

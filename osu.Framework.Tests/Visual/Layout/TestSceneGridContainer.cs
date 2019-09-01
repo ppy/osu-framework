@@ -58,8 +58,8 @@ namespace osu.Framework.Tests.Visual.Layout
         public void TestSingleCellDistributedXy()
         {
             FillBox box = null;
-            AddStep("set content", () => grid.Content = new[] { new Drawable[] { box = new FillBox() }, });
-            AddAssert("box is same size as grid", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize));
+            Steps.AddStep("set content", () => grid.Content = new[] { new Drawable[] { box = new FillBox() }, });
+            Steps.AddAssert("box is same size as grid", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize));
         }
 
         [Test]
@@ -68,13 +68,13 @@ namespace osu.Framework.Tests.Visual.Layout
             const float size = 100;
 
             FillBox box = null;
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, size) };
             });
 
-            AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, new Vector2(size)));
+            Steps.AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, new Vector2(size)));
         }
 
         [Test]
@@ -83,13 +83,13 @@ namespace osu.Framework.Tests.Visual.Layout
             const float size = 0.5f;
 
             FillBox box = null;
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, size) };
             });
 
-            AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize * new Vector2(size)));
+            Steps.AddAssert("box has expected size", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize * new Vector2(size)));
         }
 
         [Test]
@@ -99,15 +99,15 @@ namespace osu.Framework.Tests.Visual.Layout
             const float relative_width = 0.5f;
 
             FillBox box = null;
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, absolute_height) };
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, relative_width) };
             });
 
-            AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth * relative_width));
-            AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, absolute_height));
+            Steps.AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth * relative_width));
+            Steps.AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, absolute_height));
         }
 
         [Test]
@@ -116,14 +116,14 @@ namespace osu.Framework.Tests.Visual.Layout
             const float height = 0.5f;
 
             FillBox box = null;
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = new[] { new Dimension(GridSizeMode.Relative, height) };
             });
 
-            AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth));
-            AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, grid.DrawHeight * height));
+            Steps.AddAssert("box has expected width", () => Precision.AlmostEquals(box.DrawWidth, grid.DrawWidth));
+            Steps.AddAssert("box has expected height", () => Precision.AlmostEquals(box.DrawHeight, grid.DrawHeight * height));
         }
 
         [TestCase(false)]
@@ -142,9 +142,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 int local = i;
 
                 if (row)
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth / 3f, grid.DrawHeight)));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth / 3f, grid.DrawHeight)));
                 else
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight / 3f)));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight / 3f)));
             }
         }
 
@@ -172,9 +172,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 int local = i;
 
                 if (row)
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local])));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local])));
                 else
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local], grid.DrawHeight)));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local], grid.DrawHeight)));
             }
         }
 
@@ -202,9 +202,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 int local = i;
 
                 if (row)
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local] * grid.DrawHeight)));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(grid.DrawWidth, sizes[local] * grid.DrawHeight)));
                 else
-                    AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local] * grid.DrawWidth, grid.DrawHeight)));
+                    Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, new Vector2(sizes[local] * grid.DrawWidth, grid.DrawHeight)));
             }
         }
 
@@ -229,15 +229,15 @@ namespace osu.Framework.Tests.Visual.Layout
 
             if (row)
             {
-                AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(grid.DrawWidth, sizes[0] * grid.DrawHeight)));
-                AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth, sizes[1])));
-                AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight - boxes[0].DrawHeight - boxes[1].DrawHeight)));
+                Steps.AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(grid.DrawWidth, sizes[0] * grid.DrawHeight)));
+                Steps.AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth, sizes[1])));
+                Steps.AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth, grid.DrawHeight - boxes[0].DrawHeight - boxes[1].DrawHeight)));
             }
             else
             {
-                AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(sizes[0] * grid.DrawWidth, grid.DrawHeight)));
-                AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(sizes[1], grid.DrawHeight)));
-                AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight)));
+                Steps.AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(sizes[0] * grid.DrawWidth, grid.DrawHeight)));
+                Steps.AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(sizes[1], grid.DrawHeight)));
+                Steps.AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight)));
             }
         }
 
@@ -246,7 +246,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             var boxes = new FillBox[9];
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -259,7 +259,7 @@ namespace osu.Framework.Tests.Visual.Layout
             for (int i = 0; i < 9; i++)
             {
                 int local = i;
-                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(grid.DrawSize / 3f, boxes[local].DrawSize));
+                Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(grid.DrawSize / 3f, boxes[local].DrawSize));
             }
         }
 
@@ -275,7 +275,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 new Dimension(GridSizeMode.Absolute, 75)
             };
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -290,7 +290,7 @@ namespace osu.Framework.Tests.Visual.Layout
             for (int i = 0; i < 9; i++)
             {
                 int local = i;
-                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(new Vector2(dimensions[local % 3].Size, dimensions[local / 3].Size), boxes[local].DrawSize));
+                Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(new Vector2(dimensions[local % 3].Size, dimensions[local / 3].Size), boxes[local].DrawSize));
             }
         }
 
@@ -306,7 +306,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 new Dimension(GridSizeMode.Relative, 0.2f)
             };
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -321,7 +321,7 @@ namespace osu.Framework.Tests.Visual.Layout
             for (int i = 0; i < 9; i++)
             {
                 int local = i;
-                AddAssert($"box {local} has correct size",
+                Steps.AddAssert($"box {local} has correct size",
                     () => Precision.AlmostEquals(new Vector2(dimensions[local % 3].Size * grid.DrawWidth, dimensions[local / 3].Size * grid.DrawHeight), boxes[local].DrawSize));
             }
         }
@@ -337,7 +337,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 new Dimension(GridSizeMode.Relative, 0.2f)
             };
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -350,21 +350,21 @@ namespace osu.Framework.Tests.Visual.Layout
             });
 
             // Row 1
-            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(dimensions[0].Size, dimensions[0].Size)));
-            AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, dimensions[0].Size)));
-            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, dimensions[0].Size)));
+            Steps.AddAssert("box 0 has correct size", () => Precision.AlmostEquals(boxes[0].DrawSize, new Vector2(dimensions[0].Size, dimensions[0].Size)));
+            Steps.AddAssert("box 1 has correct size", () => Precision.AlmostEquals(boxes[1].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, dimensions[0].Size)));
+            Steps.AddAssert("box 2 has correct size", () => Precision.AlmostEquals(boxes[2].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, dimensions[0].Size)));
 
             // Row 2
-            AddAssert("box 3 has correct size", () => Precision.AlmostEquals(boxes[3].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight * dimensions[1].Size)));
-            AddAssert("box 4 has correct size", () => Precision.AlmostEquals(boxes[4].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, grid.DrawHeight * dimensions[1].Size)));
-            AddAssert("box 5 has correct size",
+            Steps.AddAssert("box 3 has correct size", () => Precision.AlmostEquals(boxes[3].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight * dimensions[1].Size)));
+            Steps.AddAssert("box 4 has correct size", () => Precision.AlmostEquals(boxes[4].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, grid.DrawHeight * dimensions[1].Size)));
+            Steps.AddAssert("box 5 has correct size",
                 () => Precision.AlmostEquals(boxes[5].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight * dimensions[1].Size)));
 
             // Row 3
-            AddAssert("box 6 has correct size", () => Precision.AlmostEquals(boxes[6].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight - boxes[3].DrawHeight - boxes[0].DrawHeight)));
-            AddAssert("box 7 has correct size",
+            Steps.AddAssert("box 6 has correct size", () => Precision.AlmostEquals(boxes[6].DrawSize, new Vector2(dimensions[0].Size, grid.DrawHeight - boxes[3].DrawHeight - boxes[0].DrawHeight)));
+            Steps.AddAssert("box 7 has correct size",
                 () => Precision.AlmostEquals(boxes[7].DrawSize, new Vector2(grid.DrawWidth * dimensions[1].Size, grid.DrawHeight - boxes[4].DrawHeight - boxes[1].DrawHeight)));
-            AddAssert("box 8 has correct size",
+            Steps.AddAssert("box 8 has correct size",
                 () => Precision.AlmostEquals(boxes[8].DrawSize, new Vector2(grid.DrawWidth - boxes[0].DrawWidth - boxes[1].DrawWidth, grid.DrawHeight - boxes[5].DrawHeight - boxes[2].DrawHeight)));
         }
 
@@ -373,7 +373,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             var boxes = new FillBox[4];
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -384,7 +384,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("two extra rows and columns", () =>
+            Steps.AddAssert("two extra rows and columns", () =>
             {
                 for (int i = 0; i < 4; i++)
                 {
@@ -401,7 +401,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             var boxes = new FillBox[4];
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -437,7 +437,7 @@ namespace osu.Framework.Tests.Visual.Layout
             for (int i = 0; i < 4; i++)
             {
                 int local = i;
-                AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, grid.DrawSize / 4));
+                Steps.AddAssert($"box {local} has correct size", () => Precision.AlmostEquals(boxes[local].DrawSize, grid.DrawSize / 4));
             }
         }
 
@@ -447,7 +447,7 @@ namespace osu.Framework.Tests.Visual.Layout
             FillBox fillBox = null;
             var autoSizingChildren = new Drawable[2];
 
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 grid.Content = new[]
                 {
@@ -481,9 +481,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("fill box has correct size", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 50, grid.DrawHeight - 10)));
-            AddStep("rotate boxes", () => autoSizingChildren.ForEach(c => c.RotateTo(90)));
-            AddAssert("fill box has resized correctly", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 10, grid.DrawHeight - 50)));
+            Steps.AddAssert("fill box has correct size", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 50, grid.DrawHeight - 10)));
+            Steps.AddStep("rotate boxes", () => autoSizingChildren.ForEach(c => c.RotateTo(90)));
+            Steps.AddAssert("fill box has resized correctly", () => Precision.AlmostEquals(fillBox.DrawSize, new Vector2(grid.DrawWidth - 10, grid.DrawHeight - 50)));
         }
 
         [TestCase(false)]
@@ -597,7 +597,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestCombinedMinimumAndMaximumSize()
         {
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 gridParent.Masking = false;
                 gridParent.RelativeSizeAxes = Axes.Y;
@@ -621,13 +621,13 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
+            Steps.AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
 
         [Test]
         public void TestCombinedMinimumAndMaximumSize2()
         {
-            AddStep("set content", () =>
+            Steps.AddStep("set content", () =>
             {
                 gridParent.Masking = false;
                 gridParent.RelativeSizeAxes = Axes.Y;
@@ -649,12 +649,12 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
+            Steps.AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
 
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
         {
-            AddAssert("sizes not over/underflowed", () =>
+            Steps.AddAssert("sizes not over/underflowed", () =>
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -671,7 +671,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 return true;
             });
 
-            AddAssert("column span total length", () =>
+            Steps.AddAssert("column span total length", () =>
             {
                 float expectedSize = row ? grid.DrawHeight : grid.DrawWidth;
                 float totalSize = row ? boxes.Sum(b => b.DrawHeight) : boxes.Sum(b => b.DrawWidth);
@@ -681,7 +681,7 @@ namespace osu.Framework.Tests.Visual.Layout
             });
         }
 
-        private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => AddStep("set content", () =>
+        private void setSingleDimensionContent(Func<Drawable[][]> contentFunc, Dimension[] dimensions = null, bool row = false) => Steps.AddStep("set content", () =>
         {
             var content = contentFunc();
 

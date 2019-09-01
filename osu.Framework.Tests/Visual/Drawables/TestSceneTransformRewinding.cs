@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(500, box => Precision.AlmostEquals(box.Scale.X, 0.5f));
             checkAtTime(250, box => Precision.AlmostEquals(box.Scale.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 1);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 1);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * (i -= 2), box => Precision.AlmostEquals(box.Scale.X, 0.5f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 4);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 4);
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * (i -= 2), box => Precision.AlmostEquals(box.Y, 0.75f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 4);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 4);
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(interval * (i - 2), box => Precision.AlmostEquals(box.Alpha, 1f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 7);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 7);
         }
 
         [Test]
@@ -154,7 +154,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(interval * ++i, box => Precision.AlmostEquals(box.Scale.X, 0.1f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 2);
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.3125f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.25f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 2);
         }
 
         [Test]
@@ -199,7 +199,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.6875f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.375f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 2);
         }
 
         [Test]
@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 1) && Precision.AlmostEquals(box.Scale.X, 0.9f));
             checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0) && Precision.AlmostEquals(box.Scale.X, 0.575f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 3);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 3);
         }
 
         [Test]
@@ -232,7 +232,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 checkAtTime(interval * i, box => Precision.AlmostEquals(box.Rotation, 0));
             }
 
-            AddAssert("check transform count", () => box.Transforms.Count == 10);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 10);
 
             for (int i = count; i >= 0; i--)
             {
@@ -248,7 +248,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(750, box => Precision.AlmostEquals(box.Rotation, 0f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 8);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 8);
 
             const int count = 4;
 
@@ -258,7 +258,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 checkAtTime(interval * i, box => Precision.AlmostEquals(box.Rotation, 0));
             }
 
-            AddAssert("check transform count", () => box.Transforms.Count == 10);
+            Steps.AddAssert("check transform count", () => box.Transforms.Count == 10);
 
             for (int i = count; i >= 0; i--)
             {
@@ -271,7 +271,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void checkAtTime(double time, Func<Box, bool> assert)
         {
-            AddAssert($"check at time {time}", () =>
+            Steps.AddAssert($"check at time {time}", () =>
             {
                 manualClock.CurrentTime = time;
 
@@ -284,7 +284,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void boxTest(Action<Box> action, int startTime = 0)
         {
-            AddStep("add box", () =>
+            Steps.AddStep("add box", () =>
             {
                 Add(new AnimationContainer(startTime)
                 {

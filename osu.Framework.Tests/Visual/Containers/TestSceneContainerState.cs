@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestLoadedMultipleAdds()
         {
-            AddAssert("Test loaded multiple adds", () =>
+            Steps.AddAssert("Test loaded multiple adds", () =>
             {
                 var loadedContainer = new Container();
                 Add(loadedContainer);
@@ -191,25 +191,25 @@ namespace osu.Framework.Tests.Visual.Containers
             // and will fall into the deadlocked state itself. For this reason an intermediate "safe" container is used, which is
             // removed from the hierarchy immediately after use and is thus not disposed when the test runner exits.
             // This does NOT free up the LoadComponentAsync thread pool for use by other tests - that thread is in a deadlocked state forever.
-            AddStep("add safe container", () => Add(safeContainer = new Container()));
+            Steps.AddStep("add safe container", () => Add(safeContainer = new Container()));
 
             // Get the drawable into an async loading state
-            AddStep("begin async load", () =>
+            Steps.AddStep("begin async load", () =>
             {
                 safeContainer.LoadComponentAsync(drawable = new DelayedLoadDrawable(), _ => { });
                 Remove(safeContainer);
             });
 
-            AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
+            Steps.AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
 
             // Make the async disposal queue attempt to dispose the drawable
-            AddStep("enqueue async disposal", () => AsyncDisposalQueue.Enqueue(drawable));
-            AddWaitStep("wait for disposal task to run", 10);
+            Steps.AddStep("enqueue async disposal", () => AsyncDisposalQueue.Enqueue(drawable));
+            Steps.AddWaitStep("wait for disposal task to run", 10);
 
             // Clear the contents of the drawable, causing a second async disposal
-            AddStep("allow load", () => drawable.AllowLoad.Set());
+            Steps.AddStep("allow load", () => drawable.AllowLoad.Set());
 
-            AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
+            Steps.AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
         }
 
         private class DelayedLoadDrawable : CompositeDrawable

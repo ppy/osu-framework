@@ -49,15 +49,15 @@ namespace osu.Framework.Tests.Visual.Layout
         [TestCase(1f)]
         public void TestFitInsideFlow(float value)
         {
-            AddStep("Set size", () => fitBox.Size = new Vector2(value));
+            Steps.AddStep("Set size", () => fitBox.Size = new Vector2(value));
 
             var expectedSize = new Vector2(container_width * value);
 
-            AddAssert("Check size before invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
-            AddAssert("Check size before invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
-            AddStep("Invalidate", () => fitBox.Invalidate());
-            AddAssert("Check size after invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
-            AddAssert("Check size after invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
+            Steps.AddAssert("Check size before invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
+            Steps.AddAssert("Check size before invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
+            Steps.AddStep("Invalidate", () => fitBox.Invalidate());
+            Steps.AddAssert("Check size after invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
+            Steps.AddAssert("Check size after invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
         }
     }
 }

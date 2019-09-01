@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Box box = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Child = new Container
                 {
@@ -31,8 +31,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Box box = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Child = new Container
                 {
@@ -52,8 +52,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Box box = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Child = new Container
                 {
@@ -85,8 +85,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Box box = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Child = new Container
                 {
@@ -118,8 +118,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway);
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var box = new Box();
             Drawable proxy = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new Drawable[]
                 {
@@ -154,9 +154,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
-            AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var box = new Box { Position = new Vector2(-1) };
             Drawable proxy = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new[]
                 {
@@ -184,9 +184,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
-            AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var box = new Box();
             Drawable proxy = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new Drawable[]
                 {
@@ -224,9 +224,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
-            AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
+            Steps.AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var box = new Box { Position = new Vector2(-1) };
             Drawable proxy = null;
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new Drawable[]
                 {
@@ -264,9 +264,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
-            AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
+            Steps.AddAssert("Check proxy IsMaskedAway", () => !proxy.IsMaskedAway);
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var proxy1 = box.CreateProxy();
             var proxy2 = proxy1.CreateProxy();
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new Drawable[]
                 {
@@ -313,10 +313,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
-            AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
-            AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
+            Steps.AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
+            Steps.AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var proxy1 = box.CreateProxy();
             var proxy2 = proxy1.CreateProxy();
 
-            AddStep("init", () =>
+            Steps.AddStep("init", () =>
             {
                 Children = new Drawable[]
                 {
@@ -365,10 +365,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddWaitStep("Wait for UpdateSubTree", 1);
-            AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
-            AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
-            AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);
+            Steps.AddWaitStep("Wait for UpdateSubTree", 1);
+            Steps.AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
+            Steps.AddAssert("Check proxy1 IsMaskedAway", () => !proxy1.IsMaskedAway);
+            Steps.AddAssert("Check proxy2 IsMaskedAway", () => !proxy2.IsMaskedAway);
         }
     }
 }

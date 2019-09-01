@@ -77,15 +77,15 @@ namespace osu.Framework.Tests.Visual.Layout
         });
 
         private void check(float ratio) =>
-            AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(changed_value * ratio)) &&
+            Steps.AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(changed_value * ratio)) &&
                                                Precision.AlmostEquals(box2.Position, new Vector2(changed_value * (1 - ratio), changed_value * ratio)));
 
-        private void skipTo(float ratio) => AddStep($"skip to {ratio}", () => { manualClock.CurrentTime = duration * ratio; });
+        private void skipTo(float ratio) => Steps.AddStep($"skip to {ratio}", () => { manualClock.CurrentTime = duration * ratio; });
 
         [Test]
         public void TestChangeAfterDuration()
         {
-            AddStep("Start transformation", () =>
+            Steps.AddStep("Start transformation", () =>
             {
                 paused = true;
                 manualClock.CurrentTime = 0;
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestInterruptExistingDuration()
         {
-            AddStep("Start transformation", () =>
+            Steps.AddStep("Start transformation", () =>
             {
                 paused = true;
                 manualClock.CurrentTime = 0;
@@ -128,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Layout
             skipTo(0.5f);
             check(0.5f);
 
-            AddStep("set duration 0", () =>
+            Steps.AddStep("set duration 0", () =>
             {
                 autoSizeContainer.AutoSizeDuration = 0;
                 fillFlowContainer.LayoutDuration = 0;
@@ -142,7 +142,7 @@ namespace osu.Framework.Tests.Visual.Layout
             skipTo(0.5f);
             check(0.5f);
 
-            AddStep("alter values", () =>
+            Steps.AddStep("alter values", () =>
             {
                 box1.Size = new Vector2(0);
                 fillFlowContainer.Width = 200;

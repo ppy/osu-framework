@@ -104,14 +104,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void testPositionalClick(Drawable target, Func<Vector2> pos, bool testManyTimes)
         {
-            AddStep("click position", () =>
+            Steps.AddStep("click position", () =>
             {
                 InputManager.MoveMouseTo(pos());
                 InputManager.Click(MouseButton.Right);
             });
 
             for (int i = 0; i < (testManyTimes ? 10 : 1); i++)
-                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(contextContainer.CurrentMenu, target));
+                Steps.AddAssert("check completely on screen", () => isTrackingTargetCorrectly(contextContainer.CurrentMenu, target));
         }
 
         private bool isTrackingTargetCorrectly(Drawable menu, Drawable target)

@@ -457,7 +457,7 @@ namespace osu.Framework.Testing
                 if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel(m.Name);
+                    CurrentTest.Steps.AddLabel(m.Name);
 
                     addSetUpSteps();
 
@@ -467,7 +467,7 @@ namespace osu.Framework.Testing
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+                    CurrentTest.Steps.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
 
                     addSetUpSteps();
 
@@ -489,7 +489,7 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStep
+                    CurrentTest.Steps.AddStep(new SetUpStep
                     {
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -511,7 +511,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.Steps.RunAll(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
