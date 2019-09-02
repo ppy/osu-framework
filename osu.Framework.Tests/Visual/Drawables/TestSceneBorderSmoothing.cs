@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             };
 
-            Steps.AddSliderStep("adjust alpha", 0f, 1f, 1, val => Child.Alpha = val);
+            AddSliderStep("adjust alpha", 0f, 1f, 1, val => Child.Alpha = val);
         }
 
         private class IssueButton : Button

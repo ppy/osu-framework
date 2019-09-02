@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.Bindables
         {
             TestExposedBindableDrawable drawable1 = null, drawable2 = null, drawable3 = null, drawable4 = null;
 
-            Steps.AddStep("add drawables", () =>
+            AddStep("add drawables", () =>
             {
                 Child = new FillFlowContainer
                 {
@@ -37,26 +37,26 @@ namespace osu.Framework.Tests.Visual.Bindables
                 };
             });
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
 
-            Steps.AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
-            Steps.AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
-            Steps.AddAssert("transfer 1-4 completed", () => drawable1.Bindable.Value == drawable4.Bindable.Value);
+            AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
+            AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
+            AddAssert("transfer 1-4 completed", () => drawable1.Bindable.Value == drawable4.Bindable.Value);
 
-            Steps.AddStep("expire child 4", () => drawable4.Expire());
+            AddStep("expire child 4", () => drawable4.Expire());
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 20);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 20);
 
-            Steps.AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
-            Steps.AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
-            Steps.AddAssert("transfer 1-4 skipped", () => drawable1.Bindable.Value != drawable4.Bindable.Value);
+            AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
+            AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
+            AddAssert("transfer 1-4 skipped", () => drawable1.Bindable.Value != drawable4.Bindable.Value);
 
-            Steps.AddStep("expire child 3", () => drawable3.Expire());
+            AddStep("expire child 3", () => drawable3.Expire());
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
 
             // fails due to drawable3 being expired/disposed with a direct reference to drawable1's bindable.
-            Steps.AddAssert("transfer 1-2 fails", () => drawable1.Bindable.Value != drawable2.Bindable.Value);
+            AddAssert("transfer 1-2 fails", () => drawable1.Bindable.Value != drawable2.Bindable.Value);
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Bindables
         {
             TestResolvedBindableDrawable drawable1 = null, drawable2 = null, drawable3 = null, drawable4 = null;
 
-            Steps.AddStep("add drawables", () =>
+            AddStep("add drawables", () =>
             {
                 Child = new BindableExposingFillFlowContainer
                 {
@@ -81,26 +81,26 @@ namespace osu.Framework.Tests.Visual.Bindables
                 };
             });
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
 
-            Steps.AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
-            Steps.AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
-            Steps.AddAssert("transfer 1-4 completed", () => drawable1.Bindable.Value == drawable4.Bindable.Value);
+            AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
+            AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
+            AddAssert("transfer 1-4 completed", () => drawable1.Bindable.Value == drawable4.Bindable.Value);
 
-            Steps.AddStep("expire child 4", () => drawable4.Expire());
+            AddStep("expire child 4", () => drawable4.Expire());
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 20);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 20);
 
-            Steps.AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
-            Steps.AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
-            Steps.AddAssert("transfer 1-4 skipped", () => drawable1.Bindable.Value != drawable4.Bindable.Value);
+            AddAssert("transfer 1-2 completed", () => drawable1.Bindable.Value == drawable2.Bindable.Value);
+            AddAssert("transfer 1-3 completed", () => drawable1.Bindable.Value == drawable3.Bindable.Value);
+            AddAssert("transfer 1-4 skipped", () => drawable1.Bindable.Value != drawable4.Bindable.Value);
 
-            Steps.AddStep("expire child 3", () => drawable3.Expire());
+            AddStep("expire child 3", () => drawable3.Expire());
 
-            Steps.AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
+            AddStep("attempt value transfer", () => drawable1.Bindable.Value = 10);
 
             // fails due to drawable3 being expired/disposed with a direct reference to drawable1's bindable.
-            Steps.AddAssert("transfer 1-2 fails", () => drawable1.Bindable.Value != drawable2.Bindable.Value);
+            AddAssert("transfer 1-2 fails", () => drawable1.Bindable.Value != drawable2.Bindable.Value);
         }
 
         public class BindableExposingFillFlowContainer : FillFlowContainer

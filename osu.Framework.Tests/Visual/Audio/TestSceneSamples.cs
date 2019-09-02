@@ -63,14 +63,14 @@ namespace osu.Framework.Tests.Visual.Audio
                 },
             };
 
-            Steps.AddStep("reduce volume", () => samples.VolumeTo(samples.Volume.Value - 0.5f, 1000, Easing.OutQuint));
-            Steps.AddStep("increase volume", () => samples.VolumeTo(samples.Volume.Value + 0.5f, 1000, Easing.OutQuint));
+            AddStep("reduce volume", () => samples.VolumeTo(samples.Volume.Value - 0.5f, 1000, Easing.OutQuint));
+            AddStep("increase volume", () => samples.VolumeTo(samples.Volume.Value + 0.5f, 1000, Easing.OutQuint));
 
-            Steps.AddStep("reduce frequency", () => samples.FrequencyTo(samples.Frequency.Value - 0.1f, 1000, Easing.OutQuint));
-            Steps.AddStep("increase frequency", () => samples.FrequencyTo(samples.Frequency.Value + 0.1f, 1000, Easing.OutQuint));
+            AddStep("reduce frequency", () => samples.FrequencyTo(samples.Frequency.Value - 0.1f, 1000, Easing.OutQuint));
+            AddStep("increase frequency", () => samples.FrequencyTo(samples.Frequency.Value + 0.1f, 1000, Easing.OutQuint));
 
-            Steps.AddStep("left balance", () => samples.BalanceTo(samples.Balance.Value - 1, 1000, Easing.OutQuint));
-            Steps.AddStep("right balance", () => samples.BalanceTo(samples.Balance.Value + 1, 1000, Easing.OutQuint));
+            AddStep("left balance", () => samples.BalanceTo(samples.Balance.Value - 1, 1000, Easing.OutQuint));
+            AddStep("right balance", () => samples.BalanceTo(samples.Balance.Value + 1, 1000, Easing.OutQuint));
         }
 
         protected override void Update()

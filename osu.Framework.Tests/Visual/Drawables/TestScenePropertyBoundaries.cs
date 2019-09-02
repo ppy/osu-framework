@@ -29,9 +29,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Add(box);
 
-            Steps.AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
-            Steps.AddAssert("Box is present", () => box.IsPresent);
-            Steps.AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
+            AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
+            AddAssert("Box is present", () => box.IsPresent);
+            AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
         }
 
         private void testZeroScale()
@@ -44,9 +44,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Add(box);
 
-            Steps.AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
-            Steps.AddAssert("Box is present", () => !box.IsPresent);
-            Steps.AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
+            AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
+            AddAssert("Box is present", () => !box.IsPresent);
+            AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
         }
 
         private void testNegativeScale()
@@ -59,9 +59,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Add(box);
 
-            Steps.AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
-            Steps.AddAssert("Box is present", () => box.IsPresent);
-            Steps.AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
+            AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
+            AddAssert("Box is present", () => box.IsPresent);
+            AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
         }
 
         private bool checkDrawInfo(DrawInfo drawInfo) =>

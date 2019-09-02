@@ -112,8 +112,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             TestWaveform graph = null;
 
-            Steps.AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
-            Steps.AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
+            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
         }
 
         [Test]
@@ -121,8 +121,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             TestWaveform graph = null;
 
-            Steps.AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
-            Steps.AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
+            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
         }
 
         private void startStop()

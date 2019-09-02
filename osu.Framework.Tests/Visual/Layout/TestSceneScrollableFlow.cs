@@ -85,15 +85,15 @@ namespace osu.Framework.Tests.Visual.Layout
 
             createArea(scrollDir = Direction.Vertical);
 
-            Steps.AddStep("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
-            Steps.AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
-            Steps.AddStep("Both", createAreaBoth);
+            AddStep("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
+            AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
+            AddStep("Both", createAreaBoth);
 
-            Steps.AddStep("Dragger Anchor 1", delegate { scroll.ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            Steps.AddStep("Dragger Anchor 2", delegate { scroll.ScrollbarAnchor = Anchor.TopLeft; });
+            AddStep("Dragger Anchor 1", delegate { scroll.ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddStep("Dragger Anchor 2", delegate { scroll.ScrollbarAnchor = Anchor.TopLeft; });
 
-            Steps.AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
-            Steps.AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
+            AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
+            AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate

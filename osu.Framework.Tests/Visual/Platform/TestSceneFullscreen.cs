@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void testResolution(int w, int h)
         {
-            Steps.AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
+            AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
         }
 
         [BackgroundDependencyLoader]
@@ -62,32 +62,32 @@ namespace osu.Framework.Tests.Visual.Platform
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
             // so the test case doesn't change fullscreen size just when you enter it
-            Steps.AddStep("nothing", () => { });
+            AddStep("nothing", () => { });
 
             var initialWindowMode = windowMode.Value;
 
             // if we support windowed mode, switch to it and test resizing the window
             if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
-                Steps.AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
-                Steps.AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
+                AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
+                AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
             }
 
             // if we support borderless, test that it can be used
             if (window.SupportedWindowModes.Contains(WindowMode.Borderless))
-                Steps.AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
+                AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
 
             // if we support fullscreen mode, switch to it and test swapping resolutions
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
-                Steps.AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
+                AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
             }
 
             // go back to initial window mode
-            Steps.AddStep($"revert to {initialWindowMode.ToString()}", () => windowMode.Value = initialWindowMode);
+            AddStep($"revert to {initialWindowMode.ToString()}", () => windowMode.Value = initialWindowMode);
         }
 
         protected override void Update()

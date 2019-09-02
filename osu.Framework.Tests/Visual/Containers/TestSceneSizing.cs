@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Containers
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                Steps.AddStep(testNames[i], delegate { loadTest(test); });
+                AddStep(testNames[i], delegate { loadTest(test); });
             }
         }
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Containers
             Container autoSizeContainer = null;
             Box boxSizeReference = null;
 
-            Steps.AddStep("init", () =>
+            AddStep("init", () =>
             {
                 Child = autoSizeContainer = new Container
                 {
@@ -78,11 +78,11 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 };
             });
-            Steps.AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
-            Steps.AddStep("bypass y", () => boxSizeReference.BypassAutoSizeAxes = Axes.Y);
-            Steps.AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
-            Steps.AddStep("bypass none", () => boxSizeReference.BypassAutoSizeAxes = Axes.None);
-            Steps.AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
+            AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
+            AddStep("bypass y", () => boxSizeReference.BypassAutoSizeAxes = Axes.Y);
+            AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
+            AddStep("bypass none", () => boxSizeReference.BypassAutoSizeAxes = Axes.None);
+            AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
         }
 
         [Test]
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Containers
             Container child = null;
             Vector2 initialSize = Vector2.Zero;
 
-            Steps.AddStep("add child", () =>
+            AddStep("add child", () =>
             {
                 Child = child = new Container
                 {
@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // Upon LoadComplete(), one invalidation occurs which causes autosize to recompute
             // Since nothing has changed since the previous frame, the size of the child should remain the same
-            Steps.AddAssert("size is the same after one frame", () => child.Size == initialSize);
+            AddAssert("size is the same after one frame", () => child.Size == initialSize);
         }
 
         private void addCrosshair()

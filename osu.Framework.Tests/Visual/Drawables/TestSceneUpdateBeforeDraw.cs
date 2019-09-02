@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             var sender = new HookableContainer();
             var greenBox = new TestBox { Colour = Color4.Green };
 
-            Steps.AddStep("add children", () =>
+            AddStep("add children", () =>
             {
                 Children = new Drawable[]
                 {
@@ -50,8 +50,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             sender.OnUpdateAfterChildren = () => receiver.Add(greenBox);
 
-            Steps.AddStep("wait one frame", () => { });
-            Steps.AddAssert("green not present", () => !greenBox.IsPresent);
+            AddStep("wait one frame", () => { });
+            AddAssert("green not present", () => !greenBox.IsPresent);
         }
 
         private class HookableContainer : Container

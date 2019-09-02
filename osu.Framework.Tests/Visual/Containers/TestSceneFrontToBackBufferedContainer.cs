@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestBufferedContainerBehindBox()
         {
-            Steps.AddStep("set children", () =>
+            AddStep("set children", () =>
             {
                 Children = new Drawable[]
                 {
@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestBufferedContainerAboveBox()
         {
-            Steps.AddStep("set children", () =>
+            AddStep("set children", () =>
             {
                 Children = new Drawable[]
                 {

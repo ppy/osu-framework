@@ -55,12 +55,12 @@ namespace osu.Framework.Tests.Visual.Input
             if (!pressedKeys.Contains(key))
             {
                 pressedKeys.Add(key);
-                Steps.AddStep($"press {key}", () => InputManager.PressKey(key));
+                AddStep($"press {key}", () => InputManager.PressKey(key));
             }
             else
             {
                 pressedKeys.Remove(key);
-                Steps.AddStep($"release {key}", () => InputManager.ReleaseKey(key));
+                AddStep($"release {key}", () => InputManager.ReleaseKey(key));
             }
         }
 
@@ -69,23 +69,23 @@ namespace osu.Framework.Tests.Visual.Input
             if (!pressedMouseButtons.Contains(button))
             {
                 pressedMouseButtons.Add(button);
-                Steps.AddStep($"press {button}", () => InputManager.PressButton(button));
+                AddStep($"press {button}", () => InputManager.PressButton(button));
             }
             else
             {
                 pressedMouseButtons.Remove(button);
-                Steps.AddStep($"release {button}", () => InputManager.ReleaseButton(button));
+                AddStep($"release {button}", () => InputManager.ReleaseButton(button));
             }
         }
 
         private void scrollMouseWheel(int dy)
         {
-            Steps.AddStep($"scroll wheel {dy}", () => InputManager.ScrollVerticalBy(dy));
+            AddStep($"scroll wheel {dy}", () => InputManager.ScrollVerticalBy(dy));
         }
 
         private void check(TestAction action, params CheckConditions[] entries)
         {
-            Steps.AddAssert($"check {action}", () =>
+            AddAssert($"check {action}", () =>
             {
                 Assert.Multiple(() =>
                 {
@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void wrapTest(Action inner)
         {
-            Steps.AddStep("init", () =>
+            AddStep("init", () =>
             {
                 foreach (var mode in new[] { none, noneExact, noneModifiers, unique, all })
                 {

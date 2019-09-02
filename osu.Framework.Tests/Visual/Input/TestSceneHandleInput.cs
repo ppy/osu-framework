@@ -23,33 +23,33 @@ namespace osu.Framework.Tests.Visual.Input
             Add(handleNonPositionalInput = new TestContainerHandleNonPositionalInput { X = 600, Colour = Color4.Green });
             Add(new TestSceneMouseStates.StateTracker.BoundedCursorContainer(0));
 
-            Steps.AddStep($"enable {notHandleInput}", () => { InputManager.MoveMouseTo(notHandleInput); });
-            Steps.AddAssert($"check {nameof(notHandleInput)}", () => !notHandleInput.IsHovered && !notHandleInput.HasFocus);
+            AddStep($"enable {notHandleInput}", () => { InputManager.MoveMouseTo(notHandleInput); });
+            AddAssert($"check {nameof(notHandleInput)}", () => !notHandleInput.IsHovered && !notHandleInput.HasFocus);
 
-            Steps.AddStep($"enable {nameof(handlePositionalInput)}", () =>
+            AddStep($"enable {nameof(handlePositionalInput)}", () =>
             {
                 handlePositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handlePositionalInput);
             });
-            Steps.AddAssert($"check {nameof(handlePositionalInput)}", () => handlePositionalInput.IsHovered && handlePositionalInput.HasFocus);
+            AddAssert($"check {nameof(handlePositionalInput)}", () => handlePositionalInput.IsHovered && handlePositionalInput.HasFocus);
 
-            Steps.AddStep($"enable {nameof(handleNonPositionalInput)}", () =>
+            AddStep($"enable {nameof(handleNonPositionalInput)}", () =>
             {
                 handleNonPositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handleNonPositionalInput);
                 InputManager.TriggerFocusContention(null);
             });
-            Steps.AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.IsHovered && handleNonPositionalInput.HasFocus);
+            AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.IsHovered && handleNonPositionalInput.HasFocus);
 
-            Steps.AddStep("move mouse", () => InputManager.MoveMouseTo(handlePositionalInput));
-            Steps.AddStep("disable all", () =>
+            AddStep("move mouse", () => InputManager.MoveMouseTo(handlePositionalInput));
+            AddStep("disable all", () =>
             {
                 handlePositionalInput.Enabled = false;
                 handleNonPositionalInput.Enabled = false;
             });
-            Steps.AddAssert($"check {nameof(handlePositionalInput)}", () => !handlePositionalInput.IsHovered);
+            AddAssert($"check {nameof(handlePositionalInput)}", () => !handlePositionalInput.IsHovered);
             // focus is not released when AcceptsFocus become false while focused
-            //Steps.AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
+            //AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
         }
 
         private class TestContainerNoHandling : Container

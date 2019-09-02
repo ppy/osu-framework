@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll = null;
             int loaded = 0;
 
-            Steps.AddStep("create children", () =>
+            AddStep("create children", () =>
             {
                 loaded = 0;
 
@@ -69,22 +69,22 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             int loadCount1 = 0;
 
-            Steps.AddUntilStep("wait for load", () => loaded > 0);
+            AddUntilStep("wait for load", () => loaded > 0);
 
-            Steps.AddStep("scroll down", () =>
+            AddStep("scroll down", () =>
             {
                 loadCount1 = loaded;
                 scroll.ScrollToEnd();
             });
 
-            Steps.AddWaitStep("wait some more", 10);
+            AddWaitStep("wait some more", 10);
 
-            Steps.AddUntilStep("more loaded", () => loaded > loadCount1);
-            Steps.AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
+            AddUntilStep("more loaded", () => loaded > loadCount1);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
 
-            Steps.AddStep("Remove all panels", () => flow.Clear(false));
+            AddStep("Remove all panels", () => flow.Clear(false));
 
-            Steps.AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
         public class TestBox : Container

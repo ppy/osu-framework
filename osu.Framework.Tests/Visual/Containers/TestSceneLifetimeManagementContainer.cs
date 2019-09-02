@@ -33,12 +33,12 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void skipTo(double time)
         {
-            Steps.AddStep($"Set time to {time}", () => manualClock.CurrentTime = time);
+            AddStep($"Set time to {time}", () => manualClock.CurrentTime = time);
         }
 
         private void validate(int numAlive)
         {
-            Steps.AddAssert($"{numAlive} alive children", () =>
+            AddAssert($"{numAlive} alive children", () =>
             {
                 int num = 0;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void Basic()
         {
-            Steps.AddStep("Add children", () =>
+            AddStep("Add children", () =>
             {
                 container.AddInternal(new TestChild(-1, 1));
                 container.AddInternal(new TestChild(0, 1));
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Containers
         public void DynamicChange()
         {
             TestChild a = null, b = null, c = null, d = null;
-            Steps.AddStep("Add children", () =>
+            AddStep("Add children", () =>
             {
                 container.AddInternal(a = new TestChild(-1, 0));
                 container.AddInternal(b = new TestChild(0, 1));
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 container.AddInternal(d = new TestChild(1, 2));
             });
             validate(2);
-            Steps.AddStep("Change lifetime", () =>
+            AddStep("Change lifetime", () =>
             {
                 a.LifetimeEnd = 1;
                 b.LifetimeStart = 1;
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 d.LifetimeStart = 0;
             });
             validate(2);
-            Steps.AddStep("Change lifetime", () =>
+            AddStep("Change lifetime", () =>
             {
                 foreach (var x in new[] { a, b, c, d })
                 {
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 }
             });
             validate(1);
-            Steps.AddStep("Change lifetime", () =>
+            AddStep("Change lifetime", () =>
             {
                 foreach (var x in new[] { a, b, c, d })
                 {
@@ -119,14 +119,14 @@ namespace osu.Framework.Tests.Visual.Containers
         public void BoundaryCrossing()
         {
             TestChild a = null, b = null, c = null;
-            Steps.AddStep("Add children", () =>
+            AddStep("Add children", () =>
             {
                 container.AddInternal(a = new TestChild(-1, 0));
                 container.AddInternal(b = new TestChild(0, 1));
                 container.AddInternal(c = new TestChild(1, 2));
             });
             skipTo(2);
-            Steps.AddStep("Check crossings", () =>
+            AddStep("Check crossings", () =>
             {
                 a.CheckCrossings();
                 b.CheckCrossings(new LifetimeBoundaryCrossedEvent(b, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
@@ -135,14 +135,14 @@ namespace osu.Framework.Tests.Visual.Containers
                     new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Forward));
             });
             skipTo(1);
-            Steps.AddStep("Check crossings", () =>
+            AddStep("Check crossings", () =>
             {
                 a.CheckCrossings();
                 b.CheckCrossings();
                 c.CheckCrossings(new LifetimeBoundaryCrossedEvent(c, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
             });
             skipTo(-1);
-            Steps.AddStep("Check crossings", () =>
+            AddStep("Check crossings", () =>
             {
                 a.CheckCrossings(
                     new LifetimeBoundaryCrossedEvent(a, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward));
@@ -155,7 +155,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void LifetimeChangeOnCallback()
         {
-            Steps.AddStep("Add children", () =>
+            AddStep("Add children", () =>
             {
                 TestChild a;
                 container.AddInternal(a = new TestChild(0, 1));
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 checkAll();
             }
 
-            Steps.AddStep("init", () =>
+            AddStep("init", () =>
             {
                 addChild();
                 container.OnCrossing += e =>
@@ -261,23 +261,23 @@ namespace osu.Framework.Tests.Visual.Containers
                     case 0:
                         if (count < 20)
                         {
-                            Steps.AddStep("Add child", addChild);
+                            AddStep("Add child", addChild);
                             count += 1;
                         }
                         else
                         {
-                            Steps.AddStep("Remove child", removeChild);
+                            AddStep("Remove child", removeChild);
                             count -= 1;
                         }
 
                         break;
 
                     case 1:
-                        Steps.AddStep("Change lifetime", changeLifetime);
+                        AddStep("Change lifetime", changeLifetime);
                         break;
 
                     case 2:
-                        Steps.AddStep("Change time", changeTime);
+                        AddStep("Change time", changeTime);
                         break;
                 }
             }

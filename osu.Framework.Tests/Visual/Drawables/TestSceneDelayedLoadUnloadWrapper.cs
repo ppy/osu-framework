@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             WeakList<Container> references = new WeakList<Container>();
 
-            Steps.AddStep("populate panels", () =>
+            AddStep("populate panels", () =>
             {
                 references.Clear();
 
@@ -84,23 +84,23 @@ namespace osu.Framework.Tests.Visual.Drawables
                     });
             });
 
-            Steps.AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
+            AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            Steps.AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
+            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
 
-            Steps.AddStep("scroll to end", () => scroll.ScrollToEnd());
+            AddStep("scroll to end", () => scroll.ScrollToEnd());
 
-            Steps.AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
-            Steps.AddUntilStep("references lost", () =>
+            AddUntilStep("references lost", () =>
             {
                 GC.Collect();
                 return !references.Any();
             });
 
-            Steps.AddStep("scroll to start", () => scroll.ScrollToStart());
+            AddStep("scroll to start", () => scroll.ScrollToStart());
 
-            Steps.AddUntilStep("references restored", () => references.Count() == 16);
+            AddUntilStep("references restored", () => references.Count() == 16);
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             WeakList<Container> references = new WeakList<Container>();
 
-            Steps.AddStep("populate panels", () =>
+            AddStep("populate panels", () =>
             {
                 references.Clear();
 
@@ -138,15 +138,15 @@ namespace osu.Framework.Tests.Visual.Drawables
                     });
             });
 
-            Steps.AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
+            AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            Steps.AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
+            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
 
-            Steps.AddStep("Remove all panels", () => flow.Clear(false));
+            AddStep("Remove all panels", () => flow.Clear(false));
 
-            Steps.AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
-            Steps.AddUntilStep("references lost", () =>
+            AddUntilStep("references lost", () =>
             {
                 GC.Collect();
                 return !references.Any();
@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             int loadCount = 0;
 
-            Steps.AddStep("populate panels", () =>
+            AddStep("populate panels", () =>
             {
                 references.Clear();
                 loadCount = 0;
@@ -198,19 +198,19 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             IReadOnlyList<Container> previousChildren = null;
 
-            Steps.AddUntilStep("all loaded", () => loadCount == 16);
+            AddUntilStep("all loaded", () => loadCount == 16);
 
-            Steps.AddStep("Remove all panels", () =>
+            AddStep("Remove all panels", () =>
             {
                 previousChildren = flow.Children.ToList();
                 flow.Clear(false);
             });
 
-            Steps.AddStep("Add panels back", () => flow.Children = previousChildren);
+            AddStep("Add panels back", () => flow.Children = previousChildren);
 
-            Steps.AddWaitStep("wait for potential unload", 20);
+            AddWaitStep("wait for potential unload", 20);
 
-            Steps.AddAssert("load count hasn't changed", () => loadCount == 16);
+            AddAssert("load count hasn't changed", () => loadCount == 16);
         }
 
         [Test]
@@ -218,7 +218,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             int loaded = 0;
 
-            Steps.AddStep("populate panels", () =>
+            AddStep("populate panels", () =>
             {
                 loaded = 0;
 
@@ -247,22 +247,22 @@ namespace osu.Framework.Tests.Visual.Drawables
             int loadCount1 = 0;
             int loadCount2 = 0;
 
-            Steps.AddUntilStep("wait for load", () => loaded > 0);
+            AddUntilStep("wait for load", () => loaded > 0);
 
-            Steps.AddStep("scroll down", () =>
+            AddStep("scroll down", () =>
             {
                 loadCount1 = loaded;
                 scroll.ScrollToEnd();
             });
 
-            Steps.AddUntilStep("more loaded", () =>
+            AddUntilStep("more loaded", () =>
             {
                 loadCount2 = childrenWithAvatarsLoaded();
                 return loaded > loadCount1;
             });
 
-            Steps.AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
-            Steps.AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadCount2);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
+            AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadCount2);
         }
 
         [Test]
@@ -270,7 +270,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             var wrappers = new List<DelayedLoadUnloadWrapper>();
 
-            Steps.AddStep("populate panels", () =>
+            AddStep("populate panels", () =>
             {
                 for (int i = 1; i < 16; i++)
                 {
@@ -300,9 +300,9 @@ namespace osu.Framework.Tests.Visual.Drawables
             Func<int> childrenWithAvatarsLoaded = () =>
                 flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().FirstOrDefault()?.Content?.IsLoaded ?? false);
 
-            Steps.AddUntilStep("wait some loaded", () => childrenWithAvatarsLoaded() > 5);
-            Steps.AddStep("expire wrappers", () => wrappers.ForEach(w => w.Expire()));
-            Steps.AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
+            AddUntilStep("wait some loaded", () => childrenWithAvatarsLoaded() > 5);
+            AddStep("expire wrappers", () => wrappers.ForEach(w => w.Expire()));
+            AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
         }
 
         public class TestScrollContainer : BasicScrollContainer

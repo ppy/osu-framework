@@ -36,23 +36,23 @@ namespace osu.Framework.Tests.Visual.Testing
                     testRunCount++;
             });
 
-            Steps.AddStep("dummy step", () => { });
+            AddStep("dummy step", () => { });
         }
 
         [Test]
         public void Test1()
         {
-            Steps.AddStep("increment run count", () => testRunCount++);
-            Steps.AddAssert("correct setup run count", () => testRunCount == setupRun);
-            Steps.AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddStep("increment run count", () => testRunCount++);
+            AddAssert("correct setup run count", () => testRunCount == setupRun);
+            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         [Test]
         public void Test2()
         {
-            Steps.AddStep("increment run count", () => testRunCount++);
-            Steps.AddAssert("correct setup run count", () => testRunCount == setupRun);
-            Steps.AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddStep("increment run count", () => testRunCount++);
+            AddAssert("correct setup run count", () => testRunCount == setupRun);
+            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
         }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();

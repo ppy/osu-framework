@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestHeading()
         {
-            Steps.AddStep("Markdown Heading", () =>
+            AddStep("Markdown Heading", () =>
             {
                 markdownContainer.Text = @"# Header 1
 ## Header 2
@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestSeparator()
         {
-            Steps.AddStep("Markdown Seperator", () =>
+            AddStep("Markdown Seperator", () =>
             {
                 markdownContainer.Text = @"Line above
 
@@ -60,7 +60,7 @@ Line below";
         [Test]
         public void TestUnorderedList()
         {
-            Steps.AddStep("Markdown Unordered List", () =>
+            AddStep("Markdown Unordered List", () =>
             {
                 markdownContainer.Text = @"- [1. Blocks](#1-blocks)
   - [1.1 Code block](#11-code-block)
@@ -79,13 +79,13 @@ Line below";
         [Test]
         public void TestQuote()
         {
-            Steps.AddStep("Markdown Quote", () => { markdownContainer.Text = @"> **input**"; });
+            AddStep("Markdown Quote", () => { markdownContainer.Text = @"> **input**"; });
         }
 
         [Test]
         public void TestFencedCode()
         {
-            Steps.AddStep("Markdown Fenced Code", () =>
+            AddStep("Markdown Fenced Code", () =>
             {
                 markdownContainer.Text = @"```scriban-html
 
@@ -104,7 +104,7 @@ Line below";
         [Test]
         public void TestTable()
         {
-            Steps.AddStep("Markdown Table", () =>
+            AddStep("Markdown Table", () =>
             {
                 markdownContainer.Text =
                     @"|Operator            | Description
@@ -117,7 +117,7 @@ Line below";
         [Test]
         public void TestTableAlignment()
         {
-            Steps.AddStep("Markdown Table (Aligned)", () =>
+            AddStep("Markdown Table (Aligned)", () =>
             {
                 markdownContainer.Text =
                     @"| Left-Aligned  | Center Aligned  | Right Aligned |
@@ -131,7 +131,7 @@ Line below";
         [Test]
         public void TestParagraph()
         {
-            Steps.AddStep("Markdown Paragraph", () =>
+            AddStep("Markdown Paragraph", () =>
             {
                 markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.
 
@@ -142,13 +142,13 @@ The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, 
         [Test]
         public void TestLink()
         {
-            Steps.AddStep("MarkdownLink", () => { markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)"; });
+            AddStep("MarkdownLink", () => { markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)"; });
         }
 
         [Test]
         public void TestImage()
         {
-            Steps.AddStep("MarkdownImage", () => { markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)"; });
+            AddStep("MarkdownImage", () => { markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)"; });
         }
 
         [Test]
@@ -156,7 +156,7 @@ The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, 
         {
             WebRequest req = null;
 
-            Steps.AddStep("MarkdownFromInternet", () =>
+            AddStep("MarkdownFromInternet", () =>
             {
                 req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
                 req.Finished += () => Schedule(() => markdownContainer.Text = req.ResponseString);
@@ -164,15 +164,15 @@ The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, 
                 Task.Run(() => req.PerformAsync());
             });
 
-            Steps.AddUntilStep("wait for request completed", () => req.Completed);
+            AddUntilStep("wait for request completed", () => req.Completed);
 
-            Steps.AddAssert("ensure content", () => !string.IsNullOrEmpty(markdownContainer.Text));
+            AddAssert("ensure content", () => !string.IsNullOrEmpty(markdownContainer.Text));
         }
 
         [Test]
         public void TestEmphases()
         {
-            Steps.AddStep("Emphases", () =>
+            AddStep("Emphases", () =>
             {
                 markdownContainer.Text = @"_italic with underscore_
 *italic with asterisk*
@@ -186,7 +186,7 @@ _**italic with underscore, bold with asterisk**_";
         [Test]
         public void TestLineBreaks()
         {
-            Steps.AddStep("new lines", () =>
+            AddStep("new lines", () =>
             {
                 markdownContainer.Text = @"line 1
 soft break\
@@ -197,83 +197,83 @@ soft break with '\'";
         [Test]
         public void TestRootRelativeLink()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
                 markdownContainer.Text = "[link](/file)";
             });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
         }
 
         [Test]
         public void TestDocumentRelativeLink()
         {
-            Steps.AddStep("set content", () => markdownContainer.DocumentUrl = "https://some.test.url/some/path/2");
+            AddStep("set content", () => markdownContainer.DocumentUrl = "https://some.test.url/some/path/2");
 
-            Steps.AddStep("set 'file'", () => markdownContainer.Text = "[link](file)");
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
+            AddStep("set 'file'", () => markdownContainer.Text = "[link](file)");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
 
-            Steps.AddStep("set './file'", () => markdownContainer.Text = "[link](./file)");
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[1].Url == "https://some.test.url/some/path/file");
+            AddStep("set './file'", () => markdownContainer.Text = "[link](./file)");
+            AddAssert("has correct link", () => markdownContainer.Links[1].Url == "https://some.test.url/some/path/file");
 
-            Steps.AddStep("set '../folder/file'", () => markdownContainer.Text = "[link](../folder/file)");
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[2].Url == "https://some.test.url/some/folder/file");
+            AddStep("set '../folder/file'", () => markdownContainer.Text = "[link](../folder/file)");
+            AddAssert("has correct link", () => markdownContainer.Links[2].Url == "https://some.test.url/some/folder/file");
         }
 
         [Test]
         public void TestDocumentRelativeLinkWithNoUri()
         {
-            Steps.AddStep("set content", () => { markdownContainer.Text = "[link](file)"; });
+            AddStep("set content", () => { markdownContainer.Text = "[link](file)"; });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "file");
         }
 
         [Test]
         public void TestRootRelativeLinkWithNoUri()
         {
-            Steps.AddStep("set content", () => { markdownContainer.Text = "[link](/file)"; });
+            AddStep("set content", () => { markdownContainer.Text = "[link](/file)"; });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "/file");
         }
 
         [Test]
         public void TestDocumentRelativeLinkWithRootOverride()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
                 markdownContainer.RootUrl = "https://some.test.url/some/";
                 markdownContainer.Text = "[link](file)";
             });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
         }
 
         [Test]
         public void TestRootRelativeLinkWithRootOverride()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
                 markdownContainer.RootUrl = "https://some.test.url/some/";
                 markdownContainer.Text = "[link](/file)";
             });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/file");
         }
 
         [Test]
         public void TestRootRelativeLinkWithRootOverrideCantEscape()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
                 markdownContainer.RootUrl = "https://some.test.url/some/";
                 markdownContainer.Text = "[link](/../../../file)";
             });
 
-            Steps.AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
         }
 
         private class TestMarkdownContainer : MarkdownContainer

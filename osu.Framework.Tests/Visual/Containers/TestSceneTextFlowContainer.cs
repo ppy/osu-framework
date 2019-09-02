@@ -52,9 +52,9 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(Anchor.BottomRight)]
         public void TestChangeTextAnchor(Anchor anchor)
         {
-            Steps.AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
-            Steps.AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
-            Steps.AddAssert("children are positioned correctly", () =>
+            AddStep("change text anchor", () => textContainer.TextAnchor = anchor);
+            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
+            AddAssert("children are positioned correctly", () =>
             {
                 var result = textContainer.Children
                                           .OrderBy(c => c.ScreenSpaceDrawQuad.TopLeft.Y).ThenBy(c => c is TextFlowContainer.NewLineContainer ? 0 : c.ScreenSpaceDrawQuad.TopLeft.X)
@@ -68,9 +68,9 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestAddTextWithTextAnchor()
         {
-            Steps.AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
-            Steps.AddStep("add text", () => textContainer.AddText("added text"));
-            Steps.AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
+            AddStep("change text anchor", () => textContainer.TextAnchor = Anchor.TopCentre);
+            AddStep("add text", () => textContainer.AddText("added text"));
+            AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == Anchor.TopCentre && c.Origin == Anchor.TopCentre));
         }
     }
 }

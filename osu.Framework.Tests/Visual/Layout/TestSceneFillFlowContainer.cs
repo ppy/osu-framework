@@ -182,12 +182,12 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             });
 
-            Steps.AddToggleStep("Rotate Container", state => { fillContainer.RotateTo(state ? 45f : 0, 1000); });
-            Steps.AddToggleStep("Scale Container", state => { fillContainer.ScaleTo(state ? 1.2f : 1f, 1000); });
-            Steps.AddToggleStep("Shear Container", state => { fillContainer.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f); });
-            Steps.AddToggleStep("Center Container Anchor", state => { fillContainer.Anchor = state ? Anchor.Centre : Anchor.TopLeft; });
-            Steps.AddToggleStep("Center Container Origin", state => { fillContainer.Origin = state ? Anchor.Centre : Anchor.TopLeft; });
-            Steps.AddToggleStep("Autosize Container", state =>
+            AddToggleStep("Rotate Container", state => { fillContainer.RotateTo(state ? 45f : 0, 1000); });
+            AddToggleStep("Scale Container", state => { fillContainer.ScaleTo(state ? 1.2f : 1f, 1000); });
+            AddToggleStep("Shear Container", state => { fillContainer.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f); });
+            AddToggleStep("Center Container Anchor", state => { fillContainer.Anchor = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggleStep("Center Container Origin", state => { fillContainer.Origin = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggleStep("Autosize Container", state =>
             {
                 if (state)
                 {
@@ -202,7 +202,7 @@ namespace osu.Framework.Tests.Visual.Layout
                     fillContainer.Height = 1;
                 }
             });
-            Steps.AddToggleStep("Rotate children", state =>
+            AddToggleStep("Rotate children", state =>
             {
                 if (state)
                 {
@@ -215,7 +215,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.RotateTo(0f, 1000);
                 }
             });
-            Steps.AddToggleStep("Shear children", state =>
+            AddToggleStep("Shear children", state =>
             {
                 if (state)
                 {
@@ -228,7 +228,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.Shear = Vector2.Zero;
                 }
             });
-            Steps.AddToggleStep("Scale children", state =>
+            AddToggleStep("Scale children", state =>
             {
                 if (state)
                 {
@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.ScaleTo(1f, 1000);
                 }
             });
-            Steps.AddToggleStep("Randomly scale children", state =>
+            AddToggleStep("Randomly scale children", state =>
             {
                 if (state)
                 {
@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         child.ScaleTo(1f, 1000);
                 }
             });
-            Steps.AddToggleStep("Randomly set child origins", state =>
+            AddToggleStep("Randomly set child origins", state =>
             {
                 if (state)
                 {
@@ -307,7 +307,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             });
 
-            Steps.AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
+            AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
 
             scheduledAdder?.Cancel();
             scheduledAdder = Scheduler.AddDelayed(

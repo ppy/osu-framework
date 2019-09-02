@@ -33,36 +33,36 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void testFinish()
         {
-            Steps.AddStep("Animate", delegate
+            AddStep("Animate", delegate
             {
                 setup();
                 animate();
             });
 
-            Steps.AddStep($"{nameof(FinishTransforms)}", delegate
+            AddStep($"{nameof(FinishTransforms)}", delegate
             {
                 foreach (var box in boxes)
                     box.FinishTransforms();
             });
 
-            Steps.AddAssert("finalize triggered", () => finalizeTriggered);
+            AddAssert("finalize triggered", () => finalizeTriggered);
         }
 
         private void testClear()
         {
-            Steps.AddStep("Animate", delegate
+            AddStep("Animate", delegate
             {
                 setup();
                 animate();
             });
 
-            Steps.AddStep($"{nameof(ClearTransforms)}", delegate
+            AddStep($"{nameof(ClearTransforms)}", delegate
             {
                 foreach (var box in boxes)
                     box.ClearTransforms();
             });
 
-            Steps.AddAssert("finalize triggered", () => finalizeTriggered);
+            AddAssert("finalize triggered", () => finalizeTriggered);
         }
 
         private void setup()

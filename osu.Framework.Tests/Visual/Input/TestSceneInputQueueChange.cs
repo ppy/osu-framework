@@ -45,33 +45,33 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void SeparateClicks()
         {
-            Steps.AddStep("move", () => InputManager.MoveMouseTo(InputManager.Children.First().ScreenSpaceDrawQuad.Centre));
-            Steps.AddStep("press 1", () => InputManager.PressButton(MouseButton.Button1));
-            Steps.AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
-            Steps.AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
-            Steps.AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
-            Steps.AddAssert("box 1 was pressed", () => box1.HitCount == 1);
-            Steps.AddAssert("box 2 was pressed", () => box2.HitCount == 1);
-            Steps.AddAssert("box 3 not pressed", () => box3.HitCount == 0);
+            AddStep("move", () => InputManager.MoveMouseTo(InputManager.Children.First().ScreenSpaceDrawQuad.Centre));
+            AddStep("press 1", () => InputManager.PressButton(MouseButton.Button1));
+            AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
+            AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
+            AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
+            AddAssert("box 1 was pressed", () => box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => box3.HitCount == 0);
         }
 
         [Test]
         public void CombinedClicks()
         {
-            Steps.AddStep("move", () => InputManager.MoveMouseTo(Children.First().ScreenSpaceDrawQuad.Centre));
-            Steps.AddStep("press 1+2", () =>
+            AddStep("move", () => InputManager.MoveMouseTo(Children.First().ScreenSpaceDrawQuad.Centre));
+            AddStep("press 1+2", () =>
             {
                 InputManager.PressButton(MouseButton.Button1);
                 InputManager.PressButton(MouseButton.Button2);
             });
-            Steps.AddStep("release 1+2", () =>
+            AddStep("release 1+2", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Button1);
                 InputManager.ReleaseButton(MouseButton.Button2);
             });
-            Steps.AddAssert("box 1 was pressed", () => box1.HitCount == 1);
-            Steps.AddAssert("box 2 was pressed", () => box2.HitCount == 1);
-            Steps.AddAssert("box 3 not pressed", () => box3.HitCount == 0);
+            AddAssert("box 1 was pressed", () => box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => box3.HitCount == 0);
         }
 
         private class HittableBox : CompositeDrawable

@@ -32,17 +32,17 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestConcurrentLoad()
         {
-            Steps.AddStep("replace slow loader", () => { Child = createLoader(); });
-            Steps.AddStep("replace slow loader", () => { Child = createLoader(); });
-            Steps.AddStep("replace slow loader", () => { Child = createLoader(); });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
 
-            Steps.AddUntilStep("all but last loader cancelled", () => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled));
+            AddUntilStep("all but last loader cancelled", () => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled));
 
-            Steps.AddUntilStep("last loader began loading", () => !loaders.Last().WasCancelled);
+            AddUntilStep("last loader began loading", () => !loaders.Last().WasCancelled);
 
-            Steps.AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
+            AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
 
-            Steps.AddUntilStep("last loader loaded", () => loaders.Last().HasLoaded);
+            AddUntilStep("last loader loaded", () => loaders.Last().HasLoaded);
         }
 
         [Test]
@@ -53,14 +53,14 @@ namespace osu.Framework.Tests.Visual.Drawables
             PausableLoadDrawable loader = null;
             CancellationTokenSource cancellationSource = null;
 
-            Steps.AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
+            AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
 
-            Steps.AddUntilStep("load started", () => loader.IsLoading);
+            AddUntilStep("load started", () => loader.IsLoading);
 
-            Steps.AddStep("cancel", () => cancellationSource.Cancel());
+            AddStep("cancel", () => cancellationSource.Cancel());
 
-            Steps.AddUntilStep("load cancelled", () => !loader.IsLoading);
-            Steps.AddAssert("didn't callback", () => !loaded);
+            AddUntilStep("load cancelled", () => !loader.IsLoading);
+            AddAssert("didn't callback", () => !loaded);
         }
 
         private int id;

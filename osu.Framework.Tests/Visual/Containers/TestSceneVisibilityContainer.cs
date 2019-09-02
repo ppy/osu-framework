@@ -17,50 +17,50 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestShowHide()
         {
-            Steps.AddStep("create container", () => Child = testContainer = new TestVisibilityContainer());
+            AddStep("create container", () => Child = testContainer = new TestVisibilityContainer());
 
             checkHidden(true);
 
-            Steps.AddStep("show", () => testContainer.Show());
+            AddStep("show", () => testContainer.Show());
             checkVisible();
 
-            Steps.AddStep("hide", () => testContainer.Hide());
+            AddStep("hide", () => testContainer.Hide());
             checkHidden();
 
-            Steps.AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void TestStartHidden(bool startHidden)
         {
-            Steps.AddStep("create container", () => Child = testContainer =
+            AddStep("create container", () => Child = testContainer =
                 new TestVisibilityContainer(startHidden) { State = { Value = Visibility.Visible } });
 
             checkVisible(!startHidden);
 
-            Steps.AddStep("hide", () => testContainer.Hide());
+            AddStep("hide", () => testContainer.Hide());
             checkHidden();
 
-            Steps.AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
         }
 
         private void checkHidden(bool instant = false)
         {
-            Steps.AddAssert("is hidden", () => testContainer.State.Value == Visibility.Hidden);
+            AddAssert("is hidden", () => testContainer.State.Value == Visibility.Hidden);
             if (instant)
-                Steps.AddAssert("alpha zero", () => testContainer.Alpha == 0);
+                AddAssert("alpha zero", () => testContainer.Alpha == 0);
             else
-                Steps.AddUntilStep("alpha zero", () => testContainer.Alpha == 0);
+                AddUntilStep("alpha zero", () => testContainer.Alpha == 0);
         }
 
         private void checkVisible(bool instant = false)
         {
-            Steps.AddAssert("is visible", () => testContainer.State.Value == Visibility.Visible);
+            AddAssert("is visible", () => testContainer.State.Value == Visibility.Visible);
             if (instant)
-                Steps.AddAssert("alpha one", () => testContainer.Alpha == 1);
+                AddAssert("alpha one", () => testContainer.Alpha == 1);
             else
-                Steps.AddUntilStep("alpha one", () => testContainer.Alpha == 1);
+                AddUntilStep("alpha one", () => testContainer.Alpha == 1);
         }
 
         private class TestVisibilityContainer : VisibilityContainer

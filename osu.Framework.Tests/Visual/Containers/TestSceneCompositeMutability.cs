@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 LoadState stateToWaitFor = expectedState;
 
-                Steps.AddStep("begin loading", () =>
+                AddStep("begin loading", () =>
                 {
                     LoadComponentAsync(container, Add);
 
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     }
                 });
 
-                Steps.AddUntilStep($"wait for {stateToWaitFor} state", () => container.LoadState == stateToWaitFor);
+                AddUntilStep($"wait for {stateToWaitFor} state", () => container.LoadState == stateToWaitFor);
             }
 
             bool hasResult = false;
@@ -80,13 +80,13 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 case TestThread.External:
                 {
-                    Steps.AddStep("run external thread", () => new Thread(tryThrow) { IsBackground = true }.Start());
+                    AddStep("run external thread", () => new Thread(tryThrow) { IsBackground = true }.Start());
                     break;
                 }
 
                 case TestThread.Update:
                 {
-                    Steps.AddStep("schedule", () => Schedule(tryThrow));
+                    AddStep("schedule", () => Schedule(tryThrow));
                     break;
                 }
 
@@ -95,13 +95,13 @@ namespace osu.Framework.Tests.Visual.Containers
                     switch (expectedState)
                     {
                         case LoadState.Loading:
-                            Steps.AddStep("bind event", () => container.OnLoading += tryThrow);
-                            Steps.AddStep("set loading", () => container.LoadingEvent.Set());
+                            AddStep("bind event", () => container.OnLoading += tryThrow);
+                            AddStep("set loading", () => container.LoadingEvent.Set());
                             break;
 
                         case LoadState.Ready:
-                            Steps.AddStep("bind event", () => container.OnReady += tryThrow);
-                            Steps.AddStep("set loading", () => container.ReadyEvent.Set());
+                            AddStep("bind event", () => container.OnReady += tryThrow);
+                            AddStep("set loading", () => container.ReadyEvent.Set());
                             break;
                     }
 
@@ -109,10 +109,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 }
             }
 
-            Steps.AddUntilStep("wait for result", () => hasResult);
-            Steps.AddAssert("thrown", () => thrown == shouldThrow);
+            AddUntilStep("wait for result", () => hasResult);
+            AddAssert("thrown", () => thrown == shouldThrow);
 
-            Steps.AddStep("allow load completion", () =>
+            AddStep("allow load completion", () =>
             {
                 container.LoadingEvent.Set();
                 container.ReadyEvent.Set();

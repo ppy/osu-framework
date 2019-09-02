@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             bool hasCorrectCornerRadius = false;
 
-            Steps.AddAssert("has correct corner radius", () => hasCorrectCornerRadius);
+            AddAssert("has correct corner radius", () => hasCorrectCornerRadius);
 
             void onUpdate(Container parent)
             {

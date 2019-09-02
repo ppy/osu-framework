@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                Steps.AddStep(testNames[i], delegate { loadTest(test); });
+                AddStep(testNames[i], delegate { loadTest(test); });
             }
 
             loadTest(0);

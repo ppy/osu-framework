@@ -22,35 +22,35 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestClickDismiss()
         {
-            Steps.AddStep("create container", () => { Child = overlayContainer = new TestFocusedOverlayContainer(); });
+            AddStep("create container", () => { Child = overlayContainer = new TestFocusedOverlayContainer(); });
 
-            Steps.AddStep("show", () => overlayContainer.Show());
-            Steps.AddAssert("has focus", () => overlayContainer.HasFocus);
+            AddStep("show", () => overlayContainer.Show());
+            AddAssert("has focus", () => overlayContainer.HasFocus);
 
-            Steps.AddStep("click inside", () =>
+            AddStep("click inside", () =>
             {
                 InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.Centre);
                 InputManager.PressButton(MouseButton.Left);
                 InputManager.ReleaseButton(MouseButton.Left);
             });
 
-            Steps.AddAssert("still has focus", () => overlayContainer.HasFocus);
+            AddAssert("still has focus", () => overlayContainer.HasFocus);
 
-            Steps.AddStep("click outside", () =>
+            AddStep("click outside", () =>
             {
                 InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20));
                 InputManager.PressButton(MouseButton.Left);
                 InputManager.ReleaseButton(MouseButton.Left);
             });
 
-            Steps.AddAssert("lost focus", () => !overlayContainer.HasFocus);
-            Steps.AddAssert("not visible", () => overlayContainer.State.Value == Visibility.Hidden);
+            AddAssert("lost focus", () => !overlayContainer.HasFocus);
+            AddAssert("not visible", () => overlayContainer.State.Value == Visibility.Hidden);
         }
 
         [Test]
         public void TestScrollBlocking()
         {
-            Steps.AddStep("create container", () =>
+            AddStep("create container", () =>
             {
                 Child = parentContainer = new ParentContainer
                 {
@@ -62,28 +62,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
 
-            Steps.AddStep("show", () => overlayContainer.Show());
+            AddStep("show", () => overlayContainer.Show());
 
-            Steps.AddAssert("has focus", () => overlayContainer.HasFocus);
+            AddAssert("has focus", () => overlayContainer.HasFocus);
 
             int initialScrollCount = 0;
 
-            Steps.AddStep("scroll inside", () =>
+            AddStep("scroll inside", () =>
             {
                 initialScrollCount = parentContainer.ScrollReceived;
                 InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.Centre);
                 InputManager.ScrollVerticalBy(1);
             });
 
-            Steps.AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived == initialScrollCount);
+            AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived == initialScrollCount);
 
-            Steps.AddStep("scroll outside", () =>
+            AddStep("scroll outside", () =>
             {
                 InputManager.MoveMouseTo(overlayContainer.ScreenSpaceDrawQuad.TopLeft - new Vector2(20));
                 InputManager.ScrollVerticalBy(1);
             });
 
-            Steps.AddAssert("scroll received by parent", () => parentContainer.ScrollReceived == ++initialScrollCount);
+            AddAssert("scroll received by parent", () => parentContainer.ScrollReceived == ++initialScrollCount);
         }
 
         private class TestFocusedOverlayContainer : FocusedOverlayContainer

@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestSimplePath()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Child = new TexturedPath
                 {
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestMultiplePointPath()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Child = new TexturedPath
                 {
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestSelfOverlappingPath()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Child = new TexturedPath
                 {
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestSmoothPath()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Child = new SmoothPath
                 {
@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestUnsmoothPath()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Child = new Path
                 {
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestPathBlending()
         {
-            Steps.AddStep("create path", () =>
+            AddStep("create path", () =>
             {
                 Children = new Drawable[]
                 {
@@ -169,7 +169,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Path path = null;
 
-            Steps.AddStep("create autosize path", () =>
+            AddStep("create autosize path", () =>
             {
                 Child = new Container
                 {
@@ -190,24 +190,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
 
-            Steps.AddAssert("size = (120, 20)", () => Precision.AlmostEquals(new Vector2(120, 20), path.DrawSize));
+            AddAssert("size = (120, 20)", () => Precision.AlmostEquals(new Vector2(120, 20), path.DrawSize));
 
-            Steps.AddStep("make path relative-sized", () =>
+            AddStep("make path relative-sized", () =>
             {
                 path.AutoSizeAxes = Axes.None;
                 path.RelativeSizeAxes = Axes.Both;
                 path.Size = Vector2.One;
             });
 
-            Steps.AddAssert("size = (200, 200)", () => Precision.AlmostEquals(new Vector2(200), path.DrawSize));
+            AddAssert("size = (200, 200)", () => Precision.AlmostEquals(new Vector2(200), path.DrawSize));
 
-            Steps.AddStep("make path absolute-sized", () =>
+            AddStep("make path absolute-sized", () =>
             {
                 path.RelativeSizeAxes = Axes.None;
                 path.Size = new Vector2(100);
             });
 
-            Steps.AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
+            AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
         }
     }
 }

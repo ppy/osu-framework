@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         private void testAutoSizeInstant()
         {
-            Steps.AddStep("Initialize autosize test", () =>
+            AddStep("Initialize autosize test", () =>
             {
                 manualContainer.Child = new Container
                 {
@@ -35,18 +35,18 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddStep("Run to end", () => manualContainer.PerformUpdate(null));
-            Steps.AddAssert("Size = 150", () => Precision.AlmostEquals(new Vector2(150), manualContainer.Child.Size));
+            AddStep("Run to end", () => manualContainer.PerformUpdate(null));
+            AddAssert("Size = 150", () => Precision.AlmostEquals(new Vector2(150), manualContainer.Child.Size));
 
-            Steps.AddStep("Rewind", () => manualContainer.PerformUpdate(() => manualContainer.ApplyTransformsAt(-1, true)));
-            Steps.AddAssert("Size = 150", () => Precision.AlmostEquals(new Vector2(150), manualContainer.Child.Size));
+            AddStep("Rewind", () => manualContainer.PerformUpdate(() => manualContainer.ApplyTransformsAt(-1, true)));
+            AddAssert("Size = 150", () => Precision.AlmostEquals(new Vector2(150), manualContainer.Child.Size));
         }
 
         private void testFlowInstant()
         {
             Box box2 = null;
 
-            Steps.AddStep("Initialize flow test", () =>
+            AddStep("Initialize flow test", () =>
             {
                 manualContainer.Child = new FillFlowContainer
                 {
@@ -59,11 +59,11 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddStep("Run to end", () => manualContainer.PerformUpdate(null));
-            Steps.AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
+            AddStep("Run to end", () => manualContainer.PerformUpdate(null));
+            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
 
-            Steps.AddStep("Rewind", () => manualContainer.PerformUpdate(() => manualContainer.ApplyTransformsAt(-1, true)));
-            Steps.AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
+            AddStep("Rewind", () => manualContainer.PerformUpdate(() => manualContainer.ApplyTransformsAt(-1, true)));
+            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
         }
 
         private class ManualUpdateSubTreeContainer : Container

@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void VariousTextBoxes()
         {
-            Steps.AddStep("add textboxes", () =>
+            AddStep("add textboxes", () =>
             {
                 textBoxes.Add(new BasicTextBox
                 {
@@ -167,7 +167,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             NumberTextBox numbers = null;
 
-            Steps.AddStep("add number textbox", () =>
+            AddStep("add number textbox", () =>
             {
                 textBoxes.Add(numbers = new NumberTextBox
                 {
@@ -177,8 +177,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            Steps.AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
-            Steps.AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
+            AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
+            AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
         [TestCase(true, true)]
@@ -191,7 +191,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             bool wasNewText = false;
             int commitCount = 0;
 
-            Steps.AddStep("add commit on unfocus textbox", () =>
+            AddStep("add commit on unfocus textbox", () =>
             {
                 wasNewText = false;
                 commitCount = 0;
@@ -209,18 +209,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            Steps.AddAssert("ensure no commits", () => commitCount == 0);
+            AddAssert("ensure no commits", () => commitCount == 0);
 
-            Steps.AddStep("click on textbox", () =>
+            AddStep("click on textbox", () =>
             {
                 InputManager.MoveMouseTo(textBox);
                 InputManager.Click(MouseButton.Left);
             });
 
             if (changeText)
-                Steps.AddStep("insert more text", () => textBox.InsertString(" Plus More"));
+                AddStep("insert more text", () => textBox.InsertString(" Plus More"));
 
-            Steps.AddStep("click away", () =>
+            AddStep("click away", () =>
             {
                 InputManager.MoveMouseTo(Vector2.One);
                 InputManager.Click(MouseButton.Left);
@@ -228,27 +228,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             if (commitOnFocusLost)
             {
-                Steps.AddAssert("ensure one commit", () => commitCount == 1);
-                Steps.AddAssert("ensure new text", () => wasNewText == changeText);
+                AddAssert("ensure one commit", () => commitCount == 1);
+                AddAssert("ensure new text", () => wasNewText == changeText);
             }
             else
-                Steps.AddAssert("ensure no commits", () => commitCount == 0);
+                AddAssert("ensure no commits", () => commitCount == 0);
 
-            Steps.AddStep("click on textbox", () =>
+            AddStep("click on textbox", () =>
             {
                 InputManager.MoveMouseTo(textBox);
                 InputManager.Click(MouseButton.Left);
             });
 
             if (changeText)
-                Steps.AddStep("insert more text", () => textBox.InsertString(" Plus More"));
+                AddStep("insert more text", () => textBox.InsertString(" Plus More"));
 
-            Steps.AddStep("commit via enter", () => InputManager.PressKey(Key.Enter));
+            AddStep("commit via enter", () => InputManager.PressKey(Key.Enter));
 
             int expectedCount = 1 + (commitOnFocusLost ? 1 : 0);
 
-            Steps.AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
-            Steps.AddAssert("ensure new text", () => wasNewText == changeText);
+            AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
+            AddAssert("ensure new text", () => wasNewText == changeText);
         }
 
         private class InsertableTextBox : BasicTextBox

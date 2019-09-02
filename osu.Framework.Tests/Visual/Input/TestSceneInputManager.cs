@@ -176,11 +176,11 @@ namespace osu.Framework.Tests.Visual.Input
         [BackgroundDependencyLoader]
         private void load()
         {
-            Steps.AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
+            AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
-            Steps.AddToggleStep("Toggle raw input", setRawInputConfig);
+            AddToggleStep("Toggle raw input", setRawInputConfig);
             setRawInputConfig(false);
-            Steps.AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
+            AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             setConfineMouseModeConfig(false);
         }
 

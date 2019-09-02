@@ -53,14 +53,14 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestOnlyContent()
         {
-            Steps.AddStep("set content", () => table.Content = createContent(2, 2));
-            Steps.AddAssert("headers not displayed", () => getGrid().Content.Length == 2);
+            AddStep("set content", () => table.Content = createContent(2, 2));
+            AddAssert("headers not displayed", () => getGrid().Content.Length == 2);
         }
 
         [Test]
         public void TestOnlyHeaders()
         {
-            Steps.AddStep("set columns", () => table.Columns = new[]
+            AddStep("set columns", () => table.Columns = new[]
             {
                 new TableColumn("Col 1"),
                 new TableColumn("Col 2"),
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestContentAndHeaders()
         {
-            Steps.AddStep("set cells", () =>
+            AddStep("set cells", () =>
             {
                 table.Content = createContent(3, 3);
                 table.Columns = new[]
@@ -81,15 +81,15 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddAssert("4 rows", () => getGrid().Content.Length == 4);
-            Steps.AddStep("disable headers", () => table.ShowHeaders = false);
-            Steps.AddAssert("3 rows", () => getGrid().Content.Length == 3);
+            AddAssert("4 rows", () => getGrid().Content.Length == 4);
+            AddStep("disable headers", () => table.ShowHeaders = false);
+            AddAssert("3 rows", () => getGrid().Content.Length == 3);
         }
 
         [Test]
         public void TestHeaderLongerThanContent()
         {
-            Steps.AddStep("set cells", () =>
+            AddStep("set cells", () =>
             {
                 table.Content = createContent(2, 2);
                 table.Columns = new[]
@@ -100,15 +100,15 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
-            Steps.AddStep("disable headers", () => table.ShowHeaders = false);
-            Steps.AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddStep("disable headers", () => table.ShowHeaders = false);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
         }
 
         [Test]
         public void TestContentLongerThanHeader()
         {
-            Steps.AddStep("set cells", () =>
+            AddStep("set cells", () =>
             {
                 table.Content = createContent(3, 3);
                 table.Columns = new[]
@@ -118,15 +118,15 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
-            Steps.AddStep("disable headers", () => table.ShowHeaders = false);
-            Steps.AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddStep("disable headers", () => table.ShowHeaders = false);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 3);
         }
 
         [Test]
         public void TestColumnsWithAnchors()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 table.Content = createContent(3, 3);
                 table.Columns = new[]
@@ -137,11 +137,11 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddAssert("column 0 all left aligned", () => testColumn(0, Anchor.CentreLeft));
-            Steps.AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
-            Steps.AddAssert("column 2 all right aligned", () => testColumn(2, Anchor.CentreRight));
+            AddAssert("column 0 all left aligned", () => testColumn(0, Anchor.CentreLeft));
+            AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
+            AddAssert("column 2 all right aligned", () => testColumn(2, Anchor.CentreRight));
 
-            Steps.AddStep("attempt to change anchor", () =>
+            AddStep("attempt to change anchor", () =>
             {
                 var cell = table?.Content?[0, 0];
                 if (cell != null)
@@ -150,25 +150,25 @@ namespace osu.Framework.Tests.Visual.Layout
 
             // This currently fails, but should probably pass, but is particularly hard to fix.
             // It's open to interpretation for how this should work, though, so it's not critical...
-            // Steps.AddAssert("column 0 all left aligned", () => testColumn(0, Anchor.CentreLeft));
+            // AddAssert("column 0 all left aligned", () => testColumn(0, Anchor.CentreLeft));
 
-            Steps.AddStep("change columns", () => table.Columns = new[]
+            AddStep("change columns", () => table.Columns = new[]
             {
                 new TableColumn("Left", Anchor.CentreRight),
                 new TableColumn("Centre", Anchor.Centre),
                 new TableColumn("Right", Anchor.CentreLeft),
             });
 
-            Steps.AddAssert("column 0 all right aligned", () => testColumn(0, Anchor.CentreRight));
-            Steps.AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
-            Steps.AddAssert("column 2 all left aligned", () => testColumn(2, Anchor.CentreLeft));
+            AddAssert("column 0 all right aligned", () => testColumn(0, Anchor.CentreRight));
+            AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
+            AddAssert("column 2 all left aligned", () => testColumn(2, Anchor.CentreLeft));
 
-            Steps.AddStep("change content", () => table.Content = createContent(4, 4));
+            AddStep("change content", () => table.Content = createContent(4, 4));
 
-            Steps.AddAssert("column 0 all right aligned", () => testColumn(0, Anchor.CentreRight));
-            Steps.AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
-            Steps.AddAssert("column 2 all left aligned", () => testColumn(2, Anchor.CentreLeft));
-            Steps.AddAssert("column 3 all top-left aligned", () => testColumn(3, Anchor.TopLeft));
+            AddAssert("column 0 all right aligned", () => testColumn(0, Anchor.CentreRight));
+            AddAssert("column 1 all centre aligned", () => testColumn(1, Anchor.Centre));
+            AddAssert("column 2 all left aligned", () => testColumn(2, Anchor.CentreLeft));
+            AddAssert("column 3 all top-left aligned", () => testColumn(3, Anchor.TopLeft));
 
             bool testColumn(int index, Anchor anchor)
             {
@@ -183,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestChangeColumns()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 table.Content = createContent(2, 2);
                 table.Columns = new[]
@@ -193,47 +193,47 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddStep("increase columns", () => table.Columns = new[]
+            AddStep("increase columns", () => table.Columns = new[]
             {
                 new TableColumn("Header 1"),
                 new TableColumn("Header 2"),
                 new TableColumn("Header 3"),
             });
 
-            Steps.AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
 
-            Steps.AddStep("decrease columns", () => table.Columns = new[]
+            AddStep("decrease columns", () => table.Columns = new[]
             {
                 new TableColumn("Header 1"),
             });
 
-            Steps.AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
         }
 
         [Test]
         public void TestRowSize()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 table.Content = createContent(2, 2);
                 table.RowSize = new Dimension(GridSizeMode.Absolute, 30f);
             });
 
-            Steps.AddAssert("all row size = 30", () => testRows(30));
-            Steps.AddStep("add headers", () => table.Columns = new[]
+            AddAssert("all row size = 30", () => testRows(30));
+            AddStep("add headers", () => table.Columns = new[]
             {
                 new TableColumn("Header 1"),
                 new TableColumn("Header 2"),
                 new TableColumn("Header 3"),
             });
 
-            Steps.AddAssert("all row size = 30", () => testRows(30));
-            Steps.AddStep("change row size", () => table.RowSize = new Dimension(GridSizeMode.Absolute, 50));
-            Steps.AddAssert("all row size = 50", () => testRows(50));
-            Steps.AddStep("change content", () => table.Content = createContent(4, 4));
-            Steps.AddAssert("all row size = 50", () => testRows(50));
-            Steps.AddStep("remove custom row size", () => table.RowSize = null);
-            Steps.AddAssert("all row size = distributed", () => testRows(table.DrawHeight / 5f));
+            AddAssert("all row size = 30", () => testRows(30));
+            AddStep("change row size", () => table.RowSize = new Dimension(GridSizeMode.Absolute, 50));
+            AddAssert("all row size = 50", () => testRows(50));
+            AddStep("change content", () => table.Content = createContent(4, 4));
+            AddAssert("all row size = 50", () => testRows(50));
+            AddStep("remove custom row size", () => table.RowSize = null);
+            AddAssert("all row size = distributed", () => testRows(table.DrawHeight / 5f));
 
             bool testRows(float expectedHeight)
             {
@@ -248,7 +248,7 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestClearGrid()
         {
-            Steps.AddStep("set content", () =>
+            AddStep("set content", () =>
             {
                 table.Content = createContent(3, 3);
                 table.Columns = new[]
@@ -259,7 +259,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            Steps.AddStep("clear grid", () =>
+            AddStep("clear grid", () =>
             {
                 table.Columns = null;
                 table.Content = null;

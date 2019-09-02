@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
             };
 
-            Steps.AddStep("take screenshot", takeScreenshot);
+            AddStep("take screenshot", takeScreenshot);
         }
 
         private void takeScreenshot()

@@ -62,30 +62,30 @@ namespace osu.Framework.Tests.Visual.Containers
                 boxes.Add(box);
             }
 
-            Steps.AddWaitStep("wait for boxes", 5);
+            AddWaitStep("wait for boxes", 5);
 
             // ensure uncached is always updating children.
-            Steps.AddAssert("box 0 count > 0", () => boxes[0].Count > 0);
-            Steps.AddAssert("even box counts equal", () =>
+            AddAssert("box 0 count > 0", () => boxes[0].Count > 0);
+            AddAssert("even box counts equal", () =>
                 boxes[0].Count == boxes[2].Count &&
                 boxes[2].Count == boxes[4].Count &&
                 boxes[4].Count == boxes[6].Count);
 
             // ensure cached is never updating children.
-            Steps.AddAssert("box 1 count is 1", () => boxes[1].Count == 1);
+            AddAssert("box 1 count is 1", () => boxes[1].Count == 1);
 
             // ensure rotation changes are invalidating cache (for now).
-            Steps.AddAssert("box 2 count > 0", () => boxes[2].Count > 0);
-            Steps.AddAssert("box 2 count equals box 3 count", () => boxes[2].Count == boxes[3].Count);
+            AddAssert("box 2 count > 0", () => boxes[2].Count > 0);
+            AddAssert("box 2 count equals box 3 count", () => boxes[2].Count == boxes[3].Count);
 
             // ensure cached with only translation is never updating children.
-            Steps.AddAssert("box 5 count is 1", () => boxes[1].Count == 1);
+            AddAssert("box 5 count is 1", () => boxes[1].Count == 1);
 
             // ensure a parent scaling is invalidating cache.
-            Steps.AddAssert("box 5 count equals box 6 count", () => boxes[5].Count == boxes[6].Count);
+            AddAssert("box 5 count equals box 6 count", () => boxes[5].Count == boxes[6].Count);
 
             // ensure we don't break on colour invalidations (due to blanket invalidation logic in Drawable.Invalidate).
-            Steps.AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
+            AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
         }
 
         private class ContainingBox : Container

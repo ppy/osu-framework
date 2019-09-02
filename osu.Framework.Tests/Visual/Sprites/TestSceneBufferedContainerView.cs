@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private void createTest(float originalBlur, float viewBlur, bool originalEffects, bool synchronisedQuad = true)
         {
-            Steps.AddStep("create container", () =>
+            AddStep("create container", () =>
             {
                 BufferedContainer container = new BufferedContainer
                 {
