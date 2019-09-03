@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
@@ -25,15 +26,13 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("create sample", createSample);
             AddAssert("not looping", () => !sampleChannel.Looping);
 
-            AddStep("enable looping", () => sampleChannel.Looping = true);
-            AddStep("play sample", () => sampleChannel.Play());
-            AddAssert("is playing", () => sampleChannel.Playing);
+            playSample();
+            checkChannelState(true);
 
             AddWaitStep("wait", 1);
-            AddAssert("is still playing", () => sampleChannel.Playing);
+            checkChannelState(true);
 
-            AddStep("disable looping", () => sampleChannel.Looping = false);
-            AddUntilStep("ensure stops", () => !sampleChannel.Playing);
+            stopSample();
         }
 
         [Test, Ignore("Needs no audio device support")]
@@ -41,14 +40,60 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             AddStep("create sample", createSample);
 
+            playSample();
+            checkChannelState(true);
+
+            stopSample();
+        }
+
+        [Test, Ignore("Needs no audio device support")]
+        public void TestZeroFrequency()
+        {
+            AddStep("create sample", createSample);
+
+            playSample();
+            checkChannelState(true);
+
+            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
+            checkChannelState(true, PlaybackState.Paused);
+
+            AddStep("set frequency to 1", () => sampleChannel.Frequency.Value = 1);
+            checkChannelState(true);
+
+            stopSample();
+        }
+
+        [Test, Ignore("Needs no audio device support")]
+        public void TestZeroFrequencyOnStart()
+        {
+            AddStep("create sample", createSample);
+            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
+
+            playSample();
+            checkChannelState(true, PlaybackState.Paused);
+
+            AddStep("set frequency to 1", () => sampleChannel.Frequency.Value = 1);
+            checkChannelState(true);
+
+            stopSample();
+        }
+
+        private void playSample()
+        {
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
+        }
 
-            AddWaitStep("wait", 1);
-            AddAssert("is playing", () => sampleChannel.Playing);
-
+        private void stopSample()
+        {
             AddStep("stop playing", () => sampleChannel.Stop());
             AddAssert("not playing", () => !sampleChannel.Playing);
+        }
+
+        private void checkChannelState(bool isPlaying, PlaybackState channelState = PlaybackState.Playing)
+        {
+            AddAssert("is playing", () => sampleChannel.Playing == isPlaying);
+            AddAssert($"is channel {channelState.ToString().ToLowerInvariant()}", () => (sampleChannel as SampleChannelBass)?.ChannelState == channelState);
         }
 
         private void createSample()
