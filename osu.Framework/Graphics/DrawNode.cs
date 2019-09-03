@@ -281,6 +281,8 @@ namespace osu.Framework.Graphics
             GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
+        protected internal bool IsDisposed { get; private set; }
+
         public void Dispose()
         {
             if (referenceCount.Decrement() != 0)
@@ -293,6 +295,7 @@ namespace osu.Framework.Graphics
         protected virtual void Dispose(bool isDisposing)
         {
             Source = null;
+            IsDisposed = true;
         }
     }
 }

@@ -17,8 +17,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class OsuTKJoystickHandler : InputHandler
     {
-        private ScheduledDelegate scheduledPoll;
-        private ScheduledDelegate scheduledRefreshDevices;
+        private ScheduledDelegate scheduled;
 
         private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
         private readonly List<osuTK.Input.JoystickState> rawStates = new List<osuTK.Input.JoystickState>();
@@ -29,10 +28,10 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (e.NewValue)
                 {
-                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
-
-                    host.InputThread.Scheduler.Add(scheduledPoll = new ScheduledDelegate(delegate
+                    host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
+                        refreshDevices();
+
                         foreach (var device in devices)
                         {
                             if ((device.LastRawState.HasValue && device.RawState.Equals(device.LastRawState.Value))
@@ -46,8 +45,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                 }
                 else
                 {
-                    scheduledPoll?.Cancel();
-                    scheduledRefreshDevices?.Cancel();
+                    scheduled?.Cancel();
 
                     foreach (var device in devices)
                     {

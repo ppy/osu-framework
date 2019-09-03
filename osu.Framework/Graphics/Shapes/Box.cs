@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Shapes
                 conservativeScreenSpaceDrawQuad = Source.conservativeScreenSpaceDrawQuad;
 
                 hasOpaqueInterior = DrawColourInfo.Colour.MinAlpha == 1
-                                    && DrawColourInfo.Blending.Equals(new BlendingInfo(BlendingMode.Mixture))
+                                    && DrawColourInfo.Blending.Equals(BlendingParameters.Mixture)
                                     && DrawColourInfo.Colour.HasSingleColour;
             }
 

@@ -8,7 +8,7 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.Graphics.OpenGL.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>, IEquatable<TVertex>
+    internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
         where TVertex : IVertex, IEquatable<TVertex>
     {
         public TVertex Vertex;
@@ -19,8 +19,5 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         public bool Equals(DepthWrappingVertex<TVertex> other)
             => Vertex.Equals(other.Vertex)
                && BackbufferDrawDepth.Equals(other.BackbufferDrawDepth);
-
-        public bool Equals(TVertex other)
-            => Vertex.Equals(other);
     }
 }

@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
-using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Input
 {
-    public class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
+    internal class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
     {
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
@@ -20,8 +18,6 @@ namespace osu.Framework.Input
         };
 
         protected override bool Prioritised => true;
-
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(Children.First());
     }
 
     public enum FrameworkAction
