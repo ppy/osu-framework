@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Cursor
     /// <summary>
     /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionalInput"/> set to true will be checked for their tooltips.
     /// </summary>
-    public class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>, IHandleGlobalInput
+    public class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
     {
         private readonly CursorContainer cursorContainer;
         private readonly ITooltip defaultTooltip;
@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         /// <summary>
-        /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position, updates its <see cref="ITooltip.TooltipText"/> and calls its <see cref="ITooltip.Refresh"/> method.
+        /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position and updates its content via <see cref="ITooltip.SetContent"/>.
         /// </summary>
         /// <param name="tooltip">The tooltip that is refreshed.</param>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
@@ -262,10 +262,7 @@ namespace osu.Framework.Graphics.Cursor
             bool isValid = tooltipTarget != null && hasValidTooltip(tooltipTarget);
 
             if (isValid)
-            {
                 tooltip.SetContent(getTargetContent(tooltipTarget));
-                tooltip.Refresh();
-            }
 
             if (isValid || tooltip.IsPresent)
                 tooltip.Move(computeTooltipPosition());

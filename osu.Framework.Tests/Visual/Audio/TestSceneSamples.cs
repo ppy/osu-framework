@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 Size = new Vector2(4, notes);
                 Colour = Color4.SkyBlue;
 
-                Blending = BlendingMode.Additive;
+                Blending = BlendingParameters.Additive;
 
                 InternalChildren = new Drawable[]
                 {

@@ -10,12 +10,12 @@ namespace osu.Framework.Graphics
     public struct DrawColourInfo : IEquatable<DrawColourInfo>
     {
         public ColourInfo Colour;
-        public BlendingInfo Blending;
+        public BlendingParameters Blending;
 
-        public DrawColourInfo(ColourInfo? colour = null, BlendingInfo? blending = null)
+        public DrawColourInfo(ColourInfo? colour = null, BlendingParameters? blending = null)
         {
             Colour = colour ?? ColourInfo.SingleColour(Color4.White);
-            Blending = blending ?? new BlendingInfo(BlendingMode.Inherit);
+            Blending = blending ?? BlendingParameters.Inherit;
         }
 
         public bool Equals(DrawColourInfo other) => Colour.Equals(other.Colour) && Blending.Equals(other.Blending);

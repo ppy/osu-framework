@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestOpaqueBoxWithAdditiveBlending()
         {
-            createBox(b => b.Blending = BlendingMode.Additive);
+            createBox(b => b.Blending = BlendingParameters.Additive);
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             createBox(b =>
             {
-                b.Blending = BlendingMode.Additive;
+                b.Blending = BlendingParameters.Additive;
                 b.Alpha = 0.5f;
             });
 
@@ -64,12 +64,9 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             createBox(b =>
             {
-                b.Blending = new BlendingParameters
-                {
-                    Mode = BlendingMode.Inherit,
-                    AlphaEquation = BlendingEquation.Inherit,
-                    RGBEquation = equationMode
-                };
+                var blending = BlendingParameters.Inherit;
+                blending.RGBEquation = equationMode;
+                b.Blending = blending;
             });
 
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
@@ -83,12 +80,9 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             createBox(b =>
             {
-                b.Blending = new BlendingParameters
-                {
-                    Mode = BlendingMode.Inherit,
-                    AlphaEquation = equationMode,
-                    RGBEquation = BlendingEquation.Inherit
-                };
+                var blending = BlendingParameters.Inherit;
+                blending.AlphaEquation = equationMode;
+                b.Blending = blending;
             });
 
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);

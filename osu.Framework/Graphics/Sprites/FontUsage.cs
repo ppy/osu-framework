@@ -81,7 +81,6 @@ namespace osu.Framework.Graphics.Sprites
                 FontName += "Italic";
 
             FontName = FontName.TrimEnd('-');
-            Legacy = false;
         }
 
         /// <summary>
@@ -120,26 +119,5 @@ namespace osu.Framework.Graphics.Sprites
                 return hashCode;
             }
         }
-
-        #region Obsolete
-
-        internal bool Legacy { get; }
-
-        private FontUsage(string fontName, bool isLegacy)
-            : this(family: fontName)
-        {
-            Legacy = isLegacy;
-        }
-
-        [Obsolete("Setting font by name is deprecated. Use `Font = new FontUsage(...)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public static implicit operator FontUsage(string fontName) => new FontUsage(fontName, isLegacy: true);
-
-        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
-        public static bool operator ==(FontUsage fontUsage, string fontName) => fontUsage.FontName == fontName;
-
-        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
-        public static bool operator !=(FontUsage fontUsage, string fontName) => fontUsage.FontName != fontName;
-
-        #endregion
     }
 }

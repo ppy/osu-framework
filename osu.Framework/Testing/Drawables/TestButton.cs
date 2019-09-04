@@ -12,18 +12,18 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestSceneHeaderButton : TestSceneButton
+    internal class TestButton : TestSceneButton
     {
         private SpriteIcon icon;
         private Container leftBoxContainer;
         private const float left_box_width = LEFT_TEXT_PADDING / 2;
 
-        public TestSceneHeaderButton(string header)
+        public TestButton(string header)
             : base(header)
         {
         }
 
-        public TestSceneHeaderButton(Type type)
+        public TestButton(Type type)
             : base(type)
         {
         }
@@ -54,7 +54,6 @@ namespace osu.Framework.Testing.Drawables
                     Size = new Vector2(10),
                     Icon = FontAwesome.Solid.ChevronDown,
                     Colour = Color4.White,
-                    Y = -1,
                     Margin = new MarginPadding { Right = left_box_width + 5 },
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,

@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
+        protected internal bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
@@ -102,10 +102,6 @@ namespace osu.Framework.Graphics
 
                 OnUpdate = null;
                 OnInvalidate = null;
-
-                // If this Drawable is disposed, then we need to also
-                // stop remotely rendering it.
-                proxy?.Dispose();
 
                 OnDispose?.Invoke();
                 OnDispose = null;
@@ -1575,18 +1571,11 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
-                if (localBlending.Mode == BlendingMode.Inherit)
-                    localBlending.Mode = Parent.Blending.Mode;
+                localBlending.CopyFromParent(Parent.Blending);
 
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+            localBlending.ApplyDefaultToInherited();
 
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
-
-            ci.Blending = new BlendingInfo(localBlending);
+            ci.Blending = localBlending;
 
             ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
@@ -1922,7 +1911,7 @@ namespace osu.Framework.Graphics
                     return OnJoystickRelease(joystickRelease);
 
                 default:
-                    return false;
+                    return Handle(e);
             }
         }
 
