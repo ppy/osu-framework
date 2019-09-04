@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Containers
         };
 
         public TestSceneCachedBufferedContainer()
-            : base(5, 2)
+            : base(5, 3)
         {
             string[] labels =
             {
@@ -35,12 +35,16 @@ namespace osu.Framework.Tests.Visual.Containers
                 "cached with parent scale",
                 "uncached with parent scale&fade",
                 "cached with parent scale&fade",
+                "cached with no redraw on parent scale&fade",
             };
 
             var boxes = new List<ContainingBox>();
 
             for (int i = 0; i < Rows * Cols; ++i)
             {
+                if (i >= labels.Length)
+                    break;
+
                 ContainingBox box;
 
                 Cell(i).AddRange(new Drawable[]
@@ -54,7 +58,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         Child = new CountingBox(i == 2 || i == 3, i == 4 || i == 5)
                         {
-                            CacheDrawnFrameBuffer = i % 2 == 1,
+                            CacheDrawnFrameBuffer = i % 2 == 1 || i == 10,
+                            RedrawOnScale = i != 10
                         },
                     }
                 });
@@ -86,6 +91,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // ensure we don't break on colour invalidations (due to blanket invalidation logic in Drawable.Invalidate).
             AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
+
+            AddAssert("box 10 count is 1", () => boxes[10].Count == 1);
         }
 
         private class ContainingBox : Container<CountingBox>
