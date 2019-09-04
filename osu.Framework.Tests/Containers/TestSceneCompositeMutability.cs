@@ -6,11 +6,13 @@ using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
+using osu.Framework.Tests.Visual;
 
-namespace osu.Framework.Tests.Visual.Containers
+namespace osu.Framework.Tests.Containers
 {
+    [HeadlessTest]
     public class TestSceneCompositeMutability : FrameworkTestScene
     {
         [TestCase(TestThread.External, false)]
@@ -135,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private class BlockableLoadContainer : Container
+        private class BlockableLoadContainer : Framework.Graphics.Containers.Container
         {
             /// <summary>
             /// Allows continuation to a point in the <see cref="LoadState.Loading"/> state which invokes <see cref="OnLoading"/>.

@@ -8,10 +8,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
+using osu.Framework.Testing;
+using osu.Framework.Tests.Visual;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Visual.Sprites
+namespace osu.Framework.Tests.Sprites
 {
+    [HeadlessTest]
     public class TestSceneSpriteTextPresence : FrameworkTestScene
     {
         /// <summary>
