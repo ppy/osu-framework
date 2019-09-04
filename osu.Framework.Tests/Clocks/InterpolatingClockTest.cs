@@ -69,6 +69,7 @@ namespace osu.Framework.Tests.Clocks
         }
 
         [Test]
+        [Ignore("contains thread.sleep, which does not work on appveyor")]
         public void NeverInterpolatesBackwardsOnInterpolationFail()
         {
             double lastValue = interpolating.CurrentTime;
