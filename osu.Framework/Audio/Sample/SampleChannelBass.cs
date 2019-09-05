@@ -35,7 +35,7 @@ namespace osu.Framework.Audio.Sample
             channel = 0;
         }
 
-        private bool pausedOnStart;
+        private bool pausedDueToZeroFrequency;
 
         internal override void OnStateChanged()
         {
@@ -52,11 +52,12 @@ namespace osu.Framework.Audio.Sample
             // Documentation for the frequency limits: http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm
             if (AggregateFrequency.Value == 0 && playing)
             {
+                pausedDueToZeroFrequency = true;
                 Bass.ChannelPause(channel);
             }
-            else if (AggregateFrequency.Value > 0 && (ChannelState == PlaybackState.Paused || pausedOnStart))
+            else if (AggregateFrequency.Value > 0 && pausedDueToZeroFrequency)
             {
-                pausedOnStart = false;
+                pausedDueToZeroFrequency = false;
                 Bass.ChannelPlay(channel);
             }
         }
@@ -103,7 +104,7 @@ namespace osu.Framework.Audio.Sample
 
             if (AggregateFrequency.Value == 0)
             {
-                pausedOnStart = true;
+                pausedDueToZeroFrequency = true;
                 return;
             }
 
