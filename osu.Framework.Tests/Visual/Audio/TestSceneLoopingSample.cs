@@ -27,10 +27,9 @@ namespace osu.Framework.Tests.Visual.Audio
             AddAssert("not looping", () => !sampleChannel.Looping);
 
             playSample();
-            checkChannelState(true);
 
             AddWaitStep("wait", 1);
-            checkChannelState(true);
+            AddAssert("is playing", () => sampleChannel.Playing);
 
             stopSample();
         }
@@ -41,7 +40,6 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("create sample", createSample);
 
             playSample();
-            checkChannelState(true);
 
             stopSample();
         }
@@ -52,13 +50,9 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("create sample", createSample);
 
             playSample();
-            checkChannelState(true);
 
-            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
-            checkChannelState(true, PlaybackState.Paused);
-
-            AddStep("set frequency to 1", () => sampleChannel.Frequency.Value = 1);
-            checkChannelState(true);
+            setFrequency(0);
+            setFrequency(1);
 
             stopSample();
         }
@@ -67,13 +61,11 @@ namespace osu.Framework.Tests.Visual.Audio
         public void TestZeroFrequencyOnStart()
         {
             AddStep("create sample", createSample);
-            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
+            setFrequency(0);
 
             playSample();
-            checkChannelState(true, PlaybackState.Paused);
 
-            AddStep("set frequency to 1", () => sampleChannel.Frequency.Value = 1);
-            checkChannelState(true);
+            setFrequency(1);
 
             stopSample();
         }
@@ -82,6 +74,7 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
+            AddAssert("is playing", () => sampleChannel.Playing);
         }
 
         private void stopSample()
@@ -90,10 +83,10 @@ namespace osu.Framework.Tests.Visual.Audio
             AddAssert("not playing", () => !sampleChannel.Playing);
         }
 
-        private void checkChannelState(bool isPlaying, PlaybackState channelState = PlaybackState.Playing)
+        private void setFrequency(double freq)
         {
-            AddAssert("is playing", () => sampleChannel.Playing == isPlaying);
-            AddAssert($"is channel {channelState.ToString().ToLowerInvariant()}", () => (sampleChannel as SampleChannelBass)?.ChannelState == channelState);
+            AddStep($"set frequency to {freq}", () => sampleChannel.Frequency.Value = freq);
+            AddAssert("is playing", () => sampleChannel.Playing);
         }
 
         private void createSample()

@@ -14,11 +14,6 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => Sample.IsLoaded;
 
-        /// <summary>
-        /// Returns the current playback state of this channel.
-        /// </summary>
-        public PlaybackState ChannelState => Bass.ChannelIsActive(channel);
-
         private float initialFrequency;
 
         public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
@@ -117,7 +112,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            playing = channel != 0 && ChannelState != 0;
+            playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
             base.UpdateState();
         }
 
