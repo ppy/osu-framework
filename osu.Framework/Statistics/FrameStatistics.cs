@@ -59,7 +59,7 @@ namespace osu.Framework.Statistics
         VBufBinds,
         VBufOverflow,
         TextureBinds,
-        FrameBufferRedraw,
+        FBORedraw,
         DrawCalls,
         ShaderBinds,
         VerticesDraw,

@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics
         {
             if (RequiresRedraw)
             {
-                FrameStatistics.Increment(StatisticsCounterType.FrameBufferRedraw);
+                FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
 
                 SharedData.ResetCurrentEffectBuffer();
 
