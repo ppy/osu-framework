@@ -128,7 +128,7 @@ namespace osu.Framework.IO.Stores
                 string filename = $@"{assetName}_{c.Page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
 
                 using (var stream = store.GetStream(filename))
-                using (var convert = Image.Load(stream))
+                using (var convert = Image.Load<Rgba32>(stream))
                 {
                     string streamMd5 = stream.ComputeMD5Hash();
                     string filenameMd5 = filename.ComputeMD5Hash();
