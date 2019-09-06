@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
@@ -25,19 +24,21 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size is less than max width", () => display.Text.DrawWidth < 100);
+            AddAssert("size < max", () => display.Text.DrawWidth < 100);
         }
 
-        [Test]
-        public void TestAutoSizeMoreThanMaxWidth()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAutoSizeMoreThanMaxWidth(bool truncate)
         {
             createTest(s =>
             {
                 s.MaxWidth = 50;
                 s.Text = "some very long text that should exceed the max width";
+                s.Truncate = truncate;
             });
 
-            AddAssert("size is capped at the max width", () => Precision.AlmostEquals(50, display.Text.DrawWidth));
+            AddAssert("size <= max", () => display.Text.DrawWidth <= 50);
         }
 
         [Test]
@@ -50,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size == 40", () => Precision.AlmostEquals(40, display.Text.DrawWidth));
+            AddAssert("size <= 40", () => display.Text.DrawWidth <= 40);
         }
 
         [Test]
@@ -63,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size == 50", () => Precision.AlmostEquals(50, display.Text.DrawWidth));
+            AddAssert("size == 50", () => display.Text.DrawWidth <= 50);
         }
 
         private void createTest(Action<SpriteText> initFunc)
@@ -93,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         Alpha = 0.2f,
                         Colour = Color4.Pink
                     },
-                    Text = new SpriteText()
+                    Text = new SpriteText { AllowMultiline = false }
                 };
 
                 initFunc?.Invoke(Text);

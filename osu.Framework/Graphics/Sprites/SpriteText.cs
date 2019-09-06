@@ -578,21 +578,21 @@ namespace osu.Framework.Graphics.Sprites
         {
             var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
-            float maxWidth = requiresAutoSizedWidth ? float.PositiveInfinity : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+            float builderMaxWidth = requiresAutoSizedWidth ? MaxWidth : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
 
             if (AllowMultiline)
             {
-                return new MultilineTextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
             if (Truncate)
             {
-                return new TruncatingTextBuilder(store, Font, maxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
-            return new TextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+            return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                 excludeCharacters, FallbackCharacter);
         }
 
