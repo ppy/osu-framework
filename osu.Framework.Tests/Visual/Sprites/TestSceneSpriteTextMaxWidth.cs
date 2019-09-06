@@ -67,12 +67,27 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("size == 50", () => display.Text.DrawWidth <= 50);
         }
 
-        private void createTest(Action<SpriteText> initFunc)
+        [Test]
+        public void TestMaxWidthWithRelativeSize()
+        {
+            createTest(s =>
+            {
+                s.RelativeSizeAxes = Axes.X;
+                s.MaxWidth = 0.5f;
+                s.Text = "some very long text that should exceed the max width";
+                s.Truncate = true;
+            }, Axes.Y);
+
+            AddStep("set parent size", () => display.Width = 100);
+            AddAssert("size <= max", () => display.Text.DrawWidth <= 50);
+        }
+
+        private void createTest(Action<SpriteText> initFunc, Axes autoSizeAxes = Axes.Both)
         {
             AddStep("create test", () =>
             {
                 Clear();
-                Add(display = new VisualDisplay(initFunc));
+                Add(display = new VisualDisplay(initFunc, autoSizeAxes));
             });
         }
 
@@ -80,11 +95,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             public readonly SpriteText Text;
 
-            public VisualDisplay(Action<SpriteText> initFunc)
+            public VisualDisplay(Action<SpriteText> initFunc, Axes autoSizeAxes = Axes.Both)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
-                AutoSizeAxes = Axes.Both;
+                AutoSizeAxes = autoSizeAxes;
 
                 InternalChildren = new Drawable[]
                 {
