@@ -33,12 +33,12 @@ using osuTK.Input;
 namespace osu.Framework.Testing
 {
     [Cached]
-    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalInput
+    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
     {
         public TestScene CurrentTest { get; private set; }
 
         private BasicTextBox searchTextBox;
-        private SearchContainer<TestSceneButtonGroup> leftFlowContainer;
+        private SearchContainer<TestGroupButton> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic).ToList();
+                var tests = asm.GetLoadableTypes().Where(isValidVisualTest).ToList();
 
                 if (!tests.Any())
                 {
@@ -77,6 +77,8 @@ namespace osu.Framework.Testing
 
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
+
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
 
         private void updateList(ValueChangedEvent<Assembly> args)
         {
@@ -95,7 +97,7 @@ namespace osu.Framework.Testing
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
                                                 ).OrderBy(g => g.Name)
-                                                .Select(t => new TestSceneButtonGroup(type => LoadTest(type), t)));
+                                                .Select(t => new TestGroupButton(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
@@ -229,7 +231,7 @@ namespace osu.Framework.Testing
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Masking = false,
-                                    Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
+                                    Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,

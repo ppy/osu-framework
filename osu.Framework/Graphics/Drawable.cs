@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
+        protected internal bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
@@ -102,10 +102,6 @@ namespace osu.Framework.Graphics
 
                 OnUpdate = null;
                 OnInvalidate = null;
-
-                // If this Drawable is disposed, then we need to also
-                // stop remotely rendering it.
-                proxy?.Dispose();
 
                 OnDispose?.Invoke();
                 OnDispose = null;
@@ -734,7 +730,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Cached<Vector2> drawSizeBacking;
+        private readonly Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
 
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
@@ -1461,6 +1457,25 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <see cref="T"/> is found.</returns>
+        internal T FindClosestParent<T>() where T : IDrawable
+        {
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+                if (cursor is T match)
+                    return match;
+
+            return default;
+        }
+
+        /// <summary>
         /// Refers to the original if this drawable was created via
         /// <see cref="CreateProxy"/>. Otherwise refers to this.
         /// </summary>
@@ -1511,7 +1526,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
 
-        private Cached<Quad> screenSpaceDrawQuadBacking;
+        private readonly Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
@@ -1520,7 +1535,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad();
 
-        private Cached<DrawInfo> drawInfoBacking;
+        private readonly Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         private DrawInfo computeDrawInfo()
         {
@@ -1542,7 +1557,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : drawInfoBacking.Value = computeDrawInfo();
 
-        private Cached<DrawColourInfo> drawColourInfoBacking;
+        private readonly Cached<DrawColourInfo> drawColourInfoBacking = new Cached<DrawColourInfo>();
 
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
@@ -1556,18 +1571,11 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
-                if (localBlending.Mode == BlendingMode.Inherit)
-                    localBlending.Mode = Parent.Blending.Mode;
+                localBlending.CopyFromParent(Parent.Blending);
 
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+            localBlending.ApplyDefaultToInherited();
 
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
-
-            ci.Blending = new BlendingInfo(localBlending);
+            ci.Blending = localBlending;
 
             ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
@@ -1594,7 +1602,7 @@ namespace osu.Framework.Graphics
             return ci;
         }
 
-        private Cached<Vector2> requiredParentSizeToFitBacking;
+        private readonly Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
 
         private Vector2 computeRequiredParentSizeToFit()
         {
@@ -1903,7 +1911,7 @@ namespace osu.Framework.Graphics
                     return OnJoystickRelease(joystickRelease);
 
                 default:
-                    return false;
+                    return Handle(e);
             }
         }
 
@@ -2023,6 +2031,7 @@ namespace osu.Framework.Graphics
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
+                typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
             };
 
@@ -2273,7 +2282,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
         /// is assumed unless indicated by additional flags.
         /// </summary>
-        DrawInfo = 1 << 0,
+        DrawInfo = 1,
 
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
@@ -2344,7 +2353,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The vertical counterpart is at "Top" position.
         /// </summary>
-        y0 = 1 << 0,
+        y0 = 1,
 
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
@@ -2382,7 +2391,7 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
-        X = 1 << 0,
+        X = 1,
         Y = 1 << 1,
 
         Both = X | Y,
@@ -2393,7 +2402,7 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
-        Top = 1 << 0,
+        Top = 1,
         Left = 1 << 1,
         Bottom = 1 << 2,
         Right = 1 << 3,

@@ -15,11 +15,12 @@ namespace osu.Framework.Android
 {
     public class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        private AndroidGameHost host;
+        public AndroidGameHost Host { get; private set; }
+
         private readonly Game game;
 
-        public event Action<Keycode, KeyEvent> KeyDown;
-        public event Action<Keycode, KeyEvent> KeyUp;
+        public new event Action<Keycode, KeyEvent> KeyDown;
+        public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
 
@@ -109,8 +110,8 @@ namespace osu.Framework.Android
         [STAThread]
         public void RenderGame()
         {
-            host = new AndroidGameHost(this);
-            host.Run(game);
+            Host = new AndroidGameHost(this);
+            Host.Run(game);
         }
 
         public override bool OnCheckIsTextEditor() => true;

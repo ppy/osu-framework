@@ -1,11 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -31,13 +31,23 @@ namespace osu.Framework.Graphics.Containers
         /// The <see cref="Edges"/> that should bypass the defined <see cref="ISafeArea" /> to bleed to the screen edge.
         /// Defaults to <see cref="Edges.None"/>.
         /// </summary>
-        public Edges SafeAreaOverrideEdges { get; set; } = Edges.None;
+        public Edges SafeAreaOverrideEdges
+        {
+            get => safeAreaOverrideEdges;
+            set
+            {
+                safeAreaOverrideEdges = value;
+                PaddingCache.Invalidate();
+            }
+        }
+
+        private Edges safeAreaOverrideEdges = Edges.None;
 
         protected readonly Cached PaddingCache = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation.HasFlag(Invalidation.Parent))
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
                 PaddingCache.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
@@ -69,10 +79,10 @@ namespace osu.Framework.Graphics.Containers
 
             return new MarginPadding
             {
-                Left = SafeAreaOverrideEdges.HasFlag(Edges.Left) ? nonSafeLocalSpace.TopLeft.X : Math.Max(0, localTopLeft.X),
-                Right = SafeAreaOverrideEdges.HasFlag(Edges.Right) ? DrawRectangle.BottomRight.X - nonSafeLocalSpace.BottomRight.X : Math.Max(0, DrawSize.X - localBottomRight.X),
-                Top = SafeAreaOverrideEdges.HasFlag(Edges.Top) ? nonSafeLocalSpace.TopLeft.Y : Math.Max(0, localTopLeft.Y),
-                Bottom = SafeAreaOverrideEdges.HasFlag(Edges.Bottom) ? DrawRectangle.BottomRight.Y - nonSafeLocalSpace.BottomRight.Y : Math.Max(0, DrawSize.Y - localBottomRight.Y)
+                Left = SafeAreaOverrideEdges.HasFlag(Edges.Left) ? nonSafeLocalSpace.TopLeft.X : MathHelper.Clamp(localTopLeft.X, 0, DrawSize.X),
+                Right = SafeAreaOverrideEdges.HasFlag(Edges.Right) ? DrawRectangle.BottomRight.X - nonSafeLocalSpace.BottomRight.X : MathHelper.Clamp(DrawSize.X - localBottomRight.X, 0, DrawSize.X),
+                Top = SafeAreaOverrideEdges.HasFlag(Edges.Top) ? nonSafeLocalSpace.TopLeft.Y : MathHelper.Clamp(localTopLeft.Y, 0, DrawSize.Y),
+                Bottom = SafeAreaOverrideEdges.HasFlag(Edges.Bottom) ? DrawRectangle.BottomRight.Y - nonSafeLocalSpace.BottomRight.Y : MathHelper.Clamp(DrawSize.Y - localBottomRight.Y, 0, DrawSize.Y)
             };
         }
     }

@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private Cached sizeCache = new Cached();
+        private readonly Cached sizeCache = new Cached();
 
         private readonly Container<Menu> submenuContainer;
 

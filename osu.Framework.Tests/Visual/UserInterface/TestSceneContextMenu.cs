@@ -3,22 +3,26 @@
 
 using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneContextMenu : FrameworkTestScene
+    public class TestSceneContextMenu : ManualInputManagerTestScene
     {
-        private const int start_time = 0;
         private const int duration = 1000;
 
         private readonly ContextMenuBox movingBox;
+
+        private readonly TestContextMenuContainer contextContainer;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -46,7 +50,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public TestSceneContextMenu()
         {
-            Add(new BasicContextMenuContainer
+            Add(contextContainer = new TestContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
@@ -64,12 +68,69 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             base.LoadComplete();
 
+            const float movement_amount = 500;
+
             // Move box along a square trajectory
-            movingBox.MoveTo(new Vector2(0, 100), duration)
-                     .Then().MoveTo(new Vector2(100, 100), duration)
-                     .Then().MoveTo(new Vector2(100, 0), duration)
+            movingBox.MoveTo(new Vector2(movement_amount, 0), duration)
+                     .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
                      .Then().MoveTo(Vector2.Zero, duration)
                      .Loop();
+        }
+
+        public class TestContextMenuContainer : BasicContextMenuContainer
+        {
+            public Menu CurrentMenu;
+
+            protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
+        }
+
+        [Test]
+        public void TestStaysOnScreen()
+        {
+            foreach (var c in contextContainer)
+                testDrawableCornerClicks(c, c == movingBox);
+        }
+
+        private void testDrawableCornerClicks(Drawable box, bool testManyTimes)
+        {
+            const float lenience = 5;
+
+            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.TopLeft + new Vector2(lenience, lenience), testManyTimes);
+            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.TopRight + new Vector2(-lenience, lenience), testManyTimes);
+            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.BottomLeft + new Vector2(lenience, -lenience), testManyTimes);
+            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.BottomRight + new Vector2(-lenience, -lenience), testManyTimes);
+            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.Centre, testManyTimes);
+        }
+
+        private void testPositionalClick(Drawable target, Func<Vector2> pos, bool testManyTimes)
+        {
+            AddStep("click position", () =>
+            {
+                InputManager.MoveMouseTo(pos());
+                InputManager.Click(MouseButton.Right);
+            });
+
+            for (int i = 0; i < (testManyTimes ? 10 : 1); i++)
+                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(contextContainer.CurrentMenu, target));
+        }
+
+        private bool isTrackingTargetCorrectly(Drawable menu, Drawable target)
+        {
+            bool targetOnScreen = isOnScreen(target);
+            bool menuOnScreen = isOnScreen(menu);
+
+            return !targetOnScreen || menuOnScreen;
+        }
+
+        private bool isOnScreen(Drawable checkDrawable)
+        {
+            var inputQuad = InputManager.ScreenSpaceDrawQuad;
+            var menuQuad = checkDrawable.ScreenSpaceDrawQuad;
+
+            return inputQuad.Contains(menuQuad.TopLeft + new Vector2(1, 1))
+                   && inputQuad.Contains(menuQuad.TopRight + new Vector2(-1, 1))
+                   && inputQuad.Contains(menuQuad.BottomLeft + new Vector2(1, -1))
+                   && inputQuad.Contains(menuQuad.BottomRight + new Vector2(-1, -1));
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

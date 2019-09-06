@@ -8,7 +8,8 @@ namespace osu.Framework.Bindables
 {
     public class BindableDouble : BindableNumber<double>
     {
-        public override bool IsDefault => Math.Abs(Value - Default) < Precision;
+        // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
+        public override bool IsDefault => Math.Abs(Value - Default) < (Precision / 2);
 
         protected override double DefaultMinValue => double.MinValue;
         protected override double DefaultMaxValue => double.MaxValue;

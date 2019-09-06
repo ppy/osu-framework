@@ -240,7 +240,7 @@ namespace osu.Framework.Platform.MacOS
 
     internal enum CocoaKeyModifiers
     {
-        LeftControl = 1 << 0,
+        LeftControl = 1,
         LeftShift = 1 << 1,
         RightShift = 1 << 2,
         LeftCommand = 1 << 3,
@@ -268,7 +268,7 @@ namespace osu.Framework.Platform.MacOS
     internal enum NSWindowStyleMask
     {
         Borderless = 0,
-        Titled = 1 << 0,
+        Titled = 1,
         Closable = 1 << 1,
         Miniaturizable = 1 << 2,
         Resizable = 1 << 3,
@@ -286,7 +286,7 @@ namespace osu.Framework.Platform.MacOS
     internal enum NSApplicationPresentationOptions
     {
         Default = 0,
-        AutoHideDock = 1 << 0,
+        AutoHideDock = 1,
         HideDock = 1 << 1,
         AutoHideMenuBar = 1 << 2,
         HideMenuBar = 1 << 3,

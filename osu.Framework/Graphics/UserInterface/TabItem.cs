@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         internal Action<TabItem<T>> PinnedChanged;
 
+        public override bool IsPresent => base.IsPresent || Y == 0;
+
         public override bool IsRemovable => true;
 
         /// <summary>
