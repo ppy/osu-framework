@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private delegate void WriteFunc(T transformable, TValue value);
 
-        private struct Accessor
+        private class Accessor
         {
             public ReadFunc Read;
             public WriteFunc Write;
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Transforms
             return findAccessor(type.BaseType, propertyOrFieldName);
         }
 
-        private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, _ => findAccessor(typeof(T), propertyOrFieldName));
+        private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
         private readonly InterpolationFunc<TValue> interpolationFunc;
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
 
             if (this.interpolationFunc == null)
                 throw new InvalidOperationException(

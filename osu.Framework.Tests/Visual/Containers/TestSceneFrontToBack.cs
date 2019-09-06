@@ -67,9 +67,9 @@ namespace osu.Framework.Tests.Visual.Containers
                         Direction = FillDirection.Vertical,
                         Children = new Drawable[]
                         {
-                            labelDrawables = new SpriteText { Font = new FontUsage("RobotoCondensed", weight: "Regular") },
-                            labelFrag = new SpriteText { Font = new FontUsage("RobotoCondensed", weight: "Regular") },
-                            labelFrag2 = new SpriteText { Font = new FontUsage("RobotoCondensed", weight: "Regular") },
+                            labelDrawables = new SpriteText { Font = FrameworkFont.Condensed },
+                            labelFrag = new SpriteText { Font = FrameworkFont.Condensed },
+                            labelFrag2 = new SpriteText { Font = FrameworkFont.Condensed },
                         }
                     },
                 }

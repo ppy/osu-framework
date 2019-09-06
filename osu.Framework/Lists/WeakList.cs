@@ -59,7 +59,7 @@ namespace osu.Framework.Lists
                 item.Invalidate();
         }
 
-        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
+        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")] // can be removed 20191118
         public void ForEachAlive(Action<T> action)
         {
             foreach (var obj in this)

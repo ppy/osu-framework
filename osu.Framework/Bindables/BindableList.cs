@@ -29,7 +29,7 @@ namespace osu.Framework.Bindables
 
         private readonly List<T> collection = new List<T>();
 
-        private Cached<WeakReference<BindableList<T>>> weakReferenceCache;
+        private readonly Cached<WeakReference<BindableList<T>>> weakReferenceCache = new Cached<WeakReference<BindableList<T>>>();
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
@@ -218,6 +218,41 @@ namespace osu.Framework.Bindables
             }
 
             return removed;
+        }
+
+        /// <summary>
+        /// Removes <paramref name="count"/> items starting from <paramref name="index"/>.
+        /// </summary>
+        /// <param name="index">The index to start removing from.</param>
+        /// <param name="count">The count of items to be removed.</param>
+        public void RemoveRange(int index, int count)
+        {
+            removeRange(index, count, null);
+        }
+
+        private void removeRange(int index, int count, BindableList<T> caller)
+        {
+            ensureMutationAllowed();
+
+            var removedItems = collection.GetRange(index, count);
+
+            collection.RemoveRange(index, count);
+
+            if (removedItems.Count == 0)
+                return;
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    // Prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.removeRange(index, count, this);
+                }
+            }
+
+            ItemsRemoved?.Invoke(removedItems);
         }
 
         /// <summary>

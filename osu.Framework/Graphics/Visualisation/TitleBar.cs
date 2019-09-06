@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -14,26 +13,54 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly Drawable movableTarget;
 
-        public TitleBar(string title, Drawable movableTarget)
+        public const float HEIGHT = 40;
+
+        public TitleBar(string title, string keyHelpText, Drawable movableTarget)
         {
             this.movableTarget = movableTarget;
 
             RelativeSizeAxes = Axes.X;
-            Size = new Vector2(1, 25);
+            Size = new Vector2(1, HEIGHT);
 
             InternalChildren = new Drawable[]
             {
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.BlueViolet,
+                    Colour = FrameworkColour.BlueDark,
                 },
-                new SpriteText
+                new FillFlowContainer
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Text = title,
-                    Alpha = 0.8f,
+                    RelativeSizeAxes = Axes.Y,
+                    AutoSizeAxes = Axes.X,
+                    Direction = FillDirection.Horizontal,
+                    Spacing = new Vector2(10),
+                    Children = new Drawable[]
+                    {
+                        new SpriteIcon
+                        {
+                            Size = new Vector2(20),
+                            Margin = new MarginPadding(10) { Right = 0 },
+                            Icon = FontAwesome.Regular.Circle,
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Text = title,
+                            Font = FrameworkFont.Condensed.With(weight: "Bold"),
+                            Colour = FrameworkColour.Yellow,
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Text = keyHelpText,
+                            Font = FrameworkFont.Condensed,
+                            Colour = FrameworkColour.Yellow,
+                            Alpha = 0.5f
+                        },
+                    }
                 },
             };
         }

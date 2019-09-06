@@ -16,17 +16,14 @@ namespace osu.Framework.Tests.Visual.Input
     {
         public TestSceneHandleInput()
         {
-            TestContainer notHandleInput, handlePositionalInput, handleNonPositionalInput;
-            Add(notHandleInput = new TestContainer { Colour = Color4.Red });
+            TestContainerNoHandling notHandleInput;
+            TestContainer handlePositionalInput, handleNonPositionalInput;
+            Add(notHandleInput = new TestContainerNoHandling { Colour = Color4.Red });
             Add(handlePositionalInput = new TestContainerHandlePositionalInput { X = 300, Colour = Color4.Blue });
             Add(handleNonPositionalInput = new TestContainerHandleNonPositionalInput { X = 600, Colour = Color4.Green });
             Add(new TestSceneMouseStates.StateTracker.BoundedCursorContainer(0));
 
-            AddStep($"enable {notHandleInput}", () =>
-            {
-                notHandleInput.Enabled = true;
-                InputManager.MoveMouseTo(notHandleInput);
-            });
+            AddStep($"enable {notHandleInput}", () => { InputManager.MoveMouseTo(notHandleInput); });
             AddAssert($"check {nameof(notHandleInput)}", () => !notHandleInput.IsHovered && !notHandleInput.HasFocus);
 
             AddStep($"enable {nameof(handlePositionalInput)}", () =>
@@ -34,19 +31,19 @@ namespace osu.Framework.Tests.Visual.Input
                 handlePositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handlePositionalInput);
             });
-            AddAssert($"check {nameof(handlePositionalInput)}", () => handlePositionalInput.IsHovered && !handlePositionalInput.HasFocus);
+            AddAssert($"check {nameof(handlePositionalInput)}", () => handlePositionalInput.IsHovered && handlePositionalInput.HasFocus);
 
             AddStep($"enable {nameof(handleNonPositionalInput)}", () =>
             {
                 handleNonPositionalInput.Enabled = true;
                 InputManager.MoveMouseTo(handleNonPositionalInput);
+                InputManager.TriggerFocusContention(null);
             });
             AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.IsHovered && handleNonPositionalInput.HasFocus);
 
             AddStep("move mouse", () => InputManager.MoveMouseTo(handlePositionalInput));
             AddStep("disable all", () =>
             {
-                notHandleInput.Enabled = false;
                 handlePositionalInput.Enabled = false;
                 handleNonPositionalInput.Enabled = false;
             });
@@ -55,11 +52,38 @@ namespace osu.Framework.Tests.Visual.Input
             //AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
         }
 
-        private class TestContainer : Container
+        private class TestContainerNoHandling : Container
         {
-            private readonly Box box, disabledOverlay;
+            protected readonly Box Box;
+            protected readonly Box DisabledOverlay;
             private readonly SpriteText text1, text2;
 
+            public new Color4 Colour
+            {
+                get => Box.Colour;
+                set => Box.Colour = value;
+            }
+
+            public TestContainerNoHandling()
+            {
+                Size = new Vector2(250);
+                Add(Box = new Box { RelativeSizeAxes = Axes.Both });
+                Add(new SpriteText { Text = GetType().Name });
+                Add(text1 = new SpriteText { Y = 20 });
+                Add(text2 = new SpriteText { Y = 40 });
+                Add(DisabledOverlay = new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Gray.Opacity(.5f) });
+            }
+
+            protected override void Update()
+            {
+                text1.Text = $"IsHovered = {IsHovered}";
+                text2.Text = $"HasFocus = {HasFocus}";
+                base.Update();
+            }
+        }
+
+        private class TestContainer : TestContainerNoHandling
+        {
             public override bool AcceptsFocus => Enabled;
             public override bool RequestsFocus => Enabled;
 
@@ -71,31 +95,8 @@ namespace osu.Framework.Tests.Visual.Input
                 set
                 {
                     enabled = value;
-                    disabledOverlay.Alpha = enabled ? 0 : 1;
+                    DisabledOverlay.Alpha = enabled ? 0 : 1;
                 }
-            }
-
-            public new Color4 Colour
-            {
-                get => box.Colour;
-                set => box.Colour = value;
-            }
-
-            public TestContainer()
-            {
-                Size = new Vector2(250);
-                Add(box = new Box { RelativeSizeAxes = Axes.Both });
-                Add(new SpriteText { Text = GetType().Name });
-                Add(text1 = new SpriteText { Y = 20 });
-                Add(text2 = new SpriteText { Y = 40 });
-                Add(disabledOverlay = new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Gray.Opacity(.5f) });
-            }
-
-            protected override void Update()
-            {
-                text1.Text = $"IsHovered = {IsHovered}";
-                text2.Text = $"HasFocus = {HasFocus}";
-                base.Update();
             }
         }
 

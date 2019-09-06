@@ -27,17 +27,19 @@ namespace osu.Framework.Tests.Platform
 
                 Action waitAction = () =>
                 {
-                    bool received = false;
-                    serverChannel.MessageReceived += message =>
+                    using (var received = new ManualResetEventSlim(false))
                     {
-                        Assert.AreEqual("example", message.Bar);
-                        received = true;
-                    };
+                        serverChannel.MessageReceived += message =>
+                        {
+                            Assert.AreEqual("example", message.Bar);
+                            // ReSharper disable once AccessToDisposedClosure
+                            received.Set();
+                        };
 
-                    clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
 
-                    while (!received)
-                        Thread.Sleep(1);
+                        received.Wait();
+                    }
                 };
 
                 Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");

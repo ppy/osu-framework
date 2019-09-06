@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input;
-using osuTK;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -28,22 +28,30 @@ namespace osu.Framework.Graphics.Containers
             {
                 // when blocking non-positional input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
-                queue.RemoveAll(d => !(d is IHandleGlobalInput));
+                queue.RemoveAll(d => !(d is IHandleGlobalKeyboardInput));
             }
 
             return base.BuildNonPositionalInputQueue(queue, allowBlocking);
         }
 
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        protected override bool Handle(UIEvent e)
         {
-            if (PropagatePositionalInputSubTree && HandlePositionalInput && BlockPositionalInput && ReceivePositionalInputAt(screenSpacePos))
+            switch (e)
             {
-                // when blocking positional input behind us, we still want to make sure the global handlers receive events
-                // but we don't want other drawables behind us handling them.
-                queue.RemoveAll(d => !(d is IHandleGlobalInput));
+                case ScrollEvent _:
+                    if (BlockPositionalInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
+                        return true;
+
+                    break;
+
+                case MouseEvent _:
+                    if (BlockPositionalInput)
+                        return true;
+
+                    break;
             }
 
-            return base.BuildPositionalInputQueue(screenSpacePos, queue);
+            return base.Handle(e);
         }
     }
 }

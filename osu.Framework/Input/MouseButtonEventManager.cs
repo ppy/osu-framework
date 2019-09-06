@@ -190,6 +190,8 @@ namespace osu.Framework.Input
 
         protected virtual bool HandleMouseClick(InputState state)
         {
+            if (MouseDownInputQueue == null) return false;
+
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
                                                .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));

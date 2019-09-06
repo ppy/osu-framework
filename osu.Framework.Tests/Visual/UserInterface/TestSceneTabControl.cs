@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,19 +18,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
-        private readonly IEnumerable<TestEnum> items;
+        private readonly TestEnum[] items;
 
-        private readonly StyledTabControl pinnedAndAutoSort;
-        private readonly StyledTabControl switchingTabControl;
-        private readonly PlatformActionContainer platformActionContainer;
-        private readonly StyledTabControlWithoutDropdown withoutDropdownTabControl;
-        private readonly StyledTabControl removeAllTabControl;
-        private readonly StyledMultilineTabControl multilineTabControl;
-        private readonly StyledTabControl simpleTabcontrol;
+        private StyledTabControl pinnedAndAutoSort;
+        private StyledTabControl switchingTabControl;
+        private PlatformActionContainer platformActionContainer;
+        private StyledTabControlWithoutDropdown withoutDropdownTabControl;
+        private StyledTabControl removeAllTabControl;
+        private StyledMultilineTabControl multilineTabControl;
+        private StyledTabControl simpleTabcontrol;
 
         public TestSceneTabControl()
         {
-            items = ((TestEnum[])Enum.GetValues(typeof(TestEnum))).AsEnumerable();
+            items = (TestEnum[])Enum.GetValues(typeof(TestEnum));
+        }
+
+        [SetUp]
+        public void Setup() => Schedule(() =>
+        {
+            Clear();
 
             Add(new FillFlowContainer
             {
@@ -81,7 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
             pinnedAndAutoSort.PinItem(TestEnum.Test5);
-        }
+        });
 
         [Test]
         public void Basic()
@@ -135,8 +142,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
-            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count());
+            AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Length);
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -145,17 +152,74 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
 
-            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Count());
-            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Count());
+            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Length);
+            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Length);
         }
 
         [Test]
-        public void SelectNull()
+        public void TestLeasedBindable()
         {
+            LeasedBindable<TestEnum?> leased = null;
+
+            AddStep("change value to test0", () => simpleTabcontrol.Current.Value = TestEnum.Test0);
+            AddStep("lease bindable", () => leased = simpleTabcontrol.Current.BeginLease(true));
+            AddStep("change value to test1", () => leased.Value = TestEnum.Test1);
+            AddAssert("value changed", () => simpleTabcontrol.Current.Value == TestEnum.Test1);
+            AddAssert("tab changed", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test1);
+            AddStep("end lease", () => leased.UnbindAll());
+        }
+
+        [Test]
+        public void TestDisabledBindable()
+        {
+            Bindable<TestEnum?> bindable;
+
+            AddStep("add tabcontrol", () =>
+            {
+                bindable = new Bindable<TestEnum?> { Value = TestEnum.Test2 };
+
+                simpleTabcontrol = new StyledTabControl
+                {
+                    Size = new Vector2(200, 30)
+                };
+
+                foreach (var item in items)
+                    simpleTabcontrol.AddItem(item);
+
+                bindable.Disabled = true;
+                simpleTabcontrol.Current = bindable;
+
+                Child = simpleTabcontrol;
+            });
+
+            AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test2);
+
+            // Todo: Should not fail
+            // AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test0].Click());
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void SelectNull(bool autoSort)
+        {
+            AddStep($"Set autosort to {autoSort}", () => simpleTabcontrol.AutoSort = autoSort);
             AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
             AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
             AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
             AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
+        }
+
+        [Test]
+        public void TestRemovingTabMovesOutFromDropdown()
+        {
+            AddStep("Remove test3", () => simpleTabcontrol.RemoveItem(TestEnum.Test3));
+            AddAssert("Test 4 is visible", () => simpleTabcontrol.TabMap[TestEnum.Test4].IsPresent);
+
+            AddUntilStep("Remove all visible items", () =>
+            {
+                simpleTabcontrol.RemoveItem(simpleTabcontrol.Items.First(d => simpleTabcontrol.TabMap[d].IsPresent));
+                return !simpleTabcontrol.Dropdown.Items.Any();
+            });
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
@@ -178,6 +242,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledTabControl : TabControl<TestEnum?>
         {
+            public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
+
+            public new TabItem<TestEnum?> SelectedTab => base.SelectedTab;
+
+            public new Dropdown<TestEnum?> Dropdown => base.Dropdown;
+
             protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
             protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
@@ -198,7 +268,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Header.Origin = Anchor.TopRight;
             }
 
-            private class StyledDropdownMenu : DropdownMenu
+            private class StyledDropdownMenu : BasicDropdown<TestEnum?>.BasicDropdownMenu
             {
                 public StyledDropdownMenu()
                 {

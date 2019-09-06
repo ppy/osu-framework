@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -113,6 +113,17 @@ namespace osu.Framework.Graphics.Containers
 
             layoutChildren[drawable] = newPosition;
             InvalidateLayout();
+        }
+
+        /// <summary>
+        /// Inserts a new drawable at the specified layout position.
+        /// </summary>
+        /// <param name="position">The layout position of the new child.</param>
+        /// <param name="drawable">The drawable to be inserted.</param>
+        public void Insert(int position, T drawable)
+        {
+            Add(drawable);
+            SetLayoutPosition(drawable, position);
         }
 
         /// <summary>

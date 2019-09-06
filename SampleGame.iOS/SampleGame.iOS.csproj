@@ -25,14 +25,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
-    <None Include="..\osu.Framework.NativeLibs\libbass.a">
-      <Link>libbass.a</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\osu.Framework.NativeLibs\libbass_fx.a">
-      <Link>libbass_fx.a</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />

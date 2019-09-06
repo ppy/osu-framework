@@ -1,9 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Runtime;
-using osu.Framework.Caching;
-
 namespace osu.Framework.Configuration
 {
     public class FrameworkDebugConfigManager : IniConfigManager<DebugSetting>
@@ -19,16 +16,12 @@ namespace osu.Framework.Configuration
         {
             base.InitialiseDefaults();
 
-            Set(DebugSetting.ActiveGCMode, GCLatencyMode.SustainedLowLatency);
-            Set(DebugSetting.BypassCaching, false).ValueChanged += delegate { StaticCached.BypassCache = Get<bool>(DebugSetting.BypassCaching); };
             Set(DebugSetting.BypassFrontToBackPass, false);
         }
     }
 
     public enum DebugSetting
     {
-        ActiveGCMode,
-        BypassCaching,
         BypassFrontToBackPass
     }
 }

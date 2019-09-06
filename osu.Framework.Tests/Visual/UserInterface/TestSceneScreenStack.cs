@@ -276,33 +276,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(true, true)]
         public void TestAsyncEventOrder(bool earlyExit, bool suspendImmediately)
         {
+            TestScreenSlow screen1 = null;
+            TestScreenSlow screen2 = null;
+            List<int> order = null;
+
             if (!suspendImmediately)
             {
                 AddStep("override stack", () =>
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
                     {
                         RelativeSizeAxes = Axes.Both
                     });
                 });
             }
 
-            List<int> order = new List<int>();
-
-            var screen1 = new TestScreenSlow
+            AddStep("Perform setup", () =>
             {
-                Entered = () => order.Add(1),
-                Suspended = () => order.Add(2),
-                Resumed = () => order.Add(5),
-            };
-
-            var screen2 = new TestScreenSlow
-            {
-                Entered = () => order.Add(3),
-                Exited = () => order.Add(4),
-            };
+                order = new List<int>();
+                screen1 = new TestScreenSlow
+                {
+                    Entered = () => order.Add(1),
+                    Suspended = () => order.Add(2),
+                    Resumed = () => order.Add(5),
+                };
+                screen2 = new TestScreenSlow
+                {
+                    Entered = () => order.Add(3),
+                    Exited = () => order.Add(4),
+                };
+            });
 
             AddStep("push slow", () => stack.Push(screen1));
             AddStep("push second slow", () => stack.Push(screen2));
@@ -393,7 +398,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                 Clear();
-                Add(stack = new ScreenStack(baseScreen = new TestScreen(), suspendImmediately: false)
+                Add(stack = new ScreenStack(baseScreen = new TestScreen(), false)
                 {
                     RelativeSizeAxes = Axes.Both
                 });
@@ -555,6 +560,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestMakeCurrentDuringLoadOfMany()
+        {
+            TestScreen screen1 = null;
+            TestScreenSlow screen2 = null;
+            TestScreenSlow screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            AddStep("push slow screen 2", () => stack.Push(screen2 = new TestScreenSlow(id: 2)));
+            AddStep("push slow screen 3", () => stack.Push(screen3 = new TestScreenSlow(id: 3)));
+
+            AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
+            AddStep("Make current screen 1", () => screen1.MakeCurrent());
+            AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
+
+            // Allow the screens to load out of order to test whether or not screen 3 tried to load.
+            // The load should be blocked since screen 2 is already exited by MakeCurrent.
+            AddStep("allow screen 3 to load", () => screen3.AllowLoad.Set());
+            AddStep("allow screen 2 to load", () => screen2.AllowLoad.Set());
+
+            AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
+            AddAssert("Screen 2 did not load", () => !screen2.IsLoaded);
+            AddAssert("Screen 3 did not load", () => !screen3.IsLoaded);
+        }
+
+        [Test]
         public void TestMakeCurrentOnSameScreen()
         {
             TestScreen screen1 = null;
@@ -671,6 +701,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private class TestScreenSlow : TestScreen
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
+
+            public TestScreenSlow(int? id = null)
+                : base(false, id)
+            {
+            }
 
             [BackgroundDependencyLoader]
             private void load()
