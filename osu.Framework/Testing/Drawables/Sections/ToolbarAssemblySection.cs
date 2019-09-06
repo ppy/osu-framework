@@ -36,7 +36,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new SpriteText
                     {
                         Padding = new MarginPadding(5),
-                        Font = new FontUsage("RobotoCondensed", weight: "Regular"),
+                        Font = FrameworkFont.Condensed,
                         Text = "Assembly"
                     },
                     assemblyDropdown = new AssemblyDropdown

@@ -25,14 +25,25 @@ namespace osu.Framework.iOS.Input
 
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
+            if (!IsActive)
+                return;
+
             if (text.Length == 0)
             {
+                Key key = range.Location < IOSGameView.HiddenTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
+
+                // NOTE: this makes the assumption that Key.AltLeft triggers the WordPrevious platform action
+                if (range.Length > 1)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, true));
+
                 if (range.Length > 0)
                 {
-                    Key key = range.Location < IOSGameView.DummyTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                 }
+
+                if (range.Length > 1)
+                    PendingInputs.Enqueue(new KeyboardKeyInput(Key.AltLeft, false));
 
                 return;
             }
@@ -56,12 +67,18 @@ namespace osu.Framework.iOS.Input
 
         private void handleShouldReturn()
         {
+            if (!IsActive)
+                return;
+
             PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, true));
             PendingInputs.Enqueue(new KeyboardKeyInput(Key.Enter, false));
         }
 
         private void handleKeyCommand(UIKeyCommand cmd)
         {
+            if (!IsActive)
+                return;
+
             Key? key;
             bool upper = false;
 
@@ -108,6 +125,9 @@ namespace osu.Framework.iOS.Input
 
             switch (c)
             {
+                case ' ':
+                    return Key.Space;
+
                 case '\t':
                     return Key.Tab;
 
@@ -228,7 +248,8 @@ namespace osu.Framework.iOS.Input
             }
         }
 
-        public override bool IsActive => true;
+        internal bool KeyboardActive;
+        public override bool IsActive => KeyboardActive;
 
         public override int Priority => 0;
 

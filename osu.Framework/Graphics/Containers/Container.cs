@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Containers
         /// forwarded to the content. By default a container's content is itself, in which case
         /// <see cref="Children"/> refers to <see cref="CompositeDrawable.InternalChildren"/>.
         /// This property is useful for containers that require internal children that should
-        /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
+        /// not be exposed to the outside world, e.g. <see cref="ScrollContainer{T}"/>.
         /// </summary>
         protected virtual Container<T> Content => this;
 
@@ -290,7 +290,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Determines over how many pixels the alpha component smoothly fades out when an inner <see cref="EdgeEffect"/> or <see cref="BorderThickness"/> is present.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public new float MaskingSmoothness

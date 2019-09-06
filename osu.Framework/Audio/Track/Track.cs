@@ -22,11 +22,6 @@ namespace osu.Framework.Audio.Track
         public virtual bool IsDummyDevice => true;
 
         /// <summary>
-        /// States if this track should repeat.
-        /// </summary>
-        public bool Looping { get; set; }
-
-        /// <summary>
         /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
         /// </summary>
         public double RestartPoint { get; set; }
@@ -40,6 +35,8 @@ namespace osu.Framework.Audio.Track
         {
             Tempo.ValueChanged += InvalidateState;
         }
+
+        protected override void OnLooping() => Restart();
 
         /// <summary>
         /// Reset this track to a logical default state.
@@ -133,6 +130,9 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
+        /// <summary>
+        /// The playback tempo multiplier for this track, where 1 is the original speed.
+        /// </summary>
         public double TempoAdjust
         {
             get => Tempo.Value;
@@ -142,10 +142,6 @@ namespace osu.Framework.Audio.Track
         protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
-
-            if (Looping && HasCompleted)
-                Restart();
-
             base.UpdateState();
         }
     }

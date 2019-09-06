@@ -2,19 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoSprite : TestScene
+    public class TestSceneVideoSprite : FrameworkTestScene
     {
         private ManualClock clock;
         private VideoSprite videoSprite;
         private SpriteText timeText;
+        private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         public TestSceneVideoSprite()
         {
@@ -32,6 +34,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Clear();
 
                 videoSprite = new VideoSprite(wr.ResponseStream);
+                decoderState.BindTo(videoSprite.State);
                 Add(videoSprite);
                 videoSprite.Loop = false;
 
@@ -40,7 +43,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 Add(timeText = new SpriteText
                 {
-                    Font = new FontUsage("RobotoCondensed", weight: "Regular", fixedWidth: true)
+                    Font = FrameworkFont.Condensed.With(fixedWidth: true)
                 });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
@@ -80,7 +83,8 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     + $"video time: {videoSprite.CurrentFrameTime:N2} | "
                                     + $"duration: {videoSprite.Duration:N2} | "
                                     + $"buffered {videoSprite.AvailableFrames} | "
-                                    + $"FPS: {fps}";
+                                    + $"FPS: {fps} | "
+                                    + $"State: {decoderState.Value}";
             }
         }
     }

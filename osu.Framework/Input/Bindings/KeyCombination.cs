@@ -94,7 +94,7 @@ namespace osu.Framework.Input.Bindings
 
         public override string ToString() => Keys.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
 
-        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}");
+        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1} {s2}");
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
@@ -227,6 +227,27 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.NonUSBackSlash:
                     return "\\";
 
+                case InputKey.Mute:
+                    return "Mute";
+
+                case InputKey.VolumeDown:
+                    return "Vol. Down";
+
+                case InputKey.VolumeUp:
+                    return "Vol. Up";
+
+                case InputKey.Stop:
+                    return "Media Stop";
+
+                case InputKey.PlayPause:
+                    return "Media Play";
+
+                case InputKey.TrackNext:
+                    return "Media Next";
+
+                case InputKey.TrackPrevious:
+                    return "Media Previous";
+
                 case InputKey.MouseLeft:
                     return "M1";
 
@@ -236,31 +257,31 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.MouseRight:
                     return "M2";
 
-                case InputKey.MouseButton1:
+                case InputKey.ExtraMouseButton1:
                     return "M4";
 
-                case InputKey.MouseButton2:
+                case InputKey.ExtraMouseButton2:
                     return "M5";
 
-                case InputKey.MouseButton3:
+                case InputKey.ExtraMouseButton3:
                     return "M6";
 
-                case InputKey.MouseButton4:
+                case InputKey.ExtraMouseButton4:
                     return "M7";
 
-                case InputKey.MouseButton5:
+                case InputKey.ExtraMouseButton5:
                     return "M8";
 
-                case InputKey.MouseButton6:
+                case InputKey.ExtraMouseButton6:
                     return "M9";
 
-                case InputKey.MouseButton7:
+                case InputKey.ExtraMouseButton7:
                     return "M10";
 
-                case InputKey.MouseButton8:
+                case InputKey.ExtraMouseButton8:
                     return "M11";
 
-                case InputKey.MouseButton9:
+                case InputKey.ExtraMouseButton9:
                     return "M12";
 
                 case InputKey.MouseWheelDown:

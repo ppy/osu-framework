@@ -19,7 +19,7 @@ using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameWindow : IGameWindow
+    public abstract class GameWindow : IWindow
     {
         /// <summary>
         /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.
@@ -86,7 +86,7 @@ namespace osu.Framework.Platform
 
             FocusedChanged += (o, e) => isActive.Value = Focused;
 
-            SupportedWindowModes.AddRange(DefaultSupportedWindowModes);
+            supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
             bool firstUpdate = true;
             UpdateFrame += (o, e) =>
@@ -228,9 +228,11 @@ namespace osu.Framework.Platform
         /// devices.  This usually corresponds to areas of the screen hidden under notches and rounded corners.
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
-        public readonly BindableMarginPadding SafeAreaPadding = new BindableMarginPadding();
+        public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
-        public readonly BindableList<WindowMode> SupportedWindowModes = new BindableList<WindowMode>();
+        private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
+
+        public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;
 
         public virtual WindowMode DefaultWindowMode => SupportedWindowModes.First();
 

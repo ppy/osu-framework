@@ -12,14 +12,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneTransformRewinding : TestScene
+    public class TestSceneTransformRewinding : FrameworkTestScene
     {
         private const double interval = 250;
         private const int interval_count = 4;

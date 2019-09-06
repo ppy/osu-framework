@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly Bindable<bool> current = new Bindable<bool>();
 
+        private Bindable<bool> currentBound;
+
         /// <summary>
         /// A bindable that holds the value if the checkbox is checked or not.
         /// </summary>
@@ -26,18 +28,28 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
             }
         }
 
         protected override bool OnClick(ClickEvent e)
         {
             if (!Current.Disabled)
+            {
                 Current.Value = !Current.Value;
+                OnUserChange(Current.Value);
+            }
 
             base.OnClick(e);
             return true;
+        }
+
+        /// <summary>
+        /// Triggered when the value is changed based on end-user input to this control.
+        /// </summary>
+        protected virtual void OnUserChange(bool value)
+        {
         }
     }
 }

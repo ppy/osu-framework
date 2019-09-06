@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
@@ -26,6 +28,12 @@ namespace osu.Framework.Graphics
         public FrameBuffer MainBuffer { get; }
 
         /// <summary>
+        /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".
+        /// </summary>
+        public readonly bool PixelSnapping;
+
+        /// <summary>
         /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
         private readonly FrameBuffer[] effectBuffers;
@@ -33,8 +41,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
         /// </summary>
-        public BufferedDrawNodeSharedData()
-            : this(0)
+        public BufferedDrawNodeSharedData(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+            : this(0, formats, pixelSnapping)
         {
         }
 
@@ -42,17 +50,23 @@ namespace osu.Framework.Graphics
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with a specific amount of effect buffers.
         /// </summary>
         /// <param name="effectBufferCount">The number of effect buffers.</param>
+        /// <param name="formats">The render buffer formats to attach to each frame buffer.</param>
+        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
-            MainBuffer = new FrameBuffer();
+            PixelSnapping = pixelSnapping;
+            All filterMode = pixelSnapping ? All.Nearest : All.Linear;
+
+            MainBuffer = new FrameBuffer(formats, filterMode);
             effectBuffers = new FrameBuffer[effectBufferCount];
 
             for (int i = 0; i < effectBufferCount; i++)
-                effectBuffers[i] = new FrameBuffer();
+                effectBuffers[i] = new FrameBuffer(formats, filterMode);
         }
 
         private int currentEffectBuffer = -1;
@@ -89,7 +103,7 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            Dispose(true);
+            GLWrapper.ScheduleDisposal(() => Dispose(true));
             GC.SuppressFinalize(this);
         }
 

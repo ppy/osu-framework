@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
@@ -55,11 +54,15 @@ namespace osu.Framework.Testing.Drawables
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Padding = new MarginPadding { Right = LEFT_TEXT_PADDING },
                     Children = new Drawable[]
                     {
-                        content = new Container { RelativeSizeAxes = Axes.Both },
-                        text = new TextFlowContainer(s => s.Font = new FontUsage("RobotoCondensed", weight: "Regular", size: 14f))
+                        new SafeAreaContainer
+                        {
+                            SafeAreaOverrideEdges = Edges.Left,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = content = new Container { RelativeSizeAxes = Axes.Both },
+                        },
+                        text = new TextFlowContainer(s => s.Font = FrameworkFont.Condensed.With(size: 14f))
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -67,7 +70,7 @@ namespace osu.Framework.Testing.Drawables
                             {
                                 Top = 4,
                                 Left = LEFT_TEXT_PADDING,
-                                Right = 4,
+                                Right = 4 + LEFT_TEXT_PADDING,
                                 Bottom = 5,
                             },
                         }

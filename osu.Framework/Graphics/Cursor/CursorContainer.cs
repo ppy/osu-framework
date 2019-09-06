@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
-            State = Visibility.Visible;
+            State.Value = Visibility.Visible;
         }
 
         [BackgroundDependencyLoader]

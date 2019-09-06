@@ -2,12 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input.Events;
-using osu.Framework.Testing;
+using osu.Framework.MathUtils;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -15,41 +16,49 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDrawablePath : GridTestScene
+    public class TestSceneDrawablePath : FrameworkTestScene
     {
-        public TestSceneDrawablePath()
-            : base(3, 2)
-        {
-            const int width = 20;
-            Texture gradientTexture = new Texture(width, 1, true);
-            var image = new Image<Rgba32>(width, 1);
+        private const int texture_width = 20;
 
-            for (int i = 0; i < width; ++i)
+        private readonly Texture gradientTexture = new Texture(texture_width, 1, true);
+
+        public TestSceneDrawablePath()
+        {
+            var image = new Image<Rgba32>(texture_width, 1);
+
+            for (int i = 0; i < texture_width; ++i)
             {
-                var brightnessByte = (byte)((float)i / (width - 1) * 255);
-                image[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
+                var brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
+                image[i, 0] = new Rgba32(255, 255, 255, brightnessByte);
             }
 
             gradientTexture.SetData(new TextureUpload(image));
+        }
 
-            Cell(0).AddRange(new[]
+        [Test]
+        public void TestSimplePath()
+        {
+            AddStep("create path", () =>
             {
-                createLabel("Simple path"),
-                new TexturedPath
+                Child = new TexturedPath
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Vertices = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Vertices = new List<Vector2> { Vector2.Zero, new Vector2(300, 300) },
                     Texture = gradientTexture,
-                    Colour = Color4.Green,
-                },
+                };
             });
+        }
 
-            Cell(1).AddRange(new[]
+        [Test]
+        public void TestMultiplePointPath()
+        {
+            AddStep("create path", () =>
             {
-                createLabel("Curved path"),
-                new TexturedPath
+                Child = new TexturedPath
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
                     Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
@@ -59,16 +68,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Vector2(50, 50),
                     },
                     Texture = gradientTexture,
-                    Colour = Color4.Blue,
-                },
+                };
             });
+        }
 
-            Cell(2).AddRange(new[]
+        [Test]
+        public void TestSelfOverlappingPath()
+        {
+            AddStep("create path", () =>
             {
-                createLabel("Self-overlapping path"),
-                new TexturedPath
+                Child = new TexturedPath
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
                     Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
@@ -78,84 +90,124 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Vector2(20, 100),
                     },
                     Texture = gradientTexture,
-                    Colour = Color4.Red,
-                },
-            });
-
-            Cell(3).AddRange(new[]
-            {
-                createLabel("Smoothed path"),
-                new SmoothPath
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    PathRadius = 5,
-                    Vertices = new List<Vector2>
-                    {
-                        new Vector2(50, 50),
-                        new Vector2(125, 100),
-                    },
-                    Colour = Color4.White,
-                }
-            });
-
-            Cell(4).AddRange(new[]
-            {
-                createLabel("un-smoothed path"),
-                new Path
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    PathRadius = 5,
-                    Vertices = new List<Vector2>
-                    {
-                        new Vector2(50, 50),
-                        new Vector2(125, 100),
-                    },
-                    Colour = Color4.White,
-                }
-            });
-
-            Cell(5).AddRange(new[]
-            {
-                createLabel("Draw something ;)"),
-                new UserDrawnPath
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Texture = gradientTexture,
-                    Colour = Color4.White,
-                },
+                };
             });
         }
 
-        private Drawable createLabel(string text) => new SpriteText
+        [Test]
+        public void TestSmoothPath()
         {
-            Text = text,
-            Font = new FontUsage(size: 20),
-            Colour = Color4.White,
-        };
-
-        private class UserDrawnPath : TexturedPath
-        {
-            private Vector2 oldPos;
-
-            protected override bool OnDragStart(DragStartEvent e)
+            AddStep("create path", () =>
             {
-                AddVertex(e.MousePosition);
-                oldPos = e.MousePosition;
-                return true;
-            }
-
-            protected override bool OnDrag(DragEvent e)
-            {
-                Vector2 pos = e.MousePosition;
-
-                if ((pos - oldPos).Length > 10)
+                Child = new SmoothPath
                 {
-                    AddVertex(pos);
-                    oldPos = pos;
-                }
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    PathRadius = 10,
+                    Vertices = new List<Vector2>
+                    {
+                        Vector2.Zero,
+                        new Vector2(200)
+                    },
+                };
+            });
+        }
 
-                return base.OnDrag(e);
-            }
+        [Test]
+        public void TestUnsmoothPath()
+        {
+            AddStep("create path", () =>
+            {
+                Child = new Path
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    PathRadius = 10,
+                    Vertices = new List<Vector2>
+                    {
+                        Vector2.Zero,
+                        new Vector2(200)
+                    },
+                };
+            });
+        }
+
+        [Test]
+        public void TestPathBlending()
+        {
+            AddStep("create path", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(200)
+                    },
+                    new TexturedPath
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Red,
+                        Vertices = new List<Vector2>
+                        {
+                            new Vector2(50, 50),
+                            new Vector2(50, 150),
+                            new Vector2(150, 150),
+                            new Vector2(150, 100),
+                            new Vector2(20, 100),
+                        },
+                        Texture = gradientTexture,
+                    }
+                };
+            });
+        }
+
+        [Test]
+        public void TestSizing()
+        {
+            Path path = null;
+
+            AddStep("create autosize path", () =>
+            {
+                Child = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    Child = path = new Path
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        PathRadius = 10,
+                        Vertices = new List<Vector2>
+                        {
+                            Vector2.Zero,
+                            new Vector2(100, 0)
+                        },
+                    }
+                };
+            });
+
+            AddAssert("size = (120, 20)", () => Precision.AlmostEquals(new Vector2(120, 20), path.DrawSize));
+
+            AddStep("make path relative-sized", () =>
+            {
+                path.AutoSizeAxes = Axes.None;
+                path.RelativeSizeAxes = Axes.Both;
+                path.Size = Vector2.One;
+            });
+
+            AddAssert("size = (200, 200)", () => Precision.AlmostEquals(new Vector2(200), path.DrawSize));
+
+            AddStep("make path absolute-sized", () =>
+            {
+                path.RelativeSizeAxes = Axes.None;
+                path.Size = new Vector2(100);
+            });
+
+            AddAssert("size = (100, 100)", () => Precision.AlmostEquals(new Vector2(100), path.DrawSize));
         }
     }
 }

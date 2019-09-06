@@ -12,12 +12,13 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Lines
 {
     public partial class Path
     {
-        private class PathDrawNode : TexturedShaderDrawNode
+        private class PathDrawNode : DrawNode
         {
             public const int MAX_RES = 24;
 
@@ -28,6 +29,7 @@ namespace osu.Framework.Graphics.Lines
             private Texture texture;
             private Vector2 drawSize;
             private float radius;
+            private IShader pathShader;
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
@@ -50,6 +52,7 @@ namespace osu.Framework.Graphics.Lines
                 texture = Source.Texture;
                 drawSize = Source.DrawSize;
                 radius = Source.PathRadius;
+                pathShader = Source.pathShader;
             }
 
             private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
@@ -207,14 +210,17 @@ namespace osu.Framework.Graphics.Lines
 
                 GLWrapper.PushDepthInfo(DepthInfo.Default);
 
-                Shader.Bind();
+                // Blending is removed to allow for correct blending between the wedges of the path.
+                GLWrapper.SetBlend(BlendingParameters.None);
+
+                pathShader.Bind();
 
                 texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
                 texture.TextureGL.Bind();
 
                 updateVertexBuffer();
 
-                Shader.Unbind();
+                pathShader.Unbind();
 
                 GLWrapper.PopDepthInfo();
             }

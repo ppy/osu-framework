@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
@@ -88,7 +90,53 @@ namespace osu.Framework.Graphics.Containers.Markdown
             set => document.Padding = value;
         }
 
-        private Cached contentCache = new Cached();
+        private Uri documentUri;
+
+        /// <summary>
+        /// The URL of the loaded document.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
+        protected string DocumentUrl
+        {
+            get => documentUri?.AbsoluteUri;
+            set
+            {
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Document URL ({value}) must be an absolute URI.");
+
+                if (documentUri == uri)
+                    return;
+
+                documentUri = uri;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        private Uri rootUri;
+
+        /// <summary>
+        /// The base URL for all root-relative links.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the provided URL was not a valid absolute URI.</exception>
+        protected string RootUrl
+        {
+            get => rootUri?.AbsoluteUri;
+            set
+            {
+                if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+                    throw new ArgumentException($"Root URL ({value}) must be an absolute URI.");
+
+                if (rootUri == uri)
+                    return;
+
+                rootUri = uri;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        private readonly Cached contentCache = new Cached();
 
         private readonly FillFlowContainer document;
 
@@ -119,6 +167,27 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var markdownText = Text;
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
+
+                // Turn all relative URIs in the document into absolute URIs
+                foreach (var link in parsed.Descendants().OfType<LinkInline>())
+                {
+                    if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                        continue;
+
+                    if (linkUri.IsAbsoluteUri)
+                        continue;
+
+                    if (documentUri != null)
+                    {
+                        if (rootUri != null && link.Url.StartsWith("/"))
+                        {
+                            // Ensure the URI is document-relative by removing all trailing slashes
+                            link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
+                        }
+                        else
+                            link.Url = new Uri(documentUri, linkUri).AbsoluteUri;
+                    }
+                }
 
                 document.Clear();
                 foreach (var component in parsed)

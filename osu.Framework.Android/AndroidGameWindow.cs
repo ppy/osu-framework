@@ -4,7 +4,6 @@
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osuTK.Graphics;
-using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Android
@@ -41,10 +40,12 @@ namespace osu.Framework.Android
 
         public override void Run()
         {
+            View.Run();
         }
 
         public override void Run(double updateRate)
         {
+            View.Run(updateRate);
         }
     }
 }

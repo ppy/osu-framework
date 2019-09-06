@@ -124,8 +124,8 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation, source);
         }
 
-        private Cached cellContent = new Cached();
-        private Cached cellLayout = new Cached();
+        private readonly Cached cellContent = new Cached();
+        private readonly Cached cellLayout = new Cached();
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);

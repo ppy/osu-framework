@@ -3,14 +3,13 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The child <see cref="DrawNode"/> which is used to populate the <see cref="FrameBuffer"/>s with.
         /// </summary>
-        protected readonly DrawNode Child;
+        protected DrawNode Child { get; private set; }
 
         /// <summary>
         /// Data shared amongst all <see cref="BufferedDrawNode"/>s, providing storage for <see cref="FrameBuffer"/>s.
@@ -33,24 +32,17 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected new DrawColourInfo DrawColourInfo { get; private set; }
 
+        protected RectangleF DrawRectangle { get; private set; }
+
         private Color4 backgroundColour;
         private RectangleF screenSpaceDrawRectangle;
-
-        private RectangleF drawRectangle;
         private Vector2 frameBufferSize;
 
-        private readonly All filteringMode;
-        private readonly RenderbufferInternalFormat[] formats;
-
-        public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+        public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
         {
-            this.formats = formats;
-
             Child = child;
             SharedData = sharedData;
-
-            filteringMode = pixelSnapping ? All.Nearest : All.Linear;
         }
 
         public override void ApplyState()
@@ -62,7 +54,7 @@ namespace osu.Framework.Graphics
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
             frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
-            drawRectangle = filteringMode == All.Nearest
+            DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
 
@@ -88,6 +80,8 @@ namespace osu.Framework.Graphics
         {
             if (RequiresRedraw)
             {
+                FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
+
                 SharedData.ResetCurrentEffectBuffer();
 
                 using (establishFrameBufferViewport())
@@ -113,6 +107,7 @@ namespace osu.Framework.Graphics
 
             Shader.Bind();
 
+            base.Draw(vertexAction);
             DrawContents();
 
             Shader.Unbind();
@@ -131,8 +126,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void DrawContents()
         {
-            GLWrapper.SetBlend(DrawColourInfo.Blending);
-            DrawFrameBuffer(SharedData.MainBuffer, DrawColourInfo.Colour);
+            DrawFrameBuffer(SharedData.MainBuffer, DrawRectangle, DrawColourInfo.Colour);
         }
 
         /// <summary>
@@ -142,38 +136,12 @@ namespace osu.Framework.Graphics
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
         protected ValueInvokeOnDisposal BindFrameBuffer(FrameBuffer frameBuffer)
         {
-            if (!frameBuffer.IsInitialized)
-                frameBuffer.Initialize(true, filteringMode);
-
-            if (formats != null)
-            {
-                // These additional render buffers are only required if e.g. depth
-                // or stencil information needs to also be stored somewhere.
-                foreach (var f in formats)
-                    frameBuffer.Attach(f);
-            }
-
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 
             frameBuffer.Bind();
 
             return new ValueInvokeOnDisposal(frameBuffer.Unbind);
-        }
-
-        /// <summary>
-        /// Renders a <see cref="FrameBuffer"/> to the currently attached draw buffer (ba ckbuffer or frame buffer).
-        /// </summary>
-        /// <param name="frameBuffer">The <see cref="FrameBuffer"/> to draw.</param>
-        /// <param name="colourInfo">The colour to draw the <paramref name="frameBuffer"/> with.</param>
-        /// <param name="drawQuad">The destination vertices.</param>
-        protected void DrawFrameBuffer(FrameBuffer frameBuffer, ColourInfo colourInfo, Quad? drawQuad = null)
-        {
-            // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
-            RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
-
-            if (frameBuffer.Texture.Bind())
-                DrawQuad(frameBuffer.Texture, drawQuad ?? drawRectangle, colourInfo, textureRect);
         }
 
         private ValueInvokeOnDisposal establishFrameBufferViewport()
@@ -202,6 +170,14 @@ namespace osu.Framework.Graphics
         {
             GLWrapper.PopViewport();
             GLWrapper.PopMaskingInfo();
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            Child?.Dispose();
+            Child = null;
         }
     }
 }

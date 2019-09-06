@@ -8,12 +8,11 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneLifetimeManagementContainer : TestScene
+    public class TestSceneLifetimeManagementContainer : FrameworkTestScene
     {
         private ManualClock manualClock;
         private TestContainer container;

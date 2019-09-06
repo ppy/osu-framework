@@ -7,6 +7,7 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -70,7 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
+            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
         }
 
         internal override bool Upload() => false;
@@ -79,14 +80,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        internal override bool Bind()
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind();
+            return parent.Bind(unit);
         }
 
         public override void SetData(ITextureUpload upload)

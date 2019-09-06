@@ -4,18 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
-using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart : IDisposable
+    internal class ShaderPart
     {
-        internal const string BOUNDARY = @"----------------------{0}";
-
-        internal StringBuilder Log = new StringBuilder();
+        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
@@ -25,6 +21,8 @@ namespace osu.Framework.Graphics.Shaders
 
         internal ShaderType Type;
 
+        private bool isVertexShader => Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb;
+
         private int partID = -1;
 
         private int lastShaderInputIndex;
@@ -32,7 +30,7 @@ namespace osu.Framework.Graphics.Shaders
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+\\s+([^;]+);");
+        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
 
         private readonly ShaderManager manager;
 
@@ -43,7 +41,7 @@ namespace osu.Framework.Graphics.Shaders
 
             this.manager = manager;
 
-            shaderCodes.Add(loadFile(data));
+            shaderCodes.Add(loadFile(data, true));
             shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
             if (shaderCodes.Count == 0)
@@ -52,7 +50,7 @@ namespace osu.Framework.Graphics.Shaders
             HasCode = true;
         }
 
-        private string loadFile(byte[] bytes)
+        private string loadFile(byte[] bytes, bool mainFile)
         {
             if (bytes == null)
                 return null;
@@ -86,7 +84,7 @@ namespace osu.Framework.Graphics.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        code += loadFile(manager.LoadRaw(includeName)) + '\n';
+                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
                     }
                     else
                         code += line + '\n';
@@ -103,6 +101,21 @@ namespace osu.Framework.Graphics.Shaders
                                 Name = inputMatch.Groups[1].Value.Trim()
                             });
                         }
+                    }
+                }
+
+                if (mainFile)
+                {
+                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
+
+                    if (isVertexShader)
+                    {
+                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+
+                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                     }
                 }
 
@@ -128,20 +141,8 @@ namespace osu.Framework.Graphics.Shaders
             GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
             Compiled = compileResult == 1;
 
-#if DEBUG
-            string compileLog = GL.GetShaderInfoLog(this);
-            Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
-            Log.AppendLine($"\tCompiled: {Compiled}");
-
             if (!Compiled)
-            {
-                Log.AppendLine("\tLog:");
-                Log.AppendLine('\t' + compileLog);
-            }
-#endif
-
-            if (!Compiled)
-                delete();
+                throw new Shader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }
@@ -156,22 +157,5 @@ namespace osu.Framework.Graphics.Shaders
             Compiled = false;
             partID = -1;
         }
-
-        #region Disposal
-
-        ~ShaderPart()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing) => GLWrapper.ScheduleDisposal(delete);
-
-        #endregion
     }
 }

@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using osu.Framework.IO.Stores;
-using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShaderManager : IDisposable
+    public class ShaderManager
     {
         private const string shader_prefix = @"sh_";
 
@@ -81,46 +79,8 @@ namespace osu.Framework.Graphics.Shaders
                 createShaderPart(fragment, ShaderType.FragmentShader)
             };
 
-            shader = new Shader($"{vertex}/{fragment}", parts);
-
-            if (!shader.IsLoaded)
-            {
-                StringBuilder logContents = new StringBuilder();
-                logContents.AppendLine($@"Loading shader {vertex}/{fragment}");
-                logContents.Append(shader.Log);
-                foreach (ShaderPart p in parts)
-                    logContents.Append(p.Log);
-                Logger.Log(logContents.ToString().Trim('\n'), LoggingTarget.Runtime, LogLevel.Debug);
-            }
-
-            shaderCache[tuple] = shader;
-
-            return shader;
+            return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
         }
-
-        #region Disposal
-
-        ~ShaderManager()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            foreach (var kvp in partCache)
-                kvp.Value.Dispose();
-
-            foreach (var kvp in shaderCache)
-                kvp.Value.Dispose();
-        }
-
-        #endregion
     }
 
     public static class VertexShaderDescriptor

@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly Bindable<double> current = new Bindable<double>();
 
+        private Bindable<double> currentBound;
+
         public Bindable<double> Current
         {
             get => current;
@@ -23,8 +25,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                if (currentBound != null) current.UnbindFrom(currentBound);
+                current.BindTo(currentBound = value);
             }
         }
 
@@ -95,9 +97,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
     }
 
-    public static class CircularProgressExtensions
+    public static class CircularProgressTransformSequenceExtensions
     {
-        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, double newValue, double duration = 0, Easing easing = Easing.None)
-            => t.TransformBindableTo(t.Current, newValue, duration, easing);
+        public static TransformSequence<CircularProgress> FillTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.Append(cp => cp.TransformBindableTo(cp.Current, newValue, duration, easing));
     }
 }
