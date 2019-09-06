@@ -310,6 +310,24 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private float maxWidth = float.PositiveInfinity;
+
+        /// <summary>
+        /// The maximum width of this <see cref="SpriteText"/>. Affects both auto and fixed sizing modes.
+        /// </summary>
+        public float MaxWidth
+        {
+            get => maxWidth;
+            set
+            {
+                if (maxWidth == value)
+                    return;
+
+                maxWidth = value;
+                invalidate(true);
+            }
+        }
+
         private float? explicitHeight;
 
         /// <summary>
@@ -449,6 +467,8 @@ namespace osu.Framework.Graphics.Sprites
                     base.Width = (textBuilder?.Bounds.X ?? 0) + Padding.Right;
                 if (requiresAutoSizedHeight)
                     base.Height = (textBuilder?.Bounds.Y ?? 0) + Padding.Bottom;
+
+                base.Width = Math.Min(base.Width, MaxWidth);
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
