@@ -565,6 +565,10 @@ namespace osu.Framework.Graphics.UserInterface
                         PreselectionConfirmed?.Invoke(preselectedIndex);
                         return true;
 
+                    case Key.Escape:
+                        State = MenuState.Closed;
+                        return true;
+
                     default:
                         return base.OnKeyDown(e);
                 }
