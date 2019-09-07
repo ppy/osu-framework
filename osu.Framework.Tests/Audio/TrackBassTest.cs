@@ -225,8 +225,9 @@ namespace osu.Framework.Tests.Audio
         {
             track.Looping = true;
             track.Frequency.Value = -1;
+            track.RestartPoint = 1000;
 
-            startPlaybackAt(1);
+            startPlaybackAt(1001);
 
             forceTrackUpdate();
 

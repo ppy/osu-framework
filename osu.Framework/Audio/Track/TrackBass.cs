@@ -55,14 +55,6 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        private double restartPoint;
-
-        public override double RestartPoint
-        {
-            get => (IsReversed && restartPoint == 0) ? lastSeekablePosition : restartPoint;
-            set => restartPoint = value;
-        }
-
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>

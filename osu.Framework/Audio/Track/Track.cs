@@ -57,7 +57,7 @@ namespace osu.Framework.Audio.Track
         public virtual void Restart()
         {
             Stop();
-            Seek(RestartPoint);
+            Seek(!IsReversed ? RestartPoint : Length - 1);
             Start();
         }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
-        public override bool HasCompleted => IsLoaded && !IsRunning && (IsReversed ? CurrentTime <= 0 : CurrentTime >= Length);
+        public override bool HasCompleted => IsLoaded && (!IsReversed ? (!IsRunning && CurrentTime >= Length) : CurrentTime <= RestartPoint);
 
         /// <summary>
         /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
