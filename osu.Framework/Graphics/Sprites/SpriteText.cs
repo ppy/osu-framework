@@ -310,6 +310,27 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private float maxWidth = float.PositiveInfinity;
+
+        /// <summary>
+        /// The maximum width of this <see cref="SpriteText"/>. Affects both auto and fixed sizing modes.
+        /// </summary>
+        /// <remarks>
+        /// This becomes a relative value if this <see cref="SpriteText"/> is relatively-sized on the X-axis.
+        /// </remarks>
+        public float MaxWidth
+        {
+            get => maxWidth;
+            set
+            {
+                if (maxWidth == value)
+                    return;
+
+                maxWidth = value;
+                invalidate(true);
+            }
+        }
+
         private float? explicitHeight;
 
         /// <summary>
@@ -450,6 +471,8 @@ namespace osu.Framework.Graphics.Sprites
                 if (requiresAutoSizedHeight)
                     base.Height = (textBuilder?.Bounds.Y ?? 0) + Padding.Bottom;
 
+                base.Width = Math.Min(base.Width, MaxWidth);
+
                 isComputingCharacters = false;
                 charactersCache.Validate();
             }
@@ -494,7 +517,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private readonly Cached<Vector2> shadowOffsetCache = new Cached<Vector2>();
 
-        private Vector2 premultipliedShadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
+        private Vector2 premultipliedShadowOffset =>
+            shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -558,21 +582,23 @@ namespace osu.Framework.Graphics.Sprites
         {
             var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
-            float maxWidth = requiresAutoSizedWidth ? float.PositiveInfinity : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+            float builderMaxWidth = requiresAutoSizedWidth
+                ? MaxWidth
+                : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(Math.Min(MaxWidth, base.Width), base.Height), FillMode).X - Padding.Right;
 
             if (AllowMultiline)
             {
-                return new MultilineTextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
             if (Truncate)
             {
-                return new TruncatingTextBuilder(store, Font, maxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
-            return new TextBuilder(store, Font, maxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+            return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                 excludeCharacters, FallbackCharacter);
         }
 
