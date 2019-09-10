@@ -13,7 +13,7 @@ namespace osu.Framework.Bindables
 
         protected override float DefaultMinValue => float.MinValue;
         protected override float DefaultMaxValue => float.MaxValue;
-        protected override float DefaultPrecision => float.Epsilon;
+        protected override float DefaultPrecision => MathUtils.Precision.FLOAT_EPSILON;
 
         public BindableFloat(float value = 0)
             : base(value)

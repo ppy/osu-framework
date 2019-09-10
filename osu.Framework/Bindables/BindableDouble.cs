@@ -13,7 +13,7 @@ namespace osu.Framework.Bindables
 
         protected override double DefaultMinValue => double.MinValue;
         protected override double DefaultMaxValue => double.MaxValue;
-        protected override double DefaultPrecision => double.Epsilon;
+        protected override double DefaultPrecision => MathUtils.Precision.DOUBLE_EPSILON;
 
         public BindableDouble(double value = 0)
             : base(value)
