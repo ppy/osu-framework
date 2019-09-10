@@ -46,8 +46,13 @@ namespace osu.Framework.Development
         /// Will fall back to calling assembly if there is no Entry assembly.
         /// </summary>
         /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
-        public static Assembly GetEntryAssembly() =>
-            HostAssembly ?? Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+        public static Assembly GetEntryAssembly()
+        {
+            if (IsNUnitRunning && HostAssembly != null)
+                return HostAssembly;
+
+            return Assembly.GetEntryAssembly() ?? HostAssembly ?? Assembly.GetCallingAssembly();
+        }
 
         /// <summary>
         /// Get the entry path, even when running under nUnit.
