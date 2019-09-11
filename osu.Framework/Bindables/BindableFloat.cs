@@ -9,7 +9,7 @@ namespace osu.Framework.Bindables
     public class BindableFloat : BindableNumber<float>
     {
         // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
-        public override bool IsDefault => Math.Abs(Value - Default) < Math.Max(Precision / 2, float.Epsilon);
+        public override bool IsDefault => MathUtils.Precision.AlmostEquals(Value, Default, Precision / 2);
 
         protected override float DefaultMinValue => float.MinValue;
         protected override float DefaultMaxValue => float.MaxValue;
