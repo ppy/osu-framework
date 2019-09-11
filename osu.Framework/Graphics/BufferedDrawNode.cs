@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
 
@@ -79,6 +80,8 @@ namespace osu.Framework.Graphics
         {
             if (RequiresRedraw)
             {
+                FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
+
                 SharedData.ResetCurrentEffectBuffer();
 
                 using (establishFrameBufferViewport())

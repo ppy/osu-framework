@@ -48,11 +48,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 {
                     Texture.Width = (int)Math.Ceiling(size.X);
                     Texture.Height = (int)Math.Ceiling(size.Y);
+
                     Texture.SetData(new TextureUpload());
                     Texture.Upload();
-
-                    foreach (var buffer in attachedRenderBuffers)
-                        buffer.Size = value;
                 }
             }
         }
@@ -60,7 +58,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private void initialise()
         {
             frameBuffer = GL.GenFramebuffer();
-            Texture = new FrameBufferTexture(Vector2.ComponentMax(Vector2.One, Size), filteringMode);
+            Texture = new FrameBufferTexture(Size, filteringMode);
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 
@@ -70,7 +68,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (renderBufferFormats != null)
             {
                 foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new RenderBuffer(format) { Size = Size });
+                    attachedRenderBuffers.Add(new RenderBuffer(format));
             }
         }
 
@@ -90,12 +88,24 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 // Buffer is bound during initialisation
                 GLWrapper.BindFrameBuffer(frameBuffer);
             }
+
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Bind(Size);
         }
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind() => GLWrapper.UnbindFrameBuffer(frameBuffer);
+        public void Unbind()
+        {
+            // See: https://community.arm.com/developer/tools-software/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
+            // Unbinding renderbuffers causes an invalidation of the relevant attachment of this framebuffer on embedded devices, causing the renderbuffers to remain transient.
+            // This must be done _before_ the framebuffer is flushed via the framebuffer unbind process, otherwise the renderbuffer may be copied to system memory.
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Unbind();
+
+            GLWrapper.UnbindFrameBuffer(frameBuffer);
+        }
 
         #region Disposal
 
@@ -140,6 +150,18 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 SetData(new TextureUpload());
                 Upload();
+            }
+
+            public override int Width
+            {
+                get => base.Width;
+                set => base.Width = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
+            }
+
+            public override int Height
+            {
+                get => base.Height;
+                set => base.Height = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
         }
     }

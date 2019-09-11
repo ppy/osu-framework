@@ -119,11 +119,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private BlendingParameters effectBlending;
+        private BlendingParameters effectBlending = BlendingParameters.Inherit;
 
         /// <summary>
-        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
-        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingType.Inherit"/>.
+        /// <see cref="BlendingType.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public BlendingParameters EffectBlending
@@ -184,6 +184,24 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool CacheDrawnFrameBuffer;
 
+        private bool redrawOnScale = true;
+
+        /// <summary>
+        /// Whether to redraw this <see cref="BufferedContainer"/> when the draw scale changes.
+        /// </summary>
+        public bool RedrawOnScale
+        {
+            get => redrawOnScale;
+            set
+            {
+                if (redrawOnScale == value)
+                    return;
+
+                redrawOnScale = value;
+                screenSpaceSizeBacking?.Invalidate();
+            }
+        }
+
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
@@ -233,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private Cached screenSpaceSizeBacking = new Cached();
+        private readonly Cached screenSpaceSizeBacking = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -259,12 +277,18 @@ namespace osu.Framework.Graphics.Containers
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
-                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
+                Vector2 drawSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
+                if (!RedrawOnScale)
+                {
+                    Matrix3 scaleMatrix = Matrix3.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
+                    Vector2Extensions.Transform(ref drawSize, ref scaleMatrix, out drawSize);
+                }
+
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, drawSize))
                 {
                     ++updateVersion;
-                    lastScreenSpaceSize = screenSpaceSize;
+                    lastScreenSpaceSize = drawSize;
                 }
 
                 screenSpaceSizeBacking.Validate();
@@ -286,14 +310,9 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 BlendingParameters blending = EffectBlending;
-                if (blending.Mode == BlendingMode.Inherit)
-                    blending.Mode = Blending.Mode;
 
-                if (blending.RGBEquation == BlendingEquation.Inherit)
-                    blending.RGBEquation = Blending.RGBEquation;
-
-                if (blending.AlphaEquation == BlendingEquation.Inherit)
-                    blending.AlphaEquation = Blending.AlphaEquation;
+                blending.CopyFromParent(Blending);
+                blending.ApplyDefaultToInherited();
 
                 return blending;
             }

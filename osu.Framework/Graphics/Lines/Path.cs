@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached<RectangleF> vertexBoundsCache;
+        private readonly Cached<RectangleF> vertexBoundsCache = new Cached<RectangleF>();
 
         private RectangleF vertexBounds
         {
@@ -232,7 +232,7 @@ namespace osu.Framework.Graphics.Lines
         }
 
         private readonly List<Line> segmentsBacking = new List<Line>();
-        private Cached segmentsCache = new Cached();
+        private readonly Cached segmentsCache = new Cached();
         private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
 
         private List<Line> generateSegments()
