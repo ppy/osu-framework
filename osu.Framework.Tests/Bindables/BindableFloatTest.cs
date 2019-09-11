@@ -33,11 +33,11 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(105.123f, 105.122f, 0.001f)]
         [TestCase(-105.123f, 105.122f, 0.001f)]
         [TestCase(-105.122f, 105.122f, 0.001f)]
-        public void TestDefaultCheck(float value, float def, float precision = 0)
+        public void TestDefaultCheck(float value, float def, float? precision = null)
         {
             var bindable = new BindableFloat { Value = def, Default = def };
-            if (precision != 0)
-                bindable.Precision = precision;
+            if (precision.HasValue)
+                bindable.Precision = precision.Value;
 
             Assert.IsTrue(bindable.IsDefault);
 
