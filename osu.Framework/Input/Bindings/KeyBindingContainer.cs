@@ -208,6 +208,7 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// Releases all pressed actions.
+        /// Note that the relevant key bindings remain in a pressed state by the user and are not released by this method.
         /// </summary>
         private void releasePressedActions()
         {
