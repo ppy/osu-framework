@@ -10,10 +10,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
+using osu.Framework.Tests.Visual;
 
-namespace osu.Framework.Tests.Visual.Containers
+namespace osu.Framework.Tests.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
+    [HeadlessTest]
     public class TestSceneContainerState : FrameworkTestScene
     {
         /// <summary>
