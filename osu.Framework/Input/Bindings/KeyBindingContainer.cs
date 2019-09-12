@@ -258,13 +258,22 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        // Todo: Wtf? This should use handleNewReleased
         public void TriggerReleased(T released)
-            => PropagateReleased(getInputQueue(KeyBindings.First(b => b.GetAction<T>().Equals(released))), released);
+        {
+            var binding = KeyBindings.First(b => b.GetAction<T>().Equals(released));
+            PropagateReleased(getInputQueue(binding, true), released);
+            keyBindingQueues[binding].Clear();
+        }
 
-        // Todo: Wtf? This should use handleNewPressed
         public void TriggerPressed(T pressed)
-            => PropagatePressed(getInputQueue(KeyBindings.First(b => b.GetAction<T>().Equals(pressed))), pressed);
+        {
+            if (simultaneousMode == SimultaneousBindingMode.None)
+                releasePressedActions();
+
+            var binding = KeyBindings.First(b => b.GetAction<T>().Equals(pressed));
+            PropagatePressed(getInputQueue(binding, true), pressed);
+            keyBindingQueues[binding].Clear();
+        }
 
         private IEnumerable<Drawable> getInputQueue(KeyBinding binding, bool rebuildIfEmpty = false)
         {
