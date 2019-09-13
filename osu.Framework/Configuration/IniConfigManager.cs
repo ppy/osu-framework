@@ -80,7 +80,7 @@ namespace osu.Framework.Configuration
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)
-                        w.WriteLine(@"{0} = {1}", p.Key, p.Value);
+                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().Replace("\n", "").Replace("\r", ""));
                 }
             }
             catch
