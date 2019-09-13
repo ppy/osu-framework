@@ -176,11 +176,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == previousIndex - 1);
 
-            AddStep("Select last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardSelection, testDropdown.Header));
+            AddStep("Select last item",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
 
             AddAssert("Last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardSelection, testDropdown.Header));
+            AddStep("Select first item",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
 
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
         }
@@ -244,7 +246,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
-            AddStep("Preselect last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd), platformActionContainerKeyboardPreselection, testDropdownMenu));
+            AddStep("Preselect last item",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
             AddAssert("Last item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
 
@@ -258,7 +261,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             assertDropdownIsOpen();
 
-            AddStep("Preselect first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart), platformActionContainerKeyboardPreselection, testDropdownMenu));
+            AddStep("Preselect first item",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
             AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
