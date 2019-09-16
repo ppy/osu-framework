@@ -9,11 +9,6 @@ namespace osu.Framework.Timing
     public interface ISourceChangeableClock : IClock
     {
         /// <summary>
-        /// The source clock.
-        /// </summary>
-        IClock Source { get; }
-
-        /// <summary>
         /// Change the source clock.
         /// </summary>
         /// <param name="source">The new source clock.</param>
