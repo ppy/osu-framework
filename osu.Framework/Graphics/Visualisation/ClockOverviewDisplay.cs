@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
@@ -44,11 +45,11 @@ namespace osu.Framework.Graphics.Visualisation
             findClocks();
         }
 
-        private void findClocks()
+        private void findClocks() => Schedule(() =>
         {
             flow.Clear();
             findClocks(game, flow);
-        }
+        });
 
         private void findClocks(CompositeDrawable drawable, FillFlowContainer target, IClock clock = null)
         {
@@ -58,7 +59,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (child.Clock != clock)
                 {
-                    var representation = new DrawableWithClock(child);
+                    var representation = new DrawableWithClock(child) { UnderlyingDrawableDisposed = findClocks };
                     target.Add(representation);
 
                     childTarget = representation.ChildComponents;
@@ -72,10 +73,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class DrawableWithClock : CompositeDrawable
         {
+            private readonly Drawable drawable;
             public FillFlowContainer ChildComponents { get; }
+
+            public Action UnderlyingDrawableDisposed;
 
             public DrawableWithClock(Drawable drawable)
             {
+                this.drawable = drawable;
                 FillFlowContainer clockFlow;
 
                 RelativeSizeAxes = Axes.X;
@@ -125,6 +130,14 @@ namespace osu.Framework.Graphics.Visualisation
                 clockFlow.Add(new VisualClock(clock) { Scale = new Vector2(0.6f) });
                 while ((clock = clock.Source) != null)
                     clockFlow.Add(new VisualClock(clock) { Scale = new Vector2(0.5f) });
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (drawable.IsDisposed || drawable.Parent == null)
+                    UnderlyingDrawableDisposed?.Invoke();
             }
         }
     }
