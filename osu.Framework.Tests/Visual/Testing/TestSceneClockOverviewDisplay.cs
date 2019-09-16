@@ -19,18 +19,18 @@ namespace osu.Framework.Tests.Visual.Testing
             Children = new[]
             {
                 display = new ClockOverviewDisplay(),
-                new Container()
+                new Container
                 {
                     Name = "Test Container 1",
                     Clock = new FramedClock(),
                     Children = new Drawable[]
                     {
-                        new Container()
+                        new Container
                         {
                             Name = "Nested Container 1",
                             Clock = new FramedOffsetClock(Clock) { Offset = 200 },
                         },
-                        new Container()
+                        new Container
                         {
                             Name = "Nested Container 2",
                             Clock = new FramedOffsetClock(Clock) { Offset = 800 },
