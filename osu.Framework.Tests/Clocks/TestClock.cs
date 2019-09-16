@@ -17,6 +17,8 @@ namespace osu.Framework.Tests.Clocks
         public void Start() => isRunning = true;
         public void Stop() => isRunning = false;
 
+        public IClock Source { get; } = null;
+
         public virtual bool Seek(double position)
         {
             CurrentTime = position;

@@ -79,6 +79,8 @@ namespace osu.Framework.Platform
             public double CurrentTime => time += increment;
             public double Rate => CLOCK_RATE;
             public bool IsRunning => true;
+
+            public IClock Source { get; } = null;
         }
     }
 }

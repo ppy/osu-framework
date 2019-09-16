@@ -144,5 +144,7 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
             base.UpdateState();
         }
+
+        public IClock Source { get; } = null;
     }
 }

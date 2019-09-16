@@ -20,14 +20,14 @@ namespace osu.Framework.Graphics.Visualisation
         [Resolved]
         private Game game { get; set; }
 
-        private readonly FillFlowContainer clockFlow;
+        private readonly FillFlowContainer flow;
 
         public ClockOverviewDisplay()
             : base("Clock Overview", "(Ctrl+F3 to toggle)")
         {
             ScrollContent.Children = new Drawable[]
             {
-                clockFlow = new FillFlowContainer
+                flow = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
@@ -46,8 +46,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void findClocks()
         {
-            clockFlow.Clear();
-            findClocks(game, clockFlow);
+            flow.Clear();
+            findClocks(game, flow);
         }
 
         private void findClocks(CompositeDrawable drawable, FillFlowContainer target, IClock clock = null)
@@ -72,10 +72,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class DrawableWithClock : CompositeDrawable
         {
-            public FillFlowContainer ChildComponents { get; private set; }
+            public FillFlowContainer ChildComponents { get; }
 
             public DrawableWithClock(Drawable drawable)
             {
+                FillFlowContainer clockFlow;
+
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
 
@@ -88,24 +90,41 @@ namespace osu.Framework.Graphics.Visualisation
                         Colour = Color4.White.Opacity(0.1f),
                         RelativeSizeAxes = Axes.Both,
                     },
-                    new SpriteText
-                    {
-                        Text = drawable.ToString()
-                    },
-                    new VisualClock(drawable.Clock)
-                    {
-                        Anchor = Anchor.TopRight,
-                        Origin = Anchor.TopRight,
-                        Scale = new Vector2(0.5f),
-                    },
-                    ChildComponents = new FillFlowContainer
+                    new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Direction = FillDirection.Vertical,
-                        Y = 100,
+                        Children = new Drawable[]
+                        {
+                            new SpriteText
+                            {
+                                Padding = new MarginPadding(5),
+                                Text = drawable.ToString()
+                            },
+                            clockFlow = new FillFlowContainer
+                            {
+                                Y = 30,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Full,
+                                Padding = new MarginPadding(5),
+                                Spacing = new Vector2(5)
+                            },
+                            ChildComponents = new FillFlowContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Vertical,
+                            },
+                        }
                     },
                 };
+
+                IClock clock = drawable.Clock;
+                clockFlow.Add(new VisualClock(clock) { Scale = new Vector2(0.6f) });
+                while ((clock = clock.Source) != null)
+                    clockFlow.Add(new VisualClock(clock) { Scale = new Vector2(0.5f) });
             }
         }
     }

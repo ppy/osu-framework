@@ -22,5 +22,10 @@ namespace osu.Framework.Timing
         /// Whether this clock is currently running or not.
         /// </summary>
         bool IsRunning { get; }
+
+        /// <summary>
+        /// A reference to a source clock if one exists. This is used purely for accounting and display purposes.
+        /// </summary>
+        IClock Source { get; }
     }
 }

@@ -80,12 +80,18 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (clock is IAdjustableClock adjustable)
+            try
             {
-                if (adjustable.IsRunning)
-                    adjustable.Stop();
-                else
-                    adjustable.Start();
+                if (clock is IAdjustableClock adjustable)
+                {
+                    if (adjustable.IsRunning)
+                        adjustable.Stop();
+                    else
+                        adjustable.Start();
+                }
+            }
+            catch
+            {
             }
 
             return true;
@@ -93,8 +99,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnScroll(ScrollEvent e)
         {
-            if (clock is IAdjustableClock adjustable)
-                adjustable.Rate += e.ScrollDelta.Y / 1000;
+            try
+            {
+                if (clock is IAdjustableClock adjustable)
+                    adjustable.Rate += e.ScrollDelta.Y / 1000;
+            }
+            catch
+            {
+            }
 
             return base.OnScroll(e);
         }

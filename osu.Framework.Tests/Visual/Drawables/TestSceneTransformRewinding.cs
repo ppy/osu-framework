@@ -523,6 +523,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 public double ElapsedFrameTime => (reversed ? -1 : 1) * trackingClock.ElapsedFrameTime;
                 public double FramesPerSecond => trackingClock.FramesPerSecond;
                 public FrameTimeInfo TimeInfo => new FrameTimeInfo { Current = CurrentTime, Elapsed = ElapsedFrameTime };
+                public IClock Source => trackingClock;
 
                 public void ProcessFrame()
                 {

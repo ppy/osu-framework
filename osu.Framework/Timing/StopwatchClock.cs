@@ -80,5 +80,7 @@ namespace osu.Framework.Timing
             rateChangeAccumulated = 0;
             rateChangeUsed = 0;
         }
+
+        public IClock Source { get; } = null;
     }
 }
