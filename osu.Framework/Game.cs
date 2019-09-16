@@ -183,6 +183,8 @@ namespace osu.Framework
 
         private GlobalStatisticsDisplay globalStatistics;
 
+        private ClockOverviewDisplay clockOverview;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -203,6 +205,19 @@ namespace osu.Framework
                             break;
                     }
 
+                    return true;
+
+                case FrameworkAction.ToggleClockView:
+                    if (clockOverview == null)
+                    {
+                        LoadComponentAsync(clockOverview = new ClockOverviewDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100 + ToolWindow.WIDTH * 2, 100)
+                        }, AddInternal);
+                    }
+
+                    clockOverview.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleGlobalStatistics:
