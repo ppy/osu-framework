@@ -20,11 +20,11 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneKeyBindings : ManualInputManagerTestScene
+    public class TestSceneKeyBindingsGrid : ManualInputManagerTestScene
     {
         private readonly KeyBindingTester none, noneExact, noneModifiers, unique, all;
 
-        public TestSceneKeyBindings()
+        public TestSceneKeyBindingsGrid()
         {
             Child = new GridContainer
             {

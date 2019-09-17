@@ -259,21 +259,14 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        public void TriggerReleased(T released)
-        {
-            var binding = KeyBindings.First(b => b.GetAction<T>().Equals(released));
-            PropagateReleased(getInputQueue(binding, true), released);
-            keyBindingQueues[binding].Clear();
-        }
+        public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
 
         public void TriggerPressed(T pressed)
         {
             if (simultaneousMode == SimultaneousBindingMode.None)
                 releasePressedActions();
 
-            var binding = KeyBindings.First(b => b.GetAction<T>().Equals(pressed));
-            PropagatePressed(getInputQueue(binding, true), pressed);
-            keyBindingQueues[binding].Clear();
+            PropagatePressed(KeyBindingInputQueue, pressed);
         }
 
         private IEnumerable<Drawable> getInputQueue(KeyBinding binding, bool rebuildIfEmpty = false)
