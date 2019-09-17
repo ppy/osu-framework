@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics
 
         ~BufferedDrawNodeSharedData()
         {
-            Dispose(false);
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
         public void Dispose()
