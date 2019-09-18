@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -164,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
                     try
                     {
                         if (exception != null)
-                            throw exception;
+                            ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
                             onLoaded?.Invoke(components);
