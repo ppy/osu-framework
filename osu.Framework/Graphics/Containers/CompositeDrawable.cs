@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
                     if (e is OperationCanceledException)
                         continue;
 
-                    throw e;
+                    ExceptionDispatchInfo.Capture(e).Throw();
                 }
             }
         }
