@@ -233,7 +233,6 @@ namespace osu.Framework.Graphics.Containers
         /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
         /// </summary>
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
-        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
         private void loadChild(Drawable child)
         {
             try
