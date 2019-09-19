@@ -238,8 +238,11 @@ namespace osu.Framework.Screens
             // The next current screen will be resumed
             if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
             {
+                toExit.ValidForResume = true;
                 // If the exit event gets cancelled, add the screen back on the stack.
                 stack.Push(toExit);
+                if (source != null) // null source means the exit came from the current screen.
+                    resumeFrom(source);
                 return;
             }
 
