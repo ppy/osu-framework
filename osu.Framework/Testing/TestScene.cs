@@ -327,10 +327,6 @@ namespace osu.Framework.Testing
             });
         });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
-            => AddUntilStep(description, waitUntilTrueDelegate);
-
         protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
@@ -338,10 +334,6 @@ namespace osu.Framework.Testing
                 Text = description ?? @"Until",
             });
         });
-
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        protected void AddWaitStep(int waitCount, string description = null)
-            => AddWaitStep(description, waitCount);
 
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
