@@ -441,6 +441,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestMakeCurrentMidwayExitBlocking()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+            int screen2ResumedCount = 0;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen());
+            pushAndEnsureCurrent(() => screen2 = new TestScreen
+            {
+                Resumed = () => screen2ResumedCount++
+            }, () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(), () => screen2);
+
+            AddStep("block exit midway", () => screen2.Exiting = () => true);
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 2 is current", () => screen2.IsCurrentScreen());
+            AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
+            AddAssert("screen 3 is not alive", () => !screen3.AsDrawable().IsAlive);
+            AddAssert("screen 2 resumed", () => screen2ResumedCount == 1);
+            AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
+            AddAssert("screen 1 valid for resume", () => screen1.ValidForResume);
+
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
+            AddAssert("screen 1 valid for resume", () => screen1.ValidForResume);
+            AddAssert("screen 2 not resumed again", () => screen2ResumedCount == 1);
+            AddAssert("screen 2 is current", () => screen2.IsCurrentScreen());
+
+            AddStep("don't block exit", () => screen2.Exiting = () => false);
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
+            AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
+            AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
+        }
+
+        [Test]
         public void TestMakeCurrentUnbindOrder()
         {
             List<TestScreen> screens = null;
