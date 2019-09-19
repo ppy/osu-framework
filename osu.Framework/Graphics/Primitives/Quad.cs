@@ -117,15 +117,13 @@ namespace osu.Framework.Graphics.Primitives
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
             new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
-        public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
-
         /// <summary>
         /// Computes the area of this <see cref="Quad"/>.
         /// </summary>
         /// <remarks>
         /// If the quad is self-intersecting the area is interpreted as the sum of all positive and negative areas and not the "visible area" enclosed by the <see cref="Quad"/>.
         /// </remarks>
-        public float ConservativeArea => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
 
         public bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&
