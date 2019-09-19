@@ -14,10 +14,7 @@ namespace osu.Framework.Tests.Primitives
     {
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
         [DefaultFloatingPointTolerance(0.1f)]
-        public void TestArea(Quad testQuad)
-        {
-            Assert.That(testQuad.ConservativeArea, Is.EqualTo(testQuad.Area).Within(0.1f));
-        }
+        public float TestArea(Quad testQuad) => testQuad.ConservativeArea;
 
         private class AreaTestData
         {
@@ -26,32 +23,32 @@ namespace osu.Framework.Tests.Primitives
                 get
                 {
                     // Point
-                    yield return new TestCaseData(new Quad(0, 0, 0, 0));
+                    yield return new TestCaseData(new Quad(0, 0, 0, 0)).Returns(0);
 
                     // Lines
-                    yield return new TestCaseData(new Quad(0, 0, 100, 0));
-                    yield return new TestCaseData(new Quad(0, 0, 0, 100));
-                    yield return new TestCaseData(new Quad(0, 0, 100, 1));
-                    yield return new TestCaseData(new Quad(0, 0, 1, 100));
+                    yield return new TestCaseData(new Quad(0, 0, 100, 0)).Returns(0);
+                    yield return new TestCaseData(new Quad(0, 0, 0, 100)).Returns(0);
+                    yield return new TestCaseData(new Quad(0, 0, 100, 1)).Returns(100);
+                    yield return new TestCaseData(new Quad(0, 0, 1, 100)).Returns(100);
 
                     // Simple quads
-                    yield return new TestCaseData(new Quad(0, 0, 10, 10));
-                    yield return new TestCaseData(new Quad(0, 0, 10, 5));
-                    yield return new TestCaseData(new Quad(0, 0, 5, 10));
+                    yield return new TestCaseData(new Quad(0, 0, 10, 10)).Returns(100);
+                    yield return new TestCaseData(new Quad(0, 0, 10, 5)).Returns(50);
+                    yield return new TestCaseData(new Quad(0, 0, 5, 10)).Returns(50);
 
                     // Rotated simple quads
-                    yield return new TestCaseData(new Quad(10, 10, -10, -10));
-                    yield return new TestCaseData(new Quad(10, 5, -10, -5));
-                    yield return new TestCaseData(new Quad(5, 10, -5, -10));
+                    yield return new TestCaseData(new Quad(10, 10, -10, -10)).Returns(100);
+                    yield return new TestCaseData(new Quad(10, 5, -10, -5)).Returns(50);
+                    yield return new TestCaseData(new Quad(5, 10, -5, -10)).Returns(50);
 
                     // Sheared quads
-                    yield return new TestCaseData(shear(new Quad(0, 0, 10, 10), new Vector2(10)));
-                    yield return new TestCaseData(shear(new Quad(0, 0, 10, 10), new Vector2(-10)));
+                    yield return new TestCaseData(shear(new Quad(0, 0, 10, 10), new Vector2(2))).Returns(100);
+                    yield return new TestCaseData(shear(new Quad(0, 0, 10, 10), new Vector2(-2))).Returns(100);
 
                     // Sheared rotated quads
-                    yield return new TestCaseData(shear(new Quad(10, 10, -10, -10), new Vector2(10)));
-                    yield return new TestCaseData(shear(new Quad(10, 5, -10, -5), new Vector2(10)));
-                    yield return new TestCaseData(shear(new Quad(5, 10, -5, -10), new Vector2(10)));
+                    yield return new TestCaseData(shear(new Quad(10, 10, -10, -10), new Vector2(2))).Returns(100);
+                    yield return new TestCaseData(shear(new Quad(10, 5, -10, -5), new Vector2(2))).Returns(50);
+                    yield return new TestCaseData(shear(new Quad(5, 10, -5, -10), new Vector2(2))).Returns(50);
                 }
             }
 
