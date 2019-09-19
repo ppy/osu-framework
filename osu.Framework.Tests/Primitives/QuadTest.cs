@@ -49,6 +49,10 @@ namespace osu.Framework.Tests.Primitives
                     yield return new TestCaseData(shear(new Quad(10, 10, -10, -10), new Vector2(2))).Returns(100);
                     yield return new TestCaseData(shear(new Quad(10, 5, -10, -5), new Vector2(2))).Returns(50);
                     yield return new TestCaseData(shear(new Quad(5, 10, -5, -10), new Vector2(2))).Returns(50);
+
+                    // Self-intersecting quads
+                    yield return new TestCaseData(new Quad(new Vector2(0, 5), new Vector2(0, -5), new Vector2(-5, 0), new Vector2(5, 0))).Returns(0);
+                    yield return new TestCaseData(new Quad(new Vector2(0, 5), new Vector2(0, -5), Vector2.Zero, new Vector2(5, 0))).Returns(12.5f);
                 }
             }
 
