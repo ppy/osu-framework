@@ -34,8 +34,8 @@ lowp vec4 blend(lowp vec4 src, lowp vec4 dst)
 {
     lowp float finalAlpha = src.a + dst.a * (1.0 - src.a);
 
-	if (finalAlpha == 0)
-		return vec4(0);
+    if (finalAlpha == 0)
+        return vec4(0);
 
     return vec4(
         (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
