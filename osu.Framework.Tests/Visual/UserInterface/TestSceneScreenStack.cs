@@ -449,13 +449,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen4 = null;
             int screen3ResumedCount = 0;
 
-            pushAndEnsureCurrent(() => screen1 = new TestScreen());
-            pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
-            pushAndEnsureCurrent(() => screen3 = new TestScreen
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3)
             {
                 Resumed = () => screen3ResumedCount++
             }, () => screen2);
-            pushAndEnsureCurrent(() => screen4 = new TestScreen(), () => screen3);
+            pushAndEnsureCurrent(() => screen4 = new TestScreen(id: 4), () => screen3);
 
             AddStep("block exit screen3", () => screen3.Exiting = () => true);
 
@@ -864,6 +864,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderColour = Color4.Red;
                 Masking = true;
             }
+
+            public override string ToString() => Name;
 
             protected override void OnFocus(FocusEvent e)
             {
