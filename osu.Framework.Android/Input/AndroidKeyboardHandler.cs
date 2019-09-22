@@ -38,7 +38,7 @@ namespace osu.Framework.Android.Input
         }
 
         /// <summary>
-        /// This method maps the xamarin.androids <see cref="Keycode"/> to <see cref="Key"/> from opentk.
+        /// This method maps the <see cref="Xamarin.Android"/> <see cref="Keycode"/> to <see cref="Key"/> from opentk.
         /// </summary>
         /// <param name="code">The <see cref="Keycode"/> to be converted into a <see cref="Key"/>.</param>
         /// <returns>The <see cref="Key"/> that was converted from <see cref="Keycode"/>.</returns>
