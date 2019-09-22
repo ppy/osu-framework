@@ -81,34 +81,6 @@ namespace osu.Framework.Android.Input
             {
                 case Keycode.Back:
                     return Key.Escape;
-                case Keycode.NumLock:
-                    return Key.NumLock;
-                case Keycode.Space:
-                    return Key.Space;
-                case Keycode.Tab:
-                    return Key.Tab;
-                case Keycode.Enter:
-                    return Key.Enter;
-                case Keycode.VolumeDown:
-                    return Key.VolumeDown;
-                case Keycode.VolumeUp:
-                    return Key.VolumeUp;
-                case Keycode.PageUp:
-                    return Key.PageUp;
-                case Keycode.PageDown:
-                    return Key.PageDown;
-                case Keycode.ShiftLeft:
-                    return Key.ShiftLeft;
-                case Keycode.ShiftRight:
-                    return Key.ShiftRight;
-                case Keycode.AltLeft:
-                    return Key.AltLeft;
-                case Keycode.AltRight:
-                    return Key.AltRight;
-                case Keycode.CapsLock:
-                    return Key.CapsLock;
-                case Keycode.Home:
-                    return Key.Home;
                 case Keycode.MediaPlayPause:
                     return Key.PlayPause;
                 case Keycode.SoftLeft:
@@ -117,10 +89,6 @@ namespace osu.Framework.Android.Input
                     return Key.Right;
                 case Keycode.Star:
                     return Key.KeypadMultiply;
-                case Keycode.Period:
-                    return Key.Period;
-                case Keycode.Comma:
-                    return Key.Comma;
                 case Keycode.Pound:
                     return Key.BackSlash; // english keyboard layout
                 case Keycode.Del:
@@ -129,20 +97,6 @@ namespace osu.Framework.Android.Input
                     return Key.Delete;
                 case Keycode.Power:
                     return Key.Sleep;
-                case Keycode.Clear:
-                    return Key.Clear;
-                case Keycode.Grave:
-                    return Key.Grave;
-                case Keycode.Minus:
-                    return Key.Minus;
-                case Keycode.Plus:
-                    return Key.Plus;
-                case Keycode.Semicolon:
-                    return Key.Semicolon;
-                case Keycode.Insert:
-                    return Key.Insert;
-                case Keycode.Menu:
-                    return Key.Menu;
                 case Keycode.MoveEnd:
                     return Key.End;
                 case Keycode.MediaPause:
@@ -153,18 +107,10 @@ namespace osu.Framework.Android.Input
                     return Key.BracketLeft;
                 case Keycode.RightBracket:
                     return Key.BracketRight;
-                case Keycode.Slash:
-                    return Key.Slash;
-                case Keycode.Backslash:
-                    return Key.BackSlash;
                 case Keycode.MediaPrevious:
                     return Key.TrackPrevious;
                 case Keycode.MediaNext:
                     return Key.TrackNext;
-                case Keycode.Mute:
-                    return Key.Mute;
-                case Keycode.ScrollLock:
-                    return Key.ScrollLock;
                 case Keycode.CtrlLeft:
                     return Key.ControlLeft;
                 case Keycode.CtrlRight:
