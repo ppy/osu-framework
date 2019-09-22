@@ -29,12 +29,18 @@ namespace osu.Framework.Android.Input
 
         private void keyDown(Keycode keycode, KeyEvent e)
         {
-            PendingInputs.Enqueue(new KeyboardKeyInput(GetKeyCodeAsKey(keycode), true));
+            var key = GetKeyCodeAsKey(keycode);
+
+            if (key != Key.Unknown)
+                PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
         }
 
         private void keyUp(Keycode keycode, KeyEvent e)
         {
-            PendingInputs.Enqueue(new KeyboardKeyInput(GetKeyCodeAsKey(keycode), false));
+            var key = GetKeyCodeAsKey(keycode);
+
+            if (key != Key.Unknown)
+                PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
         }
 
         /// <summary>
