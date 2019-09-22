@@ -1,21 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using Android.App;
 using Android.Content;
 using Android.Views;
 using Android.Views.InputMethods;
 using osu.Framework.Input;
-using osuTK.Input;
 using System;
-using System.Linq;
 
 namespace osu.Framework.Android.Input
 {
     public class AndroidTextInput : ITextInputSource
     {
         private readonly AndroidGameView view;
-        private readonly AndroidGameActivity androidGameActivity;
+        private readonly AndroidGameActivity activity;
         private readonly InputMethodManager inputMethodManager;
         private string pending = string.Empty;
         private readonly object pendingLock = new object();
@@ -23,14 +20,14 @@ namespace osu.Framework.Android.Input
         public AndroidTextInput(AndroidGameView view)
         {
             this.view = view;
-            androidGameActivity = (AndroidGameActivity)view.Context;
+            activity = (AndroidGameActivity)view.Context;
 
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
         public void Deactivate(object sender)
         {
-            androidGameActivity.RunOnUiThread(() =>
+            activity.RunOnUiThread(() =>
             {
                 inputMethodManager.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
                 view.ClearFocus();
@@ -68,7 +65,7 @@ namespace osu.Framework.Android.Input
 
         public void Activate(object sender)
         {
-            androidGameActivity.RunOnUiThread(() =>
+            activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
                 inputMethodManager.ToggleSoftInputFromWindow(view.WindowToken, ShowSoftInputFlags.Forced, HideSoftInputFlags.None);
