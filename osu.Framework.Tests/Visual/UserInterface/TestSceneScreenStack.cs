@@ -440,8 +440,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
         }
 
-        [Test]
-        public void TestMakeCurrentMidwayExitBlocking()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestMakeCurrentMidwayExitBlocking(bool validForResume)
         {
             TestScreen screen1 = null;
             TestScreen screen2 = null;
@@ -457,7 +458,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }, () => screen2);
             pushAndEnsureCurrent(() => screen4 = new TestScreen(id: 4), () => screen3);
 
-            AddStep("block exit screen3", () => screen3.Exiting = () => true);
+            AddStep("block exit screen3", () =>
+            {
+                screen3.Exiting = () => true;
+                screen3.ValidForResume = validForResume;
+            });
 
             AddStep("make screen1 current", () => screen1.MakeCurrent());
 
@@ -465,24 +470,34 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("screen4 is not alive", () => !screen4.AsDrawable().IsAlive);
             AddAssert("screen4 has lifetime end", () => screen4.LifetimeEnd != double.MaxValue);
 
-            // check we blocked at screen 3
-            AddAssert("screen 3 valid for resume", () => screen3.ValidForResume);
-            AddAssert("screen3 is current", () => screen3.IsCurrentScreen());
-            AddAssert("screen3 resumed", () => screen3ResumedCount == 1);
+            if (validForResume)
+            {
+                // check we blocked at screen 3
+                AddAssert("screen 3 valid for resume", () => screen3.ValidForResume);
+                AddAssert("screen3 is current", () => screen3.IsCurrentScreen());
+                AddAssert("screen3 resumed", () => screen3ResumedCount == 1);
 
-            // check the ValidForResume state wasn't changed on parents
-            AddAssert("screen 1 still valid for resume", () => screen1.ValidForResume);
-            AddAssert("screen 2 still valid for resume", () => screen2.ValidForResume);
+                // check the ValidForResume state wasn't changed on parents
+                AddAssert("screen 1 still valid for resume", () => screen1.ValidForResume);
+                AddAssert("screen 2 still valid for resume", () => screen2.ValidForResume);
 
-            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+                AddStep("make screen 1 current", () => screen1.MakeCurrent());
 
-            // check blocking is consistent on a second attempt
-            AddAssert("screen3 not resumed again", () => screen3ResumedCount == 1);
-            AddAssert("screen3 is still current", () => screen3.IsCurrentScreen());
+                // check blocking is consistent on a second attempt
+                AddAssert("screen3 not resumed again", () => screen3ResumedCount == 1);
+                AddAssert("screen3 is still current", () => screen3.IsCurrentScreen());
 
-            AddStep("stop blocking exit", () => screen3.Exiting = () => false);
+                AddStep("stop blocking exit", () => screen3.Exiting = () => false);
 
-            AddStep("make screen1 current", () => screen1.MakeCurrent());
+                AddStep("make screen1 current", () => screen1.MakeCurrent());
+            }
+            else
+            {
+                AddAssert("screen 3 not valid for resume", () => !screen3.ValidForResume);
+                AddAssert("screen3 not current", () => !screen3.IsCurrentScreen());
+                AddAssert("screen3 did not resume", () => screen3ResumedCount == 0);
+            }
+
             AddAssert("screen1 current", () => screen1.IsCurrentScreen());
             AddAssert("screen1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddUntilStep("screen3 is not alive", () => !screen3.AsDrawable().IsAlive);
