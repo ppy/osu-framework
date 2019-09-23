@@ -60,17 +60,14 @@ namespace osu.Framework.Testing.Drawables
                 RelativeSizeAxes = Axes.X
             };
 
-            bool hasHeader = tests.Length > 1;
-
-            if (hasHeader)
-                buttonFlow.Add(headerButton = new TestButton(group.Name)
-                {
-                    Action = ToggleVisibility
-                });
+            buttonFlow.Add(headerButton = new TestButton(group.Name)
+            {
+                Action = ToggleVisibility
+            });
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestSceneSubButton(test, hasHeader ? 1 : 0)
+                buttonFlow.Add(new TestSceneSubButton(test, 1)
                 {
                     Action = () => loadTest(test)
                 });
