@@ -242,11 +242,18 @@ namespace osu.Framework.Screens
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
+            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded)
             {
-                // If the exit event gets cancelled, add the screen back on the stack.
-                stack.Push(toExit);
-                return true;
+                // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
+                // OnExiting should still be called regardless.
+                bool blockRequested = toExit.OnExiting(CurrentScreen);
+
+                if ((source == null || toExit.ValidForResume) && blockRequested)
+                {
+                    // If the exit event gets cancelled, add the screen back on the stack.
+                    stack.Push(toExit);
+                    return true;
+                }
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.
