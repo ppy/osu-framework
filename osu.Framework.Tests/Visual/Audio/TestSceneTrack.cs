@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Audio
                                 Anchor = Anchor.BottomLeft,
                                 Origin = Anchor.Centre,
                                 Icon = FontAwesome.Solid.CircleNotch,
-                                Blending = BlendingMode.Additive,
+                                Blending = BlendingParameters.Additive,
                                 Colour = Color4.White,
                                 Alpha = 0.2f,
                                 Scale = new Vector2(20),

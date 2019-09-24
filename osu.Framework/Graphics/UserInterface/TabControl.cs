@@ -20,6 +20,10 @@ namespace osu.Framework.Graphics.UserInterface
     /// support for pinning items, causing them to be displayed before all other items at the
     /// start of the list.
     /// </summary>
+    /// <remarks>
+    /// If a multi-line (or vertical) tab control is required, <see cref="TabFillFlowContainer.AllowMultiline"/> must be set to true.
+    /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
+    /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
@@ -363,6 +367,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             private bool allowMultiline;
 
+            /// <summary>
+            /// Whether tabs should be allowed to flow beyond a single line. If set to false, overflowing tabs will be automatically hidden.
+            /// </summary>
             public bool AllowMultiline
             {
                 get => allowMultiline;

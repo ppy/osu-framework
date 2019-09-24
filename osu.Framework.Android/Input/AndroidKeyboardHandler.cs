@@ -7,7 +7,6 @@ using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK.Input;
 using System;
-using System.Linq;
 
 namespace osu.Framework.Android.Input
 {
@@ -30,35 +29,113 @@ namespace osu.Framework.Android.Input
 
         private void keyDown(Keycode keycode, KeyEvent e)
         {
-            PendingInputs.Enqueue(new KeyboardKeyInput(GetKeyCodeAsKey(keycode), true));
+            var key = GetKeyCodeAsKey(keycode);
+
+            if (key != Key.Unknown)
+                PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
         }
 
         private void keyUp(Keycode keycode, KeyEvent e)
         {
-            PendingInputs.Enqueue(new KeyboardKeyInput(GetKeyCodeAsKey(keycode), false));
+            var key = GetKeyCodeAsKey(keycode);
+
+            if (key != Key.Unknown)
+                PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
         }
 
-        public static Key GetKeyCodeAsKey(Keycode keycode)
+        /// <summary>
+        /// This method maps the <see cref="Xamarin.Android"/> <see cref="Keycode"/> to <see cref="Key"/> from opentk.
+        /// </summary>
+        /// <param name="code">The <see cref="Keycode"/> to be converted into a <see cref="Key"/>.</param>
+        /// <returns>The <see cref="Key"/> that was converted from <see cref="Keycode"/>.</returns>
+        public static Key GetKeyCodeAsKey(Keycode keyCode)
         {
-            string key = keycode.ToString();
+            int code = (int)keyCode;
 
-            if (key.StartsWith(Keycode.Num.ToString()))
-                key = "Number" + key.Last();
+            // number keys
+            int firstNumKey = (int)Keycode.Num0;
+            int lastNumKey = (int)Keycode.Num9;
+            if (code >= firstNumKey && code <= lastNumKey)
+                return Key.Number0 + code - firstNumKey;
 
-            switch (keycode)
+            // letters
+            int firstLetterKey = (int)Keycode.A;
+            int lastLetterKey = (int)Keycode.Z;
+            if (code >= firstLetterKey && code <= lastLetterKey)
+                return Key.A + code - firstLetterKey;
+
+            // function keys
+            int firstFuntionKey = (int)Keycode.F1;
+            int lastFunctionKey = (int)Keycode.F12;
+            if (code >= firstFuntionKey && code <= lastFunctionKey)
+                return Key.F1 + code - firstFuntionKey;
+
+            // keypad keys
+            int firstKeypadKey = (int)Keycode.Numpad0;
+            int lastKeyPadKey = (int)Keycode.NumpadDot;
+            if (code >= firstKeypadKey && code <= lastKeyPadKey)
+                return Key.Keypad0 + code - firstKeypadKey;
+
+            // direction keys
+            int firstDirectionKey = (int)Keycode.DpadUp;
+            int lastDirectionKey = (int)Keycode.DpadRight;
+            if (code >= firstDirectionKey && code <= lastDirectionKey)
+                return Key.Up + code - firstDirectionKey;
+
+            // one to one mappings
+            switch (keyCode)
             {
                 case Keycode.Back:
                     return Key.Escape;
-
+                case Keycode.MediaPlayPause:
+                    return Key.PlayPause;
+                case Keycode.SoftLeft:
+                    return Key.Left;
+                case Keycode.SoftRight:
+                    return Key.Right;
+                case Keycode.Star:
+                    return Key.KeypadMultiply;
+                case Keycode.Pound:
+                    return Key.BackSlash; // english keyboard layout
                 case Keycode.Del:
-                    return Key.Back;
-
-                default:
-                    if (Enum.TryParse(key, out Key result))
-                        return result;
-                    break;
+                    return Key.BackSpace;
+                case Keycode.ForwardDel:
+                    return Key.Delete;
+                case Keycode.Power:
+                    return Key.Sleep;
+                case Keycode.MoveEnd:
+                    return Key.End;
+                case Keycode.MediaPause:
+                    return Key.Pause;
+                case Keycode.MediaClose:
+                    return Key.Stop;
+                case Keycode.LeftBracket:
+                    return Key.BracketLeft;
+                case Keycode.RightBracket:
+                    return Key.BracketRight;
+                case Keycode.MediaPrevious:
+                    return Key.TrackPrevious;
+                case Keycode.MediaNext:
+                    return Key.TrackNext;
+                case Keycode.CtrlLeft:
+                    return Key.ControlLeft;
+                case Keycode.CtrlRight:
+                    return Key.ControlRight;
+                case Keycode.MetaLeft:
+                    return Key.WinLeft;
+                case Keycode.MetaRight:
+                    return Key.WinRight;
+                case Keycode.Equals:
+                    return Key.Plus;
+                case Keycode.At:
+                case Keycode.Apostrophe:
+                    return Key.Quote;
             }
 
+            if (Enum.TryParse(keyCode.ToString(), out Key key))
+                return key;
+
+            // this is the worst case senario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
         }
 
