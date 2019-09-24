@@ -204,20 +204,20 @@ namespace osu.Framework.Screens
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             // while a parent still exists and exiting is not blocked, continue to iterate upwards.
-
-            IScreen first = CurrentScreen;
+            IScreen firstScreen = CurrentScreen;
+            IScreen exitSource = null;
 
             while (CurrentScreen != null)
             {
-                var source = CurrentScreen != first ? first : null;
-
-                if (exitFrom(source, shouldFireResumeEvent: false) || CurrentScreen == target)
+                if (exitFrom(exitSource, shouldFireResumeEvent: false) || CurrentScreen == target)
                 {
-                    // if blocking midway, resume the screen that blocked manually.
-                    if (CurrentScreen != first)
-                        resumeFrom(source);
+                    // don't fire the resume event if the first screen blocked the exit.
+                    if (CurrentScreen != firstScreen)
+                        resumeFrom(exitSource);
                     return;
                 }
+
+                exitSource = CurrentScreen;
             }
         }
 

@@ -428,6 +428,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("block exit", () => screen3.Exiting = () => true);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom == null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
             AddAssert("screen 1 valid for resume", () => screen1.ValidForResume);
@@ -435,6 +437,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("don't block exit", () => screen3.Exiting = () => false);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 2 exited fired", () => screen2.ExitedTo == screen1);
+            AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom == screen2);
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
