@@ -63,6 +63,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 points[3] = new Vector2(200, 80);
                 points[4] = new Vector2(250, 50);
 
+                AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.Both;
                 PathRadius = 2;
                 Vertices = approximator(points);

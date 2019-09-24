@@ -1,29 +1,38 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
+using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     [Cached]
-    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables
+    // Implementing IRequireHighFrequencyMousePosition is necessary to gain the ability to block high frequency mouse position updates.
+    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables, IRequireHighFrequencyMousePosition
     {
+        public Vector2 ToolPosition
+        {
+            get => treeContainer.Position;
+            set => treeContainer.Position = value;
+        }
+
         [Cached]
         private readonly TreeContainer treeContainer;
 
         private VisualisedDrawable highlightedTarget;
-
         private readonly PropertyDisplay propertyDisplay;
-
         private readonly InfoOverlay overlay;
-
         private InputManager inputManager;
 
         public DrawVisualiser()
@@ -102,7 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
             inputManager = GetContainingInputManager();
         }
 
-        protected override bool BlockPositionalInput => false;
+        protected override bool Handle(UIEvent e) => Searching;
 
         protected override void PopIn()
         {
@@ -190,6 +199,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Drawable drawableTarget = null;
             CompositeDrawable compositeTarget = null;
+            Quad? maskingQuad = null;
 
             findTarget(inputManager);
 
@@ -198,11 +208,23 @@ namespace osu.Framework.Graphics.Visualisation
             // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
             void findTarget(Drawable drawable)
             {
-                if (!isValidTarget(drawable))
+                if (drawable == this || drawable is Component)
+                    return;
+
+                if (!drawable.IsPresent)
+                    return;
+
+                if (drawable.AlwaysPresent && Precision.AlmostEquals(drawable.Alpha, 0f))
                     return;
 
                 if (drawable is CompositeDrawable composite)
                 {
+                    Quad? oldMaskingQuad = maskingQuad;
+
+                    // BufferedContainers implicitly mask via their frame buffer
+                    if (composite.Masking || composite is BufferedContainer)
+                        maskingQuad = composite.ScreenSpaceDrawQuad;
+
                     for (int i = composite.AliveInternalChildren.Count - 1; i >= 0; i--)
                     {
                         findTarget(composite.AliveInternalChildren[i]);
@@ -211,33 +233,54 @@ namespace osu.Framework.Graphics.Visualisation
                             return;
                     }
 
+                    maskingQuad = oldMaskingQuad;
+
+                    if (!validForTarget(composite))
+                        return;
+
                     if (compositeTarget == null)
                         compositeTarget = composite;
+
+                    // Allow targeting composites that don't have any content but display a border/glow
+
+                    if (!composite.Masking)
+                        return;
+
+                    if (composite.BorderThickness > 0 && composite.BorderColour.Linear.A > 0
+                        || composite.EdgeEffect.Type != EdgeEffectType.None && composite.EdgeEffect.Radius > 0 && composite.EdgeEffect.Colour.Linear.A > 0)
+                    {
+                        drawableTarget = composite;
+                    }
                 }
-                else if (!(drawable is Component))
+                else
+                {
+                    if (!validForTarget(drawable))
+                        return;
+
+                    // Special case for full-screen overlays that act as input receptors, but don't display anything
+                    if (!hasCustomDrawNode(drawable))
+                        return;
+
                     drawableTarget = drawable;
+                }
             }
 
-            bool isValidTarget(Drawable drawable)
-            {
-                if (drawable == this || drawable is CursorContainer)
-                    return false;
+            // Valid if the drawable contains the mouse position and the position wouldn't be masked by the parent
+            bool validForTarget(Drawable drawable)
+                => drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position)
+                   && maskingQuad?.Contains(inputManager.CurrentState.Mouse.Position) != false;
+        }
 
-                if (!drawable.IsPresent)
-                    return false;
+        private static readonly Dictionary<Type, bool> has_custom_drawnode_cache = new Dictionary<Type, bool>();
 
-                if (drawable.AlwaysPresent && Precision.AlmostEquals(drawable.Alpha, 0f))
-                    return false;
+        private bool hasCustomDrawNode(Drawable drawable)
+        {
+            var type = drawable.GetType();
 
-                bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position);
-                // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
-                // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
-                // is a good chance they have children poking out of their bounds, which we need to catch.
-                if (!containsCursor && !drawable.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position))
-                    return false;
+            if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
+                return existing;
 
-                return true;
-            }
+            return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);
         }
 
         public bool Searching { get; private set; }

@@ -5,7 +5,6 @@ using System;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.PolygonExtensions;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -124,8 +123,8 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached optimisingContainerCache = new Cached();
-        private Cached isIntersectingCache = new Cached();
+        private readonly Cached optimisingContainerCache = new Cached();
+        private readonly Cached isIntersectingCache = new Cached();
 
         private ScheduledDelegate loadScheduledDelegate;
 
@@ -133,15 +132,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        internal IOnScreenOptimisingContainer FindParentOptimisingContainer()
-        {
-            CompositeDrawable cursor = this;
-            while ((cursor = cursor.Parent) != null)
-                if (cursor is IOnScreenOptimisingContainer oc)
-                    return oc;
-
-            return null;
-        }
+        internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
 
         private void scheduleIsIntersecting()
         {
@@ -195,10 +186,8 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
         /// </summary>
-        internal interface IOnScreenOptimisingContainer
+        internal interface IOnScreenOptimisingContainer : IDrawable
         {
-            Quad ScreenSpaceDrawQuad { get; }
-
             /// <summary>
             /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.
             /// Repeats every frame until manually cancelled.

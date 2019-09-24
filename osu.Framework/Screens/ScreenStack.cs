@@ -195,24 +195,30 @@ namespace osu.Framework.Screens
             exitFrom(null);
         }
 
-        internal void MakeCurrent(IScreen source)
+        internal void MakeCurrent(IScreen target)
         {
-            if (CurrentScreen == source)
+            if (CurrentScreen == target)
                 return;
 
-            if (!stack.Contains(source))
+            if (!stack.Contains(target))
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
-            exitFrom(null, () =>
-            {
-                foreach (var child in stack)
-                {
-                    if (child == source)
-                        break;
+            // while a parent still exists and exiting is not blocked, continue to iterate upwards.
+            IScreen firstScreen = CurrentScreen;
+            IScreen exitSource = null;
 
-                    child.ValidForResume = false;
+            while (CurrentScreen != null)
+            {
+                if (exitFrom(exitSource, shouldFireResumeEvent: false) || CurrentScreen == target)
+                {
+                    // don't fire the resume event if the first screen blocked the exit.
+                    if (CurrentScreen != firstScreen)
+                        resumeFrom(exitSource);
+                    return;
                 }
-            });
+
+                exitSource = CurrentScreen;
+            }
         }
 
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
@@ -224,30 +230,35 @@ namespace osu.Framework.Screens
         /// Exits the current <see cref="IScreen"/>.
         /// </summary>
         /// <param name="source">The <see cref="IScreen"/> which last exited.</param>
-        /// <param name="onExiting">An action that is invoked when the current screen allows the exit to continue.</param>
         /// <param name="shouldFireExitEvent">Whether <see cref="IScreen.OnExiting"/> should be fired on the exiting screen.</param>
         /// <param name="shouldFireResumeEvent">Whether <see cref="IScreen.OnResuming"/> should be fired on the resuming screen.</param>
-        private void exitFrom([CanBeNull] IScreen source, Action onExiting = null, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
+        /// <returns>Whether the exit was blocked.</returns>
+        private bool exitFrom([CanBeNull] IScreen source, bool shouldFireExitEvent = true, bool shouldFireResumeEvent = true)
         {
             if (stack.Count == 0)
-                return;
+                return false;
 
             // The current screen is at the top of the stack, it will be the one that is exited
             var toExit = stack.Pop();
 
             // The next current screen will be resumed
-            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded && toExit.OnExiting(CurrentScreen))
+            if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded)
             {
-                // If the exit event gets cancelled, add the screen back on the stack.
-                stack.Push(toExit);
-                return;
+                // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
+                // OnExiting should still be called regardless.
+                bool blockRequested = toExit.OnExiting(CurrentScreen);
+
+                if ((source == null || toExit.ValidForResume) && blockRequested)
+                {
+                    // If the exit event gets cancelled, add the screen back on the stack.
+                    stack.Push(toExit);
+                    return true;
+                }
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.
             toExit.ValidForResume = false;
             toExit.ValidForPush = false;
-
-            onExiting?.Invoke();
 
             if (source == null)
             {
@@ -262,6 +273,8 @@ namespace osu.Framework.Screens
             // Resume the next current screen from the exited one
             if (shouldFireResumeEvent)
                 resumeFrom(toExit);
+
+            return false;
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Containers
         };
 
         public TestSceneCachedBufferedContainer()
-            : base(5, 2)
+            : base(5, 3)
         {
             string[] labels =
             {
@@ -35,12 +35,16 @@ namespace osu.Framework.Tests.Visual.Containers
                 "cached with parent scale",
                 "uncached with parent scale&fade",
                 "cached with parent scale&fade",
+                "cached with no redraw on parent scale&fade",
             };
 
             var boxes = new List<ContainingBox>();
 
             for (int i = 0; i < Rows * Cols; ++i)
             {
+                if (i >= labels.Length)
+                    break;
+
                 ContainingBox box;
 
                 Cell(i).AddRange(new Drawable[]
@@ -54,7 +58,8 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         Child = new CountingBox(i == 2 || i == 3, i == 4 || i == 5)
                         {
-                            CacheDrawnFrameBuffer = i % 2 == 1,
+                            CacheDrawnFrameBuffer = i % 2 == 1 || i == 10,
+                            RedrawOnScale = i != 10
                         },
                     }
                 });
@@ -76,20 +81,24 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // ensure rotation changes are invalidating cache (for now).
             AddAssert("box 2 count > 0", () => boxes[2].Count > 0);
-            AddAssert("box 2 count equals box 3 count", () => boxes[2].Count == boxes[3].Count);
+            AddAssert("box 3 count is less than box 2 count", () => boxes[3].Count < boxes[2].Count);
 
             // ensure cached with only translation is never updating children.
             AddAssert("box 5 count is 1", () => boxes[1].Count == 1);
 
             // ensure a parent scaling is invalidating cache.
-            AddAssert("box 5 count equals box 6 count", () => boxes[5].Count == boxes[6].Count);
+            AddAssert("box 5 count is less than box 6 count", () => boxes[5].Count < boxes[6].Count);
 
             // ensure we don't break on colour invalidations (due to blanket invalidation logic in Drawable.Invalidate).
             AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
+
+            AddAssert("box 10 count is 1", () => boxes[10].Count == 1);
         }
 
-        private class ContainingBox : Container
+        private class ContainingBox : Container<CountingBox>
         {
+            public new int Count => Child.Count;
+
             private readonly bool scaling;
             private readonly bool fading;
 
@@ -111,10 +120,11 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private class CountingBox : BufferedContainer
         {
+            public new int Count;
+
             private readonly bool rotating;
             private readonly bool moving;
             private readonly SpriteText count;
-            public new int Count;
 
             public CountingBox(bool rotating = false, bool moving = false)
             {

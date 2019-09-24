@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
         private Container shadowVisibility;
 
         private FontStore store;
@@ -74,13 +74,16 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Equals(loadableIcon, loadedIcon)) return;
 
-            var texture = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
+            var glyph = store.Get(loadableIcon.FontName, Icon.Icon);
 
-            spriteMain.Texture = texture;
-            spriteShadow.Texture = texture;
+            if (glyph != null)
+            {
+                spriteMain.Texture = glyph.Texture;
+                spriteShadow.Texture = glyph.Texture;
 
-            if (Size == Vector2.Zero)
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(glyph.Width, glyph.Height);
+            }
 
             loadedIcon = loadableIcon;
         }

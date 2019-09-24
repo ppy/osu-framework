@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
@@ -23,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Input
     public class TestSceneMouseStates : ManualInputManagerTestScene
     {
         private readonly Box marginBox, outerMarginBox;
-        private readonly FrameworkActionContainer actionContainer;
+        private readonly Container actionContainer;
 
         private readonly StateTracker s1, s2;
 
@@ -58,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Input
                                 Size = new Vector2(0.9f),
                                 Colour = Color4.SkyBlue.Opacity(0.1f),
                             },
-                            actionContainer = new FrameworkActionContainer
+                            actionContainer = new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.6f),

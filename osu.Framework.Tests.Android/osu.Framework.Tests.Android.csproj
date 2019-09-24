@@ -23,12 +23,6 @@
     <EmbeddedResource Include="..\osu.Framework.Tests\Resources\**\*">
       <Link>Resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
-    <AndroidNativeLibrary Include="..\osu.Framework.NativeLibs\armeabi-v7a\*.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\osu.Framework.NativeLibs\arm64-v8a\*.so">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
