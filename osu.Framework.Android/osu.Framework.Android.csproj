@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+﻿<Project Sdk="MSBuild.Sdk.Extras">
   <PropertyGroup Label="Project">
     <TargetFramework>monoandroid80</TargetFramework>
     <OutputType>Library</OutputType>
