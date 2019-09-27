@@ -7,9 +7,9 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
 {
@@ -38,18 +38,11 @@ namespace osu.Framework.Graphics
         private RectangleF screenSpaceDrawRectangle;
         private Vector2 frameBufferSize;
 
-        private readonly All filteringMode;
-        private readonly RenderbufferInternalFormat[] formats;
-
-        public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+        public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
         {
-            this.formats = formats;
-
             Child = child;
             SharedData = sharedData;
-
-            filteringMode = pixelSnapping ? All.Nearest : All.Linear;
         }
 
         public override void ApplyState()
@@ -61,7 +54,7 @@ namespace osu.Framework.Graphics
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
             frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
-            DrawRectangle = filteringMode == All.Nearest
+            DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
 
@@ -87,6 +80,8 @@ namespace osu.Framework.Graphics
         {
             if (RequiresRedraw)
             {
+                FrameStatistics.Increment(StatisticsCounterType.FBORedraw);
+
                 SharedData.ResetCurrentEffectBuffer();
 
                 using (establishFrameBufferViewport())
@@ -141,17 +136,6 @@ namespace osu.Framework.Graphics
         /// <returns>A token that must be disposed upon finishing use of <paramref name="frameBuffer"/>.</returns>
         protected ValueInvokeOnDisposal BindFrameBuffer(FrameBuffer frameBuffer)
         {
-            if (!frameBuffer.IsInitialized)
-                frameBuffer.Initialize(true, filteringMode);
-
-            if (formats != null)
-            {
-                // These additional render buffers are only required if e.g. depth
-                // or stencil information needs to also be stored somewhere.
-                foreach (var f in formats)
-                    frameBuffer.Attach(f);
-            }
-
             // This setter will also take care of allocating a texture of appropriate size within the frame buffer.
             frameBuffer.Size = frameBufferSize;
 

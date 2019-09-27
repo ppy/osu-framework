@@ -10,6 +10,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -18,7 +19,7 @@ using SixLabors.Primitives;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<TextureUpload>
+    public class GlyphStore : IResourceStore<TextureUpload>, IGlyphStore
     {
         private readonly string assetName;
 
@@ -100,6 +101,18 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
+        Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name) => Task.Run(() => ((IGlyphStore)this).Get(name[0]));
+
+        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(name[0]);
+
+        public CharacterGlyph Get(char character)
+        {
+            var bmCharacter = Font.GetCharacter(character);
+            return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, this);
+        }
+
+        public int GetKerning(char left, char right) => Font.GetKerningAmount(left, right);
+
         private readonly Dictionary<int, PageInfo> pageLookup = new Dictionary<int, PageInfo>();
 
         private class PageInfo
@@ -115,7 +128,7 @@ namespace osu.Framework.IO.Stores
                 string filename = $@"{assetName}_{c.Page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
 
                 using (var stream = store.GetStream(filename))
-                using (var convert = Image.Load(stream))
+                using (var convert = Image.Load<Rgba32>(stream))
                 {
                     string streamMd5 = stream.ComputeMD5Hash();
                     string filenameMd5 = filename.ComputeMD5Hash();
@@ -163,8 +176,11 @@ namespace osu.Framework.IO.Stores
 
             int pageWidth = pageInfo.Size.Width;
 
-            int charWidth = c.Width + c.XOffset;
-            int charHeight = c.Height + c.YOffset;
+            int charWidth = c.Width;
+            int charHeight = c.Height;
+
+            if (readBuffer == null || readBuffer.Length < pageWidth)
+                readBuffer = new byte[pageWidth];
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, charWidth, charHeight, new Rgba32(255, 255, 255, 0));
 
@@ -173,25 +189,25 @@ namespace osu.Framework.IO.Stores
                 var pixels = image.GetPixelSpan();
                 stream.Seek(pageWidth * c.Y, SeekOrigin.Current);
 
-                for (int y = 0; y < c.Height; y++)
+                // the spritesheet may have unused pixels trimmed
+                int readableHeight = Math.Min(c.Height, pageInfo.Size.Height - c.Y);
+                int readableWidth = Math.Min(c.Width, pageWidth - c.X);
+
+                for (int y = 0; y < readableHeight; y++)
                 {
                     stream.Read(readBuffer, 0, pageWidth);
 
-                    for (int x = 0; x < c.Width; x++)
-                    {
-                        int offsetX = x + c.XOffset;
-                        int offsetY = y + c.YOffset;
+                    int writeOffset = y * charWidth;
 
-                        if (offsetX >= 0 && offsetY > 0 && offsetX < charWidth && offsetY < charHeight) // some glyphs can be offset beyond the valid texture bounds; ignore these pixels.
-                            pixels[offsetY * charWidth + offsetX] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
-                    }
+                    for (int x = 0; x < readableWidth; x++)
+                        pixels[writeOffset + x] = new Rgba32(255, 255, 255, readBuffer[c.X + x]);
                 }
             }
 
             return new TextureUpload(image);
         }
 
-        private readonly byte[] readBuffer = new byte[1024];
+        private byte[] readBuffer;
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 

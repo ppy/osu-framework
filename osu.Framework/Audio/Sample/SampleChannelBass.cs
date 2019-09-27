@@ -41,6 +41,16 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
+        public override bool Looping
+        {
+            get => base.Looping;
+            set
+            {
+                base.Looping = value;
+                setLoopFlag(Looping);
+            }
+        }
+
         public override void Play(bool restart = true)
         {
             EnqueueAction(() =>
@@ -51,10 +61,14 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
+                // Remove looping flag from previous channel to prevent endless playback
+                setLoopFlag(false);
+
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
+                setLoopFlag(Looping);
             });
 
             InvalidateState();
@@ -74,8 +88,8 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            base.UpdateState();
             playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
+            base.UpdateState();
         }
 
         public override void Stop()
@@ -93,5 +107,11 @@ namespace osu.Framework.Audio.Sample
         }
 
         public override bool Playing => playing;
+
+        private void setLoopFlag(bool value) => EnqueueAction(() =>
+        {
+            if (channel != 0)
+                Bass.ChannelFlags(channel, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
+        });
     }
 }

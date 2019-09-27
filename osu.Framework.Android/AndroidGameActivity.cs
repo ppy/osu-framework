@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -13,19 +12,19 @@ namespace osu.Framework.Android
     {
         protected abstract Game CreateGame();
 
+        private AndroidGameView gameView;
+
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
         {
             base.OnTrimMemory(level);
-
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.ReleaseRetainedResources();
-            GC.Collect();
+            gameView.Host?.Collect();
         }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(new AndroidGameView(this, CreateGame()));
+            SetContentView(gameView = new AndroidGameView(this, CreateGame()));
         }
 
         protected override void OnPause() {

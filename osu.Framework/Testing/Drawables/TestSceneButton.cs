@@ -56,7 +56,12 @@ namespace osu.Framework.Testing.Drawables
                     AutoSizeAxes = Axes.Y,
                     Children = new Drawable[]
                     {
-                        content = new Container { RelativeSizeAxes = Axes.Both },
+                        new SafeAreaContainer
+                        {
+                            SafeAreaOverrideEdges = Edges.Left,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = content = new Container { RelativeSizeAxes = Axes.Both },
+                        },
                         text = new TextFlowContainer(s => s.Font = FrameworkFont.Condensed.With(size: 14f))
                         {
                             RelativeSizeAxes = Axes.X,

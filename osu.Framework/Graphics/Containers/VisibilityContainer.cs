@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
                 FinishTransforms(true);
             }
 
-            State.BindValueChanged(updateState, State.Value != Visibility.Hidden);
+            State.BindValueChanged(UpdateState, State.Value != Visibility.Hidden);
 
             base.LoadComplete();
         }
@@ -65,9 +65,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected abstract void PopOut();
 
-        private void updateState(ValueChangedEvent<Visibility> e)
+        /// <summary>
+        /// Called whenever <see cref="VisibilityContainer.State"/> is changed.
+        /// Used to update this container's elements according to the new visibility state.
+        /// </summary>
+        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="VisibilityContainer.State"/></param>
+        protected virtual void UpdateState(ValueChangedEvent<Visibility> state)
         {
-            switch (e.NewValue)
+            switch (state.NewValue)
             {
                 case Visibility.Hidden:
                     PopOut();

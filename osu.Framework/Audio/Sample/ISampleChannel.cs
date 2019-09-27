@@ -28,5 +28,10 @@ namespace osu.Framework.Audio.Sample
         /// Whether the sample has finished playback.
         /// </summary>
         bool Played { get; }
+
+        /// <summary>
+        /// States if this sample should repeat.
+        /// </summary>
+        bool Looping { get; set; }
     }
 }

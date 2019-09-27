@@ -6,18 +6,23 @@ using Android.Content;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
+using Android.Views.InputMethods;
+using Android.Text;
 using osuTK.Graphics;
+using osu.Framework.Android.Input;
 
 namespace osu.Framework.Android
 {
     public class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        private AndroidGameHost host;
+        public AndroidGameHost Host { get; private set; }
+
         private readonly Game game;
 
-        public event Action<Keycode, KeyEvent> KeyDown;
-        public event Action<Keycode, KeyEvent> KeyUp;
+        public new event Action<Keycode, KeyEvent> KeyDown;
+        public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
+        public event Action<string> CommitText;
 
         public AndroidGameView(Context context, Game game) : base(context)
         {
@@ -61,6 +66,12 @@ namespace osu.Framework.Android
             }
         }
 
+        public bool OnCommitText(string text)
+        {
+            CommitText?.Invoke(text);
+            return false;
+        }
+
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             switch (keyCode)
@@ -99,8 +110,17 @@ namespace osu.Framework.Android
         [STAThread]
         public void RenderGame()
         {
-            host = new AndroidGameHost(this);
-            host.Run(game);
+            Host = new AndroidGameHost(this);
+            Host.Run(game);
+        }
+
+        public override bool OnCheckIsTextEditor() => true;
+
+        public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs)
+        {
+            outAttrs.ImeOptions = ImeFlags.NoExtractUi;
+            outAttrs.InputType = InputTypes.Null;
+            return new AndroidInputConnection(this, true);
         }
     }
 }
