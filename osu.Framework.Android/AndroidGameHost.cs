@@ -14,6 +14,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using Xamarin.Essentials;
 using AndroidUri = Android.Net.Uri;
 
 namespace osu.Framework.Android
@@ -56,7 +57,10 @@ namespace osu.Framework.Android
                 openFolderExternally(filename);
                 return;
             }
-            throw new NotImplementedException();
+            Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(filename)
+            });
         }
 
         private void openFolderExternally(string filename)

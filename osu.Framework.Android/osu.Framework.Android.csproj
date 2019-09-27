@@ -32,5 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.101" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.3.1" />
   </ItemGroup>
 </Project>
