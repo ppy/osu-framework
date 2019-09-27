@@ -87,7 +87,7 @@ namespace osu.Framework.Android
         {
             var activity = (Activity)gameView.Context;
 
-            using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            using (var intent = new Intent(Intent.ActionView, AndroidUri.Parse(url)))
                 if (intent.ResolveActivity(activity.PackageManager) != null)
                     activity.StartActivity(intent);
         }
