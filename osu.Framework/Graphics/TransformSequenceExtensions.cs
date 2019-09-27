@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics
 {
     public static class TransformSequenceExtensions
     {
-        public static TransformSequence<T> Expire<T>(this TransformSequence<T> t)
+        public static TransformSequence<T> Expire<T>(this TransformSequence<T> t, bool calculateLifetimeStart = false)
             where T : Drawable =>
-            t.Append(o => o.Expire());
+            t.Append(o => o.Expire(calculateLifetimeStart));
 
         public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction)
             where T : Drawable =>

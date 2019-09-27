@@ -39,16 +39,8 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("dummy step", () => { });
         }
 
-        [Test]
-        public void Test1()
-        {
-            AddStep("increment run count", () => testRunCount++);
-            AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
-        }
-
-        [Test]
-        public void Test2()
+        [Test, Repeat(2)]
+        public void Test()
         {
             AddStep("increment run count", () => testRunCount++);
             AddAssert("correct setup run count", () => testRunCount == setupRun);

@@ -96,15 +96,12 @@ namespace osu.Framework.Testing
                     // Nunit will run the tests in the TestScene with the same TestScene instance so the TestScene
                     // needs to be removed before the host is exited, otherwise it will end up disposed
 
-                    test.Steps.RunAll(() =>
+                    test.Steps.RunAllSteps(() =>
                     {
                         Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
-                        if (e is DependencyInjectionException die)
-                            exception = die.DispatchInfo;
-                        else
-                            exception = ExceptionDispatchInfo.Capture(e);
+                        exception = ExceptionDispatchInfo.Capture(e);
                         complete();
                     });
                 });

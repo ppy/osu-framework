@@ -63,7 +63,7 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic).ToList();
+                var tests = asm.GetLoadableTypes().Where(isValidVisualTest).ToList();
 
                 if (!tests.Any())
                 {
@@ -77,6 +77,8 @@ namespace osu.Framework.Testing
 
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
+
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
 
         private void updateList(ValueChangedEvent<Assembly> args)
         {
@@ -454,20 +456,24 @@ namespace osu.Framework.Testing
 
             foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
-                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.Steps.AddLabel(m.Name);
+                    handleTestMethod(m);
 
-                    addSetUpSteps();
+                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    {
+                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
-                    m.Invoke(CurrentTest, null);
+                        for (int i = 2; i <= count; i++)
+                            handleTestMethod(m, $"{m.Name} ({i})");
+                    }
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.Steps.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
 
                     addSetUpSteps();
 
@@ -489,13 +495,22 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.Steps.AddStep(new SetUpStep
+                    CurrentTest.AddStep(new SetUpStep
                     {
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
                 }
 
                 CurrentTest.RunSetUpSteps();
+            }
+
+            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            {
+                CurrentTest.AddLabel(name ?? methodInfo.Name);
+
+                addSetUpSteps();
+
+                methodInfo.Invoke(CurrentTest, null);
             }
         }
 
@@ -511,7 +526,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.Steps.RunAll(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.Steps.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;

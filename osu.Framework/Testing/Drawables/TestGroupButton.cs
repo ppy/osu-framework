@@ -32,12 +32,11 @@ namespace osu.Framework.Testing.Drawables
         {
             set
             {
-                var contains = Group.TestTypes.Contains(value);
+                bool contains = Group.TestTypes.Contains(value);
                 if (contains) Show();
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
-                if (headerButton != null)
-                    headerButton.Current = contains;
+                headerButton.Current = contains;
             }
         }
 
@@ -60,17 +59,14 @@ namespace osu.Framework.Testing.Drawables
                 RelativeSizeAxes = Axes.X
             };
 
-            bool hasHeader = tests.Length > 1;
-
-            if (hasHeader)
-                buttonFlow.Add(headerButton = new TestButton(group.Name)
-                {
-                    Action = ToggleVisibility
-                });
+            buttonFlow.Add(headerButton = new TestButton(group.Name)
+            {
+                Action = ToggleVisibility
+            });
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestSceneSubButton(test, hasHeader ? 1 : 0)
+                buttonFlow.Add(new TestSceneSubButton(test, 1)
                 {
                     Action = () => loadTest(test)
                 });
@@ -81,10 +77,6 @@ namespace osu.Framework.Testing.Drawables
 
         protected override void PopIn() => buttonFlow.ForEach(b => b.Collapsed = false);
 
-        protected override void PopOut()
-        {
-            if (headerButton != null)
-                buttonFlow.ForEach(b => b.Collapsed = true);
-        }
+        protected override void PopOut() => buttonFlow.ForEach(b => b.Collapsed = true);
     }
 }

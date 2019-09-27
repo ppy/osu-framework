@@ -4,21 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
-using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
 using osuTK;
 using osuTK.Graphics;
+using System.Threading.Tasks;
+using System.Threading;
+using NUnit.Framework.Internal;
+using osu.Framework.Development;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing.Drawables;
 
 namespace osu.Framework.Testing
 {
@@ -129,7 +129,7 @@ namespace osu.Framework.Testing
 
         /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestScene"/>.
-        /// This test must run before any other tests, as it relies on <see cref="Steps"/> not being cleared and not having any elements.
+        /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
         public void TestConstructor()
@@ -198,43 +198,47 @@ namespace osu.Framework.Testing
         private const float steps_width = 180;
         private const float padding = 0;
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        public void AddStep(StepButton step) => Steps.AddStep(step);
+        public void AddStep(StepButton step) => schedule(() => Steps.AddStep(step));
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        public StepButton AddStep(string description, Action action) => Steps.AddStep(description, action);
+        public StepButton AddStep(string description, Action action)
+        {
+            return Steps.AddStep(description, action);
+        }
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        public LabelStep AddLabel(string description) => Steps.AddLabel(description);
+        public LabelStep AddLabel(string description)
+        {
+            return Steps.AddLabel(description);
+        }
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddRepeatStep(string description, Action action, int invocationCount) =>
+        protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
+        {
             Steps.AddRepeatStep(description, action, invocationCount);
+        });
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddToggleStep(string description, Action<bool> action) =>
+        protected void AddToggleStep(string description, Action<bool> action) => schedule(() =>
+        {
             Steps.AddToggleStep(description, action);
+        });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
-            => AddUntilStep(description, waitUntilTrueDelegate);
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
+        {
+            Steps.AddUntilStep(description, waitUntilTrueDelegate);
+        });
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => Steps.AddUntilStep(description, waitUntilTrueDelegate);
+        protected void AddWaitStep(string description, int waitCount) => schedule(() =>
+        {
+            Steps.AddWaitStep(description, waitCount);
+        });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        protected void AddWaitStep(int waitCount, string description = null)
-            => AddWaitStep(description, waitCount);
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
+        {
+            Steps.AddSliderStep<T>(description, min, max, start, valueChanged);
+        });
 
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddWaitStep(string description, int waitCount) => Steps.AddWaitStep(description, waitCount);
-
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible =>
-            Steps.AddSliderStep(description, min, max, start, valueChanged);
-
-        [Obsolete("Steps were extracted to a separate StepsContainer class")]
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => Steps.AddAssert(description, assert, extendedDescription);
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
+        {
+            Steps.AddAssert(description, assert, extendedDescription);
+        });
 
         // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
         private void schedule(Action action) => Scheduler.Add(action, false);

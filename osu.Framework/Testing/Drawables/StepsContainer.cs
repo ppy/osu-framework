@@ -18,7 +18,7 @@ namespace osu.Framework.Testing.Drawables
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
 
-        public void RunAll(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
             // schedule once as we want to ensure we have run our LoadComplete before attempting to execute steps.
             // a user may be adding a step in LoadComplete.
@@ -30,11 +30,11 @@ namespace osu.Framework.Testing.Drawables
 
                 actionIndex = startFromStep != null ? IndexOf(startFromStep) + 1 : -1;
                 actionRepetition = 0;
-                runNext(onCompletion, onError, stopCondition);
+                runNextStep(onCompletion, onError, stopCondition);
             });
         }
 
-        private void runNext(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
+        private void runNextStep(Action onCompletion, Action<Exception> onError, Func<StepButton, bool> stopCondition)
         {
             try
             {
@@ -42,7 +42,6 @@ namespace osu.Framework.Testing.Drawables
                 {
                     if (loadableStep.IsMaskedAway)
                         FindClosestParent<BasicScrollContainer>()?.ScrollTo(loadableStep);
-
                     loadableStep.PerformStep();
                 }
             }
@@ -84,8 +83,8 @@ namespace osu.Framework.Testing.Drawables
                 return;
             }
 
-            if (FindClosestParent<TestSceneTestRunner.TestRunner>() != null || FindClosestParent<TestBrowser.ErrorCatchingDelayedLoadWrapper>() != null)
-                stepRunner = Scheduler.AddDelayed(() => runNext(onCompletion, onError, stopCondition), TimePerAction);
+            if (Parent != null)
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError, stopCondition), TimePerAction);
         }
 
         public void AddStep(StepButton step) => schedule(() => Add(step));
@@ -114,7 +113,7 @@ namespace osu.Framework.Testing.Drawables
             {
                 // kinda hacky way to avoid this doesn't get triggered by automated runs.
                 if (step.IsHovered)
-                    RunAll(startFromStep: step, stopCondition: s => s is LabelStep);
+                    RunAllSteps(startFromStep: step, stopCondition: s => s is LabelStep);
             };
 
             AddStep(step);
@@ -138,10 +137,6 @@ namespace osu.Framework.Testing.Drawables
             });
         });
 
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        public void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
-            => AddUntilStep(description, waitUntilTrueDelegate);
-
         public void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
             Add(new UntilStepButton(waitUntilTrueDelegate)
@@ -149,10 +144,6 @@ namespace osu.Framework.Testing.Drawables
                 Text = description ?? @"Until",
             });
         });
-
-        [Obsolete("Parameter order didn't match other methods – switch order to fix")] // can be removed 20190919
-        public void AddWaitStep(int waitCount, string description = null)
-            => AddWaitStep(description, waitCount);
 
         public void AddWaitStep(string description, int waitCount) => schedule(() =>
         {

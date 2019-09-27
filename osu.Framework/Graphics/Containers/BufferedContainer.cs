@@ -184,6 +184,24 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool CacheDrawnFrameBuffer;
 
+        private bool redrawOnScale = true;
+
+        /// <summary>
+        /// Whether to redraw this <see cref="BufferedContainer"/> when the draw scale changes.
+        /// </summary>
+        public bool RedrawOnScale
+        {
+            get => redrawOnScale;
+            set
+            {
+                if (redrawOnScale == value)
+                    return;
+
+                redrawOnScale = value;
+                screenSpaceSizeBacking?.Invalidate();
+            }
+        }
+
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
@@ -259,12 +277,18 @@ namespace osu.Framework.Graphics.Containers
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
-                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
+                Vector2 drawSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
+                if (!RedrawOnScale)
+                {
+                    Matrix3 scaleMatrix = Matrix3.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
+                    Vector2Extensions.Transform(ref drawSize, ref scaleMatrix, out drawSize);
+                }
+
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, drawSize))
                 {
                     ++updateVersion;
-                    lastScreenSpaceSize = screenSpaceSize;
+                    lastScreenSpaceSize = drawSize;
                 }
 
                 screenSpaceSizeBacking.Validate();

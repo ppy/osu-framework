@@ -276,7 +276,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
         private void updateWrapMode()

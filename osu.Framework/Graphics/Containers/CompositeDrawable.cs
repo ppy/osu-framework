@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osuTK;
 using osuTK.Graphics;
@@ -164,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
                     try
                     {
                         if (exception != null)
-                            throw exception;
+                            ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
                             onLoaded?.Invoke(components);
@@ -233,7 +234,6 @@ namespace osu.Framework.Graphics.Containers
         /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
         /// </summary>
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
-        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
         private void loadChild(Drawable child)
         {
             try
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
                     if (e is OperationCanceledException)
                         continue;
 
-                    throw e;
+                    ExceptionDispatchInfo.Capture(e).Throw();
                 }
             }
         }
