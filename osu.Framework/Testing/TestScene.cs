@@ -232,7 +232,7 @@ namespace osu.Framework.Testing
 
         protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
         {
-            Steps.AddSliderStep<T>(description, min, max, start, valueChanged);
+            Steps.AddSliderStep(description, min, max, start, valueChanged);
         });
 
         protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
