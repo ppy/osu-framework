@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Retrieves the orientation of a set of vertices.
+        /// Retrieves the orientation of a set of vertices using the Shoelace formula (https://en.wikipedia.org/wiki/Shoelace_formula)
         /// </summary>
         /// <param name="vertices">The vertices.</param>
         /// <returns>Twice the area enclosed by the vertices.

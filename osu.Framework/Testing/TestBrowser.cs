@@ -456,14 +456,18 @@ namespace osu.Framework.Testing
 
             foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
-                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel(m.Name);
+                    handleTestMethod(m);
 
-                    addSetUpSteps();
+                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    {
+                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
-                    m.Invoke(CurrentTest, null);
+                        for (int i = 2; i <= count; i++)
+                            handleTestMethod(m, $"{m.Name} ({i})");
+                    }
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
@@ -498,6 +502,15 @@ namespace osu.Framework.Testing
                 }
 
                 CurrentTest.RunSetUpSteps();
+            }
+
+            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            {
+                CurrentTest.AddLabel(name ?? methodInfo.Name);
+
+                addSetUpSteps();
+
+                methodInfo.Invoke(CurrentTest, null);
             }
         }
 
