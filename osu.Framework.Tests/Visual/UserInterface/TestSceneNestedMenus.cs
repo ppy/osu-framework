@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             menus = new MenuStructure(menu);
         });
 
-        private Menu createMenu() => new ClickOpenMenu(TimePerAction)
+        private Menu createMenu() => new ClickOpenMenu(Steps.TimePerAction)
         {
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,

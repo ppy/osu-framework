@@ -526,7 +526,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
-            CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
+            CurrentTest.Steps.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"), s =>
             {
                 if (!interactive || RunAllSteps.Value)
                     return false;
@@ -548,7 +548,7 @@ namespace osu.Framework.Testing
                 b.Current = CurrentTest.GetType();
         }
 
-        private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
+        internal class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
         {
             private readonly bool catchErrors;
             private bool hasCaught;

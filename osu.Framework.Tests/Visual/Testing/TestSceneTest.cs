@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Testing
                 base.RunTestBlocking(test);
 
                 // This will only ever trigger via NUnit
-                Assert.That(test.StepsContainer, Has.Count.GreaterThan(0));
+                Assert.That(test.Steps, Has.Count.GreaterThan(0));
             }
         }
     }
