@@ -24,12 +24,12 @@ namespace osu.Framework.Graphics.Batches
         private int changeBeginIndex = -1;
         private int changeEndIndex = -1;
 
-        private int currentIndex;
-        private int currentVertex;
+        private int currentBufferIndex;
+        private int currentVertexIndex;
 
         private readonly int maxBuffers;
 
-        private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentIndex];
+        private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentBufferIndex];
 
         protected VertexBatch(int bufferSize, int maxBuffers)
         {
@@ -62,8 +62,8 @@ namespace osu.Framework.Graphics.Batches
         public void ResetCounters()
         {
             changeBeginIndex = -1;
-            currentIndex = 0;
-            currentVertex = 0;
+            currentBufferIndex = 0;
+            currentVertexIndex = 0;
         }
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
@@ -76,25 +76,25 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
-            if (currentIndex < VertexBuffers.Count && currentVertex >= currentVertexBuffer.Size)
+            if (currentBufferIndex < VertexBuffers.Count && currentVertexIndex >= currentVertexBuffer.Size)
             {
                 Draw();
                 FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
             }
 
             // currentIndex will change after Draw() above, so this cannot be in an else-condition
-            while (currentIndex >= VertexBuffers.Count)
+            while (currentBufferIndex >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
-            if (currentVertexBuffer.SetVertex(currentVertex, v))
+            if (currentVertexBuffer.SetVertex(currentVertexIndex, v))
             {
                 if (changeBeginIndex == -1)
-                    changeBeginIndex = currentVertex;
+                    changeBeginIndex = currentVertexIndex;
 
-                changeEndIndex = currentVertex + 1;
+                changeEndIndex = currentVertexIndex + 1;
             }
 
-            ++currentVertex;
+            ++currentVertexIndex;
         }
 
         /// <summary>
@@ -105,21 +105,21 @@ namespace osu.Framework.Graphics.Batches
 
         public int Draw()
         {
-            if (currentVertex == 0)
+            if (currentVertexIndex == 0)
                 return 0;
 
             VertexBuffer<T> vertexBuffer = currentVertexBuffer;
             if (changeBeginIndex >= 0)
                 vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
 
-            vertexBuffer.DrawRange(0, currentVertex);
+            vertexBuffer.DrawRange(0, currentVertexIndex);
 
-            int count = currentVertex;
+            int count = currentVertexIndex;
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             //TODO: let us know if we exceed and roll over to zero here.
-            currentIndex = (currentIndex + 1) % maxBuffers;
-            currentVertex = 0;
+            currentBufferIndex = (currentBufferIndex + 1) % maxBuffers;
+            currentVertexIndex = 0;
             changeBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
