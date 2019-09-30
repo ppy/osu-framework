@@ -104,7 +104,7 @@ namespace osu.Framework.Testing
                 }
 
                 if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    schedule(() => Steps.Clear());
+                    Scheduler.Add(() => Steps.Clear(), false);
             }
 
             RunSetUpSteps();
@@ -198,7 +198,7 @@ namespace osu.Framework.Testing
         private const float steps_width = 180;
         private const float padding = 0;
 
-        public void AddStep(StepButton step) => schedule(() => Steps.AddStep(step));
+        public void AddStep(StepButton step) => Steps.AddStep(step);
 
         public StepButton AddStep(string description, Action action)
         {
@@ -210,38 +210,23 @@ namespace osu.Framework.Testing
             return Steps.AddLabel(description);
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
-        {
+        protected void AddRepeatStep(string description, Action action, int invocationCount) =>
             Steps.AddRepeatStep(description, action, invocationCount);
-        });
 
-        protected void AddToggleStep(string description, Action<bool> action) => schedule(() =>
-        {
+        protected void AddToggleStep(string description, Action<bool> action) =>
             Steps.AddToggleStep(description, action);
-        });
 
-        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
-        {
+        protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) =>
             Steps.AddUntilStep(description, waitUntilTrueDelegate);
-        });
 
-        protected void AddWaitStep(string description, int waitCount) => schedule(() =>
-        {
+        protected void AddWaitStep(string description, int waitCount) =>
             Steps.AddWaitStep(description, waitCount);
-        });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
-        {
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible =>
             Steps.AddSliderStep(description, min, max, start, valueChanged);
-        });
 
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
-        {
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) =>
             Steps.AddAssert(description, assert, extendedDescription);
-        });
-
-        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
-        private void schedule(Action action) => Scheduler.Add(action, false);
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
 
