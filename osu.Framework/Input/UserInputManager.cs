@@ -24,7 +24,6 @@ namespace osu.Framework.Input
             // UserInputManager is at the very top of the draw hierarchy, so it has no parnt updating its IsAlive state
             IsAlive = true;
             UseParentInput = false;
-            ForceLocalVertexBatch = true;
         }
 
         public override void HandleInputStateChange(InputStateChangeEvent inputStateChange)
