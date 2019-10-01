@@ -64,6 +64,8 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             private QuadBatch<TexturedVertex2D> quadBatch;
 
+            private int sourceChildrenCount;
+
             public CompositeDrawableDrawNode(CompositeDrawable source)
                 : base(source)
             {
@@ -105,6 +107,7 @@ namespace osu.Framework.Graphics.Containers
                 screenSpaceMaskingQuad = null;
                 Shader = Source.Shader;
                 forceLocalVertexBatch = Source.ForceLocalVertexBatch;
+                sourceChildrenCount = Source.internalChildren.Count;
             }
 
             public virtual bool AddChildDrawNodes => true;
@@ -158,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PopMaskingInfo();
             }
 
-            private const int min_amount_children_to_warrant_batch = 5;
+            private const int min_amount_children_to_warrant_batch = 8;
 
             private bool mayHaveOwnVertexBatch(int amountChildren) => forceLocalVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
@@ -167,10 +170,8 @@ namespace osu.Framework.Graphics.Containers
                 if (Children == null)
                     return;
 
-                // This logic got roughly copied from the old osu! code base. These constants seem to have worked well so far.
-                int clampedAmountChildren = MathHelper.Clamp(Children.Count, 1, 1000);
-                if (mayHaveOwnVertexBatch(clampedAmountChildren) && (quadBatch == null || quadBatch.Size < clampedAmountChildren))
-                    quadBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
+                if (quadBatch == null && mayHaveOwnVertexBatch(sourceChildrenCount))
+                    quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
