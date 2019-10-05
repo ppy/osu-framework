@@ -5,12 +5,13 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
     [TestFixture]
-    public class TestSuiteFitInsideFlow : FrameworkTestSuite
+    public class TestSuiteFitInsideFlow : FrameworkTestSuite<EmptyTestScene>
     {
         private const float container_width = 60;
 

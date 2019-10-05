@@ -4,10 +4,11 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Statistics;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSuiteGlobalStatisticsDisplay : FrameworkTestSuite
+    public class TestSuiteGlobalStatisticsDisplay : FrameworkTestSuite<EmptyTestScene>
     {
         private GlobalStatisticsDisplay display;
 

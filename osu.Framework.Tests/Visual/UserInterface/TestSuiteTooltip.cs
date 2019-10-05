@@ -7,12 +7,13 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteTooltip : FrameworkTestSuite
+    public class TestSuiteTooltip : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly Container testContainer;
 

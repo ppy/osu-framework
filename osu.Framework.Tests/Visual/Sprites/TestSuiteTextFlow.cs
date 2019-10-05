@@ -6,13 +6,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("word-wrap and paragraphs")]
-    public class TestSuiteTextFlow : FrameworkTestSuite
+    public class TestSuiteTextFlow : FrameworkTestSuite<EmptyTestScene>
     {
         public TestSuiteTextFlow()
         {

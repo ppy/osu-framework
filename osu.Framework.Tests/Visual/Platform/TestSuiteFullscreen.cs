@@ -9,10 +9,11 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSuiteFullscreen : FrameworkTestSuite
+    public class TestSuiteFullscreen : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();

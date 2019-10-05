@@ -10,13 +10,14 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
+using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSuiteFillFlowContainer : FrameworkTestSuite
+    public class TestSuiteFillFlowContainer : FrameworkTestSuite<EmptyTestScene>
     {
         private FillDirectionDropdown selectionDropdown;
 

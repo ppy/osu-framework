@@ -7,12 +7,13 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
+using osu.Framework.Testing;
 using osu.Framework.Tests.Visual.Containers;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSuiteDrawVisualiser : FrameworkTestSuite
+    public class TestSuiteDrawVisualiser : FrameworkTestSuite<EmptyTestScene>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {

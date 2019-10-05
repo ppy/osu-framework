@@ -13,7 +13,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSuiteCompositeMutability : FrameworkTestSuite
+    public class TestSuiteCompositeMutability : FrameworkTestSuite<EmptyTestScene>
     {
         [TestCase(TestThread.External, false)]
         [TestCase(TestThread.Update, false)]

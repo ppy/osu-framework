@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Containers
 {
     [System.ComponentModel.Description("ensure valid container state in various scenarios")]
     [HeadlessTest]
-    public class TestSuiteContainerState : FrameworkTestSuite
+    public class TestSuiteContainerState : FrameworkTestSuite<EmptyTestScene>
     {
         /// <summary>
         /// Tests if a drawable can be added to a container, removed, and then re-added to the same container.

@@ -9,12 +9,13 @@ using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSuitePathInput : FrameworkTestSuite
+    public class TestSuitePathInput : FrameworkTestSuite<EmptyTestScene>
     {
         private const float path_width = 50;
         private const float path_radius = path_width / 2;

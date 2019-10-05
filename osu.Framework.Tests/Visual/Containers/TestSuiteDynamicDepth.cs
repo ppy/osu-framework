@@ -5,13 +5,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
     [System.ComponentModel.Description("changing depth of child dynamically")]
-    public class TestSuiteDynamicDepth : FrameworkTestSuite
+    public class TestSuiteDynamicDepth : FrameworkTestSuite<EmptyTestScene>
     {
         private void addDepthSteps(DepthBox box, Container container)
         {

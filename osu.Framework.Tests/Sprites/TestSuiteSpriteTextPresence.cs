@@ -15,7 +15,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Sprites
 {
     [HeadlessTest]
-    public class TestSuiteSpriteTextPresence : FrameworkTestSuite
+    public class TestSuiteSpriteTextPresence : FrameworkTestSuite<EmptyTestScene>
     {
         /// <summary>
         /// Tests with a normal <see cref="SpriteText"/> which changes presence based on whether text is empty.

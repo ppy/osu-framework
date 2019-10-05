@@ -9,24 +9,24 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSuiteBufferedContainer : TestSuiteMasking
     {
-        private readonly BufferedContainer buffer;
+        //private readonly BufferedContainer buffer;
 
-        public TestSuiteBufferedContainer()
-        {
-            Remove(TestContainer);
+        //public TestSuiteBufferedContainer()
+        //{
+        //    Remove(TestSuiteLifetimeManagementContainer.TestContainer);
 
-            Add(buffer = new BufferedContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[] { TestContainer }
-            });
-        }
+        //    Add(buffer = new BufferedContainer
+        //    {
+        //        RelativeSizeAxes = Axes.Both,
+        //        Children = new[] { TestContainer }
+        //    });
+        //}
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
+        //protected override void LoadComplete()
+        //{
+        //    base.LoadComplete();
 
-            buffer.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000).Loop();
-        }
+        //    buffer.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000).Loop();
+        //}
     }
 }

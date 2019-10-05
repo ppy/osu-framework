@@ -13,12 +13,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteDrawableLoadCancellation : FrameworkTestSuite
+    public class TestSuiteDrawableLoadCancellation : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 

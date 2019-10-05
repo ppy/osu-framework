@@ -10,13 +10,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Lists;
+using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteDelayedLoadUnloadWrapper : FrameworkTestSuite
+    public class TestSuiteDelayedLoadUnloadWrapper : FrameworkTestSuite<EmptyTestScene>
     {
         private const int panel_count = 1024;
 

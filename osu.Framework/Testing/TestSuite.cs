@@ -5,31 +5,29 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
+using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
-using System.Threading.Tasks;
-using System.Threading;
-using NUnit.Framework.Internal;
-using osu.Framework.Development;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
     [TestFixture]
     public abstract class TestSuite : Container, IDynamicallyCompile
     {
-        public readonly FillFlowContainer<Drawable> StepsContainer;
-        private readonly Container content;
-
-        protected override Container<Drawable> Content => content;
+        protected ScrollContainer<Drawable> StepsScroll;
+        public FillFlowContainer<Drawable> StepsContainer;
 
         protected virtual ITestSuiteTestRunner CreateRunner() => new TestSuiteTestRunner();
 
@@ -137,72 +135,9 @@ namespace osu.Framework.Testing
         {
         }
 
-        protected TestSuite()
-        {
-            Name = RemovePrefix(GetType().ReadableName());
-
-            RelativeSizeAxes = Axes.Both;
-            Masking = true;
-
-            base.AddInternal(new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        Colour = new Color4(25, 25, 25, 255),
-                        RelativeSizeAxes = Axes.Y,
-                        Width = steps_width,
-                    },
-                    scroll = new BasicScrollContainer
-                    {
-                        Width = steps_width,
-                        Depth = float.MinValue,
-                        RelativeSizeAxes = Axes.Y,
-                        Child = StepsContainer = new FillFlowContainer<Drawable>
-                        {
-                            Direction = FillDirection.Vertical,
-                            Spacing = new Vector2(3),
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Padding = new MarginPadding(10),
-                            Child = new SpriteText
-                            {
-                                Font = FrameworkFont.Condensed.With(size: 16),
-                                Text = Name,
-                                Margin = new MarginPadding { Bottom = 5 },
-                            }
-                        },
-                    },
-                    new Container
-                    {
-                        Masking = true,
-                        Padding = new MarginPadding
-                        {
-                            Left = steps_width + padding,
-                            Right = padding,
-                            Top = padding,
-                            Bottom = padding,
-                        },
-                        RelativeSizeAxes = Axes.Both,
-                        Child = content = new DrawFrameRecordingContainer
-                        {
-                            Masking = true,
-                            RelativeSizeAxes = Axes.Both
-                        }
-                    },
-                }
-            });
-        }
-
-        private const float steps_width = 180;
-        private const float padding = 0;
-
         private int actionIndex;
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
-        private readonly ScrollContainer<Drawable> scroll;
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null, Func<StepButton, bool> stopCondition = null, StepButton startFromStep = null)
         {
@@ -231,7 +166,7 @@ namespace osu.Framework.Testing
                 if (loadableStep != null)
                 {
                     if (loadableStep.IsMaskedAway)
-                        scroll.ScrollTo(loadableStep);
+                        StepsScroll.ScrollTo(loadableStep);
                     loadableStep.PerformStep();
                 }
             }
@@ -382,6 +317,72 @@ namespace osu.Framework.Testing
         {
             return name.Replace("TestCase", string.Empty) // TestSuite used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.
                        .Replace(nameof(TestSuite), string.Empty);
+        }
+    }
+
+    public abstract class TestSuite<T> : TestSuite where T : TestScene, new()
+    {
+        public readonly T TestScene;
+        private readonly Container content;
+
+        protected override Container<Drawable> Content => content;
+
+        private const float steps_width = 180;
+        private const float padding = 0;
+
+        protected TestSuite()
+        {
+            Name = RemovePrefix(GetType().ReadableName());
+
+            RelativeSizeAxes = Axes.Both;
+            Masking = true;
+
+            Add(new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = new Color4(25, 25, 25, 255),
+                        RelativeSizeAxes = Axes.Y,
+                        Width = steps_width,
+                    },
+                    StepsScroll = new BasicScrollContainer
+                    {
+                        Width = steps_width,
+                        Depth = float.MinValue,
+                        RelativeSizeAxes = Axes.Y,
+                        Child = StepsContainer = new FillFlowContainer<Drawable>
+                        {
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(3),
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Padding = new MarginPadding(10),
+                            Child = new SpriteText
+                            {
+                                Font = FrameworkFont.Condensed.With(size: 16),
+                                Text = Name,
+                                Margin = new MarginPadding { Bottom = 5 },
+                            }
+                        },
+                    },
+                    new Container
+                    {
+                        Masking = true,
+                        Padding = new MarginPadding
+                        {
+                            Left = steps_width + padding,
+                            Right = padding,
+                            Top = padding,
+                            Bottom = padding,
+                        },
+                        RelativeSizeAxes = Axes.Both,
+                        Child = content = TestScene = new T()
+                    },
+                }
+            });
         }
     }
 }

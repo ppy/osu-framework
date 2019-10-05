@@ -7,10 +7,11 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Bindables
 {
-    public class TestSuiteBindableNumbers : FrameworkTestSuite
+    public class TestSuiteBindableNumbers : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly BindableInt bindableInt = new BindableInt();
         private readonly BindableLong bindableLong = new BindableLong();

@@ -8,12 +8,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteScreenshot : FrameworkTestSuite
+    public class TestSuiteScreenshot : FrameworkTestSuite<EmptyTestScene>
     {
         [Resolved]
         private GameHost host { get; set; }

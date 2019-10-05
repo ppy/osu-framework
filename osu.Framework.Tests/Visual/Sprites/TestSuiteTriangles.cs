@@ -5,13 +5,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osu.Framework.Tests.Visual.Containers;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteTriangles : FrameworkTestSuite
+    public class TestSuiteTriangles : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly Container testContainer;
 

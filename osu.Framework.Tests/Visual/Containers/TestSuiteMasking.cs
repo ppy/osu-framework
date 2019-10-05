@@ -8,12 +8,13 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuiteMasking : FrameworkTestSuite
+    public class TestSuiteMasking : FrameworkTestSuite<EmptyTestScene>
     {
         protected Container TestContainer;
 

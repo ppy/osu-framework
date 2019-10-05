@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.MathUtils;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 using SixLabors.ImageSharp;
@@ -16,7 +17,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteDrawablePath : FrameworkTestSuite
+    public class TestSuiteDrawablePath : FrameworkTestSuite<EmptyTestScene>
     {
         private const int texture_width = 20;
 

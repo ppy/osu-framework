@@ -9,7 +9,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    public abstract class FrameworkTestSuite : TestSuite
+    public abstract class FrameworkTestSuite<T> : TestSuite<T> where T : TestScene, new()
     {
         protected override ITestSuiteTestRunner CreateRunner() => new FrameworkTestSuiteTestRunner();
 

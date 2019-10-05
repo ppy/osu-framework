@@ -4,12 +4,13 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuiteDrawSizePreservingFillContainer : FrameworkTestSuite
+    public class TestSuiteDrawSizePreservingFillContainer : FrameworkTestSuite<EmptyTestScene>
     {
         public TestSuiteDrawSizePreservingFillContainer()
         {

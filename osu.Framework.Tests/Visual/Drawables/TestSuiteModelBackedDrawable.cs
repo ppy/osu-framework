@@ -9,12 +9,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteModelBackedDrawable : FrameworkTestSuite
+    public class TestSuiteModelBackedDrawable : FrameworkTestSuite<EmptyTestScene>
     {
         private TestModelBackedDrawable backedDrawable;
 

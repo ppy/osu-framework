@@ -10,12 +10,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuiteSafeAreaContainer : FrameworkTestSuite
+    public class TestSuiteSafeAreaContainer : FrameworkTestSuite<EmptyTestScene>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {

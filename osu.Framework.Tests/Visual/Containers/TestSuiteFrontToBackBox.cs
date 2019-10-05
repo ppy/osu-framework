@@ -8,12 +8,13 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuiteFrontToBackBox : FrameworkTestSuite
+    public class TestSuiteFrontToBackBox : FrameworkTestSuite<EmptyTestScene>
     {
         private TestBox blendedBox;
 

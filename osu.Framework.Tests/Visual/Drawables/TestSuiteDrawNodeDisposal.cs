@@ -10,12 +10,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteDrawNodeDisposal : FrameworkTestSuite
+    public class TestSuiteDrawNodeDisposal : FrameworkTestSuite<EmptyTestScene>
     {
         /// <summary>
         /// Tests that all references are lost after a drawable is disposed.

@@ -12,11 +12,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteTabControl : FrameworkTestSuite
+    public class TestSuiteTabControl : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly TestEnum[] items;
 

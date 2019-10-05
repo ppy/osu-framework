@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuiteSafeAreaOverrides : FrameworkTestSuite
+    public class TestSuiteSafeAreaOverrides : FrameworkTestSuite<EmptyTestScene>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(SafeAreaContainer), typeof(SafeAreaDefiningContainer) };
 

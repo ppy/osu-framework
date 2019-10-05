@@ -13,7 +13,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Containers
 {
     [HeadlessTest]
-    public class TestSuiteLoadComponentAsync : FrameworkTestSuite
+    public class TestSuiteLoadComponentAsync : FrameworkTestSuite<EmptyTestScene>
     {
         private AsyncChildLoadingComposite composite;
 

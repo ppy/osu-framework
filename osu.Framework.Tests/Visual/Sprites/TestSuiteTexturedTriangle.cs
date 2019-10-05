@@ -5,11 +5,12 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteTexturedTriangle : FrameworkTestSuite
+    public class TestSuiteTexturedTriangle : FrameworkTestSuite<EmptyTestScene>
     {
         public TestSuiteTexturedTriangle()
         {

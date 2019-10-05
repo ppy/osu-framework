@@ -8,13 +8,14 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteCheckboxes : FrameworkTestSuite
+    public class TestSuiteCheckboxes : FrameworkTestSuite<EmptyTestScene>
     {
-        private readonly BasicCheckbox basic;
+        private BasicCheckbox basic;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {

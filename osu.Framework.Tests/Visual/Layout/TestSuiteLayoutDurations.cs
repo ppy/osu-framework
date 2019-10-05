@@ -7,13 +7,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
+using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {
-    public class TestSuiteLayoutDurations : FrameworkTestSuite
+    public class TestSuiteLayoutDurations : FrameworkTestSuite<EmptyTestScene>
     {
         private ManualClock manualClock;
         private Container autoSizeContainer;

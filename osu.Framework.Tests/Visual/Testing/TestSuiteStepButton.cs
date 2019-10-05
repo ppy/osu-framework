@@ -5,12 +5,13 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 using osu.Framework.Testing.Drawables.Steps;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSuiteStepButton : FrameworkTestSuite
+    public class TestSuiteStepButton : FrameworkTestSuite<EmptyTestScene>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {

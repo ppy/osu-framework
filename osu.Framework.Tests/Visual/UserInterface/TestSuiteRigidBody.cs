@@ -7,12 +7,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Physics;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteRigidBody : FrameworkTestSuite
+    public class TestSuiteRigidBody : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly TestRigidBodySimulation sim;
 

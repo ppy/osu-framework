@@ -5,10 +5,11 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSuiteLoopingSample : FrameworkTestSuite
+    public class TestSuiteLoopingSample : FrameworkTestSuite<EmptyTestScene>
     {
         private SampleChannel sampleChannel;
         private ISampleStore samples;

@@ -7,11 +7,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteSpriteTextMaxWidth : FrameworkTestSuite
+    public class TestSuiteSpriteTextMaxWidth : FrameworkTestSuite<EmptyTestScene>
     {
         private VisualDisplay display;
 

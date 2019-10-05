@@ -10,10 +10,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.IO.Network;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteMarkdownContainer : FrameworkTestSuite
+    public class TestSuiteMarkdownContainer : FrameworkTestSuite<EmptyTestScene>
     {
         private TestMarkdownContainer markdownContainer;
 

@@ -7,13 +7,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [Description("Tests whether drawable updates occur before drawing.")]
-    public class TestSuiteUpdateBeforeDraw : FrameworkTestSuite
+    public class TestSuiteUpdateBeforeDraw : FrameworkTestSuite<EmptyTestScene>
     {
         /// <summary>
         /// Tests whether a <see cref="Drawable"/> is updated before being drawn when it is added to a parent

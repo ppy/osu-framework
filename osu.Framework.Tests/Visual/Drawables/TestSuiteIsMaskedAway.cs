@@ -5,11 +5,12 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteIsMaskedAway : FrameworkTestSuite
+    public class TestSuiteIsMaskedAway : FrameworkTestSuite<EmptyTestScene>
     {
         /// <summary>
         /// Tests that a box which is within the bounds of a parent is never masked away, regardless of whether the parent is masking or not.

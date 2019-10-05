@@ -10,12 +10,13 @@ using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSuiteSamples : FrameworkTestSuite
+    public class TestSuiteSamples : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly AudioContainer samples;
         private readonly TrackingLine tracking;

@@ -7,11 +7,12 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteCountingText : FrameworkTestSuite
+    public class TestSuiteCountingText : FrameworkTestSuite<EmptyTestScene>
     {
         private readonly Bindable<CountType> countType = new Bindable<CountType>();
 

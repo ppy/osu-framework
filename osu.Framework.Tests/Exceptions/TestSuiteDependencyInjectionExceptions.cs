@@ -12,7 +12,7 @@ using osu.Framework.Tests.Visual;
 namespace osu.Framework.Tests.Exceptions
 {
     [HeadlessTest]
-    public class TestSuiteDependencyInjectionExceptions : FrameworkTestSuite
+    public class TestSuiteDependencyInjectionExceptions : FrameworkTestSuite<EmptyTestScene>
     {
         [Test]
         public void TestImmediateException()
