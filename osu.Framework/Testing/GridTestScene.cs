@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 namespace osu.Framework.Testing
 {
     /// <summary>
-    /// An abstract test case which exposes small cells arranged in a grid.
+    /// An abstract <see cref="TestScene"/> which exposes small cells arranged in a grid.
     /// Useful for displaying multiple configurations of a tested component at a glance.
     /// </summary>
     public abstract class GridTestScene : TestScene

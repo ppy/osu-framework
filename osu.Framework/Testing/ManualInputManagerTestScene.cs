@@ -13,6 +13,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing
 {
+    /// <summary>
+    /// An abstract <see cref="TestScene"/> which is tested with manual input management.
+    /// </summary>
     public class ManualInputManagerTestScene : TestScene
     {
         protected override Container<Drawable> Content => InputManager;

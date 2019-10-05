@@ -7,7 +7,7 @@ using osu.Framework.Testing.Input;
 namespace osu.Framework.Testing
 {
     /// <summary>
-    /// An abstract test case which is tested with manual input management.
+    /// An abstract <see cref="TestSuite"/> which is performed with manual input management.
     /// </summary>
     public abstract class ManualInputManagerTestSuite<T> : TestSuite<T> where T : ManualInputManagerTestScene, new()
     {

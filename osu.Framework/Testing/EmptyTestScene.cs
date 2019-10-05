@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Testing
 {
+    /// <summary>
+    /// An empty <see cref="TestScene"/>
+    /// </summary>
     public class EmptyTestScene : TestScene
     {
     }

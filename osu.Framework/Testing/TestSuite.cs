@@ -23,6 +23,9 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Testing
 {
+    /// <summary>
+    /// A set of tests which is performed on some <see cref="TestScene"/>
+    /// </summary>
     [TestFixture]
     public abstract class TestSuite : Container, IDynamicallyCompile
     {
