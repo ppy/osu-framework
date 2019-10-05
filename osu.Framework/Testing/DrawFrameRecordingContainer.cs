@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Testing
 {
-    internal class DrawFrameRecordingContainer : Container
+    public class DrawFrameRecordingContainer : Container
     {
         private readonly Bindable<RecordState> recordState = new Bindable<RecordState>();
         private readonly BindableInt currentFrame = new BindableInt();
