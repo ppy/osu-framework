@@ -3,42 +3,19 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 using osu.Framework.Testing;
-using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSuiteInputQueueChange : ManualInputManagerTestSuite
+    // TODO: blocking event testing
+    public class TestSuiteInputQueueChange : ManualInputManagerTestSuite<TestSceneInputQueueChange>
     {
-        private readonly HittableBox box1;
-        private readonly HittableBox box2;
-        private readonly HittableBox box3;
-
-        public TestSuiteInputQueueChange()
-        {
-            RelativeSizeAxes = Axes.Both;
-            Children = new Drawable[]
-            {
-                box3 = new HittableBox(3),
-                box2 = new HittableBox(2),
-                box1 = new HittableBox(1),
-            };
-
-            // TODO: blocking event testing
-        }
-
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-            foreach (var b in Children.OfType<HittableBox>())
+            foreach (var b in TestScene.Children.OfType<TestSceneInputQueueChange.HittableBox>())
                 b.Reset();
         }
 
@@ -50,9 +27,9 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
             AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
             AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
-            AddAssert("box 1 was pressed", () => box1.HitCount == 1);
-            AddAssert("box 2 was pressed", () => box2.HitCount == 1);
-            AddAssert("box 3 not pressed", () => box3.HitCount == 0);
+            AddAssert("box 1 was pressed", () => TestScene.Box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => TestScene.Box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => TestScene.Box3.HitCount == 0);
         }
 
         [Test]
@@ -69,56 +46,9 @@ namespace osu.Framework.Tests.Visual.Input
                 InputManager.ReleaseButton(MouseButton.Button1);
                 InputManager.ReleaseButton(MouseButton.Button2);
             });
-            AddAssert("box 1 was pressed", () => box1.HitCount == 1);
-            AddAssert("box 2 was pressed", () => box2.HitCount == 1);
-            AddAssert("box 3 not pressed", () => box3.HitCount == 0);
-        }
-
-        private class HittableBox : CompositeDrawable
-        {
-            private readonly int index;
-
-            public int HitCount;
-
-            private float xPos => index * 10;
-
-            public HittableBox(int index)
-            {
-                this.index = index;
-                Position = new Vector2(xPos);
-                Size = new Vector2(50);
-                Anchor = Anchor.Centre;
-                Origin = Anchor.Centre;
-
-                BorderColour = Color4.BlueViolet;
-                BorderThickness = 3;
-                Masking = true;
-
-                InternalChildren = new Drawable[]
-                {
-                    new Box { RelativeSizeAxes = Axes.Both },
-                    new SpriteText
-                    {
-                        Colour = Color4.Black,
-                        Text = index.ToString(),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                    }
-                };
-            }
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                HitCount++;
-                this.MoveToX(xPos + 100).Then().MoveToX(xPos, 1000, Easing.In);
-                return true;
-            }
-
-            public void Reset()
-            {
-                FinishTransforms();
-                HitCount = 0;
-            }
+            AddAssert("box 1 was pressed", () => TestScene.Box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => TestScene.Box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => TestScene.Box3.HitCount == 0);
         }
     }
 }
