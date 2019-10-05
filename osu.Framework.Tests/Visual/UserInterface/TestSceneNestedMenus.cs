@@ -64,10 +64,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             return item;
         }
 
-        public TestSceneNestedMenus()
-        {
-        }
-
         private class ClickOpenMenu : BasicMenu
         {
             protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay, false);

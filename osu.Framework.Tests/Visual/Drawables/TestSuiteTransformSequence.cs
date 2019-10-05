@@ -121,60 +121,60 @@ namespace osu.Framework.Tests.Visual.Drawables
             Scene.Boxes[2].Delay(-2000).Spin(1000, RotationDirection.CounterClockwise);
 
             Scene.Boxes[3].RotateTo(90)
-                     .Then().Delay(1000).RotateTo(0)
-                     .Then().RotateTo(180, 1000).Loop();
+                 .Then().Delay(1000).RotateTo(0)
+                 .Then().RotateTo(180, 1000).Loop();
 
             Scene.Boxes[4].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
 
             Scene.Boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
-                     .Then(1000,
-                         b => b.RotateTo(0, 1000),
-                         b => b.ScaleTo(2, 500)
-                     )
-                     .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
-                     .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+                 .Then(1000,
+                     b => b.RotateTo(0, 1000),
+                     b => b.ScaleTo(2, 500)
+                 )
+                 .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
+                 .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
             Scene.Boxes[6].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
-                     .Then(1000,
-                         b => b.RotateTo(0),
-                         b => b.ScaleTo(2)
-                     )
-                     .Then(
-                         b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
-                     )
-                     .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
-                     .Finally(_ => finalizeTriggered = true);
+                 .Then(1000,
+                     b => b.RotateTo(0),
+                     b => b.ScaleTo(2)
+                 )
+                 .Then(
+                     b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
+                 )
+                 .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
+                 .Finally(_ => finalizeTriggered = true);
 
             Scene.Boxes[7].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
-                     .Then(1000,
-                         b => b.RotateTo(0),
-                         b => b.ScaleTo(2)
-                     )
-                     .Then(
-                         b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
-                         b => b.ScaleTo(0.5f, 500)
-                     )
-                     .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+                 .Then(1000,
+                     b => b.RotateTo(0),
+                     b => b.ScaleTo(2)
+                 )
+                 .Then(
+                     b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
+                     b => b.ScaleTo(0.5f, 500)
+                 )
+                 .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
             Scene.Boxes[8].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
-                     .Then(1000,
-                         b => b.RotateTo(0),
-                         b => b.ScaleTo(2)
-                     )
-                     .Then(
-                         b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
-                         b => b.ScaleTo(0.5f, 500)
-                     )
-                     .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+                 .Then(1000,
+                     b => b.RotateTo(0),
+                     b => b.ScaleTo(2)
+                 )
+                 .Then(
+                     b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
+                     b => b.ScaleTo(0.5f, 500)
+                 )
+                 .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
             Scene.Boxes[9].RotateTo(200)
-                     .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+                 .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
             Scene.Boxes[10].Delay(-1000).RotateTo(200)
-                     .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+                 .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
             Scene.Boxes[11].Delay(-1000).RotateTo(200, 1000)
-                     .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+                 .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }
 }

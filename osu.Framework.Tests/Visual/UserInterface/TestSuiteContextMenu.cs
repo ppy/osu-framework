@@ -33,9 +33,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // Move box along a square trajectory
             Scene.MovingBox.MoveTo(new Vector2(movement_amount, 0), duration)
-                     .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
-                     .Then().MoveTo(Vector2.Zero, duration)
-                     .Loop();
+                 .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
+                 .Then().MoveTo(Vector2.Zero, duration)
+                 .Loop();
         }
 
         [Test]

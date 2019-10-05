@@ -8,7 +8,7 @@ namespace osu.Framework.Testing
 {
     /// <summary>
     /// Denotes a method which adds <see cref="TestScene"/> steps.
-    /// Invoked via <see cref="TestScene.RunSetUpSteps"/> (which is called from nUnit's [SetUp] or <see cref="TestBrowser.LoadTest"/>).
+    /// Invoked via <see cref="TestSuite.RunSetUpSteps"/> (which is called from nUnit's [SetUp] or <see cref="TestBrowser.LoadTest"/>).
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     [MeansImplicitUse]

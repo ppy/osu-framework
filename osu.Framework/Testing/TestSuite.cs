@@ -384,6 +384,5 @@ namespace osu.Framework.Testing
 
         protected internal override bool RemoveInternal(Drawable drawable) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
-
     }
 }
