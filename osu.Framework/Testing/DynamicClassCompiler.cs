@@ -99,7 +99,7 @@ namespace osu.Framework.Testing
                 // add ourselves as a required type.
                 reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
+                reqTypes.Add(TestSuite.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;

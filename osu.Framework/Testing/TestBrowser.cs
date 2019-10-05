@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
     [Cached]
     public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
     {
-        public TestScene CurrentTest { get; private set; }
+        public TestSuite CurrentTest { get; private set; }
 
         private BasicTextBox searchTextBox;
         private SearchContainer<TestGroupButton> leftFlowContainer;
@@ -46,7 +46,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestScene> backgroundCompiler;
+        private DynamicClassCompiler<TestSuite> backgroundCompiler;
 
         private bool interactive;
 
@@ -78,7 +78,7 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestSuite)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
 
         private void updateList(ValueChangedEvent<Assembly> args)
         {
@@ -92,7 +92,7 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? TestScene.RemovePrefix(t.Name) : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? TestSuite.RemovePrefix(t.Name) : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
@@ -249,7 +249,7 @@ namespace osu.Framework.Testing
 
             if (RuntimeInfo.SupportsJIT)
             {
-                backgroundCompiler = new DynamicClassCompiler<TestScene>();
+                backgroundCompiler = new DynamicClassCompiler<TestSuite>();
                 backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
                 backgroundCompiler.CompilationFailed += compileFailed;
@@ -400,7 +400,7 @@ namespace osu.Framework.Testing
             if (testType == null)
                 return;
 
-            var newTest = (TestScene)Activator.CreateInstance(testType);
+            var newTest = (TestSuite)Activator.CreateInstance(testType);
 
             const string dynamic_prefix = "dynamic";
 
@@ -454,7 +454,7 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
+            foreach (var m in methods.Where(m => m.Name != nameof(TestSuite.TestConstructor)))
             {
                 if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
@@ -491,7 +491,7 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = methods.Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
+                var setUpMethods = methods.Where(m => m.Name != nameof(TestSuite.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
 
                 if (setUpMethods.Any())
                 {
