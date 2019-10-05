@@ -5,24 +5,17 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteContextMenu : ManualInputManagerTestSuite
+    public class TestSuiteContextMenu : ManualInputManagerTestSuite<TestSceneContextMenu>
     {
         private const int duration = 1000;
-
-        private readonly ContextMenuBox movingBox;
-
-        private readonly TestContextMenuContainer contextContainer;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -32,38 +25,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(BasicContextMenuContainer)
         };
 
-        private ContextMenuBox makeBox(Anchor anchor) =>
-            new ContextMenuBox
-            {
-                Size = new Vector2(200),
-                Anchor = anchor,
-                Origin = anchor,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Blue,
-                    }
-                }
-            };
-
-        public TestSuiteContextMenu()
-        {
-            Add(contextContainer = new TestContextMenuContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[]
-                {
-                    makeBox(Anchor.TopLeft),
-                    makeBox(Anchor.TopRight),
-                    makeBox(Anchor.BottomLeft),
-                    makeBox(Anchor.BottomRight),
-                    movingBox = makeBox(Anchor.Centre),
-                }
-            });
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -71,24 +32,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             const float movement_amount = 500;
 
             // Move box along a square trajectory
-            movingBox.MoveTo(new Vector2(movement_amount, 0), duration)
+            TestScene.MovingBox.MoveTo(new Vector2(movement_amount, 0), duration)
                      .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
                      .Then().MoveTo(Vector2.Zero, duration)
                      .Loop();
         }
 
-        public class TestContextMenuContainer : BasicContextMenuContainer
-        {
-            public Menu CurrentMenu;
-
-            protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
-        }
-
         [Test]
         public void TestStaysOnScreen()
         {
-            foreach (var c in contextContainer)
-                testDrawableCornerClicks(c, c == movingBox);
+            foreach (var c in TestScene.ContextContainer)
+                testDrawableCornerClicks(c, c == TestScene.MovingBox);
         }
 
         private void testDrawableCornerClicks(Drawable box, bool testManyTimes)
@@ -111,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             for (int i = 0; i < (testManyTimes ? 10 : 1); i++)
-                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(contextContainer.CurrentMenu, target));
+                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(TestScene.ContextContainer.CurrentMenu, target));
         }
 
         private bool isTrackingTargetCorrectly(Drawable menu, Drawable target)
@@ -131,17 +85,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                    && inputQuad.Contains(menuQuad.TopRight + new Vector2(-1, 1))
                    && inputQuad.Contains(menuQuad.BottomLeft + new Vector2(1, -1))
                    && inputQuad.Contains(menuQuad.BottomRight + new Vector2(-1, -1));
-        }
-
-        private class ContextMenuBox : Container, IHasContextMenu
-        {
-            public MenuItem[] ContextMenuItems => new[]
-            {
-                new MenuItem(@"Change width", () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height", () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change width back", () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height back", () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint)),
-            };
         }
     }
 }
