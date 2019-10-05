@@ -12,11 +12,11 @@ namespace osu.Framework.Testing
     public abstract class ManualInputManagerTestSuite<T> : TestSuite<T> where T : ManualInputManagerTestScene, new()
     {
         [SetUp]
-        public virtual void SetUp() => TestScene.ResetInput();
+        public virtual void SetUp() => Scene.ResetInput();
 
         /// <summary>
         /// The <see cref="ManualInputManager"/>.
         /// </summary>
-        public ManualInputManager InputManager => TestScene.InputManager;
+        public ManualInputManager InputManager => Scene.InputManager;
     }
 }

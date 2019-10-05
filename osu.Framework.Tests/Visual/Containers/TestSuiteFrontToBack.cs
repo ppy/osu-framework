@@ -29,18 +29,18 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             for (int i = 0; i < 100; i++)
             {
-                TestScene.Cell(i % TestSceneFrontToBack.CELL_COUNT).Add(new Box
+                Scene.Cell(i % TestSceneFrontToBack.CELL_COUNT).Add(new Box
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
                     RelativeSizeAxes = Axes.Both,
-                    Scale = new Vector2(TestScene.CurrentScale)
+                    Scale = new Vector2(Scene.CurrentScale)
                 });
 
-                TestScene.CurrentScale -= 0.001f;
-                if (TestScene.CurrentScale < 0)
-                    TestScene.CurrentScale = 1;
+                Scene.CurrentScale -= 0.001f;
+                if (Scene.CurrentScale < 0)
+                    Scene.CurrentScale = 1;
             }
         }
     }

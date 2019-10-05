@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Create scroll container", () =>
             {
-                Add(TestScene.ScrollContainer = new BasicScrollContainer
+                Add(Scene.ScrollContainer = new BasicScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Create scroll container", () =>
             {
-                Add(TestScene.ScrollContainer = new BasicScrollContainer
+                Add(Scene.ScrollContainer = new BasicScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -76,15 +76,15 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("Click and drag scrollcontainer", () =>
             {
-                InputManager.MoveMouseTo(TestScene.ScrollContainer);
+                InputManager.MoveMouseTo(Scene.ScrollContainer);
                 InputManager.PressButton(MouseButton.Left);
                 // Required for the dragging state to be set correctly.
-                InputManager.MoveMouseTo(TestScene.ScrollContainer.ToScreenSpace(TestScene.ScrollContainer.LayoutRectangle.Centre + new Vector2(10f)));
+                InputManager.MoveMouseTo(Scene.ScrollContainer.ToScreenSpace(Scene.ScrollContainer.LayoutRectangle.Centre + new Vector2(10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(TestScene.ScrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 400)));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(Scene.ScrollContainer.ScreenSpaceDrawQuad.Centre - new Vector2(0, 400)));
             checkPosition(withClampExtension ? 200 : 100);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(TestScene.ScrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 400)));
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(Scene.ScrollContainer.ScreenSpaceDrawQuad.Centre + new Vector2(0, 400)));
             checkPosition(withClampExtension ? -100 : 0);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkPosition(0);
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Create scroll container with centre-left content", () =>
             {
-                Add(TestScene.ScrollContainer = new BasicScrollContainer
+                Add(Scene.ScrollContainer = new BasicScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -109,9 +109,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 });
             });
 
-            AddStep("Scroll to 0", () => TestScene.ScrollContainer.ScrollTo(0, false));
+            AddStep("Scroll to 0", () => Scene.ScrollContainer.ScrollTo(0, false));
             AddAssert("Content position at top",
-                () => Precision.AlmostEquals(TestScene.ScrollContainer.ScreenSpaceDrawQuad.TopLeft, TestScene.ScrollContainer.ScrollContent.ScreenSpaceDrawQuad.TopLeft));
+                () => Precision.AlmostEquals(Scene.ScrollContainer.ScreenSpaceDrawQuad.TopLeft, Scene.ScrollContainer.ScrollContent.ScreenSpaceDrawQuad.TopLeft));
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             AddStep("Create scroll container", () =>
             {
-                Add(TestScene.ScrollContainer = new TestSceneScrollContainer.ClampedScrollbarScrollContainer
+                Add(Scene.ScrollContainer = new TestSceneScrollContainer.ClampedScrollbarScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -138,10 +138,10 @@ namespace osu.Framework.Tests.Visual.Containers
                 });
             });
 
-            AddStep("scroll to end", () => TestScene.ScrollContainer.ScrollToEnd(false));
+            AddStep("scroll to end", () => Scene.ScrollContainer.ScrollToEnd(false));
             checkScrollbarPosition(250);
 
-            AddStep("scroll to start", () => TestScene.ScrollContainer.ScrollToStart(false));
+            AddStep("scroll to start", () => Scene.ScrollContainer.ScrollToStart(false));
             checkScrollbarPosition(0);
         }
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep("Create scroll container", () =>
             {
-                Add(TestScene.ScrollContainer = clampedContainer = new TestSceneScrollContainer.ClampedScrollbarScrollContainer
+                Add(Scene.ScrollContainer = clampedContainer = new TestSceneScrollContainer.ClampedScrollbarScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -186,9 +186,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 InputManager.MoveMouseTo(clampedContainer.Scrollbar.ToScreenSpace(clampedContainer.Scrollbar.LayoutRectangle.Centre + new Vector2(0, -10f)));
             });
 
-            AddStep("Move mouse up", () => InputManager.MoveMouseTo(TestScene.ScrollContainer.ScreenSpaceDrawQuad.TopRight - new Vector2(0, 20)));
+            AddStep("Move mouse up", () => InputManager.MoveMouseTo(Scene.ScrollContainer.ScreenSpaceDrawQuad.TopRight - new Vector2(0, 20)));
             checkScrollbarPosition(0);
-            AddStep("Move mouse down", () => InputManager.MoveMouseTo(TestScene.ScrollContainer.ScreenSpaceDrawQuad.BottomRight + new Vector2(0, 20)));
+            AddStep("Move mouse down", () => InputManager.MoveMouseTo(Scene.ScrollContainer.ScreenSpaceDrawQuad.BottomRight + new Vector2(0, 20)));
             checkScrollbarPosition(250);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkScrollbarPosition(250);
@@ -200,16 +200,16 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddStep($"scroll to {position}", () =>
             {
-                TestScene.ScrollContainer.ScrollTo(position, false);
+                Scene.ScrollContainer.ScrollTo(position, false);
                 immediateScrollPosition = position;
             });
 
             AddAssert($"immediately scrolled to {position}", () => Precision.AlmostEquals(position, immediateScrollPosition, 1));
         }
 
-        private void checkPosition(float expected) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, TestScene.ScrollContainer.Current, 1));
+        private void checkPosition(float expected) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, Scene.ScrollContainer.Current, 1));
 
         private void checkScrollbarPosition(float expected) =>
-            AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, TestScene.ScrollContainer.InternalChildren[1].DrawPosition.Y, 1));
+            AddUntilStep($"scrollbar position at {expected}", () => Precision.AlmostEquals(expected, Scene.ScrollContainer.InternalChildren[1].DrawPosition.Y, 1));
     }
 }

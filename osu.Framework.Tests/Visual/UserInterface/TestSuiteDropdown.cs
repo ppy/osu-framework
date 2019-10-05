@@ -33,66 +33,66 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var i = TestSceneDropdown.ITEMS_TO_ADD;
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(TestScene.Dropdown));
-            AddAssert("dropdown is open", () => TestScene.Dropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(Scene.Dropdown));
+            AddAssert("dropdown is open", () => Scene.Dropdown.Menu.State == MenuState.Open);
 
-            AddRepeatStep("add item", () => TestScene.Dropdown.AddDropdownItem("test " + i++), TestSceneDropdown.ITEMS_TO_ADD);
-            AddAssert("item count is correct", () => TestScene.Dropdown.Items.Count() == TestSceneDropdown.ITEMS_TO_ADD * 2);
+            AddRepeatStep("add item", () => Scene.Dropdown.AddDropdownItem("test " + i++), TestSceneDropdown.ITEMS_TO_ADD);
+            AddAssert("item count is correct", () => Scene.Dropdown.Items.Count() == TestSceneDropdown.ITEMS_TO_ADD * 2);
 
             AddStep($"Set dropdown1 height to {explicit_height}", () =>
             {
-                calculatedHeight = TestScene.Dropdown.Menu.Height;
-                TestScene.Dropdown.Menu.MaxHeight = explicit_height;
+                calculatedHeight = Scene.Dropdown.Menu.Height;
+                Scene.Dropdown.Menu.MaxHeight = explicit_height;
             });
-            AddAssert($"dropdown1 height is {explicit_height}", () => TestScene.Dropdown.Menu.Height == explicit_height);
+            AddAssert($"dropdown1 height is {explicit_height}", () => Scene.Dropdown.Menu.Height == explicit_height);
 
-            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => TestScene.Dropdown.Menu.MaxHeight = float.PositiveInfinity);
-            AddAssert("dropdown1 height is calculated automatically", () => TestScene.Dropdown.Menu.Height == calculatedHeight);
+            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => Scene.Dropdown.Menu.MaxHeight = float.PositiveInfinity);
+            AddAssert("dropdown1 height is calculated automatically", () => Scene.Dropdown.Menu.Height == calculatedHeight);
 
-            AddStep("click item 13", () => TestScene.Dropdown.SelectItem(TestScene.Dropdown.Menu.Items[13]));
+            AddStep("click item 13", () => Scene.Dropdown.SelectItem(Scene.Dropdown.Menu.Items[13]));
 
-            AddAssert("dropdown1 is closed", () => TestScene.Dropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => TestScene.Dropdown.Current.Value == TestScene.Dropdown.Items.ElementAt(13));
+            AddAssert("dropdown1 is closed", () => Scene.Dropdown.Menu.State == MenuState.Closed);
+            AddAssert("item 13 is selected", () => Scene.Dropdown.Current.Value == Scene.Dropdown.Items.ElementAt(13));
 
-            AddStep("select item 15", () => TestScene.Dropdown.Current.Value = TestScene.Dropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => TestScene.Dropdown.Current.Value == TestScene.Dropdown.Items.ElementAt(15));
+            AddStep("select item 15", () => Scene.Dropdown.Current.Value = Scene.Dropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => Scene.Dropdown.Current.Value == Scene.Dropdown.Items.ElementAt(15));
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(TestScene.Dropdown));
-            AddAssert("dropdown1 is open", () => TestScene.Dropdown.Menu.State == MenuState.Open);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(Scene.Dropdown));
+            AddAssert("dropdown1 is open", () => Scene.Dropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(TestScene.TestDropdownMenu));
+            AddStep("click dropdown2", () => toggleDropdownViaClick(Scene.TestDropdownMenu));
 
-            AddAssert("dropdown1 is closed", () => TestScene.Dropdown.Menu.State == MenuState.Closed);
-            AddAssert("dropdown2 is open", () => TestScene.TestDropdownMenu.Menu.State == MenuState.Open);
+            AddAssert("dropdown1 is closed", () => Scene.Dropdown.Menu.State == MenuState.Closed);
+            AddAssert("dropdown2 is open", () => Scene.TestDropdownMenu.Menu.State == MenuState.Open);
 
-            AddStep("select 'invalid'", () => TestScene.Dropdown.Current.Value = "invalid");
+            AddStep("select 'invalid'", () => Scene.Dropdown.Current.Value = "invalid");
 
-            AddAssert("'invalid' is selected", () => TestScene.Dropdown.Current.Value == "invalid");
-            AddAssert("label shows 'invalid'", () => TestScene.Dropdown.Header.Label == "invalid");
+            AddAssert("'invalid' is selected", () => Scene.Dropdown.Current.Value == "invalid");
+            AddAssert("label shows 'invalid'", () => Scene.Dropdown.Header.Label == "invalid");
 
-            AddStep("select item 2", () => TestScene.Dropdown.Current.Value = TestScene.Dropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => TestScene.Dropdown.Current.Value == TestScene.Dropdown.Items.ElementAt(2));
+            AddStep("select item 2", () => Scene.Dropdown.Current.Value = Scene.Dropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => Scene.Dropdown.Current.Value == Scene.Dropdown.Items.ElementAt(2));
 
-            AddStep("clear bindable list", () => TestScene.BindableList.Clear());
-            AddStep("click dropdown3", () => toggleDropdownViaClick(TestScene.BindableDropdown));
-            AddAssert("no elements in bindable dropdown", () => !TestScene.BindableDropdown.Items.Any());
-            AddStep("add items to bindable", () => TestScene.BindableList.AddRange(new[] { "one", "two", "three" }));
-            AddAssert("three items in dropdown", () => TestScene.BindableDropdown.Items.Count() == 3);
-            AddStep("select three", () => TestScene.BindableDropdown.Current.Value = "three");
-            AddStep("remove first item from bindable", () => TestScene.BindableList.RemoveAt(0));
-            AddAssert("two items in dropdown", () => TestScene.BindableDropdown.Items.Count() == 2);
-            AddAssert("current value still three", () => TestScene.BindableDropdown.Current.Value == "three");
-            AddStep("remove three", () => TestScene.BindableList.Remove("three"));
-            AddAssert("current value should be two", () => TestScene.BindableDropdown.Current.Value == "two");
+            AddStep("clear bindable list", () => Scene.BindableList.Clear());
+            AddStep("click dropdown3", () => toggleDropdownViaClick(Scene.BindableDropdown));
+            AddAssert("no elements in bindable dropdown", () => !Scene.BindableDropdown.Items.Any());
+            AddStep("add items to bindable", () => Scene.BindableList.AddRange(new[] { "one", "two", "three" }));
+            AddAssert("three items in dropdown", () => Scene.BindableDropdown.Items.Count() == 3);
+            AddStep("select three", () => Scene.BindableDropdown.Current.Value = "three");
+            AddStep("remove first item from bindable", () => Scene.BindableList.RemoveAt(0));
+            AddAssert("two items in dropdown", () => Scene.BindableDropdown.Items.Count() == 2);
+            AddAssert("current value still three", () => Scene.BindableDropdown.Current.Value == "three");
+            AddStep("remove three", () => Scene.BindableList.Remove("three"));
+            AddAssert("current value should be two", () => Scene.BindableDropdown.Current.Value == "two");
         }
 
         [Test]
         public void SelectNull()
         {
-            AddStep("select item 1", () => TestScene.Dropdown.Current.Value = TestScene.Dropdown.Items.ElementAt(1));
-            AddAssert("item 1 is selected", () => TestScene.Dropdown.Current.Value == TestScene.Dropdown.Items.ElementAt(1));
-            AddStep("select item null", () => TestScene.Dropdown.Current.Value = null);
-            AddAssert("null is selected", () => TestScene.Dropdown.Current.Value == null);
+            AddStep("select item 1", () => Scene.Dropdown.Current.Value = Scene.Dropdown.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => Scene.Dropdown.Current.Value == Scene.Dropdown.Items.ElementAt(1));
+            AddStep("select item null", () => Scene.Dropdown.Current.Value = null);
+            AddAssert("null is selected", () => Scene.Dropdown.Current.Value == null);
         }
 
         private void toggleDropdownViaClick(TestSceneDropdown.TestDropdown dropdown)

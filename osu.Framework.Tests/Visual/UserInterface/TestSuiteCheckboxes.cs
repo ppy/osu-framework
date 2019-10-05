@@ -20,8 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public TestSuiteCheckboxes()
         {
-            TestScene.Swap.Current.ValueChanged += check => TestScene.Swap.RightHandedCheckbox = check.NewValue;
-            TestScene.Rotate.Current.ValueChanged += e => TestScene.Rotate.RotateTo(e.NewValue ? 45 : 0, 100);
+            Scene.Swap.Current.ValueChanged += check => Scene.Swap.RightHandedCheckbox = check.NewValue;
+            Scene.Rotate.Current.ValueChanged += e => Scene.Rotate.RotateTo(e.NewValue ? 45 : 0, 100);
         }
 
         /// <summary>
@@ -31,19 +31,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestDirectToggle()
         {
-            var testBindable = TestScene.Basic.Current.GetBoundCopy();
+            var testBindable = Scene.Basic.Current.GetBoundCopy();
 
-            AddAssert("is unchecked", () => !TestScene.Basic.Current.Value);
+            AddAssert("is unchecked", () => !Scene.Basic.Current.Value);
             AddAssert("bindable unchecked", () => !testBindable.Value);
 
-            AddStep("switch bindable directly", () => TestScene.Basic.Current.Value = true);
+            AddStep("switch bindable directly", () => Scene.Basic.Current.Value = true);
 
-            AddAssert("is checked", () => TestScene.Basic.Current.Value);
+            AddAssert("is checked", () => Scene.Basic.Current.Value);
             AddAssert("bindable checked", () => testBindable.Value);
 
-            AddStep("change bindable", () => TestScene.Basic.Current = new Bindable<bool>());
+            AddStep("change bindable", () => Scene.Basic.Current = new Bindable<bool>());
 
-            AddAssert("is unchecked", () => !TestScene.Basic.Current.Value);
+            AddAssert("is unchecked", () => !Scene.Basic.Current.Value);
             AddAssert("bindable unchecked", () => !testBindable.Value);
         }
     }

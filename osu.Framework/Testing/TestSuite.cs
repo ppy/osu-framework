@@ -313,7 +313,7 @@ namespace osu.Framework.Testing
 
     public abstract class TestSuite<T> : TestSuite where T : TestScene, new()
     {
-        public readonly T TestScene;
+        public readonly T Scene;
         private readonly Container content;
 
         protected override Container<Drawable> Content => content;
@@ -370,7 +370,7 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
-                        Child = content = TestScene = new T()
+                        Child = content = Scene = new T()
                     },
                 }
             });

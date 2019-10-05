@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep($"{nameof(FinishTransforms)}", delegate
             {
-                foreach (var box in TestScene.Boxes)
+                foreach (var box in Scene.Boxes)
                     box.FinishTransforms();
             });
 
@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep($"{nameof(ClearTransforms)}", delegate
             {
-                foreach (var box in TestScene.Boxes)
+                foreach (var box in Scene.Boxes)
                     box.ClearTransforms();
             });
 
@@ -77,16 +77,16 @@ namespace osu.Framework.Tests.Visual.Drawables
                 "Red after 1 sec transform 1 sec in the past",
             };
 
-            for (int i = 0; i < TestScene.Rows * TestScene.Cols; ++i)
+            for (int i = 0; i < Scene.Rows * Scene.Cols; ++i)
             {
-                TestScene.Cell(i).Children = new Drawable[]
+                Scene.Cell(i).Children = new Drawable[]
                 {
                     new SpriteText
                     {
                         Text = labels[i],
                         Font = new FontUsage(size: 20),
                     },
-                    TestScene.Boxes[i] = new Container
+                    Scene.Boxes[i] = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.25f),
@@ -112,21 +112,21 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private void animate()
         {
-            TestScene.Boxes[0].Delay(500).Then(500).Then(500).Then(
+            Scene.Boxes[0].Delay(500).Then(500).Then(500).Then(
                 b => b.Delay(500).Spin(1000, RotationDirection.CounterClockwise)
             );
 
-            TestScene.Boxes[1].Spin(1000, RotationDirection.CounterClockwise);
+            Scene.Boxes[1].Spin(1000, RotationDirection.CounterClockwise);
 
-            TestScene.Boxes[2].Delay(-2000).Spin(1000, RotationDirection.CounterClockwise);
+            Scene.Boxes[2].Delay(-2000).Spin(1000, RotationDirection.CounterClockwise);
 
-            TestScene.Boxes[3].RotateTo(90)
+            Scene.Boxes[3].RotateTo(90)
                      .Then().Delay(1000).RotateTo(0)
                      .Then().RotateTo(180, 1000).Loop();
 
-            TestScene.Boxes[4].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
+            Scene.Boxes[4].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
 
-            TestScene.Boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
+            Scene.Boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
                      .Then(1000,
                          b => b.RotateTo(0, 1000),
                          b => b.ScaleTo(2, 500)
@@ -134,7 +134,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                      .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
                      .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
-            TestScene.Boxes[6].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            Scene.Boxes[6].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
                      .Then(1000,
                          b => b.RotateTo(0),
                          b => b.ScaleTo(2)
@@ -145,7 +145,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                      .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
                      .Finally(_ => finalizeTriggered = true);
 
-            TestScene.Boxes[7].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            Scene.Boxes[7].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
                      .Then(1000,
                          b => b.RotateTo(0),
                          b => b.ScaleTo(2)
@@ -156,7 +156,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                      )
                      .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            TestScene.Boxes[8].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            Scene.Boxes[8].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
                      .Then(1000,
                          b => b.RotateTo(0),
                          b => b.ScaleTo(2)
@@ -167,13 +167,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                      )
                      .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            TestScene.Boxes[9].RotateTo(200)
+            Scene.Boxes[9].RotateTo(200)
                      .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            TestScene.Boxes[10].Delay(-1000).RotateTo(200)
+            Scene.Boxes[10].Delay(-1000).RotateTo(200)
                      .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            TestScene.Boxes[11].Delay(-1000).RotateTo(200, 1000)
+            Scene.Boxes[11].Delay(-1000).RotateTo(200, 1000)
                      .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }

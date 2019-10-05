@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void addTestInputManagerStep()
         {
-            AddStep("Add InputManager", () => { TestScene.AddInputManager(); });
+            AddStep("Add InputManager", () => { Scene.AddInputManager(); });
         }
 
         [SetUp]
@@ -36,16 +36,16 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("Press A", () => InputManager.PressKey(Key.A));
             AddStep("Press Joystick", () => InputManager.PressJoystickButton(JoystickButton.Button1));
             addTestInputManagerStep();
-            AddAssert("mouse left not pressed", () => !TestScene.Mouse.IsPressed(MouseButton.Left));
-            AddAssert("A pressed", () => TestScene.Keyboard.IsPressed(Key.A));
-            AddAssert("Joystick pressed", () => TestScene.Joystick.IsPressed(JoystickButton.Button1));
+            AddAssert("mouse left not pressed", () => !Scene.Mouse.IsPressed(MouseButton.Left));
+            AddAssert("A pressed", () => Scene.Keyboard.IsPressed(Key.A));
+            AddAssert("Joystick pressed", () => Scene.Joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Left);
                 InputManager.ReleaseKey(Key.A);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("All released", () => !TestScene.Mouse.HasAnyButtonPressed && !TestScene.Keyboard.HasAnyButtonPressed && !TestScene.Joystick.HasAnyButtonPressed);
+            AddAssert("All released", () => !Scene.Mouse.HasAnyButtonPressed && !Scene.Keyboard.HasAnyButtonPressed && !Scene.Joystick.HasAnyButtonPressed);
         }
 
         [Test]
@@ -58,28 +58,28 @@ namespace osu.Framework.Tests.Visual.Input
                 InputManager.PressKey(Key.A);
                 InputManager.PressJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("pressed", () => TestScene.Mouse.IsPressed(MouseButton.Left) && TestScene.Keyboard.IsPressed(Key.A) && TestScene.Joystick.IsPressed(JoystickButton.Button1));
-            AddStep("UseParentInput = false", () => TestScene.TestSceneInputManager.UseParentInput = false);
-            AddAssert("still pressed", () => TestScene.Mouse.IsPressed(MouseButton.Left) && TestScene.Keyboard.IsPressed(Key.A) && TestScene.Joystick.IsPressed(JoystickButton.Button1));
+            AddAssert("pressed", () => Scene.Mouse.IsPressed(MouseButton.Left) && Scene.Keyboard.IsPressed(Key.A) && Scene.Joystick.IsPressed(JoystickButton.Button1));
+            AddStep("UseParentInput = false", () => Scene.TestSceneInputManager.UseParentInput = false);
+            AddAssert("still pressed", () => Scene.Mouse.IsPressed(MouseButton.Left) && Scene.Keyboard.IsPressed(Key.A) && Scene.Joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release on parent", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Left);
                 InputManager.ReleaseKey(Key.A);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("doen't affect child", () => TestScene.Mouse.IsPressed(MouseButton.Left) && TestScene.Keyboard.IsPressed(Key.A) && TestScene.Joystick.IsPressed(JoystickButton.Button1));
-            AddStep("UseParentInput = true", () => TestScene.TestSceneInputManager.UseParentInput = true);
-            AddAssert("all synced", () => !TestScene.Mouse.IsPressed(MouseButton.Left) && !TestScene.Keyboard.IsPressed(Key.A) && !TestScene.Joystick.IsPressed(JoystickButton.Button1));
+            AddAssert("doen't affect child", () => Scene.Mouse.IsPressed(MouseButton.Left) && Scene.Keyboard.IsPressed(Key.A) && Scene.Joystick.IsPressed(JoystickButton.Button1));
+            AddStep("UseParentInput = true", () => Scene.TestSceneInputManager.UseParentInput = true);
+            AddAssert("all synced", () => !Scene.Mouse.IsPressed(MouseButton.Left) && !Scene.Keyboard.IsPressed(Key.A) && !Scene.Joystick.IsPressed(JoystickButton.Button1));
         }
 
         [Test]
         public void MouseDownNoSync()
         {
             addTestInputManagerStep();
-            AddStep("UseParentInput = false", () => TestScene.TestSceneInputManager.UseParentInput = false);
+            AddStep("UseParentInput = false", () => Scene.TestSceneInputManager.UseParentInput = false);
             AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("UseParentInput = true", () => TestScene.TestSceneInputManager.UseParentInput = true);
-            AddAssert("not pressed", () => !TestScene.Mouse.IsPressed(MouseButton.Left));
+            AddStep("UseParentInput = true", () => Scene.TestSceneInputManager.UseParentInput = true);
+            AddAssert("not pressed", () => !Scene.Mouse.IsPressed(MouseButton.Left));
         }
 
         [Test]
@@ -87,15 +87,15 @@ namespace osu.Framework.Tests.Visual.Input
         {
             addTestInputManagerStep();
             AddStep("Press left", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("UseParentInput = false", () => TestScene.TestSceneInputManager.UseParentInput = false);
+            AddStep("UseParentInput = false", () => Scene.TestSceneInputManager.UseParentInput = false);
             AddStep("Release and press", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Left);
                 InputManager.PressButton(MouseButton.Left);
             });
-            AddStep("UseParentInput = true", () => TestScene.TestSceneInputManager.UseParentInput = true);
-            AddAssert("pressed", () => TestScene.Mouse.IsPressed(MouseButton.Left));
-            AddAssert("mouse up count == 0", () => TestScene.TestSceneInputManager.Status.MouseUpCount == 0);
+            AddStep("UseParentInput = true", () => Scene.TestSceneInputManager.UseParentInput = true);
+            AddAssert("pressed", () => Scene.Mouse.IsPressed(MouseButton.Left));
+            AddAssert("mouse up count == 0", () => Scene.TestSceneInputManager.Status.MouseUpCount == 0);
         }
     }
 }

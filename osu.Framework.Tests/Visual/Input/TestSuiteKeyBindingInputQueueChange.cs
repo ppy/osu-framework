@@ -12,21 +12,21 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void TestReleaseDoesNotTriggerWithoutPress()
         {
-            AddStep("set children", () => { TestScene.SetChildren(); });
+            AddStep("set children", () => { Scene.SetChildren(); });
 
             AddStep("click-hold shown receptor", () =>
             {
-                InputManager.MoveMouseTo(TestScene.ShownReceptor);
+                InputManager.MoveMouseTo(Scene.ShownReceptor);
                 InputManager.PressButton(MouseButton.Left);
             });
-            AddStep("hide shown receptor", () => TestScene.ShownReceptor.Hide());
-            AddStep("show hidden receptor", () => TestScene.HiddenReceptor.Show());
+            AddStep("hide shown receptor", () => Scene.ShownReceptor.Hide());
+            AddStep("show hidden receptor", () => Scene.HiddenReceptor.Show());
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("shown pressed", () => TestScene.ShownReceptor.Pressed);
-            AddAssert("shown released", () => TestScene.ShownReceptor.Released);
-            AddAssert("hidden not pressed", () => !TestScene.HiddenReceptor.Pressed);
-            AddAssert("hidden not released", () => !TestScene.HiddenReceptor.Released);
+            AddAssert("shown pressed", () => Scene.ShownReceptor.Pressed);
+            AddAssert("shown released", () => Scene.ShownReceptor.Released);
+            AddAssert("hidden not pressed", () => !Scene.HiddenReceptor.Pressed);
+            AddAssert("hidden not released", () => !Scene.HiddenReceptor.Released);
         }
     }
 }

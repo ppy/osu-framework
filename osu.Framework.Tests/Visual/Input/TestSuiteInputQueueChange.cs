@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Input
         public override void SetUp()
         {
             base.SetUp();
-            foreach (var b in TestScene.Children.OfType<TestSceneInputQueueChange.HittableBox>())
+            foreach (var b in Scene.Children.OfType<TestSceneInputQueueChange.HittableBox>())
                 b.Reset();
         }
 
@@ -27,9 +27,9 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
             AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
             AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
-            AddAssert("box 1 was pressed", () => TestScene.Box1.HitCount == 1);
-            AddAssert("box 2 was pressed", () => TestScene.Box2.HitCount == 1);
-            AddAssert("box 3 not pressed", () => TestScene.Box3.HitCount == 0);
+            AddAssert("box 1 was pressed", () => Scene.Box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => Scene.Box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => Scene.Box3.HitCount == 0);
         }
 
         [Test]
@@ -46,9 +46,9 @@ namespace osu.Framework.Tests.Visual.Input
                 InputManager.ReleaseButton(MouseButton.Button1);
                 InputManager.ReleaseButton(MouseButton.Button2);
             });
-            AddAssert("box 1 was pressed", () => TestScene.Box1.HitCount == 1);
-            AddAssert("box 2 was pressed", () => TestScene.Box2.HitCount == 1);
-            AddAssert("box 3 not pressed", () => TestScene.Box3.HitCount == 0);
+            AddAssert("box 1 was pressed", () => Scene.Box1.HitCount == 1);
+            AddAssert("box 2 was pressed", () => Scene.Box2.HitCount == 1);
+            AddAssert("box 3 not pressed", () => Scene.Box3.HitCount == 0);
         }
     }
 }

@@ -13,24 +13,24 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             bool cursorCenteredInContainer() =>
                 Precision.AlmostEquals(
-                    TestScene.CursorContainer.ActiveCursor.ScreenSpaceDrawQuad.Centre,
-                    TestScene.Container.ScreenSpaceDrawQuad.Centre);
+                    Scene.CursorContainer.ActiveCursor.ScreenSpaceDrawQuad.Centre,
+                    Scene.Container.ScreenSpaceDrawQuad.Centre);
 
-            TestScene.CreateContent();
-            AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(TestScene.Container.ScreenSpaceDrawQuad.Centre));
+            Scene.CreateContent();
+            AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(Scene.Container.ScreenSpaceDrawQuad.Centre));
             AddAssert("cursor is centered", cursorCenteredInContainer);
-            AddStep("Move container", () => TestScene.Container.Y += 50);
+            AddStep("Move container", () => Scene.Container.Y += 50);
             AddAssert("cursor is still centered", cursorCenteredInContainer);
-            AddStep("Resize container", () => TestScene.Container.Size *= new Vector2(1.4f, 1));
+            AddStep("Resize container", () => Scene.Container.Size *= new Vector2(1.4f, 1));
             AddAssert("cursor is still centered", cursorCenteredInContainer);
 
             // ensure positional updates work
-            AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(TestScene.Container.ScreenSpaceDrawQuad.Centre));
+            AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(Scene.Container.ScreenSpaceDrawQuad.Centre));
             AddAssert("cursor is still centered", cursorCenteredInContainer);
 
             // ensure we received the mouse position update from IRequireHighFrequencyMousePosition
             AddStep("Move cursor to test centre", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
-            AddStep("Recreate container with mouse already in place", TestScene.CreateContent);
+            AddStep("Recreate container with mouse already in place", Scene.CreateContent);
             AddAssert("cursor is centered", cursorCenteredInContainer);
         }
     }

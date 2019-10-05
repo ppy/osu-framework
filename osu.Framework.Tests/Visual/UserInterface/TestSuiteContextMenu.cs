@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             const float movement_amount = 500;
 
             // Move box along a square trajectory
-            TestScene.MovingBox.MoveTo(new Vector2(movement_amount, 0), duration)
+            Scene.MovingBox.MoveTo(new Vector2(movement_amount, 0), duration)
                      .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
                      .Then().MoveTo(Vector2.Zero, duration)
                      .Loop();
@@ -41,8 +41,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestStaysOnScreen()
         {
-            foreach (var c in TestScene.ContextContainer)
-                testDrawableCornerClicks(c, c == TestScene.MovingBox);
+            foreach (var c in Scene.ContextContainer)
+                testDrawableCornerClicks(c, c == Scene.MovingBox);
         }
 
         private void testDrawableCornerClicks(Drawable box, bool testManyTimes)
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             for (int i = 0; i < (testManyTimes ? 10 : 1); i++)
-                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(TestScene.ContextContainer.CurrentMenu, target));
+                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(Scene.ContextContainer.CurrentMenu, target));
         }
 
         private bool isTrackingTargetCorrectly(Drawable menu, Drawable target)

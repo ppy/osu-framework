@@ -9,31 +9,31 @@ namespace osu.Framework.Tests.Visual.Input
     {
         public TestSuiteHandleInput()
         {
-            AddStep($"enable {TestScene.TestNotHandleInput}", () => { InputManager.MoveMouseTo(TestScene.TestNotHandleInput); });
-            AddAssert($"check {nameof(TestScene.TestNotHandleInput)}", () => !TestScene.TestNotHandleInput.IsHovered && !TestScene.TestNotHandleInput.HasFocus);
+            AddStep($"enable {Scene.TestNotHandleInput}", () => { InputManager.MoveMouseTo(Scene.TestNotHandleInput); });
+            AddAssert($"check {nameof(Scene.TestNotHandleInput)}", () => !Scene.TestNotHandleInput.IsHovered && !Scene.TestNotHandleInput.HasFocus);
 
-            AddStep($"enable {nameof(TestScene.TestHandlePositionalInput)}", () =>
+            AddStep($"enable {nameof(Scene.TestHandlePositionalInput)}", () =>
             {
-                TestScene.TestHandlePositionalInput.Enabled = true;
-                InputManager.MoveMouseTo(TestScene.TestHandlePositionalInput);
+                Scene.TestHandlePositionalInput.Enabled = true;
+                InputManager.MoveMouseTo(Scene.TestHandlePositionalInput);
             });
-            AddAssert($"check {nameof(TestScene.TestHandlePositionalInput)}", () => TestScene.TestHandlePositionalInput.IsHovered && TestScene.TestHandlePositionalInput.HasFocus);
+            AddAssert($"check {nameof(Scene.TestHandlePositionalInput)}", () => Scene.TestHandlePositionalInput.IsHovered && Scene.TestHandlePositionalInput.HasFocus);
 
-            AddStep($"enable {nameof(TestScene.TestHandleNonPositionalInput)}", () =>
+            AddStep($"enable {nameof(Scene.TestHandleNonPositionalInput)}", () =>
             {
-                TestScene.TestHandleNonPositionalInput.Enabled = true;
-                InputManager.MoveMouseTo(TestScene.TestHandleNonPositionalInput);
+                Scene.TestHandleNonPositionalInput.Enabled = true;
+                InputManager.MoveMouseTo(Scene.TestHandleNonPositionalInput);
                 InputManager.TriggerFocusContention(null);
             });
-            AddAssert($"check {nameof(TestScene.TestHandleNonPositionalInput)}", () => !TestScene.TestHandleNonPositionalInput.IsHovered && TestScene.TestHandleNonPositionalInput.HasFocus);
+            AddAssert($"check {nameof(Scene.TestHandleNonPositionalInput)}", () => !Scene.TestHandleNonPositionalInput.IsHovered && Scene.TestHandleNonPositionalInput.HasFocus);
 
-            AddStep("move mouse", () => InputManager.MoveMouseTo(TestScene.TestHandlePositionalInput));
+            AddStep("move mouse", () => InputManager.MoveMouseTo(Scene.TestHandlePositionalInput));
             AddStep("disable all", () =>
             {
-                TestScene.TestHandlePositionalInput.Enabled = false;
-                TestScene.TestHandleNonPositionalInput.Enabled = false;
+                Scene.TestHandlePositionalInput.Enabled = false;
+                Scene.TestHandleNonPositionalInput.Enabled = false;
             });
-            AddAssert($"check {nameof(TestScene.TestHandlePositionalInput)}", () => !TestScene.TestHandlePositionalInput.IsHovered);
+            AddAssert($"check {nameof(Scene.TestHandlePositionalInput)}", () => !Scene.TestHandlePositionalInput.IsHovered);
             // focus is not released when AcceptsFocus become false while focused
             //AddAssert($"check {nameof(handleNonPositionalInput)}", () => !handleNonPositionalInput.HasFocus);
         }

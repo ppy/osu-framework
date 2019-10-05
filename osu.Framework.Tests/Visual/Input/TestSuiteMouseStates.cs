@@ -21,14 +21,14 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void initTestScene()
         {
-            TestScene.EventCounts1.Clear();
-            TestScene.EventCounts2.Clear();
+            Scene.EventCounts1.Clear();
+            Scene.EventCounts2.Clear();
             // InitialMousePosition cannot be used here because the event counters should be resetted after the initial mouse move.
-            AddStep("move mouse to center", () => InputManager.MoveMouseTo(TestScene.ActionContainer));
+            AddStep("move mouse to center", () => InputManager.MoveMouseTo(Scene.ActionContainer));
             AddStep("reset event counters", () =>
             {
-                TestScene.S1.Reset();
-                TestScene.S2.Reset();
+                Scene.S1.Reset();
+                Scene.S2.Reset();
             });
         }
 
@@ -52,26 +52,26 @@ namespace osu.Framework.Tests.Visual.Input
         {
             initTestScene();
 
-            AddStep("push move", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("push move", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
             checkEventCount(TestSceneMouseStates.MOVE, 1);
             checkEventCount(TestSceneMouseStates.SCROLL);
 
-            AddStep("push move", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.TopRight));
+            AddStep("push move", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.TopRight));
             checkEventCount(TestSceneMouseStates.MOVE, 1);
             checkEventCount(TestSceneMouseStates.SCROLL);
-            checkLastPositionDelta(() => TestScene.MarginBox.ScreenSpaceDrawQuad.Width);
+            checkLastPositionDelta(() => Scene.MarginBox.ScreenSpaceDrawQuad.Width);
 
-            AddStep("push move", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("push move", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.BottomRight));
             checkEventCount(TestSceneMouseStates.MOVE, 1);
-            checkLastPositionDelta(() => TestScene.MarginBox.ScreenSpaceDrawQuad.Height);
+            checkLastPositionDelta(() => Scene.MarginBox.ScreenSpaceDrawQuad.Height);
 
             AddStep("push two moves", () =>
             {
-                InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.TopLeft);
-                InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomLeft);
+                InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.BottomLeft);
             });
             checkEventCount(TestSceneMouseStates.MOVE, 2);
-            checkLastPositionDelta(() => Vector2.Distance(TestScene.MarginBox.ScreenSpaceDrawQuad.TopLeft, TestScene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
+            checkLastPositionDelta(() => Vector2.Distance(Scene.MarginBox.ScreenSpaceDrawQuad.TopLeft, Scene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
         }
 
         [Test]
@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Input
             checkEventCount(TestSceneMouseStates.MOUSE_DOWN, 1);
             checkIsDragged(false);
 
-            AddStep("move bottom left", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
+            AddStep("move bottom left", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount(TestSceneMouseStates.DRAG_START, 1);
             checkIsDragged(true);
 
@@ -146,19 +146,19 @@ namespace osu.Framework.Tests.Visual.Input
         {
             initTestScene();
 
-            AddStep("push move", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
+            AddStep("push move", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount(TestSceneMouseStates.MOVE, 1);
 
             AddStep("push move and scroll", () =>
             {
-                InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.Centre);
                 InputManager.ScrollBy(new Vector2(1, 2));
             });
 
             checkEventCount(TestSceneMouseStates.MOVE, 1);
             checkEventCount(TestSceneMouseStates.SCROLL, 1);
             checkLastScrollDelta(new Vector2(1, 2));
-            checkLastPositionDelta(() => Vector2.Distance(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomLeft, TestScene.MarginBox.ScreenSpaceDrawQuad.Centre));
+            checkLastPositionDelta(() => Vector2.Distance(Scene.MarginBox.ScreenSpaceDrawQuad.BottomLeft, Scene.MarginBox.ScreenSpaceDrawQuad.Centre));
 
             AddStep("Move mouse to out of bounds", () => InputManager.MoveMouseTo(Vector2.Zero));
 
@@ -182,22 +182,22 @@ namespace osu.Framework.Tests.Visual.Input
             initTestScene();
 
             // mouseDown on a non-draggable -> mouseUp on a distant position: drag-clicking
-            AddStep("move mouse", () => InputManager.MoveMouseTo(TestScene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("move mouse", () => InputManager.MoveMouseTo(Scene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft));
             AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount(TestSceneMouseStates.DRAG_START);
-            AddStep("drag non-draggable", () => InputManager.MoveMouseTo(TestScene.MarginBox));
+            AddStep("drag non-draggable", () => InputManager.MoveMouseTo(Scene.MarginBox));
             checkEventCount(TestSceneMouseStates.DRAG_START, 1, true);
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount(TestSceneMouseStates.CLICK, 1, true);
             checkEventCount(TestSceneMouseStates.DRAG_END);
 
             // mouseDown on a draggable -> mouseUp on the original position: no drag-clicking
-            AddStep("move mouse", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("move mouse", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
             AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("drag draggable", () => InputManager.MoveMouseTo(TestScene.OuterMarginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("drag draggable", () => InputManager.MoveMouseTo(Scene.OuterMarginBox.ScreenSpaceDrawQuad.BottomRight));
             checkEventCount(TestSceneMouseStates.DRAG_START, 1);
             checkIsDragged(true);
-            AddStep("return mouse position", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("return mouse position", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.TopLeft));
             checkIsDragged(true);
             checkEventCount(TestSceneMouseStates.DRAG_END);
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
@@ -207,7 +207,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             // mouseDown on a draggable -> mouseUp on a distant position: no drag-clicking
             AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("drag draggable", () => InputManager.MoveMouseTo(TestScene.MarginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("drag draggable", () => InputManager.MoveMouseTo(Scene.MarginBox.ScreenSpaceDrawQuad.BottomRight));
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount(TestSceneMouseStates.DRAG_START, 1);
             checkEventCount(TestSceneMouseStates.DRAG_END, 1);
@@ -260,7 +260,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 InputManager.Click(MouseButton.Left);
                 InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(TestScene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.MoveMouseTo(Scene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft);
             });
             checkEventCount(TestSceneMouseStates.CLICK, 1);
             checkEventCount(TestSceneMouseStates.DOUBLE_CLICK, 1);
@@ -274,7 +274,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("right down", () => InputManager.PressButton(MouseButton.Right));
             checkEventCount(TestSceneMouseStates.MOUSE_DOWN, 1);
-            AddStep("move away", () => InputManager.MoveMouseTo(TestScene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("move away", () => InputManager.MoveMouseTo(Scene.OuterMarginBox.ScreenSpaceDrawQuad.TopLeft));
             AddStep("left click", () => InputManager.Click(MouseButton.Left));
             checkEventCount(TestSceneMouseStates.MOUSE_DOWN, 1, true);
             checkEventCount(TestSceneMouseStates.MOUSE_UP, 1, true);
@@ -289,8 +289,8 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void checkEventCount(Type type, int change = 0, bool outer = false)
         {
-            TestScene.EventCounts1.TryGetValue(type, out var count1);
-            TestScene.EventCounts2.TryGetValue(type, out var count2);
+            Scene.EventCounts1.TryGetValue(type, out var count1);
+            Scene.EventCounts2.TryGetValue(type, out var count2);
 
             if (outer)
             {
@@ -304,20 +304,20 @@ namespace osu.Framework.Tests.Visual.Input
                 count2 += change;
             }
 
-            AddAssert($"{type.Name} count {count1}, {count2}", () => TestScene.S1.CounterFor(type).Count == count1 && TestScene.S2.CounterFor(type).Count == count2);
+            AddAssert($"{type.Name} count {count1}, {count2}", () => Scene.S1.CounterFor(type).Count == count1 && Scene.S2.CounterFor(type).Count == count2);
 
-            TestScene.EventCounts1[type] = count1;
-            TestScene.EventCounts2[type] = count2;
+            Scene.EventCounts1[type] = count1;
+            Scene.EventCounts2[type] = count2;
         }
 
         private void checkLastPositionDelta(Func<float> expected) => AddAssert("correct position delta", () =>
-            Precision.AlmostEquals(TestScene.S1.LastDelta.Length, expected()) &&
-            Precision.AlmostEquals(TestScene.S2.LastDelta.Length, expected()));
+            Precision.AlmostEquals(Scene.S1.LastDelta.Length, expected()) &&
+            Precision.AlmostEquals(Scene.S2.LastDelta.Length, expected()));
 
         private void checkLastScrollDelta(Vector2 expected) => AddAssert("correct scroll delta", () =>
-            Precision.AlmostEquals(TestScene.S1.LastScrollDelta, expected) &&
-            Precision.AlmostEquals(TestScene.S2.LastScrollDelta, expected));
+            Precision.AlmostEquals(Scene.S1.LastScrollDelta, expected) &&
+            Precision.AlmostEquals(Scene.S2.LastScrollDelta, expected));
 
-        private void checkIsDragged(bool isDragged) => AddAssert(isDragged ? "dragged" : "not dragged", () => TestScene.S2.IsDragged == isDragged);
+        private void checkIsDragged(bool isDragged) => AddAssert(isDragged ? "dragged" : "not dragged", () => Scene.S2.IsDragged == isDragged);
     }
 }

@@ -33,48 +33,48 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("add textboxes", () =>
             {
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     Size = new Vector2(100, 16),
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"Limited length",
                     Size = new Vector2(200, 20),
                     LengthLimit = 20,
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"Box with some more text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"prefilled placeholder",
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
-                TestScene.TextBoxes.Add(new BasicTextBox
+                Scene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = "Readonly textbox",
                     Size = new Vector2(500, 30),
                     ReadOnly = true,
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
 
                 FillFlowContainer otherTextBoxes = new FillFlowContainer
@@ -150,11 +150,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("add number textbox", () =>
             {
-                TestScene.TextBoxes.Add(numbers = new TestSceneTextBox.NumberTextBox
+                Scene.TextBoxes.Add(numbers = new TestSceneTextBox.NumberTextBox
                 {
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = TestScene.TextBoxes
+                    TabbableContentContainer = Scene.TextBoxes
                 });
             });
 
@@ -177,7 +177,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 wasNewText = false;
                 commitCount = 0;
 
-                TestScene.TextBoxes.Add(textBox = new TestSceneTextBox.InsertableTextBox
+                Scene.TextBoxes.Add(textBox = new TestSceneTextBox.InsertableTextBox
                 {
                     Text = "Default Text",
                     CommitOnFocusLost = commitOnFocusLost,

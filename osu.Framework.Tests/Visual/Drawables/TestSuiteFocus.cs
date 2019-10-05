@@ -24,30 +24,30 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             base.SetUp();
 
-            TestScene.SetUpScene();
+            Scene.SetUpScene();
         });
 
         [Test]
         public void FocusedOverlayTakesFocusOnShow()
         {
-            AddAssert("overlay not visible", () => TestScene.Overlay.State.Value == Visibility.Hidden);
-            checkNotFocused(() => TestScene.Overlay);
+            AddAssert("overlay not visible", () => Scene.Overlay.State.Value == Visibility.Hidden);
+            checkNotFocused(() => Scene.Overlay);
 
-            AddStep("show overlay", () => TestScene.Overlay.Show());
-            checkFocused(() => TestScene.Overlay);
+            AddStep("show overlay", () => Scene.Overlay.Show());
+            checkFocused(() => Scene.Overlay);
 
-            AddStep("hide overlay", () => TestScene.Overlay.Hide());
-            checkNotFocused(() => TestScene.Overlay);
+            AddStep("hide overlay", () => Scene.Overlay.Hide());
+            checkNotFocused(() => Scene.Overlay);
         }
 
         [Test]
         public void FocusedOverlayLosesFocusOnClickAway()
         {
-            AddAssert("overlay not visible", () => TestScene.Overlay.State.Value == Visibility.Hidden);
-            checkNotFocused(() => TestScene.Overlay);
+            AddAssert("overlay not visible", () => Scene.Overlay.State.Value == Visibility.Hidden);
+            checkNotFocused(() => Scene.Overlay);
 
-            AddStep("show overlay", () => TestScene.Overlay.Show());
-            checkFocused(() => TestScene.Overlay);
+            AddStep("show overlay", () => Scene.Overlay.Show());
+            checkFocused(() => Scene.Overlay);
 
             AddStep("click away", () =>
             {
@@ -55,14 +55,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 InputManager.Click(MouseButton.Left);
             });
 
-            checkNotFocused(() => TestScene.Overlay);
-            checkFocused(() => TestScene.RequestingFocus);
+            checkNotFocused(() => Scene.Overlay);
+            checkFocused(() => Scene.RequestingFocus);
         }
 
         [Test]
         public void RequestsFocusKeepsFocusOnClickAway()
         {
-            checkFocused(() => TestScene.RequestingFocus);
+            checkFocused(() => Scene.RequestingFocus);
 
             AddStep("click away", () =>
             {
@@ -70,29 +70,29 @@ namespace osu.Framework.Tests.Visual.Drawables
                 InputManager.Click(MouseButton.Left);
             });
 
-            checkFocused(() => TestScene.RequestingFocus);
+            checkFocused(() => Scene.RequestingFocus);
         }
 
         [Test]
         public void RequestsFocusLosesFocusOnClickingFocused()
         {
-            checkFocused(() => TestScene.RequestingFocus);
+            checkFocused(() => Scene.RequestingFocus);
 
             AddStep("click top left", () =>
             {
-                InputManager.MoveMouseTo(TestScene.FocusTopLeft);
+                InputManager.MoveMouseTo(Scene.FocusTopLeft);
                 InputManager.Click(MouseButton.Left);
             });
 
-            checkFocused(() => TestScene.FocusTopLeft);
+            checkFocused(() => Scene.FocusTopLeft);
 
             AddStep("click bottom right", () =>
             {
-                InputManager.MoveMouseTo(TestScene.FocusBottomRight);
+                InputManager.MoveMouseTo(Scene.FocusBottomRight);
                 InputManager.Click(MouseButton.Left);
             });
 
-            checkFocused(() => TestScene.FocusBottomRight);
+            checkFocused(() => Scene.FocusBottomRight);
         }
 
         [Test]
@@ -100,28 +100,28 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddStep("click bottom left", () =>
             {
-                InputManager.MoveMouseTo(TestScene.FocusBottomLeft);
+                InputManager.MoveMouseTo(Scene.FocusBottomLeft);
                 InputManager.Click(MouseButton.Left);
             });
 
-            checkFocused(() => TestScene.FocusBottomLeft);
+            checkFocused(() => Scene.FocusBottomLeft);
 
-            AddStep("show overlay", () => TestScene.Overlay.Show());
+            AddStep("show overlay", () => Scene.Overlay.Show());
 
-            checkFocused(() => TestScene.Overlay);
-            checkNotFocused(() => TestScene.FocusBottomLeft);
+            checkFocused(() => Scene.Overlay);
+            checkNotFocused(() => Scene.FocusBottomLeft);
 
             // click is blocked by overlay so doesn't select bottom left first click
             AddStep("click", () => InputManager.Click(MouseButton.Left));
-            checkFocused(() => TestScene.RequestingFocus);
+            checkFocused(() => Scene.RequestingFocus);
 
             // second click selects bottom left
             AddStep("click", () => InputManager.Click(MouseButton.Left));
-            checkFocused(() => TestScene.FocusBottomLeft);
+            checkFocused(() => Scene.FocusBottomLeft);
 
             // further click has no effect
             AddStep("click", () => InputManager.Click(MouseButton.Left));
-            checkFocused(() => TestScene.FocusBottomLeft);
+            checkFocused(() => Scene.FocusBottomLeft);
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             AddStep("Focus bottom left", () =>
             {
-                InputManager.MoveMouseTo(TestScene.FocusBottomLeft);
+                InputManager.MoveMouseTo(Scene.FocusBottomLeft);
                 InputManager.Click(MouseButton.Left);
             });
             AddStep("Press a key (blocking)", () =>
@@ -138,16 +138,16 @@ namespace osu.Framework.Tests.Visual.Drawables
                 InputManager.ReleaseKey(Key.A);
             });
             AddAssert("Received the key", () =>
-                TestScene.FocusBottomLeft.KeyDownCount == 1 && TestScene.FocusBottomLeft.KeyUpCount == 1 &&
-                TestScene.FocusBottomRight.KeyDownCount == 0 && TestScene.FocusBottomRight.KeyUpCount == 1);
+                Scene.FocusBottomLeft.KeyDownCount == 1 && Scene.FocusBottomLeft.KeyUpCount == 1 &&
+                Scene.FocusBottomRight.KeyDownCount == 0 && Scene.FocusBottomRight.KeyUpCount == 1);
             AddStep("Press a joystick (non blocking)", () =>
             {
                 InputManager.PressJoystickButton(JoystickButton.Button1);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
             AddAssert("Received the joystick button", () =>
-                TestScene.FocusBottomLeft.JoystickPressCount == 1 && TestScene.FocusBottomLeft.JoystickReleaseCount == 1 &&
-                TestScene.FocusBottomRight.JoystickPressCount == 1 && TestScene.FocusBottomRight.JoystickReleaseCount == 1);
+                Scene.FocusBottomLeft.JoystickPressCount == 1 && Scene.FocusBottomLeft.JoystickReleaseCount == 1 &&
+                Scene.FocusBottomRight.JoystickPressCount == 1 && Scene.FocusBottomRight.JoystickReleaseCount == 1);
         }
 
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
