@@ -13,7 +13,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSuiteDropdown : ManualInputManagerTestSuite<TestSceneDropdown>
     {
-        private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
 
@@ -29,23 +28,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(TestSceneDropdown.TestDropdown)
         };
 
-        public TestSuiteDropdown()
-        {
-            int i = 0;
-            while (i < items_to_add)
-                TestScene.TestItems[i] = @"test " + i++;
-        }
-
         [Test]
         public void Basic()
         {
-            var i = items_to_add;
+            var i = TestSceneDropdown.ITEMS_TO_ADD;
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(TestScene.Dropdown));
             AddAssert("dropdown is open", () => TestScene.Dropdown.Menu.State == MenuState.Open);
 
-            AddRepeatStep("add item", () => TestScene.Dropdown.AddDropdownItem("test " + i++), items_to_add);
-            AddAssert("item count is correct", () => TestScene.Dropdown.Items.Count() == items_to_add * 2);
+            AddRepeatStep("add item", () => TestScene.Dropdown.AddDropdownItem("test " + i++), TestSceneDropdown.ITEMS_TO_ADD);
+            AddAssert("item count is correct", () => TestScene.Dropdown.Items.Count() == TestSceneDropdown.ITEMS_TO_ADD * 2);
 
             AddStep($"Set dropdown1 height to {explicit_height}", () =>
             {

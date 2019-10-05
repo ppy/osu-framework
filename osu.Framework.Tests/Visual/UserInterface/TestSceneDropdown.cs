@@ -13,12 +13,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneDropdown : ManualInputManagerTestScene
     {
+        public const int ITEMS_TO_ADD = 10;
+
         public readonly TestDropdown Dropdown, TestDropdownMenu, BindableDropdown;
         public readonly BindableList<string> BindableList = new BindableList<string>();
         public readonly string[] TestItems = new string[10];
 
         public TestSceneDropdown()
         {
+            int i = 0;
+            while (i < ITEMS_TO_ADD)
+                TestItems[i] = @"test " + i++;
+
             Add(Dropdown = new TestDropdown
             {
                 Width = 150,
