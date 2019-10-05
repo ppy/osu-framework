@@ -13,7 +13,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteTextBox : ManualInputManagerTestSuite
+    public class TestSuiteTextBox : ManualInputManagerTestSuite<TestSceneTextBox>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -22,29 +22,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(PasswordTextBox)
         };
 
-        private FillFlowContainer textBoxes;
-
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-
-            Schedule(() =>
-            {
-                Child = textBoxes = new FillFlowContainer
-                {
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(0, 50),
-                    Padding = new MarginPadding
-                    {
-                        Top = 50,
-                    },
-                    Anchor = Anchor.TopCentre,
-                    Origin = Anchor.TopCentre,
-                    RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.9f, 1)
-                };
-            });
         }
 
         [Test]
@@ -52,48 +33,48 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("add textboxes", () =>
             {
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     Size = new Vector2(100, 16),
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"Limited length",
                     Size = new Vector2(200, 20),
                     LengthLimit = 20,
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"Box with some more text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = @"prefilled placeholder",
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
-                textBoxes.Add(new BasicTextBox
+                TestScene.TextBoxes.Add(new BasicTextBox
                 {
                     Text = "Readonly textbox",
                     Size = new Vector2(500, 30),
                     ReadOnly = true,
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
 
                 FillFlowContainer otherTextBoxes = new FillFlowContainer
@@ -165,15 +146,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestNumbersOnly()
         {
-            NumberTextBox numbers = null;
+            TestSceneTextBox.NumberTextBox numbers = null;
 
             AddStep("add number textbox", () =>
             {
-                textBoxes.Add(numbers = new NumberTextBox
+                TestScene.TextBoxes.Add(numbers = new TestSceneTextBox.NumberTextBox
                 {
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
+                    TabbableContentContainer = TestScene.TextBoxes
                 });
             });
 
@@ -186,7 +167,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase(false, false)]
         public void CommitOnFocusLost(bool commitOnFocusLost, bool changeText)
         {
-            InsertableTextBox textBox = null;
+            TestSceneTextBox.InsertableTextBox textBox = null;
 
             bool wasNewText = false;
             int commitCount = 0;
@@ -196,7 +177,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 wasNewText = false;
                 commitCount = 0;
 
-                textBoxes.Add(textBox = new InsertableTextBox
+                TestScene.TextBoxes.Add(textBox = new TestSceneTextBox.InsertableTextBox
                 {
                     Text = "Default Text",
                     CommitOnFocusLost = commitOnFocusLost,
@@ -249,16 +230,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
             AddAssert("ensure new text", () => wasNewText == changeText);
-        }
-
-        private class InsertableTextBox : BasicTextBox
-        {
-            public new void InsertString(string text) => base.InsertString(text);
-        }
-
-        private class NumberTextBox : BasicTextBox
-        {
-            protected override bool CanAddCharacter(char character) => char.IsNumber(character);
         }
     }
 }
