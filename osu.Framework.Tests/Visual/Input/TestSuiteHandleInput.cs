@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Testing;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
@@ -10,11 +9,6 @@ namespace osu.Framework.Tests.Visual.Input
     {
         public TestSuiteHandleInput()
         {
-            Add(TestScene.TestNotHandleInput = new TestSceneHandleInput.TestContainerNoHandling { Colour = Color4.Red });
-            Add(TestScene.TestHandlePositionalInput = new TestSceneHandleInput.TestContainerHandlePositionalInput { X = 300, Colour = Color4.Blue });
-            Add(TestScene.TestHandleNonPositionalInput = new TestSceneHandleInput.TestContainerHandleNonPositionalInput { X = 600, Colour = Color4.Green });
-            Add(new TestSuiteMouseStates.StateTracker.BoundedCursorContainer(0));
-
             AddStep($"enable {TestScene.TestNotHandleInput}", () => { InputManager.MoveMouseTo(TestScene.TestNotHandleInput); });
             AddAssert($"check {nameof(TestScene.TestNotHandleInput)}", () => !TestScene.TestNotHandleInput.IsHovered && !TestScene.TestNotHandleInput.HasFocus);
 

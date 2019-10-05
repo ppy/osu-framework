@@ -18,6 +18,14 @@ namespace osu.Framework.Tests.Visual.Input
         public TestContainer TestHandlePositionalInput { get; set; }
         public TestContainer TestHandleNonPositionalInput { get; set; }
 
+        public TestSceneHandleInput()
+        {
+            Add(TestNotHandleInput = new TestContainerNoHandling { Colour = Color4.Red });
+            Add(TestHandlePositionalInput = new TestContainerHandlePositionalInput { X = 300, Colour = Color4.Blue });
+            Add(TestHandleNonPositionalInput = new TestContainerHandleNonPositionalInput { X = 600, Colour = Color4.Green });
+            Add(new TestSceneMouseStates.StateTracker.BoundedCursorContainer(0));
+        }
+
         public class TestContainerNoHandling : Container
         {
             protected readonly Box Box;
