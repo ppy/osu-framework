@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuitePathApproximator : GridTestSuite
+    public class TestSuitePathApproximator : GridTestScene
     {
         public TestSuitePathApproximator()
             : base(2, 2)

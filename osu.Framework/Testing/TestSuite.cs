@@ -53,15 +53,6 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected internal override void AddInternal(Drawable drawable) =>
-            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
-
-        protected internal override void ClearInternal(bool disposeChildren = true) =>
-            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
-
-        protected internal override bool RemoveInternal(Drawable drawable) =>
-            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
-
         [OneTimeTearDown]
         public void DestroyGameHost()
         {
@@ -337,7 +328,7 @@ namespace osu.Framework.Testing
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
-            Add(new Container
+            base.AddInternal(new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
@@ -384,5 +375,15 @@ namespace osu.Framework.Testing
                 }
             });
         }
+
+        protected internal override void AddInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+
+        protected internal override void ClearInternal(bool disposeChildren = true) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
+
+        protected internal override bool RemoveInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
+
     }
 }

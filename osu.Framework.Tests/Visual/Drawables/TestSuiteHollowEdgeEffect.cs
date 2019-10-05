@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSuiteHollowEdgeEffect : GridTestSuite
+    public class TestSuiteHollowEdgeEffect : GridTestScene
     {
         public TestSuiteHollowEdgeEffect()
             : base(2, 2)

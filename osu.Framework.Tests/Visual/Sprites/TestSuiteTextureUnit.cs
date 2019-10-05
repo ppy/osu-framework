@@ -15,7 +15,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteTextureUnit : GridTestSuite
+    public class TestSuiteTextureUnit : GridTestScene
     {
         public TestSuiteTextureUnit()
             : base(2, 2)

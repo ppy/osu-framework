@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteSmoothedEdges : GridTestSuite
+    public class TestSuiteSmoothedEdges : GridTestScene
     {
         public TestSuiteSmoothedEdges()
             : base(2, 2)

@@ -17,7 +17,7 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace osu.Framework.Tests.Visual.Input
 {
     [System.ComponentModel.Description("live path optimiastion")]
-    public class TestSuiteInputResampler : GridTestSuite
+    public class TestSuiteInputResampler : GridTestScene
     {
         public TestSuiteInputResampler()
             : base(3, 3)

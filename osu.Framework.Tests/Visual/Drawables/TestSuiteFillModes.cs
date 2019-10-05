@@ -15,7 +15,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Drawables
 {
     [System.ComponentModel.Description("sprite stretching")]
-    public class TestSuiteFillModes : GridTestSuite
+    public class TestSuiteFillModes : GridTestScene
     {
         public TestSuiteFillModes()
             : base(3, 3)

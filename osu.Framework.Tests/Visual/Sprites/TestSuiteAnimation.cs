@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSuiteAnimation : GridTestSuite
+    public class TestSuiteAnimation : GridTestScene
     {
         public TestSuiteAnimation()
             : base(2, 3)

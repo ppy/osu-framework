@@ -11,24 +11,24 @@ namespace osu.Framework.Testing
     /// An abstract test case which exposes small cells arranged in a grid.
     /// Useful for displaying multiple configurations of a tested component at a glance.
     /// </summary>
-    public abstract class GridTestSuite : TestSuite
+    public abstract class GridTestScene : TestScene
     {
         private readonly Drawable[,] cells;
 
         /// <summary>
         /// The amount of rows in the grid.
         /// </summary>
-        protected readonly int Rows;
+        public readonly int Rows;
 
         /// <summary>
         /// The amount of columns in the grid.
         /// </summary>
-        protected readonly int Cols;
+        public readonly int Cols;
 
         /// <summary>
         /// Constructs a grid test case with the given dimensions.
         /// </summary>
-        protected GridTestSuite(int rows, int cols)
+        protected GridTestScene(int rows, int cols)
         {
             Rows = rows;
             Cols = cols;
@@ -44,7 +44,7 @@ namespace osu.Framework.Testing
             testContainer.Content = cells.ToJagged();
         }
 
-        protected Container Cell(int index) => (Container)cells[index / Cols, index % Cols];
-        protected Container Cell(int row, int col) => (Container)cells[row, col];
+        public Container Cell(int index) => (Container)cells[index / Cols, index % Cols];
+        public Container Cell(int row, int col) => (Container)cells[row, col];
     }
 }

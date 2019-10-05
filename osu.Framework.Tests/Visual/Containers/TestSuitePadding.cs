@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSuitePadding : GridTestSuite
+    public class TestSuitePadding : GridTestScene
     {
         public TestSuitePadding()
             : base(2, 2)

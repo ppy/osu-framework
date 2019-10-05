@@ -23,7 +23,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Tests.Visual.Sprites
 {
     [System.ComponentModel.Description("various visual SpriteText displays")]
-    public class TestSuiteSpriteTextScenarios : GridTestSuite
+    public class TestSuiteSpriteTextScenarios : GridTestScene
     {
         public TestSuiteSpriteTextScenarios()
             : base(4, 5)
