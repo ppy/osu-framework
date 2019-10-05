@@ -11,7 +11,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneDropdown : TestScene
+    public class TestSceneDropdown : ManualInputManagerTestScene
     {
         public readonly TestDropdown Dropdown, TestDropdownMenu, BindableDropdown;
         public readonly BindableList<string> BindableList = new BindableList<string>();

@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneKeyBindingInputQueueChange : TestScene
+    public class TestSceneKeyBindingInputQueueChange : ManualInputManagerTestScene
     {
         public TestInputReceptor ShownReceptor { get; private set; }
         public TestInputReceptor HiddenReceptor { get; private set; }

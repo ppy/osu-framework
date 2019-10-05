@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    public class TestSceneFocus : TestScene
+    public class TestSceneFocus : ManualInputManagerTestScene
     {
         public FocusOverlay Overlay { get; private set; }
         public RequestingFocusBox RequestingFocus { get; private set; }

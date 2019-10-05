@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneInputQueueChange : TestScene
+    public class TestSceneInputQueueChange : ManualInputManagerTestScene
     {
         public readonly HittableBox Box1;
         public readonly HittableBox Box2;

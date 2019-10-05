@@ -16,7 +16,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneMouseStates : TestScene
+    public class TestSceneMouseStates : ManualInputManagerTestScene
     {
         public readonly Box MarginBox, OuterMarginBox;
         public readonly Container ActionContainer;

@@ -9,7 +9,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneTextBox : TestScene
+    public class TestSceneTextBox : ManualInputManagerTestScene
     {
         public FillFlowContainer TextBoxes { get; private set; }
 

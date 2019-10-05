@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneFocusedOverlayContainer : TestScene
+    public class TestSceneFocusedOverlayContainer : ManualInputManagerTestScene
     {
         public TestFocusedOverlayContainer OverlayContainer { get; private set; }
 

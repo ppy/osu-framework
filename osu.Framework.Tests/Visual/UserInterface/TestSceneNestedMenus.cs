@@ -10,7 +10,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneNestedMenus : TestScene
+    public class TestSceneNestedMenus : ManualInputManagerTestScene
     {
         private const int max_depth = 5;
         private const int max_count = 5;

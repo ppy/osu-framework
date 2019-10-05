@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestSceneHandleInput : TestScene
+    public class TestSceneHandleInput : ManualInputManagerTestScene
     {
         public TestContainerNoHandling TestNotHandleInput { get; set; }
         public TestContainer TestHandlePositionalInput { get; set; }

@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneSliderBar : TestScene
+    public class TestSceneSliderBar : ManualInputManagerTestScene
     {
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         public readonly BindableDouble SliderBarValue; //keep a reference to avoid GC of the bindable

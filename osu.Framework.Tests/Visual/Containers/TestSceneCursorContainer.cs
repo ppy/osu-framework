@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneCursorContainer : TestScene
+    public class TestSceneCursorContainer : ManualInputManagerTestScene
     {
         public Container Container { get; private set; }
         public TestCursorContainer CursorContainer { get; private set; }

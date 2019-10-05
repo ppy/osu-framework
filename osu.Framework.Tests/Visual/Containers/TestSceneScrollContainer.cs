@@ -7,7 +7,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
-    public class TestSceneScrollContainer : TestScene
+    public class TestSceneScrollContainer : ManualInputManagerTestScene
     {
         public ScrollContainer<Drawable> ScrollContainer { get; set; }
 

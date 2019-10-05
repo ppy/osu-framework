@@ -12,7 +12,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSceneContextMenu : TestScene
+    public class TestSceneContextMenu : ManualInputManagerTestScene
     {
         public readonly ContextMenuBox MovingBox;
 

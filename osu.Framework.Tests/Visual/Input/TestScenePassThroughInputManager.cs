@@ -11,7 +11,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Input
 {
-    public class TestScenePassThroughInputManager : TestScene
+    public class TestScenePassThroughInputManager : ManualInputManagerTestScene
     {
         public TestInputManager TestSceneInputManager;
         public InputState State;
