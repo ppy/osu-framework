@@ -6,17 +6,12 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Testing;
-using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteCheckboxes : FrameworkTestSuite<EmptyTestScene>
+    public class TestSuiteCheckboxes : FrameworkTestSuite<TestSceneCheckboxes>
     {
-        private BasicCheckbox basic;
-
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(Checkbox),
@@ -25,43 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public TestSuiteCheckboxes()
         {
-            BasicCheckbox swap, rotate;
-
-            Children = new Drawable[]
-            {
-                new FillFlowContainer
-                {
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(0, 10),
-                    Padding = new MarginPadding(10),
-                    AutoSizeAxes = Axes.Both,
-                    Children = new Drawable[]
-                    {
-                        basic = new BasicCheckbox
-                        {
-                            LabelText = @"Basic Test"
-                        },
-                        new BasicCheckbox
-                        {
-                            LabelText = @"FadeDuration Test",
-                            FadeDuration = 300
-                        },
-                        swap = new BasicCheckbox
-                        {
-                            LabelText = @"Checkbox Position",
-                        },
-                        rotate = new BasicCheckbox
-                        {
-                            LabelText = @"Enabled/Disabled Actions Test",
-                        },
-                    }
-                }
-            };
-
-            swap.Current.ValueChanged += check => swap.RightHandedCheckbox = check.NewValue;
-            rotate.Current.ValueChanged += e => rotate.RotateTo(e.NewValue ? 45 : 0, 100);
+            TestScene.Swap.Current.ValueChanged += check => TestScene.Swap.RightHandedCheckbox = check.NewValue;
+            TestScene.Rotate.Current.ValueChanged += e => TestScene.Rotate.RotateTo(e.NewValue ? 45 : 0, 100);
         }
 
         /// <summary>
@@ -71,19 +31,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestDirectToggle()
         {
-            var testBindable = basic.Current.GetBoundCopy();
+            var testBindable = TestScene.Basic.Current.GetBoundCopy();
 
-            AddAssert("is unchecked", () => !basic.Current.Value);
+            AddAssert("is unchecked", () => !TestScene.Basic.Current.Value);
             AddAssert("bindable unchecked", () => !testBindable.Value);
 
-            AddStep("switch bindable directly", () => basic.Current.Value = true);
+            AddStep("switch bindable directly", () => TestScene.Basic.Current.Value = true);
 
-            AddAssert("is checked", () => basic.Current.Value);
+            AddAssert("is checked", () => TestScene.Basic.Current.Value);
             AddAssert("bindable checked", () => testBindable.Value);
 
-            AddStep("change bindable", () => basic.Current = new Bindable<bool>());
+            AddStep("change bindable", () => TestScene.Basic.Current = new Bindable<bool>());
 
-            AddAssert("is unchecked", () => !basic.Current.Value);
+            AddAssert("is unchecked", () => !TestScene.Basic.Current.Value);
             AddAssert("bindable unchecked", () => !testBindable.Value);
         }
     }
