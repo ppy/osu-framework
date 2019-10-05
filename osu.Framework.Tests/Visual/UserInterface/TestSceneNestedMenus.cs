@@ -19,10 +19,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public MenuStructure Menus { get; set; }
 
-        public void SetUp(double timePerAction)
+        public void SetUp(double timePerAction) => Schedule(() =>
         {
-            Clear();
-
             rng = new Random(1337);
 
             Menu menu;
@@ -36,7 +34,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             };
 
             Menus = new MenuStructure(menu);
-        }
+        });
 
         public Menu CreateMenu(double timePerAction) => new ClickOpenMenu(timePerAction)
         {

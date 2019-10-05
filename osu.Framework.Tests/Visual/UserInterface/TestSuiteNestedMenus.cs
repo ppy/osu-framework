@@ -20,6 +20,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             typeof(BasicMenu)
         };
 
+        public override void SetUp()
+        {
+            base.SetUp();
+            TestScene.SetUp(TimePerAction);
+        }
+
         /// <summary>
         /// Tests if the <see cref="Menu"/> respects <see cref="Menu.TopLevelMenu"/> = true, by not alowing it to be closed
         /// when a click happens outside the <see cref="Menu"/>.
