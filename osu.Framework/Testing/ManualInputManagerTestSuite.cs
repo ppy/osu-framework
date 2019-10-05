@@ -17,7 +17,7 @@ namespace osu.Framework.Testing
     /// <summary>
     /// An abstract test case which is tested with manual input management.
     /// </summary>
-    public abstract class ManualInputManagerTestSuite : TestSuite
+    public abstract class ManualInputManagerTestSuite<T> : TestSuite<T> where T : TestScene, new()
     {
         protected override Container<Drawable> Content => InputManager;
 
