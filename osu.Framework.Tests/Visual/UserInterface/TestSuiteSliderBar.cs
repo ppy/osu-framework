@@ -5,124 +5,56 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestSuiteSliderBar : ManualInputManagerTestSuite
+    public class TestSuiteSliderBar : ManualInputManagerTestSuite<TestSceneSliderBar>
     {
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(BasicSliderBar<>), typeof(SliderBar<>) };
 
-        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-        private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
-        private readonly SpriteText sliderBarText;
-        private readonly SliderBar<double> sliderBar;
-        private readonly SliderBar<double> transferOnCommitSliderBar;
-
         public TestSuiteSliderBar()
         {
-            sliderBarValue = new BindableDouble
-            {
-                MinValue = -10,
-                MaxValue = 10
-            };
-            sliderBarValue.ValueChanged += sliderBarValueChanged;
-
-            Add(new FillFlowContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Padding = new MarginPadding(5),
-                Spacing = new Vector2(5, 5),
-                Children = new Drawable[]
-                {
-                    sliderBarText = new SpriteText
-                    {
-                        Text = $"Value of Bindable: {sliderBarValue.Value}",
-                    },
-                    new SpriteText
-                    {
-                        Text = "BasicSliderBar:",
-                    },
-                    sliderBar = new BasicSliderBar<double>
-                    {
-                        Size = new Vector2(200, 10),
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
-                        KeyboardStep = 1,
-                        Current = sliderBarValue
-                    },
-                    new SpriteText
-                    {
-                        Text = "w/ RangePadding:",
-                    },
-                    new BasicSliderBar<double>
-                    {
-                        Size = new Vector2(200, 10),
-                        RangePadding = 20,
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
-                        KeyboardStep = 1,
-                        Current = sliderBarValue
-                    },
-                    new SpriteText
-                    {
-                        Text = "w/ TransferValueOnCommit:",
-                    },
-                    transferOnCommitSliderBar = new BasicSliderBar<double>
-                    {
-                        TransferValueOnCommit = true,
-                        Size = new Vector2(200, 10),
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
-                        KeyboardStep = 1,
-                        Current = sliderBarValue
-                    },
-                }
-            });
+            TestScene.SliderBarValue.ValueChanged += sliderBarValueChanged;
         }
 
         [SetUp]
         public override void SetUp()
         {
-            sliderBar.Current.Disabled = false;
-            sliderBar.Current.Value = 0;
+            TestScene.SliderBar.Current.Disabled = false;
+            TestScene.SliderBar.Current.Value = 0;
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void SliderBar(bool disabled)
         {
-            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+            AddStep($"set disabled to {disabled}", () => TestScene.SliderBar.Current.Disabled = disabled);
 
             AddStep("Click at 25% mark", () =>
             {
-                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+                InputManager.MoveMouseTo(TestScene.SliderBar.ToScreenSpace(TestScene.SliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
             // We're translating to/from screen-space coordinates for click coordinates so we want to be more lenient with the value comparisons in these tests
             checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
-                var before = sliderBar.IsHovered;
-                sliderBar.IsHovered = true;
+                var before = TestScene.SliderBar.IsHovered;
+                TestScene.SliderBar.IsHovered = true;
                 InputManager.PressKey(Key.Left);
                 InputManager.ReleaseKey(Key.Left);
-                sliderBar.IsHovered = before;
+                TestScene.SliderBar.IsHovered = before;
             });
             checkValue(-6, disabled);
             AddStep("Click at 75% mark, holding shift", () =>
             {
                 InputManager.PressKey(Key.LShift);
-                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.5f)));
+                InputManager.MoveMouseTo(TestScene.SliderBar.ToScreenSpace(TestScene.SliderBar.DrawSize * new Vector2(0.75f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
                 InputManager.ReleaseKey(Key.LShift);
             });
@@ -132,30 +64,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void checkValue(int expected, bool disabled)
         {
             if (disabled)
-                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
+                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(TestScene.SliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
             else
-                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
+                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(TestScene.SliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void TransferValueOnCommit(bool disabled)
         {
-            AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
+            AddStep($"set disabled to {disabled}", () => TestScene.SliderBar.Current.Disabled = disabled);
 
             AddStep("Click at 80% mark", () =>
             {
-                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.8f, 0.5f)));
+                InputManager.MoveMouseTo(TestScene.SliderBar.ToScreenSpace(TestScene.SliderBar.DrawSize * new Vector2(0.8f, 0.5f)));
                 InputManager.Click(MouseButton.Left);
             });
             checkValue(6, disabled);
 
             // These steps are broken up so we can see each of the steps being performed independently
             AddStep("Move Cursor",
-                () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.75f, 0.5f))); });
+                () => { InputManager.MoveMouseTo(TestScene.TransferOnCommitSliderBar.ToScreenSpace(TestScene.TransferOnCommitSliderBar.DrawSize * new Vector2(0.75f, 0.5f))); });
             AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
             AddStep("Drag",
-                () => { InputManager.MoveMouseTo(transferOnCommitSliderBar.ToScreenSpace(transferOnCommitSliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
+                () => { InputManager.MoveMouseTo(TestScene.TransferOnCommitSliderBar.ToScreenSpace(TestScene.TransferOnCommitSliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
             checkValue(6, disabled);
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(-5, disabled);
@@ -163,7 +95,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
-            sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
+            TestScene.SliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
         }
     }
 }
