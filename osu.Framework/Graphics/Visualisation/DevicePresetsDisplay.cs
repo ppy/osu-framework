@@ -39,6 +39,26 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
+        private void selectPreset(DevicePreset preset)
+        {
+            var scale = (preset.Scale ?? 1f) / (preset.Downsample ?? 1f);
+
+            if (preset.Short != 0 && preset.Long != 0)
+            {
+                var width = preset.Orientation == Orientation.Portrait ? preset.Short : preset.Long;
+                var height = preset.Orientation == Orientation.Portrait ? preset.Long : preset.Short;
+                host.Window.ClientSize = new Size((int)(width * scale), (int)(height * scale));
+            }
+
+            host.Window.SafeAreaPadding.Value = new MarginPadding
+            {
+                Left = preset.SafeAreaPadding.Left * scale,
+                Top = preset.SafeAreaPadding.Top * scale,
+                Right = preset.SafeAreaPadding.Right * scale,
+                Bottom = preset.SafeAreaPadding.Bottom * scale
+            };
+        }
+
         private class DevicePresetGroupSection : CompositeDrawable
         {
             public DevicePresetGroupSection(DevicePresetGroup group, DevicePresetsDisplay display)
@@ -65,7 +85,11 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Direction = FillDirection.Vertical,
                             Spacing = new Vector2(2),
-                            Children = group.Presets.Select(preset => new DevicePresetButton(preset, display)).ToArray()
+                            Children = group.Presets.Select(preset => new DevicePresetButton
+                            {
+                                Text = preset.ToString(),
+                                Action = () => display.selectPreset(preset)
+                            }).ToArray()
                         }
                     }
                 };
@@ -73,40 +97,12 @@ namespace osu.Framework.Graphics.Visualisation
 
             private class DevicePresetButton : Button
             {
-                private readonly DevicePresetsDisplay display;
-                private readonly DevicePreset preset;
-
-                public DevicePresetButton(DevicePreset preset, DevicePresetsDisplay display)
+                public DevicePresetButton()
                 {
-                    this.preset = preset;
-                    this.display = display;
-
-                    Text = preset.ToString();
                     RelativeSizeAxes = Axes.X;
                     Anchor = Anchor.CentreLeft;
                     Origin = Anchor.CentreLeft;
                     Height = 30;
-                    Action = selectPreset;
-                }
-
-                private void selectPreset()
-                {
-                    var scale = (preset.Scale ?? 1f) / (preset.Downsample ?? 1f);
-
-                    if (preset.Short != 0 && preset.Long != 0)
-                    {
-                        var width = preset.Orientation == Orientation.Portrait ? preset.Short : preset.Long;
-                        var height = preset.Orientation == Orientation.Portrait ? preset.Long : preset.Short;
-                        display.host.Window.ClientSize = new Size((int)(width * scale), (int)(height * scale));
-                    }
-
-                    display.host.Window.SafeAreaPadding.Value = new MarginPadding
-                    {
-                        Left = preset.SafeAreaPadding.Left * scale,
-                        Top = preset.SafeAreaPadding.Top * scale,
-                        Right = preset.SafeAreaPadding.Right * scale,
-                        Bottom = preset.SafeAreaPadding.Bottom * scale
-                    };
                 }
 
                 protected override SpriteText CreateText() => new SpriteText
