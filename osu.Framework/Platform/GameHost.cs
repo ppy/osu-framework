@@ -297,15 +297,7 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
-            try
-            {
-                Root.UpdateSubTree();
-            }
-            catch (DependencyInjectionException die)
-            {
-                die.DispatchInfo.Throw();
-            }
-
+            Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
@@ -635,14 +627,7 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            try
-            {
-                root.Load(SceneGraphClock, Dependencies);
-            }
-            catch (DependencyInjectionException die)
-            {
-                die.DispatchInfo.Throw();
-            }
+            root.Load(SceneGraphClock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

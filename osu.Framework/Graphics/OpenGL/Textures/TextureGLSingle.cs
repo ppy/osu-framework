@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         static TextureGLSingle()
         {
-            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
+            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
             default_quad_action = quadBatch.AddAction;
         }
 
@@ -276,7 +276,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
         private void updateWrapMode()

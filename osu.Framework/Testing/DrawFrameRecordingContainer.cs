@@ -14,8 +14,20 @@ namespace osu.Framework.Testing
     {
         private readonly Bindable<RecordState> recordState = new Bindable<RecordState>();
         private readonly BindableInt currentFrame = new BindableInt();
-
         private readonly List<DrawNode> recordedFrames = new List<DrawNode>();
+
+        protected override Container<Drawable> Content => content;
+
+        private readonly Container content;
+
+        public DrawFrameRecordingContainer()
+        {
+            InternalChildren = new Drawable[]
+            {
+                new InputCapturingDrawable { RelativeSizeAxes = Axes.Both },
+                content = new Container { RelativeSizeAxes = Axes.Both }
+            };
+        }
 
         [BackgroundDependencyLoader(true)]
         private void load([CanBeNull] TestBrowser browser)
@@ -77,6 +89,14 @@ namespace osu.Framework.Testing
 
             foreach (var child in composite.Children)
                 disposeRecursively(child);
+        }
+
+        // An empty drawable which captures DrawVisualiser input in this container
+        private class InputCapturingDrawable : Drawable
+        {
+            // Required for the DrawVisualiser to not treat this Drawable as an overlay input receptor
+            // ReSharper disable once RedundantOverriddenMember
+            protected override DrawNode CreateDrawNode() => base.CreateDrawNode();
         }
     }
 }

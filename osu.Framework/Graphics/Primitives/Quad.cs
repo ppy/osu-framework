@@ -117,27 +117,13 @@ namespace osu.Framework.Graphics.Primitives
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
             new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
-        public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
-
-        public float ConservativeArea
-        {
-            get
-            {
-                if (Precision.AlmostEquals(TopLeft.Y, TopRight.Y))
-                    return Math.Abs((TopLeft.Y - BottomLeft.Y) * (TopLeft.X - TopRight.X));
-
-                // Uncomment this to speed this computation up at the cost of losing accuracy when considering shearing.
-                //return Math.Sqrt(Vector2Extensions.DistanceSquared(TopLeft, TopRight) * Vector2Extensions.DistanceSquared(TopLeft, BottomLeft));
-
-                Vector2 d1 = TopLeft - TopRight;
-                float lsq1 = d1.LengthSquared;
-
-                Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
-
-                return (float)Math.Sqrt(lsq1 * lsq2);
-            }
-        }
+        /// <summary>
+        /// Computes the area of this <see cref="Quad"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the quad is self-intersecting the area is interpreted as the sum of all positive and negative areas and not the "visible area" enclosed by the <see cref="Quad"/>.
+        /// </remarks>
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
 
         public bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&

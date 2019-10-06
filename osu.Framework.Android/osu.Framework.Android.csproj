@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+﻿<Project Sdk="MSBuild.Sdk.Extras">
   <PropertyGroup Label="Project">
     <TargetFramework>monoandroid80</TargetFramework>
     <OutputType>Library</OutputType>
@@ -34,11 +34,6 @@
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.111" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.so" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so"/>
   </ItemGroup>
 </Project>
