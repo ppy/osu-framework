@@ -71,6 +71,7 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Direction = FillDirection.Vertical,
+                    Spacing = new Vector2(5),
                     Children = new Drawable[]
                     {
                         new SpriteText
@@ -110,6 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Depth = -1,
                     Origin = Anchor.CentreLeft,
                     Anchor = Anchor.CentreLeft,
+                    Padding = new MarginPadding { Left = 5 },
                     Font = FrameworkFont.Regular,
                     Colour = FrameworkColour.Yellow
                 };
@@ -318,7 +320,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             public override string ToString()
             {
-                var str = Name;
+                var str = Name ?? "";
 
                 if (Short != 0 && Long != 0)
                 {
