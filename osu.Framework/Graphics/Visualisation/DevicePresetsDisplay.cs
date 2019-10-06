@@ -132,7 +132,32 @@ namespace osu.Framework.Graphics.Visualisation
                     new DevicePreset { Name = "Test safe area", SafeAreaPadding = new MarginPadding(100) },
                 }
             },
-
+            // Android
+            new DevicePresetGroup
+            {
+                Name = "Common Android Resolutions",
+                Presets = new[]
+                {
+                    // 1280x800
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 800, Long = 1280 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 800, Long = 1280 },
+                    // 1920x1080
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 1080, Long = 1920 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 1080, Long = 1920 },
+                    // 2160x1080
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 1080, Long = 2160 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 1080, Long = 2160 },
+                    // 2560x1440
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 1440, Long = 2560 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 1440, Long = 2560 },
+                    // 2960x1440
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 1440, Long = 2960 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 1440, Long = 2960 },
+                    // 2048x1536
+                    new DevicePreset { Orientation = Orientation.Portrait, Short = 1536, Long = 2048 },
+                    new DevicePreset { Orientation = Orientation.Landscape, Short = 1536, Long = 2048 },
+                }
+            },
             // iPhone
             new DevicePresetGroup
             {
@@ -303,8 +328,8 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     if (str != "") str += " ";
 
-                    str += Orientation == Orientation.Portrait ? "Portrait, " : "Landscape, ";
-                    str += !Scale.HasValue ? "" : Scale.Value == 1f ? "Logical" : "Physical";
+                    str += Orientation == Orientation.Portrait ? "Portrait" : "Landscape";
+                    str += !Scale.HasValue ? "" : Scale.Value == 1f ? ", Logical" : ", Physical";
                     str += Orientation == Orientation.Portrait ? $" - ({Short}, {Long})" : $" - ({Long}, {Short})";
                     str += !Scale.HasValue ? "" : $" @ {Scale.Value:F1}x";
                     str += Downsample.HasValue ? " (Downsampled)" : "";
