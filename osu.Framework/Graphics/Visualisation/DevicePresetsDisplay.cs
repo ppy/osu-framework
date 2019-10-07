@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Visualisation
                 var width = preset.Orientation == Orientation.Portrait ? preset.Short : preset.Long;
                 var height = preset.Orientation == Orientation.Portrait ? preset.Long : preset.Short;
                 windowMode.Value = WindowMode.Windowed;
-                windowedSize.Value = new Size((int)width, (int)height);
+                windowedSize.Value = new Size((int)(width * scale), (int)(height * scale));
             }
 
             host.Window.SafeAreaPadding.Value = new MarginPadding
