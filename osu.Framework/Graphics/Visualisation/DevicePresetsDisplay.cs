@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
         private DevicePresetButton selectedButton;
 
         public DevicePresetsDisplay()
-            : base("Device Presets", "(Ctrl+F3 to toggle)")
+            : base("Device Presets", "(Ctrl+F4 to toggle)")
         {
             ScrollContent.Children = new Drawable[]
             {

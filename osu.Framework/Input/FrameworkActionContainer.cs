@@ -12,7 +12,7 @@ namespace osu.Framework.Input
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
             new KeyBinding(new[] { InputKey.Control, InputKey.F2 }, FrameworkAction.ToggleGlobalStatistics),
-            new KeyBinding(new[] { InputKey.Control, InputKey.F3 }, FrameworkAction.ToggleDevicePresets),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F4 }, FrameworkAction.ToggleDevicePresets),
             new KeyBinding(new[] { InputKey.Control, InputKey.F11 }, FrameworkAction.CycleFrameStatistics),
             new KeyBinding(new[] { InputKey.Control, InputKey.F10 }, FrameworkAction.ToggleLogOverlay),
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
