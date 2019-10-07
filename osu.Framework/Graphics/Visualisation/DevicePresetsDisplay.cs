@@ -5,6 +5,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -21,6 +23,9 @@ namespace osu.Framework.Graphics.Visualisation
     {
         [Resolved]
         private GameHost host { get; set; }
+
+        private Bindable<Size> windowedSize;
+        private Bindable<WindowMode> windowMode;
 
         public DevicePresetsDisplay()
             : base("Device Presets", "(Ctrl+F3 to toggle)")
@@ -39,6 +44,13 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
+        [BackgroundDependencyLoader]
+        private void load(FrameworkConfigManager config)
+        {
+            windowedSize = config.GetBindable<Size>(FrameworkSetting.WindowedSize);
+            windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+        }
+
         private void selectPreset(DevicePreset preset)
         {
             var scale = (preset.Scale ?? 1f) / (preset.Downsample ?? 1f);
@@ -47,7 +59,8 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 var width = preset.Orientation == Orientation.Portrait ? preset.Short : preset.Long;
                 var height = preset.Orientation == Orientation.Portrait ? preset.Long : preset.Short;
-                host.Window.ClientSize = new Size((int)(width * scale), (int)(height * scale));
+                windowMode.Value = WindowMode.Windowed;
+                windowedSize.Value = new Size((int)width, (int)height);
             }
 
             host.Window.SafeAreaPadding.Value = new MarginPadding
@@ -79,7 +92,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Text = group.Name,
                             Font = FrameworkFont.Regular.With(weight: "Bold")
                         },
-                        new FillFlowContainer<Button>
+                        new FillFlowContainer<DevicePresetButton>
                         {
                             Padding = new MarginPadding { Left = 5 },
                             RelativeSizeAxes = Axes.X,
