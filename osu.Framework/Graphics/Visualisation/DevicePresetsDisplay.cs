@@ -4,14 +4,17 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -26,6 +29,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Bindable<Size> windowedSize;
         private Bindable<WindowMode> windowMode;
+        private DevicePresetButton selectedButton;
 
         public DevicePresetsDisplay()
             : base("Device Presets", "(Ctrl+F3 to toggle)")
@@ -48,10 +52,12 @@ namespace osu.Framework.Graphics.Visualisation
         private void load(FrameworkConfigManager config)
         {
             windowedSize = config.GetBindable<Size>(FrameworkSetting.WindowedSize);
+            windowedSize.ValueChanged += _ => selectButton(null);
             windowMode = config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
+            windowMode.ValueChanged += _ => selectButton(null);
         }
 
-        private void selectPreset(DevicePreset preset)
+        private void selectPreset(DevicePresetButton button, DevicePreset preset)
         {
             var scale = (preset.Scale ?? 1f) / (preset.Downsample ?? 1f);
 
@@ -70,9 +76,18 @@ namespace osu.Framework.Graphics.Visualisation
                 Right = preset.SafeAreaPadding.Right * scale,
                 Bottom = preset.SafeAreaPadding.Bottom * scale
             };
+
+            selectButton(button);
         }
 
-        private class DevicePresetGroupSection : CompositeDrawable
+        private void selectButton([CanBeNull] DevicePresetButton button)
+        {
+            selectedButton?.SetSelected(false);
+            selectedButton = button;
+            selectedButton?.SetSelected(true);
+        }
+
+        internal class DevicePresetGroupSection : CompositeDrawable
         {
             public DevicePresetGroupSection(DevicePresetGroup group, DevicePresetsDisplay display)
             {
@@ -99,35 +114,41 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Direction = FillDirection.Vertical,
                             Spacing = new Vector2(2),
-                            Children = group.Presets.Select(preset => new DevicePresetButton
-                            {
-                                Text = preset.ToString(),
-                                Action = () => display.selectPreset(preset)
-                            }).ToArray()
+                            Children = group.Presets.Select(preset => new DevicePresetButton(display, preset)).ToArray()
                         }
                     }
                 };
             }
+        }
 
-            private class DevicePresetButton : Button
+        internal class DevicePresetButton : Button
+        {
+            public DevicePresetButton(DevicePresetsDisplay display, DevicePreset preset)
             {
-                public DevicePresetButton()
-                {
-                    RelativeSizeAxes = Axes.X;
-                    Anchor = Anchor.CentreLeft;
-                    Origin = Anchor.CentreLeft;
-                    Height = 30;
-                }
+                Text = preset.ToString();
+                RelativeSizeAxes = Axes.X;
+                Anchor = Anchor.CentreLeft;
+                Origin = Anchor.CentreLeft;
+                Height = 30;
+                Action = () => display.selectPreset(this, preset);
 
-                protected override SpriteText CreateText() => new SpriteText
-                {
-                    Depth = -1,
-                    Origin = Anchor.CentreLeft,
-                    Anchor = Anchor.CentreLeft,
-                    Padding = new MarginPadding { Left = 5 },
-                    Font = FrameworkFont.Regular,
-                    Colour = FrameworkColour.Yellow
-                };
+                SetSelected(false);
+            }
+
+            protected override SpriteText CreateText() => new SpriteText
+            {
+                Depth = -1,
+                Origin = Anchor.CentreLeft,
+                Anchor = Anchor.CentreLeft,
+                Padding = new MarginPadding { Left = 5 },
+                Font = FrameworkFont.Regular,
+                Colour = FrameworkColour.Yellow
+            };
+
+            internal void SetSelected(bool selected)
+            {
+                BackgroundColour = selected ? FrameworkColour.BlueGreen.Lighten(0.75f) : FrameworkColour.BlueGreen;
+                SpriteText.Colour = selected ? Color4.White : FrameworkColour.Yellow;
             }
         }
 
@@ -315,13 +336,13 @@ namespace osu.Framework.Graphics.Visualisation
             },
         };
 
-        private struct DevicePresetGroup
+        internal struct DevicePresetGroup
         {
             internal string Name;
             internal DevicePreset[] Presets;
         }
 
-        private struct DevicePreset
+        internal struct DevicePreset
         {
             internal string Name;
             internal float Short;
@@ -353,7 +374,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        private enum Orientation
+        internal enum Orientation
         {
             Portrait,
             Landscape,
