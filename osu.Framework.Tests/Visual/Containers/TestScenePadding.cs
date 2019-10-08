@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestScenePadding : GridTestScene
     {
         public TestScenePadding()
-            : base(2, 2)
+            : base(2, 3)
         {
             Cell(0).AddRange(new Drawable[]
             {
@@ -97,6 +97,42 @@ namespace osu.Framework.Tests.Visual.Containers
 
             Cell(2).AddRange(new Drawable[]
             {
+                new SpriteText { Text = @"Padding on zero-size" },
+                new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.White,
+                        },
+                        new PaddedBox(Color4.Blue)
+                        {
+                            Padding = new MarginPadding(20),
+                            RelativeSizeAxes = Axes.Both,
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre,
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new PaddedBox(Color4.DarkSeaGreen)
+                                {
+                                    Padding = new MarginPadding(40),
+                                    RelativeSizeAxes = Axes.Both,
+                                    Origin = Anchor.Centre,
+                                    Anchor = Anchor.Centre
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            Cell(3).AddRange(new Drawable[]
+            {
                 new SpriteText { Text = @"Margin - 20 All Sides" },
                 new Container
                 {
@@ -132,7 +168,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 }
             });
 
-            Cell(3).AddRange(new Drawable[]
+            Cell(4).AddRange(new Drawable[]
             {
                 new SpriteText { Text = @"Margin - 20 Top, Left" },
                 new Container
@@ -155,6 +191,42 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Left = 20,
                             },
                             Size = new Vector2(200),
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre,
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new PaddedBox(Color4.DarkSeaGreen)
+                                {
+                                    Padding = new MarginPadding(40),
+                                    RelativeSizeAxes = Axes.Both,
+                                    Origin = Anchor.Centre,
+                                    Anchor = Anchor.Centre
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            Cell(5).AddRange(new Drawable[]
+            {
+                new SpriteText { Text = @"Margin on zero-size" },
+                new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.White,
+                        },
+                        new PaddedBox(Color4.Blue)
+                        {
+                            Margin = new MarginPadding(20),
+                            RelativeSizeAxes = Axes.Both,
                             Origin = Anchor.Centre,
                             Anchor = Anchor.Centre,
                             Masking = true,

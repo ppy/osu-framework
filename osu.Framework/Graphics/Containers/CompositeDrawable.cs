@@ -1435,7 +1435,11 @@ namespace osu.Framework.Graphics.Containers
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public Vector2 ChildSize =>
+            new Vector2(
+                DrawSize.X >= 0 ? Math.Max(0, DrawSize.X - Padding.TotalHorizontal) : Math.Min(0, DrawSize.X - Padding.TotalHorizontal),
+                DrawSize.Y >= 0 ? Math.Max(0, DrawSize.Y - Padding.TotalVertical) : Math.Min(0, DrawSize.Y - Padding.TotalVertical)
+            );
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
