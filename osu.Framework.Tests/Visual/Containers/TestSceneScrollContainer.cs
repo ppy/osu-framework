@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -10,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.Containers
@@ -58,6 +61,61 @@ namespace osu.Framework.Tests.Visual.Containers
 
             scrollTo(500);
             checkPosition(300);
+        }
+
+        private FillFlowContainer fill;
+
+        [Test]
+        public void TestScrollIntoView()
+        {
+            const float item_height = 25;
+
+            AddStep("Create scroll container", () =>
+            {
+                Add(scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(item_height * 4),
+                    Child = fill = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical,
+                    },
+                });
+
+                for (int i = 0; i < 8; i++)
+                    fill.Add(new Box
+                    {
+                        Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                        RelativeSizeAxes = Axes.X,
+                        Height = item_height,
+                    });
+            });
+
+            // simple last item (hits bottom of view)
+            scrollIntoView(7, item_height * 4);
+
+            // position doesn't change when item in view
+            scrollIntoView(6, item_height * 4);
+
+            // scroll in reverse without overscrolling
+            scrollIntoView(1, item_height);
+
+            // scroll forwards with small (non-zero) view
+            // current position will change on restore size
+            scrollIntoView(7, item_height * 7, heightAdjust: 15, expectedPostAdjustPosition: 100);
+
+            // scroll backwards with small (non-zero) view
+            // current position won't change on restore size
+            scrollIntoView(2, item_height * 2, heightAdjust: 15, expectedPostAdjustPosition: item_height * 2);
+
+            // test forwards scroll with zero container height
+            scrollIntoView(7, item_height * 7, heightAdjust: 0, expectedPostAdjustPosition: item_height * 4);
+
+            // test backwards scroll with zero container height
+            scrollIntoView(2, item_height * 2, heightAdjust: 0, expectedPostAdjustPosition: item_height * 2);
         }
 
         [TestCase(false)]
@@ -193,6 +251,24 @@ namespace osu.Framework.Tests.Visual.Containers
             checkScrollbarPosition(250);
             AddStep("Release mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkScrollbarPosition(250);
+        }
+
+        private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
+        {
+            if (heightAdjust != null)
+                AddStep("set container height zero", () => scrollContainer.Height = heightAdjust.Value);
+
+            AddStep($"scroll {index} into view", () => scrollContainer.ScrollIntoView(fill.Skip(index).First()));
+            AddUntilStep($"{index} is visible", () => !fill.Skip(index).First().IsMaskedAway);
+            checkPosition(expectedPosition);
+
+            if (heightAdjust != null)
+            {
+                Debug.Assert(expectedPostAdjustPosition != null, nameof(expectedPostAdjustPosition) + " != null");
+
+                AddStep("restore height", () => scrollContainer.Height = 100);
+                checkPosition(expectedPostAdjustPosition.Value);
+            }
         }
 
         private void scrollTo(float position)
