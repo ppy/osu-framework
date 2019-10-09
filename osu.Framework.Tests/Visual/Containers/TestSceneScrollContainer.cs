@@ -28,35 +28,38 @@ namespace osu.Framework.Tests.Visual.Containers
         [SetUp]
         public void Setup() => Schedule(Clear);
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestScrollTo(bool withClampExtension)
+        [TestCase(0)]
+        [TestCase(100)]
+        public void TestScrollTo(float clampExtension)
         {
+            const float container_height = 100;
+            const float box_height = 400;
+
             AddStep("Create scroll container", () =>
             {
                 Add(scrollContainer = new BasicScrollContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Size = new Vector2(100),
-                    ClampExtension = withClampExtension ? 100 : 0,
-                    Child = new Box { Size = new Vector2(100, 400) }
+                    Size = new Vector2(container_height),
+                    ClampExtension = clampExtension,
+                    Child = new Box { Size = new Vector2(100, box_height) }
                 });
             });
 
-            scrollTo(-100);
+            scrollTo(-100, box_height - container_height, clampExtension);
             checkPosition(0);
 
-            scrollTo(100);
+            scrollTo(100, box_height - container_height, clampExtension);
             checkPosition(100);
 
-            scrollTo(300);
+            scrollTo(300, box_height - container_height, clampExtension);
             checkPosition(300);
 
-            scrollTo(400);
+            scrollTo(400, box_height - container_height, clampExtension);
             checkPosition(300);
 
-            scrollTo(500);
+            scrollTo(500, box_height - container_height, clampExtension);
             checkPosition(300);
         }
 
@@ -195,17 +198,19 @@ namespace osu.Framework.Tests.Visual.Containers
             checkScrollbarPosition(250);
         }
 
-        private void scrollTo(float position)
+        private void scrollTo(float position, float scrollContentHeight, float extension)
         {
+            float clampedTarget = MathHelper.Clamp(position, -extension, scrollContentHeight + extension);
+
             float immediateScrollPosition = 0;
 
             AddStep($"scroll to {position}", () =>
             {
                 scrollContainer.ScrollTo(position, false);
-                immediateScrollPosition = position;
+                immediateScrollPosition = scrollContainer.Current;
             });
 
-            AddAssert($"immediately scrolled to {position}", () => Precision.AlmostEquals(position, immediateScrollPosition, 1));
+            AddAssert($"immediately scrolled to {clampedTarget}", () => Precision.AlmostEquals(clampedTarget, immediateScrollPosition, 1));
         }
 
         private void checkPosition(float expected) => AddUntilStep($"position at {expected}", () => Precision.AlmostEquals(expected, scrollContainer.Current, 1));
