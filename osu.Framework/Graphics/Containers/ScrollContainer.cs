@@ -431,7 +431,7 @@ namespace osu.Framework.Graphics.Containers
             float minPos = Math.Min(childPos0, childPos1);
             float maxPos = Math.Max(childPos0, childPos1);
 
-            if (minPos < Current)
+            if (minPos < Current || (minPos > Current && d.DrawSize[ScrollDim] > displayableContent))
                 ScrollTo(minPos, animated);
             else if (maxPos > Current + displayableContent)
                 ScrollTo(maxPos - displayableContent, animated);
