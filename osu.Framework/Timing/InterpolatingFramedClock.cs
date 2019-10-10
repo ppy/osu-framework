@@ -46,7 +46,10 @@ namespace osu.Framework.Timing
 
         private double currentTime;
 
-        public double AllowableErrorMilliseconds = 1000.0 / 60 * 2;
+        /// <summary>
+        /// The amount of error that is allowed between the source and interpolated time before the interpolated time is ignored and the source time is used.
+        /// </summary>
+        public virtual double AllowableErrorMilliseconds => 1000.0 / 60 * 2 * Rate;
 
         private bool sourceIsRunning;
 
