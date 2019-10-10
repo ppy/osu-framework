@@ -28,10 +28,9 @@ namespace osu.Framework.iOS.Graphics.Textures
                 int height = (int)uiImage.Size.Height;
 
                 IntPtr data = Marshal.AllocHGlobal(width * height * 4);
-                using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, uiImage.CGImage.ColorSpace, CGImageAlphaInfo.PremultipliedLast))
+                using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
                     textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
 
-                // NOTE: this will probably only be correct for Rgba32, will need to look into other pixel formats
                 var image = Image.LoadPixelData<TPixel>(
                     new ReadOnlySpan<byte>(data.ToPointer(), width * height * 4),
                     width, height);
