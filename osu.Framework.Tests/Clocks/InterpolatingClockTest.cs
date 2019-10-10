@@ -71,19 +71,18 @@ namespace osu.Framework.Tests.Clocks
         [Test]
         public void NeverInterpolatesBackwardsOnInterpolationFail()
         {
+            const int sleep_time = 20;
+
             double lastValue = interpolating.CurrentTime;
-
             source.Start();
-            source.Rate = 10; // use a higher rate to ensure we may seek backwards.
-
-            int sleepTime = (int)(interpolating.AllowableErrorMilliseconds / 2);
-
             int interpolatedCount = 0;
 
             for (int i = 0; i < 200; i++)
             {
+                source.Rate += i * 10;
+
                 if (i < 100) // stop the elapsing at some point in time. should still work as source's ElapsedTime is zero.
-                    source.CurrentTime += sleepTime * source.Rate;
+                    source.CurrentTime += sleep_time * source.Rate;
 
                 interpolating.ProcessFrame();
 
@@ -93,7 +92,7 @@ namespace osu.Framework.Tests.Clocks
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
                 Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
 
-                Thread.Sleep(sleepTime);
+                Thread.Sleep(sleep_time);
                 lastValue = interpolating.CurrentTime;
             }
 
