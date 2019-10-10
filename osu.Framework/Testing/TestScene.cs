@@ -230,8 +230,7 @@ namespace osu.Framework.Testing
             {
                 if (loadableStep != null)
                 {
-                    if (loadableStep.IsMaskedAway)
-                        scroll.ScrollTo(loadableStep);
+                    scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
                 }
             }

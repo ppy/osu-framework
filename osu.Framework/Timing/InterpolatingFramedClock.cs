@@ -62,7 +62,10 @@ namespace osu.Framework.Timing
 
         public virtual double ElapsedFrameTime => CurrentInterpolatedTime - LastInterpolatedTime;
 
-        private bool allowInterpolation;
+        /// <summary>
+        /// Whether time is being interpolated for the frame currently being processed.
+        /// </summary>
+        public bool IsInterpolating { get; private set; }
 
         public virtual void ProcessFrame()
         {
@@ -78,18 +81,18 @@ namespace osu.Framework.Timing
             if (FramedSourceClock.IsRunning)
             {
                 if (FramedSourceClock.ElapsedFrameTime != 0)
-                    allowInterpolation = true;
+                    IsInterpolating = true;
 
                 CurrentInterpolatedTime += clock.ElapsedFrameTime * Rate;
 
-                if (!allowInterpolation || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
+                if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
                 {
                     // if we've exceeded the allowable error, we should use the source clock's time value.
                     // seeking backwards should only be allowed if the source is explicitly doing that.
                     CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
 
                     // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
-                    allowInterpolation = false;
+                    IsInterpolating = false;
                 }
                 else
                 {
