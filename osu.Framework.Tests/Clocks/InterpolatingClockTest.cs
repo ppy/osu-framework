@@ -52,7 +52,8 @@ namespace osu.Framework.Tests.Clocks
 
             for (int i = 0; i < 100; i++)
             {
-                source.CurrentTime += 50;
+                // we want to interpolate but not fall behind and fail interpolation too much
+                source.CurrentTime += interpolating.AllowableErrorMilliseconds / 2 + 5;
                 interpolating.ProcessFrame();
 
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
