@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Clocks
                 lastValue = interpolating.CurrentTime;
             }
 
-            int interpolatingCount = 0;
+            int interpolatedCount = 0;
 
             // test with test clock elapsing
             lastValue = interpolating.CurrentTime;
@@ -58,14 +58,14 @@ namespace osu.Framework.Tests.Clocks
                 Assert.GreaterOrEqual(interpolating.CurrentTime, lastValue, "Interpolating should not jump against rate.");
                 Assert.LessOrEqual(Math.Abs(interpolating.CurrentTime - source.CurrentTime), interpolating.AllowableErrorMilliseconds, "Interpolating should be within allowance.");
 
-                if (interpolating.CurrentTime != source.CurrentTime)
-                    interpolatingCount++;
+                if (interpolating.IsInterpolating)
+                    interpolatedCount++;
 
                 Thread.Sleep((int)(interpolating.AllowableErrorMilliseconds / 2));
                 lastValue = interpolating.CurrentTime;
             }
 
-            Assert.Greater(interpolatingCount, 10);
+            Assert.Greater(interpolatedCount, 10);
         }
 
         [Test]
