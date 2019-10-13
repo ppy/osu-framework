@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -69,9 +68,9 @@ namespace osu.Framework.Input
             return false;
         }
 
-        private readonly ReadOnlyCollection<IInput> emptyList = new ReadOnlyCollection<IInput>(new List<IInput>());
+        private readonly IReadOnlyList<IInput> emptyList = new List<IInput>();
 
-        protected override IList<IInput> GetPendingInputs()
+        protected override IReadOnlyList<IInput> GetPendingInputs()
         {
             //we still want to call the base method to clear any pending states that may build up.
             var pendingInputs = base.GetPendingInputs();

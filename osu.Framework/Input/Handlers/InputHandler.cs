@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -22,19 +21,12 @@ namespace osu.Framework.Input.Handlers
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
         private readonly object pendingInputsRetrievalLock = new object();
-        private readonly List<IInput> pendingInputsList;
-        private readonly ReadOnlyCollection<IInput> readOnlyPendingInputsList;
-
-        protected InputHandler()
-        {
-            pendingInputsList = new List<IInput>();
-            readOnlyPendingInputsList = new ReadOnlyCollection<IInput>(pendingInputsList);
-        }
+        private readonly List<IInput> pendingInputsList = new List<IInput>();
 
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
-        public virtual IList<IInput> GetPendingInputs()
+        public virtual IReadOnlyList<IInput> GetPendingInputs()
         {
             lock (pendingInputsRetrievalLock)
             {
@@ -43,7 +35,7 @@ namespace osu.Framework.Input.Handlers
                 while (PendingInputs.TryDequeue(out IInput s))
                     pendingInputsList.Add(s);
 
-                return readOnlyPendingInputsList;
+                return pendingInputsList;
             }
         }
 
