@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
@@ -118,6 +119,9 @@ namespace osu.Framework.Input
 
         protected InputManager()
         {
+            pendingInputs = new List<IInput>();
+            readOnlyPendingInputs = new ReadOnlyCollection<IInput>(pendingInputs);
+
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
@@ -269,9 +273,10 @@ namespace osu.Framework.Input
             }
         }
 
-        private readonly List<IInput> pendingInputs = new List<IInput>();
+        private readonly List<IInput> pendingInputs;
+        private readonly ReadOnlyCollection<IInput> readOnlyPendingInputs;
 
-        protected virtual List<IInput> GetPendingInputs()
+        protected virtual IList<IInput> GetPendingInputs()
         {
             pendingInputs.Clear();
 
@@ -280,7 +285,7 @@ namespace osu.Framework.Input
                 pendingInputs.AddRange(h.GetPendingInputs());
             }
 
-            return pendingInputs;
+            return readOnlyPendingInputs;
         }
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
