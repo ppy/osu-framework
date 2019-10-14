@@ -46,9 +46,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\osu-framework.licenseheader">
-      <Link>osu-framework.licenseheader</Link>
-    </None>
     <AndroidNativeLibrary Include="..\osu.Framework.Android\armeabi-v7a\*.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
