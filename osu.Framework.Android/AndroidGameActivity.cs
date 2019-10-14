@@ -34,32 +34,25 @@ namespace osu.Framework.Android
             System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
 
-        /// <summary>
-        /// Avoid the default implementation that does close the app.
-        /// </summary>
         public override void OnBackPressed()
         {
+            /// Avoid the default implementation that does close the app.
+            /// This only happens when the back button could not be captured from OnKeyDown.
         }
 
-        /// <summary>
-        /// There is the rare situation that the view does not get the events. So the view just gets triggered directly.
-        /// </summary>
+        // On some devices and keyboard combinations the OnKeyDown event does not propagate the key event to the view.
+        // Here it is done manually to ensure that the keys actually land in the view.
+
         public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             return gameView.OnKeyDown(keyCode, e);
         }
 
-        /// <summary>
-        /// There is the rare situation that the view does not get the events. So the view just gets triggered directly.
-        /// </summary>
         public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             return gameView.OnKeyUp(keyCode, e);
         }
 
-        /// <summary>
-        /// There is the rare situation that the view does not get the events. So the view just gets triggered directly.
-        /// </summary>
         public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             return gameView.OnKeyLongPress(keyCode, e);
