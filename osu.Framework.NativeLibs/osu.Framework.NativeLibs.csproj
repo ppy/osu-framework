@@ -8,6 +8,7 @@
     <Description>Native libraries for osu!framework</Description>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
+    <IsPackable>true</IsPackable>
     <Title>osu!framework Libraries</Title>
     <PackageId>ppy.osu.Framework.NativeLibs</PackageId>
     <PackageTags>osu game framework libraries</PackageTags>
@@ -23,7 +24,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <PropertyGroup>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
 </Project>
