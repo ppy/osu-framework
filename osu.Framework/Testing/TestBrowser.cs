@@ -196,6 +196,7 @@ namespace osu.Framework.Testing
                 {
                     RelativeSizeAxes = Axes.Y,
                     Size = new Vector2(test_list_width, 1),
+                    Masking = true,
                     Children = new Drawable[]
                     {
                         new SafeAreaContainer
