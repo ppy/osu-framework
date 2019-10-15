@@ -798,8 +798,11 @@ namespace osu.Framework.Platform
 
                 foreach (var t in threads)
                 {
-                    t.Thread.CurrentCulture = culture;
-                    t.Thread.CurrentUICulture = culture;
+                    t.Scheduler.Add(() =>
+                    {
+                        t.Thread.CurrentCulture = culture;
+                        t.Thread.CurrentUICulture = culture;
+                    });
                 }
             }, true);
         }
