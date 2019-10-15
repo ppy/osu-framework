@@ -36,8 +36,8 @@ namespace osu.Framework.Android
 
         public override void OnBackPressed()
         {
-            /// Avoid the default implementation that does close the app.
-            /// This only happens when the back button could not be captured from OnKeyDown.
+            // Avoid the default implementation that does close the app.
+            // This only happens when the back button could not be captured from OnKeyDown.
         }
 
         // On some devices and keyboard combinations the OnKeyDown event does not propagate the key event to the view.
