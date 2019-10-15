@@ -43,6 +43,13 @@ namespace osu.Framework.Tests.Localisation
             assertCulture("");
         }
 
+        [Test]
+        public void TestCreateThreadOnNewCulture()
+        {
+            setCulture("ko-KR");
+            assertThreadCulture("ko-KR");
+        }
+
         private void setCulture(string name) => AddStep($"set culture = {name}", () => config.Set(FrameworkSetting.Locale, name));
 
         private void assertCulture(string name)
@@ -58,6 +65,15 @@ namespace osu.Framework.Tests.Localisation
 
             AddUntilStep("wait for query", () => cultures.Count == 3);
             AddAssert($"culture is {name}", () => cultures.TrueForAll(c => c.Name == name));
+        }
+
+        private void assertThreadCulture(string name)
+        {
+            CultureInfo culture = null;
+
+            AddStep("start new thread", () => new Thread(() => culture = Thread.CurrentThread.CurrentCulture) { IsBackground = true }.Start());
+            AddUntilStep("wait for culture", () => culture != null);
+            AddAssert($"thread culture is {name}", () => culture.Name == name);
         }
     }
 }
