@@ -64,14 +64,7 @@ namespace osu.Framework.Localisation
             if (validLocale.Name != args.NewValue)
                 configLocale.Value = validLocale.Name;
             else
-            {
-                var culture = new CultureInfo(validLocale.Name);
-
-                CultureInfo.DefaultThreadCurrentCulture = culture;
-                CultureInfo.DefaultThreadCurrentUICulture = culture;
-
                 currentStorage.Value = validLocale.Storage;
-            }
         }
 
         private class LocaleMapping
