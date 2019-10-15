@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestDefaultCultureIsInvariant()
         {
+            setCulture("");
             assertCulture("");
         }
 
