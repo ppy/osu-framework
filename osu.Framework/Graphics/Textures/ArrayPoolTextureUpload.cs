@@ -42,15 +42,18 @@ namespace osu.Framework.Graphics.Textures
             memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
         }
 
-        public bool HasBeenUploaded { get; private set; }
+        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
+        public bool HasBeenUploaded => disposed;
 
         #region IDisposable Support
 
+        private bool disposed;
+
         protected virtual void Dispose(bool disposing)
         {
-            if (!HasBeenUploaded)
+            if (!disposed)
             {
-                HasBeenUploaded = true;
+                disposed = true;
                 memoryOwner.Dispose();
             }
         }
