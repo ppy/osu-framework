@@ -88,9 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestFocusedOverlayContainer : FocusedOverlayContainer
         {
-            private readonly bool startHidden;
-
-            protected override bool StartHidden => startHidden;
+            protected override bool StartHidden { get; }
 
             protected override bool BlockPositionalInput => true;
 
@@ -98,7 +96,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public TestFocusedOverlayContainer(bool startHidden = true)
             {
-                this.startHidden = startHidden;
+                this.StartHidden = startHidden;
 
                 Size = new Vector2(0.5f);
                 RelativeSizeAxes = Axes.Both;
