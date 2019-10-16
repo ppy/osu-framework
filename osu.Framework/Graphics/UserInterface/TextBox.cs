@@ -171,12 +171,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput.OnNewImeComposition += s =>
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate
+                textInput.OnNewImeResult += s =>
                 {
                     textUpdateScheduler.Add(onImeResult);
                     cursorAndLayout.Invalidate();
