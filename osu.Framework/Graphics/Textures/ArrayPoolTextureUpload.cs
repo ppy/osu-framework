@@ -42,17 +42,15 @@ namespace osu.Framework.Graphics.Textures
             memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
         }
 
-        public bool HasBeenUploaded => disposed;
+        public bool HasBeenUploaded { get; private set; }
 
         #region IDisposable Support
 
-        private bool disposed;
-
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!HasBeenUploaded)
             {
-                disposed = true;
+                HasBeenUploaded = true;
                 memoryOwner.Dispose();
             }
         }
