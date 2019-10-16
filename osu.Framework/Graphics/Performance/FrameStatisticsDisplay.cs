@@ -239,8 +239,8 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-            for (int k = 0; k < WIDTH; k++)
-                fullBackground[k, i] = column[0, i];
+                for (int k = 0; k < WIDTH; k++)
+                    fullBackground[k, i] = column[0, i];
 
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
 

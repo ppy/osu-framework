@@ -291,8 +291,8 @@ namespace osu.Framework.Graphics.Audio
                                 new Vector2(leftX, height + points[i].Amplitude[1] * height),
                                 new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
                             );
-                        }
                             break;
+                        }
 
                         case 1:
                         {

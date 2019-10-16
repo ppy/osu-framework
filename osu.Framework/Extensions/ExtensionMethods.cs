@@ -133,16 +133,16 @@ namespace osu.Framework.Extensions
             var rectangular = new T[rows, cols];
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-            {
-                if (jagged[r] == null)
-                    continue;
+                for (int c = 0; c < cols; c++)
+                {
+                    if (jagged[r] == null)
+                        continue;
 
-                if (c >= jagged[r].Length)
-                    continue;
+                    if (c >= jagged[r].Length)
+                        continue;
 
-                rectangular[r, c] = jagged[r][c];
-            }
+                    rectangular[r, c] = jagged[r][c];
+                }
 
             return rectangular;
         }
@@ -163,8 +163,8 @@ namespace osu.Framework.Extensions
             var result = new T[cols, rows];
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                result[c, r] = array[r, c];
+                for (int c = 0; c < cols; c++)
+                    result[c, r] = array[r, c];
 
             return result;
         }

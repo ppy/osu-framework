@@ -273,8 +273,8 @@ namespace osu.Framework.Tests.Visual.Layout
             int cellIndex = 0;
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < columns; c++)
-                content[r, c] = new Cell(cellIndex++);
+                for (int c = 0; c < columns; c++)
+                    content[r, c] = new Cell(cellIndex++);
 
             return content;
         }
