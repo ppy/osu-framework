@@ -273,7 +273,7 @@ namespace osu.Framework.Extensions
         {
             if (display == null) return DisplayIndex.Default;
 
-            for (int i = 0;; i++)
+            for (int i = 0; true; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) return DisplayIndex.Default;
