@@ -76,6 +76,18 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
+        public void TestAddLoadedDrawable()
+        {
+            TestChild child = null;
+
+            AddStep("add child", () => container.AddInternal(child = new TestChild(0, 2)));
+            skipTo(1);
+            AddStep("remove child", () => container.RemoveInternal(child));
+            AddStep("add same child", () => container.AddInternal(child));
+            validate(1);
+        }
+
+        [Test]
         public void DynamicChange()
         {
             TestChild a = null, b = null, c = null, d = null;

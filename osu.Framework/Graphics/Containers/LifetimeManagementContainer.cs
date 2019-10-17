@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
                 var child = newChildren[i];
                 Debug.Assert(child.LoadState < LoadState.Loaded);
 
-                if (child.LoadState == LoadState.Ready)
+                if (child.LoadState >= LoadState.Ready)
                 {
                     Debug.Assert(!childStateMap.ContainsKey(child));
 
