@@ -11,7 +11,7 @@ using osu.Framework.Input.Events;
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
-        where T : struct, IComparable, IConvertible
+        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         /// <summary>
         /// Range padding reduces the range of movement a slider bar is allowed to have
