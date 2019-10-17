@@ -7,7 +7,7 @@ using System.Globalization;
 namespace osu.Framework.Bindables
 {
     public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
-        where T : struct, IComparable, IConvertible
+        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         static BindableNumber()
         {
@@ -51,8 +51,8 @@ namespace osu.Framework.Bindables
                 if (precision.Equals(value))
                     return;
 
-                if (value.ToDouble(NumberFormatInfo.InvariantInfo) <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Precision), "Must be greater than 0.");
+                if (value.CompareTo(default) <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Precision), value, "Must be greater than 0.");
 
                 precision = value;
 
@@ -147,7 +147,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            if (Equals(beforePropagation, precision))
+            if (beforePropagation.Equals(precision))
                 PrecisionChanged?.Invoke(precision);
         }
 
@@ -165,7 +165,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            if (Equals(beforePropagation, minValue))
+            if (beforePropagation.Equals(minValue))
                 MinValueChanged?.Invoke(minValue);
         }
 
@@ -183,7 +183,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            if (Equals(beforePropagation, maxValue))
+            if (beforePropagation.Equals(maxValue))
                 MaxValueChanged?.Invoke(maxValue);
         }
 
