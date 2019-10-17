@@ -51,7 +51,7 @@ namespace osu.Framework.Bindables
                 if (precision.Equals(value))
                     return;
 
-                if (Convert.ToDouble(value) <= 0)
+                if (value.ToDouble(NumberFormatInfo.InvariantInfo) <= 0)
                     throw new ArgumentOutOfRangeException(nameof(Precision), "Must be greater than 0.");
 
                 precision = value;
@@ -67,8 +67,8 @@ namespace osu.Framework.Bindables
             {
                 if (Precision.CompareTo(DefaultPrecision) > 0)
                 {
-                    double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
-                    doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
+                    double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
+                    doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
 
                     base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
                 }
@@ -313,8 +313,8 @@ namespace osu.Framework.Bindables
         /// </summary>
         public void SetProportional(float amt, float snap = 0)
         {
-            var min = Convert.ToDouble(MinValue);
-            var max = Convert.ToDouble(MaxValue);
+            var min = MinValue.ToDouble(NumberFormatInfo.InvariantInfo);
+            var max = MaxValue.ToDouble(NumberFormatInfo.InvariantInfo);
             var value = min + (max - min) * amt;
             if (snap > 0)
                 value = Math.Round(value / snap) * snap;
