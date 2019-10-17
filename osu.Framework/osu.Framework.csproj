@@ -32,10 +32,14 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
+  <ItemGroup Label="Code Analysis">
+    <AdditionalFiles Include="..\BannedSymbols.txt" />
+  </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.17.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.6" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />

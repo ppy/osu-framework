@@ -213,7 +213,7 @@ namespace osu.Framework.Input.Bindings
         private void releasePressedActions()
         {
             foreach (var action in pressedActions)
-            foreach (var kvp in keyBindingQueues.Where(k => k.Key.GetAction<T>().Equals(action)))
+            foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
                 kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
 
             pressedActions.Clear();
@@ -247,7 +247,7 @@ namespace osu.Framework.Input.Bindings
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
-            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.GetAction<T>().Equals(released)))
+            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released)))
             {
                 handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(released));
                 pressedActions.Remove(released);

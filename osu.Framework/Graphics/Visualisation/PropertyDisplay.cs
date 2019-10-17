@@ -183,7 +183,9 @@ namespace osu.Framework.Graphics.Visualisation
                     value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
 
+#pragma warning disable RS0030 // Don't use banned API
                 if (!value.Equals(lastValue))
+#pragma warning restore RS0030 // Don't use banned API
                 {
                     changeMarker.ClearTransforms();
                     changeMarker.Alpha = 0.8f;
