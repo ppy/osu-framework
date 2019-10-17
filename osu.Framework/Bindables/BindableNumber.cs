@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 
 namespace osu.Framework.Bindables
@@ -12,23 +11,19 @@ namespace osu.Framework.Bindables
     {
         static BindableNumber()
         {
-            // check supported types against provided type argument.
-            var allowedTypes = new HashSet<Type>
-            {
-                typeof(sbyte),
-                typeof(byte),
-                typeof(short),
-                typeof(ushort),
-                typeof(int),
-                typeof(uint),
-                typeof(long),
-                typeof(ulong),
-                typeof(float),
-                typeof(double)
-            };
-
-            if (!allowedTypes.Contains(typeof(T)))
-                throw new ArgumentException(
+            // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
+            // Just a pointer comparison.
+            if (typeof(T) != typeof(sbyte) &&
+                typeof(T) != typeof(byte) &&
+                typeof(T) != typeof(short) &&
+                typeof(T) != typeof(ushort) &&
+                typeof(T) != typeof(int) &&
+                typeof(T) != typeof(uint) &&
+                typeof(T) != typeof(long) &&
+                typeof(T) != typeof(ulong) &&
+                typeof(T) != typeof(float) &&
+                typeof(T) != typeof(double))
+                throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
         }
 
