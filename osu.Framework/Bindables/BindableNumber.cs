@@ -33,7 +33,7 @@ namespace osu.Framework.Bindables
 
         public event Action<T> MaxValueChanged;
 
-        protected BindableNumber(T value = default)
+        private protected BindableNumber(T value = default)
             : base(value)
         {
             MinValue = DefaultMinValue;
