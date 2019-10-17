@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void Basic()
+        public void TestBasic()
         {
             AddStep("Add children", () =>
             {
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void DynamicChange()
+        public void TestDynamicChange()
         {
             TestChild a = null, b = null, c = null, d = null;
             AddStep("Add children", () =>
@@ -128,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void BoundaryCrossing()
+        public void TestBoundaryCrossing()
         {
             TestChild a = null, b = null, c = null;
             AddStep("Add children", () =>
@@ -165,7 +165,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void LifetimeChangeOnCallback()
+        public void TestLifetimeChangeOnCallback()
         {
             AddStep("Add children", () =>
             {
@@ -194,7 +194,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test, Ignore("Takes too long. Unignore when you changed relevant code.")]
-        public void Fuzz()
+        public void TestFuzz()
         {
             var rng = new Random(2222);
 
