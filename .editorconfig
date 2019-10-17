@@ -60,3 +60,13 @@ csharp_space_between_method_declaration_parameter_list_parentheses = false
 #Formatting - wrapping options
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+
+#Supressing roslyn built-in analyzers
+
+#Private method is unused
+dotnet_diagnostic.IDE0051.severity = silent
+
+#Rules for disposable
+dotnet_diagnostic.IDE0067.severity = none
+dotnet_diagnostic.IDE0068.severity = none
+dotnet_diagnostic.IDE0069.severity = none
