@@ -67,6 +67,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Height = 20,
                                 Width = 250,
+                                KeyboardStep = 1,
                                 Current = browser.CurrentFrame,
                                 BackgroundColour = FrameworkColour.Blue,
                             },
