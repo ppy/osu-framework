@@ -4,5 +4,5 @@ version: '{build}'
 image: Visual Studio 2019 Preview
 test: off
 build_script:
-  - cmd: dotnet restore osu-framework.iOS.sln
+  - cmd: nuget restore osu-framework.iOS.sln
   - cmd: msbuild osu.Framework.iOS\osu.Framework.iOS.csproj
