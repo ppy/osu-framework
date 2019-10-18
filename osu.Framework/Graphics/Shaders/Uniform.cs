@@ -14,7 +14,17 @@ namespace osu.Framework.Graphics.Shaders
 
         public bool HasChanged { get; private set; } = true;
 
-        public T Value;
+        private T _value;
+
+        public T Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                HasChanged = true;
+            }
+        }
 
         public Uniform(Shader owner, string name, int uniformLocation)
         {
@@ -43,7 +53,7 @@ namespace osu.Framework.Graphics.Shaders
             HasChanged = false;
         }
 
-        ref T IUniformWithValue<T>.GetValueByRef() => ref Value;
+        ref T IUniformWithValue<T>.GetValueByRef() => ref _value;
         T IUniformWithValue<T>.GetValue() => Value;
     }
 }
