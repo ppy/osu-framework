@@ -154,7 +154,6 @@ Task("PackiOSFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
@@ -175,7 +174,6 @@ Task("PackAndroidFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
