@@ -3,6 +3,7 @@
 
 using osuTK;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -19,6 +20,10 @@ namespace osu.Framework.Graphics.Primitives
             P2 = p2;
         }
 
+        public unsafe ReadOnlySpan<Vector2> GetVertices()
+        {
+            return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
+        }
         /// <summary>
         /// Checks whether a point lies within the triangle.
         /// </summary>
@@ -56,18 +61,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public float ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
-
-        public float Area
-        {
-            get
-            {
-                float a = (P0 - P1).Length;
-                float b = (P0 - P2).Length;
-                float c = (P1 - P2).Length;
-                float s = (a + b + c) / 2.0f;
-                return (float)Math.Sqrt(s * (s - a) * (s - b) * (s - c));
-            }
-        }
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
     }
 }
