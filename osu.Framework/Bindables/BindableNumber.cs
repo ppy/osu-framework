@@ -9,10 +9,18 @@ namespace osu.Framework.Bindables
     public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
-        static BindableNumber()
+        public event Action<T> PrecisionChanged;
+
+        public event Action<T> MinValueChanged;
+
+        public event Action<T> MaxValueChanged;
+
+        private protected BindableNumber(T value = default)
+            : base(value)
         {
             // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
-            // Just a pointer comparison.
+            // Just a pointer comparison for reference types, or constant for value types.
+            // The check will become NOP after optimization.
             if (typeof(T) != typeof(sbyte) &&
                 typeof(T) != typeof(byte) &&
                 typeof(T) != typeof(short) &&
@@ -25,17 +33,7 @@ namespace osu.Framework.Bindables
                 typeof(T) != typeof(double))
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
-        }
 
-        public event Action<T> PrecisionChanged;
-
-        public event Action<T> MinValueChanged;
-
-        public event Action<T> MaxValueChanged;
-
-        private protected BindableNumber(T value = default)
-            : base(value)
-        {
             MinValue = DefaultMinValue;
             MaxValue = DefaultMaxValue;
             precision = DefaultPrecision;
@@ -208,102 +206,66 @@ namespace osu.Framework.Bindables
         /// </summary>
         public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) || !MaxValue.Equals(DefaultMaxValue);
 
-        public bool IsInteger
-        {
-            get
-            {
-                switch (Type.GetTypeCode(typeof(T)))
-                {
-                    case TypeCode.Byte:
-                    case TypeCode.SByte:
-                    case TypeCode.UInt16:
-                    case TypeCode.Int16:
-                    case TypeCode.UInt32:
-                    case TypeCode.Int32:
-                    case TypeCode.UInt64:
-                    case TypeCode.Int64:
-                        return true;
-
-                    default:
-                        return false;
-                }
-            }
-        }
+        public bool IsInteger =>
+            typeof(T) != typeof(float) &&
+            typeof(T) != typeof(double); // Will be **constant** after JIT.
 
         public void Set<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
-            switch (this)
-            {
-                case BindableNumber<byte> byteBindable:
-                    byteBindable.Value = val.ToByte(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<sbyte> sbyteBindable:
-                    sbyteBindable.Value = val.ToSByte(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<ushort> ushortBindable:
-                    ushortBindable.Value = val.ToUInt16(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<short> shortBindable:
-                    shortBindable.Value = val.ToInt16(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<uint> uintBindable:
-                    uintBindable.Value = val.ToUInt32(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<int> intBindable:
-                    intBindable.Value = val.ToInt32(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<ulong> ulongBindable:
-                    ulongBindable.Value = val.ToUInt64(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<long> longBindable:
-                    longBindable.Value = val.ToInt64(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<float> floatBindable:
-                    floatBindable.Value = val.ToSingle(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<double> doubleBindable:
-                    doubleBindable.Value = val.ToDouble(NumberFormatInfo.InvariantInfo);
-                    break;
-            }
+            // Comparison between typeof(T) and type literals are treated as **constant** on value types.
+            // Code pathes for other types will be eliminated.
+            if (typeof(T) == typeof(byte))
+                ((BindableNumber<byte>)(object)this).Value = val.ToByte(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(sbyte))
+                ((BindableNumber<sbyte>)(object)this).Value = val.ToSByte(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(ushort))
+                ((BindableNumber<ushort>)(object)this).Value = val.ToUInt16(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(short))
+                ((BindableNumber<short>)(object)this).Value = val.ToInt16(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(uint))
+                ((BindableNumber<uint>)(object)this).Value = val.ToUInt32(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(int))
+                ((BindableNumber<int>)(object)this).Value = val.ToInt32(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(ulong))
+                ((BindableNumber<ulong>)(object)this).Value = val.ToUInt64(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(long))
+                ((BindableNumber<long>)(object)this).Value = val.ToInt64(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(float))
+                ((BindableNumber<float>)(object)this).Value = val.ToSingle(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(double))
+                ((BindableNumber<double>)(object)this).Value = val.ToDouble(NumberFormatInfo.InvariantInfo);
+            else
+                throw new NotSupportedException("How do you get here?");
         }
 
         public void Add<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
-            switch (this)
-            {
-                case BindableNumber<byte> byteBindable:
-                    byteBindable.Value += val.ToByte(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<sbyte> sbyteBindable:
-                    sbyteBindable.Value += val.ToSByte(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<ushort> ushortBindable:
-                    ushortBindable.Value += val.ToUInt16(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<short> shortBindable:
-                    shortBindable.Value += val.ToInt16(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<uint> uintBindable:
-                    uintBindable.Value += val.ToUInt32(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<int> intBindable:
-                    intBindable.Value += val.ToInt32(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<ulong> ulongBindable:
-                    ulongBindable.Value += val.ToUInt64(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<long> longBindable:
-                    longBindable.Value += val.ToInt64(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<float> floatBindable:
-                    floatBindable.Value += val.ToSingle(NumberFormatInfo.InvariantInfo);
-                    break;
-                case BindableNumber<double> doubleBindable:
-                    doubleBindable.Value += val.ToDouble(NumberFormatInfo.InvariantInfo);
-                    break;
-            }
+            // Comparison between typeof(T) and type literals are treated as **constant** on value types.
+            // Code pathes for other types will be eliminated.
+            if (typeof(T) == typeof(byte))
+                ((BindableNumber<byte>)(object)this).Value += val.ToByte(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(sbyte))
+                ((BindableNumber<sbyte>)(object)this).Value += val.ToSByte(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(ushort))
+                ((BindableNumber<ushort>)(object)this).Value += val.ToUInt16(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(short))
+                ((BindableNumber<short>)(object)this).Value += val.ToInt16(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(uint))
+                ((BindableNumber<uint>)(object)this).Value += val.ToUInt32(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(int))
+                ((BindableNumber<int>)(object)this).Value += val.ToInt32(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(ulong))
+                ((BindableNumber<ulong>)(object)this).Value += val.ToUInt64(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(long))
+                ((BindableNumber<long>)(object)this).Value += val.ToInt64(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(float))
+                ((BindableNumber<float>)(object)this).Value += val.ToSingle(NumberFormatInfo.InvariantInfo);
+            else if (typeof(T) == typeof(double))
+                ((BindableNumber<double>)(object)this).Value += val.ToDouble(NumberFormatInfo.InvariantInfo);
+            else
+                throw new NotSupportedException("How do you get here?");
         }
 
         /// <summary>
