@@ -10,9 +10,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameWindow : DesktopGameWindow
     {
-        private bool isSdl;
-
-        public bool IsSdl => isSdl;
+        public bool IsSdl { get; private set; }
 
         public LinuxGameWindow()
         {
@@ -25,7 +23,7 @@ namespace osu.Framework.Platform.Linux
 
             var windowImpl = implementationField.GetValue(Implementation);
 
-            isSdl = windowImpl.GetType().Name == "Sdl2NativeWindow";
+            IsSdl = windowImpl.GetType().Name == "Sdl2NativeWindow";
         }
     }
 }

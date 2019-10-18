@@ -206,6 +206,7 @@ namespace osu.Framework.Tests.Dependencies
             private BaseObject obj;
 #pragma warning restore 649
 
+            // ReSharper disable once ConvertToAutoProperty
             public BaseObject Obj => obj;
         }
 

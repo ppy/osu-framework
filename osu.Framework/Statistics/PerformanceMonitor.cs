@@ -28,9 +28,7 @@ namespace osu.Framework.Statistics
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
 
-        private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
-
-        internal bool[] ActiveCounters => activeCounters;
+        internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
         public bool EnablePerformanceProfiling
         {
@@ -52,7 +50,7 @@ namespace osu.Framework.Statistics
             currentFrame = FramesHeap.ReserveObject();
 
             foreach (var c in counters)
-                activeCounters[(int)c] = true;
+                ActiveCounters[(int)c] = true;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
             {
@@ -105,8 +103,8 @@ namespace osu.Framework.Statistics
         public void NewFrame()
         {
             // Reset the counters we keep track of
-            for (int i = 0; i < activeCounters.Length; ++i)
-                if (activeCounters[i])
+            for (int i = 0; i < ActiveCounters.Length; ++i)
+                if (ActiveCounters[i])
                 {
                     var count = FrameStatistics.COUNTERS[i];
                     var type = (StatisticsCounterType)i;

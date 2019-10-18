@@ -212,9 +212,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TooltipSpriteText : Container, IHasTooltip
         {
-            private readonly string tooltipContent;
-
-            public string TooltipText => tooltipContent;
+            public string TooltipText { get; }
 
             public TooltipSpriteText(string displayedContent)
                 : this(displayedContent, displayedContent)
@@ -223,7 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public TooltipSpriteText(string displayedContent, string tooltipContent)
             {
-                this.tooltipContent = tooltipContent;
+                this.TooltipText = tooltipContent;
 
                 AutoSizeAxes = Axes.Both;
                 Children = new[]

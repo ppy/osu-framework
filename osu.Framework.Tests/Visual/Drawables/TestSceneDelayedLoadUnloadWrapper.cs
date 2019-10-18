@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     });
             });
 
-            Func<int> childrenWithAvatarsLoaded = () =>
+            int childrenWithAvatarsLoaded() =>
                 flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
             int loadCount1 = 0;
@@ -297,8 +297,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 }
             });
 
-            Func<int> childrenWithAvatarsLoaded = () =>
-                flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().FirstOrDefault()?.Content?.IsLoaded ?? false);
+            int childrenWithAvatarsLoaded() => flow.Children.Count(c => c.Children.OfType<DelayedLoadWrapper>().FirstOrDefault()?.Content?.IsLoaded ?? false);
 
             AddUntilStep("wait some loaded", () => childrenWithAvatarsLoaded() > 5);
             AddStep("expire wrappers", () => wrappers.ForEach(w => w.Expire()));
