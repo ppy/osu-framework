@@ -65,13 +65,11 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private class TestVisibilityContainer : VisibilityContainer
         {
-            private readonly bool startHidden;
-
-            protected override bool StartHidden => startHidden;
+            protected override bool StartHidden { get; }
 
             public TestVisibilityContainer(bool startHidden = true)
             {
-                this.startHidden = startHidden;
+                this.StartHidden = startHidden;
 
                 Size = new Vector2(0.5f);
                 RelativeSizeAxes = Axes.Both;
