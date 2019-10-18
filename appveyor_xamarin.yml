@@ -6,4 +6,4 @@ test: off
 build_script:
   - cmd: >-
       dotnet restore osu-framework.iOS.sln;
-      msbuild osu-framework.iOS.sln;
+      msbuild osu.Framework.iOS\osu.Framework.iOS.csproj;
