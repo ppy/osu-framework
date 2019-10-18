@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (wrap)
             {
-                targetIndex = targetIndex % tabCount;
+                targetIndex %= tabCount;
                 if (targetIndex < 0)
                     targetIndex += tabCount;
             }
