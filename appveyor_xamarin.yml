@@ -5,4 +5,4 @@ image: Visual Studio 2019 Preview
 test: off
 build_script:
   - cmd: >-
-      msbuild /version
+      msbuild osu.Framework.iOS\osu.Framework.iOS.csproj
