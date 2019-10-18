@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Primitives
     {
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
         [DefaultFloatingPointTolerance(0.1f)]
-        public float TestArea(Triangle testTriangle) => testTriangle.AreaNew;
+        public float TestArea(Triangle testTriangle) => testTriangle.Area;
 
         private class AreaTestData
         {
