@@ -217,9 +217,15 @@ Task("Build")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackFramework")
+    .IsDependentOn("PackNativeLibs")
+    .IsDependentOn("Publish");
+
+Task("BuildXamarin")
+    .IsDependentOn("Clean")
+    .IsDependentOn("DetermineAppveyorBuildProperties")
+    .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
-    .IsDependentOn("PackNativeLibs")
     .IsDependentOn("Publish");
 
 Task("DeployFramework")
