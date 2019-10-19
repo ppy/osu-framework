@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\TemplateGame.Game.props" />
+  <PropertyGroup Label="Project">
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>TemplateGame.Game.Tests.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Package References">
+    <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+  </ItemGroup>
+</Project>
