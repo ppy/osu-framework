@@ -4,15 +4,12 @@
 using NUnit.Framework;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Tests.Primitives
 {
     [TestFixture]
-    class TriangleTest
+    public class TriangleTest
     {
         [TestCaseSource(typeof(AreaTestData), nameof(AreaTestData.TestCases))]
         [DefaultFloatingPointTolerance(0.1f)]

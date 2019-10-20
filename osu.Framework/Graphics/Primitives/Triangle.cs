@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
         }
+
         /// <summary>
         /// Checks whether a point lies within the triangle.
         /// </summary>
