@@ -234,7 +234,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 case 4:
                 {
-                    Func<float, Drawable> createMaskingBox = delegate(float scale)
+                    Drawable createMaskingBox(float scale)
                     {
                         float size = 200 / scale;
                         return new Container
@@ -266,7 +266,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 },
                             }
                         };
-                    };
+                    }
 
                     TestContainer.Add(new FillFlowContainer
                     {
