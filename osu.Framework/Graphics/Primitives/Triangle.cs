@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Triangle
+    public struct Triangle : IConvexPolygon, IEquatable<Triangle>
     {
         public Vector2 P0;
         public Vector2 P1;
@@ -20,10 +20,17 @@ namespace osu.Framework.Graphics.Primitives
             P2 = p2;
         }
 
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+
         public unsafe ReadOnlySpan<Vector2> GetVertices()
         {
             return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
         }
+
+        public bool Equals(Triangle other) =>
+            P0 == other.P0 &&
+            P1 == other.P1 &&
+            P2 == other.P2;
 
         /// <summary>
         /// Checks whether a point lies within the triangle.
