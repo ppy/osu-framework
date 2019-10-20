@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime;
@@ -678,6 +679,8 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
+        private Bindable<string> threadLocale;
+
         protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {
             var hostDefaults = new Dictionary<FrameworkSetting, object>
@@ -784,6 +787,24 @@ namespace osu.Framework.Platform
             }, true);
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
+
+            threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
+            threadLocale.BindValueChanged(locale =>
+            {
+                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.InvariantCultureIgnoreCase)) ?? CultureInfo.InvariantCulture;
+
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+                foreach (var t in threads)
+                {
+                    t.Scheduler.Add(() =>
+                    {
+                        t.Thread.CurrentCulture = culture;
+                        t.Thread.CurrentUICulture = culture;
+                    });
+                }
+            }, true);
         }
 
         private void setVSyncMode()

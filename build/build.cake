@@ -1,6 +1,6 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.21"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.1.1"
+#addin "nuget:?package=CodeFileSanity&version=0.0.33"
+#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.2.1"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
 var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
@@ -154,7 +154,6 @@ Task("PackiOSFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
@@ -175,7 +174,6 @@ Task("PackAndroidFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");

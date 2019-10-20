@@ -305,9 +305,7 @@ namespace osu.Framework.Tests.Dependencies
         private class Provider5
         {
             [Cached]
-            private ProvidedType1 provided1 = new ProvidedType1();
-
-            public ProvidedType1 Provided1 => provided1;
+            public ProvidedType1 Provided1 { get; } = new ProvidedType1();
 
             [Cached]
             private ProvidedType2 provided2 = new ProvidedType2();
@@ -316,9 +314,7 @@ namespace osu.Framework.Tests.Dependencies
         private class Provider6 : Provider5
         {
             [Cached]
-            private ProvidedType1 provided3 = new ProvidedType1();
-
-            public ProvidedType1 Provided3 => provided3;
+            public ProvidedType1 Provided3 { get; } = new ProvidedType1();
         }
 
         private class Provider7

@@ -92,7 +92,7 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? TestScene.RemovePrefix(t.Name) : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
@@ -196,6 +196,7 @@ namespace osu.Framework.Testing
                 {
                     RelativeSizeAxes = Axes.Y,
                     Size = new Vector2(test_list_width, 1),
+                    Masking = true,
                     Children = new Drawable[]
                     {
                         new SafeAreaContainer

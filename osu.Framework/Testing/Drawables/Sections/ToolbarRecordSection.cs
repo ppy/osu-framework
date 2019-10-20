@@ -67,6 +67,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Height = 20,
                                 Width = 250,
+                                KeyboardStep = 1,
                                 Current = browser.CurrentFrame,
                                 BackgroundColour = FrameworkColour.Blue,
                             },
@@ -95,10 +96,16 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void changeState()
         {
-            if (browser.RecordState.Value == RecordState.Stopped)
-                browser.RecordState.Value = RecordState.Normal;
-            else
-                browser.RecordState.Value = browser.RecordState.Value + 1;
+            switch (browser.RecordState.Value)
+            {
+                case RecordState.Stopped:
+                    browser.RecordState.Value = RecordState.Normal;
+                    break;
+
+                default:
+                    browser.RecordState.Value++;
+                    break;
+            }
         }
 
         private void updateState(ValueChangedEvent<RecordState> args)

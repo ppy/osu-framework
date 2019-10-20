@@ -45,8 +45,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Container<T> content;
-
         protected readonly ScrollbarContainer Scrollbar;
 
         private bool scrollbarOverlapsContent = true;
@@ -67,7 +65,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
-        private float availableContent => content.DrawSize[ScrollDim];
+        private float availableContent => ScrollContent.DrawSize[ScrollDim];
 
         /// <summary>
         /// Size of the viewport in the scroll direction.
@@ -134,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns></returns>
         protected float Clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
 
-        protected override Container<T> Content => content;
+        protected override Container<T> Content => ScrollContent;
 
         /// <summary>
         /// Whether we are currently scrolled as far as possible into the scroll direction.
@@ -145,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The container holding all children which are getting scrolled around.
         /// </summary>
-        public Container<T> ScrollContent => content;
+        public Container<T> ScrollContent { get; }
 
         protected virtual bool IsDragging { get; private set; }
 
@@ -174,7 +172,7 @@ namespace osu.Framework.Graphics.Containers
             Axes scrollAxis = scrollDirection == Direction.Horizontal ? Axes.X : Axes.Y;
             AddRangeInternal(new Drawable[]
             {
-                content = new Container<T>
+                ScrollContent = new Container<T>
                 {
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
@@ -213,18 +211,18 @@ namespace osu.Framework.Graphics.Containers
         private void updatePadding()
         {
             if (scrollbarOverlapsContent || availableContent <= displayableContent)
-                content.Padding = new MarginPadding();
+                ScrollContent.Padding = new MarginPadding();
             else
             {
                 if (ScrollDirection == Direction.Vertical)
                 {
-                    content.Padding = ScrollbarAnchor == Anchor.TopLeft
+                    ScrollContent.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Left = Scrollbar.Width + Scrollbar.Margin.Left }
                         : new MarginPadding { Right = Scrollbar.Width + Scrollbar.Margin.Right };
                 }
                 else
                 {
-                    content.Padding = ScrollbarAnchor == Anchor.TopLeft
+                    ScrollContent.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Top = Scrollbar.Height + Scrollbar.Margin.Top }
                         : new MarginPadding { Bottom = Scrollbar.Height + Scrollbar.Margin.Bottom };
                 }
@@ -431,7 +429,7 @@ namespace osu.Framework.Graphics.Containers
             float minPos = Math.Min(childPos0, childPos1);
             float maxPos = Math.Max(childPos0, childPos1);
 
-            if (minPos < Current)
+            if (minPos < Current || (minPos > Current && d.DrawSize[ScrollDim] > displayableContent))
                 ScrollTo(minPos, animated);
             else if (maxPos > Current + displayableContent)
                 ScrollTo(maxPos - displayableContent, animated);
@@ -443,7 +441,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="d">The child to get the position from.</param>
         /// <param name="offset">Positional offset in the child's space.</param>
         /// <returns>The position of the child.</returns>
-        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, content)[ScrollDim];
+        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, ScrollContent)[ScrollDim];
 
         /// <summary>
         /// Determines the position of a child in the content.
@@ -497,12 +495,12 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal)
             {
                 Scrollbar.X = toScrollbarPosition(Current);
-                content.X = -Current + scrollableExtent * content.RelativeAnchorPosition.X;
+                ScrollContent.X = -Current + scrollableExtent * ScrollContent.RelativeAnchorPosition.X;
             }
             else
             {
                 Scrollbar.Y = toScrollbarPosition(Current);
-                content.Y = -Current + scrollableExtent * content.RelativeAnchorPosition.Y;
+                ScrollContent.Y = -Current + scrollableExtent * ScrollContent.RelativeAnchorPosition.Y;
             }
         }
 
