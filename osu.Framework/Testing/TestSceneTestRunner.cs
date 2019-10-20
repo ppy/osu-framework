@@ -85,6 +85,10 @@ namespace osu.Framework.Testing
                         // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
                         // is run from its own asynchronous thread.
                         RemoveInternal(test);
+
+                        while (host.ExecutionState != ExecutionState.Running)
+                            Thread.Sleep(10);
+
                         // ReSharper disable once AccessToDisposedClosure
                         completionEvent.Set();
                     }
