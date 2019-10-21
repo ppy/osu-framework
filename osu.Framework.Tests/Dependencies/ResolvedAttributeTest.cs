@@ -202,9 +202,9 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver1
         {
-#pragma warning disable 649
+#pragma warning disable 649, IDE0032
             private BaseObject obj;
-#pragma warning restore 649
+#pragma warning restore 649, IDE0032
 
             // ReSharper disable once ConvertToAutoProperty
             public BaseObject Obj => obj;
