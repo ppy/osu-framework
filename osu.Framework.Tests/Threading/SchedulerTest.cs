@@ -233,7 +233,7 @@ namespace osu.Framework.Tests.Threading
         {
             int invocations = 0;
 
-            Action action = () => { invocations++; };
+            void action() => invocations++;
 
             scheduler.AddOnce(action);
             scheduler.AddOnce(action);
