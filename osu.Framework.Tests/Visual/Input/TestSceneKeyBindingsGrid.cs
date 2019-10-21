@@ -446,7 +446,7 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class TestButton : Button, IKeyBindingHandler<TestAction>
+        private class TestButton : BasicButton, IKeyBindingHandler<TestAction>
         {
             public new readonly TestAction Action;
             public readonly SimultaneousBindingMode Concurrency;
