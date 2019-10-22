@@ -86,7 +86,7 @@ namespace osu.Framework.Testing
                         // is run from its own asynchronous thread.
                         RemoveInternal(test);
 
-                        while (host.ExecutionState != ExecutionState.Running)
+                        while (host.ExecutionState != ExecutionState.Running && exception == null)
                             Thread.Sleep(10);
 
                         // ReSharper disable once AccessToDisposedClosure
