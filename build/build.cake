@@ -19,6 +19,7 @@ var rootDirectory = new DirectoryPath("..");
 var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
+var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
 var desktopBuilds = rootDirectory.CombineWithFilePath("build/Desktop.proj");
 var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
@@ -131,6 +132,9 @@ Task("CodeFileSanity")
         });
     });
 
+Task("DotnetFormat")
+    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
+
 Task("PackFramework")
     .Does(() => {
         DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
@@ -212,6 +216,7 @@ Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
+    .IsDependentOn("DotnetFormat")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")
