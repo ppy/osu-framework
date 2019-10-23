@@ -14,14 +14,17 @@ namespace osu.Framework.Graphics.Shaders
 
         public bool HasChanged { get; private set; } = true;
 
-        private T _value;
+        private T val;
 
         public T Value
         {
-            get => _value;
+            get => val;
             set
             {
-                _value = value;
+                if (value.Equals(val))
+                    return;
+
+                val = value;
                 HasChanged = true;
             }
         }
@@ -38,7 +41,7 @@ namespace osu.Framework.Graphics.Shaders
             if (newValue.Equals(Value))
                 return;
 
-            Value = newValue;
+            val= newValue;
             HasChanged = true;
 
             if (Owner.IsBound)
@@ -53,7 +56,7 @@ namespace osu.Framework.Graphics.Shaders
             HasChanged = false;
         }
 
-        ref T IUniformWithValue<T>.GetValueByRef() => ref _value;
+        ref T IUniformWithValue<T>.GetValueByRef() => ref val;
         T IUniformWithValue<T>.GetValue() => Value;
     }
 }
