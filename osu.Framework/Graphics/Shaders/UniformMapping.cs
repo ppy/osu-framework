@@ -11,7 +11,22 @@ namespace osu.Framework.Graphics.Shaders
     internal class UniformMapping<T> : IUniformMapping
         where T : struct
     {
-        public T Value;
+        private T val;
+
+        public T Value
+        {
+            get => val;
+            set
+            {
+                if (value.Equals(val))
+                    return;
+
+                val = value;
+
+                for (int i = 0; i < LinkedUniforms.Count; i++)
+                    LinkedUniforms[i].UpdateValue(this);
+            }
+        }
 
         public List<GlobalUniform<T>> LinkedUniforms = new List<GlobalUniform<T>>();
 
@@ -38,10 +53,15 @@ namespace osu.Framework.Graphics.Shaders
 
         public void UpdateValue(ref T newValue)
         {
-            Value = newValue;
+            if (newValue.Equals(val))
+                return;
+
+            val = newValue;
 
             for (int i = 0; i < LinkedUniforms.Count; i++)
                 LinkedUniforms[i].UpdateValue(this);
         }
+
+        public ref T GetValueByRef() => ref val;
     }
 }
