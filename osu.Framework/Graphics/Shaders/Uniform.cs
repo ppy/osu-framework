@@ -26,6 +26,9 @@ namespace osu.Framework.Graphics.Shaders
 
                 val = value;
                 HasChanged = true;
+
+                if (Owner.IsBound)
+                    Update();
             }
         }
 
