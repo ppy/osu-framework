@@ -44,6 +44,7 @@ namespace osu.Framework.iOS.Input
                 case UITouchPhase.Began:
                     PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
                     break;
+
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
                     PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));

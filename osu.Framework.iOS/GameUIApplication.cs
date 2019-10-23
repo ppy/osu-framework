@@ -64,7 +64,9 @@ namespace osu.Framework.iOS
                     KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
                     if (blockKeys.Contains(eventScanCode))
                         return true;
+
                     break;
+
                 case gsevent_type_modifier:
                     KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
                     lastEventFlags = eventModifier;
