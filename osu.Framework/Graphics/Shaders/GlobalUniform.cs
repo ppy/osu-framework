@@ -2,11 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.OpenGL;
+using System;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal class GlobalUniform<T> : IUniformWithValue<T>
-        where T : struct
+        where T : struct, IEquatable<T>
     {
         public Shader Owner { get; }
         public int Location { get; }

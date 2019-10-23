@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Shaders
@@ -9,7 +10,7 @@ namespace osu.Framework.Graphics.Shaders
     /// A mapping of a global uniform to many shaders which need to receive updates on a change.
     /// </summary>
     internal class UniformMapping<T> : IUniformMapping
-        where T : struct
+        where T : struct, IEquatable<T>
     {
         private T val;
 
