@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public void UpdateValue(ref T newValue)
         {
-            if (newValue.Equals(Value))
+            if (EqualityComparer<T>.Default.Equals(newValue, Value))
                 return;
 
             Value = newValue;
