@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public void UpdateValue(ref T newValue)
         {
-            if (newValue.Equals(Value))
+            if (newValue.Equals(val))
                 return;
 
             val= newValue;
@@ -57,6 +57,6 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         ref T IUniformWithValue<T>.GetValueByRef() => ref val;
-        T IUniformWithValue<T>.GetValue() => Value;
+        T IUniformWithValue<T>.GetValue() => val;
     }
 }
