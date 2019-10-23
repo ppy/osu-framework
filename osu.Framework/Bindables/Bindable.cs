@@ -67,7 +67,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Check whether the current <see cref="Value"/> is equal to <see cref="Default"/>.
         /// </summary>
-        public virtual bool IsDefault => Equals(value, Default);
+        public virtual bool IsDefault => EqualityComparer<T>.Default.Equals(value, Default);
 
         /// <summary>
         /// Revert the current <see cref="Value"/> to the defined <see cref="Default"/>.
