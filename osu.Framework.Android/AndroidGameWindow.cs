@@ -18,12 +18,14 @@ namespace osu.Framework.Android
         public override bool Focused
             => true;
 
-        public override osuTK.WindowState WindowState {
+        public override osuTK.WindowState WindowState
+        {
             get => osuTK.WindowState.Normal;
             set { }
         }
 
-        public AndroidGameWindow() : base(View)
+        public AndroidGameWindow()
+            : base(View)
         {
         }
 
@@ -33,7 +35,7 @@ namespace osu.Framework.Android
             CursorInWindow = true;
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };

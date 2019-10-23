@@ -45,6 +45,31 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("fire count is 2", () => testContainer.FireCount == 2);
         }
 
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        public void TestStartHiddenNested(bool startHidden, bool immediatelyVisible)
+        {
+            TestNestedVisibilityContainer visibility = null;
+
+            AddStep("create container", () => Child = testContainer =
+                visibility = new TestNestedVisibilityContainer(startHidden) { State = { Value = immediatelyVisible ? Visibility.Visible : Visibility.Hidden } });
+
+            if (!immediatelyVisible)
+                AddStep("show", () => testContainer.Show());
+
+            checkVisible(!startHidden);
+
+            AddAssert("box has transforms", () => visibility.BoxHasTransforms);
+            AddStep("hide", () => testContainer.Hide());
+
+            checkHidden();
+            AddAssert("box doesn't have transforms", () => !visibility.BoxHasTransforms);
+
+            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+        }
+
         private void checkHidden(bool instant = false)
         {
             AddAssert("is hidden", () => testContainer.State.Value == Visibility.Hidden);
@@ -63,15 +88,50 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddUntilStep("alpha one", () => testContainer.Alpha == 1);
         }
 
+        private class TestNestedVisibilityContainer : TestVisibilityContainer
+        {
+            public bool BoxHasTransforms => box.Transforms.Count > 0;
+
+            private readonly TestVisibilityContainer nested;
+            private readonly Box box;
+
+            public TestNestedVisibilityContainer(bool startHidden = true)
+                : base(startHidden)
+            {
+                Add(nested = new TestVisibilityContainer(true, Color4.Yellow));
+
+                nested.Add(box = new Box
+                {
+                    Colour = Color4.Black,
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(0.5f),
+                });
+            }
+
+            protected override void PopIn()
+            {
+                base.PopIn();
+                nested.Show();
+                box.RotateTo(360, 5000);
+            }
+
+            protected override void PopOut()
+            {
+                base.PopOut();
+                nested.Hide();
+                box.RotateTo(0);
+            }
+        }
+
         private class TestVisibilityContainer : VisibilityContainer
         {
-            private readonly bool startHidden;
+            protected override bool StartHidden { get; }
 
-            protected override bool StartHidden => startHidden;
-
-            public TestVisibilityContainer(bool startHidden = true)
+            public TestVisibilityContainer(bool startHidden = true, Color4? colour = null)
             {
-                this.startHidden = startHidden;
+                this.StartHidden = startHidden;
 
                 Size = new Vector2(0.5f);
                 RelativeSizeAxes = Axes.Both;
@@ -83,7 +143,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 {
                     new Box
                     {
-                        Colour = Color4.Cyan,
+                        Colour = colour ?? Color4.Cyan,
                         RelativeSizeAxes = Axes.Both,
                     },
                 };

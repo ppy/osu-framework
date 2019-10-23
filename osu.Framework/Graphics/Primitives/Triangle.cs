@@ -3,10 +3,11 @@
 
 using osuTK;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Triangle
+    public struct Triangle : IConvexPolygon, IEquatable<Triangle>
     {
         public Vector2 P0;
         public Vector2 P1;
@@ -18,6 +19,18 @@ namespace osu.Framework.Graphics.Primitives
             P1 = p1;
             P2 = p2;
         }
+
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+
+        public unsafe ReadOnlySpan<Vector2> GetVertices()
+        {
+            return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
+        }
+
+        public bool Equals(Triangle other) =>
+            P0 == other.P0 &&
+            P1 == other.P1 &&
+            P2 == other.P2;
 
         /// <summary>
         /// Checks whether a point lies within the triangle.
@@ -56,18 +69,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public float ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
-
-        public float Area
-        {
-            get
-            {
-                float a = (P0 - P1).Length;
-                float b = (P0 - P2).Length;
-                float c = (P1 - P2).Length;
-                float s = (a + b + c) / 2.0f;
-                return (float)Math.Sqrt(s * (s - a) * (s - b) * (s - c));
-            }
-        }
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
     }
 }

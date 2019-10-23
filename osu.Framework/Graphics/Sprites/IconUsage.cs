@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString() => $"Icon={Icon} Font={FontName}";
 
-        public bool Equals(IconUsage other) => Equals(Icon, other.Icon) && string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight);
+        public bool Equals(IconUsage other) => Icon == other.Icon && string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight);
 
         public override bool Equals(object obj)
         {

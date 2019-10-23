@@ -12,7 +12,8 @@ namespace osu.Framework.Android.Graphics.Textures
 {
     internal class AndroidTextureLoaderStore : TextureLoaderStore
     {
-        public AndroidTextureLoaderStore(IResourceStore<byte[]> store) : base(store)
+        public AndroidTextureLoaderStore(IResourceStore<byte[]> store)
+            : base(store)
         {
         }
 
@@ -24,12 +25,14 @@ namespace osu.Framework.Android.Graphics.Textures
                 bitmap.GetPixels(pixels, 0, bitmap.Width, 0, 0, bitmap.Width, bitmap.Height);
                 byte[] result = new byte[pixels.Length * sizeof(int)];
                 Buffer.BlockCopy(pixels, 0, result, 0, result.Length);
+
                 for (int i = 0; i < pixels.Length; i++)
                 {
                     var b = result[i * 4];
                     result[i * 4] = result[i * 4 + 2];
                     result[i * 4 + 2] = b;
                 }
+
                 bitmap.Recycle();
                 return Image.LoadPixelData<TPixel>(result, bitmap.Width, bitmap.Height);
             }
