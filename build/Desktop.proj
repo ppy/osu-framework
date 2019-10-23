@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <ItemGroup>
+    <ProjectReference Include="..\SampleGame.Desktop\SampleGame.Desktop.csproj" />
+    <ProjectReference Include="..\SampleGame\SampleGame.csproj" />
+    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" />
+    <ProjectReference Include="..\osu.Framework.Tests\osu.Framework.Tests.csproj" />
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+</Project>

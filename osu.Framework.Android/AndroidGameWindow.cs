@@ -24,7 +24,8 @@ namespace osu.Framework.Android
             set { }
         }
 
-        public AndroidGameWindow() : base(View)
+        public AndroidGameWindow()
+            : base(View)
         {
         }
 
@@ -34,7 +35,7 @@ namespace osu.Framework.Android
             CursorInWindow = true;
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };
