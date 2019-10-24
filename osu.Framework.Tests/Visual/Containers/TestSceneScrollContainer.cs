@@ -89,12 +89,14 @@ namespace osu.Framework.Tests.Visual.Containers
                 });
 
                 for (int i = 0; i < 8; i++)
+                {
                     fill.Add(new Box
                     {
                         Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
                         RelativeSizeAxes = Axes.X,
                         Height = item_height,
                     });
+                }
             });
 
             // simple last item (hits bottom of view)

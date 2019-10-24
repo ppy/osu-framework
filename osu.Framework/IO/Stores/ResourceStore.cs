@@ -93,12 +93,14 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in localStores)
+            {
                 foreach (string f in filenames)
                 {
                     T result = await store.GetAsync(f);
                     if (result != null)
                         return result;
                 }
+            }
 
             return default;
         }
@@ -114,13 +116,17 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             lock (stores)
+            {
                 foreach (IResourceStore<T> store in stores)
+                {
                     foreach (string f in filenames)
                     {
                         T result = store.Get(f);
                         if (result != null)
                             return result;
                     }
+                }
+            }
 
             return default;
         }
@@ -131,7 +137,9 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             lock (stores)
+            {
                 foreach (IResourceStore<T> store in stores)
+                {
                     foreach (string f in filenames)
                     {
                         try
@@ -144,6 +152,8 @@ namespace osu.Framework.IO.Stores
                         {
                         }
                     }
+                }
+            }
 
             return null;
         }

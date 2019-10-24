@@ -155,6 +155,7 @@ namespace osu.Framework.Graphics.Containers
             cells = new CellContainer[requiredRows, requiredColumns];
 
             for (int r = 0; r < cellRows; r++)
+            {
                 for (int c = 0; c < cellColumns; c++)
                 {
                     // Add cell
@@ -178,6 +179,7 @@ namespace osu.Framework.Graphics.Containers
 
                     AddInternal(cells[r, c]);
                 }
+            }
 
             cellContent.Validate();
         }
@@ -194,6 +196,7 @@ namespace osu.Framework.Graphics.Containers
             var heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
 
             for (int col = 0; col < cellColumns; col++)
+            {
                 for (int row = 0; row < cellRows; row++)
                 {
                     cells[row, col].Size = new Vector2(widths[col], heights[row]);
@@ -204,6 +207,7 @@ namespace osu.Framework.Graphics.Containers
                     if (row > 0)
                         cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
                 }
+            }
 
             cellLayout.Validate();
         }

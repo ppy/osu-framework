@@ -274,8 +274,10 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             if (loadingComponents != null)
+            {
                 foreach (var d in loadingComponents)
                     d.Dispose();
+            }
 
             OnAutoSize = null;
             schedulerAfterChildren = null;
@@ -1127,8 +1129,10 @@ namespace osu.Framework.Graphics.Containers
             base.AddDelay(duration, propagateChildren);
 
             if (propagateChildren)
+            {
                 foreach (var c in internalChildren)
                     c.AddDelay(duration, true);
+            }
         }
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
@@ -1155,8 +1159,10 @@ namespace osu.Framework.Graphics.Containers
             base.FinishTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
+            {
                 foreach (var c in internalChildren)
                     c.FinishTransforms(true, targetMember);
+            }
         }
 
         /// <summary>

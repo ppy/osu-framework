@@ -176,8 +176,10 @@ namespace osu.Framework.Graphics
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
+            {
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+            }
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -351,9 +353,11 @@ namespace osu.Framework.Graphics
             set
             {
                 if (IsPartOfComposite)
+                {
                     throw new InvalidOperationException(
                         $"May not change {nameof(Depth)} while inside a parent {nameof(CompositeDrawable)}." +
                         $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
+                }
 
                 depth = value;
             }
@@ -1469,8 +1473,10 @@ namespace osu.Framework.Graphics
             Drawable cursor = this;
 
             while ((cursor = cursor.Parent) != null)
+            {
                 if (cursor is T match)
                     return match;
+            }
 
             return default;
         }
@@ -2218,9 +2224,13 @@ namespace osu.Framework.Graphics
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.StartTime < min)
                         min = t.StartTime;
+                }
+
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
