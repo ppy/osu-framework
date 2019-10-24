@@ -6,7 +6,6 @@ using osu.Framework.Input.States;
 namespace osu.Framework.Input.StateChanges.Events
 {
     public class ButtonStateChangeEvent<TButton> : InputStateChangeEvent
-        where TButton : struct
     {
         /// <summary>
         /// The button which changed state.

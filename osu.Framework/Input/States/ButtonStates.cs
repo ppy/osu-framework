@@ -14,7 +14,6 @@ namespace osu.Framework.Input.States
     /// </summary>
     /// <typeparam name="TButton">The type of button.</typeparam>
     public class ButtonStates<TButton> : IEnumerable<TButton>
-        where TButton : struct
     {
         private List<TButton> pressedButtons = new List<TButton>();
 

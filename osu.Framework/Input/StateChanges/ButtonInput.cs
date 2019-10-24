@@ -13,7 +13,6 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     /// <typeparam name="TButton">The type of button.</typeparam>
     public abstract class ButtonInput<TButton> : IInput
-        where TButton : struct
     {
         public IEnumerable<ButtonInputEntry<TButton>> Entries;
 

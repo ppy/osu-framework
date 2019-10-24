@@ -8,7 +8,6 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     /// <typeparam name="TButton">Type of button.</typeparam>
     public struct ButtonInputEntry<TButton>
-        where TButton : struct
     {
         /// <summary>
         /// The button referred to.
