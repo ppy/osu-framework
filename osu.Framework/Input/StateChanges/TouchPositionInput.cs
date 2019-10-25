@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.StateChanges.Events;
@@ -15,7 +16,7 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     public class TouchPositionInput : IInput
     {
-        public IReadOnlyList<PositionalPointer> Pointers;
+        public IEnumerable<PositionalPointer> Pointers;
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
@@ -24,14 +25,14 @@ namespace osu.Framework.Input.StateChanges
             if (Pointers == null)
                 return;
 
-            var activePointers = touch.Pointers.ToList();
+            var activePointers = touch.Pointers.ToArray();
             var buttonsState = state.Mouse.Buttons.Clone();
 
             foreach (var pointer in Pointers)
             {
-                for (int i = 0; i < activePointers.Count; i++)
+                foreach (ref var active in activePointers.AsSpan())
                 {
-                    if (!pointer.Equals(activePointers[i]) || !(pointer.Position != activePointers[i].Position))
+                    if (!pointer.Equals(active) || !(pointer.Position != active.Position))
                         continue;
 
                     var buttons = new List<MouseButton>();
@@ -42,9 +43,9 @@ namespace osu.Framework.Input.StateChanges
 
                     state.Mouse.Buttons.Set(buttons);
                     state.Mouse.Position = pointer.Position;
-                    handler.HandleInputStateChange(new MousePositionChangeEvent(state, this, activePointers[i].Position));
+                    handler.HandleInputStateChange(new MousePositionChangeEvent(state, this, active.Position));
 
-                    activePointers[i] = pointer;
+                    active = pointer;
                 }
             }
 
