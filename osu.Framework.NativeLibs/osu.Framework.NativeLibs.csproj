@@ -12,16 +12,20 @@
     <Title>osu!framework Libraries</Title>
     <PackageId>ppy.osu.Framework.NativeLibs</PackageId>
     <PackageTags>osu game framework libraries</PackageTags>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.a" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.dll" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.so" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.a" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.dylib" />
     <None Include="@(NativeLibs)">
       <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>runtimes</PackagePath>
+    </None>
+    <None Include="_._">
+      <Pack>true</Pack>
+      <PackagePath>lib/netstandard2.0</PackagePath>
     </None>
   </ItemGroup>
 </Project>
