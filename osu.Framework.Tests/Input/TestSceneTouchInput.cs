@@ -21,19 +21,19 @@ namespace osu.Framework.Tests.Input
         [Test]
         public void TestSinglePointer()
         {
-            addTouchStep(TouchInputKind.Down, MouseButton.Button1, getPointer(MouseButton.Button1, new Vector2(0)));
-            addTouchStep(TouchInputKind.Move, MouseButton.Button1, getPointer(MouseButton.Button1, new Vector2(1)));
-            addTouchStep(TouchInputKind.Up, pointers: getPointer(MouseButton.Button1));
+            addTouchStep(TouchInputKind.Down, MouseButton.Touch1, getPointer(MouseButton.Touch1, new Vector2(0)));
+            addTouchStep(TouchInputKind.Move, MouseButton.Touch1, getPointer(MouseButton.Touch1, new Vector2(1)));
+            addTouchStep(TouchInputKind.Up, pointers: getPointer(MouseButton.Touch1));
         }
 
         [Test]
         public void TestMultiPointers()
         {
-            addTouchStep(TouchInputKind.Down, MouseButton.Button1, getPointer(MouseButton.Button1, new Vector2(0, 0)));
-            addTouchStep(TouchInputKind.Down, MouseButton.Button2, getPointer(MouseButton.Button2, new Vector2(0, 1)));
-            addTouchStep(TouchInputKind.Move, MouseButton.Button2, getPointer(MouseButton.Button1, new Vector2(1, 0)), getPointer(MouseButton.Button2, new Vector2(1, 1)));
-            addTouchStep(TouchInputKind.Up, MouseButton.Button1, getPointer(MouseButton.Button2));
-            addTouchStep(TouchInputKind.Up, pointers: getPointer(MouseButton.Button1));
+            addTouchStep(TouchInputKind.Down, MouseButton.Touch1, getPointer(MouseButton.Touch1, new Vector2(0, 0)));
+            addTouchStep(TouchInputKind.Down, MouseButton.Touch2, getPointer(MouseButton.Touch2, new Vector2(0, 1)));
+            addTouchStep(TouchInputKind.Move, MouseButton.Touch2, getPointer(MouseButton.Touch1, new Vector2(1, 0)), getPointer(MouseButton.Touch2, new Vector2(1, 1)));
+            addTouchStep(TouchInputKind.Up, MouseButton.Touch1, getPointer(MouseButton.Touch2));
+            addTouchStep(TouchInputKind.Up, pointers: getPointer(MouseButton.Touch1));
         }
 
         /// <summary>
