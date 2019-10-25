@@ -58,13 +58,13 @@ namespace osu.Framework.Input.States
         public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons) => new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
 
         /// <summary>
-        /// Copies the state of another <see cref="ButtonStates{TButton}"/> to ourselves.
+        /// Copies the states of an <see cref="IEnumerable{TButton}"/> to ourselves.
         /// </summary>
-        /// <param name="other">The <see cref="ButtonStates{TButton}"/> to copy.</param>
-        public void Set(ButtonStates<TButton> other)
+        /// <param name="other">The <see cref="IEnumerable{TButton}"/> to copy from.</param>
+        public void Set(IEnumerable<TButton> other)
         {
             pressedButtons.Clear();
-            pressedButtons.AddRange(other.pressedButtons);
+            pressedButtons.AddRange(other);
         }
 
         public override string ToString() => $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
