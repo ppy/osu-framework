@@ -13,6 +13,15 @@ namespace osu.Framework.Android
     {
         protected abstract Game CreateGame();
 
+        /// <summary>
+        /// The visibility flags for the system UI (status and navigation bars)
+        /// </summary>
+        public SystemUiFlags UIVisibilityFlags
+        {
+            get => (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            set => Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+        }
+
         private AndroidGameView gameView;
 
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
