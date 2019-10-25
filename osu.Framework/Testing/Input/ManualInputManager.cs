@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -53,6 +54,8 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Drawable drawable) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
+        public void MoveTouchPointers(params PositionalPointer[] pointers) => Input(new TouchPositionInput { Pointers = pointers });
+
         public void Click(MouseButton button)
         {
             PressButton(button);
@@ -64,6 +67,9 @@ namespace osu.Framework.Testing.Input
 
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
+
+        public void ActivateTouchPointers(params PositionalPointer[] pointers) => pointers.ForEach(p => Input(new TouchButtonInput(p, true)));
+        public void DeactivateTouchPointers(params PositionalPointer[] pointers) => pointers.ForEach(p => Input(new TouchButtonInput(p, false)));
 
         private class ManualInputHandler : InputHandler
         {
