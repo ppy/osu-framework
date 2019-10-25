@@ -19,8 +19,14 @@ namespace osu.Framework.Android
         public SystemUiFlags UIVisibilityFlags
         {
             get => (SystemUiFlags)Window.DecorView.SystemUiVisibility;
-            set => Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+            set
+            {
+                systemUiFlags = value;
+                Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+            }
         }
+
+        private SystemUiFlags systemUiFlags;
 
         private AndroidGameView gameView;
 
@@ -35,6 +41,16 @@ namespace osu.Framework.Android
             base.OnCreate(savedInstanceState);
 
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
+
+            //firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navbar and potentially the status bar
+            //this sets back the UI flags to hidden once the interaction with the on-screen keyboard is finished.
+            Window.DecorView.SystemUiVisibilityChange += (_, e) =>
+            {
+                if ((SystemUiFlags)e.Visibility != systemUiFlags)
+                {
+                    UIVisibilityFlags = systemUiFlags;
+                }
+            };
         }
 
         protected override void OnPause()
