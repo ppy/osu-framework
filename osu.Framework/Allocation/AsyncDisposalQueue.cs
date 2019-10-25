@@ -22,18 +22,16 @@ namespace osu.Framework.Allocation
 
         private static readonly Lazy<Task> lazy_task = new Lazy<Task>(disposeLoopAsync, LazyThreadSafetyMode.ExecutionAndPublication);
 
-        public static void Enqueue(IDisposable disposable)
+        public static void Enqueue(IDisposable disposable) => enqueueCore(disposable);
+
+        public static void Enqueue(IAsyncDisposable asyncDisposable) => enqueueCore(asyncDisposable);
+
+        private static void enqueueCore(object disposable)
         {
             disposal_queue.Enqueue(disposable);
             semaphore.Release();
-            _ = lazy_task.Value;
-        }
-
-        public static void Enqueue(IAsyncDisposable asyncDisposable)
-        {
-            disposal_queue.Enqueue(asyncDisposable);
-            semaphore.Release();
-            _ = lazy_task.Value;
+            // ReSharper disable once AssignmentIsFullyDiscarded
+            _ = lazy_task.Value; // Touch the value to do a thread-safe creation.
         }
 
         private static async Task disposeLoopAsync()
