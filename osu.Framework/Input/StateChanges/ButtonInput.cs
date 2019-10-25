@@ -62,7 +62,7 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
         protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
 
-        public void Apply(InputState state, IInputStateChangeHandler handler)
+        public virtual void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var buttonStates = GetButtonStates(state);
 
