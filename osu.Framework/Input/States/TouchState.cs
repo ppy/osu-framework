@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 
 namespace osu.Framework.Input.States
@@ -14,21 +13,9 @@ namespace osu.Framework.Input.States
         public readonly ButtonStates<PositionalPointer> Pointers = new ButtonStates<PositionalPointer>();
 
         /// <summary>
-        /// Attempts to retrieve the recent pointer of all active pointers.
+        /// Retrieves the recent pointer of all active pointers.
+        /// Null is returned when there are no active pointers.
         /// </summary>
-        /// <returns>Whether the pointer is successfully retrieved.</returns>
-        public bool TryGetPrimaryPointer(out PositionalPointer primary)
-        {
-            try
-            {
-                primary = Pointers.OrderByDescending(p => p.Source).First();
-                return true;
-            }
-            catch (InvalidOperationException)
-            {
-                primary = default;
-                return false;
-            }
-        }
+        public PositionalPointer? PrimaryPointer => Pointers.Any() ? (PositionalPointer?)Pointers.OrderByDescending(p => p.Source).First() : null;
     }
 }

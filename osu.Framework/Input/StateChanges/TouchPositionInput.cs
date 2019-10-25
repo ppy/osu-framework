@@ -35,7 +35,7 @@ namespace osu.Framework.Input.StateChanges
                         continue;
 
                     var buttons = new List<MouseButton>();
-                    if (touch.TryGetPrimaryPointer(out var primary) && pointer.Equals(primary))
+                    if (touch.PrimaryPointer?.Equals(pointer) ?? false)
                         buttons.Add(MouseButton.Left);
                     else
                         buttons.Add(pointer.Source);
@@ -49,8 +49,8 @@ namespace osu.Framework.Input.StateChanges
             }
 
             state.Mouse.Buttons.Set(buttonsState);
-            if (touch.TryGetPrimaryPointer(out var p))
-                state.Mouse.Position = p.Position;
+            if (touch.PrimaryPointer != null)
+                state.Mouse.Position = touch.PrimaryPointer.Value.Position;
 
             touch.Pointers.Set(activePointers);
         }

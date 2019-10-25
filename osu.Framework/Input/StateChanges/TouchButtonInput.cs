@@ -29,17 +29,17 @@ namespace osu.Framework.Input.StateChanges
         public override void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var touch = state.Touch;
-            bool hasPrimaryBefore = touch.TryGetPrimaryPointer(out var primaryBefore);
+            var primaryBefore = touch.PrimaryPointer;
 
             base.Apply(state, handler);
 
             // There may not be active pointers before button input application, Try checking after application.
             // As this might be a first pointer activation
-            bool hasPrimaryAfter = touch.TryGetPrimaryPointer(out var primaryAfter);
-            if (hasPrimaryBefore == hasPrimaryAfter && primaryBefore.Source == primaryAfter.Source)
+            var primaryAfter = touch.PrimaryPointer;
+            if (primaryBefore.HasValue == primaryAfter.HasValue && primaryBefore?.Source == primaryAfter?.Source)
                 return;
 
-            new MouseButtonInput(MouseButton.Left, hasPrimaryAfter).Apply(state, handler);
+            new MouseButtonInput(MouseButton.Left, primaryAfter.HasValue).Apply(state, handler);
         }
     }
 }
