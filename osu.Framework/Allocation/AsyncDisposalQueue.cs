@@ -2,7 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Statistics;
 
@@ -15,38 +16,51 @@ namespace osu.Framework.Allocation
     {
         private static readonly GlobalStatistic<string> last_disposal = GlobalStatistics.Get<string>("Drawable", "Last disposal");
 
-        private static readonly List<IDisposable> disposal_queue = new List<IDisposable>();
+        private static readonly ConcurrentQueue<object> disposal_queue = new ConcurrentQueue<object>();
 
-        private static Task runTask;
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
+
+        private static readonly Lazy<Task> lazy_task = new Lazy<Task>(disposeLoopAsync, LazyThreadSafetyMode.ExecutionAndPublication);
 
         public static void Enqueue(IDisposable disposable)
         {
-            lock (disposal_queue)
-                disposal_queue.Add(disposable);
+            disposal_queue.Enqueue(disposable);
+            semaphore.Release();
+            _ = lazy_task.Value;
+        }
 
-            if (runTask?.Status < TaskStatus.Running)
-                return;
+        public static void Enqueue(IAsyncDisposable asyncDisposable)
+        {
+            disposal_queue.Enqueue(asyncDisposable);
+            semaphore.Release();
+            _ = lazy_task.Value;
+        }
 
-            runTask = Task.Run(() =>
+        private static async Task disposeLoopAsync()
+        {
+            await Task.Yield();
+
+            while (true)
             {
-                IDisposable[] itemsToDispose;
+                // The semaphore count should be not more than the queue's count.
+                // See implementation of System.Collections.Concurrent.BlockingCollection<T>.
+                await semaphore.WaitAsync();
+                if (!disposal_queue.TryDequeue(out object obj))
+                    throw new InvalidOperationException("Thread safety is broken somewhere.");
 
-                lock (disposal_queue)
+                last_disposal.Value = obj.ToString();
+
+                switch (obj)
                 {
-                    itemsToDispose = disposal_queue.ToArray();
-                    disposal_queue.Clear();
+                    case IAsyncDisposable asyncDisposable:
+                        await asyncDisposable.DisposeAsync();
+                        break;
+
+                    case IDisposable disposable:
+                        disposable.Dispose();
+                        break;
                 }
-
-                for (int i = 0; i < itemsToDispose.Length; i++)
-                {
-                    ref var item = ref itemsToDispose[i];
-
-                    last_disposal.Value = item.ToString();
-                    item.Dispose();
-
-                    item = null;
-                }
-            });
+            }
         }
     }
 }
