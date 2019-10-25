@@ -21,7 +21,7 @@ namespace osu.Framework.Input.States
         {
             try
             {
-                primary = Pointers.OrderBy(p => p.Source).Last();
+                primary = Pointers.OrderByDescending(p => p.Source).First();
                 return true;
             }
             catch (InvalidOperationException)
