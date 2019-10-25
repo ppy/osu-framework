@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2Extensions.Transform(r.BottomLeft, m),
                 Vector2Extensions.Transform(r.BottomRight, m));
 
-        public Matrix2 BasisTransform
+        public readonly Matrix2 BasisTransform
         {
             get
             {
@@ -71,13 +71,13 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
-        public Vector2 Size => new Vector2(Width, Height);
+        public readonly Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
+        public readonly Vector2 Size => new Vector2(Width, Height);
 
-        public float Width => Vector2Extensions.Distance(TopLeft, TopRight);
-        public float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
+        public readonly float Width => Vector2Extensions.Distance(TopLeft, TopRight);
+        public readonly float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
 
-        public RectangleI AABB
+        public readonly RectangleI AABB
         {
             get
             {
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public RectangleF AABBFloat
+        public readonly RectangleF AABBFloat
         {
             get
             {
@@ -103,17 +103,12 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+        public readonly ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public ReadOnlySpan<Vector2> GetVertices()
-        {
-            unsafe
-            {
-                return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 4);
-            }
-        }
+        public readonly unsafe ReadOnlySpan<Vector2> GetVertices()
+            => new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref Unsafe.AsRef(in this)), 4);
 
-        public bool Contains(Vector2 pos) =>
+        public readonly bool Contains(Vector2 pos) =>
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
             new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
@@ -123,15 +118,15 @@ namespace osu.Framework.Graphics.Primitives
         /// <remarks>
         /// If the quad is self-intersecting the area is interpreted as the sum of all positive and negative areas and not the "visible area" enclosed by the <see cref="Quad"/>.
         /// </remarks>
-        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
+        public readonly float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
 
-        public bool Equals(Quad other) =>
+        public readonly bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&
             TopRight == other.TopRight &&
             BottomLeft == other.BottomLeft &&
             BottomRight == other.BottomRight;
 
-        public bool AlmostEquals(Quad other) =>
+        public readonly bool AlmostEquals(Quad other) =>
             Precision.AlmostEquals(TopLeft.X, other.TopLeft.X) &&
             Precision.AlmostEquals(TopLeft.Y, other.TopLeft.Y) &&
             Precision.AlmostEquals(TopRight.X, other.TopRight.X) &&
@@ -141,6 +136,6 @@ namespace osu.Framework.Graphics.Primitives
             Precision.AlmostEquals(BottomRight.X, other.BottomRight.X) &&
             Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
 
-        public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
+        public override readonly string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
     }
 }

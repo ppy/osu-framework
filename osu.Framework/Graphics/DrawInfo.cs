@@ -68,8 +68,8 @@ namespace osu.Framework.Graphics
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
         }
 
-        public bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
+        public readonly bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
 
-        public override string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
+        public override readonly string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }
 }

@@ -851,7 +851,7 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Hollow;
         public float HollowCornerRadius;
 
-        public bool Equals(MaskingInfo other) =>
+        public readonly bool Equals(MaskingInfo other) =>
             ScreenSpaceAABB == other.ScreenSpaceAABB &&
             MaskingRect == other.MaskingRect &&
             ToMaskingSpace == other.ToMaskingSpace &&

@@ -20,14 +20,12 @@ namespace osu.Framework.Graphics.Primitives
             P2 = p2;
         }
 
-        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+        public readonly ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public unsafe ReadOnlySpan<Vector2> GetVertices()
-        {
-            return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 3);
-        }
+        public readonly unsafe ReadOnlySpan<Vector2> GetVertices()
+            => new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref Unsafe.AsRef(in this)), 3);
 
-        public bool Equals(Triangle other) =>
+        public readonly bool Equals(Triangle other) =>
             P0 == other.P0 &&
             P1 == other.P1 &&
             P2 == other.P2;
@@ -37,7 +35,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="pos">The point to check.</param>
         /// <returns>Outcome of the check.</returns>
-        public bool Contains(Vector2 pos)
+        public readonly bool Contains(Vector2 pos)
         {
             // This code parametrizes pos as a linear combination of 2 edges s*(p1-p0) + t*(p2->p0).
             // pos is contained if s>0, t>0, s+t<1
@@ -56,7 +54,7 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
-        public RectangleF AABBFloat
+        public readonly RectangleF AABBFloat
         {
             get
             {
@@ -69,6 +67,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
+        public readonly float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
     }
 }
