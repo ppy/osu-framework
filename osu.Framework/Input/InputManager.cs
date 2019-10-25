@@ -51,9 +51,9 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
-        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
+        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/>, <see cref="InputState.Touch"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
-        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new TouchState(), new KeyboardState(), new JoystickState());
+        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new TouchState(), new JoystickState());
 
         /// <summary>
         /// The last processed state.
