@@ -39,7 +39,7 @@ namespace osu.Framework.Lists
         /// </summary>
         /// <param name="comparer">The comparison function.</param>
         public SortedList(Func<T, T, int> comparer)
-            : this(new ComparisonComparer<T>(comparer))
+            : this(Comparer<T>.Create(new Comparison<T>(comparer)))
         {
         }
 
