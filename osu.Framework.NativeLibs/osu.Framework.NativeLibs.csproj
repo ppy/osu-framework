@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Library</OutputType>
     <ContentTargetFolders>contentFiles</ContentTargetFolders>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
@@ -25,7 +25,7 @@
     </None>
     <None Include="_._">
       <Pack>true</Pack>
-      <PackagePath>lib/netstandard2.0</PackagePath>
+      <PackagePath>lib/netcoreapp3.0</PackagePath>
     </None>
   </ItemGroup>
 </Project>
