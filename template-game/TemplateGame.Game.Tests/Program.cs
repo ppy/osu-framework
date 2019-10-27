@@ -10,7 +10,6 @@ namespace TemplateGame.Game.Tests
 {
     public static class Program
     {
-        [STAThread]
         public static void Main()
         {
             using (GameHost host = Host.GetSuitableHost("visual-tests"))

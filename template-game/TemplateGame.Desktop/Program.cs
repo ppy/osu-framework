@@ -10,7 +10,6 @@ namespace TemplateGame.Desktop
 {
     public static class Program
     {
-        [STAThread]
         public static void Main()
         {
             using (GameHost host = Host.GetSuitableHost(@"TemplateGame"))
