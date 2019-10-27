@@ -9,9 +9,6 @@
     <Version>0.0.0</Version>
     <FileVersion>0.0.0</FileVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>TemplateGame.Desktop.Program</StartupObject>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
   </ItemGroup>
