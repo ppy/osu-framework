@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
         }
 
         public const int VERTICES_PER_QUAD = 4;

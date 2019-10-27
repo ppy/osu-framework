@@ -10,12 +10,12 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    /// <summary>Stores a set of four integer numbers that represent the location and size of a rectangle. For more advanced region functions, use a <see cref="T:System.Drawing.Region"></see> object.</summary>
+    /// <summary>Stores a set of four integer numbers that represent the location and size of a rectangle. The code was duplicated from <see cref="System.Drawing.Rectangle"/>.</summary>
     /// <filterpriority>1</filterpriority>
     [Serializable, StructLayout(LayoutKind.Sequential)]
     public struct RectangleI : IEquatable<RectangleI>
     {
-        /// <summary>Represents an instance of the <see cref="T:System.Drawing.RectangleI"></see> class with its members uninitialized.</summary>
+        /// <summary>Represents an instance of the <see cref="RectangleI"/> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
         public static readonly RectangleI Empty;
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Primitives
         public int Width;
         public int Height;
 
-        /// <summary>Initializes a new instance of the <see cref="T:System.Drawing.RectangleI"></see> class with the specified location and size.</summary>
+        /// <summary>Initializes a new instance of the <see cref="RectangleI"/> class with the specified location and size.</summary>
         /// <param name="y">The y-coordinate of the upper-left corner of the rectangle. </param>
         /// <param name="width">The width of the rectangle. </param>
         /// <param name="height">The height of the rectangle. </param>
@@ -38,38 +38,38 @@ namespace osu.Framework.Graphics.Primitives
             Height = height;
         }
 
-        /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>A <see cref="osuTK.Vector2"/> that represents the upper-left corner of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2I Location => new Vector2I(X, Y);
 
-        /// <summary>Gets or sets the size of this <see cref="T:System.Drawing.RectangleI"></see>.</summary>
-        /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets or sets the size of this <see cref="RectangleI"/>.</summary>
+        /// <returns>A <see cref="osuTK.Vector2"/> that represents the width and height of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2I Size => new Vector2I(Width, Height);
 
-        /// <summary>Gets the y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>The y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets the y-coordinate of the top edge of this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>The y-coordinate of the top edge of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public int Left => X;
 
-        /// <summary>Gets the y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>The y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets the y-coordinate of the top edge of this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>The y-coordinate of the top edge of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public int Top => Y;
 
-        /// <summary>Gets the x-coordinate that is the sum of <see cref="P:System.Drawing.RectangleI.X"></see> and <see cref="P:System.Drawing.RectangleI.Width"></see> of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>The x-coordinate that is the sum of <see cref="P:System.Drawing.RectangleI.X"></see> and <see cref="P:System.Drawing.RectangleI.Width"></see> of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets the x-coordinate that is the sum of <see cref="X"/> and <see cref="Width"/> of this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>The x-coordinate that is the sum of <see cref="X"/> and <see cref="Width"/> of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public int Right => X + Width;
 
-        /// <summary>Gets the y-coordinate that is the sum of <see cref="P:System.Drawing.RectangleI.Y"></see> and <see cref="P:System.Drawing.RectangleI.Height"></see> of this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>The y-coordinate that is the sum of <see cref="P:System.Drawing.RectangleI.Y"></see> and <see cref="P:System.Drawing.RectangleI.Height"></see> of this <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <summary>Gets the y-coordinate that is the sum of <see cref="Y"/> and <see cref="Height"/> of this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>The y-coordinate that is the sum of <see cref="Y"/> and <see cref="Height"/> of this <see cref="RectangleI"/> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public int Bottom => Y + Height;
@@ -86,15 +86,15 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public Vector2I BottomRight => new Vector2I(Right, Bottom);
 
-        /// <summary>Tests whether the <see cref="P:System.Drawing.RectangleI.Width"></see> or <see cref="P:System.Drawing.RectangleI.Height"></see> property of this <see cref="T:System.Drawing.RectangleI"></see> has a value of zero.</summary>
-        /// <returns>This property returns true if the <see cref="P:System.Drawing.RectangleI.Width"></see> or <see cref="P:System.Drawing.RectangleI.Height"></see> property of this <see cref="T:System.Drawing.RectangleI"></see> has a value of zero; otherwise, false.</returns>
+        /// <summary>Tests whether the <see cref="Width"/> or <see cref="Height"/> property of this <see cref="RectangleI"/> has a value of zero.</summary>
+        /// <returns>This property returns true if the <see cref="Width"/> or <see cref="Height"/> property of this <see cref="RectangleI"/> has a value of zero; otherwise, false.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public bool IsEmpty => Width <= 0 || Height <= 0;
 
-        /// <summary>Tests whether obj is a <see cref="T:System.Drawing.RectangleI"></see> with the same location and size of this <see cref="T:System.Drawing.RectangleI"></see>.</summary>
-        /// <returns>This method returns true if obj is a <see cref="T:System.Drawing.RectangleI"></see> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="T:System.Drawing.RectangleI"></see>; otherwise, false.</returns>
-        /// <param name="obj">The <see cref="T:System.Object"></see> to test. </param>
+        /// <summary>Tests whether obj is a <see cref="RectangleI"/> with the same location and size of this <see cref="RectangleI"/>.</summary>
+        /// <returns>This method returns true if obj is a <see cref="RectangleI"/> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="RectangleI"/>; otherwise, false.</returns>
+        /// <param name="obj">The <see cref="T:System.Object"/> to test. </param>
         /// <filterpriority>1</filterpriority>
         public override bool Equals(object obj)
         {
@@ -105,22 +105,22 @@ namespace osu.Framework.Graphics.Primitives
             return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
         }
 
-        /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleI"></see> structures have equal location and size.</summary>
-        /// <returns>This operator returns true if the two specified <see cref="T:System.Drawing.RectangleI"></see> structures have equal <see cref="P:System.Drawing.RectangleI.X"></see>, <see cref="P:System.Drawing.RectangleI.Y"></see>, <see cref="P:System.Drawing.RectangleI.Width"></see>, and <see cref="P:System.Drawing.RectangleI.Height"></see> properties.</returns>
-        /// <param name="right">The <see cref="T:System.Drawing.RectangleI"></see> structure that is to the right of the equality operator. </param>
-        /// <param name="left">The <see cref="T:System.Drawing.RectangleI"></see> structure that is to the left of the equality operator. </param>
+        /// <summary>Tests whether two <see cref="RectangleI"/> structures have equal location and size.</summary>
+        /// <returns>This operator returns true if the two specified <see cref="RectangleI"/> structures have equal <see cref="X"/>, <see cref="Y"/>, <see cref="Width"/>, and <see cref="Height"/> properties.</returns>
+        /// <param name="right">The <see cref="RectangleI"/> structure that is to the right of the equality operator. </param>
+        /// <param name="left">The <see cref="RectangleI"/> structure that is to the left of the equality operator. </param>
         /// <filterpriority>3</filterpriority>
         public static bool operator ==(RectangleI left, RectangleI right) => left.X == right.X && left.Y == right.Y && left.Width == right.Width && left.Height == right.Height;
 
-        /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleI"></see> structures differ in location or size.</summary>
-        /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleI.X"></see> , <see cref="P:System.Drawing.RectangleI.Y"></see>, <see cref="P:System.Drawing.RectangleI.Width"></see>, or <see cref="P:System.Drawing.RectangleI.Height"></see> properties of the two <see cref="T:System.Drawing.RectangleI"></see> structures are unequal; otherwise false.</returns>
-        /// <param name="right">The <see cref="T:System.Drawing.RectangleI"></see> structure that is to the right of the inequality operator. </param>
-        /// <param name="left">The <see cref="T:System.Drawing.RectangleI"></see> structure that is to the left of the inequality operator. </param>
+        /// <summary>Tests whether two <see cref="RectangleI"/> structures differ in location or size.</summary>
+        /// <returns>This operator returns true if any of the <see cref="X"/> , <see cref="Y"/>, <see cref="Width"/>, or <see cref="Height"/> properties of the two <see cref="RectangleI"/> structures are unequal; otherwise false.</returns>
+        /// <param name="right">The <see cref="RectangleI"/> structure that is to the right of the inequality operator. </param>
+        /// <param name="left">The <see cref="RectangleI"/> structure that is to the left of the inequality operator. </param>
         /// <filterpriority>3</filterpriority>
         public static bool operator !=(RectangleI left, RectangleI right) => !(left == right);
 
-        /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="T:System.Drawing.RectangleI"></see> structure; otherwise false.</returns>
+        /// <summary>Determines if the specified point is contained within this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="RectangleI"/> structure; otherwise false.</returns>
         /// <param name="y">The y-coordinate of the point to test. </param>
         /// <param name="x">The x-coordinate of the point to test. </param>
         /// <filterpriority>1</filterpriority>
@@ -132,16 +132,16 @@ namespace osu.Framework.Graphics.Primitives
 
         public bool Contains(Vector2I pt) => Contains(pt.X, pt.Y);
 
-        /// <summary>Determines if the rectangular region represented by rect is entirely contained within this <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
-        /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleI"></see>; otherwise false.</returns>
-        /// <param name="rect">The <see cref="T:System.Drawing.RectangleI"></see> to test. </param>
+        /// <summary>Determines if the rectangular region represented by rect is entirely contained within this <see cref="RectangleI"/> structure.</summary>
+        /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="RectangleI"/>; otherwise false.</returns>
+        /// <param name="rect">The <see cref="RectangleI"/> to test. </param>
         /// <filterpriority>1</filterpriority>
         public bool Contains(RectangleI rect) =>
             X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
             rect.Y + rect.Height <= Y + Height;
 
-        /// <summary>Gets the hash code for this <see cref="T:System.Drawing.RectangleI"></see> structure. For information about the use of hash codes, see Object.GetHashCode.</summary>
-        /// <returns>The hash code for this <see cref="T:System.Drawing.RectangleI"></see>.</returns>
+        /// <summary>Gets the hash code for this <see cref="RectangleI"/> structure. For information about the use of hash codes, see Object.GetHashCode.</summary>
+        /// <returns>The hash code for this <see cref="RectangleI"/>.</returns>
         /// <filterpriority>1</filterpriority>
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode() => (int)(((uint)X ^ ((uint)Y << 13)) | (((uint)Y >> 0x13) ^ ((uint)Width << 0x1a)) | (((uint)Width >> 6) ^ ((uint)Height << 7)) | ((uint)Height >> 0x19));
@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.Primitives
 
         public RectangleI Shrink(int left, int right, int top, int bottom) => Inflate(-left, -right, -top, -bottom);
 
-        /// <summary>Replaces this <see cref="T:System.Drawing.RectangleI"></see> structure with the intersection of itself and the specified <see cref="T:System.Drawing.RectangleI"></see> structure.</summary>
+        /// <summary>Replaces this <see cref="RectangleI"/> structure with the intersection of itself and the specified <see cref="RectangleI"/> structure.</summary>
         /// <returns>This method does not return a value.</returns>
         /// <param name="rect">The rectangle to intersect. </param>
         /// <filterpriority>1</filterpriority>
@@ -199,8 +199,8 @@ namespace osu.Framework.Graphics.Primitives
             Height = ef.Height;
         }
 
-        /// <summary>Returns a <see cref="T:System.Drawing.RectangleI"></see> structure that represents the intersection of two rectangles. If there is no intersection, and empty <see cref="T:System.Drawing.RectangleI"></see> is returned.</summary>
-        /// <returns>A third <see cref="T:System.Drawing.RectangleI"></see> structure the size of which represents the overlapped area of the two specified rectangles.</returns>
+        /// <summary>Returns a <see cref="RectangleI"/> structure that represents the intersection of two rectangles. If there is no intersection, and empty <see cref="RectangleI"/> is returned.</summary>
+        /// <returns>A third <see cref="RectangleI"/> structure the size of which represents the overlapped area of the two specified rectangles.</returns>
         /// <param name="a">A rectangle to intersect. </param>
         /// <param name="b">A rectangle to intersect. </param>
         /// <filterpriority>1</filterpriority>
@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.Primitives
             rect.X <= X + Width && X <= rect.X + rect.Width && rect.Y <= Y + Height && Y <= rect.Y + rect.Height;
 
         /// <summary>Creates the smallest possible third rectangle that can contain both of two rectangles that form a union.</summary>
-        /// <returns>A third <see cref="T:System.Drawing.RectangleI"></see> structure that contains both of the two rectangles that form the union.</returns>
+        /// <returns>A third <see cref="RectangleI"/> structure that contains both of the two rectangles that form the union.</returns>
         /// <param name="a">A rectangle to union. </param>
         /// <param name="b">A rectangle to union. </param>
         /// <filterpriority>1</filterpriority>
@@ -246,10 +246,9 @@ namespace osu.Framework.Graphics.Primitives
 
         public static implicit operator RectangleI(RectangleF r) => r.AABB;
 
-        /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleI"></see> to a human-readable string.</summary>
-        /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleI"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
+        /// <summary>Converts the Location and <see cref="Size"/> of this <see cref="RectangleI"/> to a human-readable string.</summary>
+        /// <returns>A string that contains the position, width, and height of this <see cref="RectangleI"/> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
         /// <filterpriority>1</filterpriority>
-        /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
         public override string ToString() => $"X={X.ToString(CultureInfo.CurrentCulture)}, "
                                              + $"Y={Y.ToString(CultureInfo.CurrentCulture)}, "
                                              + $"Width={Width.ToString(CultureInfo.CurrentCulture)}, "

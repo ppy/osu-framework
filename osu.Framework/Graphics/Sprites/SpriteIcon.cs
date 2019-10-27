@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             var loadableIcon = icon;
 
-            if (Equals(loadableIcon, loadedIcon)) return;
+            if (loadableIcon.Equals(loadedIcon)) return;
 
             var glyph = store.Get(loadableIcon.FontName, Icon.Icon);
 
@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Sprites
             get => icon;
             set
             {
-                if (Equals(icon, value)) return;
+                if (icon.Equals(value)) return;
 
                 icon = value;
                 if (LoadState == LoadState.Loaded)

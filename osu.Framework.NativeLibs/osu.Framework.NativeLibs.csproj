@@ -3,23 +3,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <ContentTargetFolders>contentFiles</ContentTargetFolders>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
     <AssemblyName>osu.Framework.NativeLibs</AssemblyName>
     <Description>Native libraries for osu!framework</Description>
-    <Product>osu!framework Libraries</Product>
-    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
+    <IsPackable>true</IsPackable>
     <Title>osu!framework Libraries</Title>
     <PackageId>ppy.osu.Framework.NativeLibs</PackageId>
-    <Authors>ppy Pty Ltd</Authors>
-    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
-    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
-    <copyright>Copyright (c) 2019 ppy Pty Ltd</copyright>
     <PackageTags>osu game framework libraries</PackageTags>
   </PropertyGroup>
   <ItemGroup>
@@ -33,7 +24,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <PropertyGroup>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
 </Project>

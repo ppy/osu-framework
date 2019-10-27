@@ -24,19 +24,22 @@ namespace osu.Framework.Android
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
 
-        public AndroidGameView(Context context, Game game) : base(context)
+        public AndroidGameView(Context context, Game game)
+            : base(context)
         {
             this.game = game;
 
             init();
         }
 
-        public AndroidGameView(Context context, IAttributeSet attrs) : base(context, attrs)
+        public AndroidGameView(Context context, IAttributeSet attrs)
+            : base(context, attrs)
         {
             init();
         }
 
-        public AndroidGameView(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)
+        public AndroidGameView(IntPtr handle, JniHandleOwnership transfer)
+            : base(handle, transfer)
         {
             init();
         }

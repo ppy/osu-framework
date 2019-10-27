@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Linq;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
@@ -8,7 +10,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A class representing text that can be localised and formatted.
     /// </summary>
-    public readonly struct LocalisedString
+    public readonly struct LocalisedString : IEquatable<LocalisedString>
     {
         /// <summary>
         /// The text to be localised.
@@ -68,5 +70,10 @@ namespace osu.Framework.Localisation
         public static implicit operator LocalisedString(string text) => new LocalisedString((text, text), false);
 
         public override string ToString() => Text.Original;
+
+        public bool Equals(LocalisedString other) =>
+            Text == other.Text &&
+            ShouldLocalise == other.ShouldLocalise &&
+            Args.SequenceEqual(other.Args);
     }
 }

@@ -22,15 +22,20 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool StartHidden => State.Value == Visibility.Hidden;
 
-        protected override void LoadComplete()
+        protected override void LoadAsyncComplete()
         {
+            base.LoadAsyncComplete();
+
             if (StartHidden)
             {
                 // do this without triggering the StateChanged event, since hidden is a default.
                 PopOut();
                 FinishTransforms(true);
             }
+        }
 
+        protected override void LoadComplete()
+        {
             State.BindValueChanged(UpdateState, State.Value != Visibility.Hidden);
 
             base.LoadComplete();
