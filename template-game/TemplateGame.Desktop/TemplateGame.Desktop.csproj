@@ -3,8 +3,6 @@
   <PropertyGroup Label="Project">
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>WinExe</OutputType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>osu!framework-based template game</Description>
     <AssemblyName>TemplateGame</AssemblyName>
     <Title>o!f-based game</Title>
