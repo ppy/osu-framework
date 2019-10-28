@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -18,7 +20,9 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keys.
         /// </summary>
-        public readonly IEnumerable<InputKey> Keys;
+        public readonly ImmutableArray<InputKey> Keys;
+
+        private static readonly ImmutableArray<InputKey> none = ImmutableArray.Create(InputKey.None);
 
         /// <summary>
         /// Construct a new instance.
@@ -26,14 +30,18 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new[] { InputKey.None };
+            // NO OPTIMIZATION: all hot pathes should construct the immutable array itself.
+            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
         }
 
         /// <summary>
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        public KeyCombination(params InputKey[] keys) : this(keys.AsEnumerable()) { }
+        public KeyCombination(params InputKey[] keys)
+            : this(keys.AsEnumerable())
+        {
+        }
 
         /// <summary>
         /// Construct a new instance.
@@ -42,6 +50,15 @@ namespace osu.Framework.Input.Bindings
         public KeyCombination(string keys)
             : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
         {
+        }
+
+        /// <summary>
+        /// Constructor optimized for known builder. The caller is responsible to sort it.
+        /// </summary>
+        /// <param name="keys">The already sorted <see cref="ImmutableArray{InputKey}"./></param>
+        private KeyCombination(ImmutableArray<InputKey> keys)
+        {
+            Keys = keys;
         }
 
         /// <summary>
@@ -55,22 +72,30 @@ namespace osu.Framework.Input.Bindings
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Any:
-                    return !Keys.Except(pressedKeys.Keys).Any();
+                    return containsAll(pressedKeys.Keys, Keys);
 
                 case KeyCombinationMatchingMode.Exact:
-                    return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
+                    // Keys are always ordered
+                    return pressedKeys.Keys.SequenceEqual(Keys);
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    if (Keys.Except(pressedKeys.Keys).Any())
-                        return false;
-
-                    var pressedModifiers = pressedKeys.Keys.Where(IsModifierKey);
-                    var requiredModifiers = Keys.Where(IsModifierKey);
-                    return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
+                    return modifiersForCompare == pressedKeys.modifiersForCompare
+                        && containsAll(pressedKeys.Keys, Keys);
 
                 default:
                     return false;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool containsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey)
+        {
+            // can be local function once attribute on local functions are implemented
+            // optimized to avoid allocation
+            foreach (var key in candidateKey)
+                if (!pressedKey.Contains(key))
+                    return false;
+            return true;
         }
 
         public bool Equals(KeyCombination other)
@@ -103,6 +128,38 @@ namespace osu.Framework.Input.Bindings
         public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1} {s2}");
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
+        private int modifiersForCompare
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                // optimized to avoid allocation
+                // keep in sync with IsModifierKey
+                int combination = 0;
+                foreach (var key in Keys)
+                {
+                    switch (key)
+                    {
+                        case InputKey.Control:
+                            combination |= 1 << 0;
+                            break;
+
+                        case InputKey.Shift:
+                            combination |= 1 << 1;
+                            break;
+
+                        case InputKey.Alt:
+                            combination |= 1 << 2;
+                            break;
+
+                        case InputKey.Super:
+                            combination |= 1 << 3;
+                            break;
+                    }
+                }
+                return combination;
+            }
+        }
 
         private string getReadableKey(InputKey key)
         {
@@ -351,7 +408,7 @@ namespace osu.Framework.Input.Bindings
 
         public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
-            List<InputKey> keys = new List<InputKey>();
+            var keys = ImmutableArray.CreateBuilder<InputKey>();
 
             if (state.Mouse != null)
             {
@@ -359,8 +416,8 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromMouseButton(button));
             }
 
-            if (scrollDelta.HasValue && scrollDelta.Value.Y != 0)
-                keys.Add(FromScrollDelta(scrollDelta.Value));
+            if (scrollDelta is Vector2 v && v.Y != 0)
+                keys.Add(FromScrollDelta(v));
 
             if (state.Keyboard != null)
             {
@@ -390,9 +447,13 @@ namespace osu.Framework.Input.Bindings
             }
 
             if (state.Joystick != null)
-                keys.AddRange(state.Joystick.Buttons.Select(FromJoystickButton));
+            {
+                foreach (var joystickButton in state.Joystick.Buttons)
+                    keys.Add(FromJoystickButton(joystickButton));
+            }
 
-            return new KeyCombination(keys);
+            keys.Sort();
+            return new KeyCombination(keys.ToImmutable());
         }
     }
 
