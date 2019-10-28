@@ -32,6 +32,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Construct a new instance.
         /// </summary>
+        /// <param name="keys">The keys.</param>
+        public KeyCombination(params InputKey[] keys) : this(keys.AsEnumerable()) { }
+
+        /// <summary>
+        /// Construct a new instance.
+        /// </summary>
         /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
         public KeyCombination(string keys)
             : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
@@ -86,7 +92,7 @@ namespace osu.Framework.Input.Bindings
 
         public override int GetHashCode() => Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2);
 
-        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(new[] { singleKey });
+        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(singleKey);
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
