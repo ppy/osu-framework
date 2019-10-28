@@ -46,6 +46,17 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
+        public void TestNotStartHiddenButHidden()
+        {
+            AddStep("create container", () => Child = testContainer =
+                new TestVisibilityContainer(false) { State = { Value = Visibility.Hidden } });
+
+            AddAssert("alpha above zero", () => testContainer.Alpha > 0);
+
+            checkHidden(false);
+        }
+
+        [Test]
         public void TestShowInCtor()
         {
             AddStep("create container", () =>
