@@ -78,9 +78,11 @@ namespace osu.Framework.Platform.MacOS
                 windowDidExitFullScreenHandler = windowDidExitFullScreen;
                 windowShouldZoomToFrameHandler = windowShouldZoomToFrame;
 
-                var fieldImplementation = typeof(NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
-                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
-                var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
+                const BindingFlags instanceMember = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instanceMember);
+                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true);
+                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instanceMember);
 
                 nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
@@ -97,9 +99,9 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
-                methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
-                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
+                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instanceMember);
+                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instanceMember);
+                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instanceMember);
             }
             catch
             {
