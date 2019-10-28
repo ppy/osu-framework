@@ -75,11 +75,13 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             TestNestedVisibilityContainer visibility = null;
 
-            AddStep("create container", () => Child = testContainer =
-                visibility = new TestNestedVisibilityContainer(startHidden) { State = { Value = immediatelyVisible ? Visibility.Visible : Visibility.Hidden } });
+            AddStep("create container", () =>
+            {
+                Child = testContainer =
+                    visibility = new TestNestedVisibilityContainer(startHidden) { State = { Value = immediatelyVisible ? Visibility.Visible : Visibility.Hidden } };
 
-            if (!immediatelyVisible)
-                AddStep("show", () => testContainer.Show());
+                if (!immediatelyVisible) testContainer.Show();
+            });
 
             checkVisible(!startHidden);
 
@@ -107,7 +109,7 @@ namespace osu.Framework.Tests.Visual.Containers
             if (instant)
                 AddAssert("alpha one", () => testContainer.Alpha == 1);
             else
-                AddUntilStep("alpha one", () => testContainer.Alpha == 1);
+                AddUntilStep("wait alpha one", () => testContainer.Alpha == 1);
         }
 
         private class TestNestedVisibilityContainer : TestVisibilityContainer

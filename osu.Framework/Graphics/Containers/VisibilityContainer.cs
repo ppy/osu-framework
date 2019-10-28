@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public readonly Bindable<Visibility> State = new Bindable<Visibility>();
 
-        private Visibility valueAtAsyncLoad;
+        private bool didInitialHide;
 
         /// <summary>
         /// Whether we should be in a hidden state when first displayed.
@@ -33,14 +33,13 @@ namespace osu.Framework.Graphics.Containers
                 // do this without triggering the StateChanged event, since hidden is a default.
                 PopOut();
                 FinishTransforms(true);
+                didInitialHide = true;
             }
-
-            valueAtAsyncLoad = State.Value;
         }
 
         protected override void LoadComplete()
         {
-            State.BindValueChanged(UpdateState, State.Value != valueAtAsyncLoad);
+            State.BindValueChanged(UpdateState, State.Value == Visibility.Visible || !didInitialHide);
 
             base.LoadComplete();
         }
