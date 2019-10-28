@@ -15,17 +15,13 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.dll" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.a" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)runtimes\**\*.dylib" />
-    <None Include="@(NativeLibs)">
+    <None Include="runtimes\**\*">
       <Pack>true</Pack>
       <PackagePath>runtimes</PackagePath>
     </None>
     <None Include="_._">
       <Pack>true</Pack>
-      <PackagePath>lib/netcoreapp3.0</PackagePath>
+      <PackagePath>lib\$(TargetFramework)</PackagePath>
     </None>
   </ItemGroup>
 </Project>
