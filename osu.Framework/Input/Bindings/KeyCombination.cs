@@ -55,7 +55,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Constructor optimized for known builder. The caller is responsible to sort it.
         /// </summary>
-        /// <param name="keys">The already sorted <see cref="ImmutableArray{InputKey}"./></param>
+        /// <param name="keys">The already sorted <see cref="ImmutableArray{InputKey}"/>.</param>
         private KeyCombination(ImmutableArray<InputKey> keys)
         {
             Keys = keys;
@@ -79,8 +79,8 @@ namespace osu.Framework.Input.Bindings
                     return pressedKeys.Keys.SequenceEqual(Keys);
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    return modifiersForCompare == pressedKeys.modifiersForCompare
-                        && containsAll(pressedKeys.Keys, Keys);
+                    return modifiersForCompare == pressedKeys.modifiersForCompare &&
+                           containsAll(pressedKeys.Keys, Keys);
 
                 default:
                     return false;
@@ -95,6 +95,7 @@ namespace osu.Framework.Input.Bindings
             foreach (var key in candidateKey)
                 if (!pressedKey.Contains(key))
                     return false;
+
             return true;
         }
 
@@ -121,6 +122,7 @@ namespace osu.Framework.Input.Bindings
         public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
+
         private int modifiersForCompare
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -129,12 +131,13 @@ namespace osu.Framework.Input.Bindings
                 // optimized to avoid allocation
                 // keep in sync with IsModifierKey
                 int combination = 0;
+
                 foreach (var key in Keys)
                 {
                     switch (key)
                     {
                         case InputKey.Control:
-                            combination |= 1 << 0;
+                            combination |= 1;
                             break;
 
                         case InputKey.Shift:
@@ -150,6 +153,7 @@ namespace osu.Framework.Input.Bindings
                             break;
                     }
                 }
+
                 return combination;
             }
         }
