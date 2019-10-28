@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public readonly Bindable<Visibility> State = new Bindable<Visibility>();
 
+        private Visibility valueAtAsyncLoad;
+
         /// <summary>
         /// Whether we should be in a hidden state when first displayed.
         /// Override this and set to true to *always* perform a <see cref="PopIn"/> animation even when the state is non-hidden at
@@ -32,11 +34,13 @@ namespace osu.Framework.Graphics.Containers
                 PopOut();
                 FinishTransforms(true);
             }
+
+            valueAtAsyncLoad = State.Value;
         }
 
         protected override void LoadComplete()
         {
-            State.BindValueChanged(UpdateState, State.Value != Visibility.Hidden);
+            State.BindValueChanged(UpdateState, State.Value != valueAtAsyncLoad);
 
             base.LoadComplete();
         }
