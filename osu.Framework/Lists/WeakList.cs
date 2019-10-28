@@ -15,11 +15,11 @@ namespace osu.Framework.Lists
     public class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
-        private readonly List<InvalidatableWeakReference<T>> list = new List<InvalidatableWeakReference<T>>();
+        private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
 
-        public void Add(T obj) => list.Add(new InvalidatableWeakReference<T>(obj));
+        public void Add(T obj) => list.Add(new InvalidatableWeakReference(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference<T>(weakReference));
+        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference(weakReference));
 
         public void Remove(T item)
         {
@@ -79,12 +79,12 @@ namespace osu.Framework.Lists
 
         public struct Enumerator : IEnumerator<T>
         {
-            private List<InvalidatableWeakReference<T>> list;
+            private List<InvalidatableWeakReference> list;
 
             private int currentIndex;
             private T currentObject;
 
-            internal Enumerator(List<InvalidatableWeakReference<T>> list)
+            internal Enumerator(List<InvalidatableWeakReference> list)
             {
                 this.list = list;
 
@@ -122,19 +122,18 @@ namespace osu.Framework.Lists
             }
         }
 
-        internal class InvalidatableWeakReference<U>
-            where U : class
+        internal class InvalidatableWeakReference
         {
-            public readonly WeakReference<U> Reference;
+            public readonly WeakReference<T> Reference;
 
             public bool Invalid { get; private set; }
 
-            public InvalidatableWeakReference(U reference)
-                : this(new WeakReference<U>(reference))
+            public InvalidatableWeakReference(T reference)
+                : this(new WeakReference<T>(reference))
             {
             }
 
-            public InvalidatableWeakReference(WeakReference<U> weakReference)
+            public InvalidatableWeakReference(WeakReference<T> weakReference)
             {
                 Reference = weakReference;
             }
