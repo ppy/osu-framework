@@ -15,7 +15,7 @@ namespace osu.Framework.Input.Bindings
     /// <summary>
     /// Represent a combination of more than one <see cref="InputKey"/>s.
     /// </summary>
-    public class KeyCombination : IEquatable<KeyCombination>
+    public readonly struct KeyCombination : IEquatable<KeyCombination>
     {
         /// <summary>
         /// The keys.
@@ -98,34 +98,27 @@ namespace osu.Framework.Input.Bindings
             return true;
         }
 
-        public bool Equals(KeyCombination other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+        public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
 
-            return Keys.SequenceEqual(other.Keys);
+        public override bool Equals(object obj) => obj is KeyCombination kc && Equals(kc);
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            foreach (var key in Keys)
+                hash.Add(key);
+            return hash.ToHashCode();
         }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((KeyCombination)obj);
-        }
-
-        public override int GetHashCode() => Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2);
-
-        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(singleKey);
+        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(ImmutableArray.Create(singleKey));
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
         public static implicit operator KeyCombination(InputKey[] keys) => new KeyCombination(keys);
 
-        public override string ToString() => Keys.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
+        public override string ToString() => string.Join(",", Keys.Select(k => (int)k));
 
-        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1} {s2}");
+        public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
         private int modifiersForCompare
