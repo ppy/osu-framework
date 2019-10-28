@@ -45,6 +45,28 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("fire count is 2", () => testContainer.FireCount == 2);
         }
 
+        [Test]
+        public void TestShowInCtor()
+        {
+            AddStep("create container", () =>
+            {
+                var container = new TestVisibilityContainer(null);
+                container.Show();
+
+                var containingContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = testContainer = container
+                };
+
+                containingContainer.OnLoadComplete += _ => testContainer.Hide();
+
+                Child = containingContainer;
+            });
+
+            checkHidden();
+        }
+
         [TestCase(true, true)]
         [TestCase(false, true)]
         [TestCase(true, false)]
@@ -127,11 +149,13 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private class TestVisibilityContainer : VisibilityContainer
         {
-            protected override bool StartHidden { get; }
+            private readonly bool? startHidden;
 
-            public TestVisibilityContainer(bool startHidden = true, Color4? colour = null)
+            protected override bool StartHidden => startHidden ?? base.StartHidden;
+
+            public TestVisibilityContainer(bool? startHidden = true, Color4? colour = null)
             {
-                this.StartHidden = startHidden;
+                this.startHidden = startHidden;
 
                 Size = new Vector2(0.5f);
                 RelativeSizeAxes = Axes.Both;
