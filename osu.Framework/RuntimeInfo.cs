@@ -21,7 +21,7 @@ namespace osu.Framework
         public static bool Is32Bit { get; }
         public static bool Is64Bit { get; }
         public static Platform OS { get; }
-        public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
+        public static bool IsUnix => OS != Platform.Windows;
 
         [Obsolete("Wine is no longer detected.")] // can be removed 20200430
         public static bool IsWine => false;
