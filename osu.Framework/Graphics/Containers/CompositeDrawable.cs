@@ -640,7 +640,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var state = checkChildLife(internalChildren[i]);
 
-                anyAliveChanged |= state.HasFlag(ChildLifeStateChange.MadeAlive | ChildLifeStateChange.MadeDead);
+                anyAliveChanged |= state.HasFlag(ChildLifeStateChange.MadeAlive) || state.HasFlag(ChildLifeStateChange.MadeDead);
 
                 if (state.HasFlag(ChildLifeStateChange.Removed))
                     i--;
