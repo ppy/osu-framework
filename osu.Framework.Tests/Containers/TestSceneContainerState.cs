@@ -237,5 +237,40 @@ namespace osu.Framework.Tests.Containers
                 HasCleared = true;
             }
         }
+
+        [Test]
+        public void TestAliveChangesDuringExpiry()
+        {
+            TestContainer container = null;
+
+            int count = 0;
+
+            void checkCount() => count = container.AliveInternalChildren.Count;
+
+            AddStep("create container", () => Child = container = new TestContainer());
+
+            AddStep("perform test", () =>
+            {
+                container.Add(new Box());
+                container.Add(new Box());
+                container.ScheduleAfterChildren(checkCount);
+            });
+
+            AddAssert("correct count", () => count == 2);
+
+            AddStep("perform test", () =>
+            {
+                container.First().Expire();
+                container.Add(new Box());
+                container.ScheduleAfterChildren(checkCount);
+            });
+
+            AddAssert("correct count", () => count == 2);
+        }
+
+        private class TestContainer : Container
+        {
+            public new void ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        }
     }
 }
