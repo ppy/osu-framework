@@ -254,7 +254,7 @@ namespace osu.Framework.Platform
             UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
 
             //wait for a potentially blocking response
-            while (!response.HasValue)
+            while (response is null)
                 Thread.Sleep(1);
 
             if (response ?? false)

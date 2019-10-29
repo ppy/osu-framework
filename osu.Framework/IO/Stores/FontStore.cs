@@ -167,8 +167,7 @@ namespace osu.Framework.IO.Stores
 
             foreach (var store in nestedFontStores)
             {
-                var height = store.GetBaseHeight(c);
-                if (height.HasValue)
+                if (store.GetBaseHeight(c) is float height)
                     return height;
             }
 
@@ -185,8 +184,7 @@ namespace osu.Framework.IO.Stores
 
             foreach (var store in nestedFontStores)
             {
-                var height = store.GetBaseHeight(fontName);
-                if (height.HasValue)
+                if (store.GetBaseHeight(fontName) is float height)
                     return height;
             }
 

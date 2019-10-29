@@ -126,9 +126,7 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            if (!startTime.HasValue)
-                startTime = Clock.CurrentTime;
-
+            startTime = startTime ?? Clock.CurrentTime;
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
 
             if (nextFrame != null)
