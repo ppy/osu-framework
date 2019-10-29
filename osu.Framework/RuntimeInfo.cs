@@ -8,9 +8,7 @@ namespace osu.Framework
 {
     public static class RuntimeInfo
     {
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
+        [Obsolete("This P/Invoke was accidentially exposed.")] // can be removed 20200430
         [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
@@ -24,7 +22,10 @@ namespace osu.Framework
         public static bool Is64Bit { get; }
         public static Platform OS { get; }
         public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
-        public static bool IsWine { get; }
+
+        [Obsolete("Wine is no longer detected.")] // can be removed 20200430
+        public static bool IsWine => false;
+
         public static bool SupportsJIT => OS != Platform.iOS;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
@@ -47,19 +48,6 @@ namespace osu.Framework
 
             Is32Bit = IntPtr.Size == 4;
             Is64Bit = IntPtr.Size == 8;
-
-            if (OS == Platform.Windows)
-            {
-                IntPtr hModule = GetModuleHandle(@"ntdll.dll");
-
-                if (hModule == IntPtr.Zero)
-                    IsWine = false;
-                else
-                {
-                    IntPtr fptr = GetProcAddress(hModule, @"wine_get_version");
-                    IsWine = fptr != IntPtr.Zero;
-                }
-            }
         }
 
         public enum Platform
