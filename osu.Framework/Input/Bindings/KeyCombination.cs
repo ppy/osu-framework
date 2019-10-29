@@ -69,18 +69,20 @@ namespace osu.Framework.Input.Bindings
         /// <returns>Whether the pressedKeys keys are valid.</returns>
         public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
+            if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
+                return true;
+
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Any:
-                    return containsAll(pressedKeys.Keys, Keys);
+                    return containsAll(pressedKeys.Keys, Keys, false);
 
                 case KeyCombinationMatchingMode.Exact:
                     // Keys are always ordered
                     return pressedKeys.Keys.SequenceEqual(Keys);
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    return modifiersForCompare == pressedKeys.modifiersForCompare &&
-                           containsAll(pressedKeys.Keys, Keys);
+                    return containsAll(pressedKeys.Keys, Keys, true);
 
                 default:
                     return false;
@@ -88,13 +90,26 @@ namespace osu.Framework.Input.Bindings
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool containsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey)
+        private static bool containsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, bool exactModifiers)
         {
             // can be local function once attribute on local functions are implemented
             // optimized to avoid allocation
+            // Usually Keys.Count <= 3. Does not worth special logic for Contains().
             foreach (var key in candidateKey)
+            {
                 if (!pressedKey.Contains(key))
                     return false;
+            }
+
+            if (exactModifiers)
+            {
+                foreach (var key in pressedKey)
+                {
+                    if (IsModifierKey(key) &&
+                        !candidateKey.Contains(key))
+                        return false;
+                }
+            }
 
             return true;
         }
@@ -121,42 +136,8 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
-
-        private int modifiersForCompare
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                // optimized to avoid allocation
-                // keep in sync with IsModifierKey
-                int combination = 0;
-
-                foreach (var key in Keys)
-                {
-                    switch (key)
-                    {
-                        case InputKey.Control:
-                            combination |= 1;
-                            break;
-
-                        case InputKey.Shift:
-                            combination |= 1 << 1;
-                            break;
-
-                        case InputKey.Alt:
-                            combination |= 1 << 2;
-                            break;
-
-                        case InputKey.Super:
-                            combination |= 1 << 3;
-                            break;
-                    }
-                }
-
-                return combination;
-            }
-        }
 
         private string getReadableKey(InputKey key)
         {
