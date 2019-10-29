@@ -18,7 +18,8 @@ namespace osu.Framework.Platform.Linux
 
         protected void OnLoad(object sender, EventArgs e)
         {
-            var implementationField = typeof(NativeWindow).GetField("implementation", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var implementationField = typeof(NativeWindow).GetField("implementation", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) ??
+                                      throw new InvalidOperationException("Reflection is broken!");
 
             var windowImpl = implementationField.GetValue(Implementation);
 

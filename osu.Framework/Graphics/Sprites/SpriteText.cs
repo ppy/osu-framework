@@ -623,6 +623,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms => EnumerableExtensions.Yield(displayedText);
+        public IEnumerable<string> FilterTerms => displayedText.Yield();
     }
 }

@@ -78,11 +78,11 @@ namespace osu.Framework.Platform.MacOS
                 windowDidExitFullScreenHandler = windowDidExitFullScreen;
                 windowShouldZoomToFrameHandler = windowShouldZoomToFrame;
 
-                const BindingFlags instanceMember = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                const BindingFlags instance_member = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instanceMember);
-                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true);
-                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instanceMember);
+                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
+                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true) ?? throw new InvalidOperationException("Reflection is broken!");
+                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
 
                 nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
@@ -99,9 +99,9 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instanceMember);
-                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instanceMember);
-                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instanceMember);
+                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
+                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
+                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
             }
             catch
             {

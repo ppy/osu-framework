@@ -40,7 +40,7 @@ namespace osu.Framework.IO.Stores
 
         protected override IEnumerable<string> GetFilenames(string name) =>
             // extensions should not be used as they interfere with character lookup.
-            EnumerableExtensions.Yield(name);
+            name.Yield();
 
         public override void AddStore(IResourceStore<TextureUpload> store)
         {
