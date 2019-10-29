@@ -48,9 +48,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             RectangleF actualBounds = bounds;
 
-            if (textureRect.HasValue)
+            if (textureRect is RectangleF localBounds)
             {
-                RectangleF localBounds = textureRect.Value;
                 actualBounds.X += localBounds.X;
                 actualBounds.Y += localBounds.Y;
                 actualBounds.Width = Math.Min(localBounds.Width, bounds.Width);

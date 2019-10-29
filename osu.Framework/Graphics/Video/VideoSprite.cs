@@ -58,12 +58,12 @@ namespace osu.Framework.Graphics.Video
         {
             get
             {
-                if (!startTime.HasValue)
+                if (!(startTime is double t))
                     return 0;
 
-                if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+                if (Loop) return (Clock.CurrentTime - t) % Duration;
 
-                return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
+                return Math.Min(Clock.CurrentTime - t, Duration);
             }
         }
 

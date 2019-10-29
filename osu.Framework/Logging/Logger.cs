@@ -191,8 +191,8 @@ namespace osu.Framework.Logging
         {
             try
             {
-                if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level, exception, outputToListeners);
+                if (target is LoggingTarget t)
+                    GetLogger(t).Add(message, level, exception, outputToListeners);
                 else
                     GetLogger(loggerName).Add(message, level, exception, outputToListeners);
             }

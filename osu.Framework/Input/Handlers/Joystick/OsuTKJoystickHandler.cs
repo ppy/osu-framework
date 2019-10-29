@@ -34,7 +34,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                         foreach (var device in devices)
                         {
-                            if ((device.LastRawState.HasValue && device.RawState.Equals(device.LastRawState.Value))
+                            if ((device.LastRawState is osuTK.Input.JoystickState rawState && device.RawState.Equals(rawState))
                                 || !device.RawState.IsConnected)
                                 continue;
 

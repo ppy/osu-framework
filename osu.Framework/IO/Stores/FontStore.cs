@@ -179,9 +179,8 @@ namespace osu.Framework.IO.Stores
         {
             foreach (var store in glyphStores)
             {
-                var bh = store.GetBaseHeight(fontName);
-                if (bh.HasValue)
-                    return bh.Value / ScaleAdjust;
+                if (store.GetBaseHeight(fontName) is int baseHeight)
+                    return baseHeight / ScaleAdjust;
             }
 
             foreach (var store in nestedFontStores)

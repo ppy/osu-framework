@@ -157,9 +157,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect)
         {
-            RectangleF texRect = textureRect != null
-                ? new RectangleF(textureRect.Value.X, textureRect.Value.Y, textureRect.Value.Width, textureRect.Value.Height)
-                : new RectangleF(0, 0, Width, Height);
+            RectangleF texRect = textureRect ?? new RectangleF(0, 0, Width, Height);
 
             texRect.X /= width;
             texRect.Y /= height;
@@ -178,7 +176,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
-            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            Vector2 inflationAmount = inflationPercentage is Vector2 inflation ? new Vector2(inflation.X * texRect.Width, inflation.Y * texRect.Height) : Vector2.Zero;
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
@@ -236,7 +234,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
-            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            Vector2 inflationAmount = inflationPercentage is Vector2 inflation ? new Vector2(inflation.X * texRect.Width, inflation.Y * texRect.Height) : Vector2.Zero;
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 

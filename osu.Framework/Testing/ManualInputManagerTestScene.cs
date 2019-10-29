@@ -126,8 +126,7 @@ namespace osu.Framework.Testing
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
-            var position = InitialMousePosition;
-            if (position != null) InputManager.MoveMouseTo(position.Value);
+            if (InitialMousePosition is Vector2 position) InputManager.MoveMouseTo(position);
             mouse.Buttons.ForEach(InputManager.ReleaseButton);
 
             var keyboard = currentState.Keyboard;

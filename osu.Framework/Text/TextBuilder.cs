@@ -203,11 +203,11 @@ namespace osu.Framework.Text
 
                 currentPos.X = 0;
 
-                if (previousCharacter != null)
+                if (previousCharacter is TextBuilderGlyph previous)
                 {
                     // The character's draw rectangle is the only marker that keeps a constant state for the position, but it has the glyph's XOffset added into it
                     // So the post-kerned position can be retrieved by taking the XOffset away, and the post-XAdvanced position is retrieved by adding the XAdvance back in
-                    currentPos.X = previousCharacter.Value.DrawRectangle.Left - previousCharacter.Value.XOffset + previousCharacter.Value.XAdvance;
+                    currentPos.X = previous.DrawRectangle.Left - previous.XOffset + previous.XAdvance;
                 }
             }
             else
@@ -215,8 +215,8 @@ namespace osu.Framework.Text
                 // Move back within the current line, reversing the operations in AddCharacter()
                 currentPos.X -= removedCharacter.XAdvance;
 
-                if (previousCharacter != null)
-                    currentPos.X -= removedCharacter.GetKerning(previousCharacter.Value) + spacing.X;
+                if (previousCharacter is TextBuilderGlyph previous)
+                    currentPos.X -= removedCharacter.GetKerning(previous) + spacing.X;
             }
 
             Bounds = Vector2.Zero;

@@ -383,7 +383,7 @@ namespace osu.Framework.Graphics.Video
                                 {
                                     var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
-                                    if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
+                                    if (!(skipOutputUntilTime >= frameTime)) // < > <= >= are always false with nulls
                                     {
                                         skipOutputUntilTime = null;
 

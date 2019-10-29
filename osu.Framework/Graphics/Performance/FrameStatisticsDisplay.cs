@@ -463,18 +463,25 @@ namespace osu.Framework.Graphics.Performance
         private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, Span<Rgba32> image, int amountSteps)
         {
             int drawHeight;
+            Color4 col;
 
-            if (!frameTimeType.HasValue)
-                drawHeight = currentHeight;
-            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out double elapsedMilliseconds))
+            if (frameTimeType is PerformanceCollectionType collectionType)
             {
-                legendMapping[(int)frameTimeType].Alpha = 1;
-                drawHeight = (int)(elapsedMilliseconds * scale);
+                if (frame.CollectedTimes.TryGetValue(collectionType, out double elapsedMilliseconds))
+                {
+                    legendMapping[(int)frameTimeType].Alpha = 1;
+                    drawHeight = (int)(elapsedMilliseconds * scale);
+                }
+                else
+                    return currentHeight;
+
+                col = getColour(collectionType);
             }
             else
-                return currentHeight;
-
-            Color4 col = frameTimeType.HasValue ? getColour(frameTimeType.Value) : new Color4(0.1f, 0.1f, 0.1f, 1);
+            {
+                drawHeight = currentHeight;
+                col = new Color4(0.1f, 0.1f, 0.1f, 1);
+            }
 
             for (int i = currentHeight - 1; i >= 0; --i)
             {
@@ -484,7 +491,7 @@ namespace osu.Framework.Graphics.Performance
 
                 float brightnessAdjust = 1;
 
-                if (!frameTimeType.HasValue)
+                if (frameTimeType is null)
                 {
                     int step = amountSteps / HEIGHT;
                     brightnessAdjust *= 1 - i * step / 8f;

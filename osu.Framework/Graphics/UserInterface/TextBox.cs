@@ -276,22 +276,22 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
             }
 
-            if (amount.HasValue)
+            if (amount is int a)
             {
                 switch (action.ActionMethod)
                 {
                     case PlatformActionMethod.Move:
                         resetSelection();
-                        moveSelection(amount.Value, false);
+                        moveSelection(a, false);
                         break;
 
                     case PlatformActionMethod.Select:
-                        moveSelection(amount.Value, true);
+                        moveSelection(a, true);
                         break;
 
                     case PlatformActionMethod.Delete:
                         if (selectionLength == 0)
-                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
+                            selectionEnd = MathHelper.Clamp(selectionStart + a, 0, text.Length);
                         if (selectionLength > 0)
                             removeCharacterOrSelection();
                         break;

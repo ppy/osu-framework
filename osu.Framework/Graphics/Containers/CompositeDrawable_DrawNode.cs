@@ -114,18 +114,18 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawEdgeEffect()
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
+                if (!(maskingInfo is MaskingInfo masking) || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
 
-                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
+                RectangleF effectRect = masking.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
 
-                if (!screenSpaceMaskingQuad.HasValue)
-                    screenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
+                var maskingQuad = screenSpaceMaskingQuad ?? Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
+                screenSpaceMaskingQuad = maskingQuad;
 
-                MaskingInfo edgeEffectMaskingInfo = maskingInfo.Value;
+                MaskingInfo edgeEffectMaskingInfo = masking;
                 edgeEffectMaskingInfo.MaskingRect = effectRect;
-                edgeEffectMaskingInfo.ScreenSpaceAABB = screenSpaceMaskingQuad.Value.AABB;
-                edgeEffectMaskingInfo.CornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
+                edgeEffectMaskingInfo.ScreenSpaceAABB = maskingQuad.AABB;
+                edgeEffectMaskingInfo.CornerRadius = masking.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
                 edgeEffectMaskingInfo.BorderThickness = 0;
                 // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
                 // the edge effect along its radius using the same rounded-corners shader.
@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.Containers
                 edgeEffectMaskingInfo.AlphaExponent = 2;
                 edgeEffectMaskingInfo.EdgeOffset = edgeEffect.Offset;
                 edgeEffectMaskingInfo.Hollow = edgeEffect.Hollow;
-                edgeEffectMaskingInfo.HollowCornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius;
+                edgeEffectMaskingInfo.HollowCornerRadius = masking.CornerRadius + edgeEffect.Radius;
 
                 GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
@@ -149,12 +149,12 @@ namespace osu.Framework.Graphics.Containers
 
                 DrawQuad(
                     Texture.WhitePixel,
-                    screenSpaceMaskingQuad.Value,
+                    maskingQuad,
                     colour, null, null, null,
                     // HACK HACK HACK. We re-use the unused vertex blend range to store the original
                     // masking blend range when rendering edge effects. This is needed for smooth inner edges
                     // with a hollow edge effect.
-                    new Vector2(maskingInfo.Value.BlendRange));
+                    new Vector2(masking.BlendRange));
 
                 Shader.Unbind();
 
@@ -186,9 +186,8 @@ namespace osu.Framework.Graphics.Containers
 
                 drawEdgeEffect();
 
-                if (maskingInfo != null)
+                if (maskingInfo is MaskingInfo info)
                 {
-                    MaskingInfo info = maskingInfo.Value;
                     if (info.BorderThickness > 0)
                         info.BorderColour *= DrawColourInfo.Colour.AverageColour;
 
@@ -230,8 +229,8 @@ namespace osu.Framework.Graphics.Containers
                     if (quadBatch != null)
                         vertexAction = quadBatch.AddAction;
 
-                    if (maskingInfo != null)
-                        GLWrapper.PushMaskingInfo(maskingInfo.Value);
+                    if (maskingInfo is MaskingInfo info)
+                        GLWrapper.PushMaskingInfo(info);
                 }
 
                 // We still need to invoke this method recursively for all children so their depth value is updated

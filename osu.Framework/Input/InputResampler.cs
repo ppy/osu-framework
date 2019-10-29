@@ -49,18 +49,18 @@ namespace osu.Framework.Input
                     isRawInput = true;
             }
 
-            if (lastRelevantPosition == null || lastActualPosition == null)
+            if (!(lastRelevantPosition is Vector2 relevant) || !(lastActualPosition is Vector2 actual))
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
                 return new[] { position };
             }
 
-            Vector2 diff = position - lastRelevantPosition.Value;
+            Vector2 diff = position - relevant;
             float distance = diff.Length;
             Vector2 direction = diff / distance;
 
-            Vector2 realDiff = position - lastActualPosition.Value;
+            Vector2 realDiff = position - actual;
             float realMovementDistance = realDiff.Length;
             if (realMovementDistance < 1)
                 return Array.Empty<Vector2>();

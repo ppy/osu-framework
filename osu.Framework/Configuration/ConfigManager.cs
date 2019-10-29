@@ -55,9 +55,9 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
-            if (min.HasValue) bindable.MinValue = min.Value;
-            if (max.HasValue) bindable.MaxValue = max.Value;
-            if (precision.HasValue) bindable.Precision = precision.Value;
+            if (min is double minValue) bindable.MinValue = minValue;
+            if (max is double maxValue) bindable.MaxValue = maxValue;
+            if (precision is double precisionValue) bindable.Precision = precisionValue;
 
             return bindable;
         }
@@ -77,9 +77,9 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
-            if (min.HasValue) bindable.MinValue = min.Value;
-            if (max.HasValue) bindable.MaxValue = max.Value;
-            if (precision.HasValue) bindable.Precision = precision.Value;
+            if (min is float minValue) bindable.MinValue = minValue;
+            if (max is float maxValue) bindable.MaxValue = maxValue;
+            if (precision is float precisionValue) bindable.Precision = precisionValue;
 
             return bindable;
         }
@@ -99,8 +99,8 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
-            if (min.HasValue) bindable.MinValue = min.Value;
-            if (max.HasValue) bindable.MaxValue = max.Value;
+            if (min is int minValue) bindable.MinValue = minValue;
+            if (max is int maxValue) bindable.MaxValue = maxValue;
 
             return bindable;
         }
@@ -139,8 +139,8 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
-            if (min.HasValue) bindable.MinValue = min.Value;
-            if (max.HasValue) bindable.MaxValue = max.Value;
+            if (min is Size minValue) bindable.MinValue = minValue;
+            if (max is Size maxValue) bindable.MaxValue = maxValue;
 
             return bindable;
         }

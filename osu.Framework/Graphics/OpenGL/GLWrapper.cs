@@ -327,14 +327,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (blendingParameters.IsDisabled)
             {
-                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
+                if (lastBlendingEnabledState != false)
                     GL.Disable(EnableCap.Blend);
 
                 lastBlendingEnabledState = false;
             }
             else
             {
-                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
+                if (lastBlendingEnabledState != true)
                     GL.Enable(EnableCap.Blend);
 
                 lastBlendingEnabledState = true;
@@ -697,9 +697,9 @@ namespace osu.Framework.Graphics.OpenGL
         {
             ThreadSafety.EnsureDrawThread();
 
-            if (shader != null)
+            if (shader is int sh)
             {
-                shader_stack.Push(shader.Value);
+                shader_stack.Push(sh);
             }
             else
             {

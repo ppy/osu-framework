@@ -612,9 +612,8 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font.FontName);
-                if (baseHeight.HasValue)
-                    return baseHeight.Value * Font.Size;
+                if (store.GetBaseHeight(Font.FontName) is float baseHeight)
+                    return baseHeight * Font.Size;
 
                 if (string.IsNullOrEmpty(displayedText))
                     return 0;

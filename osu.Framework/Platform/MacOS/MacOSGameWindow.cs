@@ -145,14 +145,12 @@ namespace osu.Framework.Platform.MacOS
         protected void OnUpdateFrame(object sender, FrameEventArgs e)
         {
             // update the window mode if we have an update queued
-            WindowMode? mode = pendingWindowMode;
-
-            if (mode.HasValue)
+            if (pendingWindowMode is WindowMode mode)
             {
                 pendingWindowMode = null;
 
                 bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
-                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+                bool toggleFullScreen = mode == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
@@ -161,7 +159,7 @@ namespace osu.Framework.Platform.MacOS
                 else if (isCursorHidden)
                     NSApplication.PresentationOptions = NSApplicationPresentationOptions.DisableCursorLocationAssistance;
 
-                WindowMode.Value = mode.Value;
+                WindowMode.Value = mode;
             }
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
