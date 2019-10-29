@@ -28,9 +28,9 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            // NO OPTIMIZATION: all hot pathes should construct the immutable array itself.
             Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
         }
 
@@ -38,6 +38,7 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(params InputKey[] keys)
             : this(keys.AsEnumerable())
         {
@@ -46,7 +47,8 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Construct a new instance.
         /// </summary>
-        /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
+        /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
             : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
         {
@@ -384,6 +386,13 @@ namespace osu.Framework.Input.Bindings
             return InputKey.None;
         }
 
+        /// <summary>
+        /// Construct a new instance from input state.
+        /// </summary>
+        /// <param name="state">The input state object.</param>
+        /// <param name="scrollDelta">Delta of scroller's position.</param>
+        /// <returns>The new constructed <see cref="KeyCombination"/> instance.</returns>
+        /// <remarks>This factory method is optimized and should be used for hot paths.</remarks>
         public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
             var keys = ImmutableArray.CreateBuilder<InputKey>();
