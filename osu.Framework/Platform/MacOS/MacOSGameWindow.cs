@@ -11,6 +11,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
+using System.Diagnostics;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -80,9 +81,14 @@ namespace osu.Framework.Platform.MacOS
 
                 const BindingFlags instance_member = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
-                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true) ?? throw new InvalidOperationException("Reflection is broken!");
-                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
+                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
+                Debug.Assert(fieldImplementation != null, "Reflection is broken!");
+
+                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true);
+                Debug.Assert(typeCocoaNativeWindow != null, "Reflection is broken!");
+
+                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member);
+                Debug.Assert(fieldWindowClass != null, "Reflection is broken!");
 
                 nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
@@ -99,9 +105,14 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
-                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
-                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instance_member) ?? throw new InvalidOperationException("Reflection is broken!");
+                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instance_member);
+                Debug.Assert(methodKeyDown != null, "Reflection is broken!");
+
+                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instance_member);
+                Debug.Assert(methodKeyUp != null, "Reflection is broken!");
+
+                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instance_member);
+                Debug.Assert(methodInvalidateCursorRects != null, "Reflection is broken!");
             }
             catch
             {
