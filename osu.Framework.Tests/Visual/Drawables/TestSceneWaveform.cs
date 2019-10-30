@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             typeof(DataStreamFileProcedures)
         };
 
-        private Button button;
+        private BasicButton button;
         private Track track;
         private Waveform waveform;
         private Container<Drawable> waveformContainer;
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Spacing = new Vector2(10),
                         Children = new Drawable[]
                         {
-                            button = new Button
+                            button = new BasicButton
                             {
                                 Text = "Start",
                                 Size = new Vector2(100, 50),
