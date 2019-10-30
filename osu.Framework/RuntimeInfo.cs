@@ -18,8 +18,12 @@ namespace osu.Framework
         public static string GetFrameworkAssemblyPath() =>
             System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
 
-        public static bool Is32Bit { get; }
-        public static bool Is64Bit { get; }
+        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
+        public static bool Is32Bit => IntPtr.Size == 4;
+
+        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
+        public static bool Is64Bit => IntPtr.Size == 8;
+
         public static Platform OS { get; }
         public static bool IsUnix => OS != Platform.Windows;
 
@@ -45,9 +49,6 @@ namespace osu.Framework
 
             if (OS == 0)
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
-
-            Is32Bit = IntPtr.Size == 4;
-            Is64Bit = IntPtr.Size == 8;
         }
 
         public enum Platform
