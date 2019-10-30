@@ -38,7 +38,7 @@ namespace osu.Framework.IO.Stores
         IEnumerable<string> GetAvailableResources();
     }
 
-    internal static class ResourceStoreExtensions
+    public static class ResourceStoreExtensions
     {
         /// <summary>
         /// List of substrings that indicate a file should generally be ignored as noise
@@ -58,7 +58,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="store">The store which the resources was retrieved from.</param>
         /// <param name="resourceName">The resource retrieved.</param>
-        public static void LogIfNonBackgroundThread<T>(this IResourceStore<T> store, string resourceName)
+        internal static void LogIfNonBackgroundThread<T>(this IResourceStore<T> store, string resourceName)
         {
             if (!DebugUtils.LogPerformanceIssues)
                 return;
