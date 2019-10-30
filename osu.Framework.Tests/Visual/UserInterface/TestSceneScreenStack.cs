@@ -799,7 +799,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public IScreen ResumedFrom;
 
             public static int Sequence;
-            private Button popButton;
+            private BasicButton popButton;
 
             private const int transition_time = 500;
 
@@ -851,7 +851,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Origin = Anchor.Centre,
                         Font = new FontUsage(size: 50)
                     },
-                    popButton = new Button
+                    popButton = new BasicButton
                     {
                         Text = @"Pop",
                         RelativeSizeAxes = Axes.Both,
@@ -862,7 +862,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Alpha = 0,
                         Action = this.Exit
                     },
-                    new Button
+                    new BasicButton
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,
