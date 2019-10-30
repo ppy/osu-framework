@@ -13,6 +13,21 @@ namespace osu.Framework.Android
     {
         protected abstract Game CreateGame();
 
+        /// <summary>
+        /// The visibility flags for the system UI (status and navigation bars)
+        /// </summary>
+        public SystemUiFlags UIVisibilityFlags
+        {
+            get => (SystemUiFlags)Window.DecorView.SystemUiVisibility;
+            set
+            {
+                systemUiFlags = value;
+                Window.DecorView.SystemUiVisibility = (StatusBarVisibility)value;
+            }
+        }
+
+        private SystemUiFlags systemUiFlags;
+
         private AndroidGameView gameView;
 
         public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
@@ -26,9 +41,22 @@ namespace osu.Framework.Android
             base.OnCreate(savedInstanceState);
 
             SetContentView(gameView = new AndroidGameView(this, CreateGame()));
+
+            UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation;
+
+            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigaton bar and potentially the status bar
+            // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
+            Window.DecorView.SystemUiVisibilityChange += (_, e) =>
+            {
+                if ((SystemUiFlags)e.Visibility != systemUiFlags)
+                {
+                    UIVisibilityFlags = systemUiFlags;
+                }
+            };
         }
 
-        protected override void OnPause() {
+        protected override void OnPause()
+        {
             base.OnPause();
             // Because Android is not playing nice with Background - we just kill it
             System.Diagnostics.Process.GetCurrentProcess().Kill();

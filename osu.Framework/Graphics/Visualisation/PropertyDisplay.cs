@@ -183,7 +183,8 @@ namespace osu.Framework.Graphics.Visualisation
                     value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
 
-                if (!value.Equals(lastValue))
+                // An alternative of object.Equals, which is banned.
+                if (!EqualityComparer<object>.Default.Equals(value, lastValue))
                 {
                     changeMarker.ClearTransforms();
                     changeMarker.Alpha = 0.8f;

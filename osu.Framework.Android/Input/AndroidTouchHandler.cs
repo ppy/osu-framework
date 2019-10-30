@@ -32,6 +32,7 @@ namespace osu.Framework.Android.Input
                 case MotionEventActions.Move:
                     PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
                     break;
+
                 case MotionEventActions.Up:
                     PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
                     break;

@@ -723,7 +723,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         internal static void SetUniform<T>(IUniformWithValue<T> uniform)
-            where T : struct
+            where T : struct, IEquatable<T>
         {
             if (uniform.Owner == currentShader)
                 FlushCurrentBatch();

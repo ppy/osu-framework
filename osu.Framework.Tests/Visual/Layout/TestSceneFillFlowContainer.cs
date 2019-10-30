@@ -401,25 +401,9 @@ namespace osu.Framework.Tests.Visual.Layout
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
-        {
-            public AnchorDropdownMenuItem(Anchor anchor)
-                : base(anchor.ToString(), anchor)
-            {
-            }
-        }
-
         private class FillDirectionDropdown : BasicDropdown<FlowTestType>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
-        }
-
-        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestType>
-        {
-            public FillDirectionDropdownMenuItem(FlowTestType testType)
-                : base(testType.ToString(), testType)
-            {
-            }
         }
 
         [AttributeUsage(AttributeTargets.Method)]
