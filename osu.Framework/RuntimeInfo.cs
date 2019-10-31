@@ -8,10 +8,6 @@ namespace osu.Framework
 {
     public static class RuntimeInfo
     {
-        [Obsolete("This P/Invoke was accidentially exposed.")] // can be removed 20200430
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
-
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
         /// </summary>
