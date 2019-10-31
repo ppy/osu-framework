@@ -84,13 +84,15 @@ namespace osu.Framework.Platform.MacOS
                 var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
                 Debug.Assert(fieldImplementation != null, "Reflection is broken!");
 
-                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetType("CocoaNativeWindow", true);
-                Debug.Assert(typeCocoaNativeWindow != null, "Reflection is broken!");
+                nativeWindow = fieldImplementation.GetValue(Implementation);
+                Debug.Assert(nativeWindow != null, "Reflection is broken!");
+
+                var typeCocoaNativeWindow = nativeWindow.GetType();
+                Debug.Assert(typeCocoaNativeWindow.Name == "CocoaNativeWindow", "Reflection is broken!");
 
                 var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member);
                 Debug.Assert(fieldWindowClass != null, "Reflection is broken!");
 
-                nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
                 // register new methods
@@ -105,13 +107,13 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = nativeWindow.GetType().GetMethod("OnKeyDown", instance_member);
+                methodKeyDown = typeCocoaNativeWindow.GetMethod("OnKeyDown", instance_member);
                 Debug.Assert(methodKeyDown != null, "Reflection is broken!");
 
-                methodKeyUp = nativeWindow.GetType().GetMethod("OnKeyUp", instance_member);
+                methodKeyUp = typeCocoaNativeWindow.GetMethod("OnKeyUp", instance_member);
                 Debug.Assert(methodKeyUp != null, "Reflection is broken!");
 
-                methodInvalidateCursorRects = nativeWindow.GetType().GetMethod("InvalidateCursorRects", instance_member);
+                methodInvalidateCursorRects = typeCocoaNativeWindow.GetMethod("InvalidateCursorRects", instance_member);
                 Debug.Assert(methodInvalidateCursorRects != null, "Reflection is broken!");
             }
             catch
