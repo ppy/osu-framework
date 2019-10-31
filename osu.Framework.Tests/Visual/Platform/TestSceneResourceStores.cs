@@ -51,28 +51,30 @@ namespace osu.Framework.Tests.Visual.Platform
         }
 
         [Test]
-        public void TestFontStore() => showResources(fontStore.GetAvailableResources(), fontStore.Get);
+        public void TestFontStore() => showResources(() => fontStore.GetAvailableResources(), l => fontStore.Get(l));
 
         [Test]
-        public void TestStorageBackedResourceStore() => showResources(new StorageBackedResourceStore(storage));
+        public void TestStorageBackedResourceStore() => showResources(() => new StorageBackedResourceStore(storage));
 
         [Test]
-        public void TestGetTextureStore() => showResources(textureStore.GetAvailableResources(), textureStore.Get);
+        public void TestGetTextureStore() => showResources(() => textureStore.GetAvailableResources(), l => textureStore.Get(l));
 
         [Test]
-        public void TestGetTrackManager() => showResources(audioManager.Tracks);
+        public void TestGetTrackManager() => showResources(() => audioManager.Tracks);
 
-        private void showResources<T>(IResourceStore<T> store) => showResources(store.GetAvailableResources(), store.Get);
+        private void showResources<T>(Func<IResourceStore<T>> store) => showResources(() => store().GetAvailableResources(), l => store().Get(l));
 
-        private void showResources<T>(IEnumerable<string> resources, Func<string, T> fetch)
+        private void showResources<T>(Func<IEnumerable<string>> getResourceNames, Func<string, T> getResource)
         {
             AddStep("list resources", () =>
             {
                 flow.Clear();
 
-                foreach (var resourceName in resources)
-                    flow.Add(new ResourceDisplay(resourceName, fetch(resourceName)));
+                foreach (var resourceName in getResourceNames())
+                    flow.Add(new ResourceDisplay(resourceName, getResource(resourceName)));
             });
+
+            AddAssert("ensure some loaded", () => flow.Children.Any());
 
             AddAssert("ensure all loaded", () => flow.Children.All(rd => rd.Resource != null));
         }
@@ -126,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Platform
                         };
 
                     default:
-                        return new SpriteText { Text = resource.ToString() };
+                        return new SpriteText { Text = resource?.ToString() ?? "null" };
                 }
             }
         }
