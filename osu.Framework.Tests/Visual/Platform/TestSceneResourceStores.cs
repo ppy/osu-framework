@@ -54,15 +54,15 @@ namespace osu.Framework.Tests.Visual.Platform
         public void TestFontStore() => showResources(() => fontStore.GetAvailableResources(), l => fontStore.Get(l));
 
         [Test]
-        public void TestStorageBackedResourceStore() => showResources(new StorageBackedResourceStore(storage));
+        public void TestStorageBackedResourceStore() => showResources(() => new StorageBackedResourceStore(storage));
 
         [Test]
         public void TestGetTextureStore() => showResources(() => textureStore.GetAvailableResources(), l => textureStore.Get(l));
 
         [Test]
-        public void TestGetTrackManager() => showResources(audioManager.Tracks);
+        public void TestGetTrackManager() => showResources(() => audioManager.Tracks);
 
-        private void showResources<T>(IResourceStore<T> store) => showResources(store.GetAvailableResources, store.Get);
+        private void showResources<T>(Func<IResourceStore<T>> store) => showResources(() => store().GetAvailableResources(), l => store().Get(l));
 
         private void showResources<T>(Func<IEnumerable<string>> getResourceNames, Func<string, T> getResource)
         {
