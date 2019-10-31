@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using osu.Framework.Input.States;
@@ -45,7 +46,7 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Construct a new instance.
+        /// Construct a new instance from string representation provided by <see cref="ToString"/>.
         /// </summary>
         /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
@@ -71,6 +72,8 @@ namespace osu.Framework.Input.Bindings
         /// <returns>Whether the pressedKeys keys are valid.</returns>
         public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
+            Debug.Assert(!pressedKeys.Keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
+
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
@@ -134,6 +137,10 @@ namespace osu.Framework.Input.Bindings
 
         public static implicit operator KeyCombination(InputKey[] keys) => new KeyCombination(keys);
 
+        /// <summary>
+        /// Get a string representation can be used with <see cref="KeyCombination(string)"/>.
+        /// </summary>
+        /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(",", Keys.Select(k => (int)k));
 
         public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
@@ -439,6 +446,7 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromJoystickButton(joystickButton));
             }
 
+            Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
             keys.Sort();
             return new KeyCombination(keys.ToImmutable());
         }
