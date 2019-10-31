@@ -45,13 +45,11 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selMenuBarVisible = Selector.Get("menuBarVisible");
         private readonly IntPtr classNSMenu = Class.Get("NSMenu");
 
-        private MethodInfo methodKeyDown;
-        private MethodInfo methodKeyUp;
-        private MethodInfo methodInvalidateCursorRects;
+        private Action<osuTK.Input.Key, bool> actionKeyDown;
+        private Action<osuTK.Input.Key> actionKeyUp;
+        private Action actionInvalidateCursorRects;
 
         private WindowMode? pendingWindowMode;
-
-        private object nativeWindow;
 
         public MacOSGameWindow()
         {
@@ -84,7 +82,7 @@ namespace osu.Framework.Platform.MacOS
                 var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
                 Debug.Assert(fieldImplementation != null, "Reflection is broken!");
 
-                nativeWindow = fieldImplementation.GetValue(Implementation);
+                var nativeWindow = fieldImplementation.GetValue(Implementation);
                 Debug.Assert(nativeWindow != null, "Reflection is broken!");
 
                 var typeCocoaNativeWindow = nativeWindow.GetType();
@@ -107,14 +105,17 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = typeCocoaNativeWindow.GetMethod("OnKeyDown", instance_member);
+                var methodKeyDown = typeCocoaNativeWindow.GetMethod("OnKeyDown", instance_member);
                 Debug.Assert(methodKeyDown != null, "Reflection is broken!");
+                actionKeyDown = (Action<osuTK.Input.Key, bool>)methodKeyDown.CreateDelegate(typeof(Action<osuTK.Input.Key, bool>), nativeWindow);
 
-                methodKeyUp = typeCocoaNativeWindow.GetMethod("OnKeyUp", instance_member);
+                var methodKeyUp = typeCocoaNativeWindow.GetMethod("OnKeyUp", instance_member);
                 Debug.Assert(methodKeyUp != null, "Reflection is broken!");
+                actionKeyUp = (Action<osuTK.Input.Key>)methodKeyUp.CreateDelegate(typeof(Action<osuTK.Input.Key>), nativeWindow);
 
-                methodInvalidateCursorRects = typeCocoaNativeWindow.GetMethod("InvalidateCursorRects", instance_member);
+                var methodInvalidateCursorRects = typeCocoaNativeWindow.GetMethod("InvalidateCursorRects", instance_member);
                 Debug.Assert(methodInvalidateCursorRects != null, "Reflection is broken!");
+                actionInvalidateCursorRects = (Action)methodInvalidateCursorRects.CreateDelegate(typeof(Action), nativeWindow);
             }
             catch
             {
@@ -166,7 +167,7 @@ namespace osu.Framework.Platform.MacOS
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
             // invalidate the cursor rects to hide it.  osuTK has a private function that does this.
             if (isCursorHidden && Cocoa.CGCursorIsVisible() && !menuBarVisible)
-                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
+                actionInvalidateCursorRects();
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
@@ -224,9 +225,9 @@ namespace osu.Framework.Platform.MacOS
             }
 
             if (keyDown)
-                methodKeyDown.Invoke(nativeWindow, new object[] { key, false });
+                actionKeyDown(key, false);
             else
-                methodKeyUp.Invoke(nativeWindow, new object[] { key });
+                actionKeyUp(key);
         }
 
         // FIXME: osuTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
