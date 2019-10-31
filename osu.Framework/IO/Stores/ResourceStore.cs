@@ -187,7 +187,7 @@ namespace osu.Framework.IO.Stores
 
         public virtual IEnumerable<string> GetAvailableResources()
         {
-            lock (stores) return stores.SelectMany(s => s.GetAvailableResources());
+            lock (stores) return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
         }
 
         #region IDisposable Support
