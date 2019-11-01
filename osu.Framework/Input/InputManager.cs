@@ -130,6 +130,13 @@ namespace osu.Framework.Input
             }
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            CurrentState.Mouse.Position = ToScreenSpace(Vector2.Zero);
+        }
+
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
         /// </summary>
