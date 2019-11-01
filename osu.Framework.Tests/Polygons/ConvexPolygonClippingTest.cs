@@ -118,8 +118,7 @@ namespace osu.Framework.Tests.Polygons
             new object[] { new[] { origin, up_2, up_2 + right_2, right_2 }, new[] { left_1, up_1, right_1, down_1 }, new[] { origin, up_1, right_1 } },
             new object[]
             {
-                new[] { origin, up_2, up_2 + right_2, right_2 },
-                new[] { up_1 + right_1, up_3 + right_1, up_3 + right_3, up_1 + right_3 },
+                new[] { origin, up_2, up_2 + right_2, right_2 }, new[] { up_1 + right_1, up_3 + right_1, up_3 + right_3, up_1 + right_3 },
                 new[] { up_1 + right_1, up_2 + right_1, up_2 + right_2, up_1 + right_2 }
             },
             new object[]
@@ -146,8 +145,7 @@ namespace osu.Framework.Tests.Polygons
             new object[] { new[] { up_2, right_2, down_2, left_2 }, new[] { origin, left_3, up_3, right_3 }, new[] { origin, left_2, up_2, right_2 } },
             new object[]
             {
-                new[] { left_1 + up_1, right_1 + up_1, down_1 + right_1, down_1 + left_1 },
-                new[] { up_2 * 0.75f, right_2 * 0.75f, down_2 * 0.75f, left_2 * 0.75f },
+                new[] { left_1 + up_1, right_1 + up_1, down_1 + right_1, down_1 + left_1 }, new[] { up_2 * 0.75f, right_2 * 0.75f, down_2 * 0.75f, left_2 * 0.75f },
                 new[]
                 {
                     down_1 + left_1 * 0.5f,
@@ -162,21 +160,18 @@ namespace osu.Framework.Tests.Polygons
             },
             new object[]
             {
-                new[] { up_1, right_1, left_1 },
-                new[] { up_1 + right_1 * 0.5f, down_1 + right_1 * 0.5f, down_1 + left_1 * 0.5f, up_1 + left_1 * 0.5f },
+                new[] { up_1, right_1, left_1 }, new[] { up_1 + right_1 * 0.5f, down_1 + right_1 * 0.5f, down_1 + left_1 * 0.5f, up_1 + left_1 * 0.5f },
                 new[] { up_1 * 0.5f + left_1 * 0.5f, up_1, up_1 * 0.5f + right_1 * 0.5f, right_1 * 0.5f, left_1 * 0.5f, }
             },
             new object[]
             {
                 // Inverse of the above
-                new[] { up_1 + right_1 * 0.5f, down_1 + right_1 * 0.5f, down_1 + left_1 * 0.5f, up_1 + left_1 * 0.5f },
-                new[] { up_1, right_1, left_1 },
+                new[] { up_1 + right_1 * 0.5f, down_1 + right_1 * 0.5f, down_1 + left_1 * 0.5f, up_1 + left_1 * 0.5f }, new[] { up_1, right_1, left_1 },
                 new[] { up_1 * 0.5f + left_1 * 0.5f, up_1, up_1 * 0.5f + right_1 * 0.5f, right_1 * 0.5f, left_1 * 0.5f, }
             },
             new object[]
             {
-                new[] { up_1, right_1, down_1 + right_1, down_1 + left_1, left_1 },
-                new[] { left_1, up_1, up_1 + right_1, down_1 + right_1, down_1 },
+                new[] { up_1, right_1, down_1 + right_1, down_1 + left_1, left_1 }, new[] { left_1, up_1, up_1 + right_1, down_1 + right_1, down_1 },
                 new[] { up_1, right_1, right_1 + down_1, down_1, left_1 }
             }
         };

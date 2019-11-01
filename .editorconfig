@@ -87,8 +87,8 @@ csharp_new_line_before_catch = true
 csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
 csharp_new_line_before_open_brace = all
-csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_before_members_in_object_initializers = true
+#csharp_new_line_before_members_in_anonymous_types = true
+#csharp_new_line_before_members_in_object_initializers = true # Currently no effect in VS/dotnet format (16.4), and makes Rider confusing
 csharp_new_line_between_query_expression_clauses = true
 
 #Formatting - organize using options
