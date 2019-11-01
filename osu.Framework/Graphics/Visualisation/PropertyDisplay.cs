@@ -95,22 +95,20 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 Type type;
 
-                switch (info.MemberType)
+                switch (info)
                 {
-                    case MemberTypes.Property:
-                        PropertyInfo propertyInfo = (PropertyInfo)info;
+                    case PropertyInfo propertyInfo:
                         type = propertyInfo.PropertyType;
                         getValue = () => propertyInfo.GetValue(d);
                         break;
 
-                    case MemberTypes.Field:
-                        FieldInfo fieldInfo = (FieldInfo)info;
+                    case FieldInfo fieldInfo:
                         type = fieldInfo.FieldType;
                         getValue = () => fieldInfo.GetValue(d);
                         break;
 
                     default:
-                        throw new NotImplementedException(@"Not a value member.");
+                        throw new ArgumentException(@"Not a value member.", nameof(info));
                 }
 
                 RelativeSizeAxes = Axes.X;

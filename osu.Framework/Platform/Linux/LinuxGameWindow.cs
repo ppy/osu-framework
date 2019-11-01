@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection;
 using osuTK;
 
@@ -19,7 +19,8 @@ namespace osu.Framework.Platform.Linux
 
         protected void OnLoad(object sender, EventArgs e)
         {
-            var implementationField = typeof(NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
+            var implementationField = typeof(NativeWindow).GetField("implementation", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Debug.Assert(implementationField != null, "Reflection is broken!");
 
             var windowImpl = implementationField.GetValue(Implementation);
 
