@@ -348,7 +348,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             while (tryGetNextUpload(out ITextureUpload upload))
                 using (upload)
                 {
-                    fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
+                    fixed (Rgba32* ptr = upload.Data)
                         doUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
