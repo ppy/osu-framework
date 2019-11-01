@@ -23,6 +23,13 @@ namespace osu.Framework.Tests.Containers
         }
 
         [Test]
+        public void TestSynchronousLoadDerivedLongRunningThrows()
+        {
+            AddStep("test incorrect usage", () => Assert.Throws<InvalidOperationException>(() => Add(new TestLoadBlockingDrawableLongRunningDerived())));
+            AddStep("test correct usage", () => LoadComponentAsync(new TestLoadBlockingDrawableLongRunningDerived()));
+        }
+
+        [Test]
         public void TestLongRunningDoesntBlock()
         {
             List<TestLoadBlockingDrawableLongRunning> longRunning = new List<TestLoadBlockingDrawableLongRunning>();
@@ -42,6 +49,10 @@ namespace osu.Framework.Tests.Containers
             AddStep("allow normal load", () => normal.AllowLoad.Set());
 
             AddUntilStep("did load", () => normal.IsLoaded);
+        }
+
+        private class TestLoadBlockingDrawableLongRunningDerived : TestLoadBlockingDrawableLongRunning
+        {
         }
 
         [LongRunningLoad]
