@@ -4,9 +4,6 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>TemplateGame.Game.Tests.Program</StartupObject>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
   </ItemGroup>
