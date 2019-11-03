@@ -134,6 +134,8 @@ namespace osu.Framework.Input
         {
             base.LoadComplete();
 
+            // Set mouse position to zero in input manager local space instead of screen space zero.
+            // This ensures initial mouse position is non-negative in nested input managers whose origin is not (0, 0).
             CurrentState.Mouse.Position = ToScreenSpace(Vector2.Zero);
         }
 
