@@ -37,12 +37,34 @@ namespace osu.Framework.Input
 
                 useParentInput = value;
 
-                if (UseParentInput)
-                    Sync();
+                updateParentInputUsage();
+            }
+        }
+
+        private void updateParentInputUsage()
+        {
+            if (UseParentInput)
+            {
+                parentInputManager = GetContainingInputManager();
+
+                parentInputUpdatedInternal(parentInputManager.CurrentState);
+
+                parentInputManager.InputUpdated += parentInputUpdated;
+            }
+            else if (parentInputManager != null)
+            {
+                parentInputManager.InputUpdated -= parentInputUpdated;
+                parentInputManager = null;
             }
         }
 
         private bool useParentInput = true;
+
+        protected override void LoadComplete()
+        {
+            updateParentInputUsage();
+            base.LoadComplete();
+        }
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
@@ -109,7 +131,7 @@ namespace osu.Framework.Input
 
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
-                    SyncInputState(e.CurrentState);
+                    parentInputUpdatedInternal(e.CurrentState);
                     break;
             }
 
@@ -118,47 +140,27 @@ namespace osu.Framework.Input
 
         private InputManager parentInputManager;
 
-        protected override void LoadComplete()
+        private void parentInputUpdated(InputState inputState, Drawable drawable)
         {
-            base.LoadComplete();
-            Sync();
+            if (drawable == null || drawable.GetContainingInputManager() == this)
+                parentInputUpdatedInternal(inputState);
         }
 
-        protected override void Update()
+        private void parentInputUpdatedInternal(InputState inputState)
         {
-            base.Update();
-
-            // Some non-positional events are blocked. Sync every frame.
-            if (UseParentInput) Sync(true);
-        }
-
-        /// <summary>
-        /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.
-        /// Call this when parent <see cref="InputManager"/> changed somehow.
-        /// </summary>
-        /// <param name="useCachedParentInputManager">If this is false, assume parent input manager is unchanged from before.</param>
-        public void Sync(bool useCachedParentInputManager = false)
-        {
-            if (!UseParentInput) return;
-
-            if (!useCachedParentInputManager)
-                parentInputManager = GetContainingInputManager();
-
-            SyncInputState(parentInputManager?.CurrentState);
-        }
-
-        /// <summary>
-        /// Sync current state to parent state.
-        /// </summary>
-        /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
-        protected virtual void SyncInputState(InputState parentState)
-        {
-            // release all buttons that is not pressed on parent state
-            var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var mouseButtonDifference = (inputState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
-            new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new KeyboardKeyInput(inputState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new JoystickButtonInput(inputState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (parentInputManager != null)
+                parentInputManager.InputUpdated -= parentInputUpdated;
+
+            base.Dispose(isDisposing);
         }
     }
 }

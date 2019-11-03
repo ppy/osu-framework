@@ -36,6 +36,11 @@ namespace osu.Framework.Input
         public Func<IEnumerable<Drawable>> GetPositionalInputQueue;
 
         /// <summary>
+        /// Used for synchronizing mouse input with <see cref="PassThroughInputManager"/>
+        /// </summary>
+        internal event Action<InputState, Drawable> PositionalInputUpdated;
+
+        /// <summary>
         /// Whether dragging is handled by the managed button.
         /// </summary>
         public abstract bool EnableDrag { get; }
@@ -272,6 +277,9 @@ namespace osu.Framework.Input
 
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            if (e is MouseUpEvent)
+                PositionalInputUpdated?.Invoke(e.CurrentState, handledBy);
 
             return handledBy;
         }
