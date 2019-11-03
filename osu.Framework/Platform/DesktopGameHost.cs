@@ -30,7 +30,6 @@ namespace osu.Framework.Platform
 
         protected override void SetupForRun()
         {
-            //todo: yeah.
             Architecture.SetIncludePath();
 
             if (bindIPCPort)
