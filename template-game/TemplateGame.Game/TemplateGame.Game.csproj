@@ -16,7 +16,13 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ppy/osu-framework/tree/master/template-game</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ppy/osu-framework/tree/master/template-game</RepositoryUrl>
+	<IncludeContentInPack>true</IncludeContentInPack>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+	<ContentTargetFolders>content</ContentTargetFolders>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\**\*" Exclude="..\**\bin\**;..\**\obj\**" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2019.1011.0" />
   </ItemGroup>
