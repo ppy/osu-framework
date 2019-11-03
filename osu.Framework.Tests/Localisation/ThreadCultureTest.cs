@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -60,7 +61,7 @@ namespace osu.Framework.Tests.Localisation
 
         private void assertCulture(string name)
         {
-            var cultures = new List<CultureInfo>();
+            var cultures = new ConcurrentBag<CultureInfo>();
 
             AddStep("query cultures", () =>
             {
@@ -70,7 +71,7 @@ namespace osu.Framework.Tests.Localisation
             });
 
             AddUntilStep("wait for query", () => cultures.Count == 3);
-            AddAssert($"culture is {name}", () => cultures.TrueForAll(c => c.Name == name));
+            AddAssert($"culture is {name}", () => cultures.All(c => c.Name == name));
         }
 
         private void assertThreadCulture(string name)
