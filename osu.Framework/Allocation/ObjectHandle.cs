@@ -66,11 +66,9 @@ namespace osu.Framework.Allocation
 
             try
             {
-                var value = handle.Target;
-
-                if (value is T)
+                if (handle.Target is T value)
                 {
-                    target = (T)value;
+                    target = value;
                     return true;
                 }
             }
