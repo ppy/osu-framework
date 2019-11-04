@@ -25,6 +25,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.18.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.6" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
