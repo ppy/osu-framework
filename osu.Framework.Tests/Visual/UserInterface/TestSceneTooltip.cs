@@ -221,7 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public TooltipSpriteText(string displayedContent, string tooltipContent)
             {
-                this.TooltipText = tooltipContent;
+                TooltipText = tooltipContent;
 
                 AutoSizeAxes = Axes.Both;
                 Children = new[]
