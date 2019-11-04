@@ -49,7 +49,7 @@ namespace osu.Framework.IO.Stores
             FontName = assetName?.Split('/').Last();
         }
 
-        public Task LoadFontAsync() => fontLoadTask ?? (fontLoadTask = Task.Factory.StartNew(() =>
+        public Task LoadFontAsync() => fontLoadTask ??= Task.Factory.StartNew(() =>
         {
             try
             {
@@ -65,7 +65,7 @@ namespace osu.Framework.IO.Stores
                 completionSource.SetResult(null);
                 throw;
             }
-        }, TaskCreationOptions.PreferFairness));
+        }, TaskCreationOptions.PreferFairness);
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
 
