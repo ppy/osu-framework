@@ -79,8 +79,10 @@ namespace osu.Framework.Text
         public void AddText(string text)
         {
             foreach (var c in text)
+            {
                 if (!AddCharacter(c))
                     break;
+            }
         }
 
         /// <summary>

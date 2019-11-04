@@ -109,10 +109,13 @@ namespace osu.Framework.Testing
                     requiredTypeNames = reqTypes;
 
                     requiredFiles.Clear();
+
                     foreach (var d in validDirectories)
+                    {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
                                                .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                    }
                 }
 
                 lastTouchedFile = e.FullPath;

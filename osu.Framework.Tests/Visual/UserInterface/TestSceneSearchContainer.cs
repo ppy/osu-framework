@@ -48,7 +48,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                         new SearchableText { Text = "444", },
                                         new FilterableFlowContainer
                                         {
-                                            Direction = FillDirection.Horizontal, AutoSizeAxes = Axes.Both,
+                                            Direction = FillDirection.Horizontal,
+                                            AutoSizeAxes = Axes.Both,
                                             Children = new[]
                                             {
                                                 new SpriteText { Text = "multi", },

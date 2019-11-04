@@ -197,10 +197,14 @@ namespace osu.Framework.IO.File
             if (input == null) return null;
 
             StringBuilder asc = new StringBuilder(input.Length);
+
             //keep only ascii chars
             foreach (char c in input)
+            {
                 if (c <= 126)
                     asc.Append(c);
+            }
+
             return asc.ToString().Trim();
         }
 

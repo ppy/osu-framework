@@ -77,8 +77,10 @@ namespace osu.Framework.Graphics.Containers
 
             //We need to check the children and should any child match this matches as well
             if (hasFilterableChildren != null)
+            {
                 foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
                     matching |= match(child, childTerms, searchActive);
+            }
 
             filterable.FilteringActive = searchActive;
             return filterable.MatchingFilter = matching;

@@ -171,12 +171,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput.OnNewImeComposition += s =>
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate
+                textInput.OnNewImeResult += s =>
                 {
                     textUpdateScheduler.Add(onImeResult);
                     cursorAndLayout.Invalidate();
@@ -368,13 +368,17 @@ namespace osu.Framework.Graphics.UserInterface
                 Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
 
                 if (selectionLength > 0)
+                {
                     Caret
                         .FadeTo(0.5f, 200, Easing.Out)
                         .FadeColour(SelectionColour, 200, Easing.Out);
+                }
                 else
+                {
                     Caret
                         .FadeColour(Color4.White, 200, Easing.Out)
                         .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
+                }
             }
 
             if (textAtLastLayout != text)

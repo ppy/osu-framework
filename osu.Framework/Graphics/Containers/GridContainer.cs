@@ -155,28 +155,30 @@ namespace osu.Framework.Graphics.Containers
             cells = new CellContainer[requiredRows, requiredColumns];
 
             for (int r = 0; r < cellRows; r++)
-            for (int c = 0; c < cellColumns; c++)
             {
-                // Add cell
-                cells[r, c] = new CellContainer();
+                for (int c = 0; c < cellColumns; c++)
+                {
+                    // Add cell
+                    cells[r, c] = new CellContainer();
 
-                // Allow empty rows
-                if (Content[r] == null)
-                    continue;
+                    // Allow empty rows
+                    if (Content[r] == null)
+                        continue;
 
-                // Allow non-square grids
-                if (c >= Content[r].Length)
-                    continue;
+                    // Allow non-square grids
+                    if (c >= Content[r].Length)
+                        continue;
 
-                // Allow empty cells
-                if (Content[r][c] == null)
-                    continue;
+                    // Allow empty cells
+                    if (Content[r][c] == null)
+                        continue;
 
-                // Add content
-                cells[r, c].Add(Content[r][c]);
-                cells[r, c].Depth = Content[r][c].Depth;
+                    // Add content
+                    cells[r, c].Add(Content[r][c]);
+                    cells[r, c].Depth = Content[r][c].Depth;
 
-                AddInternal(cells[r, c]);
+                    AddInternal(cells[r, c]);
+                }
             }
 
             cellContent.Validate();
@@ -194,15 +196,17 @@ namespace osu.Framework.Graphics.Containers
             var heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
 
             for (int col = 0; col < cellColumns; col++)
-            for (int row = 0; row < cellRows; row++)
             {
-                cells[row, col].Size = new Vector2(widths[col], heights[row]);
+                for (int row = 0; row < cellRows; row++)
+                {
+                    cells[row, col].Size = new Vector2(widths[col], heights[row]);
 
-                if (col > 0)
-                    cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
+                    if (col > 0)
+                        cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
 
-                if (row > 0)
-                    cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
+                    if (row > 0)
+                        cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
+                }
             }
 
             cellLayout.Validate();

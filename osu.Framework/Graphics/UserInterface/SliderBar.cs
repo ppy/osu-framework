@@ -87,8 +87,10 @@ namespace osu.Framework.Graphics.UserInterface
             get
             {
                 if (!currentNumberInstantaneous.HasDefinedRange)
+                {
                     throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
+                }
 
                 var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
                 var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
