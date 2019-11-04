@@ -200,8 +200,10 @@ namespace osu.Framework.Graphics.Lines
             var pathRadiusSquared = PathRadius * PathRadius;
 
             foreach (var t in segments)
+            {
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+            }
 
             return false;
         }

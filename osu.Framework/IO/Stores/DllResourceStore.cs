@@ -68,8 +68,10 @@ namespace osu.Framework.IO.Stores
                 var chars = n.ToCharArray();
 
                 for (int i = 0; i < lastDot; i++)
+                {
                     if (chars[i] == '.')
                         chars[i] = '/';
+                }
 
                 return new string(chars);
             });

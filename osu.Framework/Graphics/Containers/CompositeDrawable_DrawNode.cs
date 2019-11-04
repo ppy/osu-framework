@@ -196,8 +196,10 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 if (Children != null)
+                {
                     for (int i = 0; i < Children.Count; i++)
                         Children[i].Draw(vertexAction);
+                }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();
