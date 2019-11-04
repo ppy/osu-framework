@@ -198,25 +198,21 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                using var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
+                using var game = new TestGame();
+                game.Schedule(() =>
                 {
-                    using (var game = new TestGame())
+                    storage = host.Storage;
+                    host.UpdateThread.Scheduler.AddDelayed(() =>
                     {
-                        game.Schedule(() =>
-                        {
-                            storage = host.Storage;
-                            host.UpdateThread.Scheduler.AddDelayed(() =>
-                            {
-                                if (exitCondition?.Invoke(game) == true)
-                                    host.Exit();
-                            }, 0, true);
+                        if (exitCondition?.Invoke(game) == true)
+                            host.Exit();
+                    }, 0, true);
 
-                            logic(game);
-                        });
+                    logic(game);
+                });
 
-                        host.Run(game);
-                    }
-                }
+                host.Run(game);
             }
             finally
             {

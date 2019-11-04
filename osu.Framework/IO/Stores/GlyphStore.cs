@@ -127,50 +127,48 @@ namespace osu.Framework.IO.Stores
             {
                 string filename = $@"{assetName}_{c.Page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
 
-                using (var stream = store.GetStream(filename))
-                using (var convert = Image.Load<Rgba32>(stream))
+                using var stream = store.GetStream(filename);
+                using var convert = Image.Load<Rgba32>(stream);
+                string streamMd5 = stream.ComputeMD5Hash();
+                string filenameMd5 = filename.ComputeMD5Hash();
+
+                string accessFilename = $"{filenameMd5}#{streamMd5}";
+
+                var existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
+
+                if (existing != null)
                 {
-                    string streamMd5 = stream.ComputeMD5Hash();
-                    string filenameMd5 = filename.ComputeMD5Hash();
-
-                    string accessFilename = $"{filenameMd5}#{streamMd5}";
-
-                    var existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
-
-                    if (existing != null)
+                    var split = existing.Split('#');
+                    pageLookup[c.Page] = pageInfo = new PageInfo
                     {
-                        var split = existing.Split('#');
-                        pageLookup[c.Page] = pageInfo = new PageInfo
-                        {
-                            Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
-                            Filename = existing
-                        };
-                    }
-                    else
+                        Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
+                        Filename = existing
+                    };
+                }
+                else
+                {
+                    // todo: use i# memoryallocator once netstandard supports stream operations
+                    byte[] output = new byte[convert.Width * convert.Height];
+
+                    var pxl = convert.GetPixelSpan();
+
+                    for (int i = 0; i < convert.Width * convert.Height; i++)
+                        output[i] = pxl[i].A;
+
+                    // ensure any stale cached versions are deleted.
+                    foreach (var f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
+                        CacheStorage.Delete(f);
+
+                    accessFilename += $"#{convert.Width}#{convert.Height}";
+
+                    using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
+                        outStream.Write(output, 0, output.Length);
+
+                    pageLookup[c.Page] = pageInfo = new PageInfo
                     {
-                        // todo: use i# memoryallocator once netstandard supports stream operations
-                        byte[] output = new byte[convert.Width * convert.Height];
-
-                        var pxl = convert.GetPixelSpan();
-
-                        for (int i = 0; i < convert.Width * convert.Height; i++)
-                            output[i] = pxl[i].A;
-
-                        // ensure any stale cached versions are deleted.
-                        foreach (var f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
-                            CacheStorage.Delete(f);
-
-                        accessFilename += $"#{convert.Width}#{convert.Height}";
-
-                        using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
-                            outStream.Write(output, 0, output.Length);
-
-                        pageLookup[c.Page] = pageInfo = new PageInfo
-                        {
-                            Size = new Size(convert.Width, convert.Height),
-                            Filename = accessFilename
-                        };
-                    }
+                        Size = new Size(convert.Width, convert.Height),
+                        Filename = accessFilename
+                    };
                 }
             }
 

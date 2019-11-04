@@ -239,8 +239,9 @@ namespace osu.Framework.IO.Network
 
             using (abortToken ??= new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
-            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
+                using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token);
+
                 try
                 {
                     PrePerform();
@@ -383,33 +384,31 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-            using (var responseStream = await response.Content.ReadAsStreamAsync())
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            reportForwardProgress();
+            Started?.Invoke();
+
+            buffer = new byte[buffer_size];
+
+            while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
+
                 reportForwardProgress();
-                Started?.Invoke();
 
-                buffer = new byte[buffer_size];
-
-                while (true)
+                if (read > 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
-
-                    reportForwardProgress();
-
-                    if (read > 0)
-                    {
-                        await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
-                        responseBytesRead += read;
-                        DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
-                    }
-                    else
-                    {
-                        ResponseStream.Seek(0, SeekOrigin.Begin);
-                        Complete();
-                        break;
-                    }
+                    await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
+                    responseBytesRead += read;
+                    DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
+                }
+                else
+                {
+                    ResponseStream.Seek(0, SeekOrigin.Begin);
+                    Complete();
+                    break;
                 }
             }
         }
@@ -461,21 +460,20 @@ namespace osu.Framework.IO.Network
                     // in the case we fail a request, spitting out the response in the log is quite helpful.
                     ResponseStream.Seek(0, SeekOrigin.Begin);
 
-                    using (StreamReader r = new StreamReader(ResponseStream, new UTF8Encoding(false, true), true, 1024, true))
+                    using StreamReader r = new StreamReader(ResponseStream, new UTF8Encoding(false, true), true, 1024, true);
+
+                    try
                     {
-                        try
-                        {
-                            char[] output = new char[1024];
-                            int read = r.ReadBlock(output, 0, 1024);
-                            string trimmedResponse = new string(output, 0, read);
-                            logger.Add($"Response was: {trimmedResponse}");
-                            if (read == 1024)
-                                logger.Add("(Response was trimmed)");
-                        }
-                        catch (DecoderFallbackException)
-                        {
-                            // Ignore non-text format
-                        }
+                        char[] output = new char[1024];
+                        int read = r.ReadBlock(output, 0, 1024);
+                        string trimmedResponse = new string(output, 0, read);
+                        logger.Add($"Response was: {trimmedResponse}");
+                        if (read == 1024)
+                            logger.Add("(Response was trimmed)");
+                    }
+                    catch (DecoderFallbackException)
+                    {
+                        // Ignore non-text format
                     }
                 }
             }

@@ -353,12 +353,10 @@ namespace osu.Framework.Logging
                 {
                     try
                     {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                        using (var writer = new StreamWriter(stream))
-                        {
-                            foreach (var line in lines)
-                                writer.WriteLine(line);
-                        }
+                        using var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append);
+                        using var writer = new StreamWriter(stream);
+                        foreach (var line in lines)
+                            writer.WriteLine(line);
                     }
                     catch
                     {

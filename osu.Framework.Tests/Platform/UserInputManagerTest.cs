@@ -13,12 +13,10 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void IsAliveTest()
         {
-            using (var client = new TestHeadlessGameHost(@"client", true))
-            {
-                var testGame = new TestTestGame();
-                client.Run(testGame);
-                Assert.IsTrue(testGame.IsRootAlive);
-            }
+            using var client = new TestHeadlessGameHost(@"client", true);
+            var testGame = new TestTestGame();
+            client.Run(testGame);
+            Assert.IsTrue(testGame.IsRootAlive);
         }
 
         private class TestHeadlessGameHost : HeadlessGameHost

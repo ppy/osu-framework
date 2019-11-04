@@ -29,30 +29,26 @@ namespace osu.Framework.IO.Stores
         {
             this.LogIfNonBackgroundThread(name);
 
-            using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
+            using Stream input = GetStream(name);
+            if (input == null)
+                return null;
 
-                byte[] buffer = new byte[input.Length];
-                input.Read(buffer, 0, buffer.Length);
-                return buffer;
-            }
+            byte[] buffer = new byte[input.Length];
+            input.Read(buffer, 0, buffer.Length);
+            return buffer;
         }
 
         public virtual async Task<byte[]> GetAsync(string name)
         {
             this.LogIfNonBackgroundThread(name);
 
-            using (Stream input = GetStream(name))
-            {
-                if (input == null)
-                    return null;
+            using Stream input = GetStream(name);
+            if (input == null)
+                return null;
 
-                byte[] buffer = new byte[input.Length];
-                await input.ReadAsync(buffer, 0, buffer.Length);
-                return buffer;
-            }
+            byte[] buffer = new byte[input.Length];
+            await input.ReadAsync(buffer, 0, buffer.Length);
+            return buffer;
         }
 
         /// <summary>

@@ -17,16 +17,14 @@ namespace osu.Framework.Tests.Exceptions
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
-                using (var broken = new BrokenFillFlowContainer())
-                {
-                    var candidate = new Box();
-                    var candidate2 = new Box();
+                using var broken = new BrokenFillFlowContainer();
+                var candidate = new Box();
+                var candidate2 = new Box();
 
-                    broken.Add(candidate);
-                    broken.Add(candidate2);
+                broken.Add(candidate);
+                broken.Add(candidate2);
 
-                    broken.Remove(candidate);
-                }
+                broken.Remove(candidate);
             });
         }
 

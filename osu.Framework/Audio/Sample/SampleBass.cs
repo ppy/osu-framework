@@ -61,8 +61,8 @@ namespace osu.Framework.Audio.Sample
             if (RuntimeInfo.SupportsJIT)
                 return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);
 
-            using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
-                return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, flags);
+            using var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned);
+            return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, flags);
         }
     }
 }

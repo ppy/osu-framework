@@ -33,42 +33,38 @@ namespace osu.Framework.Configuration
         {
             if (string.IsNullOrEmpty(Filename)) return;
 
-            using (var stream = storage.GetStream(Filename))
+            using var stream = storage.GetStream(Filename);
+            if (stream == null)
+                return;
+
+            using var reader = new StreamReader(stream);
+            string line;
+
+            while ((line = reader.ReadLine()) != null)
             {
-                if (stream == null)
-                    return;
+                int equalsIndex = line.IndexOf('=');
 
-                using (var reader = new StreamReader(stream))
+                if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
+
+                string key = line.Substring(0, equalsIndex).Trim();
+                string val = line.Remove(0, equalsIndex + 1).Trim();
+
+                if (!Enum.TryParse(key, out T lookup))
+                    continue;
+
+                if (ConfigStore.TryGetValue(lookup, out IBindable b))
                 {
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
+                    try
                     {
-                        int equalsIndex = line.IndexOf('=');
-
-                        if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
-
-                        string key = line.Substring(0, equalsIndex).Trim();
-                        string val = line.Remove(0, equalsIndex + 1).Trim();
-
-                        if (!Enum.TryParse(key, out T lookup))
-                            continue;
-
-                        if (ConfigStore.TryGetValue(lookup, out IBindable b))
-                        {
-                            try
-                            {
-                                b.Parse(val);
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
-                            }
-                        }
-                        else if (AddMissingEntries)
-                            Set(lookup, val);
+                        b.Parse(val);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
                     }
                 }
+                else if (AddMissingEntries)
+                    Set(lookup, val);
             }
         }
 
@@ -78,12 +74,10 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
-                using (var w = new StreamWriter(stream))
-                {
-                    foreach (var p in ConfigStore)
-                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().Replace("\n", "").Replace("\r", ""));
-                }
+                using var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create);
+                using var w = new StreamWriter(stream);
+                foreach (var p in ConfigStore)
+                    w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().Replace("\n", "").Replace("\r", ""));
             }
             catch
             {

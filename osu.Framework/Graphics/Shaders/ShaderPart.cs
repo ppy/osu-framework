@@ -55,72 +55,70 @@ namespace osu.Framework.Graphics.Shaders
             if (bytes == null)
                 return null;
 
-            using (MemoryStream ms = new MemoryStream(bytes))
-            using (StreamReader sr = new StreamReader(ms))
+            using MemoryStream ms = new MemoryStream(bytes);
+            using StreamReader sr = new StreamReader(ms);
+            string code = string.Empty;
+
+            while (sr.Peek() != -1)
             {
-                string code = string.Empty;
+                string line = sr.ReadLine();
 
-                while (sr.Peek() != -1)
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                if (line.StartsWith("#version")) // the version directive has to appear before anything else in the shader
                 {
-                    string line = sr.ReadLine();
+                    shaderCodes.Add(line);
+                    continue;
+                }
 
-                    if (string.IsNullOrEmpty(line))
-                        continue;
+                Match includeMatch = includeRegex.Match(line);
 
-                    if (line.StartsWith("#version")) // the version directive has to appear before anything else in the shader
+                if (includeMatch.Success)
+                {
+                    string includeName = includeMatch.Groups[1].Value.Trim();
+
+                    //#if DEBUG
+                    //                        byte[] rawData = null;
+                    //                        if (File.Exists(includeName))
+                    //                            rawData = File.ReadAllBytes(includeName);
+                    //#endif
+                    code += loadFile(manager.LoadRaw(includeName), false) + '\n';
+                }
+                else
+                    code += line + '\n';
+
+                if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
+                {
+                    Match inputMatch = shaderInputRegex.Match(line);
+
+                    if (inputMatch.Success)
                     {
-                        shaderCodes.Add(line);
-                        continue;
-                    }
-
-                    Match includeMatch = includeRegex.Match(line);
-
-                    if (includeMatch.Success)
-                    {
-                        string includeName = includeMatch.Groups[1].Value.Trim();
-
-                        //#if DEBUG
-                        //                        byte[] rawData = null;
-                        //                        if (File.Exists(includeName))
-                        //                            rawData = File.ReadAllBytes(includeName);
-                        //#endif
-                        code += loadFile(manager.LoadRaw(includeName), false) + '\n';
-                    }
-                    else
-                        code += line + '\n';
-
-                    if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
-                    {
-                        Match inputMatch = shaderInputRegex.Match(line);
-
-                        if (inputMatch.Success)
+                        ShaderInputs.Add(new ShaderInputInfo
                         {
-                            ShaderInputs.Add(new ShaderInputInfo
-                            {
-                                Location = lastShaderInputIndex++,
-                                Name = inputMatch.Groups[1].Value.Trim()
-                            });
-                        }
+                            Location = lastShaderInputIndex++,
+                            Name = inputMatch.Groups[1].Value.Trim()
+                        });
                     }
                 }
-
-                if (mainFile)
-                {
-                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
-
-                    if (isVertexShader)
-                    {
-                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
-
-                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
-
-                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
-                    }
-                }
-
-                return code;
             }
+
+            if (mainFile)
+            {
+                code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
+
+                if (isVertexShader)
+                {
+                    string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+
+                    string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                    backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                    code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                }
+            }
+
+            return code;
         }
 
         internal bool Compile()

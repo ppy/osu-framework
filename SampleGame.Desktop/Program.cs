@@ -12,9 +12,9 @@ namespace SampleGame.Desktop
         [STAThread]
         public static void Main()
         {
-            using (GameHost host = Host.GetSuitableHost(@"sample-game"))
-            using (Game game = new SampleGameGame())
-                host.Run(game);
+            using GameHost host = Host.GetSuitableHost(@"sample-game");
+            using Game game = new SampleGameGame();
+            host.Run(game);
         }
     }
 }

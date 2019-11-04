@@ -19,23 +19,21 @@ namespace osu.Framework.Android.Graphics.Textures
 
         protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
-            using (var bitmap = BitmapFactory.DecodeStream(stream))
+            using var bitmap = BitmapFactory.DecodeStream(stream);
+            var pixels = new int[bitmap.Width * bitmap.Height];
+            bitmap.GetPixels(pixels, 0, bitmap.Width, 0, 0, bitmap.Width, bitmap.Height);
+            byte[] result = new byte[pixels.Length * sizeof(int)];
+            Buffer.BlockCopy(pixels, 0, result, 0, result.Length);
+
+            for (int i = 0; i < pixels.Length; i++)
             {
-                var pixels = new int[bitmap.Width * bitmap.Height];
-                bitmap.GetPixels(pixels, 0, bitmap.Width, 0, 0, bitmap.Width, bitmap.Height);
-                byte[] result = new byte[pixels.Length * sizeof(int)];
-                Buffer.BlockCopy(pixels, 0, result, 0, result.Length);
-
-                for (int i = 0; i < pixels.Length; i++)
-                {
-                    var b = result[i * 4];
-                    result[i * 4] = result[i * 4 + 2];
-                    result[i * 4 + 2] = b;
-                }
-
-                bitmap.Recycle();
-                return Image.LoadPixelData<TPixel>(result, bitmap.Width, bitmap.Height);
+                var b = result[i * 4];
+                result[i * 4] = result[i * 4 + 2];
+                result[i * 4 + 2] = b;
             }
+
+            bitmap.Recycle();
+            return Image.LoadPixelData<TPixel>(result, bitmap.Width, bitmap.Height);
         }
     }
 }
