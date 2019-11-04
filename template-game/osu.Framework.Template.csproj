@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Label="NuGet">
+    <Title>osu!framework game template</Title>
+    <Product>osu!framework game template</Product>
+    <Authors>ppy Pty Ltd</Authors>
+    <Company>ppy Pty Ltd</Company>
+    <Description>Template to use when creating a game powered by osu!framework.</Description>
+    <PackageId>ppy.osu.Framework.Templates</PackageId>
+    <PackageType>Template</PackageType>
+    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
+    <PackageTags>osu game template framework</PackageTags>
+    <Copyright>Copyright (c) 2019 ppy Pty Ltd</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ppy/osu-framework/tree/master/template-game</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ppy/osu-framework/tree/master/template-game</RepositoryUrl>
+	<IncludeContentInPack>true</IncludeContentInPack>
+	<IncludeBuildOutput>false</IncludeBuildOutput>
+	<ContentTargetFolders>templates</ContentTargetFolders>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include=".template.config\*;app.manifest;Directory.Build.props;TemplateGame*.*;TemplateGame*\**\*" Exclude="**\bin\**;**\obj\**" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+</Project>
