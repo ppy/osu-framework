@@ -150,6 +150,7 @@ namespace osu.Framework.Graphics.Containers
             else
             {
                 if (loadScheduledDelegate == null)
+                {
                     loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
                     {
                         if (!isIntersectingCache.IsValid)
@@ -158,6 +159,7 @@ namespace osu.Framework.Graphics.Containers
                             isIntersectingCache.Validate();
                         }
                     });
+                }
             }
         }
 

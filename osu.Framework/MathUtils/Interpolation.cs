@@ -59,9 +59,13 @@ namespace osu.Framework.MathUtils
         public static double LagrangeBasis(ReadOnlySpan<Vector2> points, int @base, double time)
         {
             double product = 1;
+
             for (int i = 0; i < points.Length; i++)
+            {
                 if (i != @base)
                     product *= (time - points[i].X) / (points[@base].X - points[i].X);
+            }
+
             return product;
         }
 
@@ -77,9 +81,13 @@ namespace osu.Framework.MathUtils
             for (int i = 0; i < n; i++)
             {
                 w[i] = 1;
+
                 for (int j = 0; j < n; j++)
+                {
                     if (i != j)
                         w[i] *= points[i].X - points[j].X;
+                }
+
                 w[i] = 1.0 / w[i];
             }
 

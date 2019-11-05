@@ -104,6 +104,7 @@ namespace osu.Framework.Statistics
         {
             // Reset the counters we keep track of
             for (int i = 0; i < ActiveCounters.Length; ++i)
+            {
                 if (ActiveCounters[i])
                 {
                     var count = FrameStatistics.COUNTERS[i];
@@ -117,6 +118,7 @@ namespace osu.Framework.Statistics
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }
+            }
 
             if (PendingFrames.Count < max_pending_frames - 1)
             {

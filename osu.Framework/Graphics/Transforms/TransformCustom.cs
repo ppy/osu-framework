@@ -78,21 +78,27 @@ namespace osu.Framework.Graphics.Transforms
             if (property != null)
             {
                 if (property.PropertyType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {property.PropertyType.ReadableName()}.");
+                }
 
                 var getter = property.GetGetMethod(true);
                 var setter = property.GetSetMethod(true);
 
                 if (getter == null || setter == null)
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         "since it needs to have both a getter and a setter.");
+                }
 
                 if (getter.IsStatic || setter.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -106,13 +112,17 @@ namespace osu.Framework.Graphics.Transforms
             if (field != null)
             {
                 if (field.FieldType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {field.FieldType.ReadableName()}.");
+                }
 
                 if (field.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -161,8 +171,10 @@ namespace osu.Framework.Graphics.Transforms
             this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
 
             if (this.interpolationFunc == null)
+            {
                 throw new InvalidOperationException(
                     $"Need to pass a custom {nameof(interpolationFunc)} since no default {nameof(Interpolation)}.{nameof(Interpolation.ValueAt)} exists.");
+            }
         }
 
         private TValue valueAt(double time)

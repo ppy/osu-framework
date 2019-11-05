@@ -79,12 +79,14 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
 
                 if (timeText != null)
+                {
                     timeText.Text = $"aim time: {videoSprite.PlaybackPosition:N2} | "
                                     + $"video time: {videoSprite.CurrentFrameTime:N2} | "
                                     + $"duration: {videoSprite.Duration:N2} | "
                                     + $"buffered {videoSprite.AvailableFrames} | "
                                     + $"FPS: {fps} | "
                                     + $"State: {decoderState.Value}";
+                }
             }
         }
     }

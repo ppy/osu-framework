@@ -121,8 +121,10 @@ namespace osu.Framework.IO.Stores
             if (found == null)
             {
                 foreach (var store in nestedFontStores)
+                {
                     if ((found = store.Get(name)) != null)
                         break;
+                }
             }
 
             return found;

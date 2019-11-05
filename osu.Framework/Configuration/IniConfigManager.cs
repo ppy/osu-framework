@@ -55,6 +55,7 @@ namespace osu.Framework.Configuration
                             continue;
 
                         if (ConfigStore.TryGetValue(lookup, out IBindable b))
+                        {
                             try
                             {
                                 b.Parse(val);
@@ -63,6 +64,7 @@ namespace osu.Framework.Configuration
                             {
                                 Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
                             }
+                        }
                         else if (AddMissingEntries)
                             Set(lookup, val);
                     }

@@ -346,6 +346,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             bool didUpload = false;
 
             while (tryGetNextUpload(out ITextureUpload upload))
+            {
                 using (upload)
                 {
                     fixed (Rgba32* ptr = upload.Data)
@@ -353,6 +354,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     didUpload = true;
                 }
+            }
 
             if (didUpload && !manualMipmaps)
             {
@@ -458,11 +460,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private unsafe void initializeLevel(int level, int width, int height)
         {
             using (var image = new Image<Rgba32>(width, height))
+            {
                 fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
                 {
                     updateMemoryUsage(level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
                 }
+            }
         }
     }
 }

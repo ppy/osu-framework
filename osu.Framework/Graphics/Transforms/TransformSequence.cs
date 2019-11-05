@@ -74,8 +74,10 @@ namespace osu.Framework.Graphics.Transforms
         internal void Add(Transform transform)
         {
             if (!ReferenceEquals(transform.TargetTransformable, origin))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must operate upon {nameof(origin)}={origin}, but operates upon {transform.TargetTransformable}.");
+            }
 
             transforms.Add(transform);
 
@@ -204,9 +206,11 @@ namespace osu.Framework.Graphics.Transforms
         private void subscribeComplete(Action func)
         {
             if (onComplete != null)
+            {
                 throw new InvalidOperationException(
                     "May not subscribe completion multiple times." +
                     $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<T>)}.");
+            }
 
             onComplete = func;
 

@@ -130,6 +130,15 @@ namespace osu.Framework.Input
             }
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // Set mouse position to zero in input manager local space instead of screen space zero.
+            // This ensures initial mouse position is non-negative in nested input managers whose origin is not (0, 0).
+            CurrentState.Mouse.Position = ToScreenSpace(Vector2.Zero);
+        }
+
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
         /// </summary>
@@ -461,8 +470,10 @@ namespace osu.Framework.Input
             var mouse = state.Mouse;
 
             foreach (var h in InputHandlers)
+            {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
+            }
 
             handleMouseMove(state, e.LastPosition);
 
