@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Containers
         }, true);
 
         /// <summary>
-        /// Tests that long-running drawables finish loading.
+        /// Tests that long-running drawables don't block non-long running drawables from loading.
         /// </summary>
         [Test]
         public void TestLongRunningLoadDoesNotBlock()
@@ -78,10 +78,10 @@ namespace osu.Framework.Tests.Containers
             TestLoadBlockingDrawable normal = null;
 
             AddStep("add normal", () => { LoadComponentAsync(normal = new TestLoadBlockingDrawable(), Add); });
-
             AddStep("allow normal load", () => normal.AllowLoad.Set());
-
             AddUntilStep("did load", () => normal.IsLoaded);
+
+            AddStep("allow long running load", () => longRunning.ForEach(d => d.AllowLoad.Set()));
         }
 
         private void testSynchronousLoad(Func<Drawable> context, bool shouldThrow)
