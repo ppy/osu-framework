@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Containers
 {
@@ -49,6 +50,55 @@ namespace osu.Framework.Tests.Containers
             AddStep("allow normal load", () => normal.AllowLoad.Set());
 
             AddUntilStep("did load", () => normal.IsLoaded);
+        }
+
+        [Test]
+        public void TestLoadParentSynchronousThrows()
+        {
+            AddStep("test incorrect usage", () =>
+            {
+                Assert.Throws<InvalidOperationException>(() =>
+                {
+                    Add(new Container
+                    {
+                        Child = new TestLoadBlockingDrawableLongRunningDerived()
+                    });
+                });
+            });
+        }
+
+        [Test]
+        public void TestLoadParentAsynchronousThrows()
+        {
+            Scheduler scheduler = null;
+            Exception exception = null;
+
+            AddStep("begin long running", () =>
+            {
+                scheduler = new Scheduler();
+                exception = null;
+
+                LoadComponentAsync(new Container
+                {
+                    Child = new TestLoadBlockingDrawableLongRunningDerived()
+                }, scheduler: scheduler);
+            });
+
+            AddUntilStep("wait for load to complete", () => scheduler.HasPendingTasks);
+
+            AddStep("run scheduler", () =>
+            {
+                try
+                {
+                    scheduler.Update();
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+            });
+
+            AddAssert("has thrown", () => exception is InvalidOperationException);
         }
 
         private class TestLoadBlockingDrawableLongRunningDerived : TestLoadBlockingDrawableLongRunning
