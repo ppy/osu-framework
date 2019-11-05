@@ -8,8 +8,11 @@ namespace osu.Framework.Allocation
 {
     /// <summary>
     /// Denotes a component which performs long-running tasks in its <see cref="BackgroundDependencyLoaderAttribute"/> method that are not CPU intensive.
-    /// This will force a consumer to use <see cref="CompositeDrawable.LoadComponentAsync{TLoadable}"/> when loading the components, and also schedule them in a lower priority pool.
+    /// Long-running tasks are scheduled into a lower priority thread pool.
     /// </summary>
+    /// <remarks>
+    /// This forces immediate consumers to use <see cref="CompositeDrawable.LoadComponentAsync{TLoadable}"/> when loading the component.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Class)]
     public class LongRunningLoadAttribute : Attribute
     {
