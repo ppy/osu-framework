@@ -92,6 +92,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             return avatar;
         }
 
+        [LongRunningLoad]
         private class Avatar : Sprite
         {
             private readonly string url;
