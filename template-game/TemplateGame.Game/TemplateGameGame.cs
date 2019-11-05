@@ -10,7 +10,7 @@ namespace TemplateGame.Game
         [BackgroundDependencyLoader]
         private void load()
         {
-            // todo: add game components and visuals.
+            // Add your game components here
         }
     }
 }

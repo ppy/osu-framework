@@ -27,6 +27,6 @@ namespace TemplateGame.Game.Tests.Visual
             Add(game);
         }
 
-        // todo: add visual tests to ensure correct behaviour of your game: https://github.com/ppy/osu-framework/wiki/Development-and-Testing
+        // Add visual tests to ensure correct behaviour of your game: https://github.com/ppy/osu-framework/wiki/Development-and-Testing
     }
 }

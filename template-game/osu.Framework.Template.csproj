@@ -7,7 +7,7 @@
     <Product>osu!framework game template</Product>
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
-    <Description>Template to use when creating a game powered by osu!framework.</Description>
+    <Description>Create a game powered by osu!framework.</Description>
     <PackageId>ppy.osu.Framework.Templates</PackageId>
     <PackageType>Template</PackageType>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
