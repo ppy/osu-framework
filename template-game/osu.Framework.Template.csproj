@@ -11,9 +11,9 @@
     <PackageTags>osu game template framework</PackageTags>
     <PackageProjectUrl>https://github.com/ppy/osu-framework/tree/master/template-game</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ppy/osu-framework/tree/master/template-game</RepositoryUrl>
-	<IncludeContentInPack>true</IncludeContentInPack>
-	<IncludeBuildOutput>false</IncludeBuildOutput>
-	<ContentTargetFolders>templates</ContentTargetFolders>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>templates</ContentTargetFolders>
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".template.config\*;app.manifest;Directory.Build.props;TemplateGame*.*;TemplateGame*\**\*" Exclude="**\bin\**;**\obj\**" />

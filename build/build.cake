@@ -203,8 +203,8 @@ Task("PackNativeLibs")
     });
 
 Task("PackTemplate")
-	.Does(() => {
-		DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
+    .Does(() => {
+        DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Quiet,
@@ -214,8 +214,8 @@ Task("PackTemplate")
 
                 return args;
             }
-		});
-	});
+        });
+    });
 
 Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
@@ -235,7 +235,7 @@ Task("Build")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("PackNativeLibs")
-	.IsDependentOn("PackTemplate")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployFramework")
@@ -244,14 +244,14 @@ Task("DeployFramework")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
-	.IsDependentOn("PackTemplate")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployNativeLibs")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackNativeLibs")
-	.IsDependentOn("PackTemplate")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 RunTarget(target);;
