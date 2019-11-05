@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
@@ -16,22 +17,35 @@ namespace osu.Framework.Tests.Containers
     [HeadlessTest]
     public class TestSceneLongRunningLoad : FrameworkTestScene
     {
+        /// <summary>
+        /// Tests that an exception is thrown when a long-running drawable is synchronously loaded.
+        /// </summary>
         [Test]
-        public void TestSynchronousLoadLongRunningThrows()
-        {
-            AddStep("test incorrect usage", () => Assert.Throws<InvalidOperationException>(() => Add(new TestLoadBlockingDrawableLongRunning())));
-            AddStep("test correct usage", () => LoadComponentAsync(new TestLoadBlockingDrawableLongRunning()));
-        }
+        public void TestSynchronousLoadLongRunningThrows() => testSynchronousLoad(() => new TestLoadBlockingDrawableLongRunning(), true);
 
+        /// <summary>
+        /// Tests that an exception is not thrown when a long-running drawable is asynchronously loaded.
+        /// </summary>
         [Test]
-        public void TestSynchronousLoadDerivedLongRunningThrows()
-        {
-            AddStep("test incorrect usage", () => Assert.Throws<InvalidOperationException>(() => Add(new TestLoadBlockingDrawableLongRunningDerived())));
-            AddStep("test correct usage", () => LoadComponentAsync(new TestLoadBlockingDrawableLongRunningDerived()));
-        }
+        public void TestAsynchronousLoadLongRunningDoesNotThrow() => testAsynchronousLoad(() => new TestLoadBlockingDrawableLongRunning(), false);
 
+        /// <summary>
+        /// Tests that an exception is thrown when a derived long-running drawable is synchronously loaded.
+        /// </summary>
         [Test]
-        public void TestLongRunningDoesntBlock()
+        public void TestSynchronousLoadDerivedLongRunningThrows() => testSynchronousLoad(() => new TestLoadBlockingDrawableLongRunningDerived(), true);
+
+        /// <summary>
+        /// Tests that an exception is not thrown when a derived long-running drawable is asynchronously loaded.
+        /// </summary>
+        [Test]
+        public void TestAsynchronousLoadDerivedLongRunningDoesNotThrow() => testAsynchronousLoad(() => new TestLoadBlockingDrawableLongRunningDerived(), false);
+
+        /// <summary>
+        /// Tests that long-running drawables finish loading.
+        /// </summary>
+        [Test]
+        public void TestLongRunningLoadDoesNotBlock()
         {
             List<TestLoadBlockingDrawableLongRunning> longRunning = new List<TestLoadBlockingDrawableLongRunning>();
 
@@ -52,23 +66,42 @@ namespace osu.Framework.Tests.Containers
             AddUntilStep("did load", () => normal.IsLoaded);
         }
 
+        /// <summary>
+        /// Tests that an exception is thrown when a parent is synchronously loaded and contains a long-running child.
+        /// </summary>
         [Test]
-        public void TestLoadParentSynchronousThrows()
+        public void TestLoadParentSynchronousThrows() => testSynchronousLoad(() => new Container
         {
-            AddStep("test incorrect usage", () =>
+            Child = new TestLoadBlockingDrawableLongRunningDerived()
+        }, true);
+
+        /// <summary>
+        /// Tests that an exception is thrown when a parent is asynchronously loaded and contains a long-running child.
+        /// </summary>
+        [Test]
+        public void TestLoadParentAsynchronousThrows() => testAsynchronousLoad(() => new Container
+        {
+            Child = new TestLoadBlockingDrawableLongRunningDerived()
+        }, true);
+
+        private void testSynchronousLoad(Func<Drawable> context, bool shouldThrow)
+        {
+            AddAssert($"{(shouldThrow ? "has" : "has not")} thrown", () =>
             {
-                Assert.Throws<InvalidOperationException>(() =>
+                try
                 {
-                    Add(new Container
-                    {
-                        Child = new TestLoadBlockingDrawableLongRunningDerived()
-                    });
-                });
+                    Add(new TestLoadBlockingDrawableLongRunning();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return true;
+                }
+
+                return false;
             });
         }
 
-        [Test]
-        public void TestLoadParentAsynchronousThrows()
+        private void testAsynchronousLoad(Func<Drawable> context, bool shouldThrow)
         {
             Scheduler scheduler = null;
             Exception exception = null;
@@ -78,10 +111,7 @@ namespace osu.Framework.Tests.Containers
                 scheduler = new Scheduler();
                 exception = null;
 
-                LoadComponentAsync(new Container
-                {
-                    Child = new TestLoadBlockingDrawableLongRunningDerived()
-                }, scheduler: scheduler);
+                LoadComponentAsync(context(), scheduler: scheduler);
             });
 
             AddUntilStep("wait for load to complete", () => scheduler.HasPendingTasks);
@@ -98,7 +128,7 @@ namespace osu.Framework.Tests.Containers
                 }
             });
 
-            AddAssert("has thrown", () => exception is InvalidOperationException);
+            AddAssert($"{(shouldThrow ? "has" : "has not")} thrown", () => (exception is InvalidOperationException) == shouldThrow);
         }
 
         private class TestLoadBlockingDrawableLongRunningDerived : TestLoadBlockingDrawableLongRunning
