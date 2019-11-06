@@ -6,7 +6,7 @@
     ],
     "name": "osu!framework-based game",
     "identity": "ppy.osu.Framework.Templates",
-    "shortName": "o!f-game",
+    "shortName": "osu-framework-game",
     "tags": {
         "language": "C#",
         "type": "project"
