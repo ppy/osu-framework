@@ -66,6 +66,8 @@ namespace osu.Framework.Graphics
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
         private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
+        internal bool IsLongLoading => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
+
         /// <summary>
         /// Disposes this drawable.
         /// </summary>
@@ -216,10 +218,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
             lock (loadLock)
             {
+                if (!isDirectAsyncContext && IsLongLoading)
+                    throw new InvalidOperationException("Tried to load long-loading in non-async context");
+
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
 
