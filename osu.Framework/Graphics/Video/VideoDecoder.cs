@@ -469,6 +469,7 @@ namespace osu.Framework.Graphics.Video
                 int version = AGffmpeg.LibraryVersionMap[name];
 
                 string libraryName = null;
+
                 // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
                 {
