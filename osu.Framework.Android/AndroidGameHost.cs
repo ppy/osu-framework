@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
@@ -16,7 +17,8 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
-using Uri = Android.Net.Uri;
+using Xamarin.Essentials;
+using AndroidUri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
@@ -52,13 +54,40 @@ namespace osu.Framework.Android
             => new AndroidStorage(baseName, this);
 
         public override void OpenFileExternally(string filename)
-            => throw new NotImplementedException();
+        {
+            if (Directory.Exists(filename))
+            {
+                openFolderExternally(filename);
+                return;
+            }
+            Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(filename)
+            });
+        }
+
+        private void openFolderExternally(string filename)
+        {
+            Context context = Application.Context.ApplicationContext;
+            PackageManager pm = context.PackageManager;
+            var contentUri = AndroidUri.Parse(filename);
+
+            Intent intent = new Intent(Intent.ActionView);
+            intent.SetDataAndType(contentUri, "resource/folder");
+            intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+            if (intent.ResolveActivity(pm) == null)
+                return;
+            var chooserIntent = Intent.CreateChooser(intent, "Choose your file manager");
+            chooserIntent.SetFlags(ActivityFlags.ClearTop);
+            chooserIntent.SetFlags(ActivityFlags.NewTask);
+            context.StartActivity(chooserIntent);
+        }
 
         public override void OpenUrlExternally(string url)
         {
             var activity = (Activity)gameView.Context;
 
-            using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            using (var intent = new Intent(Intent.ActionView, AndroidUri.Parse(url)))
                 if (intent.ResolveActivity(activity.PackageManager) != null)
                     activity.StartActivity(intent);
         }
