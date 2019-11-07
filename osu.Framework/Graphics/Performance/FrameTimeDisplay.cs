@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Performance
                     double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
 
                     displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
-                    displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+                    displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime, 0.01, dampRate);
 
                     lastUpdate = clock.CurrentTime;
 
