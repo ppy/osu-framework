@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Performance
                     if (!Counting) return;
 
                     double clockFps = clock.FramesPerSecond;
-                    double actualElapsed = clock.ElapsedFrameTime - clock.SleptTime;
+                    double actualElapsed = clock.ElapsedFrameTime - clock.TimeSlept;
                     double updateHz = clock.MaximumUpdateHz;
 
                     Schedule(() =>
