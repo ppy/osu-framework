@@ -18,7 +18,10 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
+
+#if NETCOREAPP
 using System.Reflection;
+#endif
 
 namespace osu.Framework.Graphics.Video
 {
