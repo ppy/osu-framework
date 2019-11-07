@@ -21,14 +21,14 @@ namespace osu.Framework.Tests.Visual.Input
             switch (type)
             {
                 case TestType.NonBlockingScroll:
-                    return new NonBlockingScroll()
+                    return new NonBlockingScroll
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = box = new ClickBox()
                     };
 
                 case TestType.Scroll:
-                    return new BasicScrollContainer()
+                    return new BasicScrollContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Child = box = new ClickBox()
