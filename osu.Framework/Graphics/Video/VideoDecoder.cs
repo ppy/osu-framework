@@ -19,10 +19,6 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
-#if NETCOREAPP
-using System.Reflection;
-#endif
-
 namespace osu.Framework.Graphics.Video
 {
     /// <summary>
@@ -489,7 +485,7 @@ namespace osu.Framework.Graphics.Video
                         break;
                 }
 
-                return NativeLibrary.Load(libraryName, Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
 #endif
 
