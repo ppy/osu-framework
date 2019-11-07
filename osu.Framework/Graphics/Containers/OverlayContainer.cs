@@ -34,6 +34,8 @@ namespace osu.Framework.Graphics.Containers
             return base.BuildNonPositionalInputQueue(queue, allowBlocking);
         }
 
+        public override bool DragBlocksClick => false;
+
         protected override bool Handle(UIEvent e)
         {
             switch (e)
