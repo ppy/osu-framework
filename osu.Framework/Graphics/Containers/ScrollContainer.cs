@@ -237,6 +237,9 @@ namespace osu.Framework.Graphics.Containers
             averageDragDelta = averageDragTime = 0;
 
             IsDragging = true;
+
+            dragButtonManager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
+
             return true;
         }
 
@@ -281,6 +284,8 @@ namespace osu.Framework.Graphics.Containers
         private double averageDragTime;
         private double averageDragDelta;
 
+        private MouseButtonEventManager dragButtonManager;
+
         private bool dragBlocksClick;
 
         public override bool DragBlocksClick => dragBlocksClick;
@@ -309,12 +314,10 @@ namespace osu.Framework.Graphics.Containers
             // such that the user can feel it.
             scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            var manager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
-
             // similar calculation to what is already done in MouseButtonEventManager.HandlePositionChange
             // handles the case where a drag was triggered on an axis we are not interested in.
             // can be removed if/when drag events are split out per axis or contain direction information.
-            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > manager.ClickDragDistance;
+            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
             offset(scrollOffset, false);
             return true;
@@ -325,6 +328,7 @@ namespace osu.Framework.Graphics.Containers
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
             dragBlocksClick = false;
+            dragButtonManager = null;
             IsDragging = false;
 
             if (averageDragTime <= 0.0)
