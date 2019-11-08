@@ -260,8 +260,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
-            if (heightAdjust != null)
-                AddStep("set container height zero", () => scrollContainer.Height = heightAdjust.Value);
+            if (heightAdjust is float h)
+                AddStep("set container height zero", () => scrollContainer.Height = h);
 
             AddStep($"scroll {index} into view", () => scrollContainer.ScrollIntoView(fill.Skip(index).First()));
             AddUntilStep($"{index} is visible", () => !fill.Skip(index).First().IsMaskedAway);
@@ -272,7 +272,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Debug.Assert(expectedPostAdjustPosition != null, nameof(expectedPostAdjustPosition) + " != null");
 
                 AddStep("restore height", () => scrollContainer.Height = 100);
-                checkPosition(expectedPostAdjustPosition.Value);
+                checkPosition(expectedPostAdjustPosition.GetValueOrDefault());
             }
         }
 

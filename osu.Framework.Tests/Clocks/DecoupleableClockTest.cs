@@ -194,8 +194,8 @@ namespace osu.Framework.Tests.Clocks
                 decoupleable.ProcessFrame();
                 Assert.AreEqual(0, source.CurrentTime);
 
-                if (last.HasValue)
-                    Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
+                if (last is double lastValue)
+                    Assert.GreaterOrEqual(decoupleable.CurrentTime, lastValue);
 
                 last = decoupleable.CurrentTime;
             }

@@ -36,8 +36,8 @@ namespace osu.Framework.Tests.Bindables
         public void TestDefaultCheck(float value, float def, float? precision = null)
         {
             var bindable = new BindableFloat { Value = def, Default = def };
-            if (precision.HasValue)
-                bindable.Precision = precision.Value;
+            if (precision is float p)
+                bindable.Precision = p;
 
             Assert.IsTrue(bindable.IsDefault);
 

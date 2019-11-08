@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     RelativeSizeAxes = Axes.Both,
                     Child = new Box
                     {
-                        Alpha = OverlayColour.HasValue ? 1 : 0,
+                        Alpha = OverlayColour is null ? 0 : 1,
                         RelativeSizeAxes = Axes.Both,
                         Colour = OverlayColour ?? Color4.Transparent,
                     }

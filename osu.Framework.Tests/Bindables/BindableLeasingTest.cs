@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Bindables
 
             // regardless of revert specification, disabled should always be reverted to the original value.
             Assert.IsTrue(original.Disabled);
-            Assert.IsFalse(changedState.HasValue);
+            Assert.IsNull(changedState);
         }
 
         [Test]
