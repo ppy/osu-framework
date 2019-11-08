@@ -8,6 +8,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
@@ -622,9 +623,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms
-        {
-            get { yield return displayedText; }
-        }
+        public IEnumerable<string> FilterTerms => displayedText.Yield();
     }
 }

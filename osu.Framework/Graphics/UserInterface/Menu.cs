@@ -240,12 +240,16 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case MenuState.Open:
                     AnimateOpen();
+
+                    // We may not be present at this point, so must run on the next frame.
                     if (!TopLevelMenu)
-                        // We may not be present at this point, so must run on the next frame.
+                    {
                         Schedule(delegate
                         {
                             if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
                         });
+                    }
+
                     break;
             }
 

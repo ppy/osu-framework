@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, monitor.Thread)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -239,8 +239,10 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-            for (int k = 0; k < WIDTH; k++)
-                fullBackground[k, i] = column[0, i];
+            {
+                for (int k = 0; k < WIDTH; k++)
+                    fullBackground[k, i] = column[0, i];
+            }
 
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
 
@@ -365,8 +367,10 @@ namespace osu.Framework.Graphics.Performance
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();
+            }
         }
 
         private void applyFrameCounts(FrameStatistics frame)

@@ -1,6 +1,6 @@
 using System.Threading;
 #addin "nuget:?package=CodeFileSanity&version=0.0.33"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.2.1"
+#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.2.3"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
 var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
@@ -19,6 +19,7 @@ var rootDirectory = new DirectoryPath("..");
 var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
+var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
 var desktopBuilds = rootDirectory.CombineWithFilePath("build/Desktop.proj");
 var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
@@ -131,6 +132,9 @@ Task("CodeFileSanity")
         });
     });
 
+Task("DotnetFormat")
+    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
+
 Task("PackFramework")
     .Does(() => {
         DotNetCorePack(frameworkProject.FullPath, new DotNetCorePackSettings{
@@ -212,6 +216,7 @@ Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
+    .IsDependentOn("DotnetFormat")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")

@@ -213,8 +213,10 @@ namespace osu.Framework.Input.Bindings
         private void releasePressedActions()
         {
             foreach (var action in pressedActions)
-            foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
-                kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            {
+                foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
+                    kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            }
 
             pressedActions.Clear();
         }

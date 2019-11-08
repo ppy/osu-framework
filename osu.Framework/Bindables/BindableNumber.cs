@@ -31,8 +31,10 @@ namespace osu.Framework.Bindables
                 typeof(T) != typeof(ulong) &&
                 typeof(T) != typeof(float) &&
                 typeof(T) != typeof(double))
+            {
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
+            }
 
             MinValue = DefaultMinValue;
             MaxValue = DefaultMaxValue;
@@ -194,8 +196,10 @@ namespace osu.Framework.Bindables
                 MaxValue = min(MaxValue, other.MaxValue);
 
                 if (MinValue.CompareTo(MaxValue) > 0)
+                {
                     throw new ArgumentOutOfRangeException(
                         $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
+                }
             }
 
             base.BindTo(them);

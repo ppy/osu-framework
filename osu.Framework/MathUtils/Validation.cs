@@ -3,6 +3,7 @@
 
 using osuTK;
 using osu.Framework.Graphics;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.MathUtils
 {
@@ -14,7 +15,7 @@ namespace osu.Framework.MathUtils
         /// <param name="value">The <see cref="float"/> to get the exponent from.</param>
         /// <remarks>Returns a <see cref="byte"/> so it's a smaller data type (and faster to pass around).</remarks>
         /// <returns>The exponent (bit 2 to 8) of the single-point <see cref="float"/>.</returns>
-        private static unsafe byte singleToExponentAsByte(float value) => (byte)(*(int*)&value >> 23);
+        private static byte singleToExponentAsByte(float value) => (byte)(Unsafe.As<float, int>(ref value) >> 23);
 
         /// <summary>
         /// Returns whether a value is not <see cref="float.NegativeInfinity"/>, <see cref="float.PositiveInfinity"/> or <see cref="float.NaN"/>.

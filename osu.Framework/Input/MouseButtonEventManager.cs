@@ -111,10 +111,9 @@ namespace osu.Framework.Input
                     if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
                         HandleMouseDragStart(state);
                 }
-                else
-                {
+
+                if (DragStarted)
                     HandleMouseDrag(state, lastPosition);
-                }
             }
         }
 
@@ -145,7 +144,7 @@ namespace osu.Framework.Input
             {
                 HandleMouseUp(state);
 
-                if (EnableClick && DraggedDrawable == null)
+                if (EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
                     if (!BlockNextClick)
                     {

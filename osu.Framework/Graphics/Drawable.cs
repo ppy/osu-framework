@@ -66,6 +66,8 @@ namespace osu.Framework.Graphics
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
         private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
+        internal bool IsLongLoading => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
+
         /// <summary>
         /// Disposes this drawable.
         /// </summary>
@@ -176,8 +178,10 @@ namespace osu.Framework.Graphics
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
+            {
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+            }
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -214,10 +218,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
             lock (loadLock)
             {
+                if (!isDirectAsyncContext && IsLongLoading)
+                    throw new InvalidOperationException("Tried to load long-loading in non-async context");
+
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
 
@@ -351,9 +359,11 @@ namespace osu.Framework.Graphics
             set
             {
                 if (IsPartOfComposite)
+                {
                     throw new InvalidOperationException(
                         $"May not change {nameof(Depth)} while inside a parent {nameof(CompositeDrawable)}." +
                         $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
+                }
 
                 depth = value;
             }
@@ -1469,8 +1479,10 @@ namespace osu.Framework.Graphics
             Drawable cursor = this;
 
             while ((cursor = cursor.Parent) != null)
+            {
                 if (cursor is T match)
                     return match;
+            }
 
             return default;
         }
@@ -2162,6 +2174,14 @@ namespace osu.Framework.Graphics
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
+        /// Whether clicks should be blocked when this drawable is in a dragged state.
+        /// </summary>
+        /// <remarks>
+        /// This is queried when a click is to be actuated.
+        /// </remarks>
+        public virtual bool DragBlocksClick => true;
+
+        /// <summary>
         /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -2218,9 +2238,13 @@ namespace osu.Framework.Graphics
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.StartTime < min)
                         min = t.StartTime;
+                }
+
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }

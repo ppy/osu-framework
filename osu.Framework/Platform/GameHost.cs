@@ -586,8 +586,10 @@ namespace osu.Framework.Platform
         private void resetInputHandlers()
         {
             if (AvailableInputHandlers != null)
+            {
                 foreach (var h in AvailableInputHandlers)
                     h.Dispose();
+            }
 
             AvailableInputHandlers = CreateAvailableInputHandlers();
 

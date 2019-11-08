@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -50,11 +51,17 @@ namespace osu.Framework.Tests.Localisation
             assertThreadCulture("ko-KR");
         }
 
-        private void setCulture(string name) => AddStep($"set culture = {name}", () => config.Set(FrameworkSetting.Locale, name));
+        private void setCulture(string name) => AddStep($"set culture = {name}", () =>
+        {
+            var locale = config.GetBindable<string>(FrameworkSetting.Locale);
+            // force ValueChanged to trigger by calling SetValue explicitly instead of setting .Value
+            // this is done since the existing value might have been the same and TestScene.SetUpTestForUnit() might have overridden the culture silently
+            locale.SetValue(locale.Value, name);
+        });
 
         private void assertCulture(string name)
         {
-            var cultures = new List<CultureInfo>();
+            var cultures = new ConcurrentBag<CultureInfo>();
 
             AddStep("query cultures", () =>
             {
@@ -64,7 +71,7 @@ namespace osu.Framework.Tests.Localisation
             });
 
             AddUntilStep("wait for query", () => cultures.Count == 3);
-            AddAssert($"culture is {name}", () => cultures.TrueForAll(c => c.Name == name));
+            AddAssert($"culture is {name}", () => cultures.All(c => c.Name == name));
         }
 
         private void assertThreadCulture(string name)

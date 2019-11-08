@@ -459,30 +459,61 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        protected virtual FFmpegFuncs CreateFuncs() => new FFmpegFuncs
+        protected virtual FFmpegFuncs CreateFuncs()
         {
-            av_frame_alloc = AGffmpeg.av_frame_alloc,
-            av_frame_free = AGffmpeg.av_frame_free,
-            av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
-            av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
-            av_malloc = AGffmpeg.av_malloc,
-            av_packet_alloc = AGffmpeg.av_packet_alloc,
-            av_packet_free = AGffmpeg.av_packet_free,
-            av_read_frame = AGffmpeg.av_read_frame,
-            av_seek_frame = AGffmpeg.av_seek_frame,
-            avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
-            avcodec_open2 = AGffmpeg.avcodec_open2,
-            avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
-            avcodec_send_packet = AGffmpeg.avcodec_send_packet,
-            avformat_alloc_context = AGffmpeg.avformat_alloc_context,
-            avformat_close_input = AGffmpeg.avformat_close_input,
-            avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
-            avformat_open_input = AGffmpeg.avformat_open_input,
-            avio_alloc_context = AGffmpeg.avio_alloc_context,
-            sws_freeContext = AGffmpeg.sws_freeContext,
-            sws_getContext = AGffmpeg.sws_getContext,
-            sws_scale = AGffmpeg.sws_scale
-        };
+            // other frameworks should handle native libraries themselves
+#if NETCOREAPP
+            AGffmpeg.GetOrLoadLibrary = name =>
+            {
+                int version = AGffmpeg.LibraryVersionMap[name];
+
+                string libraryName = null;
+
+                // "lib" prefix and extensions are resolved by .net core
+                switch (RuntimeInfo.OS)
+                {
+                    case RuntimeInfo.Platform.MacOsx:
+                        libraryName = $"{name}.{version}";
+                        break;
+
+                    case RuntimeInfo.Platform.Windows:
+                        libraryName = $"{name}-{version}";
+                        break;
+
+                    case RuntimeInfo.Platform.Linux:
+                        libraryName = name;
+                        break;
+                }
+
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+            };
+#endif
+
+            return new FFmpegFuncs
+            {
+                av_frame_alloc = AGffmpeg.av_frame_alloc,
+                av_frame_free = AGffmpeg.av_frame_free,
+                av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
+                av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
+                av_malloc = AGffmpeg.av_malloc,
+                av_packet_alloc = AGffmpeg.av_packet_alloc,
+                av_packet_free = AGffmpeg.av_packet_free,
+                av_read_frame = AGffmpeg.av_read_frame,
+                av_seek_frame = AGffmpeg.av_seek_frame,
+                avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
+                avcodec_open2 = AGffmpeg.avcodec_open2,
+                avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
+                avcodec_send_packet = AGffmpeg.avcodec_send_packet,
+                avformat_alloc_context = AGffmpeg.avformat_alloc_context,
+                avformat_close_input = AGffmpeg.avformat_close_input,
+                avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
+                avformat_open_input = AGffmpeg.avformat_open_input,
+                avio_alloc_context = AGffmpeg.avio_alloc_context,
+                sws_freeContext = AGffmpeg.sws_freeContext,
+                sws_getContext = AGffmpeg.sws_getContext,
+                sws_scale = AGffmpeg.sws_scale
+            };
+        }
 
         #region Disposal
 
