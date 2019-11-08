@@ -82,7 +82,7 @@ namespace osu.Framework.Threading
             Name = name;
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
-                Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
+                Monitor = new PerformanceMonitor(this, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);

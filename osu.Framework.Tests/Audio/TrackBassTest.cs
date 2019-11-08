@@ -7,7 +7,6 @@ using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 #pragma warning disable 4014
@@ -24,8 +23,6 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            Architecture.SetIncludePath();
-
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Init(0);
 

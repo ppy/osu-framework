@@ -7,7 +7,6 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
@@ -22,8 +21,6 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void SetUp()
         {
-            Architecture.SetIncludePath();
-
             thread = new AudioThread();
             store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
 
