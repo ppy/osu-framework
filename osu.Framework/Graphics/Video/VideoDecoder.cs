@@ -18,7 +18,6 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
-using System.Reflection;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -486,7 +485,7 @@ namespace osu.Framework.Graphics.Video
                         break;
                 }
 
-                return NativeLibrary.Load(libraryName, Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
             };
 #endif
 
