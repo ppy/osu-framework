@@ -51,6 +51,9 @@ namespace osu.Framework.Timing
             TimeSlept = sleepAndUpdateCurrent((int)Math.Max(0, excessFrameTime + accumulatedSleepError));
 
             accumulatedSleepError += excessFrameTime - TimeSlept;
+
+            // Never allow the sleep error to become too negative and induce too many catch-up frames
+            accumulatedSleepError = Math.Max(-1000 / 30.0, accumulatedSleepError);
         }
 
         private double sleepAndUpdateCurrent(int milliseconds)
