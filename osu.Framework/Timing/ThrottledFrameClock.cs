@@ -50,8 +50,6 @@ namespace osu.Framework.Timing
 
             TimeSlept = sleepAndUpdateCurrent((int)Math.Max(0, excessFrameTime + accumulatedSleepError));
 
-            // Sleep is not guaranteed to be an exact time; it only guaranteed to sleep AT LEAST the specified time.
-            // Accumulated erroris usd
             accumulatedSleepError += excessFrameTime - TimeSlept;
         }
 
