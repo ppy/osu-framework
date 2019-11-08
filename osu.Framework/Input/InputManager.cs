@@ -157,6 +157,14 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Get the <see cref="MouseButtonEventManager"/> responsible for a specified mouse button.
+        /// </summary>
+        /// <param name="button">The button find the manager for.</param>
+        /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
+        public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
+            mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
+
+        /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
         /// <param name="triggerSource">The source which triggered this event.</param>

@@ -2174,6 +2174,14 @@ namespace osu.Framework.Graphics
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
+        /// Whether clicks should be blocked when this drawable is in a dragged state.
+        /// </summary>
+        /// <remarks>
+        /// This is queried when a click is to be actuated.
+        /// </remarks>
+        public virtual bool DragBlocksClick => true;
+
+        /// <summary>
         /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
