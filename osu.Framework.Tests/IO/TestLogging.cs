@@ -52,10 +52,12 @@ namespace osu.Framework.Tests.IO
 
             try
             {
-                using var host = new HeadlessGameHost();
-                var game = new TestGame();
-                game.Schedule(() => throw new TestException());
-                host.Run(game);
+                using (var host = new HeadlessGameHost())
+                {
+                    var game = new TestGame();
+                    game.Schedule(() => throw new TestException());
+                    host.Run(game);
+                }
             }
             catch
             {
@@ -85,16 +87,18 @@ namespace osu.Framework.Tests.IO
         /// <param name="fireCount">How many exceptions to fire.</param>
         private void runWithIgnoreCount(int ignoreCount, int fireCount)
         {
-            using var host = new HeadlessGameHost();
-            host.ExceptionThrown += ex => ignoreCount-- > 0;
+            using (var host = new HeadlessGameHost())
+            {
+                host.ExceptionThrown += ex => ignoreCount-- > 0;
 
-            var game = new TestGame();
+                var game = new TestGame();
 
-            for (int i = 0; i < fireCount; i++)
-                game.Schedule(() => throw new TestException());
-            game.Schedule(() => game.Exit());
+                for (int i = 0; i < fireCount; i++)
+                    game.Schedule(() => throw new TestException());
+                game.Schedule(() => game.Exit());
 
-            host.Run(game);
+                host.Run(game);
+            }
         }
 
         [Test]
@@ -102,8 +106,8 @@ namespace osu.Framework.Tests.IO
         {
             Assert.Throws<TestException>(() =>
             {
-                using var host = new HeadlessGameHost();
-                host.Run(new CrashTestGame());
+                using (var host = new HeadlessGameHost())
+                    host.Run(new CrashTestGame());
             });
         }
 

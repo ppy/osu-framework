@@ -301,8 +301,8 @@ namespace osu.Framework.Platform
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
-            using var buffer = DrawRoots.Get(UsageType.Write);
-            buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
+            using (var buffer = DrawRoots.Get(UsageType.Write))
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
         protected virtual void DrawInitialize()
@@ -324,45 +324,46 @@ namespace osu.Framework.Platform
 
             while (ExecutionState > ExecutionState.Stopping)
             {
-                using var buffer = DrawRoots.Get(UsageType.Read);
-
-                if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
+                using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
-                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                        Thread.Sleep(1);
-                    continue;
-                }
+                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
+                    {
+                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                            Thread.Sleep(1);
+                        continue;
+                    }
 
-                using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
-                if (!bypassFrontToBackPass.Value)
-                {
-                    var depthValue = new DepthValue();
+                    if (!bypassFrontToBackPass.Value)
+                    {
+                        var depthValue = new DepthValue();
 
-                    GLWrapper.PushDepthInfo(DepthInfo.Default);
+                        GLWrapper.PushDepthInfo(DepthInfo.Default);
 
-                    // Front pass
-                    buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+                        // Front pass
+                        buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
+
+                        GLWrapper.PopDepthInfo();
+
+                        // The back pass doesn't write depth, but needs to depth test properly
+                        GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    }
+                    else
+                    {
+                        // Disable depth testing
+                        GLWrapper.PushDepthInfo(new DepthInfo());
+                    }
+
+                    // Back pass
+                    buffer.Object.Draw(null);
 
                     GLWrapper.PopDepthInfo();
 
-                    // The back pass doesn't write depth, but needs to depth test properly
-                    GLWrapper.PushDepthInfo(new DepthInfo(true, false));
+                    lastDrawFrameId = buffer.FrameId;
+                    break;
                 }
-                else
-                {
-                    // Disable depth testing
-                    GLWrapper.PushDepthInfo(new DepthInfo());
-                }
-
-                // Back pass
-                buffer.Object.Draw(null);
-
-                GLWrapper.PopDepthInfo();
-
-                lastDrawFrameId = buffer.FrameId;
-                break;
             }
 
             GLWrapper.FlushCurrentBatch();
@@ -386,26 +387,28 @@ namespace osu.Framework.Platform
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
-            using var completionEvent = new ManualResetEventSlim(false);
-            var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
-
-            DrawThread.Scheduler.Add(() =>
+            using (var completionEvent = new ManualResetEventSlim(false))
             {
-                if (GraphicsContext.CurrentContext == null)
-                    throw new GraphicsContextMissingException();
+                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
-                GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                DrawThread.Scheduler.Add(() =>
+                {
+                    if (GraphicsContext.CurrentContext == null)
+                        throw new GraphicsContextMissingException();
 
-                // ReSharper disable once AccessToDisposedClosure
-                completionEvent.Set();
-            });
+                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
-            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-            await Task.Run(completionEvent.Wait);
+                    // ReSharper disable once AccessToDisposedClosure
+                    completionEvent.Set();
+                });
 
-            image.Mutate(c => c.Flip(FlipMode.Vertical));
+                // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
+                await Task.Run(completionEvent.Wait);
 
-            return image;
+                image.Mutate(c => c.Flip(FlipMode.Vertical));
+
+                return image;
+            }
         }
 
         public ExecutionState ExecutionState { get; private set; }

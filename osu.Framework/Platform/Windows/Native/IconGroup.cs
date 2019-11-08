@@ -44,36 +44,38 @@ namespace osu.Framework.Platform.Windows.Native
             if (stream == null || stream.Length == 0)
                 throw new ArgumentException("Invalid icon stream.", nameof(stream));
 
-            using var ms = new MemoryStream();
-            stream.CopyTo(ms);
-            data = ms.GetBuffer();
-            ms.Position = 0;
-
-            var reader = new BinaryReader(ms);
-            iconDir.Reserved = reader.ReadUInt16();
-            if (iconDir.Reserved != 0)
-                throw new ArgumentException("Invalid icon stream.", nameof(stream));
-
-            iconDir.Type = reader.ReadUInt16();
-            if (iconDir.Type != 1)
-                throw new ArgumentException("Invalid icon stream.", nameof(stream));
-
-            iconDir.Count = reader.ReadUInt16();
-            iconDir.Entries = new IconDirEntry[iconDir.Count];
-
-            for (int i = 0; i < iconDir.Count; i++)
+            using (var ms = new MemoryStream())
             {
-                iconDir.Entries[i] = new IconDirEntry
+                stream.CopyTo(ms);
+                data = ms.GetBuffer();
+                ms.Position = 0;
+
+                var reader = new BinaryReader(ms);
+                iconDir.Reserved = reader.ReadUInt16();
+                if (iconDir.Reserved != 0)
+                    throw new ArgumentException("Invalid icon stream.", nameof(stream));
+
+                iconDir.Type = reader.ReadUInt16();
+                if (iconDir.Type != 1)
+                    throw new ArgumentException("Invalid icon stream.", nameof(stream));
+
+                iconDir.Count = reader.ReadUInt16();
+                iconDir.Entries = new IconDirEntry[iconDir.Count];
+
+                for (int i = 0; i < iconDir.Count; i++)
                 {
-                    Width = reader.ReadByte(),
-                    Height = reader.ReadByte(),
-                    ColourCount = reader.ReadByte(),
-                    Reserved = reader.ReadByte(),
-                    Planes = reader.ReadUInt16(),
-                    BitCount = reader.ReadUInt16(),
-                    BytesInResource = reader.ReadUInt32(),
-                    ImageOffset = reader.ReadUInt32()
-                };
+                    iconDir.Entries[i] = new IconDirEntry
+                    {
+                        Width = reader.ReadByte(),
+                        Height = reader.ReadByte(),
+                        ColourCount = reader.ReadByte(),
+                        Reserved = reader.ReadByte(),
+                        Planes = reader.ReadUInt16(),
+                        BitCount = reader.ReadUInt16(),
+                        BytesInResource = reader.ReadUInt32(),
+                        ImageOffset = reader.ReadUInt32()
+                    };
+                }
             }
         }
 

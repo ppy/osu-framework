@@ -28,9 +28,11 @@ namespace osu.Framework.Graphics.Textures
         {
             try
             {
-                using var stream = store.GetStream(name);
-                if (stream != null)
-                    return new TextureUpload(ImageFromStream<Rgba32>(stream));
+                using (var stream = store.GetStream(name))
+                {
+                    if (stream != null)
+                        return new TextureUpload(ImageFromStream<Rgba32>(stream));
+                }
             }
             catch
             {

@@ -58,28 +58,29 @@ namespace osu.Framework.Platform
                             return;
                     }
 
-                    using var client = await listener.AcceptTcpClientAsync();
-                    using var stream = client.GetStream();
-
-                    byte[] header = new byte[sizeof(int)];
-                    await stream.ReadAsync(header, 0, sizeof(int), token);
-
-                    int len = BitConverter.ToInt32(header, 0);
-                    byte[] data = new byte[len];
-                    await stream.ReadAsync(data, 0, len, token);
-
-                    var str = Encoding.UTF8.GetString(data);
-                    var json = JToken.Parse(str);
-                    var type = Type.GetType(json["Type"].Value<string>());
-                    Trace.Assert(type != null);
-                    var msg = new IpcMessage
+                    using (var client = await listener.AcceptTcpClientAsync())
                     {
-                        // ReSharper disable once PossibleNullReferenceException
-                        Type = type.AssemblyQualifiedName,
-                        Value = JsonConvert.DeserializeObject(
-                            json["Value"].ToString(), type),
-                    };
-                    MessageReceived?.Invoke(msg);
+                        using (var stream = client.GetStream())
+                        {
+                            byte[] header = new byte[sizeof(int)];
+                            await stream.ReadAsync(header, 0, sizeof(int), token);
+                            int len = BitConverter.ToInt32(header, 0);
+                            byte[] data = new byte[len];
+                            await stream.ReadAsync(data, 0, len, token);
+                            var str = Encoding.UTF8.GetString(data);
+                            var json = JToken.Parse(str);
+                            var type = Type.GetType(json["Type"].Value<string>());
+                            Trace.Assert(type != null);
+                            var msg = new IpcMessage
+                            {
+                                // ReSharper disable once PossibleNullReferenceException
+                                Type = type.AssemblyQualifiedName,
+                                Value = JsonConvert.DeserializeObject(
+                                    json["Value"].ToString(), type),
+                            };
+                            MessageReceived?.Invoke(msg);
+                        }
+                    }
                 }
             }
             catch (TaskCanceledException)
@@ -99,16 +100,20 @@ namespace osu.Framework.Platform
 
         public async Task SendMessageAsync(IpcMessage message)
         {
-            using var client = new TcpClient();
-            await client.ConnectAsync(IPAddress.Loopback, ipc_port);
+            using (var client = new TcpClient())
+            {
+                await client.ConnectAsync(IPAddress.Loopback, ipc_port);
 
-            using var stream = client.GetStream();
-            var str = JsonConvert.SerializeObject(message, Formatting.None);
-            byte[] data = Encoding.UTF8.GetBytes(str);
-            byte[] header = BitConverter.GetBytes(data.Length);
-            await stream.WriteAsync(header, 0, header.Length);
-            await stream.WriteAsync(data, 0, data.Length);
-            await stream.FlushAsync();
+                using (var stream = client.GetStream())
+                {
+                    var str = JsonConvert.SerializeObject(message, Formatting.None);
+                    byte[] data = Encoding.UTF8.GetBytes(str);
+                    byte[] header = BitConverter.GetBytes(data.Length);
+                    await stream.WriteAsync(header, 0, header.Length);
+                    await stream.WriteAsync(data, 0, data.Length);
+                    await stream.FlushAsync();
+                }
+            }
         }
 
         public void Dispose()
