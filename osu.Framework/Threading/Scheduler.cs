@@ -312,10 +312,17 @@ namespace osu.Framework.Threading
             RepeatInterval = repeatInterval;
         }
 
+        /// <summary>
+        /// Invokes the scheduled task.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to run a task that has been cancelled or already completed.</exception>
         public void RunTask()
         {
             if (Cancelled)
                 throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
+
+            if (Completed)
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}");
 
             Task();
             Completed = true;
