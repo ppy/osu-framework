@@ -641,7 +641,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == text)
                     return;
 
-                lastCommitText = value = value ?? string.Empty;
+                lastCommitText = value ??= string.Empty;
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 

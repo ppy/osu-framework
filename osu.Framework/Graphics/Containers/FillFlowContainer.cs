@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable c = children[i];
 
-                Axes toAxes(FillDirection direction)
+                static Axes toAxes(FillDirection direction)
                 {
                     switch (direction)
                     {

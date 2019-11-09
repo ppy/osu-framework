@@ -45,7 +45,7 @@ namespace osu.Framework.iOS
             int eventScanCode = (int)eventPtr[gsevent_keycode];
             int eventLastModifier = lastEventFlags;
 
-            bool isBlockKey(int keyCode)
+            static bool isBlockKey(int keyCode)
                 => keyCode == 79 || // Right
                    keyCode == 80 || // Left
                    keyCode == 81 || // Down

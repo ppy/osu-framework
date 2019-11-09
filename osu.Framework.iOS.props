@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
     <DefaultMtouchExtraArgs>--nolinkaway</DefaultMtouchExtraArgs>
     <DefaultMtouchGccFlags>-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate</DefaultMtouchGccFlags>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>

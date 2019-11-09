@@ -100,12 +100,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool Equals(FontUsage other) => string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight) && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-
-            return obj is FontUsage other && Equals(other);
-        }
+        public override bool Equals(object obj) => obj is FontUsage other && Equals(other);
 
         public override int GetHashCode()
         {

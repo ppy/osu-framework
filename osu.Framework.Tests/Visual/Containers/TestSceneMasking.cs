@@ -234,7 +234,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 case 4:
                 {
-                    Drawable createMaskingBox(float scale)
+                    static Drawable createMaskingBox(float scale)
                     {
                         float size = 200 / scale;
                         return new Container

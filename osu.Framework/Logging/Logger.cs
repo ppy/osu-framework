@@ -314,7 +314,7 @@ namespace osu.Framework.Logging
 
                 if (DebugUtils.IsDebugBuild)
                 {
-                    void consoleLog(string msg)
+                    static void consoleLog(string msg)
                     {
                         // fire to all debug listeners (like visual studio's output window)
                         System.Diagnostics.Debug.Print(msg);
