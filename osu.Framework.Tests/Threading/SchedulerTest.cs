@@ -294,7 +294,7 @@ namespace osu.Framework.Tests.Threading
             {
                 del.RunTask();
             }
-            catch (InvalidOperationException ioe) when (del.Completed && !del.Cancelled)
+            catch (InvalidOperationException) when (del.Completed && !del.Cancelled)
             {
             }
 
