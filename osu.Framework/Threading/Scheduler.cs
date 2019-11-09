@@ -135,6 +135,7 @@ namespace osu.Framework.Threading
                 for (int i = 0; i < perUpdateTasks.Count; i++)
                 {
                     ScheduledDelegate task = perUpdateTasks[i];
+                    task.Completed = false;
 
                     if (task.Cancelled)
                     {
@@ -292,7 +293,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether this task has finished running.
         /// </summary>
-        public bool Completed { get; private set; }
+        public bool Completed { get; internal set; }
 
         /// <summary>
         /// Whether this task has been cancelled.
@@ -334,6 +335,8 @@ namespace osu.Framework.Threading
 
         internal void SetNextExecution(double currentTime)
         {
+            Completed = false;
+
             ExecutionTime += RepeatInterval;
 
             if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
