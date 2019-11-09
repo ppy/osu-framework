@@ -274,5 +274,31 @@ namespace osu.Framework.Tests.Threading
                 scheduleTask();
             }, forceScheduled);
         }
+
+        [Test]
+        public void TestAttemptInvokeMultipleTimes()
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            ScheduledDelegate del;
+            scheduler.Add(del = new ScheduledDelegate(() => invocations++, 500));
+
+            clock.Seek(500);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            try
+            {
+                del.RunTask();
+            }
+            catch (InvalidOperationException ioe) when (del.Completed && !del.Cancelled)
+            {
+            }
+
+            Assert.AreEqual(1, invocations);
+        }
     }
 }
