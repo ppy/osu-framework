@@ -243,6 +243,21 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestPerUpdateTask()
+        {
+            int invocations = 0;
+
+            scheduler.AddDelayed(() => invocations++, 0, true);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(2, invocations);
+        }
+
+        [Test]
         public void TestScheduleFromInsideDelegate([Values(false, true)] bool forceScheduled)
         {
             const int max_reschedules = 3;
