@@ -26,6 +26,7 @@
     <PackageReference Include="Markdig" Version="0.18.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.7" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19554-01" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
