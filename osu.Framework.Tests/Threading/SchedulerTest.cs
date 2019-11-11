@@ -291,7 +291,7 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void TestAttemptInvokeMultipleTimes()
+        public void TestAttemptMultipleInvoke([Values(false, true)] bool afterSchedule)
         {
             int invocations = 0;
 
@@ -299,10 +299,52 @@ namespace osu.Framework.Tests.Threading
             scheduler.Add(del = new ScheduledDelegate(() => invocations++));
             Assert.AreEqual(0, invocations);
 
-            scheduler.Update();
+            if (afterSchedule)
+            {
+                scheduler.Update();
+                Assert.AreEqual(1, invocations);
+
+                Assert.Throws<InvalidOperationException>(del.RunTask);
+                Assert.AreEqual(1, invocations);
+            }
+            else
+            {
+                del.RunTask();
+                Assert.AreEqual(1, invocations);
+
+                scheduler.Update();
+                Assert.AreEqual(1, invocations);
+            }
+        }
+
+        [Test]
+        public void TestInvokeBeforeScheduleUpdate()
+        {
+            int invocations = 0;
+
+            ScheduledDelegate del;
+            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
+            Assert.AreEqual(0, invocations);
+
+            del.RunTask();
             Assert.AreEqual(1, invocations);
 
-            Assert.Throws<InvalidOperationException>(del.RunTask);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestRepeatAlreadyCompletedSchedule()
+        {
+            int invocations = 0;
+
+            var del = new ScheduledDelegate(() => invocations++);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+
+            Assert.Throws<InvalidOperationException>(() => scheduler.Add(del));
+
+            scheduler.Update();
             Assert.AreEqual(1, invocations);
         }
     }
