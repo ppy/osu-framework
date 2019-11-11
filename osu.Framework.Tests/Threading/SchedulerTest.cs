@@ -302,14 +302,7 @@ namespace osu.Framework.Tests.Threading
             scheduler.Update();
             Assert.AreEqual(1, invocations);
 
-            try
-            {
-                del.RunTask();
-            }
-            catch (InvalidOperationException) when (del.Completed && !del.Cancelled)
-            {
-            }
-
+            Assert.Throws<InvalidOperationException>(del.RunTask);
             Assert.AreEqual(1, invocations);
         }
     }
