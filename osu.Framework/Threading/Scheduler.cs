@@ -107,8 +107,6 @@ namespace osu.Framework.Threading
 
                             if (sd.Cancelled) continue;
 
-                            runQueue.Enqueue(sd);
-
                             if (sd.RepeatInterval >= 0)
                             {
                                 if (timedTasks.Count > 1000)
@@ -118,6 +116,9 @@ namespace osu.Framework.Threading
 
                                 tasksToSchedule.Add(sd);
                             }
+
+                            if (!sd.Completed)
+                                runQueue.Enqueue(sd);
                         }
                     }
 
@@ -152,7 +153,7 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled)
+                if (sd.Cancelled || sd.Completed)
                     continue;
 
                 //todo: error handling
