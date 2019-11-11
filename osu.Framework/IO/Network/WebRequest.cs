@@ -160,15 +160,21 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
+        private string responseString;
+
         public string ResponseString
         {
             get
             {
                 try
                 {
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
-                    return r.ReadToEnd();
+                    if (responseString == null)
+                    {
+                        ResponseStream.Seek(0, SeekOrigin.Begin);
+                        responseString = new StreamReader(ResponseStream, Encoding.UTF8).ReadToEnd();
+                    }
+
+                    return responseString;
                 }
                 catch
                 {
@@ -177,16 +183,22 @@ namespace osu.Framework.IO.Network
             }
         }
 
+        private byte[] responseData;
+
         public byte[] ResponseData
         {
             get
             {
                 try
                 {
-                    byte[] data = new byte[ResponseStream.Length];
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    ResponseStream.Read(data, 0, data.Length);
-                    return data;
+                    if (responseData == null)
+                    {
+                        responseData = new byte[ResponseStream.Length];
+                        ResponseStream.Seek(0, SeekOrigin.Begin);
+                        ResponseStream.Read(responseData, 0, responseData.Length);
+                    }
+
+                    return responseData;
                 }
                 catch
                 {
