@@ -19,9 +19,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             Assert.That(boundBindable.Value, Is.EqualTo(bindable.Value));
 
-            var dropdown = new BasicDropdown<string>();
-
-            dropdown.Current = bindable;
+            var dropdown = new BasicDropdown<string> { Current = bindable };
 
             AddStep("add dropdown", () => Add(dropdown));
             AddStep("expire", () => dropdown.Expire());
@@ -39,9 +37,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Bindable<string> bindable = new Bindable<string>("test");
             Bindable<string> bindable2 = new Bindable<string>("test2");
 
-            var dropdown = new BasicDropdown<string>();
-
-            dropdown.Current = bindable;
+            var dropdown = new BasicDropdown<string> { Current = bindable };
 
             AddStep("add dropdown", () => Add(dropdown));
             AddAssert("ensure current bound", () => dropdown.Current.Value == bindable.Value);
