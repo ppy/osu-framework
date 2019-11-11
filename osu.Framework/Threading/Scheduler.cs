@@ -224,8 +224,16 @@ namespace osu.Framework.Threading
             return false;
         }
 
+        /// <summary>
+        /// Add a task to be scheduled.
+        /// </summary>
+        /// <param name="task">The scheduled delegate to add.</param>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to add a scheduled delegate that has been already completed.</exception>
         public void Add(ScheduledDelegate task)
         {
+            if (task.Completed)
+                throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
+
             lock (queueLock)
             {
                 if (task.RepeatInterval == 0)
@@ -320,10 +328,10 @@ namespace osu.Framework.Threading
         public void RunTask()
         {
             if (Cancelled)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}.");
 
             if (Completed)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}");
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}.");
 
             Task();
             Completed = true;
