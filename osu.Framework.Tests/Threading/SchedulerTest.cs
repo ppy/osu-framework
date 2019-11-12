@@ -337,8 +337,7 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(1, invocations);
         }
 
-        [
-            Test]
+        [Test]
         public void TestRepeatAlreadyCompletedSchedule()
         {
             int invocations = 0;
