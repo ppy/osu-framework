@@ -135,9 +135,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            handleMouseInput(e);
             Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+
+            if (Math.Abs(posDiff.X) < Math.Abs(posDiff.Y))
+                return false;
+
+            handleMouseInput(e);
+            return true;
         }
 
         protected override bool OnDragEnd(DragEndEvent e)
