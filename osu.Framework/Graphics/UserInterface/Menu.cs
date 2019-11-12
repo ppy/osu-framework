@@ -399,8 +399,10 @@ namespace osu.Framework.Graphics.UserInterface
             // Check if there is a sub menu to display
             if (item.Item.Items?.Count == 0)
             {
-                // This item must have attempted to invoke an action - close all menus
-                closeAll();
+                // This item must have attempted to invoke an action - close all menus if item allows
+                if (item.CloseMenuOnClick)
+                    closeAll();
+
                 return;
             }
 
@@ -592,6 +594,11 @@ namespace osu.Framework.Graphics.UserInterface
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
             /// </summary>
             protected readonly Container Foreground;
+
+            /// <summary>
+            /// Whether to close all menus when this action <see cref="DrawableMenuItem"/> is clicked.
+            /// </summary>
+            public virtual bool CloseMenuOnClick => true;
 
             protected DrawableMenuItem(MenuItem item)
             {
