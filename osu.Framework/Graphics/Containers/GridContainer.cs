@@ -302,15 +302,15 @@ namespace osu.Framework.Graphics.Containers
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
 
             // Write the sizes of distributed cells. Ordering is important to maximize excess at every step
-            foreach (var value in distributedDimensions.OrderBy(d => d.dim.Range))
+            foreach (var (i, dim) in distributedDimensions.OrderBy(d => d.dim.Range))
             {
                 // Cells start off at their minimum size, and the total size should not exceed their maximum size
-                cellSizes[value.i] = Math.Min(value.dim.MaxSize, value.dim.MinSize + distributionSize);
+                cellSizes[i] = Math.Min(dim.MaxSize, dim.MinSize + distributionSize);
 
                 // If there's no excess, any further distributions are guaranteed to also have no excess, so this becomes a null-op
                 // If there is an excess, the excess should be re-distributed among all other n-1 distributed cells
                 if (--distributionCount > 0)
-                    distributionSize += Math.Max(0, distributionSize - value.dim.Range) / distributionCount;
+                    distributionSize += Math.Max(0, distributionSize - dim.Range) / distributionCount;
             }
 
             return cellSizes;

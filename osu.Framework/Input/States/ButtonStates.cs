@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +66,7 @@ namespace osu.Framework.Input.States
             pressedButtons.AddRange(other.pressedButtons);
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
+        public override string ToString() => $@"{GetType().ReadableName()}({string.Join(" ", pressedButtons)})";
 
         public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

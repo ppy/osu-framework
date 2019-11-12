@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestCustomComparer()
         {
-            int compare(int i1, int i2) => i2.CompareTo(i1);
+            static int compare(int i1, int i2) => i2.CompareTo(i1);
 
             var original = new SortedList<int>(compare);
             original.AddRange(new[] { 1, 2, 3, 4, 5, 6 });

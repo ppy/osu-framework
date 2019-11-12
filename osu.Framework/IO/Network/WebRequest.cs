@@ -237,7 +237,7 @@ namespace osu.Framework.IO.Network
                 url = @"https://" + url.Replace(@"http://", @"");
             }
 
-            using (abortToken = abortToken ?? new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
+            using (abortToken ??= new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {

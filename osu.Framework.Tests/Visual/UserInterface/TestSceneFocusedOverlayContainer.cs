@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public TestFocusedOverlayContainer(bool startHidden = true)
             {
-                this.StartHidden = startHidden;
+                StartHidden = startHidden;
 
                 Size = new Vector2(0.5f);
                 RelativeSizeAxes = Axes.Both;

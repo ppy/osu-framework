@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
             [CanBeNull]
             set
             {
-                value = value ?? Array.Empty<TableColumn>();
+                value ??= Array.Empty<TableColumn>();
 
                 if (columns == value)
                     return;
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Containers
             [CanBeNull]
             set
             {
-                value = value ?? new Dimension();
+                value ??= new Dimension();
 
                 if (rowSize == value)
                     return;

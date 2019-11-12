@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Polygons
         private static readonly Vector2 right_1 = new Vector2(1, 0);
         private static readonly Vector2 right_2 = new Vector2(2, 0);
 
-        private static object[] testCases =
+        private static readonly object[] test_cases =
         {
             // Parallel
             new object[] { new Line(origin, up_1), new Line(right_1, right_1 + up_1), false, 0f },
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Polygons
             new object[] { new Line(origin, up_1), new Line(down_1, origin), false, 0f },
         };
 
-        [TestCaseSource(nameof(testCases))]
+        [TestCaseSource(nameof(test_cases))]
         public void TestIntersections(Line l1, Line l2, bool expectedResult, float expectedT)
         {
             (bool success, float t) = l1.IntersectWith(l2);

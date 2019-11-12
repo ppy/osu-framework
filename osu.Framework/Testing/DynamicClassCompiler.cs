@@ -76,7 +76,7 @@ namespace osu.Framework.Testing
                 }
             });
 
-            string getSolutionPath(DirectoryInfo d)
+            static string getSolutionPath(DirectoryInfo d)
             {
                 if (d == null)
                     return null;
