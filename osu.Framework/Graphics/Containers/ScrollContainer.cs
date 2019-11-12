@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -264,7 +264,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging) return false;
 
             // Continue from where we currently are scrolled to.
             target = Current;
@@ -584,8 +584,6 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
-                if (e.Button != MouseButton.Left) return false;
-
                 dragOffset = Position[(int)ScrollDirection];
                 Dragged?.Invoke(dragOffset);
                 return true;
