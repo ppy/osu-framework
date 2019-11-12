@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     },
                     sliderBar = new BasicSliderBar<double>
                     {
-                        Size = new Vector2(200, 10),
+                        Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
                         KeyboardStep = 1,
@@ -97,9 +97,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
             sliderBar.Current.Value = 0;
         }
 
-        [TestCase(true)]
+        [Test]
+        public void TestVerticalDragHasNoEffect()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.0f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
+        }
+
+        [Test]
+        public void TestDragOutReleaseInHasNoEffect()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.0f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1.5f))); });
+            AddStep("Drag Left", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 1.5f))); });
+            AddStep("Drag Up", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
+        }
+
         [TestCase(false)]
-        public void SliderBar(bool disabled)
+        [TestCase(true)]
+        public void TestAdjustmentPrecision(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
@@ -129,17 +156,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(5, disabled);
         }
 
-        private void checkValue(int expected, bool disabled)
-        {
-            if (disabled)
-                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
-            else
-                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
-        }
-
-        [TestCase(true)]
         [TestCase(false)]
-        public void TransferValueOnCommit(bool disabled)
+        [TestCase(true)]
+        public void TestTransferValueOnCommit(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
@@ -159,6 +178,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(6, disabled);
             AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
             checkValue(-5, disabled);
+        }
+
+        private void checkValue(int expected, bool disabled)
+        {
+            if (disabled)
+                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
+            else
+                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
         }
 
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
