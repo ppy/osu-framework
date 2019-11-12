@@ -120,10 +120,22 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
+        private bool handleClick;
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            handleClick = true;
+            return base.OnMouseDown(e);
+        }
+
         protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(e);
-            commit();
+            if (handleClick)
+            {
+                handleMouseInput(e);
+                commit();
+            }
+
             return true;
         }
 
@@ -138,7 +150,10 @@ namespace osu.Framework.Graphics.UserInterface
             Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
 
             if (Math.Abs(posDiff.X) < Math.Abs(posDiff.Y))
+            {
+                handleClick = false;
                 return false;
+            }
 
             handleMouseInput(e);
             return true;
