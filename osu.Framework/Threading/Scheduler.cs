@@ -95,57 +95,8 @@ namespace osu.Framework.Threading
         {
             lock (queueLock)
             {
-                double currentTimeLocal = currentTime;
-
-                if (timedTasks.Count > 0)
-                {
-                    foreach (var sd in timedTasks)
-                    {
-                        if (sd.ExecutionTime <= currentTimeLocal)
-                        {
-                            tasksToRemove.Add(sd);
-
-                            if (sd.Cancelled) continue;
-
-                            if (sd.RepeatInterval >= 0)
-                            {
-                                if (timedTasks.Count > 1000)
-                                    throw new ArgumentException("Too many timed tasks are in the queue!");
-
-                                sd.SetNextExecution(currentTimeLocal);
-
-                                tasksToSchedule.Add(sd);
-                            }
-
-                            if (!sd.Completed)
-                                runQueue.Enqueue(sd);
-                        }
-                    }
-
-                    foreach (var t in tasksToRemove)
-                        timedTasks.Remove(t);
-
-                    tasksToRemove.Clear();
-
-                    foreach (var t in tasksToSchedule)
-                        timedTasks.AddInPlace(t);
-
-                    tasksToSchedule.Clear();
-                }
-
-                for (int i = 0; i < perUpdateTasks.Count; i++)
-                {
-                    ScheduledDelegate task = perUpdateTasks[i];
-                    task.Completed = false;
-
-                    if (task.Cancelled)
-                    {
-                        perUpdateTasks.RemoveAt(i--);
-                        continue;
-                    }
-
-                    runQueue.Enqueue(task);
-                }
+                queueTimedTasks();
+                queuePerUpdateTasks();
             }
 
             int countToRun = runQueue.Count;
@@ -164,6 +115,64 @@ namespace osu.Framework.Threading
             }
 
             return countRun;
+        }
+
+        private void queueTimedTasks()
+        {
+            double currentTimeLocal = currentTime;
+
+            if (timedTasks.Count > 0)
+            {
+                foreach (var sd in timedTasks)
+                {
+                    if (sd.ExecutionTime <= currentTimeLocal)
+                    {
+                        tasksToRemove.Add(sd);
+
+                        if (sd.Cancelled) continue;
+
+                        if (sd.RepeatInterval >= 0)
+                        {
+                            if (timedTasks.Count > 1000)
+                                throw new ArgumentException("Too many timed tasks are in the queue!");
+
+                            sd.SetNextExecution(currentTimeLocal);
+
+                            tasksToSchedule.Add(sd);
+                        }
+
+                        if (!sd.Completed)
+                            runQueue.Enqueue(sd);
+                    }
+                }
+
+                foreach (var t in tasksToRemove)
+                    timedTasks.Remove(t);
+
+                tasksToRemove.Clear();
+
+                foreach (var t in tasksToSchedule)
+                    timedTasks.AddInPlace(t);
+
+                tasksToSchedule.Clear();
+            }
+        }
+
+        private void queuePerUpdateTasks()
+        {
+            for (int i = 0; i < perUpdateTasks.Count; i++)
+            {
+                ScheduledDelegate task = perUpdateTasks[i];
+                task.Completed = false;
+
+                if (task.Cancelled)
+                {
+                    perUpdateTasks.RemoveAt(i--);
+                    continue;
+                }
+
+                runQueue.Enqueue(task);
+            }
         }
 
         private bool getNextTask(out ScheduledDelegate task)
