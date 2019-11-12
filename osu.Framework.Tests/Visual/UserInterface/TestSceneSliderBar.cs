@@ -110,6 +110,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(0, false);
         }
 
+        [Test]
+        public void TestDragOutReleaseInHasNoEffect()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.0f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1.5f))); });
+            AddStep("Drag Left", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 1.5f))); });
+            AddStep("Drag Up", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestAdjustmentPrecision(bool disabled)
