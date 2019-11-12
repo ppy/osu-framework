@@ -95,21 +95,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
-
-        private Bindable<string> currentBound;
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
         public Bindable<string> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private string displayedText => localisedText?.Value ?? text.Text.Original;
