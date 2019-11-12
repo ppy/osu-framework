@@ -291,39 +291,13 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void TestAttemptMultipleInvoke([Values(false, true)] bool afterSchedule)
+        public void TestInvokeBeforeSchedulerRun()
         {
             int invocations = 0;
 
-            ScheduledDelegate del;
-            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
-            Assert.AreEqual(0, invocations);
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
 
-            if (afterSchedule)
-            {
-                scheduler.Update();
-                Assert.AreEqual(1, invocations);
-
-                Assert.Throws<InvalidOperationException>(del.RunTask);
-                Assert.AreEqual(1, invocations);
-            }
-            else
-            {
-                del.RunTask();
-                Assert.AreEqual(1, invocations);
-
-                scheduler.Update();
-                Assert.AreEqual(1, invocations);
-            }
-        }
-
-        [Test]
-        public void TestInvokeBeforeScheduleUpdate()
-        {
-            int invocations = 0;
-
-            ScheduledDelegate del;
-            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
+            scheduler.Add(del);
             Assert.AreEqual(0, invocations);
 
             del.RunTask();
@@ -334,16 +308,44 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void TestRepeatAlreadyCompletedSchedule()
+        public void TestInvokeAfterSchedulerRun()
         {
             int invocations = 0;
 
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
+
+            scheduler.Add(del);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            Assert.Throws<InvalidOperationException>(del.RunTask);
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestInvokeBeforeScheduleUpdate()
+        {
+            int invocations = 0;
+            ScheduledDelegate del;
+            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
+            Assert.AreEqual(0, invocations);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [
+            Test]
+        public void TestRepeatAlreadyCompletedSchedule()
+        {
+            int invocations = 0;
             var del = new ScheduledDelegate(() => invocations++);
             del.RunTask();
             Assert.AreEqual(1, invocations);
-
             Assert.Throws<InvalidOperationException>(() => scheduler.Add(del));
-
             scheduler.Update();
             Assert.AreEqual(1, invocations);
         }
