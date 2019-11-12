@@ -10,31 +10,60 @@ namespace osu.Framework.Tests.Bindables
     public class BindableWithCurrentTest
     {
         [Test]
-        public void TestChangeCurrentDoesntUnbindOthers()
+        public void TestBindableWithCurrentReceivesBoundValue()
         {
-            Bindable<string> bindable = new Bindable<string>("test");
-            Bindable<string> boundBindable = bindable.GetBoundCopy();
+            const string expected_value = "test";
 
-            Assert.That(boundBindable.Value, Is.EqualTo(bindable.Value));
-
+            var bindable = new Bindable<string>(expected_value);
             var bindableWithCurrent = new BindableWithCurrent<string> { Current = bindable };
 
-            Assert.That(boundBindable.Value, Is.EqualTo(bindable.Value));
-            Assert.That(bindableWithCurrent.Value, Is.EqualTo(bindable.Value));
+            Assert.That(bindable.Value, Is.EqualTo(expected_value));
+            Assert.That(bindableWithCurrent.Value, Is.EqualTo(expected_value));
+        }
 
-            bindable.Value = "test2";
+        [Test]
+        public void TestBindableWithCurrentReceivesValueChanges()
+        {
+            const string expected_value = "test2";
 
-            Assert.That(bindable.Value, Is.EqualTo("test2"));
-            Assert.That(boundBindable.Value, Is.EqualTo(bindable.Value));
-            Assert.That(bindableWithCurrent.Value, Is.EqualTo(bindable.Value));
+            var bindable = new Bindable<string>();
+            var bindableWithCurrent = new BindableWithCurrent<string> { Current = bindable };
+
+            bindable.Value = expected_value;
+
+            Assert.That(bindableWithCurrent.Value, Is.EqualTo(expected_value));
+        }
+
+        [Test]
+        public void TestChangeCurrentDoesNotUnbindOthers()
+        {
+            const string expected_value = "test2";
+
+            var bindable1 = new Bindable<string>();
+            var bindable2 = bindable1.GetBoundCopy();
+            var bindableWithCurrent = new BindableWithCurrent<string> { Current = bindable1 };
 
             bindableWithCurrent.Current = new Bindable<string>();
+            bindable1.Value = expected_value;
 
-            bindable.Value = "test3";
+            Assert.That(bindable2.Value, Is.EqualTo(expected_value));
+            Assert.That(bindableWithCurrent.Value, Is.Not.EqualTo(expected_value));
+        }
 
-            Assert.That(bindable.Value, Is.EqualTo("test3"));
-            Assert.That(boundBindable.Value, Is.EqualTo(bindable.Value));
-            Assert.That(bindableWithCurrent.Value, Is.Not.EqualTo(bindable.Value));
+        [Test]
+        public void TestChangeCurrentBindsToNewBindable()
+        {
+            const string expected_value = "test3";
+
+            var bindable1 = new Bindable<string>();
+            var bindable2 = new Bindable<string>();
+            var bindableWithCurrent = new BindableWithCurrent<string> { Current = bindable1 };
+
+            bindableWithCurrent.Current = bindable2;
+            bindableWithCurrent.Value = "test3";
+
+            Assert.That(bindable1.Value, Is.Not.EqualTo(expected_value));
+            Assert.That(bindable2.Value, Is.EqualTo(expected_value));
         }
     }
 }
