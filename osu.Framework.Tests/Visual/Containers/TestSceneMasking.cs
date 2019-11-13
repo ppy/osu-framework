@@ -16,6 +16,8 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestSceneMasking : FrameworkTestScene
     {
         protected Container TestContainer;
+        protected int currentTest;
+        protected float cornerExponent = 2f;
 
         public TestSceneMasking()
         {
@@ -41,6 +43,12 @@ namespace osu.Framework.Tests.Visual.Containers
                 int test = i;
                 AddStep(testNames[i], delegate { loadTest(test); });
             }
+
+            AddSliderStep<float>("Toggle continuous corner", 2, 5, 2, exponent =>
+            {
+                cornerExponent = exponent;
+                loadTest(currentTest);
+            });
 
             loadTest(0);
             addCrosshair();
@@ -84,6 +92,7 @@ namespace osu.Framework.Tests.Visual.Containers
         private void loadTest(int testType)
         {
             TestContainer.Clear();
+            currentTest = testType;
 
             switch (testType)
             {
@@ -96,6 +105,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Origin = Anchor.Centre,
                         Masking = true,
                         CornerRadius = 100,
+                        CornerExponent = cornerExponent,
                         BorderColour = Color4.Aquamarine,
                         BorderThickness = 3,
                         EdgeEffect = new EdgeEffectParameters
@@ -132,6 +142,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 100,
+                                CornerExponent = cornerExponent,
                                 Size = new Vector2(400, 400),
                                 Alpha = 0.5f,
                                 Origin = Anchor.Centre,
@@ -162,6 +173,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 25,
+                                CornerExponent = cornerExponent,
                                 Shear = new Vector2(0.5f, 0),
                                 Size = new Vector2(150, 150),
                                 Scale = new Vector2(2.5f, 1.5f),
@@ -204,6 +216,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 25,
+                                CornerExponent = cornerExponent,
                                 Shear = new Vector2(0.5f, 0),
                                 Alpha = 0.5f,
                                 Origin = Anchor.Centre,
@@ -215,6 +228,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                     {
                                         Masking = true,
                                         CornerRadius = 25,
+                                        CornerExponent = cornerExponent,
                                         Shear = new Vector2(0.25f, 0.25f),
                                         Size = new Vector2(100, 200),
                                         Alpha = 0.5f,
@@ -234,13 +248,14 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 case 4:
                 {
-                    static Drawable createMaskingBox(float scale)
+                    static Drawable createMaskingBox(float scale, float cornerExponent)
                     {
                         float size = 200 / scale;
                         return new Container
                         {
                             Masking = true,
                             CornerRadius = 25 / scale,
+                            CornerExponent = cornerExponent,
                             BorderThickness = 12.5f / scale,
                             BorderColour = Color4.Red,
                             Size = new Vector2(size),
@@ -278,28 +293,28 @@ namespace osu.Framework.Tests.Visual.Containers
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(100) }
+                                Children = new[] { createMaskingBox(100, cornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(10) }
+                                Children = new[] { createMaskingBox(10, cornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(1) }
+                                Children = new[] { createMaskingBox(1, cornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(0.1f) }
+                                Children = new[] { createMaskingBox(0.1f, cornerExponent) }
                             },
                         }
                     });
@@ -320,6 +335,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 100f,
+                                CornerExponent = cornerExponent,
                                 BorderThickness = 50f,
                                 BorderColour = Color4.Red,
                                 RelativeSizeAxes = Axes.Both,
@@ -444,6 +460,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Origin = Anchor.Centre,
                         Masking = true,
                         CornerRadius = 100,
+                        CornerExponent = cornerExponent,
                         Alpha = 0.8f,
                         EdgeEffect = new EdgeEffectParameters
                         {
