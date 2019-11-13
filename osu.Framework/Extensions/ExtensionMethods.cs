@@ -188,6 +188,7 @@ namespace osu.Framework.Extensions
             s.Write(data, 0, data.Length);
         }
 
+        [Obsolete("SecureString itself is obsoleted.")] // can be removed 20200513
         public static string UnsecureRepresentation(this SecureString s)
         {
             IntPtr bstr = Marshal.SecureStringToBSTR(s);
