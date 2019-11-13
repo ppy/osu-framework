@@ -42,6 +42,11 @@ namespace osu.Framework.Graphics.Effects
         public float Radius;
 
         /// <summary>
+        /// Width of a solid outer border made from the edge effect's color.
+        /// </summary>
+        public float Inflation;
+
+        /// <summary>
         /// Whether the inside of the EdgeEffect rectangle should be empty.
         /// </summary>
         public bool Hollow;

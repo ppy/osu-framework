@@ -114,10 +114,10 @@ namespace osu.Framework.Graphics.Containers
 
             private void drawEdgeEffect()
             {
-                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
+                if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || (edgeEffect.Radius + edgeEffect.Inflation) <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
 
-                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
+                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Inflate(edgeEffect.Inflation).Offset(edgeEffect.Offset);
 
                 if (!screenSpaceMaskingQuad.HasValue)
                     screenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
@@ -125,11 +125,11 @@ namespace osu.Framework.Graphics.Containers
                 MaskingInfo edgeEffectMaskingInfo = maskingInfo.Value;
                 edgeEffectMaskingInfo.MaskingRect = effectRect;
                 edgeEffectMaskingInfo.ScreenSpaceAABB = screenSpaceMaskingQuad.Value.AABB;
-                edgeEffectMaskingInfo.CornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness;
+                edgeEffectMaskingInfo.CornerRadius = maskingInfo.Value.CornerRadius + edgeEffect.Radius + edgeEffect.Roundness + edgeEffect.Inflation;
                 edgeEffectMaskingInfo.BorderThickness = 0;
                 // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
                 // the edge effect along its radius using the same rounded-corners shader.
-                edgeEffectMaskingInfo.BlendRange = edgeEffect.Radius;
+                edgeEffectMaskingInfo.BlendRange = Math.Max(edgeEffect.Radius, maskingInfo.Value.BlendRange);
                 edgeEffectMaskingInfo.AlphaExponent = 2;
                 edgeEffectMaskingInfo.EdgeOffset = edgeEffect.Offset;
                 edgeEffectMaskingInfo.Hollow = edgeEffect.Hollow;

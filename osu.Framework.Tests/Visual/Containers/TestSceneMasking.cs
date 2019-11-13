@@ -101,8 +101,8 @@ namespace osu.Framework.Tests.Visual.Containers
                         EdgeEffect = new EdgeEffectParameters
                         {
                             Type = EdgeEffectType.Shadow,
-                            Radius = 100,
-                            Colour = new Color4(0, 50, 100, 200),
+                            Inflation = 10,
+                            Colour = new Color4(0, 100, 200, 255),
                         },
                     });
 
