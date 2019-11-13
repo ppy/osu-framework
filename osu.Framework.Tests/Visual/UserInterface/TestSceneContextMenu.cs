@@ -127,16 +127,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep($"move box to {anchor.ToString()}", () =>
             {
                 box.Anchor = anchor;
-
-                if (anchor.HasFlag(Anchor.x0))
-                    box.X -= 20;
-                else if (anchor.HasFlag(Anchor.x2))
-                    box.X += 20;
-
-                if (anchor.HasFlag(Anchor.y0))
-                    box.Y -= 20;
-                else if (anchor.HasFlag(Anchor.y2))
-                    box.Y += 20;
+                box.X -= 5;
+                box.Y -= 5;
             });
 
             assertMenuOnScreen(true);
@@ -164,12 +156,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 if (anchor.HasFlag(Anchor.x0))
                     box.X -= contextMenuContainer.CurrentMenu.DrawWidth + 10;
                 else if (anchor.HasFlag(Anchor.x2))
-                    box.X += contextMenuContainer.CurrentMenu.DrawWidth / 2 + 10;
+                    box.X += 10;
 
                 if (anchor.HasFlag(Anchor.y0))
-                    box.Y -= contextMenuContainer.CurrentMenu.DrawHeight / 2 + 10;
+                    box.Y -= contextMenuContainer.CurrentMenu.DrawHeight + 10;
                 else if (anchor.HasFlag(Anchor.y2))
-                    box.Y += contextMenuContainer.CurrentMenu.DrawHeight / 2 + 10;
+                    box.Y += 10;
             });
 
             assertMenuOnScreen(false);
