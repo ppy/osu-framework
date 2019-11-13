@@ -167,8 +167,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertMenuOnScreen(false);
         }
 
-        // TODO: Fix test
-        [Ignore("needs to be fixed")]
         [Test]
         public void TestReturnNullInNestedDrawableOpensParentMenu()
         {
@@ -182,8 +180,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertMenuItems(2);
         }
 
-        // TODO: Fix test
-        [Ignore("needs to be fixed")]
         [Test]
         public void TestReturnEmptyInNestedDrawableBlocksMenuOpening()
         {
