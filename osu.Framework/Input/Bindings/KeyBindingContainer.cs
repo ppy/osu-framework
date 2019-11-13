@@ -157,7 +157,7 @@ namespace osu.Framework.Input.Bindings
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
 
             // we want to always handle bindings with more keys before bindings with less.
-            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Count()).ToList();
+            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();
 
             if (!repeat)
                 pressedBindings.AddRange(newlyPressed);
