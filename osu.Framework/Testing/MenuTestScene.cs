@@ -21,7 +21,8 @@ namespace osu.Framework.Testing
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(Menu),
-            typeof(BasicMenu)
+            typeof(BasicMenu),
+            typeof(MenuTestScene)
         };
 
         [SetUp]
