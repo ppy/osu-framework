@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Video
             state = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
-            availableTextures = new ConcurrentQueue<Texture>();
+            availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
         }
 
@@ -577,6 +577,9 @@ namespace osu.Framework.Graphics.Video
 
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();
+
+            while (availableTextures.TryDequeue(out var t))
+                t.Dispose();
 
             handle.Dispose();
         }

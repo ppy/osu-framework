@@ -1,13 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Allocation;
-using osu.Framework.MathUtils;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
+using osu.Framework.Allocation;
+using osu.Framework.MathUtils;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -26,7 +27,10 @@ namespace osu.Framework.Statistics
         private const int max_pending_frames = 10;
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-        internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
+
+        internal readonly ObjectPool<FrameStatistics> FramesPool =
+            new DefaultObjectPoolProvider { MaximumRetained = max_pending_frames }
+                .Create(new DefaultPooledObjectPolicy<FrameStatistics>());
 
         internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
@@ -48,7 +52,7 @@ namespace osu.Framework.Statistics
         {
             Clock = thread.Clock;
             Thread = thread;
-            currentFrame = FramesHeap.ReserveObject();
+            currentFrame = FramesPool.Get();
 
             foreach (var c in counters)
                 ActiveCounters[(int)c] = true;
@@ -124,7 +128,7 @@ namespace osu.Framework.Statistics
             if (PendingFrames.Count < max_pending_frames - 1)
             {
                 PendingFrames.Enqueue(currentFrame);
-                currentFrame = FramesHeap.ReserveObject();
+                currentFrame = FramesPool.Get();
             }
 
             currentFrame.Clear();
