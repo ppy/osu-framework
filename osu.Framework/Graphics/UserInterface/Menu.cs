@@ -525,7 +525,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Items?.Contains(source) ?? false)
+            if (triggeringItem?.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
                 parentMenu?.closeFromChild(triggeringItem);
