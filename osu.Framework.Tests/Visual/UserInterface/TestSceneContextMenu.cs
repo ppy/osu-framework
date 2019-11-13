@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         private void assertMenuState(bool opened)
-            => AddAssert($"menu {(opened ? "opened" : "closed")}", () => (contextMenuContainer.CurrentMenu == null) == !opened);
+            => AddAssert($"menu {(opened ? "opened" : "closed")}", () => (contextMenuContainer.CurrentMenu?.State == MenuState.Open) == opened);
 
         private void assertMenuInCentre(Func<Drawable> getBoxFunc)
             => AddAssert("menu in centre of box", () => Precision.AlmostEquals(contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad.TopLeft, getBoxFunc().ScreenSpaceDrawQuad.Centre));
@@ -277,25 +277,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public Menu CurrentMenu { get; private set; }
 
-            protected override Menu CreateMenu()
-            {
-                return CurrentMenu = base.CreateMenu().With(d =>
-                {
-                    d.StateChanged += state =>
-                    {
-                        switch (state)
-                        {
-                            case MenuState.Open:
-                                CurrentMenu = d;
-                                break;
-
-                            case MenuState.Closed:
-                                CurrentMenu = null;
-                                break;
-                        }
-                    };
-                });
-            }
+            protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
         }
     }
 }
