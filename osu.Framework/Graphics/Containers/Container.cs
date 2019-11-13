@@ -310,6 +310,18 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Determines how gentle the curve of the corner straightens. A value of 2 results in
+        /// circular arcs, a value of 2.5 (default) results in something closer to apple's "continuous curve".
+        /// Recommended range: 2--5. Values outside of that range may result in unpredictable behavior.
+        /// Only has an effect when <see cref="Masking"/> is true and <see cref="CornerRadius"/> is non-zero.
+        /// </summary>
+        public new float CornerExponent
+        {
+            get => base.CornerExponent;
+            set => base.CornerExponent = value;
+        }
+
+        /// <summary>
         /// Determines how thick of a border to draw around the inside of the masked region.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// The border only is drawn on top of children using a sprite shader.
