@@ -160,38 +160,32 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
-        public string ResponseString
+        public string GetResponseString()
         {
-            get
+            try
             {
-                try
-                {
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
-                    return r.ReadToEnd();
-                }
-                catch
-                {
-                    return null;
-                }
+                ResponseStream.Seek(0, SeekOrigin.Begin);
+                StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
+                return r.ReadToEnd();
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        public byte[] ResponseData
+        public byte[] GetResponseData()
         {
-            get
+            try
             {
-                try
-                {
-                    byte[] data = new byte[ResponseStream.Length];
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    ResponseStream.Read(data, 0, data.Length);
-                    return data;
-                }
-                catch
-                {
-                    return null;
-                }
+                byte[] data = new byte[ResponseStream.Length];
+                ResponseStream.Seek(0, SeekOrigin.Begin);
+                ResponseStream.Read(data, 0, data.Length);
+                return data;
+            }
+            catch
+            {
+                return null;
             }
         }
 
