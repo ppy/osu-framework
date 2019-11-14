@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Video
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost)
         {
-            decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
+            decoder = gameHost.Video.CreateVideoDecoder(stream, Scheduler);
             decoder.Looping = Loop;
             State.BindTo(decoder.State);
             decoder.StartDecoding();
