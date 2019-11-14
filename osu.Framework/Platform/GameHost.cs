@@ -529,6 +529,8 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = GetStorage(Name));
+                Dependencies.CacheAs(Audio);
+                Dependencies.CacheAs(Video);
 
                 SetupForRun();
 
