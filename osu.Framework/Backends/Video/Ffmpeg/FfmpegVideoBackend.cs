@@ -3,7 +3,6 @@
 
 using System.IO;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Backends.Video.Ffmpeg
@@ -13,6 +12,6 @@ namespace osu.Framework.Backends.Video.Ffmpeg
     /// </summary>
     public class FfmpegVideoBackend : VideoBackend
     {
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => (Host as GameHost)?.CreateVideoDecoder(stream, scheduler);
+        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
     }
 }
