@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
+using osu.Framework.Backends.Audio;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -16,6 +17,7 @@ namespace osu.Framework.Tests.Audio
     {
         private AudioThread thread;
         private NamespacedResourceStore<byte[]> store;
+        private IAudio audioBackend;
         private AudioManager manager;
 
         [SetUp]
@@ -23,8 +25,9 @@ namespace osu.Framework.Tests.Audio
         {
             thread = new AudioThread();
             store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            audioBackend = new HeadlessAudioBackend();
 
-            manager = new AudioManager(thread, store, store);
+            manager = new AudioManager(audioBackend, thread, store, store);
 
             thread.Start();
         }
