@@ -10,6 +10,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Backends.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
@@ -89,15 +90,19 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
+        private readonly IAudio audioBackend;
+
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
         /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        public AudioManager(IAudio audioBackend, AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             Thread = audioThread;
+
+            this.audioBackend = audioBackend;
 
             Thread.RegisterManager(this);
 
@@ -105,7 +110,7 @@ namespace osu.Framework.Audio
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
-                var store = new TrackStore(trackStore);
+                var store = new TrackStore(trackStore, audioBackend);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
                 return store;
@@ -113,7 +118,7 @@ namespace osu.Framework.Audio
 
             globalSampleStore = new Lazy<SampleStore>(() =>
             {
-                var store = new SampleStore(sampleStore);
+                var store = new SampleStore(sampleStore, audioBackend);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
@@ -171,7 +176,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalTrackStore.Value;
 
-            TrackStore tm = new TrackStore(store);
+            TrackStore tm = new TrackStore(store, audioBackend);
             globalTrackStore.Value.AddItem(tm);
             return tm;
         }
@@ -185,7 +190,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalSampleStore.Value;
 
-            SampleStore sm = new SampleStore(store);
+            SampleStore sm = new SampleStore(store, audioBackend);
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }

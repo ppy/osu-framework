@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using osu.Framework.Backends.Audio;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
@@ -12,10 +13,12 @@ namespace osu.Framework.Audio.Track
     internal class TrackStore : AudioCollectionManager<AdjustableAudioComponent>, ITrackStore
     {
         private readonly IResourceStore<byte[]> store;
+        private readonly IAudio audioBackend;
 
-        internal TrackStore(IResourceStore<byte[]> store)
+        internal TrackStore(IResourceStore<byte[]> store, IAudio audioBackend)
         {
             this.store = store;
+            this.audioBackend = audioBackend;
 
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
@@ -40,7 +43,7 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            Track track = new TrackBass(dataStream);
+            Track track = audioBackend.CreateTrack(dataStream);
             AddItem(track);
             return track;
         }

@@ -10,20 +10,23 @@ using osu.Framework.Statistics;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Track;
+using osu.Framework.Backends.Audio;
 
 namespace osu.Framework.Audio.Sample
 {
     internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
+        private readonly IAudio audioBackend;
 
         private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        internal SampleStore(IResourceStore<byte[]> store)
+        internal SampleStore(IResourceStore<byte[]> store, IAudio audioBackend)
         {
             this.store = store;
+            this.audioBackend = audioBackend;
 
             (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
@@ -44,12 +47,12 @@ namespace osu.Framework.Audio.Sample
                 if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
                     byte[] data = store.Get(name);
-                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    sample = sampleCache[name] = data == null ? null : audioBackend.CreateSample(data, PendingActions, PlaybackConcurrency);
                 }
 
                 if (sample != null)
                 {
-                    channel = new SampleChannelBass(sample, AddItem);
+                    channel = audioBackend.CreateSampleChannel(sample, AddItem);
                 }
 
                 return channel;
