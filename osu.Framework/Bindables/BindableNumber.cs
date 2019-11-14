@@ -215,7 +215,7 @@ namespace osu.Framework.Bindables
             typeof(T) != typeof(double); // Will be **constant** after JIT.
 
         public void Set<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
@@ -244,7 +244,7 @@ namespace osu.Framework.Bindables
         }
 
         public void Add<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
