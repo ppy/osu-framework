@@ -340,12 +340,10 @@ namespace osu.Framework.Graphics.Primitives
 
         internal float DistanceExponentiated(Vector2 localSpacePos, float exponent)
         {
-            Vector2 dist = new Vector2(
-                Math.Max(0.0f, Math.Max(localSpacePos.X - Right, Left - localSpacePos.X)),
-                Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y))
-            );
+            float distX = Math.Max(0.0f, Math.Max(localSpacePos.X - Right, Left - localSpacePos.X));
+            float distY = Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y));
 
-            return (float)Math.Pow(dist.X, exponent) + (float)Math.Pow(dist.Y, exponent);
+            return (float)Math.Pow(distX, exponent) + (float)Math.Pow(distY, exponent);
         }
 
         // This could be optimized further in the future, but made for a simple implementation right now.

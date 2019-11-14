@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 AddStep(testNames[i], delegate { loadTest(test); });
             }
 
-            AddSliderStep<float>("Corner exponent", 2, 5, 2, exponent =>
+            AddSliderStep<float>("Corner exponent", 0.01f, 10, 2, exponent =>
             {
                 TestCornerExponent = exponent;
                 loadTest(CurrentTest);
