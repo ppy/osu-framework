@@ -24,8 +24,8 @@ namespace osu.Framework.Backends.Audio
         /// </summary>
         internal class HeadlessTrack : Track
         {
-            public override double CurrentTime { get; }
-            public override bool IsRunning { get; }
+            public override double CurrentTime { get; } = 0;
+            public override bool IsRunning { get; } = false;
             public override bool Seek(double seek) => true;
         }
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Backends.Audio
             {
             }
 
-            public override bool Playing { get; }
+            public override bool Playing { get; } = false;
         }
     }
 }
