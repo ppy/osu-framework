@@ -887,6 +887,8 @@ namespace osu.Framework.Platform
             Config?.Dispose();
             DebugConfig?.Dispose();
 
+            Video?.Dispose();
+            Audio?.Dispose();
             Window?.Dispose();
 
             toolkit?.Dispose();
