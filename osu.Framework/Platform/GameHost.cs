@@ -18,6 +18,10 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osuTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Backends.Audio;
+using osu.Framework.Backends.Audio.Bass;
+using osu.Framework.Backends.Video;
+using osu.Framework.Backends.Video.Ffmpeg;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
@@ -43,8 +47,34 @@ using SixLabors.Memory;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameHost : IIpcHost, IDisposable
+    public abstract class GameHost : IGameHost, IIpcHost
     {
+        #region IBackendProvider
+
+        public IAudio Audio { get; private set; }
+        public IVideo Video { get; private set; }
+
+        #endregion
+
+        #region Backend Creation
+
+        protected virtual IAudio CreateAudio() => new BassAudioBackend();
+        protected virtual IVideo CreateVideo() => new FfmpegVideoBackend();
+
+        protected virtual void CreateBackends()
+        {
+            Audio = CreateAudio();
+            Video = CreateVideo();
+        }
+
+        protected virtual void InitialiseBackends()
+        {
+            Audio.Initialise(this);
+            Video.Initialise(this);
+        }
+
+        #endregion
+
         public IWindow Window { get; protected set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
@@ -481,6 +511,9 @@ namespace osu.Framework.Platform
 
                 RegisterThread(InputThread = new InputThread());
                 RegisterThread(AudioThread = new AudioThread());
+
+                CreateBackends();
+                InitialiseBackends();
 
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
