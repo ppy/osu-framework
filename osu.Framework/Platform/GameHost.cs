@@ -61,13 +61,13 @@ namespace osu.Framework.Platform
         protected virtual IAudio CreateAudio() => new BassAudioBackend();
         protected virtual IVideo CreateVideo() => new FfmpegVideoBackend();
 
-        protected virtual void CreateBackends()
+        private void createBackends()
         {
             Audio = CreateAudio();
             Video = CreateVideo();
         }
 
-        protected virtual void InitialiseBackends()
+        private void initialiseBackends()
         {
             Audio.Initialise(this);
             Video.Initialise(this);
@@ -512,8 +512,8 @@ namespace osu.Framework.Platform
                 RegisterThread(InputThread = new InputThread());
                 RegisterThread(AudioThread = new AudioThread());
 
-                CreateBackends();
-                InitialiseBackends();
+                createBackends();
+                initialiseBackends();
 
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
