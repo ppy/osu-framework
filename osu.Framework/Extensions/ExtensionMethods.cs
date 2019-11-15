@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using osuTK;
+
+#nullable enable
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -31,9 +34,10 @@ namespace osu.Framework.Extensions
         /// <param name="match">The predicate that needs to be matched.</param>
         /// <param name="startIndex">The index to start conditional search.</param>
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
+        [return: MaybeNull]
         public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
         {
-            if (!list.IsValidIndex(startIndex)) return default;
+            if (!list.IsValidIndex(startIndex)) return default!;
 
             int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
 
@@ -75,7 +79,10 @@ namespace osu.Framework.Extensions
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
         /// <returns></returns>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
+        [return: MaybeNull]
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
+            where TKey : notnull
+            => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
         public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
 
@@ -97,7 +104,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="rectangular">The rectangular array.</param>
         /// <returns>The jagged array.</returns>
-        public static T[][] ToJagged<T>(this T[,] rectangular)
+        public static T[][]? ToJagged<T>(this T[,]? rectangular)
         {
             if (rectangular == null)
                 return null;
@@ -122,7 +129,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="jagged">The jagged array.</param>
         /// <returns>The rectangular array.</returns>
-        public static T[,] ToRectangular<T>(this T[][] jagged)
+        public static T[,]? ToRectangular<T>(this T[][]? jagged)
         {
             if (jagged == null)
                 return null;
@@ -154,7 +161,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="array">The array to invert.</param>
         /// <returns>The inverted array.</returns>
-        public static T[,] Invert<T>(this T[,] array)
+        public static T[,]? Invert<T>(this T[,]? array)
         {
             if (array == null)
                 return null;
@@ -178,7 +185,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="array">The array to invert.</param>
         /// <returns>The inverted array. This is always a square array.</returns>
-        public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
+        public static T[][]? Invert<T>(this T[][]? array) => array.ToRectangular().Invert().ToJagged();
 
         public static string ToResolutionString(this Size size) => size.Width.ToString() + 'x' + size.Height;
 
@@ -212,13 +219,14 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types.Where(t => t != null);
+                return e.Types?.WhereNotNull() ?? Enumerable.Empty<Type>();
             }
         }
 
         public static string GetDescription(this object value)
-            => value.GetType().GetField(value.ToString())
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            => value.GetType().GetField(value.ToString()!)
+                    ?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString()
+                    ?? string.Empty;
 
         public static void ThrowIfFaulted(this Task task)
         {
@@ -282,6 +290,16 @@ namespace osu.Framework.Extensions
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) return DisplayIndex.Default;
                 if (device == display) return (DisplayIndex)i;
+            }
+        }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+            where T : class
+        {
+            foreach (var element in source)
+            {
+                if (element != null)
+                    yield return element;
             }
         }
     }

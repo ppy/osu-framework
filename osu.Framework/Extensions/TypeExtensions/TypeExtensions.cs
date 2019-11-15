@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+#nullable enable
+
 namespace osu.Framework.Extensions.TypeExtensions
 {
     public static class TypeExtensions
@@ -42,12 +44,8 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// <returns></returns>
         public static IEnumerable<Type> EnumerateBaseTypes(this Type t)
         {
-            while (t != null && t != typeof(object))
-            {
-                yield return t;
-
-                t = t.BaseType;
-            }
+            for (Type? temp = t; temp != null && temp != typeof(object); temp = temp.BaseType)
+                yield return temp;
         }
 
         public static string ReadableName(this Type t) => readableName(t, new HashSet<Type>());

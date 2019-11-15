@@ -2,8 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+
+#nullable enable
 
 namespace osu.Framework.Extensions.ExceptionExtensions
 {
@@ -14,6 +17,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
         /// This preserves the stack trace of <paramref name="exception"/>, and will not include the point of rethrow.
         /// </summary>
         /// <param name="exception">The captured exception.</param>
+        [DoesNotReturn]
         public static void Rethrow(this Exception exception)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
@@ -25,6 +29,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
         /// This preserves the stack trace of the exception that is rethrown, and will not include the point of rethrow.
         /// </summary>
         /// <param name="aggregateException">The captured exception.</param>
+        [DoesNotReturn]
         public static void RethrowAsSingular(this AggregateException aggregateException) => aggregateException.AsSingular().Rethrow();
 
         /// <summary>
@@ -41,7 +46,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
             while (aggregateException.InnerExceptions.Count == 1)
             {
                 if (!(aggregateException.InnerException is AggregateException innerAggregate))
-                    return aggregateException.InnerException;
+                    return aggregateException.InnerException!;
 
                 aggregateException = innerAggregate;
             }
@@ -59,7 +64,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
             var inner = exception.InnerException;
             while (inner is TargetInvocationException)
                 inner = inner.InnerException;
-            return inner;
+            return inner!;
         }
     }
 }

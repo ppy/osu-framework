@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
+#nullable enable
 
 namespace osu.Framework.Extensions.IEnumerableExtensions
 {
@@ -39,9 +42,10 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <param name="collection">The collection to iterate on.</param>
         /// <param name="pivot">The pivot value.</param>
         /// <returns>The item in <paramref name="collection"/> appearing after <paramref name="pivot"/>, or null if no such item exists.</returns>
+        [return: MaybeNull]
         public static T GetNext<T>(this IEnumerable<T> collection, T pivot)
         {
-            return collection.SkipWhile(i => !EqualityComparer<T>.Default.Equals(i, pivot)).Skip(1).FirstOrDefault();
+            return collection.SkipWhile(i => !EqualityComparer<T>.Default.Equals(i, pivot)).Skip(1).FirstOrDefault()!;
         }
 
         /// <summary>
@@ -51,9 +55,10 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <param name="collection">The collection to iterate on.</param>
         /// <param name="pivot">The pivot value.</param>
         /// <returns>The item in <paramref name="collection"/> appearing before <paramref name="pivot"/>, or null if no such item exists.</returns>
+        [return: MaybeNull]
         public static T GetPrevious<T>(this IEnumerable<T> collection, T pivot)
         {
-            return collection.TakeWhile(i => !EqualityComparer<T>.Default.Equals(i, pivot)).LastOrDefault();
+            return collection.TakeWhile(i => !EqualityComparer<T>.Default.Equals(i, pivot)).LastOrDefault()!;
         }
 
         /// <summary>

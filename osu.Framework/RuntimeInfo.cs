@@ -4,6 +4,8 @@
 using System;
 using System.Runtime.InteropServices;
 
+#nullable enable
+
 namespace osu.Framework
 {
     public static class RuntimeInfo
@@ -12,7 +14,7 @@ namespace osu.Framework
         /// Returns the absolute path of osu.Framework.dll.
         /// </summary>
         public static string GetFrameworkAssemblyPath() =>
-            System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
+            typeof(RuntimeInfo).Assembly.Location;
 
         [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
         public static bool Is32Bit => IntPtr.Size == 4;
