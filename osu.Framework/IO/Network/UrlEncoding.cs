@@ -1,13 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+
+#nullable enable
 
 namespace osu.Framework.IO.Network
 {
     public static class UrlEncoding
     {
-        public static string UrlEncode(string str)
+        [return: NotNullIfNotNull("str")]
+        public static string? UrlEncode(string? str)
         {
             if (str == null)
             {
@@ -17,7 +21,8 @@ namespace osu.Framework.IO.Network
             return UrlEncode(str, Encoding.UTF8, false);
         }
 
-        public static string UrlEncodeParam(string str)
+        [return: NotNullIfNotNull("str")]
+        public static string? UrlEncodeParam(string? str)
         {
             if (str == null)
             {
@@ -27,7 +32,8 @@ namespace osu.Framework.IO.Network
             return UrlEncode(str, Encoding.UTF8, true);
         }
 
-        public static string UrlEncode(string str, Encoding e, bool paramEncode)
+        [return: NotNullIfNotNull("str")]
+        public static string? UrlEncode(string? str, Encoding e, bool paramEncode)
         {
             if (str == null)
             {
@@ -37,7 +43,8 @@ namespace osu.Framework.IO.Network
             return Encoding.ASCII.GetString(UrlEncodeToBytes(str, e, paramEncode));
         }
 
-        public static byte[] UrlEncodeToBytes(string str, Encoding e, bool paramEncode)
+        [return: NotNullIfNotNull("str")]
+        public static byte[]? UrlEncodeToBytes(string? str, Encoding e, bool paramEncode)
         {
             if (str == null)
             {

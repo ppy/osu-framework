@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using osuTK;
 
+#nullable enable
+
 namespace osu.Framework.IO
 {
     internal class AsyncBufferStream : Stream
@@ -33,7 +35,7 @@ namespace osu.Framework.IO
 
         private readonly Stream underlyingStream;
 
-        private CancellationTokenSource cancellationToken;
+        private CancellationTokenSource? cancellationToken;
 
         /// <summary>
         /// A stream that buffers the underlying stream to contiguous memory, reading until the whole file is eventually memory-backed.
@@ -41,7 +43,7 @@ namespace osu.Framework.IO
         /// <param name="stream">The underlying stream to read from.</param>
         /// <param name="blocksToReadAhead">The amount of blocks to read ahead of the read position.</param>
         /// <param name="shared">Another AsyncBufferStream which is backing the same underlying stream. Allows shared usage of memory-backing.</param>
-        public AsyncBufferStream(Stream stream, int blocksToReadAhead, AsyncBufferStream shared = null)
+        public AsyncBufferStream(Stream stream, int blocksToReadAhead, AsyncBufferStream? shared = null)
         {
             underlyingStream = stream ?? throw new ArgumentNullException(nameof(stream));
             this.blocksToReadAhead = blocksToReadAhead;
@@ -79,7 +81,8 @@ namespace osu.Framework.IO
 
             while (!isLoaded && !isClosed)
             {
-                cancellationToken.Token.ThrowIfCancellationRequested();
+                // probably throwing NRE because Cancel is directly followed by null out
+                cancellationToken!.Token.ThrowIfCancellationRequested();
 
                 int curr = nextBlockToLoad;
 

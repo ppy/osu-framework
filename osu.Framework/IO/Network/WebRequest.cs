@@ -14,6 +14,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
+#nullable enable
+
 namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
@@ -29,27 +31,27 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
         /// </summary>
-        public event Action Started;
+        public event Action? Started;
 
         /// <summary>
         /// Invoked when the <see cref="WebRequest"/> has finished successfully.
         /// </summary>
-        public event Action Finished;
+        public event Action? Finished;
 
         /// <summary>
         /// Invoked when the <see cref="WebRequest"/> has failed.
         /// </summary>
-        public event Action<Exception> Failed;
+        public event Action<Exception>? Failed;
 
         /// <summary>
         /// Invoked when the download progress has changed.
         /// </summary>
-        public event Action<long, long> DownloadProgress;
+        public event Action<long, long>? DownloadProgress;
 
         /// <summary>
         /// Invoked when the upload progress has changed.
         /// </summary>
-        public event Action<long, long> UploadProgress;
+        public event Action<long, long>? UploadProgress;
 
         /// <summary>
         /// Whether the <see cref="WebRequest"/> was aborted due to an exception or a user abort request.
@@ -136,10 +138,12 @@ namespace osu.Framework.IO.Network
             logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
-        public WebRequest(string url = null, params object[] args)
+        public WebRequest(string url, params object[] args)
         {
             if (!string.IsNullOrEmpty(url))
                 Url = args.Length == 0 ? url : string.Format(url, args);
+            else
+                throw new ArgumentNullException(nameof(url));
         }
 
         ~WebRequest()
@@ -150,17 +154,17 @@ namespace osu.Framework.IO.Network
         private int responseBytesRead;
 
         private const int buffer_size = 32768;
-        private byte[] buffer;
+        private byte[]? buffer;
 
-        private MemoryStream rawContent;
+        private MemoryStream? rawContent;
 
-        public string ContentType;
+        public string? ContentType;
 
         protected virtual Stream CreateOutputStream() => new MemoryStream();
 
-        public Stream ResponseStream;
+        public Stream ResponseStream = null!;
 
-        public string ResponseString
+        public string? ResponseString
         {
             get
             {
@@ -177,7 +181,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public byte[] ResponseData
+        public byte[]? ResponseData
         {
             get
             {
@@ -195,13 +199,13 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public HttpResponseHeaders ResponseHeaders => response.Headers;
+        public HttpResponseHeaders? ResponseHeaders => response?.Headers;
 
-        private CancellationTokenSource abortToken;
-        private CancellationTokenSource timeoutToken;
+        private CancellationTokenSource? abortToken;
+        private CancellationTokenSource? timeoutToken;
 
-        private LengthTrackingStream requestStream;
-        private HttpResponseMessage response;
+        private LengthTrackingStream? requestStream;
+        private HttpResponseMessage? response = null!;
 
         private long contentLength => requestStream?.Length ?? 0;
 
@@ -383,7 +387,7 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-            using (var responseStream = await response.Content.ReadAsStreamAsync())
+            using (var responseStream = await response!.Content.ReadAsStreamAsync())
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -414,7 +418,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        protected virtual void Complete(Exception e = null)
+        protected virtual void Complete(Exception? e = null)
         {
             if (Aborted)
                 return;
@@ -426,7 +430,7 @@ namespace osu.Framework.IO.Network
 
             if (e != null)
                 wasTimeout = we?.Status == WebExceptionStatus.Timeout;
-            else if (!response.IsSuccessStatusCode)
+            else if (!response!.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
 
@@ -619,7 +623,7 @@ namespace osu.Framework.IO.Network
         private void reportForwardProgress()
         {
             lastAction = DateTime.Now.Ticks;
-            timeoutToken.CancelAfter(Timeout);
+            timeoutToken!.CancelAfter(Timeout);
         }
 
         #endregion

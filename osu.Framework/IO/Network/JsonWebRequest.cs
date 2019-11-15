@@ -3,6 +3,8 @@
 
 using Newtonsoft.Json;
 
+#nullable enable
+
 namespace osu.Framework.IO.Network
 {
     /// <summary>
@@ -13,13 +15,13 @@ namespace osu.Framework.IO.Network
     {
         protected override string Accept => "application/json";
 
-        public JsonWebRequest(string url = null, params object[] args)
+        public JsonWebRequest(string url, params object[] args)
             : base(url, args)
         {
         }
 
-        protected override void ProcessResponse() => ResponseObject = JsonConvert.DeserializeObject<T>(ResponseString);
+        protected override void ProcessResponse() => ResponseObject = JsonConvert.DeserializeObject<T>(ResponseString!);
 
-        public T ResponseObject { get; private set; }
+        public T ResponseObject { get; private set; } = default!;
     }
 }

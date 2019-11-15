@@ -3,9 +3,12 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+
+#nullable enable
 
 namespace osu.Framework.IO.File
 {
@@ -113,7 +116,7 @@ namespace osu.Framework.IO.File
             [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern bool MoveFileEx(
                 string lpExistingFileName,
-                string lpNewFileName,
+                string? lpNewFileName,
                 MoveFileFlags dwFlags);
         }
 
@@ -192,7 +195,8 @@ namespace osu.Framework.IO.File
                 Directory.Delete(CLEANUP_DIRECTORY, true);
         }
 
-        public static string AsciiOnly(string input)
+        [return: NotNullIfNotNull("input")]
+        public static string? AsciiOnly(string? input)
         {
             if (input == null) return null;
 
@@ -274,7 +278,7 @@ namespace osu.Framework.IO.File
             Directory.Delete(oldDirectory, true);
         }
 
-        public static string GetExtension(string filename) => Path.GetExtension(filename)?.Trim('.').ToLower();
+        public static string? GetExtension(string filename) => Path.GetExtension(filename)?.Trim('.').ToLower();
 
         public static int GetMaxPathLength(string directory)
         {

@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using osu.Framework.IO.File;
 
+#nullable enable
+
 namespace osu.Framework.IO.Network
 {
     /// <summary>
@@ -18,7 +20,7 @@ namespace osu.Framework.IO.Network
 
         protected override Stream CreateOutputStream()
         {
-            string path = Path.GetDirectoryName(Filename);
+            string? path = Path.GetDirectoryName(Filename);
             if (!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 
             return new FileStream(Filename, FileMode.Create, FileAccess.Write, FileShare.Write, 32768);
@@ -31,7 +33,7 @@ namespace osu.Framework.IO.Network
             Filename = filename;
         }
 
-        protected override void Complete(Exception e = null)
+        protected override void Complete(Exception? e = null)
         {
             ResponseStream?.Close();
             if (e != null) FileSafety.FileDelete(Filename);
