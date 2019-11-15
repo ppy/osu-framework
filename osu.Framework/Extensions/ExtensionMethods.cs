@@ -225,8 +225,7 @@ namespace osu.Framework.Extensions
 
         public static string GetDescription(this object value)
             => value.GetType().GetField(value.ToString()!)
-                    ?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString()
-                    ?? string.Empty;
+                    ?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString() ?? string.Empty;
 
         public static void ThrowIfFaulted(this Task task)
         {

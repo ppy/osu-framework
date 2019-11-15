@@ -178,7 +178,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private bool getNextTask([MaybeNullWhen(false)]out ScheduledDelegate task)
+        private bool getNextTask([MaybeNullWhen(false)] out ScheduledDelegate task)
         {
             lock (queueLock)
             {
