@@ -8,6 +8,8 @@ using osu.Framework.Timing;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 
+#nullable enable
+
 namespace osu.Framework.Threading
 {
     public class GameThread
@@ -15,7 +17,7 @@ namespace osu.Framework.Threading
         internal const double DEFAULT_ACTIVE_HZ = 1000;
         internal const double DEFAULT_INACTIVE_HZ = 60;
 
-        internal PerformanceMonitor Monitor { get; }
+        internal PerformanceMonitor? Monitor { get; }
         public ThrottledFrameClock Clock { get; }
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
@@ -24,9 +26,9 @@ namespace osu.Framework.Threading
         /// Attach a handler to delegate responsibility for per-frame exceptions.
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
-        public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+        public EventHandler<UnhandledExceptionEventArgs>? UnhandledException;
 
-        protected Action OnNewFrame;
+        protected Action? OnNewFrame;
 
         /// <summary>
         /// Whether the game is active (in the foreground).
@@ -63,13 +65,13 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        public Action OnThreadStart;
+        public Action? OnThreadStart;
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
         public readonly string Name;
 
-        internal GameThread(Action onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
+        internal GameThread(Action? onNewFrame = null, string name = "unknown", bool monitorPerformance = true)
         {
             OnNewFrame = onNewFrame;
 

@@ -3,10 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Extensions;
 using osu.Framework.Timing;
+
+#nullable enable
 
 namespace osu.Framework.Threading
 {
@@ -42,7 +45,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread)
+        public Scheduler(Thread? mainThread)
         {
             SetCurrentThread(mainThread);
             clock = new StopwatchClock(true);
@@ -51,7 +54,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread, IClock clock)
+        public Scheduler(Thread? mainThread, IClock clock)
         {
             SetCurrentThread(mainThread);
             this.clock = clock;
@@ -102,7 +105,7 @@ namespace osu.Framework.Threading
             int countToRun = runQueue.Count;
             int countRun = 0;
 
-            while (getNextTask(out ScheduledDelegate sd))
+            while (getNextTask(out ScheduledDelegate? sd))
             {
                 if (sd.Cancelled || sd.Completed)
                     continue;
@@ -175,7 +178,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private bool getNextTask(out ScheduledDelegate task)
+        private bool getNextTask([MaybeNullWhen(false)]out ScheduledDelegate task)
         {
             lock (queueLock)
             {
@@ -186,7 +189,7 @@ namespace osu.Framework.Threading
                 }
             }
 
-            task = null;
+            task = null!;
             return false;
         }
 
@@ -203,7 +206,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        internal void SetCurrentThread(Thread thread)
+        internal void SetCurrentThread(Thread? thread)
         {
             mainThreadId = thread?.ManagedThreadId ?? -1;
         }
