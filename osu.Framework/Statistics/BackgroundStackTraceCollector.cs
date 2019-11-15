@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
 
+#nullable enable
+
 namespace osu.Framework.Statistics
 {
     /// <summary>
@@ -18,13 +20,13 @@ namespace osu.Framework.Statistics
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
-        private IList<ClrStackFrame> backgroundMonitorStackTrace;
+        private IList<ClrStackFrame>? backgroundMonitorStackTrace;
 
-        private readonly StopwatchClock clock;
+        private readonly StopwatchClock clock = null!;
 
-        private readonly Lazy<Logger> logger;
+        private readonly Lazy<Logger> logger = null!;
 
-        private readonly Thread targetThread;
+        private readonly Thread targetThread = null!;
 
         internal double LastConsumptionTime;
 
@@ -70,7 +72,7 @@ namespace osu.Framework.Statistics
             }
         }
 
-        private CancellationTokenSource cancellation;
+        private CancellationTokenSource? cancellation;
 
         private void startThread()
         {
@@ -150,7 +152,7 @@ namespace osu.Framework.Statistics
             logger.Value.Add(logMessage.ToString());
         }
 
-        private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
+        private static readonly Lazy<ClrInfo?> clr_info = new Lazy<ClrInfo?>(delegate
         {
             try
             {
@@ -162,7 +164,7 @@ namespace osu.Framework.Statistics
             }
         });
 
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) =>
+        private static IList<ClrStackFrame>? getStackTrace(Thread targetThread) =>
             clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
 
         #region IDisposable Support

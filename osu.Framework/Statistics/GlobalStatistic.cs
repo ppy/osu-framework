@@ -1,6 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
 namespace osu.Framework.Statistics
 {
     public class GlobalStatistic<T> : IGlobalStatistic
@@ -39,8 +43,9 @@ namespace osu.Framework.Statistics
             }
         }
 
-        public T Value { get; set; }
+        [MaybeNull]
+        public T Value { get; set; } = default!;
 
-        public virtual void Clear() => Value = default;
+        public virtual void Clear() => Value = default!;
     }
 }

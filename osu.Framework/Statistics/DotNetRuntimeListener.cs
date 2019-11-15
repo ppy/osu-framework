@@ -3,6 +3,8 @@
 
 using System.Diagnostics.Tracing;
 
+#nullable enable
+
 namespace osu.Framework.Statistics
 {
     // https://medium.com/criteo-labs/c-in-process-clr-event-listeners-with-net-core-2-2-ef4075c14e87
@@ -24,16 +26,16 @@ namespace osu.Framework.Statistics
             {
                 case EventType.GCStart_V1:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
-                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
+                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload![1]}").Value++;
                     break;
 
                 case EventType.GCHeapStats_V1:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
-                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i];
+                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload![i]!;
 
-                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload[9];
-                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload[10];
+                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload![9]!;
+                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload![10]!;
                     break;
             }
         }
