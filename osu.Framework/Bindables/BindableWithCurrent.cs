@@ -4,6 +4,8 @@
 using System;
 using osu.Framework.Graphics.UserInterface;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -12,7 +14,7 @@ namespace osu.Framework.Bindables
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
     public class BindableWithCurrent<T> : Bindable<T>, IHasCurrentValue<T>
     {
-        private Bindable<T> currentBound;
+        private Bindable<T>? currentBound;
 
         public Bindable<T> Current
         {

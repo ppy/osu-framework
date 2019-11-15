@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -14,9 +16,9 @@ namespace osu.Framework.Bindables
     /// <typeparam name="T"></typeparam>
     public class LeasedBindable<T> : Bindable<T>
     {
-        private readonly Bindable<T> source;
+        private readonly Bindable<T>? source;
 
-        private readonly T valueBeforeLease;
+        private readonly T valueBeforeLease = default!;
         private readonly bool disabledBeforeLease;
         private readonly bool revertValueOnReturn;
 

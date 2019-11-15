@@ -11,6 +11,8 @@ using osu.Framework.Caching;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     /// <summary>
@@ -22,19 +24,19 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event Action<ValueChangedEvent<T>> ValueChanged;
+        public event Action<ValueChangedEvent<T>>? ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
-        public event Action<bool> DisabledChanged;
+        public event Action<bool>? DisabledChanged;
 
         private T value;
 
         /// <summary>
         /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
         /// </summary>
-        public T Default { get; set; }
+        public T Default { get; set; } = default!;
 
         private bool disabled;
 
@@ -55,7 +57,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             if (!bypassChecks)
                 throwIfLeased();
@@ -86,7 +88,7 @@ namespace osu.Framework.Bindables
                 // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
 
                 if (Disabled)
-                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
+                    throw new InvalidOperationException($"Can not set value to \"{(object?)value ?? "null"}\" as bindable is disabled.");
 
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
@@ -94,7 +96,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T>? source = null)
         {
             this.value = value;
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
@@ -109,7 +111,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         [UsedImplicitly]
         private Bindable()
-            : this(default)
+            : this(default!)
         {
         }
 
@@ -117,12 +119,12 @@ namespace osu.Framework.Bindables
         /// Creates a new bindable instance.
         /// </summary>
         /// <param name="value">The initial value.</param>
-        public Bindable(T value = default)
+        public Bindable(T value = default!)
         {
             this.value = value;
         }
 
-        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
+        protected LockedWeakList<Bindable<T>>? Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -298,7 +300,7 @@ namespace osu.Framework.Bindables
             Bindings.Clear();
         }
 
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
+        protected void Unbind(Bindable<T> binding) => Bindings?.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
@@ -306,8 +308,9 @@ namespace osu.Framework.Bindables
         /// </summary>
         public virtual void UnbindAll()
         {
-            if (isLeased)
-                leasedBindable.Return();
+            // use ?. for nullable analysis
+            // if (isLeased)
+            leasedBindable?.Return();
 
             UnbindEvents();
             UnbindBindings();
@@ -322,7 +325,7 @@ namespace osu.Framework.Bindables
             tThem.removeWeakReference(weakReference);
         }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public override string ToString() => value?.ToString() ?? string.Empty;
 
@@ -344,7 +347,7 @@ namespace osu.Framework.Bindables
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         public Bindable<T> GetBoundCopy()
         {
-            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
+            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value)!;
             copy.BindTo(this);
             return copy;
         }
@@ -363,7 +366,7 @@ namespace osu.Framework.Bindables
             Value = serializer.Deserialize<T>(reader);
         }
 
-        private LeasedBindable<T> leasedBindable;
+        private LeasedBindable<T>? leasedBindable;
 
         private bool isLeased => leasedBindable != null;
 

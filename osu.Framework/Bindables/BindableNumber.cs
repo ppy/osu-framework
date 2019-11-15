@@ -4,16 +4,18 @@
 using System;
 using System.Globalization;
 
+#nullable enable
+
 namespace osu.Framework.Bindables
 {
     public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
-        public event Action<T> PrecisionChanged;
+        public event Action<T>? PrecisionChanged;
 
-        public event Action<T> MinValueChanged;
+        public event Action<T>? MinValueChanged;
 
-        public event Action<T> MaxValueChanged;
+        public event Action<T>? MaxValueChanged;
 
         private protected BindableNumber(T value = default)
             : base(value)
