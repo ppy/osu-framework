@@ -14,11 +14,11 @@ namespace osu.Framework.Backends
         /// <summary>
         /// Provides the concrete implementation of the audio backend.
         /// </summary>
-        IAudio Audio { get; }
+        IAudioBackend Audio { get; }
 
         /// <summary>
         /// Provides the concrete implementation of the video backend.
         /// </summary>
-        IVideo Video { get; }
+        IVideoBackend Video { get; }
     }
 }

@@ -51,15 +51,15 @@ namespace osu.Framework.Platform
     {
         #region IBackendProvider
 
-        public IAudio Audio { get; private set; }
-        public IVideo Video { get; private set; }
+        public IAudioBackend Audio { get; private set; }
+        public IVideoBackend Video { get; private set; }
 
         #endregion
 
         #region Backend Creation
 
-        protected virtual IAudio CreateAudio() => new BassAudioBackend();
-        protected virtual IVideo CreateVideo() => new FfmpegVideoBackend();
+        protected virtual IAudioBackend CreateAudio() => new BassAudioBackend();
+        protected virtual IVideoBackend CreateVideo() => new FfmpegVideoBackend();
 
         private void createBackends()
         {

@@ -13,7 +13,7 @@ namespace osu.Framework.Backends.Audio
     /// <summary>
     /// Provides audio tracks and samples.
     /// </summary>
-    public interface IAudio : IBackend
+    public interface IAudioBackend : IBackend
     {
         Track CreateTrack(Stream data, bool quick = false);
 
