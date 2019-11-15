@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using Android.App;
 using Android.Content;
+using osu.Framework.Android.Backends;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Input;
-using osu.Framework.Backends.Video;
+using osu.Framework.Backends;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
-using osu.Framework.iOS.Backends.Video;
 using osu.Framework.Platform;
 using Uri = Android.Net.Uri;
 
@@ -22,7 +22,8 @@ namespace osu.Framework.Android
     {
         private readonly AndroidGameView gameView;
 
-        public AndroidGameHost(AndroidGameView gameView)
+        public AndroidGameHost(AndroidGameView gameView, IBackendProvider backends = null)
+            : base(backends: backends ?? new AndroidBackendProvider())
         {
             this.gameView = gameView;
         }
@@ -57,14 +58,14 @@ namespace osu.Framework.Android
             var activity = (Activity)gameView.Context;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            {
                 if (intent.ResolveActivity(activity.PackageManager) != null)
                     activity.StartActivity(intent);
+            }
         }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
-
-        protected override IVideo CreateVideo() => new AndroidVideoBackend();
 
         protected override void PerformExit(bool immediately)
         {

@@ -2,15 +2,27 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.IO;
+using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Backends.Video;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Android.Graphics.Video;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
-namespace osu.Framework.iOS.Backends.Video
+namespace osu.Framework.Android.Backends.Video
 {
-    public class AndroidVideoBackend : VideoBackend
+    /// <summary>
+    /// An <see cref="IVideoBackend"/> that creates video decoders using FFmpeg for Android.
+    /// </summary>
+    public class AndroidVideoBackend : IVideoBackend
     {
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new AndroidVideoDecoder(stream, scheduler);
+        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new AndroidVideoDecoder(stream, scheduler);
+
+        public void Dispose()
+        {
+        }
+
+        public void Initialise(IGameHost host)
+        {
+        }
     }
 }

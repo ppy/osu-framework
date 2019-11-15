@@ -5,12 +5,24 @@ using System.IO;
 using osu.Framework.Backends.Video;
 using osu.Framework.Graphics.Video;
 using osu.Framework.iOS.Graphics.Video;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.iOS.Backends.Video
 {
-    public class IOSVideoBackend : VideoBackend
+    /// <summary>
+    /// An <see cref="IVideoBackend"/> that creates video decoders using FFmpeg for iOS.
+    /// </summary>
+    public class IOSVideoBackend : IVideoBackend
     {
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
+        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
+
+        public void Dispose()
+        {
+        }
+
+        public void Initialise(IGameHost host)
+        {
+        }
     }
 }

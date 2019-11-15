@@ -17,13 +17,13 @@ namespace osu.Framework.Audio.Sample
     internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
-        private readonly IAudio audioBackend;
+        private readonly IAudioBackend audioBackend;
 
         private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        internal SampleStore(IResourceStore<byte[]> store, IAudio audioBackend)
+        internal SampleStore(IResourceStore<byte[]> store, IAudioBackend audioBackend)
         {
             this.store = store;
             this.audioBackend = audioBackend;

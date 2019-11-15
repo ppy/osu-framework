@@ -13,9 +13,9 @@ namespace osu.Framework.Audio.Track
     internal class TrackStore : AudioCollectionManager<AdjustableAudioComponent>, ITrackStore
     {
         private readonly IResourceStore<byte[]> store;
-        private readonly IAudio audioBackend;
+        private readonly IAudioBackend audioBackend;
 
-        internal TrackStore(IResourceStore<byte[]> store, IAudio audioBackend)
+        internal TrackStore(IResourceStore<byte[]> store, IAudioBackend audioBackend)
         {
             this.store = store;
             this.audioBackend = audioBackend;

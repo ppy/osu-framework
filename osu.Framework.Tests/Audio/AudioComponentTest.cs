@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Audio
     {
         private AudioThread thread;
         private NamespacedResourceStore<byte[]> store;
-        private IAudio audioBackend;
+        private IAudioBackend audioBackend;
         private AudioManager manager;
 
         [SetUp]

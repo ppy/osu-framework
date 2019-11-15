@@ -90,7 +90,7 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
-        private readonly IAudio audioBackend;
+        private readonly IAudioBackend audioBackend;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -99,7 +99,7 @@ namespace osu.Framework.Audio
         /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(IAudio audioBackend, AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        public AudioManager(IAudioBackend audioBackend, AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             Thread = audioThread;
 
