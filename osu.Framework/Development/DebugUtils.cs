@@ -9,11 +9,13 @@ using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Configuration;
 
+#nullable enable
+
 namespace osu.Framework.Development
 {
     public static class DebugUtils
     {
-        internal static Assembly HostAssembly { get; set; }
+        internal static Assembly? HostAssembly { get; set; }
 
         public static bool IsNUnitRunning => is_nunit_running.Value;
 
@@ -59,6 +61,6 @@ namespace osu.Framework.Development
         /// </summary>
         /// <returns>The entry assembly (usually obtained via the entry assembly's <see cref="Assembly.Location"/>.</returns>
         public static string GetEntryPath() =>
-            IsNUnitRunning ? TestContext.CurrentContext.TestDirectory : Path.GetDirectoryName(GetEntryAssembly().Location);
+            IsNUnitRunning ? TestContext.CurrentContext.TestDirectory : Path.GetDirectoryName(GetEntryAssembly().Location)!;
     }
 }

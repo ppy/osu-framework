@@ -12,6 +12,9 @@ using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace osu.Framework.Logging
 {
@@ -52,12 +55,13 @@ namespace osu.Framework.Logging
         /// </summary>
         public static string VersionIdentifier = @"unknown";
 
-        private static Storage storage;
+        private static Storage? storage;
 
         /// <summary>
         /// The storage to place logs inside.
         /// </summary>
-        public static Storage Storage
+        [DisallowNull]
+        public static Storage? Storage
         {
             private get => storage;
             set => storage = value ?? throw new ArgumentNullException(nameof(value));
@@ -140,7 +144,7 @@ namespace osu.Framework.Logging
         /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
         public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false)
         {
-            error(e, description, target, null, recursive);
+            error(e, description, target, null!, recursive);
         }
 
         /// <summary>
@@ -155,7 +159,7 @@ namespace osu.Framework.Logging
             error(e, description, null, name, recursive);
         }
 
-        private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
+        private static void error(Exception e, string? description, LoggingTarget? target, string name, bool recursive)
         {
             log($@"{description}", target, name, LogLevel.Error, e);
 
@@ -187,14 +191,14 @@ namespace osu.Framework.Logging
             log(message, null, name, level, outputToListeners: outputToListeners);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null, bool outputToListeners = true)
+        private static void log(string message, LoggingTarget? target, string? loggerName, LogLevel level, Exception? exception = null, bool outputToListeners = true)
         {
             try
             {
                 if (target.HasValue)
                     GetLogger(target.Value).Add(message, level, exception, outputToListeners);
                 else
-                    GetLogger(loggerName).Add(message, level, exception, outputToListeners);
+                    GetLogger(loggerName!).Add(message, level, exception, outputToListeners);
             }
             catch
             {
@@ -247,7 +251,7 @@ namespace osu.Framework.Logging
             {
                 var nameLower = name.ToLower();
 
-                if (!static_loggers.TryGetValue(nameLower, out Logger l))
+                if (!static_loggers.TryGetValue(nameLower, out Logger? l))
                 {
                     static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name, true);
                     l.clear();
@@ -274,12 +278,12 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         /// <param name="exception">An optional related exception.</param>
         /// <param name="outputToListeners">Whether the message should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>. True by default.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true) =>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception? exception = null, bool outputToListeners = true) =>
             add(message, level, exception, outputToListeners && OutputToListeners);
 
         private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
 
-        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
+        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception? exception = null, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
                 return;
@@ -353,7 +357,7 @@ namespace osu.Framework.Logging
                 {
                     try
                     {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                        using (var stream = Storage!.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
                         {
                             foreach (var line in lines)
@@ -378,7 +382,7 @@ namespace osu.Framework.Logging
         /// <summary>
         /// Fires whenever any logger tries to log a new entry, but before the entry is actually written to the logfile.
         /// </summary>
-        public static event Action<LogEntry> NewEntry;
+        public static event Action<LogEntry>? NewEntry;
 
         /// <summary>
         /// Deletes log file from disk.
@@ -387,7 +391,7 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                scheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() => Storage!.Delete(Filename));
                 writer_idle.Reset();
             }
         }
@@ -416,7 +420,7 @@ namespace osu.Framework.Logging
 
         static Logger()
         {
-            Timer timer = null;
+            Timer? timer = null;
 
             // timer has a very low overhead.
             timer = new Timer(_ =>
@@ -462,17 +466,17 @@ namespace osu.Framework.Logging
         /// <summary>
         /// The name of the logger to which this message is being logged, or null if it is being logged to a specific <see cref="LoggingTarget"/>.
         /// </summary>
-        public string LoggerName;
+        public string? LoggerName;
 
         /// <summary>
         /// The message that was logged.
         /// </summary>
-        public string Message;
+        public string Message = null!;
 
         /// <summary>
         /// An optional related exception.
         /// </summary>
-        public Exception Exception;
+        public Exception? Exception;
     }
 
     /// <summary>

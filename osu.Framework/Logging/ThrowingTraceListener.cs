@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using NUnit.Framework;
 
+#nullable enable
+
 namespace osu.Framework.Logging
 {
     /// <summary>
