@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace osu.Framework.Lists
 {
     public class FuncEqualityComparer<T> : IEqualityComparer<T>
@@ -17,6 +19,6 @@ namespace osu.Framework.Lists
 
         public bool Equals(T x, T y) => func(x, y);
 
-        public int GetHashCode(T obj) => obj.GetHashCode();
+        public int GetHashCode(T obj) => obj?.GetHashCode() ?? 0;
     }
 }

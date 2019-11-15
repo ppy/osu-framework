@@ -7,6 +7,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using osu.Framework.IO.Serialization;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace osu.Framework.Lists
 {
@@ -114,11 +117,13 @@ namespace osu.Framework.Lists
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
-        public T Find(Predicate<T> match) => list.Find(match);
+        [return: MaybeNull]
+        public T Find(Predicate<T> match) => list.Find(match)!;
 
         public IEnumerable<T> FindAll(Predicate<T> match) => list.FindAll(match);
 
-        public T FindLast(Predicate<T> match) => list.FindLast(match);
+        [return: MaybeNull]
+        public T FindLast(Predicate<T> match) => list.FindLast(match)!;
 
         public int FindIndex(Predicate<T> match) => list.FindIndex(match);
 
@@ -164,11 +169,11 @@ namespace osu.Framework.Lists
 
             public T Current => list[currentIndex];
 
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                list = null;
+                list = null!;
             }
         }
     }

@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+#nullable enable
+
 namespace osu.Framework.Lists
 {
     /// <summary>
@@ -89,14 +91,14 @@ namespace osu.Framework.Lists
                 this.list = list;
 
                 currentIndex = -1; // The first MoveNext() should bring the iterator to 0
-                currentObject = null;
+                currentObject = null!;
             }
 
             public bool MoveNext()
             {
                 while (++currentIndex < list.Count)
                 {
-                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject))
+                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject!))
                         continue;
 
                     return true;
@@ -108,17 +110,17 @@ namespace osu.Framework.Lists
             public void Reset()
             {
                 currentIndex = -1;
-                currentObject = null;
+                currentObject = null!;
             }
 
             public T Current => currentObject;
 
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                list = null;
-                currentObject = null;
+                list = null!;
+                currentObject = null!;
             }
         }
 

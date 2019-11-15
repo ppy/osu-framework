@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace osu.Framework.Lists
 {
     [Obsolete("Use Comparer<T>.Create() instead.")] // can be removed 20200421
