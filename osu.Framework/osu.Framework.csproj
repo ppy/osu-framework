@@ -48,4 +48,8 @@
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" />
   </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+    <!-- Can be removed when moving to netstandard2.1 -->
+    <Compile Include="..\CodeAnalysis\NullableAttributes.cs" />
+  </ItemGroup>
 </Project>
