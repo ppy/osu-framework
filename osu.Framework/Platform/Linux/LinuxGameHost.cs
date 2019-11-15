@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Backends;
 using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Platform.Linux.Sdl;
 using osuTK;
@@ -9,8 +10,8 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, IBackendProvider backends = null)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, backends)
         {
         }
 

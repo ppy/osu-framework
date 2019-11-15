@@ -4,15 +4,24 @@
 using System;
 using System.IO;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Backends.Video
 {
     /// <summary>
-    /// Headless implementation of <see cref="IVideo"/> that can be used in non-visual tests.
+    /// Headless implementation of <see cref="IVideoBackend"/> that can be used in non-visual tests.
     /// </summary>
-    public class HeadlessVideoBackend : VideoBackend
+    public class HeadlessVideoBackend : IVideoBackend
     {
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => throw new NotImplementedException();
+        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+        }
+
+        public void Initialise(IGameHost host)
+        {
+        }
     }
 }

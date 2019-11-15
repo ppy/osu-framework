@@ -3,15 +3,24 @@
 
 using System.IO;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Backends.Video.Ffmpeg
 {
     /// <summary>
-    /// Provides an <see cref="IVideo"/> backend that creates decoders using FFmpeg.
+    /// An <see cref="IVideoBackend"/> that creates video decoders using FFmpeg.
     /// </summary>
-    public class FfmpegVideoBackend : VideoBackend
+    public class FfmpegVideoBackend : IVideoBackend
     {
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+
+        public void Dispose()
+        {
+        }
+
+        public void Initialise(IGameHost host)
+        {
+        }
     }
 }

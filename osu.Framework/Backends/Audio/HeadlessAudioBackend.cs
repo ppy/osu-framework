@@ -7,25 +7,34 @@ using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Backends.Audio
 {
     /// <summary>
-    /// Headless implementation of <see cref="IAudio"/> that can be used in non-visual tests.
+    /// Headless implementation of <see cref="IAudioBackend"/> that can be used in non-visual tests.
     /// </summary>
-    public class HeadlessAudioBackend : AudioBackend
+    public class HeadlessAudioBackend : IAudioBackend
     {
-        public override Track CreateTrack(Stream data, bool quick) => new HeadlessTrack();
-        public override Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new HeadlessSample();
-        public override SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new HeadlessSampleChannel();
+        public Track CreateTrack(Stream data, bool quick) => new HeadlessTrack();
+        public Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new HeadlessSample();
+        public SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new HeadlessSampleChannel();
+
+        public void Dispose()
+        {
+        }
+
+        public void Initialise(IGameHost host)
+        {
+        }
 
         /// <summary>
         /// Headless implementation of <see cref="Track"/> that should do nothing.
         /// </summary>
         internal class HeadlessTrack : Track
         {
-            public override double CurrentTime { get; } = 0;
-            public override bool IsRunning { get; } = false;
+            public override double CurrentTime => 0;
+            public override bool IsRunning => false;
             public override bool Seek(double seek) => true;
         }
 
@@ -46,7 +55,7 @@ namespace osu.Framework.Backends.Audio
             {
             }
 
-            public override bool Playing { get; } = false;
+            public override bool Playing => false;
         }
     }
 }
