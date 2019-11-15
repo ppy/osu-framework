@@ -50,6 +50,6 @@
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
     <!-- Can be removed when moving to netstandard2.1 -->
-    <Compile Include="..\CodeAnalysis\NullableAttributes.cs" />
+    <Compile Include="..\CodeAnalysis\MaybeNullAttribute.cs" />
   </ItemGroup>
 </Project>
