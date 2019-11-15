@@ -15,8 +15,8 @@ namespace osu.Framework.Backends.Video
         /// <summary>
         /// Creates a <see cref="VideoDecoder"/> using the given <see cref="Stream"/> and <see cref="Scheduler"/>.
         /// </summary>
-        /// <param name="stream">The stream source of the video</param>
-        /// <param name="scheduler">The scheduler to use when updating the decoder state</param>
+        /// <param name="stream">The stream source of the video.</param>
+        /// <param name="scheduler">The scheduler to use when updating the decoder state.</param>
         VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler);
     }
 }
