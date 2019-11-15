@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
@@ -40,7 +39,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 
