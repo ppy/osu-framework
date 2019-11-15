@@ -3,6 +3,8 @@
 
 using System;
 
+#nullable enable
+
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -13,9 +15,9 @@ namespace osu.Framework.Timing
     {
         private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
 
-        public IClock Source { get; private set; }
+        public IClock? Source { get; private set; }
 
-        protected IFrameBasedClock FramedSourceClock;
+        protected IFrameBasedClock FramedSourceClock = null!;
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
@@ -25,7 +27,7 @@ namespace osu.Framework.Timing
 
         public double FramesPerSecond { get; } = 0;
 
-        public virtual void ChangeSource(IClock source)
+        public virtual void ChangeSource(IClock? source)
         {
             if (source != null)
             {
@@ -37,7 +39,7 @@ namespace osu.Framework.Timing
             CurrentInterpolatedTime = 0;
         }
 
-        public InterpolatingFramedClock(IClock source = null)
+        public InterpolatingFramedClock(IClock? source = null)
         {
             ChangeSource(source);
         }
