@@ -1,19 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.IO;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 
-namespace osu.Framework.Backends.Video.Ffmpeg
+namespace osu.Framework.Backends.Video
 {
     /// <summary>
-    /// An <see cref="IVideoBackend"/> that creates video decoders using FFmpeg.
+    /// Headless implementation of <see cref="IVideoBackend"/> that can be used in non-visual tests.
     /// </summary>
-    public class FfmpegVideoBackend : IVideoBackend
+    public class HeadlessVideoBackend : IVideoBackend
     {
-        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+        public VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => throw new NotImplementedException();
 
         public void Dispose()
         {

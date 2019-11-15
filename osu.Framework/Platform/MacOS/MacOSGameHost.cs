@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Backends;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK;
@@ -10,8 +11,8 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, IBackendProvider backends = null)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, backends)
         {
         }
 

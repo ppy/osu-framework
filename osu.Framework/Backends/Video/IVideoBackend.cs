@@ -8,12 +8,15 @@ using osu.Framework.Threading;
 namespace osu.Framework.Backends.Video
 {
     /// <summary>
-    /// Provides video decoders.
-    /// Assumption here is that <see cref="VideoDecoder"/> will be an abstract class, realised by "FfmpegVideoDecoder" or similar.
-    /// It should also be accessed via an interface, once the video decoding process has been reworked.
+    /// Interface for an <see cref="IBackend"/> that creates video decoders.
     /// </summary>
     public interface IVideoBackend : IBackend
     {
+        /// <summary>
+        /// Creates a <see cref="VideoDecoder"/> using the given <see cref="Stream"/> and <see cref="Scheduler"/>.
+        /// </summary>
+        /// <param name="stream">The stream source of the video</param>
+        /// <param name="scheduler">The scheduler to use when updating the decoder state</param>
         VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler);
     }
 }

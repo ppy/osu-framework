@@ -12,7 +12,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Backends.Audio.Bass
 {
     /// <summary>
-    /// Provides an <see cref="IAudioBackend"/> backend that creates tracks and samples using BASS.
+    /// An <see cref="IAudioBackend"/> that creates tracks and samples using BASS.
     /// </summary>
     public class BassAudioBackend : IAudioBackend
     {

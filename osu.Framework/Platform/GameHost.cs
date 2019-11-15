@@ -18,6 +18,7 @@ using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osuTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Backends;
 using osu.Framework.Backends.Audio;
 using osu.Framework.Backends.Audio.Bass;
 using osu.Framework.Backends.Video;
@@ -47,24 +48,21 @@ using SixLabors.Memory;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameHost : IGameHost, IIpcHost
+    public abstract class GameHost : IGameHost, IIpcHost, IDisposable
     {
-        #region IBackendProvider
+        #region IGameHost
 
         public IAudioBackend Audio { get; private set; }
         public IVideoBackend Video { get; private set; }
 
         #endregion
 
-        #region Backend Creation
-
-        protected virtual IAudioBackend CreateAudio() => new BassAudioBackend();
-        protected virtual IVideoBackend CreateVideo() => new FfmpegVideoBackend();
+        private readonly IBackendProvider backends;
 
         private void createBackends()
         {
-            Audio = CreateAudio();
-            Video = CreateVideo();
+            Audio = backends.CreateAudio();
+            Video = backends.CreateVideo();
         }
 
         private void initialiseBackends()
@@ -72,8 +70,6 @@ namespace osu.Framework.Platform
             Audio.Initialise(this);
             Video.Initialise(this);
         }
-
-        #endregion
 
         public IWindow Window { get; protected set; }
 
@@ -226,9 +222,10 @@ namespace osu.Framework.Platform
 
         private readonly ToolkitOptions toolkitOptions;
 
-        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
+        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default, IBackendProvider backends = null)
         {
             this.toolkitOptions = toolkitOptions;
+            this.backends = backends ?? new HeadlessBackendProvider();
             Name = gameName;
         }
 

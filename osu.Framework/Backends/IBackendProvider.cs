@@ -7,18 +7,18 @@ using osu.Framework.Backends.Video;
 namespace osu.Framework.Backends
 {
     /// <summary>
-    /// Provides concrete implementations of various <see cref="IBackend"/> classes required by the game.
+    /// Creates concrete implementations of various <see cref="IBackend"/> classes required by the game.
     /// </summary>
     public interface IBackendProvider
     {
         /// <summary>
-        /// Provides the concrete implementation of the audio backend.
+        /// Creates a concrete implementation of the audio backend.
         /// </summary>
-        IAudioBackend Audio { get; }
+        IAudioBackend CreateAudio();
 
         /// <summary>
-        /// Provides the concrete implementation of the video backend.
+        /// Creates a concrete implementation of the video backend.
         /// </summary>
-        IVideoBackend Video { get; }
+        IVideoBackend CreateVideo();
     }
 }
