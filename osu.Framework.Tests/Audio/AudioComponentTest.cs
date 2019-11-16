@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Audio
 
         private void checkAggregateVolume(ISampleStore store, double expected)
         {
-            Assert.AreEqual(expected, ((IAggregateAudioAdjustment)store).AggregateVolume.Value);
+            Assert.AreEqual(expected, store.AggregateVolume.Value);
         }
 
         [Test]
