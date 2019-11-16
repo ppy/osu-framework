@@ -11,8 +11,8 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, IBackendProvider backends = null)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, backends)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
         {
         }
 

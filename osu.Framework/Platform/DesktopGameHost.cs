@@ -22,12 +22,14 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, IBackendProvider backends = null)
-            : base(gameName, toolkitOptions, backends ?? new DesktopBackendProvider())
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, toolkitOptions)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
         }
+
+        protected override IBackendProvider CreateBackendProvider() => new DesktopBackendProvider();
 
         protected override void SetupForRun()
         {

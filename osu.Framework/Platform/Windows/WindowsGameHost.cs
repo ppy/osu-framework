@@ -18,8 +18,8 @@ namespace osu.Framework.Platform.Windows
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, IBackendProvider backends = null)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, backends)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
         {
         }
 

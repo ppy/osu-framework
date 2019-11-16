@@ -55,7 +55,9 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        private readonly IBackendProvider backends;
+        private IBackendProvider backends;
+
+        protected abstract IBackendProvider CreateBackendProvider();
 
         private void createBackends()
         {
@@ -220,10 +222,9 @@ namespace osu.Framework.Platform
 
         private readonly ToolkitOptions toolkitOptions;
 
-        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default, IBackendProvider backends = null)
+        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
             this.toolkitOptions = toolkitOptions;
-            this.backends = backends ?? new HeadlessBackendProvider();
             Name = gameName;
         }
 
@@ -507,6 +508,7 @@ namespace osu.Framework.Platform
                 RegisterThread(InputThread = new InputThread());
                 RegisterThread(AudioThread = new AudioThread());
 
+                backends = CreateBackendProvider();
                 createBackends();
                 initialiseBackends();
 
