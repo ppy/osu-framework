@@ -46,6 +46,7 @@ namespace osu.Framework.Extensions
         /// <param name="list">The list to take values</param>
         /// <param name="item">The item that should be added.</param>
         /// <returns>The index in the list where the item was inserted.</returns>
+        [Obsolete("Use osu.Framework.Lists.SortedList or System.Collections.Generic.SortedList instead.")] // can be removed 20200516
         public static int AddInPlace<T>(this List<T> list, T item)
         {
             int index = list.BinarySearch(item);
@@ -61,6 +62,7 @@ namespace osu.Framework.Extensions
         /// <param name="item">The item that should be added.</param>
         /// <param name="comparer">The comparer that should be used for sorting.</param>
         /// <returns>The index in the list where the item was inserted.</returns>
+        [Obsolete("Use osu.Framework.Lists.SortedList or System.Collections.Generic.SortedList instead.")] // can be removed 20200516
         public static int AddInPlace<T>(this List<T> list, T item, IComparer<T> comparer)
         {
             int index = list.BinarySearch(item, comparer);
