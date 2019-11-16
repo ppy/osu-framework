@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using osu.Framework.Lists;
+using osu.Framework.Extensions;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Threading
@@ -16,7 +16,7 @@ namespace osu.Framework.Threading
     public class Scheduler
     {
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
-        private readonly SortedList<ScheduledDelegate> timedTasks = new SortedList<ScheduledDelegate>();
+        private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
 
@@ -151,7 +151,8 @@ namespace osu.Framework.Threading
 
                 tasksToRemove.Clear();
 
-                timedTasks.AddRange(tasksToSchedule);
+                foreach (var t in tasksToSchedule)
+                    timedTasks.AddInPlace(t);
 
                 tasksToSchedule.Clear();
             }
@@ -248,7 +249,7 @@ namespace osu.Framework.Threading
                 if (task.RepeatInterval == 0)
                     perUpdateTasks.Add(task);
                 else
-                    timedTasks.Add(task);
+                    timedTasks.AddInPlace(task);
             }
         }
 
