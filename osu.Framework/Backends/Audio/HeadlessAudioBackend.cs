@@ -16,9 +16,9 @@ namespace osu.Framework.Backends.Audio
     /// </summary>
     public class HeadlessAudioBackend : IAudioBackend
     {
-        public Track CreateTrack(Stream data, bool quick) => new HeadlessTrack();
-        public Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new HeadlessSample();
-        public SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new HeadlessSampleChannel();
+        public Track CreateTrack(Stream data, bool quick) => new TrackBass(data, quick);
+        public Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new SampleBass(data, customPendingActions, concurrency);
+        public SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new SampleChannelBass(sample, onPlay);
 
         public void Dispose()
         {
@@ -26,36 +26,6 @@ namespace osu.Framework.Backends.Audio
 
         public void Initialise(IGameHost host)
         {
-        }
-
-        /// <summary>
-        /// Headless implementation of <see cref="Track"/> that should do nothing.
-        /// </summary>
-        internal class HeadlessTrack : Track
-        {
-            public override double CurrentTime => 0;
-            public override bool IsRunning => false;
-            public override bool Seek(double seek) => true;
-        }
-
-        /// <summary>
-        /// Headless implementation of <see cref="Sample"/> that should do nothing.
-        /// </summary>
-        internal class HeadlessSample : Sample
-        {
-        }
-
-        /// <summary>
-        /// Headless implementation of <see cref="SampleChannel"/> that should do nothing.
-        /// </summary>
-        internal class HeadlessSampleChannel : SampleChannel
-        {
-            public HeadlessSampleChannel()
-                : base(new HeadlessSample(), _ => { })
-            {
-            }
-
-            public override bool Playing => false;
         }
     }
 }
