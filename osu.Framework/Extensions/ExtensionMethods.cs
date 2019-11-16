@@ -181,8 +181,9 @@ namespace osu.Framework.Extensions
         /// <returns>The inverted array. This is always a square array.</returns>
         public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
-        public static string ToResolutionString(this Size size) => size.Width.ToString() + 'x' + size.Height;
+        public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
 
+        [Obsolete("Why not using StreamWriter?")] // can be removed 20200516
         public static void WriteLineExplicit(this Stream s, string str = @"")
         {
             byte[] data = Encoding.UTF8.GetBytes($"{str}\r\n");
@@ -222,6 +223,7 @@ namespace osu.Framework.Extensions
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 
+        [Obsolete("Use GetAwaiter().GetResult() if you know it's completed.")] // can be removed 20200516
         public static void ThrowIfFaulted(this Task task)
         {
             if (!task.IsFaulted) return;
