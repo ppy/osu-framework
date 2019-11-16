@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Foundation;
+using osu.Framework.Backends;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -13,6 +14,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
+using osu.Framework.iOS.Backends;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
@@ -34,6 +36,8 @@ namespace osu.Framework.iOS
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
         }
+
+        protected override IBackendProvider CreateBackendProvider() => new IOSBackendProvider();
 
         /// <summary>
         /// If the keyboard visibility changes (including the hardware keyboard helper bar) we select the keyboard
@@ -107,8 +111,6 @@ namespace osu.Framework.iOS
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
-
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
