@@ -147,6 +147,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
+                CornerExponent = 2.5f,
             }, true);
 
             PushDepthInfo(DepthInfo.Default);
@@ -488,7 +489,9 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.MaskingRect.Bottom));
 
             GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
+            GlobalPropertyManager.Set(GlobalProperty.CornerExponent, maskingInfo.CornerExponent);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
 
@@ -784,6 +787,7 @@ namespace osu.Framework.Graphics.OpenGL
         public Matrix3 ToMaskingSpace;
 
         public float CornerRadius;
+        public float CornerExponent;
 
         public float BorderThickness;
         public SRGBColour BorderColour;
@@ -801,6 +805,7 @@ namespace osu.Framework.Graphics.OpenGL
             MaskingRect == other.MaskingRect &&
             ToMaskingSpace == other.ToMaskingSpace &&
             CornerRadius == other.CornerRadius &&
+            CornerExponent == other.CornerExponent &&
             BorderThickness == other.BorderThickness &&
             BorderColour.Equals(other.BorderColour) &&
             BlendRange == other.BlendRange &&

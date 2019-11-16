@@ -1217,13 +1217,14 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Contains(Vector2 screenSpacePos)
         {
-            float cRadius = CornerRadius;
+            float cRadius = effectiveCornerRadius;
+            float cExponent = CornerExponent;
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
 
-            return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
+            return DrawRectangle.Shrink(cRadius).DistanceExponentiated(ToLocalSpace(screenSpacePos), cExponent) <= Math.Pow(cRadius, cExponent);
         }
 
         /// <summary>
@@ -1339,6 +1340,37 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float cornerExponent = 2.5f;
+
+        /// <summary>
+        /// Determines how gentle the curve of the corner straightens. A value of 2 results in
+        /// circular arcs, a value of 2.5 (default) results in something closer to apple's "continuous corner".
+        /// Values between 2 and 10 result in varying degrees of "continuousness", where larger values are smoother.
+        /// Values between 1 and 2 result in a "flatter" appearance than round corners.
+        /// Values between 0 and 1 result in a concave, round corner as opposed to a convex round corner,
+        /// where a value of 0.5 is a circular concave arc.
+        /// Only has an effect when <see cref="Masking"/> is true and <see cref="CornerRadius"/> is non-zero.
+        /// </summary>
+        public float CornerExponent
+        {
+            get => cornerExponent;
+            protected set
+            {
+                if (!Precision.DefinitelyBigger(value, 0) || value > 10)
+                    throw new ArgumentOutOfRangeException(nameof(CornerExponent), $"{nameof(CornerExponent)} may not be <=0 or >10 for numerical correctness.");
+
+                if (cornerExponent == value)
+                    return;
+
+                cornerExponent = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        // This _hacky_ modification of the corner radius (obtained from playing around) ensures that the corner remains at roughly
+        // equal size (perceptually) compared to the circular arc as the CornerExponent is adjusted within the range ~2-5.
+        private float effectiveCornerRadius => CornerRadius * 0.8f * CornerExponent / 2 + 0.2f * CornerRadius;
+
         private float borderThickness;
 
         /// <summary>
@@ -1422,7 +1454,10 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 offset = ToParentSpace(Vector2.Zero);
                 Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
-                Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
+                Vector2 inflation = new Vector2(
+                    (float)Math.Sqrt(u.X * u.X + v.X * v.X),
+                    (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y)
+                );
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);
                 // The above algorithm will return incorrect results if the rounded corners are not fully visible.
