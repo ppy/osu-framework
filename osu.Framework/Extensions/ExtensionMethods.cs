@@ -31,6 +31,7 @@ namespace osu.Framework.Extensions
         /// <param name="match">The predicate that needs to be matched.</param>
         /// <param name="startIndex">The index to start conditional search.</param>
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
+        [Obsolete("Use LINQ instead.")] // can be removed 20200516
         public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
         {
             if (!list.IsValidIndex(startIndex)) return default;
@@ -79,17 +80,15 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
+        [Obsolete("Do the boundary comparison yourself to help JIT optimizing.")] // can be removed 20200516
         public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
 
         /// <summary>
         /// Compares every item in list to given list.
         /// </summary>
+        [Obsolete("Use SequenceEqual instead.")] // can be removed 20200516
         public static bool CompareTo<T>(this List<T> list, List<T> list2)
-        {
-            if (list.Count != list2.Count) return false;
-
-            return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
-        }
+            => list.SequenceEqual(list2);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
