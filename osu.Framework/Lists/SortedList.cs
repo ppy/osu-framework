@@ -128,7 +128,7 @@ namespace osu.Framework.Lists
 
         void ICollection<T>.Add(T item) => Add(item);
 
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        public List<T>.Enumerator GetEnumerator() => list.GetEnumerator();
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
@@ -146,30 +146,5 @@ namespace osu.Framework.Lists
         }
 
         #endregion
-
-        public struct Enumerator : IEnumerator<T>
-        {
-            private SortedList<T> list;
-            private int currentIndex;
-
-            internal Enumerator(SortedList<T> list)
-            {
-                this.list = list;
-                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
-            }
-
-            public bool MoveNext() => ++currentIndex < list.Count;
-
-            public void Reset() => currentIndex = -1;
-
-            public T Current => list[currentIndex];
-
-            object IEnumerator.Current => Current;
-
-            public void Dispose()
-            {
-                list = null;
-            }
-        }
     }
 }
