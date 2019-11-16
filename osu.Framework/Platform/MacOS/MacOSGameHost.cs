@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using osu.Framework.Backends;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK;
