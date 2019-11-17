@@ -13,10 +13,10 @@ namespace osu.Framework.Platform.Windows.Native
         [DllImport("user32.dll")]
         public static extern bool RegisterTouchWindow(IntPtr hWnd, int flags);
 
-        [DllImport(@"user32.dll")]
+        [DllImport(@"user32.dll", CharSet = CharSet.Unicode)]
         public static extern int SetProp(IntPtr hWnd, string lpString, int hData);
 
-        [DllImport(@"user32.dll")]
+        [DllImport(@"user32.dll", CharSet = CharSet.Unicode)]
         public static extern int RemoveProp(IntPtr hWnd, string lpString);
 
         [DllImport("user32.dll")]
