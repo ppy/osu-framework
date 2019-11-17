@@ -21,7 +21,11 @@
   <ItemGroup Label="Code Analysis">
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.7" PrivateAssets="All" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.7" PrivateAssets="All" />
   </ItemGroup>
+  <PropertyGroup Label="Code Analysis">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
