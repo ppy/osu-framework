@@ -38,7 +38,9 @@ namespace osu.Framework.Tests.Lists
         public void TestEmptyJaggedToRectangular()
         {
             int[,] result = null;
-            Assert.DoesNotThrow(() => result = new int[0][].ToRectangular());
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
+            Assert.DoesNotThrow(() => result = new int[0][].ToRectangular()); // Not natural for the APi shape
+#pragma warning restore CA1825 // Avoid zero-length array allocations.
             Assert.AreEqual(0, result.Length);
         }
 

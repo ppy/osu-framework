@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.MathUtils
 
             Assert.Throws<ArgumentException>(() =>
             {
-                ReadOnlySpan<Vector2> list = new Vector2[0];
+                ReadOnlySpan<Vector2> list = Array.Empty<Vector2>();
                 Interpolation.Lagrange(list, 4);
             });
 

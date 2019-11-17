@@ -364,7 +364,7 @@ namespace osu.Framework.Testing
         // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
         private void schedule(Action action) => Scheduler.Add(action, false);
 
-        public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+        public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {

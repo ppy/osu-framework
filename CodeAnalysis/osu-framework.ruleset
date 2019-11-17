@@ -71,7 +71,4 @@
     <Rule Id="CA2237" Action="None" />
     <Rule Id="CA5351" Action="None" />
   </Rules>
-  <Rules AnalyzerId="Microsoft.NetCore.CSharp.Analyzers" RuleNamespace="Microsoft.NetCore.CSharp.Analyzers">
-    <Rule Id="CA1825" Action="None" />
-  </Rules>
 </RuleSet>
