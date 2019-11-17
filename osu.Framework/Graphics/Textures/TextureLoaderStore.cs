@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using StbiSharp;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -43,8 +45,24 @@ namespace osu.Framework.Graphics.Textures
 
         public Stream GetStream(string name) => store.GetStream(name);
 
-        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
-            => Image.Load<TPixel>(stream);
+        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
+        {
+            long initialPos = stream.Position;
+            try
+            {
+                using (var m = new MemoryStream())
+                {
+                    stream.CopyTo(m);
+                    using (var stbiImage = Stbi.LoadFromMemory(m, 4))
+                        return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
+                }
+            }
+            catch
+            {
+                stream.Seek(initialPos, SeekOrigin.Begin);
+                return Image.Load<TPixel>(stream);
+            }
+        }
 
         public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
 
