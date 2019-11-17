@@ -268,8 +268,8 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.
-        /// Invoke <see cref="Dispose"/> to remove the reference.
+        /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose()"/> until the count reaches 0.
+        /// Invoke <see cref="Dispose()"/> to remove the reference.
         /// </summary>
         /// <remarks>
         /// All <see cref="DrawNode"/>s start with a reference count of 1.
