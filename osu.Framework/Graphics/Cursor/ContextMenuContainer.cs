@@ -67,16 +67,20 @@ namespace osu.Framework.Graphics.Cursor
             switch (e.Button)
             {
                 case MouseButton.Right:
-                    menuTarget = FindTargets().FirstOrDefault();
+                    var (target, items) = FindTargets()
+                                          .Select(t => (target: t, items: t.ContextMenuItems))
+                                          .FirstOrDefault(result => result.items != null);
 
-                    if (menuTarget == null)
+                    menuTarget = target;
+
+                    if (menuTarget == null || items.Length == 0)
                     {
                         if (menu.State == MenuState.Open)
                             menu.Close();
                         return false;
                     }
 
-                    menu.Items = menuTarget.ContextMenuItems;
+                    menu.Items = items;
 
                     targetRelativePosition = menuTarget.ToLocalSpace(e.ScreenSpaceMousePosition);
 
