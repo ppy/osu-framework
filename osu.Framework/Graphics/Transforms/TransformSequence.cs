@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <typeparamref name="T"/> to generate a <see cref="TransformSequence{T}"/> for.</param>
+        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
         /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
         public delegate TransformSequence<T> Generator(T origin);
 
