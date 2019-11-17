@@ -36,8 +36,8 @@ namespace osu.Framework.Input.StateChanges
         /// Creates a <see cref="ButtonInput{TButton}"/> from the difference of two <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <remarks>
-        /// Buttons that are pressed in <paramref name="previous"/> and not pressed in <see cref="current"/> will be listed as <see cref="ButtonStateChangeKind.Released"/>.
-        /// Buttons that are not pressed in <paramref name="previous"/> and pressed in <see cref="current"/> will be listed as <see cref="ButtonStateChangeKind.Pressed"/>.
+        /// Buttons that are pressed in <paramref name="previous"/> and not pressed in <paramref name="current"/> will be listed as <see cref="ButtonStateChangeKind.Released"/>.
+        /// Buttons that are not pressed in <paramref name="previous"/> and pressed in <paramref name="current"/> will be listed as <see cref="ButtonStateChangeKind.Pressed"/>.
         /// </remarks>
         /// <param name="current">The newer <see cref="ButtonStates{TButton}"/>.</param>
         /// <param name="previous">The older <see cref="ButtonStates{TButton}"/>.</param>

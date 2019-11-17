@@ -56,7 +56,7 @@ namespace osu.Framework.Bindables
         /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
-        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false);
 
         /// <summary>
