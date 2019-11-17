@@ -11,8 +11,8 @@ namespace osu.Framework.Backends
     /// </summary>
     public class HeadlessBackendProvider : IBackendProvider
     {
-        public IAudioBackend CreateAudio() => new HeadlessAudioBackend();
+        public IAudioBackend CreateAudioBackend() => new HeadlessAudioBackend();
 
-        public IVideoBackend CreateVideo() => new HeadlessVideoBackend();
+        public IVideoBackend CreateVideoBackend() => new HeadlessVideoBackend();
     }
 }

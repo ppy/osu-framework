@@ -12,7 +12,7 @@ namespace osu.Framework.Platform
     /// </summary>
     public interface IGameHost
     {
-        IAudioBackend Audio { get; }
-        IVideoBackend Video { get; }
+        IAudioBackend AudioBackend { get; }
+        IVideoBackend VideoBackend { get; }
     }
 }

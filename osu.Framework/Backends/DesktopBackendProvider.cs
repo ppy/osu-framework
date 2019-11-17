@@ -13,8 +13,8 @@ namespace osu.Framework.Backends
     /// </summary>
     public class DesktopBackendProvider : IBackendProvider
     {
-        public IAudioBackend CreateAudio() => new BassAudioBackend();
+        public IAudioBackend CreateAudioBackend() => new BassAudioBackend();
 
-        public IVideoBackend CreateVideo() => new FfmpegVideoBackend();
+        public IVideoBackend CreateVideoBackend() => new FfmpegVideoBackend();
     }
 }

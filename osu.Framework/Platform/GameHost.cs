@@ -50,25 +50,25 @@ namespace osu.Framework.Platform
     {
         #region IGameHost
 
-        public IAudioBackend Audio { get; private set; }
-        public IVideoBackend Video { get; private set; }
+        public IAudioBackend AudioBackend { get; private set; }
+        public IVideoBackend VideoBackend { get; private set; }
 
         #endregion
 
-        private IBackendProvider backends;
+        private IBackendProvider backendProvider;
 
         protected abstract IBackendProvider CreateBackendProvider();
 
         private void createBackends()
         {
-            Audio = backends.CreateAudio();
-            Video = backends.CreateVideo();
+            AudioBackend = backendProvider.CreateAudioBackend();
+            VideoBackend = backendProvider.CreateVideoBackend();
         }
 
         private void initialiseBackends()
         {
-            Audio.Initialise(this);
-            Video.Initialise(this);
+            AudioBackend.Initialise(this);
+            VideoBackend.Initialise(this);
         }
 
         public IWindow Window { get; protected set; }
@@ -508,7 +508,7 @@ namespace osu.Framework.Platform
                 RegisterThread(InputThread = new InputThread());
                 RegisterThread(AudioThread = new AudioThread());
 
-                backends = CreateBackendProvider();
+                backendProvider = CreateBackendProvider();
                 createBackends();
                 initialiseBackends();
 
@@ -526,8 +526,8 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
                 Dependencies.CacheAs(Storage = GetStorage(Name));
-                Dependencies.CacheAs(Audio);
-                Dependencies.CacheAs(Video);
+                Dependencies.CacheAs(AudioBackend);
+                Dependencies.CacheAs(VideoBackend);
 
                 SetupForRun();
 
@@ -884,8 +884,8 @@ namespace osu.Framework.Platform
             Config?.Dispose();
             DebugConfig?.Dispose();
 
-            Video?.Dispose();
-            Audio?.Dispose();
+            VideoBackend?.Dispose();
+            AudioBackend?.Dispose();
             Window?.Dispose();
 
             toolkit?.Dispose();
