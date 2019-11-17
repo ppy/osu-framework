@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.IO
         static TestWebRequest()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
         {
-            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
             if (localHttpBin)
             {

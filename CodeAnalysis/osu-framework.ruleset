@@ -65,6 +65,7 @@
     <Rule Id="CA5351" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.CSharp.Analyzers" RuleNamespace="Microsoft.NetCore.CSharp.Analyzers">
+    <Rule Id="CA1309" Action="Warning" />
     <Rule Id="CA2201" Action="Warning" />
   </Rules>
 </RuleSet>
