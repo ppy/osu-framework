@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider18();
 
-            Assert.Throws<NullReferenceException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+            Assert.Throws<NullDependencyException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         [Test]
