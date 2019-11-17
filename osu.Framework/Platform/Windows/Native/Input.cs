@@ -1736,7 +1736,7 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>
         /// WM_COMMNOTIFY is Obsolete for Win32-Based Applications
         /// </summary>
-        [Obsolete]
+        [Obsolete("Obsolete for Win32-based applications")]
         COMMNOTIFY = 0x0044,
 
         /// <summary>
@@ -1753,7 +1753,7 @@ namespace osu.Framework.Platform.Windows.Native
         /// Notifies applications that the system, typically a battery-powered personal computer, is about to enter a suspended mode.
         /// Use: POWERBROADCAST
         /// </summary>
-        [Obsolete]
+        [Obsolete("Use POWERBROADCAST")]
         POWER = 0x0048,
 
         /// <summary>
