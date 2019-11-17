@@ -1,12 +1,15 @@
 #include "sh_Utils.h"
 
+uniform sampler2D tex_y;
+uniform sampler2D tex_u;
+uniform sampler2D tex_v;
+
 varying highp vec2 v_MaskingPosition;
 varying lowp vec4 v_Colour;
 varying mediump vec2 v_TexCoord;
 varying mediump vec4 v_TexRect;
 varying mediump vec2 v_BlendRange;
 
-uniform lowp sampler2D m_Sampler;
 uniform highp float g_CornerRadius;
 uniform highp vec4 g_MaskingRect;
 uniform highp float g_BorderThickness;
@@ -20,6 +23,18 @@ uniform highp vec2 g_EdgeOffset;
 
 uniform bool g_DiscardInner;
 uniform highp float g_InnerCornerRadius;
+
+const mat3 bt601_coeff = mat3(1.164,  1.164, 1.164,
+                                0.0, -0.392, 2.017,
+                              1.596, -0.813,   0.0);
+const vec3 offsets     = vec3(-0.0625, -0.5, -0.5);
+
+vec3 sampleRgb(vec2 loc) {
+  float y = texture2D(tex_y, loc).r;
+  float u = texture2D(tex_u, loc).r;
+  float v = texture2D(tex_v, loc).r;
+  return bt601_coeff * (vec3(y, u, v) + offsets);
+}
 
 highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 {
@@ -36,7 +51,6 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 	highp float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
 
 	// Inside the shrunk rectangle
-
 	if (maxDist <= 0.0)
 		return maxDist;
 	// Outside of the shrunk rectangle
@@ -64,7 +78,7 @@ void main(void)
 {
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
-	lowp vec4 texel = texture2D(m_Sampler, v_TexCoord, -0.9);
+	lowp vec4 texel = vec4(sampleRgb(v_TexCoord), 1.);
 
 	// Discard inner pixels
 	if (g_DiscardInner)
@@ -114,8 +128,8 @@ void main(void)
 		return;
 	}
 
-	lowp vec4 dest = vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel;
+	lowp vec4 dest = toSRGB(vec4(v_Colour.rgb, v_Colour.a * alphaFactor)) * texel;
 	lowp vec4 src = vec4(g_BorderColour.rgb, g_BorderColour.a * (1.0 - colourWeight));
 
-	gl_FragColor = blend(toSRGB(src), toSRGB(dest));
+	gl_FragColor = blend(toSRGB(src), dest);
 }

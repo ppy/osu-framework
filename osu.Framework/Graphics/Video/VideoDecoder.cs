@@ -12,8 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using SixLabors.ImageSharp.PixelFormats;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -93,11 +91,10 @@ namespace osu.Framework.Graphics.Video
 
         private double timeBaseInSeconds;
 
-        // frame data
-        private AVFrame* frame;
-        private AVFrame* ffmpegFrame;
-        private IntPtr frameRgbBufferPtr;
-        private int uncompressedFrameSize;
+        private AVFilterGraph* filterGraph;
+        private AVFilterContext* buffersinkCtx;
+        private AVFilterContext* buffersrcCtx;
+        private bool useFilter;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -173,7 +170,7 @@ namespace osu.Framework.Graphics.Video
         {
             foreach (var f in frames)
             {
-                ((TextureGLSingle)f.Texture.TextureGL).FlushUploads();
+                ((VideoTexture)f.Texture.TextureGL).FlushUploads();
                 availableTextures.Enqueue(f.Texture);
             }
         }
@@ -197,7 +194,6 @@ namespace osu.Framework.Graphics.Video
                     return;
                 }
             }
-
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
             decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
@@ -285,6 +281,54 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
+        private void initFilters()
+        {
+            AVFilter* buffersrc = ffmpeg.avfilter_get_by_name("buffer");
+            AVFilter* buffersink = ffmpeg.avfilter_get_by_name("buffersink");
+            AVFilterInOut* outputs = ffmpeg.avfilter_inout_alloc();
+            AVFilterInOut* inputs = ffmpeg.avfilter_inout_alloc();
+
+            filterGraph = ffmpeg.avfilter_graph_alloc();
+
+            var args = string.Format("video_size={0}x{1}:pix_fmt={2}:time_base={3}/{4}:pixel_aspect={5}/{6}",
+                stream->codec->width, stream->codec->height, (int)stream->codec->pix_fmt,
+                stream->codec->time_base.num, stream->codec->time_base.den,
+                stream->codec->sample_aspect_ratio.num, stream->codec->sample_aspect_ratio.den);
+
+            AVFilterContext* tmp;
+            var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersrc, "in", args, null, filterGraph);
+            buffersrcCtx = tmp;
+ 
+            if (bufferSrcResult < 0)
+                throw new Exception($"Error {bufferSrcResult} creating buffer source");
+
+            tmp = null;
+            var bufferSinkResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersink, "out", null, null, filterGraph);
+            buffersinkCtx = tmp;
+
+            if (bufferSinkResult < 0)
+                throw new Exception($"Error {bufferSinkResult} creating buffer sink");
+
+            outputs->name = ffmpeg.av_strdup("in");
+            outputs->filter_ctx = buffersrcCtx;
+            outputs->pad_idx = 0;
+            outputs->next = null;
+
+            inputs->name = ffmpeg.av_strdup("out");
+            inputs->filter_ctx = buffersinkCtx;
+            inputs->pad_idx = 0;
+            inputs->next = null;
+
+            var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, "format=pix_fmts=yuv420p",
+                                                    &inputs, &outputs, null);
+            if (filterGraphResult < 0)
+                throw new Exception($"Error {filterGraphResult} opening filter graph");
+                
+            var filterConfigResult = ffmpeg.avfilter_graph_config(filterGraph, null);
+            if (filterConfigResult < 0)
+                throw new Exception($"Error {filterConfigResult} verifiying filter graph");
+        }
+
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
         private void prepareDecoding()
         {
@@ -314,6 +358,10 @@ namespace osu.Framework.Graphics.Video
             {
                 stream = formatContext->streams[i];
 
+                if (stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P)
+                    useFilter = true;
+                else useFilter = false;
+
                 codecParams = *stream->codecpar;
 
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
@@ -327,27 +375,11 @@ namespace osu.Framework.Graphics.Video
                     if (openCodecResult < 0)
                         throw new Exception($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
 
-                    frame = ffmpeg.av_frame_alloc();
-                    ffmpegFrame = ffmpeg.av_frame_alloc();
-
-                    uncompressedFrameSize = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
-                    frameRgbBufferPtr = Marshal.AllocHGlobal(uncompressedFrameSize);
-
-                    var dataArr4 = *(byte_ptrArray4*)&ffmpegFrame->data;
-                    var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;
-                    var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
-                    if (result < 0)
-                        throw new Exception("Couldn't fill image arrays.");
-
-                    for (uint j = 0; j < byte_ptrArray4.Size; ++j)
-                    {
-                        ffmpegFrame->data[j] = dataArr4[j];
-                        ffmpegFrame->linesize[j] = linesizeArr4[j];
-                    }
-
                     break;
                 }
             }
+
+            if (useFilter) initFilters();
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
@@ -377,6 +409,8 @@ namespace osu.Framework.Graphics.Video
                                 if (sendPacketResult < 0)
                                     throw new Exception($"Error {sendPacketResult} sending packet.");
 
+                                var frame = ffmpeg.av_frame_alloc();
+
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
                                 if (result == 0)
@@ -387,25 +421,26 @@ namespace osu.Framework.Graphics.Video
                                     {
                                         skipOutputUntilTime = null;
 
-                                        SwsContext* swsCtx = null;
+                                        AVFrame* outFrame;
+                                        if (useFilter)
+                                        {
+                                            // 8 = AV_BUFFERSRC_FLAG_KEEP_REF 
+                                            var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 8);
+                                            if (addFrameResult < 0)
+                                                throw new Exception($"Error {addFrameResult} feeding filtergraph.");
 
-                                        try
-                                        {
-                                            swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
-                                            ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, ffmpegFrame->data, ffmpegFrame->linesize);
+                                            outFrame = ffmpeg.av_frame_alloc();
+                                            var getFrameResult = ffmpeg.av_buffersink_get_frame(buffersinkCtx, outFrame);
+                                            if (getFrameResult < 0)
+                                                throw new Exception($"Error {getFrameResult} gettting filtered frame.");
+
                                         }
-                                        finally
-                                        {
-                                            ffmpeg.sws_freeContext(swsCtx);
-                                        }
+                                        else outFrame = frame;
 
                                         if (!availableTextures.TryDequeue(out var tex))
-                                            tex = new Texture(codecParams.width, codecParams.height, true);
+                                            tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
 
-                                        var upload = new ArrayPoolTextureUpload(tex.Width, tex.Height);
-
-                                        // todo: can likely make this more efficient
-                                        new Span<Rgba32>(ffmpegFrame->data[0], uncompressedFrameSize / 4).CopyTo(upload.RawData);
+                                        var upload = new VideoTextureUpload(outFrame);
 
                                         tex.SetData(upload);
                                         decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
@@ -493,8 +528,8 @@ namespace osu.Framework.Graphics.Video
             {
                 av_frame_alloc = AGffmpeg.av_frame_alloc,
                 av_frame_free = AGffmpeg.av_frame_free,
-                av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
-                av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
+                av_frame_unref = AGffmpeg.av_frame_unref,
+                av_strdup = AGffmpeg.av_strdup,
                 av_malloc = AGffmpeg.av_malloc,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
                 av_packet_free = AGffmpeg.av_packet_free,
@@ -509,9 +544,15 @@ namespace osu.Framework.Graphics.Video
                 avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
                 avformat_open_input = AGffmpeg.avformat_open_input,
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
-                sws_freeContext = AGffmpeg.sws_freeContext,
-                sws_getContext = AGffmpeg.sws_getContext,
-                sws_scale = AGffmpeg.sws_scale
+                avfilter_get_by_name = AGffmpeg.avfilter_get_by_name,
+                avfilter_inout_alloc = AGffmpeg.avfilter_inout_alloc,
+                avfilter_graph_free = AGffmpeg.avfilter_graph_free,
+                avfilter_graph_create_filter = AGffmpeg.avfilter_graph_create_filter,
+                avfilter_graph_alloc = AGffmpeg.avfilter_graph_alloc,
+                avfilter_graph_parse_ptr = AGffmpeg.avfilter_graph_parse_ptr,
+                avfilter_graph_config = AGffmpeg.avfilter_graph_config,
+                av_buffersrc_add_frame_flags = AGffmpeg.av_buffersrc_add_frame_flags,
+                av_buffersink_get_frame = AGffmpeg.av_buffersink_get_frame,
             };
         }
 
@@ -557,22 +598,10 @@ namespace osu.Framework.Graphics.Video
             // gets freed by libavformat when closing the input
             contextBuffer = null;
 
-            if (frame != null)
+            if (filterGraph != null)
             {
-                fixed (AVFrame** ptr = &frame)
-                    ffmpeg.av_frame_free(ptr);
-            }
-
-            if (ffmpegFrame != null)
-            {
-                fixed (AVFrame** ptr = &ffmpegFrame)
-                    ffmpeg.av_frame_free(ptr);
-            }
-
-            if (frameRgbBufferPtr != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(frameRgbBufferPtr);
-                frameRgbBufferPtr = IntPtr.Zero;
+                fixed (AVFilterGraph** ptr = &filterGraph)
+                    ffmpeg.avfilter_graph_free(ptr);
             }
 
             while (decodedFrames.TryDequeue(out var f))

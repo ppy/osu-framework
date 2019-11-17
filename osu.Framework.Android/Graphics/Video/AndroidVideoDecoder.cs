@@ -16,12 +16,19 @@ namespace osu.Framework.Android.Graphics.Video
         private const string lib_avcodec = "libavcodec.so";
         private const string lib_avformat = "libavformat.so";
         private const string lib_swscale = "libswscale.so";
+        private const string lib_avfilter = "libavfilter.so";
 
         [DllImport(lib_avutil)]
         public static extern AVFrame* av_frame_alloc();
 
         [DllImport(lib_avutil)]
         public static extern void av_frame_free(AVFrame** frame);
+
+        [DllImport(lib_avutil)]
+        public static extern void av_frame_unref(AVFrame* frame);
+
+        [DllImport(lib_avutil)]
+        public static extern byte* av_strdup(string s);
 
         [DllImport(lib_avutil)]
         public static extern int av_image_fill_arrays(ref byte_ptrArray4 dst_data, ref int_array4 dst_linesize, byte* src, AVPixelFormat pix_fmt, int width, int height, int align);
@@ -71,14 +78,32 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avformat)]
         public static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
-        [DllImport(lib_swscale)]
-        public static extern void sws_freeContext(SwsContext* swsContext);
+        [DllImport(lib_avfilter)]
+        public static extern AVFilter* avfilter_get_by_name(string name);
 
-        [DllImport(lib_swscale)]
-        public static extern SwsContext* sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
+        [DllImport(lib_avfilter)]
+        public static extern AVFilterInOut* avfilter_inout_alloc();
 
-        [DllImport(lib_swscale)]
-        public static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
+        [DllImport(lib_avfilter)]
+        public static extern void avfilter_graph_free(AVFilterGraph** graph);
+
+        [DllImport(lib_avfilter)]
+        public static extern int avfilter_graph_create_filter(AVFilterContext** filt_ctx, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
+
+        [DllImport(lib_avfilter)]
+        public static extern AVFilterGraph* avfilter_graph_alloc();
+
+        [DllImport(lib_avfilter)]
+        public static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
+
+        [DllImport(lib_avfilter)]
+        public static extern int avfilter_graph_config(AVFilterGraph* graphctx, void* log_ctx);
+
+        [DllImport(lib_avfilter)]
+        public static extern int av_buffersrc_add_frame_flags(AVFilterContext* buffer_src, AVFrame* frame, int flags);
+
+        [DllImport(lib_avfilter)]
+        public static extern int av_buffersink_get_frame(AVFilterContext* ctx, AVFrame* frame);
 
         public AndroidVideoDecoder(string filename, Scheduler scheduler)
             : base(filename, scheduler)
@@ -94,6 +119,8 @@ namespace osu.Framework.Android.Graphics.Video
         {
             av_frame_alloc = av_frame_alloc,
             av_frame_free = av_frame_free,
+            av_frame_unref = av_frame_unref,
+            av_strdup = av_strdup,
             av_image_fill_arrays = av_image_fill_arrays,
             av_image_get_buffer_size = av_image_get_buffer_size,
             av_malloc = av_malloc,
@@ -110,9 +137,15 @@ namespace osu.Framework.Android.Graphics.Video
             avformat_find_stream_info = avformat_find_stream_info,
             avformat_open_input = avformat_open_input,
             avio_alloc_context = avio_alloc_context,
-            sws_freeContext = sws_freeContext,
-            sws_getContext = sws_getContext,
-            sws_scale = sws_scale
+            avfilter_get_by_name = avfilter_get_by_name,
+            avfilter_inout_alloc = avfilter_inout_alloc,
+            avfilter_graph_free = avfilter_graph_free,
+            avfilter_graph_create_filter = avfilter_graph_create_filter,
+            avfilter_graph_alloc = avfilter_graph_alloc,
+            avfilter_graph_parse_ptr = avfilter_graph_parse_ptr,
+            avfilter_graph_config = avfilter_graph_config,
+            av_buffersrc_add_frame_flags = av_buffersrc_add_frame_flags,
+            av_buffersink_get_frame = av_buffersink_get_frame,
         };
     }
 }

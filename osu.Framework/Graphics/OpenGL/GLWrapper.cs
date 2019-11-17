@@ -17,6 +17,7 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Video;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using GameWindow = osu.Framework.Platform.GameWindow;
@@ -295,6 +296,24 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
+        internal static void BindTexture(VideoTexture texture, TextureUnit unit = TextureUnit.Texture0)
+        {
+            var index = GetTextureUnitId(unit);
+
+            if (last_bound_texture[index] != texture)
+            {
+                FlushCurrentBatch();
+                for (int i = 0; i < texture.TextureIds.Length; i++)
+                {
+                    GL.ActiveTexture(unit + i);
+                    GL.BindTexture(TextureTarget.Texture2D, texture.TextureIds[i]);
+                    FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+                }
+                
+                last_bound_texture[index] = texture;             
+            }
+        }
+
         public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);

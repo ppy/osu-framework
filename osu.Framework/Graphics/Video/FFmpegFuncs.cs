@@ -15,9 +15,9 @@ namespace osu.Framework.Graphics.Video
 
         public delegate void AvFrameFreeDelegate(AVFrame** frame);
 
-        public delegate int AvImageFillArraysDelegate(ref byte_ptrArray4 dst_data, ref int_array4 dst_linesize, byte* src, AVPixelFormat pix_fmt, int width, int height, int align);
+        public delegate void AvFrameUnrefDelegate(AVFrame* frame);
 
-        public delegate int AvImageGetBufferSizeDelegate(AVPixelFormat pix_fmt, int width, int height, int align);
+        public delegate byte* AvStrDupDelegate(string s);
 
         public delegate void* AvMallocDelegate(ulong size);
 
@@ -47,18 +47,30 @@ namespace osu.Framework.Graphics.Video
 
         public delegate AVIOContext* AvioAllocContextDelegate(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
-        public delegate void SwsFreeContextDelegate(SwsContext* swsContext);
+        public delegate AVFilter* AvfilterGetFilterByNameDelegate(string name);
 
-        public delegate SwsContext* SwsGetContextDelegate(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
+        public delegate AVFilterInOut* AvfilterInOutAllocDelegate();
 
-        public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
+        public delegate int AvfilterGraphCreateFilterDelegate(AVFilterContext** filt_ctx, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
+
+        public delegate AVFilterGraph* AvfilterGraphAlllocDelegate();
+
+        public delegate void AvfilterGraphFreeDelegate(AVFilterGraph** graph);
+
+        public delegate int AvfilterGraphParsePtrDelegate(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
+
+        public delegate int AvfilterGraphConfigDelegate(AVFilterGraph* graphctx, void* log_ctx);
+
+        public delegate int AvbufferSrcAddFrameFlagsDelegate(AVFilterContext* buffer_src, AVFrame* frame, int flags);
+
+        public delegate int AvbufferSinkGetFrameDelegate(AVFilterContext* ctx, AVFrame* frame);
 
         #endregion
 
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
-        public AvImageFillArraysDelegate av_image_fill_arrays;
-        public AvImageGetBufferSizeDelegate av_image_get_buffer_size;
+        public AvFrameUnrefDelegate av_frame_unref;
+        public AvStrDupDelegate av_strdup;
         public AvMallocDelegate av_malloc;
         public AvPacketAllocDelegate av_packet_alloc;
         public AvPacketFreeDelegate av_packet_free;
@@ -73,8 +85,14 @@ namespace osu.Framework.Graphics.Video
         public AvformatFindStreamInfoDelegate avformat_find_stream_info;
         public AvformatOpenInputDelegate avformat_open_input;
         public AvioAllocContextDelegate avio_alloc_context;
-        public SwsFreeContextDelegate sws_freeContext;
-        public SwsGetContextDelegate sws_getContext;
-        public SwsScaleDelegate sws_scale;
+        public AvfilterGetFilterByNameDelegate avfilter_get_by_name;
+        public AvfilterInOutAllocDelegate avfilter_inout_alloc;
+        public AvfilterGraphCreateFilterDelegate avfilter_graph_create_filter;
+        public AvfilterGraphParsePtrDelegate avfilter_graph_parse_ptr;
+        public AvfilterGraphConfigDelegate avfilter_graph_config;
+        public AvfilterGraphAlllocDelegate avfilter_graph_alloc;
+        public AvfilterGraphFreeDelegate avfilter_graph_free;
+        public AvbufferSrcAddFrameFlagsDelegate av_buffersrc_add_frame_flags;
+        public AvbufferSinkGetFrameDelegate av_buffersink_get_frame;
     }
 }
