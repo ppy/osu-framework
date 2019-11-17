@@ -44,7 +44,7 @@ namespace osu.Framework.Platform.Windows
         {
             timePeriod.Active = true;
 
-            Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
+            _ = Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated();
         }
 
@@ -52,7 +52,7 @@ namespace osu.Framework.Platform.Windows
         {
             timePeriod.Active = false;
 
-            Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
+            _ = Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated();
         }
     }

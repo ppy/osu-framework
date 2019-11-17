@@ -158,7 +158,7 @@ namespace osu.Framework.Audio.Track
                 currentAmplitudes.RightChannel = rightChannel;
 
                 float[] tempFrequencyData = new float[256];
-                Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
+                _ = Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
                 currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
             }
             else
