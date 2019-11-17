@@ -14,8 +14,8 @@ namespace osu.Framework.iOS.Backends
     /// </summary>
     public class IOSBackendProvider : IBackendProvider
     {
-        public IAudioBackend CreateAudio() => new BassAudioBackend();
+        public IAudioBackend CreateAudioBackend() => new BassAudioBackend();
 
-        public IVideoBackend CreateVideo() => new IOSVideoBackend();
+        public IVideoBackend CreateVideoBackend() => new IOSVideoBackend();
     }
 }

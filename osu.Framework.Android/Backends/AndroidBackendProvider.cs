@@ -14,8 +14,8 @@ namespace osu.Framework.Android.Backends
     /// </summary>
     public class AndroidBackendProvider : IBackendProvider
     {
-        public IAudioBackend CreateAudio() => new BassAudioBackend();
+        public IAudioBackend CreateAudioBackend() => new BassAudioBackend();
 
-        public IVideoBackend CreateVideo() => new AndroidVideoBackend();
+        public IVideoBackend CreateVideoBackend() => new AndroidVideoBackend();
     }
 }
