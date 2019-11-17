@@ -198,7 +198,7 @@ namespace osu.Framework.Bindables
                 if (MinValue.CompareTo(MaxValue) > 0)
                 {
                     throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
+                        nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
                 }
             }
 

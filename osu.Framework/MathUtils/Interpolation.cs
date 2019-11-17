@@ -27,9 +27,9 @@ namespace osu.Framework.MathUtils
         public static double Damp(double start, double final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)
-                throw new ArgumentOutOfRangeException($"{nameof(@base)} has to lie in [0,1], but is {@base}.", nameof(@base));
+                throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
             if (exponent < 0)
-                throw new ArgumentOutOfRangeException($"{nameof(exponent)} has to be bigger than 0, but is {exponent}.", nameof(exponent));
+                throw new ArgumentOutOfRangeException(nameof(exponent), $"{nameof(exponent)} has to be bigger than 0, but is {exponent}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
