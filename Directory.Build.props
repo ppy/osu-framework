@@ -18,6 +18,10 @@
       <PackagePath>icon.png</PackagePath>
     </None>
   </ItemGroup>
+  <ItemGroup Label="Code Analysis">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.7" PrivateAssets="All" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeAnalysis\BannedSymbols.txt" />
+  </ItemGroup>
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
