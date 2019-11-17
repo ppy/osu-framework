@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
     /// Track native memory allocations via <see cref="GlobalStatistics"/>.
     /// Also adds memory pressure automatically.
     /// </summary>
-    public class NativeMemoryTracker
+    public static class NativeMemoryTracker
     {
         /// <summary>
         /// Add new tracked native memory.
