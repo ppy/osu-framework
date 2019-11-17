@@ -43,6 +43,8 @@
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.6.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.115" />
+    <PackageReference Include="Veldrid" Version="4.7.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
