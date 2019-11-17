@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="IBindable.Disabled"/> changes.
+    /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled"/> changes.
     /// </summary>
     public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
@@ -26,7 +26,7 @@ namespace osu.Framework.Bindables
     }
 
     /// <summary>
-    /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="IBindable{T}.Disabled"/> and <see cref="IBindable{T}.Value"/> changes.
+    /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled"/> and <see cref="IBindable{T}.Value"/> changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
     public interface IBindable<T> : IBindable
@@ -42,7 +42,7 @@ namespace osu.Framework.Bindables
         T Value { get; }
 
         /// <summary>
-        /// The default value of this bindable. Used when querying <see cref="IBindable{T}.IsDefault"/>.
+        /// The default value of this bindable. Used when querying <see cref="IHasDefaultValue.IsDefault"/>.
         /// </summary>
         T Default { get; }
 
