@@ -13,7 +13,9 @@ namespace osu.Framework.Graphics.Shaders
         private static readonly List<Shader> all_shaders = new List<Shader>();
         private static readonly IUniformMapping[] global_properties;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static GlobalPropertyManager()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             var values = Enum.GetValues(typeof(GlobalProperty)).OfType<GlobalProperty>().ToArray();
 

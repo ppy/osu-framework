@@ -66,20 +66,14 @@ namespace osu.Framework.Platform.MacOS.Native
         private static readonly MethodInfo method_cocoa_to_ns_string = type_cocoa.GetMethod("ToNSString");
         private static readonly MethodInfo method_cocoa_get_string_constant = type_cocoa.GetMethod("GetStringConstant");
 
-        public static IntPtr AppKitLibrary;
-        public static IntPtr FoundationLibrary;
+        public static IntPtr AppKitLibrary = (IntPtr)type_cocoa.GetField("AppKitLibrary").GetValue(null);
+        public static IntPtr FoundationLibrary = (IntPtr)type_cocoa.GetField("FoundationLibrary").GetValue(null);
 
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
         public static extern bool CGCursorIsVisible();
 
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGEventSourceFlagsState")]
         public static extern ulong CGEventSourceFlagsState(int stateID);
-
-        static Cocoa()
-        {
-            AppKitLibrary = (IntPtr)type_cocoa.GetField("AppKitLibrary").GetValue(null);
-            FoundationLibrary = (IntPtr)type_cocoa.GetField("FoundationLibrary").GetValue(null);
-        }
 
         public static string FromNSString(IntPtr handle) => (string)method_cocoa_from_ns_string.Invoke(null, new object[] { handle });
 

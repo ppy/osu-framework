@@ -26,7 +26,9 @@ namespace osu.Framework.Tests.IO
         private static readonly string host;
         private static readonly IEnumerable<string> protocols;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static TestWebRequest()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
 

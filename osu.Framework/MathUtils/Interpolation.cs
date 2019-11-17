@@ -405,7 +405,9 @@ namespace osu.Framework.MathUtils
     {
         public static readonly InterpolationFunc<TValue> FUNCTION;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static Interpolation()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             const string interpolation_method = nameof(Interpolation.ValueAt);
 
