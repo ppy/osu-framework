@@ -37,7 +37,6 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 	highp float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
 
 	// Inside the shrunk rectangle
-
 	if (maxDist <= 0.0)
 		return maxDist;
 	// Outside of the shrunk rectangle

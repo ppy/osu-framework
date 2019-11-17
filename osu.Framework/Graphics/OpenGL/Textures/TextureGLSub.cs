@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override TextureGL Native => parent.Native;
 
         public override int TextureId => parent.TextureId;
-        
         public override bool Loaded => parent.Loaded;
 
         public TextureGLSub(RectangleI bounds, TextureGLSingle parent)

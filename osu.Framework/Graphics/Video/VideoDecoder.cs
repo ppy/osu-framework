@@ -358,6 +358,7 @@ namespace osu.Framework.Graphics.Video
             {
                 stream = formatContext->streams[i];
 
+                // The video shader only works on YUV420P pixel format
                 if (stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P)
                     useFilter = true;
                 else useFilter = false;

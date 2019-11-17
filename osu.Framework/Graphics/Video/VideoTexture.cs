@@ -14,7 +14,6 @@ namespace osu.Framework.Graphics.Video
     internal unsafe class VideoTexture : TextureGLSingle
     {
         private List<int> textureIds;
-
         public int[] TextureIds => textureIds.ToArray();
 
         public VideoTexture(int width, int height) :

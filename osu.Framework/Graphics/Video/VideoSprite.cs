@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Video
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO_ROUNDED);
             decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
             decoder.Looping = Loop;
-            State.BindTo(decoder.State);    
+            State.BindTo(decoder.State);
             decoder.StartDecoding();
         }
 

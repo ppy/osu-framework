@@ -31,12 +31,6 @@ namespace osu.Framework.Android.Graphics.Video
         public static extern byte* av_strdup(string s);
 
         [DllImport(lib_avutil)]
-        public static extern int av_image_fill_arrays(ref byte_ptrArray4 dst_data, ref int_array4 dst_linesize, byte* src, AVPixelFormat pix_fmt, int width, int height, int align);
-
-        [DllImport(lib_avutil)]
-        public static extern int av_image_get_buffer_size(AVPixelFormat pix_fmt, int width, int height, int align);
-
-        [DllImport(lib_avutil)]
         public static extern void* av_malloc(ulong size);
 
         [DllImport(lib_avcodec)]
@@ -121,8 +115,6 @@ namespace osu.Framework.Android.Graphics.Video
             av_frame_free = av_frame_free,
             av_frame_unref = av_frame_unref,
             av_strdup = av_strdup,
-            av_image_fill_arrays = av_image_fill_arrays,
-            av_image_get_buffer_size = av_image_get_buffer_size,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
             av_packet_free = av_packet_free,
