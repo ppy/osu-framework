@@ -316,7 +316,7 @@ namespace osu.Framework.Audio
         {
             try
             {
-                if (AudioDevice.Value == string.Empty)
+                if (string.IsNullOrEmpty(AudioDevice.Value))
                 {
                     // use default device
                     var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
