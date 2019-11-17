@@ -205,7 +205,7 @@ namespace osu.Framework.Testing
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
 
-                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
+                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
                     }
                 }
             }

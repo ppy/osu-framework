@@ -385,7 +385,7 @@ namespace osu.Framework.Platform
         /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
         public async Task<Image<Rgba32>> TakeScreenshotAsync()
         {
-            if (Window == null) throw new NullReferenceException(nameof(Window));
+            if (Window == null) throw new InvalidOperationException($"{nameof(Window)} has not been set!");
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {

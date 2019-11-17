@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence(T origin)
         {
             if (origin == null)
-                throw new NullReferenceException($"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
+                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
 
             this.origin = origin;
             startTime = currentTime = lastEndTime = origin.TransformStartTime;

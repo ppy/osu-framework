@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
             BaseName = FileSafety.FilenameStrip(baseName);
             BasePath = LocateBasePath();
             if (BasePath == null)
-                throw new NullReferenceException(nameof(BasePath));
+                throw new InvalidOperationException($"{nameof(BasePath)} not correctly initialized!");
         }
 
         /// <summary>

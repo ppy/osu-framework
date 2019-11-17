@@ -65,7 +65,7 @@ namespace osu.Framework.Android
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
-                throw new Exception("Can't load egl, aborting", e);
+                throw new InvalidOperationException("Can't load egl, aborting", e);
             }
         }
 

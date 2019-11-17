@@ -144,7 +144,7 @@ namespace osu.Framework.Allocation
                         if (allowValueTypes)
                             return;
 
-                        throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
+                        throw new InvalidOperationException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
                     }
 
                     var cacheInfo = new CacheInfo(info.Name ?? attribute.Name);
