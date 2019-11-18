@@ -279,6 +279,7 @@ namespace osu.Framework.IO.File
 
         public static string GetExtension(string filename) => Path.GetExtension(filename)?.Trim('.').ToLower();
 
+        [Obsolete("There's no longer MAX_PATH on .NET Core.")] // can be removed 20200518
         public static int GetMaxPathLength(string directory)
         {
             int highestPathLength = directory.Length;
@@ -299,9 +300,11 @@ namespace osu.Framework.IO.File
             return highestPathLength;
         }
 
+        [Obsolete("osu!Framework shouldn't be aware of the concept 'storyboard'.")] // can be removed 20200518
         public static string CleanStoryboardFilename(string filename) => PathStandardise(filename.Trim('"'));
 
         //This is better than encoding as it doesn't check for origin specific data or remove invalid chars.
+        [Obsolete("Do a span copy if you do want unverified conversion.")] // can be removed 20200518
         public static unsafe string RawBytesToString(byte[] encoded)
         {
             if (encoded.Length == 0)
