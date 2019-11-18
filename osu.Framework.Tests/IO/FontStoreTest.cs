@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.IO
         public void OneTimeSetUp()
         {
             storage = new TemporaryNativeStorage("fontstore-test");
-            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly.Location), "Resources.Fonts.OpenSans");
+            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources.Fonts.OpenSans");
 
             storage.GetFullPath("./", true);
         }
