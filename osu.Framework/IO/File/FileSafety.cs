@@ -60,8 +60,8 @@ namespace osu.Framework.IO.File
 
         public static bool FileMove(string src, string dest, bool overwrite = true)
         {
-            src = PathSanitise(src);
-            dest = PathSanitise(dest);
+            src = Path.GetFullPath(src);
+            dest = Path.GetFullPath(dest);
             if (src == dest)
                 return true; //no move necessary
 
@@ -90,6 +90,7 @@ namespace osu.Framework.IO.File
         /// <summary>
         /// Converts all slashes and backslashes to OS-specific directory separator characters. Useful for sanitising user input.
         /// </summary>
+        [Obsolete("Path.GetFullPath always normalizes the path.")] // can be removed 20200518
         public static string PathSanitise(string path) => path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace osu.Framework.IO.File
         [Obsolete("The method is Windows-only.")] // can be removed 20200518
         public static bool FileDeleteOnReboot(string filename)
         {
-            filename = PathSanitise(filename);
+            filename = Path.GetFullPath(filename);
 
             try
             {
@@ -153,7 +154,7 @@ namespace osu.Framework.IO.File
         /// <returns>True if deletion was successful by any means, or the file didn't exist.</returns>
         public static bool FileDelete(string filename)
         {
-            filename = PathSanitise(filename);
+            filename = Path.GetFullPath(filename);
 
             if (!System.IO.File.Exists(filename)) return true;
 
@@ -212,8 +213,8 @@ namespace osu.Framework.IO.File
 
         public static void RecursiveMove(string oldDirectory, string newDirectory)
         {
-            oldDirectory = PathSanitise(oldDirectory);
-            newDirectory = PathSanitise(newDirectory);
+            oldDirectory = Path.GetFullPath(oldDirectory);
+            newDirectory = Path.GetFullPath(newDirectory);
 
             if (oldDirectory == newDirectory)
                 return;
