@@ -11,6 +11,7 @@ namespace osu.Framework.IO.File
 {
     public static class FileSafety
     {
+        [Obsolete("There's no longer MAX_PATH on .NET Core.")] // can be removed 20200518
         public const int MAX_PATH_LENGTH = 248;
 
         public const string CLEANUP_DIRECTORY = @"_cleanup";
@@ -108,7 +109,7 @@ namespace osu.Framework.IO.File
             FailIfNotTrackable = 32,
         }
 
-        internal static class NativeMethods
+        internal static class NativeMethods // can be removed 20200518
         {
             [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern bool MoveFileEx(
@@ -117,6 +118,7 @@ namespace osu.Framework.IO.File
                 MoveFileFlags dwFlags);
         }
 
+        [Obsolete("The method is Windows-only.")] // can be removed 20200518
         public static bool FileDeleteOnReboot(string filename)
         {
             filename = PathSanitise(filename);
