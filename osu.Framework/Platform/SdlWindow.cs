@@ -223,6 +223,11 @@ namespace osu.Framework.Platform
 
             implementation = new Sdl2Window(Title, (int)position.X, (int)position.Y, windowWidth, windowHeight, flags, false);
 
+            // force a refresh of the size and position now that we can calculate the scale
+            scale.Invalidate();
+            InternalSize = internalSize;
+            Position = position;
+
             implementation.MouseDown += OnMouseDown;
             implementation.MouseUp += OnMouseUp;
             implementation.MouseMove += OnMouseMove;
