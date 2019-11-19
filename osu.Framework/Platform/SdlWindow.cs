@@ -17,7 +17,7 @@ namespace osu.Framework.Platform
 
         #region Internal Properties
 
-        private IntPtr handle => implementation?.SdlWindowHandle ?? IntPtr.Zero;
+        internal IntPtr SdlWindowHandle => implementation?.SdlWindowHandle ?? IntPtr.Zero;
 
         private readonly Cached<float> scale = new Cached<float>();
 
@@ -28,9 +28,9 @@ namespace osu.Framework.Platform
                 if (scale.IsValid)
                     return scale.Value;
 
-                var borders = Sdl2Functions.SDL_GetWindowBordersSize(handle);
+                var borders = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
                 float realWidth = implementation.Width - borders.TotalHorizontal;
-                float scaledWidth = Sdl2Functions.SDL_GL_GetDrawableSize(handle).X;
+                float scaledWidth = Sdl2Functions.SDL_GL_GetDrawableSize(SdlWindowHandle).X;
                 scale.Value = scaledWidth / realWidth;
                 return scale.Value;
             }
@@ -89,7 +89,15 @@ namespace osu.Framework.Platform
 
         public Vector2 InternalSize
         {
-            get => implementation == null ? internalSize : new Vector2(implementation.Width, implementation.Height);
+            get
+            {
+                if (implementation == null)
+                    return internalSize;
+
+                var padding = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
+                var unscaled = new Vector2(implementation.Width - padding.TotalHorizontal, implementation.Height - padding.TotalVertical);
+                return unscaled * Scale;
+            }
             set
             {
                 internalSize = value;
@@ -97,9 +105,11 @@ namespace osu.Framework.Platform
                 if (implementation == null)
                     return;
 
-                var padding = Sdl2Functions.SDL_GetWindowBordersSize(handle);
-                implementation.Width = (int)(internalSize.X + padding.TotalHorizontal);
-                implementation.Height = (int)(internalSize.Y + padding.TotalVertical);
+                var padding = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
+                float scaledWidth = internalSize.X + padding.TotalHorizontal;
+                float scaledHeight = internalSize.Y + padding.TotalVertical;
+                implementation.Width = (int)(scaledWidth / Scale);
+                implementation.Height = (int)(scaledHeight / Scale);
             }
         }
 

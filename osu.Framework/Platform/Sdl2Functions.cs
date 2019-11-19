@@ -35,5 +35,12 @@ namespace osu.Framework.Platform
             s_glGetWindowBordersSize(window, &top, &left, &bottom, &right);
             return new MarginPadding { Top = top, Left = left, Bottom = bottom, Right = right };
         }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int SDL_GL_GetSwapInterval_t();
+
+        private static readonly SDL_GL_GetSwapInterval_t s_gl_getSwapInterval = Sdl2Native.LoadFunction<SDL_GL_GetSwapInterval_t>("SDL_GL_GetSwapInterval");
+
+        public static int SDL_GL_GetSwapInterval() => s_gl_getSwapInterval();
     }
 }

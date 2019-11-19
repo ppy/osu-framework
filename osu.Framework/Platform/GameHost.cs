@@ -315,26 +315,23 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
-            // DrawThread currently disabled for window refactor
-            if (NewWindow != null)
-                return;
+            if (Window != null)
+                Window.MakeCurrent();
+            else
+                NewWindow?.MakeCurrent();
 
-            Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+            Vector2 size = Window == null ? NewWindow.InternalSize.Value.ToOsuTK() : new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
+            GLWrapper.Reset(size);
         }
 
         private long lastDrawFrameId;
 
         protected virtual void DrawFrame()
         {
-            // DrawThread currently disabled for window refactor
-            if (NewWindow != null)
-                return;
-
             if (Root == null)
                 return;
 
@@ -350,7 +347,10 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                    {
+                        Vector2 size = Window == null ? NewWindow.InternalSize.Value.ToOsuTK() : new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
+                        GLWrapper.Reset(size);
+                    }
 
                     if (!bypassFrontToBackPass.Value)
                     {
@@ -386,12 +386,20 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                Window.SwapBuffers();
-
-                if (Window.VSync == VSyncMode.On)
-                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                    // we will likely want to give the user control over this in the future as an advanced setting.
-                    GL.Finish();
+                if (Window != null)
+                {
+                    Window.SwapBuffers();
+                    if (Window.VSync == VSyncMode.On)
+                        // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                        // we will likely want to give the user control over this in the future as an advanced setting.
+                        GL.Finish();
+                }
+                else if (NewWindow != null)
+                {
+                    NewWindow.SwapBuffers();
+                    if (NewWindow.VerticalSync)
+                        GL.Finish();
+                }
             }
         }
 
@@ -835,9 +843,15 @@ namespace osu.Framework.Platform
 
         private void setVSyncMode()
         {
-            if (Window == null) return;
+            if (Window == null && NewWindow == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            DrawThread.Scheduler.Add(() =>
+            {
+                if (Window != null)
+                    Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off;
+                else if (NewWindow != null)
+                    NewWindow.VerticalSync = frameSyncMode.Value == FrameSync.VSync;
+            });
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

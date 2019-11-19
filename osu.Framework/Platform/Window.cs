@@ -11,14 +11,21 @@ namespace osu.Framework.Platform
 {
     public class Window
     {
-        private readonly IWindowBackend implementation;
+        private readonly IWindowBackend windowBackend;
+        private readonly IGraphicsBackend graphicsBackend;
 
         #region Properties
 
         public string Title
         {
-            get => implementation.Title;
-            set => implementation.Title = value;
+            get => windowBackend.Title;
+            set => windowBackend.Title = value;
+        }
+
+        public bool VerticalSync
+        {
+            get => graphicsBackend.VerticalSync;
+            set => graphicsBackend.VerticalSync = value;
         }
 
         #endregion
@@ -98,20 +105,21 @@ namespace osu.Framework.Platform
 
         #region Constructors
 
-        public Window(IWindowBackend implementation)
+        public Window(IWindowBackend windowBackend, IGraphicsBackend graphicsBackend)
         {
-            this.implementation = implementation;
+            this.windowBackend = windowBackend;
+            this.graphicsBackend = graphicsBackend;
 
             Position.ValueChanged += position_ValueChanged;
             InternalSize.ValueChanged += internalSize_ValueChanged;
 
             CursorState.ValueChanged += evt =>
             {
-                implementation.CursorVisible = !evt.NewValue.HasFlag(Platform.CursorState.Hidden);
-                implementation.CursorConfined = evt.NewValue.HasFlag(Platform.CursorState.Confined);
+                this.windowBackend.CursorVisible = !evt.NewValue.HasFlag(Platform.CursorState.Hidden);
+                this.windowBackend.CursorConfined = evt.NewValue.HasFlag(Platform.CursorState.Confined);
             };
 
-            WindowState.ValueChanged += evt => implementation.WindowState = evt.NewValue;
+            WindowState.ValueChanged += evt => this.windowBackend.WindowState = evt.NewValue;
 
             Visible.ValueChanged += visible_ValueChanged;
 
@@ -138,31 +146,37 @@ namespace osu.Framework.Platform
 
         public void Create()
         {
-            implementation.Create();
+            windowBackend.Create();
 
-            implementation.Resized += implementation_Resized;
-            implementation.Moved += implementation_Moved;
-            implementation.Hidden += () => Visible.Value = false;
-            implementation.Shown += () => Visible.Value = true;
+            windowBackend.Resized += windowBackend_Resized;
+            windowBackend.Moved += windowBackend_Moved;
+            windowBackend.Hidden += () => Visible.Value = false;
+            windowBackend.Shown += () => Visible.Value = true;
 
-            implementation.FocusGained += () => focused.Value = true;
-            implementation.FocusLost += () => focused.Value = false;
-            implementation.MouseEntered += () => cursorInWindow.Value = true;
-            implementation.MouseLeft += () => cursorInWindow.Value = false;
+            windowBackend.FocusGained += () => focused.Value = true;
+            windowBackend.FocusLost += () => focused.Value = false;
+            windowBackend.MouseEntered += () => cursorInWindow.Value = true;
+            windowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
-            implementation.KeyDown += OnKeyDown;
-            implementation.KeyUp += OnKeyUp;
-            implementation.KeyTyped += OnKeyTyped;
-            implementation.MouseDown += OnMouseDown;
-            implementation.MouseUp += OnMouseUp;
-            implementation.MouseMove += OnMouseMove;
-            implementation.MouseWheel += OnMouseWheel;
-            implementation.DragDrop += OnDragDrop;
+            windowBackend.KeyDown += OnKeyDown;
+            windowBackend.KeyUp += OnKeyUp;
+            windowBackend.KeyTyped += OnKeyTyped;
+            windowBackend.MouseDown += OnMouseDown;
+            windowBackend.MouseUp += OnMouseUp;
+            windowBackend.MouseMove += OnMouseMove;
+            windowBackend.MouseWheel += OnMouseWheel;
+            windowBackend.DragDrop += OnDragDrop;
+
+            graphicsBackend.Initialise(windowBackend);
         }
 
-        public void Run() => implementation.Run();
+        public void Run() => windowBackend.Run();
 
-        public void Close() => implementation.Close();
+        public void Close() => windowBackend.Close();
+
+        public void SwapBuffers() => graphicsBackend.SwapBuffers();
+
+        public void MakeCurrent() => graphicsBackend.MakeCurrent();
 
         #endregion
 
@@ -170,7 +184,7 @@ namespace osu.Framework.Platform
 
         private void visible_ValueChanged(ValueChangedEvent<bool> evt)
         {
-            implementation.Visible = evt.NewValue;
+            windowBackend.Visible = evt.NewValue;
 
             if (evt.NewValue)
                 OnShown();
@@ -180,20 +194,20 @@ namespace osu.Framework.Platform
 
         private bool boundsChanging;
 
-        private void implementation_Resized()
+        private void windowBackend_Resized()
         {
             if (!boundsChanging)
             {
                 boundsChanging = true;
-                Position.Value = implementation.Position;
-                InternalSize.Value = implementation.InternalSize;
+                Position.Value = windowBackend.Position;
+                InternalSize.Value = windowBackend.InternalSize;
                 boundsChanging = false;
             }
 
             OnResized();
         }
 
-        private void implementation_Moved(Point point)
+        private void windowBackend_Moved(Point point)
         {
             if (!boundsChanging)
             {
@@ -211,7 +225,7 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            implementation.Position = evt.NewValue;
+            windowBackend.Position = evt.NewValue;
             boundsChanging = false;
         }
 
@@ -221,7 +235,7 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            implementation.InternalSize = evt.NewValue;
+            windowBackend.InternalSize = evt.NewValue;
             boundsChanging = false;
         }
 
