@@ -161,6 +161,7 @@ namespace osu.Framework.Platform
 
         #region IWindowBackend.Events
 
+        public event Action Update;
         public event Action Resized;
         public event Func<bool> CloseRequested;
         public event Action Closed;
@@ -184,6 +185,7 @@ namespace osu.Framework.Platform
 
         #region Event Invocation
 
+        protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized() => Resized?.Invoke();
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
@@ -247,6 +249,8 @@ namespace osu.Framework.Platform
 
                 foreach (var c in inputSnapshot.KeyCharPresses)
                     OnKeyTyped(c);
+
+                OnUpdate();
             }
         }
 

@@ -59,6 +59,8 @@ namespace osu.Framework.Platform
 
         #region Events
 
+        public event Action Update;
+
         public event Action Resized;
         public event Func<bool> CloseRequested;
         public event Action Closed;
@@ -82,6 +84,7 @@ namespace osu.Framework.Platform
 
         #region Event Invocation
 
+        protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized() => Resized?.Invoke();
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
@@ -158,6 +161,7 @@ namespace osu.Framework.Platform
             windowBackend.MouseEntered += () => cursorInWindow.Value = true;
             windowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
+            windowBackend.Update += OnUpdate;
             windowBackend.KeyDown += OnKeyDown;
             windowBackend.KeyUp += OnKeyUp;
             windowBackend.KeyTyped += OnKeyTyped;
