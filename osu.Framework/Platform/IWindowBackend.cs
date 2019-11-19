@@ -15,7 +15,8 @@ namespace osu.Framework.Platform
         string Title { get; set; }
         bool Visible { get; set; }
         Vector2 Position { get; set; }
-        Vector2 InternalSize { get; set; }
+        Vector2 Size { get; set; }
+        float Scale { get; }
         bool CursorVisible { get; set; }
         bool CursorConfined { get; set; }
         WindowState WindowState { get; set; }

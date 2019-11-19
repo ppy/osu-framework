@@ -4,7 +4,6 @@
 using System;
 using System.Numerics;
 using osu.Framework.Caching;
-using osu.Framework.Graphics;
 using Veldrid;
 using Veldrid.Sdl2;
 
@@ -12,6 +11,9 @@ namespace osu.Framework.Platform
 {
     public class SdlWindow : IWindowBackend
     {
+        private const int default_width = 1366;
+        private const int default_height = 768;
+
         private Sdl2Window implementation;
         private InputSnapshot inputSnapshot;
         private bool initialised;
@@ -19,23 +21,6 @@ namespace osu.Framework.Platform
         #region Internal Properties
 
         internal IntPtr SdlWindowHandle => implementation?.SdlWindowHandle ?? IntPtr.Zero;
-
-        private readonly Cached<float> scale = new Cached<float>();
-
-        internal float Scale
-        {
-            get
-            {
-                if (scale.IsValid)
-                    return scale.Value;
-
-                var borders = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
-                float realWidth = implementation.Width - borders.TotalHorizontal;
-                float scaledWidth = Sdl2Functions.SDL_GL_GetDrawableSize(SdlWindowHandle).X;
-                scale.Value = scaledWidth / realWidth;
-                return scale.Value;
-            }
-        }
 
         #endregion
 
@@ -88,31 +73,36 @@ namespace osu.Framework.Platform
             }
         }
 
-        private Vector2 internalSize = Vector2.Zero;
+        private Vector2 size = new Vector2(default_width, default_height);
 
-        public Vector2 InternalSize
+        public Vector2 Size
         {
-            get
-            {
-                if (implementation == null)
-                    return internalSize;
-
-                var padding = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
-                var unscaled = new Vector2(implementation.Width - padding.TotalHorizontal, implementation.Height - padding.TotalVertical);
-                return unscaled * Scale;
-            }
+            get => implementation == null ? size : new Vector2(implementation.Width, implementation.Height);
             set
             {
-                internalSize = value;
+                size = value;
 
                 if (implementation == null)
                     return;
 
-                var padding = Sdl2Functions.SDL_GetWindowBordersSize(SdlWindowHandle);
-                float scaledWidth = internalSize.X + padding.TotalHorizontal;
-                float scaledHeight = internalSize.Y + padding.TotalVertical;
-                implementation.Width = (int)(scaledWidth / Scale);
-                implementation.Height = (int)(scaledHeight / Scale);
+                implementation.Width = (int)value.X;
+                implementation.Height = (int)value.Y;
+            }
+        }
+
+        private readonly Cached<float> scale = new Cached<float>();
+
+        public float Scale
+        {
+            get
+            {
+                if (scale.IsValid)
+                    return scale.Value;
+
+                float realWidth = implementation.Width;
+                float scaledWidth = Sdl2Functions.SDL_GL_GetDrawableSize(SdlWindowHandle).X;
+                scale.Value = scaledWidth / realWidth;
+                return scale.Value;
             }
         }
 
@@ -224,16 +214,11 @@ namespace osu.Framework.Platform
                                     SDL_WindowFlags.AllowHighDpi |
                                     getWindowFlags(WindowState);
 
-            // for now we will guess the window size on creation
-            var defaultBorder = new MarginPadding { Horizontal = 5, Top = 20, Bottom = 5 };
-            int windowWidth = (int)(internalSize.X + defaultBorder.TotalHorizontal);
-            int windowHeight = (int)(internalSize.Y + defaultBorder.TotalVertical);
-
-            implementation = new Sdl2Window(Title, (int)position.X, (int)position.Y, windowWidth, windowHeight, flags, false);
+            implementation = new Sdl2Window(Title, (int)position.X, (int)position.Y, (int)size.X, (int)size.Y, flags, false);
 
             // force a refresh of the size and position now that we can calculate the scale
             scale.Invalidate();
-            InternalSize = internalSize;
+            Size = size;
             Position = position;
 
             implementation.MouseDown += OnMouseDown;

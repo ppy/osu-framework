@@ -50,7 +50,9 @@ namespace osu.Framework.Platform
 
         public Bindable<Vector2> Position { get; } = new Bindable<Vector2>();
 
-        public Bindable<Vector2> InternalSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> Size { get; } = new Bindable<Vector2>();
+
+        public float Scale => windowBackend.Scale;
 
         public Bindable<WindowState> WindowState { get; } = new Bindable<WindowState>();
 
@@ -130,7 +132,7 @@ namespace osu.Framework.Platform
             this.graphicsBackend = graphicsBackend;
 
             Position.ValueChanged += position_ValueChanged;
-            InternalSize.ValueChanged += internalSize_ValueChanged;
+            Size.ValueChanged += size_ValueChanged;
 
             CursorState.ValueChanged += evt =>
             {
@@ -225,7 +227,7 @@ namespace osu.Framework.Platform
             {
                 boundsChanging = true;
                 Position.Value = windowBackend.Position;
-                InternalSize.Value = windowBackend.InternalSize;
+                Size.Value = windowBackend.Size;
                 boundsChanging = false;
             }
 
@@ -254,13 +256,13 @@ namespace osu.Framework.Platform
             boundsChanging = false;
         }
 
-        private void internalSize_ValueChanged(ValueChangedEvent<Vector2> evt)
+        private void size_ValueChanged(ValueChangedEvent<Vector2> evt)
         {
             if (boundsChanging)
                 return;
 
             boundsChanging = true;
-            windowBackend.InternalSize = evt.NewValue;
+            windowBackend.Size = evt.NewValue;
             boundsChanging = false;
         }
 
@@ -284,7 +286,7 @@ namespace osu.Framework.Platform
             set
             {
                 Position.Value = new Vector2(value.X, value.Y);
-                InternalSize.Value = new Vector2(value.Width, value.Height);
+                Size.Value = new Vector2(value.Width, value.Height);
             }
         }
 
@@ -294,10 +296,10 @@ namespace osu.Framework.Platform
             set => Position.Value = value.ToSystemNumerics();
         }
 
-        public Size Size
+        Size INativeWindow.Size
         {
-            get => InternalSize.Value.ToSystemDrawingSize();
-            set => InternalSize.Value = value.ToSystemNumerics();
+            get => Size.Value.ToSystemDrawingSize();
+            set => Size.Value = value.ToSystemNumerics();
         }
 
         public int X
@@ -314,30 +316,30 @@ namespace osu.Framework.Platform
 
         public int Width
         {
-            get => (int)InternalSize.Value.X;
-            set => InternalSize.Value = new Vector2(value, InternalSize.Value.Y);
+            get => (int)Size.Value.X;
+            set => Size.Value = new Vector2(value, Size.Value.Y);
         }
 
         public int Height
         {
-            get => (int)InternalSize.Value.Y;
-            set => InternalSize.Value = new Vector2(InternalSize.Value.X, value);
+            get => (int)Size.Value.Y;
+            set => Size.Value = new Vector2(Size.Value.X, value);
         }
 
         public Rectangle ClientRectangle
         {
-            get => new Rectangle(Position.Value.ToSystemDrawingPoint(), InternalSize.Value.ToSystemDrawingSize());
+            get => new Rectangle(Position.Value.ToSystemDrawingPoint(), (Size.Value * Scale).ToSystemDrawingSize());
             set
             {
                 Position.Value = new Vector2(value.X, value.Y);
-                InternalSize.Value = new Vector2(value.Width, value.Height);
+                Size.Value = new Vector2(value.Width / Scale, value.Height / Scale);
             }
         }
 
-        public Size ClientSize
+        Size INativeWindow.ClientSize
         {
-            get => InternalSize.Value.ToSystemDrawingSize();
-            set => InternalSize.Value = value.ToSystemNumerics();
+            get => (Size.Value * Scale).ToSystemDrawingSize();
+            set => Size.Value = value.ToSystemNumerics() / Scale;
         }
 
         public MouseCursor Cursor { get; set; }
