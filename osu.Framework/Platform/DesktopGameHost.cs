@@ -73,6 +73,12 @@ namespace osu.Framework.Platform
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
+            if (NewWindow != null)
+            {
+                // TODO: SDL input
+                return new InputHandler[0];
+            }
+
             var defaultEnabled = new InputHandler[]
             {
                 new OsuTKMouseHandler(),
