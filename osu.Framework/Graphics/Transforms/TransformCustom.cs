@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Transforms
         private readonly InterpolationFunc<TValue> interpolationFunc;
 
         /// <summary>
-        /// Creates a new instance operating on a property or field of <see cref="T"/>. The property or field is
+        /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
         /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
         /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
         /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
