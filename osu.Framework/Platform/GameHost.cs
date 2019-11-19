@@ -526,8 +526,11 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
+                NewWindow = CreateWindow();
+
                 if (NewWindow != null)
                 {
+                    NewWindow.Title = $@"osu!framework (running ""{Name}"")";
                     NewWindow.Create();
                     NewWindow.InternalSize.Value = new System.Numerics.Vector2(1024, 768);
                 }
