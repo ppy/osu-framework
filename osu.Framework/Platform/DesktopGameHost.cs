@@ -75,8 +75,10 @@ namespace osu.Framework.Platform
         {
             if (NewWindow != null)
             {
-                // TODO: SDL input
-                return new InputHandler[0];
+                return new InputHandler[]
+                {
+                    new Sdl2KeyboardHandler(),
+                };
             }
 
             var defaultEnabled = new InputHandler[]

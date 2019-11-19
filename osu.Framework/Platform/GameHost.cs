@@ -49,9 +49,11 @@ namespace osu.Framework.Platform
         public IWindow Window { get; protected set; }
 
         /// <summary>
-        /// Will eventually replace <see cref="GameHost.Window"/> and made public.
+        /// Will eventually replace <see cref="GameHost.Window"/>.
         /// </summary>
-        protected Window NewWindow { get; set; }
+        internal Window NewWindow { get; set; }
+
+        protected virtual Window CreateWindow() => null;
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -465,6 +467,7 @@ namespace osu.Framework.Platform
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
             ExecutionState = ExecutionState.Stopping;
             Window?.Close();
+            NewWindow?.Close();
             stopAllThreads();
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
@@ -523,8 +526,11 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                NewWindow.InternalSize.Value = new System.Numerics.Vector2(1024, 768);
-                NewWindow.Create();
+                if (NewWindow != null)
+                {
+                    NewWindow.Create();
+                    NewWindow.InternalSize.Value = new System.Numerics.Vector2(1024, 768);
+                }
 
                 ExecutionState = ExecutionState.Running;
 
@@ -561,7 +567,20 @@ namespace osu.Framework.Platform
                 {
                     if (NewWindow != null)
                     {
-                        // NewWindow.Create();
+                        NewWindow.CloseRequested += OnExitRequested;
+                        NewWindow.Closed += OnExited;
+
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        NewWindow.Closed += stopAllThreads;
+
+                        NewWindow.Update += () =>
+                        {
+                            inputPerformanceCollectionPeriod?.Dispose();
+                            InputThread.RunUpdate();
+                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                        };
+
                         NewWindow.Run();
                     }
                     else if (Window != null)

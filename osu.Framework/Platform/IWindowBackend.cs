@@ -24,6 +24,7 @@ namespace osu.Framework.Platform
 
         #region Events
 
+        event Action Update;
         event Action Resized;
         event Func<bool> CloseRequested;
         event Action Closed;
