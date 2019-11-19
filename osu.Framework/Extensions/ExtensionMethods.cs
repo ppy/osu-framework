@@ -8,8 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,23 +22,6 @@ namespace osu.Framework.Extensions
     /// </summary>
     public static class ExtensionMethods
     {
-        /// <summary>
-        /// Searches for an element that matches the conditions defined by the specified predicate.
-        /// </summary>
-        /// <param name="list">The list to take values</param>
-        /// <param name="match">The predicate that needs to be matched.</param>
-        /// <param name="startIndex">The index to start conditional search.</param>
-        /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
-        [Obsolete("Use LINQ instead.")] // can be removed 20200516
-        public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
-        {
-            if (!list.IsValidIndex(startIndex)) return default;
-
-            int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
-
-            return list.ElementAtOrDefault(val);
-        }
-
         /// <summary>
         /// Adds the given item to the list according to standard sorting rules. Do not use on unsorted lists.
         /// </summary>
@@ -77,16 +58,6 @@ namespace osu.Framework.Extensions
         /// <param name="lookup">The lookup key.</param>
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
-
-        [Obsolete("Do the boundary comparison yourself to help JIT optimizing.")] // can be removed 20200516
-        public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
-
-        /// <summary>
-        /// Compares every item in list to given list.
-        /// </summary>
-        [Obsolete("Use SequenceEqual instead.")] // can be removed 20200516
-        public static bool CompareTo<T>(this List<T> list, List<T> list2)
-            => list.SequenceEqual(list2);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
@@ -180,28 +151,6 @@ namespace osu.Framework.Extensions
         public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
         public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
-
-        [Obsolete("Why not using StreamWriter?")] // can be removed 20200516
-        public static void WriteLineExplicit(this Stream s, string str = @"")
-        {
-            byte[] data = Encoding.UTF8.GetBytes($"{str}\r\n");
-            s.Write(data, 0, data.Length);
-        }
-
-        [Obsolete("SecureString itself is obsoleted.")] // can be removed 20200513
-        public static string UnsecureRepresentation(this SecureString s)
-        {
-            IntPtr bstr = Marshal.SecureStringToBSTR(s);
-
-            try
-            {
-                return Marshal.PtrToStringBSTR(bstr);
-            }
-            finally
-            {
-                Marshal.FreeBSTR(bstr);
-            }
-        }
 
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
