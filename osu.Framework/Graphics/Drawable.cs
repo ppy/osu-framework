@@ -1234,6 +1234,7 @@ namespace osu.Framework.Graphics
             }
         }
 
+        public event Action<bool> PresenceChanged;
         private float alpha = 1.0f;
 
         /// <summary>
@@ -1253,7 +1254,10 @@ namespace osu.Framework.Graphics
                 alpha = value;
 
                 if (IsPresent != wasPresent)
+                {
                     Invalidate(Invalidation.Colour | Invalidation.Presence);
+                    PresenceChanged?.Invoke(IsPresent);
+                }
                 else
                     Invalidate(Invalidation.Colour);
             }

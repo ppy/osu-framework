@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osuTK;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -43,6 +44,11 @@ namespace osu.Framework.Graphics
         /// The parent of this drawable in the scene graph.
         /// </summary>
         CompositeDrawable Parent { get; }
+
+        /// <summary>
+        /// Notifies subscribers that IsPresent value was changed.
+        /// </summary>
+        event Action<bool> PresenceChanged;
 
         /// <summary>
         /// Whether this drawable is present for any sort of user-interaction.
