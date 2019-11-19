@@ -15,6 +15,8 @@ namespace osu.Framework.Platform
 {
     public class PassthroughGraphicsBackend : IGraphicsBackend
     {
+        private bool initialised;
+
         internal IntPtr SdlWindowHandle;
         internal IntPtr Context;
 
@@ -32,6 +34,11 @@ namespace osu.Framework.Platform
 
         public void Initialise(IWindowBackend windowBackend)
         {
+            if (initialised)
+                return;
+
+            initialised = true;
+
             if (!(windowBackend is SdlWindow sdlWindowBackend))
                 return;
 

@@ -21,7 +21,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -47,13 +46,6 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; protected set; }
-
-        /// <summary>
-        /// Will eventually replace <see cref="GameHost.Window"/>.
-        /// </summary>
-        internal Window NewWindow { get; set; }
-
-        protected virtual Window CreateWindow() => null;
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -295,9 +287,7 @@ namespace osu.Framework.Platform
 
             frameCount++;
 
-            if (NewWindow != null)
-                Root.Size = NewWindow.InternalSize.Value.ToOsuTK();
-            else if (Window == null)
+            if (Window == null)
             {
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
@@ -317,17 +307,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
-            if (Window != null)
-                Window.MakeCurrent();
-            else
-                NewWindow?.MakeCurrent();
-
+            Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
             setVSyncMode();
 
-            Vector2 size = Window == null ? NewWindow.InternalSize.Value.ToOsuTK() : new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
-            GLWrapper.Reset(size);
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
         }
 
         private long lastDrawFrameId;
@@ -349,10 +334,7 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                    {
-                        Vector2 size = Window == null ? NewWindow.InternalSize.Value.ToOsuTK() : new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
-                        GLWrapper.Reset(size);
-                    }
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                     if (!bypassFrontToBackPass.Value)
                     {
@@ -388,20 +370,12 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                if (Window != null)
-                {
-                    Window.SwapBuffers();
-                    if (Window.VSync == VSyncMode.On)
-                        // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                        // we will likely want to give the user control over this in the future as an advanced setting.
-                        GL.Finish();
-                }
-                else if (NewWindow != null)
-                {
-                    NewWindow.SwapBuffers();
-                    if (NewWindow.VerticalSync)
-                        GL.Finish();
-                }
+                Window.SwapBuffers();
+
+                if (Window.VSync == VSyncMode.On)
+                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                    // we will likely want to give the user control over this in the future as an advanced setting.
+                    GL.Finish();
             }
         }
 
@@ -467,7 +441,6 @@ namespace osu.Framework.Platform
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
             ExecutionState = ExecutionState.Stopping;
             Window?.Close();
-            NewWindow?.Close();
             stopAllThreads();
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
@@ -526,14 +499,8 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
-                NewWindow = CreateWindow();
-
-                if (NewWindow != null)
-                {
-                    NewWindow.Title = $@"osu!framework (running ""{Name}"")";
-                    NewWindow.Create();
-                    NewWindow.InternalSize.Value = new System.Numerics.Vector2(1024, 768);
-                }
+                if (Window is Window win)
+                    win.Initialise();
 
                 ExecutionState = ExecutionState.Running;
 
@@ -568,44 +535,33 @@ namespace osu.Framework.Platform
 
                 try
                 {
-                    if (NewWindow != null)
+                    if (Window != null)
                     {
-                        NewWindow.CloseRequested += OnExitRequested;
-                        NewWindow.Closed += OnExited;
-
-                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                        //to avoid GL operations running post-cleanup).
-                        NewWindow.Closed += stopAllThreads;
-
-                        NewWindow.Update += () =>
+                        if (Window is Window window)
                         {
-                            inputPerformanceCollectionPeriod?.Dispose();
-                            InputThread.RunUpdate();
-                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                        };
+                            window.CloseRequested += OnExitRequested;
+                            window.Closed += OnExited;
 
-                        NewWindow.Run();
-                    }
-                    else if (Window != null)
-                    {
-                        Window.KeyDown += window_KeyDown;
+                            window.Update += handleInput;
 
-                        Window.ExitRequested += OnExitRequested;
-                        Window.Exited += OnExited;
-
-                        Window.UpdateFrame += delegate
+                            window.Closed += stopAllThreads;
+                        }
+                        else
                         {
-                            inputPerformanceCollectionPeriod?.Dispose();
-                            InputThread.RunUpdate();
-                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                        };
+                            Window.KeyDown += window_KeyDown;
 
-                        Window.Closed += delegate
-                        {
-                            //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                            //to avoid GL operations running post-cleanup).
-                            stopAllThreads();
-                        };
+                            Window.ExitRequested += OnExitRequested;
+                            Window.Exited += OnExited;
+
+                            Window.UpdateFrame += (o, e) => handleInput();
+
+                            Window.Closed += delegate
+                            {
+                                //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                                //to avoid GL operations running post-cleanup).
+                                stopAllThreads();
+                            };
+                        }
 
                         Window.Run();
                     }
@@ -624,6 +580,13 @@ namespace osu.Framework.Platform
                 // Close the window and stop all threads
                 PerformExit(true);
             }
+        }
+
+        private void handleInput()
+        {
+            inputPerformanceCollectionPeriod?.Dispose();
+            InputThread.RunUpdate();
+            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
         /// <summary>
@@ -865,15 +828,9 @@ namespace osu.Framework.Platform
 
         private void setVSyncMode()
         {
-            if (Window == null && NewWindow == null) return;
+            if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() =>
-            {
-                if (Window != null)
-                    Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off;
-                else if (NewWindow != null)
-                    NewWindow.VerticalSync = frameSyncMode.Value == FrameSync.VSync;
-            });
+            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

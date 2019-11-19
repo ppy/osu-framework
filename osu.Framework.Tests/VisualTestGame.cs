@@ -32,11 +32,7 @@ namespace osu.Framework.Tests
         public override void SetHost(GameHost host)
         {
             base.SetHost(host);
-
-            if (host.Window != null)
-                host.Window.CursorState |= CursorState.Hidden;
-            else if (host.NewWindow != null)
-                host.NewWindow.CursorState.Value |= CursorState.Hidden;
+            host.Window.CursorState |= CursorState.Hidden;
         }
     }
 }

@@ -19,6 +19,7 @@ namespace osu.Framework.Platform
         bool CursorVisible { get; set; }
         bool CursorConfined { get; set; }
         WindowState WindowState { get; set; }
+        bool Exists { get; }
 
         #endregion
 
@@ -48,7 +49,7 @@ namespace osu.Framework.Platform
 
         #region Methods
 
-        void Create();
+        void Initialise();
         void Run();
         void Close();
 

@@ -3,6 +3,10 @@
 
 using TKVector2 = osuTK.Vector2;
 using SNVector2 = System.Numerics.Vector2;
+using SDPoint = System.Drawing.Point;
+using SDSize = System.Drawing.Size;
+using VWindowState = Veldrid.WindowState;
+using TKWindowState = osuTK.WindowState;
 
 namespace osu.Framework.Extensions
 {
@@ -16,5 +20,66 @@ namespace osu.Framework.Extensions
 
         public static SNVector2 ToSystemNumerics(this TKVector2 vec) =>
             new SNVector2(vec.X, vec.Y);
+
+        public static SNVector2 ToSystemNumerics(this SDSize size) =>
+            new SNVector2(size.Width, size.Height);
+
+        public static SNVector2 ToSystemNumerics(this SDPoint point) =>
+            new SNVector2(point.X, point.Y);
+
+        public static SDSize ToSystemDrawingSize(this SNVector2 vec) =>
+            new SDSize((int)vec.X, (int)vec.Y);
+
+        public static SDPoint ToSystemDrawingPoint(this SNVector2 vec) =>
+            new SDPoint((int)vec.X, (int)vec.Y);
+
+        public static TKWindowState ToOsuTK(this VWindowState state)
+        {
+            switch (state)
+            {
+                case VWindowState.Normal:
+                    return TKWindowState.Normal;
+
+                case VWindowState.FullScreen:
+                    return TKWindowState.Fullscreen;
+
+                case VWindowState.Maximized:
+                    return TKWindowState.Maximized;
+
+                case VWindowState.Minimized:
+                    return TKWindowState.Minimized;
+
+                case VWindowState.BorderlessFullScreen:
+                    // WARNING: not supported by osuTK.WindowState
+                    return TKWindowState.Fullscreen;
+
+                case VWindowState.Hidden:
+                    // WARNING: not supported by osuTK.WindowState
+                    return TKWindowState.Normal;
+            }
+
+            return TKWindowState.Normal;
+        }
+
+        public static VWindowState ToVeldrid(this TKWindowState state)
+        {
+            switch (state)
+            {
+                case TKWindowState.Normal:
+                    return VWindowState.Normal;
+
+                case TKWindowState.Minimized:
+                    return VWindowState.Minimized;
+
+                case TKWindowState.Maximized:
+                    return VWindowState.Maximized;
+
+                case TKWindowState.Fullscreen:
+                    return VWindowState.FullScreen;
+            }
+
+            // WARNING: some cases not supported by osuTK.WindowState
+            return VWindowState.Normal;
+        }
     }
 }

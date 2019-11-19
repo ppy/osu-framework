@@ -19,9 +19,10 @@ namespace osu.Framework.Platform.MacOS
         {
             base.SetupForRun();
             // Window = new MacOSGameWindow();
+            Window = new Window(new SdlWindow(), new PassthroughGraphicsBackend());
         }
 
-        protected override Window CreateWindow() => new Window(new SdlWindow(), new PassthroughGraphicsBackend());
+        // protected override Window CreateWindow() => new Window(new SdlWindow(), new PassthroughGraphicsBackend());
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 

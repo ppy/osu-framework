@@ -73,7 +73,7 @@ namespace osu.Framework.Platform
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            if (NewWindow != null)
+            if (Window is Window)
             {
                 return new InputHandler[]
                 {

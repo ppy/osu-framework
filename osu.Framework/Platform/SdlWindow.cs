@@ -14,6 +14,7 @@ namespace osu.Framework.Platform
     {
         private Sdl2Window implementation;
         private InputSnapshot inputSnapshot;
+        private bool initialised;
 
         #region Internal Properties
 
@@ -67,6 +68,8 @@ namespace osu.Framework.Platform
                     implementation.Visible = value;
             }
         }
+
+        public bool Exists => implementation?.Exists ?? false;
 
         private Vector2 position = Vector2.Zero;
 
@@ -209,8 +212,13 @@ namespace osu.Framework.Platform
 
         #region IWindowBackend.Methods
 
-        public void Create()
+        public void Initialise()
         {
+            if (initialised)
+                return;
+
+            initialised = true;
+
             SDL_WindowFlags flags = SDL_WindowFlags.OpenGL |
                                     SDL_WindowFlags.Resizable |
                                     SDL_WindowFlags.AllowHighDpi |
@@ -248,6 +256,9 @@ namespace osu.Framework.Platform
 
         public void Run()
         {
+            if (!initialised)
+                return;
+
             while (implementation.Exists)
             {
                 inputSnapshot = implementation.PumpEvents();
@@ -261,6 +272,9 @@ namespace osu.Framework.Platform
 
         public void Close()
         {
+            if (!initialised)
+                return;
+
             if (!OnCloseRequested())
                 implementation.Close();
         }

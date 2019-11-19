@@ -21,20 +21,20 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            if (host.NewWindow == null)
+            if (!(host.Window is Window window))
                 return false;
 
             Enabled.BindValueChanged(e =>
             {
                 if (e.NewValue)
                 {
-                    host.NewWindow.KeyDown += handleKeyboardEvent;
-                    host.NewWindow.KeyUp += handleKeyboardEvent;
+                    window.KeyDown += handleKeyboardEvent;
+                    window.KeyUp += handleKeyboardEvent;
                 }
                 else
                 {
-                    host.NewWindow.KeyDown -= handleKeyboardEvent;
-                    host.NewWindow.KeyUp -= handleKeyboardEvent;
+                    window.KeyDown -= handleKeyboardEvent;
+                    window.KeyUp -= handleKeyboardEvent;
                 }
             }, true);
 
