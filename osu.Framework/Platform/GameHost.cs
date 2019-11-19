@@ -21,6 +21,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -46,6 +47,11 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; protected set; }
+
+        /// <summary>
+        /// Will eventually replace <see cref="GameHost.Window"/> and made public.
+        /// </summary>
+        protected Window NewWindow { get; set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -287,7 +293,9 @@ namespace osu.Framework.Platform
 
             frameCount++;
 
-            if (Window == null)
+            if (NewWindow != null)
+                Root.Size = NewWindow.InternalSize.Value.ToOsuTK();
+            else if (Window == null)
             {
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
@@ -307,6 +315,10 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
+            // DrawThread currently disabled for window refactor
+            if (NewWindow != null)
+                return;
+
             Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
@@ -319,6 +331,10 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
+            // DrawThread currently disabled for window refactor
+            if (NewWindow != null)
+                return;
+
             if (Root == null)
                 return;
 
@@ -499,6 +515,9 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
+                NewWindow.InternalSize.Value = new System.Numerics.Vector2(1024, 768);
+                NewWindow.Create();
+
                 ExecutionState = ExecutionState.Running;
 
                 SetupConfig(game.GetFrameworkConfigDefaults());
@@ -532,7 +551,12 @@ namespace osu.Framework.Platform
 
                 try
                 {
-                    if (Window != null)
+                    if (NewWindow != null)
+                    {
+                        // NewWindow.Create();
+                        NewWindow.Run();
+                    }
+                    else if (Window != null)
                     {
                         Window.KeyDown += window_KeyDown;
 
