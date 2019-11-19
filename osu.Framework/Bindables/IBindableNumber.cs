@@ -28,12 +28,12 @@ namespace osu.Framework.Bindables
         T Precision { get; }
 
         /// <summary>
-        /// The minimum value of this bindable. <see cref="IBindableNumber{T}.Value"/> will never go below this value.
+        /// The minimum value of this bindable. <see cref="IBindable{T}.Value">Value</see> will never go below this value.
         /// </summary>
         T MinValue { get; }
 
         /// <summary>
-        /// The maximum value of this bindable. <see cref="IBindableNumber{T}"/> will never go above this value.
+        /// The maximum value of this bindable. <see cref="IBindable{T}.Value">Value</see> will never go above this value.
         /// </summary>
         T MaxValue { get; }
 

@@ -260,7 +260,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>

@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null);
 
@@ -89,8 +89,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null);
 
