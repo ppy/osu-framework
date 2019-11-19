@@ -20,7 +20,7 @@ namespace osu.Framework.IO.Stores
             string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName);
 
             // prefer the local file if it exists, else load from assembly cache.
-            assembly = System.IO.File.Exists(filePath) ? Assembly.LoadFrom(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
+            assembly = File.Exists(filePath) ? Assembly.LoadFrom(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
 
             prefix = Path.GetFileNameWithoutExtension(dllName);
         }
