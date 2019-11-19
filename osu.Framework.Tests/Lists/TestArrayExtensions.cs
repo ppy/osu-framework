@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions;
@@ -38,9 +39,7 @@ namespace osu.Framework.Tests.Lists
         public void TestEmptyJaggedToRectangular()
         {
             int[,] result = null;
-#pragma warning disable CA1825 // Avoid zero-length array allocations.
-            Assert.DoesNotThrow(() => result = new int[0][].ToRectangular()); // Not natural for the APi shape
-#pragma warning restore CA1825 // Avoid zero-length array allocations.
+            Assert.DoesNotThrow(() => result = Array.Empty<int[]>().ToRectangular());
             Assert.AreEqual(0, result.Length);
         }
 
