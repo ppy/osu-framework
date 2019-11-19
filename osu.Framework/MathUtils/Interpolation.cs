@@ -2,13 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Graphics;
-using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.MathUtils
 {
@@ -403,8 +402,8 @@ namespace osu.Framework.MathUtils
 
     internal static class Interpolation<TValue>
     {
-        // Should matches the definition of InterpolationFunc and ValueAt
-        private static readonly Type[] parameters = new Type[]
+        // Should match the definition of InterpolationFunc and ValueAt
+        private static readonly Type[] parameters =
         {
             typeof(double), // double time,
             typeof(TValue), // TValue startValue
