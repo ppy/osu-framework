@@ -32,7 +32,7 @@ namespace osu.Framework.Platform.Windows
 
         static TimePeriod()
         {
-            _ = timeGetDevCaps(ref time_capabilities, Marshal.SizeOf(typeof(TimeCaps)));
+            timeGetDevCaps(ref time_capabilities, Marshal.SizeOf(typeof(TimeCaps)));
         }
 
         internal TimePeriod(int period)
@@ -59,7 +59,7 @@ namespace osu.Framework.Platform.Windows
                     }
                     else
                     {
-                        _ = timeEndPeriod(period);
+                        timeEndPeriod(period);
                     }
                 }
                 catch

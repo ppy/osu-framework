@@ -30,7 +30,7 @@ namespace osu.Framework.Platform.Linux.Sdl
 
         public override void SetText(string selectedText)
         {
-            _ = SDL_SetClipboardText(selectedText);
+            SDL_SetClipboardText(selectedText);
         }
     }
 }
