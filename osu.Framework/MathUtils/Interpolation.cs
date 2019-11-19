@@ -403,27 +403,23 @@ namespace osu.Framework.MathUtils
 
     internal static class Interpolation<TValue>
     {
-        public static readonly InterpolationFunc<TValue> FUNCTION;
-
-#pragma warning disable CA1810 // Initialize reference type static fields inline
-        static Interpolation()
-#pragma warning restore CA1810 // Initialize reference type static fields inline
+        // Should matches the definition of InterpolationFunc and ValueAt
+        private static readonly Type[] parameters = new Type[]
         {
-            const string interpolation_method = nameof(Interpolation.ValueAt);
+            typeof(double), // double time,
+            typeof(TValue), // TValue startValue
+            typeof(TValue), // TValue endValue
+            typeof(double), // double startTime
+            typeof(double), // double endTime
+            typeof(Easing), // Easing easingType
+        };
 
-            var parameters = typeof(InterpolationFunc<TValue>)
-                             .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                             ?.GetParameters().Select(p => p.ParameterType).ToArray();
-
-            FUNCTION =
-                (InterpolationFunc<TValue>)(
-                    typeof(Interpolation).GetMethod(interpolation_method, parameters)
-                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
-
-            if (FUNCTION == null)
-                throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
-        }
+        public static readonly InterpolationFunc<TValue> FUNCTION =
+            (InterpolationFunc<TValue>)(
+                typeof(Interpolation).GetMethod(nameof(Interpolation.ValueAt), parameters)
+                ?? typeof(TValue).GetMethod(nameof(Interpolation.ValueAt), parameters)
+            )?.CreateDelegate(typeof(InterpolationFunc<TValue>))
+            ?? throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {nameof(Interpolation.ValueAt)} with the parameters of {nameof(MathUtils)}.{nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
 
         public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
             => FUNCTION(time, startValue, endValue, startTime, endTime, easing);
