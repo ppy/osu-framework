@@ -47,6 +47,8 @@ namespace osu.Framework.Platform
     {
         public IWindow Window { get; protected set; }
 
+        protected virtual IWindow CreateWindow() => null;
+
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
@@ -498,6 +500,8 @@ namespace osu.Framework.Platform
                 Dependencies.CacheAs(Storage = GetStorage(Name));
 
                 SetupForRun();
+
+                Window = CreateWindow();
 
                 if (Window is Window win)
                     win.Initialise();

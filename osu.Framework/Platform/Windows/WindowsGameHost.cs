@@ -30,9 +30,10 @@ namespace osu.Framework.Platform.Windows
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
             timePeriod = new TimePeriod(1) { Active = true };
-
-            Window = new WindowsGameWindow();
         }
+
+        protected override IWindow CreateWindow() =>
+            !UseSdl ? (IWindow)new WindowsGameWindow() : new Window(new SdlWindow(), new PassthroughGraphicsBackend());
 
         protected override void Dispose(bool isDisposing)
         {
