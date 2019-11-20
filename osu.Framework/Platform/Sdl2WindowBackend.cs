@@ -9,7 +9,10 @@ using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
-    public class SdlWindow : IWindowBackend
+    /// <summary>
+    /// Implementation of <see cref="IWindowBackend"/> that uses an SDL2 window.
+    /// </summary>
+    public class Sdl2WindowBackend : IWindowBackend
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -120,21 +123,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool cursorConfined;
-
-        public bool CursorConfined
-        {
-            get => cursorConfined;
-            set
-            {
-                cursorConfined = value;
-
-                if (implementation == null)
-                    return;
-
-                // TODO: cursor confinement
-            }
-        }
+        public bool CursorConfined { get; set; }
 
         private WindowState windowState;
 

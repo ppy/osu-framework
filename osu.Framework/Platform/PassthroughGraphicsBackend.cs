@@ -13,6 +13,10 @@ using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Implementation of <see cref="IGraphicsBackend"/> that force-loads OpenGL
+    /// endpoints into osuTK's bindings.
+    /// </summary>
     public class PassthroughGraphicsBackend : IGraphicsBackend
     {
         private bool initialised;
@@ -39,7 +43,7 @@ namespace osu.Framework.Platform
 
             initialised = true;
 
-            if (!(windowBackend is SdlWindow sdlWindowBackend))
+            if (!(windowBackend is Sdl2WindowBackend sdlWindowBackend))
                 return;
 
             SdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
