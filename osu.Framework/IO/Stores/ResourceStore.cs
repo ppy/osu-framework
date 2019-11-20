@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace osu.Framework.IO.Stores
 {
     public class ResourceStore<T> : IResourceStore<T>
+        where T : class
     {
         private readonly Dictionary<string, Action> actionList = new Dictionary<string, Action>();
 
