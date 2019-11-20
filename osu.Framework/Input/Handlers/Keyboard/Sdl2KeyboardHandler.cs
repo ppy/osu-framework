@@ -43,6 +43,9 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         private void handleKeyboardEvent(KeyEvent keyEvent)
         {
+            if (keyEvent.Key == Key.Unknown)
+                return;
+
             thisKeyboardState.Keys.SetPressed((TKKey)keyEvent.Key, keyEvent.Down);
             PendingInputs.Enqueue(new KeyboardKeyInput(thisKeyboardState.Keys, lastKeyboardState.Keys));
             lastKeyboardState.Keys.SetPressed((TKKey)keyEvent.Key, keyEvent.Down);
