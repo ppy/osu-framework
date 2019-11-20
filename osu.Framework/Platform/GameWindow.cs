@@ -19,7 +19,7 @@ using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameWindow : IWindow
+    public abstract class GameWindow : IWindow, ILegacyWindow
     {
         /// <summary>
         /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.

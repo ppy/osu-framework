@@ -75,30 +75,33 @@ namespace osu.Framework.Platform
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            if (Window is Window)
+            switch (Window)
             {
-                return new InputHandler[]
-                {
-                    new Sdl2KeyboardHandler(),
-                };
+                case Window _:
+                    return new InputHandler[]
+                    {
+                        new Sdl2KeyboardHandler(),
+                    };
+
+                default:
+                case ILegacyWindow _:
+                    var defaultEnabled = new InputHandler[]
+                    {
+                        new OsuTKMouseHandler(),
+                        new OsuTKKeyboardHandler(),
+                        new OsuTKJoystickHandler(),
+                    };
+
+                    var defaultDisabled = new InputHandler[]
+                    {
+                        new OsuTKRawMouseHandler(),
+                    };
+
+                    foreach (var h in defaultDisabled)
+                        h.Enabled.Value = false;
+
+                    return defaultEnabled.Concat(defaultDisabled);
             }
-
-            var defaultEnabled = new InputHandler[]
-            {
-                new OsuTKMouseHandler(),
-                new OsuTKKeyboardHandler(),
-                new OsuTKJoystickHandler(),
-            };
-
-            var defaultDisabled = new InputHandler[]
-            {
-                new OsuTKRawMouseHandler(),
-            };
-
-            foreach (var h in defaultDisabled)
-                h.Enabled.Value = false;
-
-            return defaultEnabled.Concat(defaultDisabled);
         }
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);

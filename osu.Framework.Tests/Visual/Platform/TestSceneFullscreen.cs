@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
@@ -94,8 +95,8 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             base.Update();
 
-            currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
-            currentDisplay.Text = $"Current display device: {window?.CurrentDisplay}";
+            currentActualSize.Text = $"Window size: {window.AsLegacyWindow().Bounds.Size}";
+            currentDisplay.Text = $"Current display device: {window.CurrentDisplay}";
         }
     }
 }

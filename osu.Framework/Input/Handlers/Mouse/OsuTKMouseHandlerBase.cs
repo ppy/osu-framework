@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -18,8 +19,11 @@ namespace osu.Framework.Input.Handlers.Mouse
             Host = host;
 
             MouseInWindow = host.Window.CursorInWindow;
-            Host.Window.MouseLeave += (s, e) => MouseInWindow = false;
-            Host.Window.MouseEnter += (s, e) => MouseInWindow = true;
+
+            var legacy = host.Window.AsLegacyWindow();
+
+            legacy.MouseLeave += (s, e) => MouseInWindow = false;
+            legacy.MouseEnter += (s, e) => MouseInWindow = true;
 
             return true;
         }

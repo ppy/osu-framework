@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -35,12 +36,12 @@ namespace osu.Framework.Input
 
         public void Deactivate(object sender)
         {
-            window.KeyPress -= HandleKeyPress;
+            window.AsLegacyWindow().KeyPress -= HandleKeyPress;
         }
 
         public void Activate(object sender)
         {
-            window.KeyPress += HandleKeyPress;
+            window.AsLegacyWindow().KeyPress += HandleKeyPress;
         }
 
         private void imeCompose()

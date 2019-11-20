@@ -7,7 +7,6 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osuTK;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
@@ -15,7 +14,7 @@ namespace osu.Framework.Platform
     /// Interface representation of the game window, intended to hide any implementation-specific code.
     /// Currently inherits from osuTK; this will be removed as part of the <see cref="GameWindow"/> refactor.
     /// </summary>
-    public interface IWindow : IGameWindow
+    public interface IWindow
     {
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.

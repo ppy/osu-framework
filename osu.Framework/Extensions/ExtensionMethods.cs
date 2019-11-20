@@ -13,6 +13,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using osu.Framework.Platform;
 using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
@@ -284,5 +285,7 @@ namespace osu.Framework.Extensions
                 if (device == display) return (DisplayIndex)i;
             }
         }
+
+        public static ILegacyWindow AsLegacyWindow(this IWindow window) => window as ILegacyWindow ?? throw new NotImplementedException();
     }
 }

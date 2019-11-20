@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
@@ -42,14 +43,16 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             Enabled.BindValueChanged(e =>
             {
+                var legacy = host.Window.AsLegacyWindow();
+
                 if (e.NewValue)
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
-                        if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
+                        if (!legacy.Visible || legacy.WindowState == WindowState.Minimized)
                             return;
 
-                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
+                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && legacy.Focused)
                         {
                             osuTK.Input.Mouse.GetStates(newRawStates);
 
@@ -81,7 +84,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         else
                         {
                             var state = osuTK.Input.Mouse.GetCursorState();
-                            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
+                            var screenPoint = legacy.PointToClient(new Point(state.X, state.Y));
 
                             var newState = new UnfocusedMouseState(new MouseState(), host.IsActive.Value, new Vector2(screenPoint.X, screenPoint.Y));
 
@@ -108,7 +111,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             // only set the cursor position when focused
             if (lastUnfocusedState != null) return;
 
-            var screenPoint = Host.Window.PointToScreen(new Point((int)position.X, (int)position.Y));
+            var screenPoint = Host.Window.AsLegacyWindow().PointToScreen(new Point((int)position.X, (int)position.Y));
 
             osuTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
         }
@@ -117,6 +120,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
+            var legacy = Host.Window.AsLegacyWindow();
+
             if (state.Flags.HasFlag(MouseStateFlags.MoveAbsolute))
             {
                 const int raw_input_resolution = 65536;
@@ -124,9 +129,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (mapAbsoluteInputToWindow.Value)
                 {
                     // map directly to local window
-                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;
+                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * legacy.Width;
                     currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution
-                                        * Host.Window.Height;
+                                        * legacy.Height;
                 }
                 else
                 {
@@ -139,11 +144,11 @@ namespace osu.Framework.Input.Handlers.Mouse
                     currentPosition.Y = (float)state.Y / raw_input_resolution * screenRect.Height + screenRect.Y;
 
                     // find local window coordinates
-                    var clientPos = Host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
+                    var clientPos = legacy.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
 
                     // apply sensitivity from window's centre
-                    currentPosition.X = (float)((clientPos.X - Host.Window.Width / 2f) * Sensitivity.Value + Host.Window.Width / 2f);
-                    currentPosition.Y = (float)((clientPos.Y - Host.Window.Height / 2f) * Sensitivity.Value + Host.Window.Height / 2f);
+                    currentPosition.X = (float)((clientPos.X - legacy.Width / 2f) * Sensitivity.Value + legacy.Width / 2f);
+                    currentPosition.Y = (float)((clientPos.Y - legacy.Height / 2f) * Sensitivity.Value + legacy.Height / 2f);
                 }
             }
             else
@@ -153,7 +158,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     // when we return from being outside of the window, we want to set the new position of our game cursor
                     // to where the OS cursor is, just once.
                     var cursorState = osuTK.Input.Mouse.GetCursorState();
-                    var screenPoint = Host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
+                    var screenPoint = legacy.PointToClient(new Point(cursorState.X, cursorState.Y));
                     currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                 }
                 else
