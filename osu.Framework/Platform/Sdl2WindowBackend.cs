@@ -237,6 +237,9 @@ namespace osu.Framework.Platform
 
         public void Close()
         {
+            // TODO: Fix OnCloseRequested
+            // The Sdl2Window implementation does not currently have a way of aborting a manual close request.
+            // The best we can do for now is abort any programmatic close requests if required.
             if (!OnCloseRequested())
                 implementation.Close();
         }

@@ -41,6 +41,10 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
+using Veldrid;
+using Key = osuTK.Input.Key;
+using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Platform
 {
@@ -544,29 +548,21 @@ namespace osu.Framework.Platform
                     {
                         if (Window is Window window)
                         {
-                            window.CloseRequested += OnExitRequested;
-                            window.Closed += OnExited;
-
+                            window.KeyDown += window_KeyDown;
                             window.Update += handleInput;
-
-                            window.Closed += stopAllThreads;
                         }
                         else
                         {
-                            LegacyWindow.KeyDown += window_KeyDown;
-
-                            Window.ExitRequested += OnExitRequested;
-                            Window.Exited += OnExited;
-
+                            LegacyWindow.KeyDown += legacyWindow_KeyDown;
                             LegacyWindow.UpdateFrame += (o, e) => handleInput();
-
-                            LegacyWindow.Closed += delegate
-                            {
-                                //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                                //to avoid GL operations running post-cleanup).
-                                stopAllThreads();
-                            };
                         }
+
+                        Window.ExitRequested += OnExitRequested;
+                        Window.Exited += OnExited;
+
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        Window.Exited += stopAllThreads;
 
                         LegacyWindow.Run();
                     }
@@ -674,20 +670,26 @@ namespace osu.Framework.Platform
                 InputThread.RunUpdate();
         }
 
-        private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
+        private void legacyWindow_KeyDown(object sender, KeyboardKeyEventArgs e)
         {
-            if (!e.Control)
-                return;
+            if (e.Control && e.Key == Key.F7)
+                cycleFrameSync();
+        }
 
-            switch (e.Key)
-            {
-                case Key.F7:
-                    var nextMode = frameSyncMode.Value + 1;
-                    if (nextMode > FrameSync.Unlimited)
-                        nextMode = FrameSync.VSync;
-                    frameSyncMode.Value = nextMode;
-                    break;
-            }
+        private void window_KeyDown(KeyEvent e)
+        {
+            if (e.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Veldrid.Key.F7)
+                cycleFrameSync();
+        }
+
+        private void cycleFrameSync()
+        {
+            var nextMode = frameSyncMode.Value + 1;
+
+            if (nextMode > FrameSync.Unlimited)
+                nextMode = FrameSync.VSync;
+
+            frameSyncMode.Value = nextMode;
         }
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;

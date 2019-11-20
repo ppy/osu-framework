@@ -127,12 +127,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
-        public event Func<bool> CloseRequested;
+        public event Func<bool> ExitRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
         /// </summary>
-        public event Action Closed;
+        public event Action Exited;
 
         /// <summary>
         /// Invoked when the window loses focus.
@@ -215,8 +215,8 @@ namespace osu.Framework.Platform
 
         protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized() => Resized?.Invoke();
-        protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
-        protected virtual void OnClosed() => Closed?.Invoke();
+        protected virtual bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
+        protected virtual void OnExited() => Exited?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
         protected virtual void OnFocusGained() => FocusGained?.Invoke();
         protected virtual void OnShown() => Shown?.Invoke();
@@ -297,6 +297,8 @@ namespace osu.Framework.Platform
             windowBackend.MouseEntered += () => cursorInWindow.Value = true;
             windowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
+            windowBackend.Closed += OnExited;
+            windowBackend.CloseRequested += OnExitRequested;
             windowBackend.Update += OnUpdate;
             windowBackend.KeyDown += OnKeyDown;
             windowBackend.KeyUp += OnKeyUp;
@@ -598,9 +600,6 @@ namespace osu.Framework.Platform
         {
             // TODO: SetupWindow
         }
-
-        public event Func<bool> ExitRequested;
-        public event Action Exited;
 
         public void Run(double updateRate) => Run();
 
