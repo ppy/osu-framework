@@ -4,6 +4,7 @@
 using System;
 using System.Numerics;
 using osu.Framework.Caching;
+using osu.Framework.Threading;
 using Veldrid;
 using Veldrid.Sdl2;
 
@@ -19,6 +20,7 @@ namespace osu.Framework.Platform
 
         private Sdl2Window implementation;
         private InputSnapshot inputSnapshot;
+        private readonly Scheduler scheduler = new Scheduler();
 
         #region Internal Properties
 
@@ -38,7 +40,7 @@ namespace osu.Framework.Platform
                 title = value;
 
                 if (implementation != null)
-                    implementation.Title = value;
+                    scheduler.Add(() => implementation.Title = value);
             }
         }
 
@@ -52,7 +54,7 @@ namespace osu.Framework.Platform
                 visible = true;
 
                 if (implementation != null)
-                    implementation.Visible = value;
+                    scheduler.Add(() => implementation.Visible = value);
             }
         }
 
@@ -70,8 +72,11 @@ namespace osu.Framework.Platform
                 if (implementation == null)
                     return;
 
-                implementation.X = (int)value.X;
-                implementation.Y = (int)value.Y;
+                scheduler.Add(() =>
+                {
+                    implementation.X = (int)value.X;
+                    implementation.Y = (int)value.Y;
+                });
             }
         }
 
@@ -87,8 +92,11 @@ namespace osu.Framework.Platform
                 if (implementation == null)
                     return;
 
-                implementation.Width = (int)value.X;
-                implementation.Height = (int)value.Y;
+                scheduler.Add(() =>
+                {
+                    implementation.Width = (int)value.X;
+                    implementation.Height = (int)value.Y;
+                });
             }
         }
 
@@ -118,7 +126,7 @@ namespace osu.Framework.Platform
                 cursorVisible = value;
 
                 if (implementation != null)
-                    implementation.CursorVisible = value;
+                    scheduler.Add(() => implementation.CursorVisible = value);
             }
         }
 
@@ -134,7 +142,7 @@ namespace osu.Framework.Platform
                 windowState = value;
 
                 if (implementation != null)
-                    implementation.WindowState = value;
+                    scheduler.Add(() => implementation.WindowState = value);
             }
         }
 
@@ -144,6 +152,7 @@ namespace osu.Framework.Platform
 
         public event Action Update;
         public event Action Resized;
+        public event Action WindowStateChanged;
         public event Func<bool> CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
@@ -168,6 +177,7 @@ namespace osu.Framework.Platform
 
         protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized() => Resized?.Invoke();
+        protected virtual void OnWindowStateChanged() => WindowStateChanged?.Invoke();
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
@@ -212,7 +222,7 @@ namespace osu.Framework.Platform
             implementation.KeyUp += OnKeyUp;
             implementation.FocusGained += OnFocusGained;
             implementation.FocusLost += OnFocusLost;
-            implementation.Resized += OnResized;
+            implementation.Resized += implementation_Resized;
             implementation.Moved += OnMoved;
             implementation.MouseEntered += OnMouseEntered;
             implementation.MouseLeft += OnMouseLeft;
@@ -232,6 +242,8 @@ namespace osu.Framework.Platform
                     OnKeyTyped(c);
 
                 OnUpdate();
+
+                scheduler.Update();
             }
         }
 
@@ -241,10 +253,18 @@ namespace osu.Framework.Platform
             // The Sdl2Window implementation does not currently have a way of aborting a manual close request.
             // The best we can do for now is abort any programmatic close requests if required.
             if (!OnCloseRequested())
-                implementation.Close();
+                scheduler.Add(implementation.Close);
         }
 
         #endregion
+
+        private void implementation_Resized()
+        {
+            if (implementation.WindowState != windowState)
+                OnWindowStateChanged();
+
+            OnResized();
+        }
 
         private static SDL_WindowFlags getWindowFlags(WindowState state)
         {

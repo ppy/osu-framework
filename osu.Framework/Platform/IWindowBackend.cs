@@ -78,6 +78,11 @@ namespace osu.Framework.Platform
         event Action Resized;
 
         /// <summary>
+        /// Invoked after the window's state has changed.
+        /// </summary>
+        event Action WindowStateChanged;
+
+        /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
         event Func<bool> CloseRequested;

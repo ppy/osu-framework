@@ -288,6 +288,7 @@ namespace osu.Framework.Platform
             windowBackend.Create();
 
             windowBackend.Resized += windowBackend_Resized;
+            windowBackend.WindowStateChanged += () => WindowState.Value = windowBackend.WindowState;
             windowBackend.Moved += windowBackend_Moved;
             windowBackend.Hidden += () => Visible.Value = false;
             windowBackend.Shown += () => Visible.Value = true;
