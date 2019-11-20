@@ -1474,7 +1474,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <typeparam name="T">The type to match.</typeparam>
         /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : IDrawable
+        internal T FindClosestParent<T>() where T : class, IDrawable
         {
             Drawable cursor = this;
 
