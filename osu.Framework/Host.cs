@@ -23,13 +23,13 @@ namespace osu.Framework
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.MacOsx:
-                    return new MacOSGameHost(gameName, bindIPC, toolkitOptions, portableInstallation) { UseSdl = useSdl };
+                    return new MacOSGameHost(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl);
 
                 case RuntimeInfo.Platform.Linux:
-                    return new LinuxGameHost(gameName, bindIPC, toolkitOptions, portableInstallation) { UseSdl = useSdl };
+                    return new LinuxGameHost(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl);
 
                 case RuntimeInfo.Platform.Windows:
-                    return new WindowsGameHost(gameName, bindIPC, toolkitOptions, portableInstallation) { UseSdl = useSdl };
+                    return new WindowsGameHost(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl);
 
                 default:
                     throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
