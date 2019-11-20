@@ -235,5 +235,14 @@ namespace osu.Framework.Extensions
                 if (device == display) return (DisplayIndex)i;
             }
         }
+
+        /// <summary>
+        /// Standardise the path string using '/' as directory separator.
+        /// Useful as output.
+        /// </summary>
+        /// <param name="path">The path string to standardise.</param>
+        /// <returns>The standardised path string.</returns>
+        public static string PathStandardise(this string path)
+            => path.Replace('\\', '/');
     }
 }
