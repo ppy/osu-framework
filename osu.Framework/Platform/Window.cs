@@ -560,7 +560,11 @@ namespace osu.Framework.Platform
 
         bool IWindow.CursorInWindow => CursorInWindow.Value;
 
-        CursorState IWindow.CursorState { get; set; }
+        CursorState IWindow.CursorState
+        {
+            get => CursorState.Value;
+            set => CursorState.Value = value;
+        }
 
         public VSyncMode VSync
         {
