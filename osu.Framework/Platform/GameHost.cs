@@ -507,9 +507,6 @@ namespace osu.Framework.Platform
                 Window = CreateWindow();
                 LegacyWindow = Window.AsLegacyWindow();
 
-                if (Window is Window win)
-                    win.Initialise();
-
                 ExecutionState = ExecutionState.Running;
 
                 SetupConfig(game.GetFrameworkConfigDefaults());

@@ -30,7 +30,6 @@ namespace osu.Framework.Platform
     {
         private readonly IWindowBackend windowBackend;
         private readonly IGraphicsBackend graphicsBackend;
-        private bool initialised;
 
         #region Properties
 
@@ -285,23 +284,8 @@ namespace osu.Framework.Platform
                 else
                     OnMouseLeft();
             };
-        }
 
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Initialises the window and graphics backends.
-        /// </summary>
-        public void Initialise()
-        {
-            if (initialised)
-                return;
-
-            initialised = true;
-
-            windowBackend.Initialise();
+            windowBackend.Create();
 
             windowBackend.Resized += windowBackend_Resized;
             windowBackend.Moved += windowBackend_Moved;
@@ -325,6 +309,10 @@ namespace osu.Framework.Platform
 
             graphicsBackend.Initialise(windowBackend);
         }
+
+        #endregion
+
+        #region Methods
 
         /// <summary>
         /// Starts the window's run loop.

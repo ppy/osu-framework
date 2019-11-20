@@ -167,9 +167,9 @@ namespace osu.Framework.Platform
         #region Methods
 
         /// <summary>
-        /// Initialises the window backend, typically creating any concrete windows.
+        /// Creates the concrete window implementation.
         /// </summary>
-        void Initialise();
+        void Create();
 
         /// <summary>
         /// Starts the event loop for the window.
