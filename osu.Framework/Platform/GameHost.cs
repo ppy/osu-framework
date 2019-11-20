@@ -402,7 +402,9 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (GraphicsContext.CurrentContext == null)
+                    if (Window is Window win)
+                        win.MakeCurrent();
+                    else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
                     GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
