@@ -509,7 +509,7 @@ namespace osu.Framework.Platform
                 SetupForRun();
 
                 Window = CreateWindow();
-                LegacyWindow = Window.AsLegacyWindow();
+                LegacyWindow = Window?.AsLegacyWindow();
 
                 ExecutionState = ExecutionState.Running;
 
