@@ -46,11 +46,6 @@ namespace osu.Framework.Graphics
         CompositeDrawable Parent { get; }
 
         /// <summary>
-        /// Notifies subscribers that IsPresent value was changed.
-        /// </summary>
-        event Action<bool> PresenceChanged;
-
-        /// <summary>
         /// Whether this drawable is present for any sort of user-interaction.
         /// If this is false, then this drawable will not be drawn, it will not handle input,
         /// and it will not affect layouting (e.g. autosizing and flow).

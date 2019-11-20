@@ -71,9 +71,6 @@ namespace osu.Framework.Graphics.Cursor
                                           .Select(t => (target: t, items: t.ContextMenuItems))
                                           .FirstOrDefault(result => result.items != null);
 
-                    if (menuTarget != null)
-                        menuTarget.PresenceChanged -= onTargetPresenceChange;
-
                     menuTarget = target;
 
                     if (menuTarget == null || items.Length == 0)
@@ -88,19 +85,12 @@ namespace osu.Framework.Graphics.Cursor
                     targetRelativePosition = menuTarget.ToLocalSpace(e.ScreenSpaceMousePosition);
 
                     menu.Open();
-                    menuTarget.PresenceChanged += onTargetPresenceChange;
                     return true;
 
                 default:
                     cancelDisplay();
                     return false;
             }
-        }
-
-        private void onTargetPresenceChange(bool isPresent)
-        {
-            if (!isPresent && menu.State == MenuState.Open)
-                menu.Close();
         }
 
         private void cancelDisplay()
@@ -117,7 +107,7 @@ namespace osu.Framework.Graphics.Cursor
 
             if (menu.State != MenuState.Open || menuTarget == null) return;
 
-            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this)
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this || (!menuTarget?.IsPresent ?? false))
             {
                 cancelDisplay();
                 return;
