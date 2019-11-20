@@ -82,6 +82,7 @@ namespace osu.Framework.Platform
                     return new InputHandler[]
                     {
                         new Sdl2KeyboardHandler(),
+                        new Sdl2MouseHandler(),
                     };
 
                 default:
