@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     /// <typeparam name="TButton">Type of button.</typeparam>
     public struct ButtonInputEntry<TButton>
-        where TButton : struct
+        where TButton : struct, Enum
     {
         /// <summary>
         /// The button referred to.

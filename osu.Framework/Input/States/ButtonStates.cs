@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace osu.Framework.Input.States
     /// </summary>
     /// <typeparam name="TButton">The type of button.</typeparam>
     public class ButtonStates<TButton> : IEnumerable<TButton>
-        where TButton : struct
+        where TButton : struct, Enum
     {
         private List<TButton> pressedButtons = new List<TButton>();
 
