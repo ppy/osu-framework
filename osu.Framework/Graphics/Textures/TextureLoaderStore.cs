@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
+using osu.Framework.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using StbiSharp;
@@ -48,6 +49,7 @@ namespace osu.Framework.Graphics.Textures
         protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
         {
             long initialPos = stream.Position;
+
             try
             {
                 using (var m = new MemoryStream())
@@ -57,8 +59,9 @@ namespace osu.Framework.Graphics.Textures
                         return Image.LoadPixelData(MemoryMarshal.Cast<byte, TPixel>(stbiImage.Data), stbiImage.Width, stbiImage.Height);
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Logger.Error(e, "Texture could not be loaded via STB; falling back to ImageSharp.");
                 stream.Seek(initialPos, SeekOrigin.Begin);
                 return Image.Load<TPixel>(stream);
             }
