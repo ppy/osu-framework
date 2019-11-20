@@ -20,7 +20,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
         }
 
         /// <summary>
-        /// Rethrows the <see cref="AggregateException.InnerException"/> of an <see cref="AggregateException"/> if it exists,
+        /// Rethrows the <see cref="Exception.InnerException"/> of an <see cref="AggregateException"/> if it exists,
         /// otherwise, rethrows <paramref name="aggregateException"/>.
         /// This preserves the stack trace of the exception that is rethrown, and will not include the point of rethrow.
         /// </summary>

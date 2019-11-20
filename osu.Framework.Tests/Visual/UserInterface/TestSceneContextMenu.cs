@@ -1,14 +1,15 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -18,130 +19,253 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneContextMenu : ManualInputManagerTestScene
     {
-        private const int duration = 1000;
+        protected override Container<Drawable> Content => contextMenuContainer ?? base.Content;
 
-        private readonly ContextMenuBox movingBox;
-
-        private readonly TestContextMenuContainer contextContainer;
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Menu),
-            typeof(BasicMenu),
-            typeof(ContextMenuContainer),
-            typeof(BasicContextMenuContainer)
-        };
-
-        private ContextMenuBox makeBox(Anchor anchor) =>
-            new ContextMenuBox
-            {
-                Size = new Vector2(200),
-                Anchor = anchor,
-                Origin = anchor,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Blue,
-                    }
-                }
-            };
+        private readonly TestContextMenuContainer contextMenuContainer;
 
         public TestSceneContextMenu()
         {
-            Add(contextContainer = new TestContextMenuContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[]
-                {
-                    makeBox(Anchor.TopLeft),
-                    makeBox(Anchor.TopRight),
-                    makeBox(Anchor.BottomLeft),
-                    makeBox(Anchor.BottomRight),
-                    movingBox = makeBox(Anchor.Centre),
-                }
-            });
+            base.Content.Add(contextMenuContainer = new TestContextMenuContainer { RelativeSizeAxes = Axes.Both });
         }
 
-        protected override void LoadComplete()
+        [SetUp]
+        public void Setup() => Schedule(Clear);
+
+        [Test]
+        public void TestMenuOpenedOnClick()
         {
-            base.LoadComplete();
+            Drawable box = null;
 
-            const float movement_amount = 500;
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
 
-            // Move box along a square trajectory
-            movingBox.MoveTo(new Vector2(movement_amount, 0), duration)
-                     .Then().MoveTo(new Vector2(-movement_amount, 0), duration * 2)
-                     .Then().MoveTo(Vector2.Zero, duration)
-                     .Loop();
-        }
-
-        public class TestContextMenuContainer : BasicContextMenuContainer
-        {
-            public Menu CurrentMenu;
-
-            protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
+            assertMenuState(true);
         }
 
         [Test]
-        public void TestStaysOnScreen()
+        public void TestMenuClosedOnClickOutside()
         {
-            foreach (var c in contextContainer)
-                testDrawableCornerClicks(c, c == movingBox);
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
+
+            clickOutsideStep();
+            assertMenuState(false);
         }
 
-        private void testDrawableCornerClicks(Drawable box, bool testManyTimes)
+        [Test]
+        public void TestMenuTransferredToNewTarget()
         {
-            const float lenience = 5;
+            Drawable box1 = null;
+            Drawable box2 = null;
 
-            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.TopLeft + new Vector2(lenience, lenience), testManyTimes);
-            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.TopRight + new Vector2(-lenience, lenience), testManyTimes);
-            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.BottomLeft + new Vector2(lenience, -lenience), testManyTimes);
-            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.BottomRight + new Vector2(-lenience, -lenience), testManyTimes);
-            testPositionalClick(box, () => box.ScreenSpaceDrawQuad.Centre, testManyTimes);
-        }
-
-        private void testPositionalClick(Drawable target, Func<Vector2> pos, bool testManyTimes)
-        {
-            AddStep("click position", () =>
+            addBoxStep(b =>
             {
-                InputManager.MoveMouseTo(pos());
-                InputManager.Click(MouseButton.Right);
+                box1 = b.With(d =>
+                {
+                    d.X = -100;
+                    d.Colour = Color4.Green;
+                });
+            }, 1);
+            addBoxStep(b =>
+            {
+                box2 = b.With(d =>
+                {
+                    d.X = 100;
+                    d.Colour = Color4.Red;
+                });
+            }, 1);
+
+            clickBoxStep(() => box1);
+            clickBoxStep(() => box2);
+
+            assertMenuState(true);
+            assertMenuInCentre(() => box2);
+        }
+
+        [Ignore("needs to be fixed")]
+        [Test]
+        public void TestMenuHiddenWhenTargetHidden()
+        {
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
+
+            AddStep("hide box", () => box.Hide());
+            assertMenuState(false);
+        }
+
+        [Test]
+        public void TestMenuTracksMovement()
+        {
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
+
+            AddStep("move box", () => box.X += 100);
+            assertMenuInCentre(() => box);
+        }
+
+        [TestCase(Anchor.TopLeft)]
+        [TestCase(Anchor.TopCentre)]
+        [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.CentreRight)]
+        [TestCase(Anchor.BottomLeft)]
+        [TestCase(Anchor.BottomCentre)]
+        [TestCase(Anchor.BottomRight)]
+        public void TestMenuOnScreenWhenTargetPartlyOffScreen(Anchor anchor)
+        {
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 5);
+            clickBoxStep(() => box);
+
+            AddStep($"move box to {anchor.ToString()}", () =>
+            {
+                box.Anchor = anchor;
+                box.X -= 5;
+                box.Y -= 5;
             });
 
-            for (int i = 0; i < (testManyTimes ? 10 : 1); i++)
-                AddAssert("check completely on screen", () => isTrackingTargetCorrectly(contextContainer.CurrentMenu, target));
+            assertMenuOnScreen(true);
         }
 
-        private bool isTrackingTargetCorrectly(Drawable menu, Drawable target)
+        [TestCase(Anchor.TopLeft)]
+        [TestCase(Anchor.TopCentre)]
+        [TestCase(Anchor.TopRight)]
+        [TestCase(Anchor.CentreLeft)]
+        [TestCase(Anchor.CentreRight)]
+        [TestCase(Anchor.BottomLeft)]
+        [TestCase(Anchor.BottomCentre)]
+        [TestCase(Anchor.BottomRight)]
+        public void TestMenuNotOnScreenWhenTargetSignificantlyOffScreen(Anchor anchor)
         {
-            bool targetOnScreen = isOnScreen(target);
-            bool menuOnScreen = isOnScreen(menu);
+            Drawable box = null;
 
-            return !targetOnScreen || menuOnScreen;
+            addBoxStep(b => box = b, 5);
+            clickBoxStep(() => box);
+
+            AddStep($"move box to {anchor.ToString()}", () =>
+            {
+                box.Anchor = anchor;
+
+                if (anchor.HasFlag(Anchor.x0))
+                    box.X -= contextMenuContainer.CurrentMenu.DrawWidth + 10;
+                else if (anchor.HasFlag(Anchor.x2))
+                    box.X += 10;
+
+                if (anchor.HasFlag(Anchor.y0))
+                    box.Y -= contextMenuContainer.CurrentMenu.DrawHeight + 10;
+                else if (anchor.HasFlag(Anchor.y2))
+                    box.Y += 10;
+            });
+
+            assertMenuOnScreen(false);
         }
 
-        private bool isOnScreen(Drawable checkDrawable)
+        [Test]
+        public void TestReturnNullInNestedDrawableOpensParentMenu()
+        {
+            Drawable box2 = null;
+
+            addBoxStep(_ => { }, 2);
+            addBoxStep(b => box2 = b, null);
+
+            clickBoxStep(() => box2);
+            assertMenuState(true);
+            assertMenuItems(2);
+        }
+
+        [Test]
+        public void TestReturnEmptyInNestedDrawableBlocksMenuOpening()
+        {
+            Drawable box2 = null;
+
+            addBoxStep(_ => { }, 2);
+            addBoxStep(b => box2 = b);
+
+            clickBoxStep(() => box2);
+            assertMenuState(false);
+        }
+
+        private void clickBoxStep(Func<Drawable> getBoxFunc)
+        {
+            AddStep("right-click box", () =>
+            {
+                InputManager.MoveMouseTo(getBoxFunc());
+                InputManager.Click(MouseButton.Right);
+            });
+        }
+
+        private void clickOutsideStep()
+        {
+            AddStep("click outside", () =>
+            {
+                InputManager.MoveMouseTo(InputManager.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.Click(MouseButton.Right);
+            });
+        }
+
+        private void addBoxStep(Action<Drawable> boxFunc, int actionCount) => addBoxStep(boxFunc, Enumerable.Repeat(new Action(() => { }), actionCount).ToArray());
+
+        private void addBoxStep(Action<Drawable> boxFunc, params Action[] actions)
+        {
+            AddStep("add box", () =>
+            {
+                var box = new BoxWithContextMenu(actions)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                };
+
+                Add(box);
+                boxFunc?.Invoke(box);
+            });
+        }
+
+        private void assertMenuState(bool opened)
+            => AddAssert($"menu {(opened ? "opened" : "closed")}", () => (contextMenuContainer.CurrentMenu?.State == MenuState.Open) == opened);
+
+        private void assertMenuInCentre(Func<Drawable> getBoxFunc)
+            => AddAssert("menu in centre of box", () => Precision.AlmostEquals(contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad.TopLeft, getBoxFunc().ScreenSpaceDrawQuad.Centre));
+
+        private void assertMenuOnScreen(bool expected) => AddAssert($"menu {(expected ? "on" : "off")} screen", () =>
         {
             var inputQuad = InputManager.ScreenSpaceDrawQuad;
-            var menuQuad = checkDrawable.ScreenSpaceDrawQuad;
+            var menuQuad = contextMenuContainer.CurrentMenu.ScreenSpaceDrawQuad;
 
-            return inputQuad.Contains(menuQuad.TopLeft + new Vector2(1, 1))
-                   && inputQuad.Contains(menuQuad.TopRight + new Vector2(-1, 1))
-                   && inputQuad.Contains(menuQuad.BottomLeft + new Vector2(1, -1))
-                   && inputQuad.Contains(menuQuad.BottomRight + new Vector2(-1, -1));
+            bool result = inputQuad.Contains(menuQuad.TopLeft + new Vector2(1, 1))
+                          && inputQuad.Contains(menuQuad.TopRight + new Vector2(-1, 1))
+                          && inputQuad.Contains(menuQuad.BottomLeft + new Vector2(1, -1))
+                          && inputQuad.Contains(menuQuad.BottomRight + new Vector2(-1, -1));
+
+            return result == expected;
+        });
+
+        private void assertMenuItems(int expectedCount) => AddAssert($"menu contains {expectedCount} item(s)", () => contextMenuContainer.CurrentMenu.Items.Count == expectedCount);
+
+        private class BoxWithContextMenu : Box, IHasContextMenu
+        {
+            private readonly Action[] actions;
+
+            public BoxWithContextMenu(Action[] actions)
+            {
+                this.actions = actions;
+            }
+
+            public MenuItem[] ContextMenuItems => actions?.Select((a, i) => new MenuItem($"Item {i}", a)).ToArray();
         }
 
-        private class ContextMenuBox : Container, IHasContextMenu
+        private class TestContextMenuContainer : BasicContextMenuContainer
         {
-            public MenuItem[] ContextMenuItems => new[]
-            {
-                new MenuItem(@"Change width", () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height", () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change width back", () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint)),
-                new MenuItem(@"Change height back", () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint)),
-            };
+            public Menu CurrentMenu { get; private set; }
+
+            protected override Menu CreateMenu() => CurrentMenu = base.CreateMenu();
         }
     }
 }

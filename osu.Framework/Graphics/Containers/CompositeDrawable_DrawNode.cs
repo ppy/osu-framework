@@ -93,7 +93,8 @@ namespace osu.Framework.Graphics.Containers
                         MaskingRect = Source.DrawRectangle,
                         ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
-                        CornerRadius = Source.CornerRadius,
+                        CornerRadius = Source.effectiveCornerRadius,
+                        CornerExponent = Source.CornerExponent,
                         BorderThickness = Source.BorderThickness,
                         BorderColour = Source.BorderColour,
                         // We are setting the linear blend range to the approximate size of a _pixel_ here.
