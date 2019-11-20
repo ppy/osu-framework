@@ -8,50 +8,177 @@ using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Provides an implementation-agnostic interface on the backing windowing API.
+    /// </summary>
     public interface IWindowBackend
     {
         #region Properties
 
+        /// <summary>
+        /// Gets and sets the window title.
+        /// </summary>
         string Title { get; set; }
+
+        /// <summary>
+        /// Enables or disables the window visibility.
+        /// </summary>
         bool Visible { get; set; }
+
+        /// <summary>
+        /// Returns or sets the window's position in screen space.
+        /// </summary>
         Vector2 Position { get; set; }
+
+        /// <summary>
+        /// Returns or sets the window's internal size, before scaling.
+        /// </summary>
         Vector2 Size { get; set; }
+
+        /// <summary>
+        /// Returns the scale of window's drawable area.
+        /// In high-dpi environments this will be greater than one.
+        /// </summary>
         float Scale { get; }
+
+        /// <summary>
+        /// Returns or sets the cursor's visibility within the window.
+        /// </summary>
         bool CursorVisible { get; set; }
+
+        /// <summary>
+        /// Returns or sets whether the cursor is confined to the window's
+        /// drawable area.
+        /// </summary>
         bool CursorConfined { get; set; }
+
+        /// <summary>
+        /// Returns or sets the window's current <see cref="WindowState"/>.
+        /// </summary>
         WindowState WindowState { get; set; }
+
+        /// <summary>
+        /// Returns true if window has been created.
+        /// Returns false if the window has not yet been created, or has been closed.
+        /// </summary>
         bool Exists { get; }
 
         #endregion
 
         #region Events
 
+        /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
         event Action Update;
+
+        /// <summary>
+        /// Invoked after the window has resized.
+        /// </summary>
         event Action Resized;
+
+        /// <summary>
+        /// Invoked when the user attempts to close the window.
+        /// </summary>
         event Func<bool> CloseRequested;
+
+        /// <summary>
+        /// Invoked when the window is about to close.
+        /// </summary>
         event Action Closed;
+
+        /// <summary>
+        /// Invoked when the window loses focus.
+        /// </summary>
         event Action FocusLost;
+
+        /// <summary>
+        /// Invoked when the window gains focus.
+        /// </summary>
         event Action FocusGained;
+
+        /// <summary>
+        /// Invoked when the window becomes visible.
+        /// </summary>
         event Action Shown;
+
+        /// <summary>
+        /// Invoked when the window becomes invisible.
+        /// </summary>
         event Action Hidden;
+
+        /// <summary>
+        /// Invoked when the mouse cursor enters the window.
+        /// </summary>
         event Action MouseEntered;
+
+        /// <summary>
+        /// Invoked when the mouse cursor leaves the window.
+        /// </summary>
         event Action MouseLeft;
+
+        /// <summary>
+        /// Invoked when the window moves.
+        /// </summary>
         event Action<Point> Moved;
+
+        /// <summary>
+        /// Invoked when the user scrolls the mouse wheel over the window.
+        /// </summary>
         event Action<MouseWheelEventArgs> MouseWheel;
+
+        /// <summary>
+        /// Invoked when the user moves the mouse cursor within the window.
+        /// </summary>
         event Action<MouseMoveEventArgs> MouseMove;
+
+        /// <summary>
+        /// Invoked when the user presses a mouse button.
+        /// </summary>
         event Action<MouseEvent> MouseDown;
+
+        /// <summary>
+        /// Invoked when the user releases a mouse button.
+        /// </summary>
         event Action<MouseEvent> MouseUp;
+
+        /// <summary>
+        /// Invoked when the user presses a key.
+        /// </summary>
         event Action<KeyEvent> KeyDown;
+
+        /// <summary>
+        /// Invoked when the user releases a key.
+        /// </summary>
         event Action<KeyEvent> KeyUp;
+
+        /// <summary>
+        /// Invoked when the user types a character.
+        /// </summary>
         event Action<char> KeyTyped;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
         event Action<DragDropEvent> DragDrop;
 
         #endregion
 
         #region Methods
 
+        /// <summary>
+        /// Initialises the window backend, typically creating any concrete windows.
+        /// </summary>
         void Initialise();
+
+        /// <summary>
+        /// Starts the event loop for the window.
+        /// </summary>
         void Run();
+
+        /// <summary>
+        /// Requests that the window close.
+        /// </summary>
         void Close();
 
         #endregion

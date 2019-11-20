@@ -22,6 +22,10 @@ using WindowState = Veldrid.WindowState;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Implementation of <see cref="IWindow"/> that provides bindables and
+    /// delegates responsibility to window and graphics backends.
+    /// </summary>
     public class Window : IWindow
     {
         private readonly IWindowBackend windowBackend;
@@ -30,34 +34,63 @@ namespace osu.Framework.Platform
 
         #region Properties
 
+        /// <summary>
+        /// Gets and sets the window title.
+        /// </summary>
         public string Title
         {
             get => windowBackend.Title;
             set => windowBackend.Title = value;
         }
 
+        /// <summary>
+        /// Enables or disables vertical sync.
+        /// </summary>
         public bool VerticalSync
         {
             get => graphicsBackend.VerticalSync;
             set => graphicsBackend.VerticalSync = value;
         }
 
+        /// <summary>
+        /// Returns true if window has been created.
+        /// Returns false if the window has not yet been created, or has been closed.
+        /// </summary>
         public bool Exists => windowBackend.Exists;
 
         #endregion
 
         #region Mutable Bindables
 
+        /// <summary>
+        /// Provides a bindable that controls the window's position.
+        /// </summary>
         public Bindable<Vector2> Position { get; } = new Bindable<Vector2>();
 
+        /// <summary>
+        /// Provides a bindable that controls the window's unscaled internal size.
+        /// </summary>
         public Bindable<Vector2> Size { get; } = new Bindable<Vector2>();
 
+        /// <summary>
+        /// Returns the scale of window's drawable area.
+        /// In high-dpi environments this will be greater than one.
+        /// </summary>
         public float Scale => windowBackend.Scale;
 
+        /// <summary>
+        /// Provides a bindable that controls the window's <see cref="WindowState"/>.
+        /// </summary>
         public Bindable<WindowState> WindowState { get; } = new Bindable<WindowState>();
 
+        /// <summary>
+        /// Provides a bindable that controls the window's <see cref="CursorState"/>.
+        /// </summary>
         public Bindable<CursorState> CursorState { get; } = new Bindable<CursorState>();
 
+        /// <summary>
+        /// Provides a bindable that controls the window's visibility.
+        /// </summary>
         public Bindable<bool> Visible { get; } = new Bindable<bool>();
 
         #endregion
@@ -65,37 +98,116 @@ namespace osu.Framework.Platform
         #region Immutable Bindables
 
         private readonly BindableBool focused = new BindableBool();
+
+        /// <summary>
+        /// Provides a read-only bindable that monitors the window's focused state.
+        /// </summary>
         public IBindable<bool> Focused => focused;
 
         private readonly BindableBool cursorInWindow = new BindableBool();
-        public IBindable<bool> CursorInWindow => cursorInWindow;
 
-        private readonly Bindable<Vector2> windowSize = new Bindable<Vector2>();
-        public IBindable<Vector2> WindowSize => windowSize;
+        /// <summary>
+        /// Provides a read-only bindable that monitors the whether the cursor is in the window.
+        /// </summary>
+        public IBindable<bool> CursorInWindow => cursorInWindow;
 
         #endregion
 
         #region Events
 
+        /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
         public event Action Update;
 
+        /// <summary>
+        /// Invoked after the window has resized.
+        /// </summary>
         public event Action Resized;
+
+        /// <summary>
+        /// Invoked when the user attempts to close the window.
+        /// </summary>
         public event Func<bool> CloseRequested;
+
+        /// <summary>
+        /// Invoked when the window is about to close.
+        /// </summary>
         public event Action Closed;
+
+        /// <summary>
+        /// Invoked when the window loses focus.
+        /// </summary>
         public event Action FocusLost;
+
+        /// <summary>
+        /// Invoked when the window gains focus.
+        /// </summary>
         public event Action FocusGained;
+
+        /// <summary>
+        /// Invoked when the window becomes visible.
+        /// </summary>
         public event Action Shown;
+
+        /// <summary>
+        /// Invoked when the window becomes invisible.
+        /// </summary>
         public event Action Hidden;
+
+        /// <summary>
+        /// Invoked when the mouse cursor enters the window.
+        /// </summary>
         public event Action MouseEntered;
+
+        /// <summary>
+        /// Invoked when the mouse cursor leaves the window.
+        /// </summary>
         public event Action MouseLeft;
+
+        /// <summary>
+        /// Invoked when the window moves.
+        /// </summary>
         public event Action<Point> Moved;
+
+        /// <summary>
+        /// Invoked when the user scrolls the mouse wheel over the window.
+        /// </summary>
         public event Action<MouseWheelEventArgs> MouseWheel;
+
+        /// <summary>
+        /// Invoked when the user moves the mouse cursor within the window.
+        /// </summary>
         public event Action<MouseMoveEventArgs> MouseMove;
+
+        /// <summary>
+        /// Invoked when the user presses a mouse button.
+        /// </summary>
         public event Action<MouseEvent> MouseDown;
+
+        /// <summary>
+        /// Invoked when the user releases a mouse button.
+        /// </summary>
         public event Action<MouseEvent> MouseUp;
+
+        /// <summary>
+        /// Invoked when the user presses a key.
+        /// </summary>
         public event Action<KeyEvent> KeyDown;
+
+        /// <summary>
+        /// Invoked when the user releases a key.
+        /// </summary>
         public event Action<KeyEvent> KeyUp;
+
+        /// <summary>
+        /// Invoked when the user types a character.
+        /// </summary>
         public event Action<char> KeyTyped;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
         public event Action<DragDropEvent> DragDrop;
 
         #endregion
@@ -126,6 +238,11 @@ namespace osu.Framework.Platform
 
         #region Constructors
 
+        /// <summary>
+        /// Creates a new <see cref="Window"/> using the specified window and graphics backends.
+        /// </summary>
+        /// <param name="windowBackend">The <see cref="IWindowBackend"/> to use.</param>
+        /// <param name="graphicsBackend">The <see cref="IGraphicsBackend"/> to use.</param>
         public Window(IWindowBackend windowBackend, IGraphicsBackend graphicsBackend)
         {
             this.windowBackend = windowBackend;
@@ -165,6 +282,9 @@ namespace osu.Framework.Platform
 
         #region Methods
 
+        /// <summary>
+        /// Initialises the window and graphics backends.
+        /// </summary>
         public void Initialise()
         {
             if (initialised)
@@ -197,12 +317,25 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(windowBackend);
         }
 
+        /// <summary>
+        /// Starts the window's run loop.
+        /// </summary>
         public void Run() => windowBackend.Run();
 
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
         public void Close() => windowBackend.Close();
 
+        /// <summary>
+        /// Requests that the graphics backend perform a buffer swap.
+        /// </summary>
         public void SwapBuffers() => graphicsBackend.SwapBuffers();
 
+        /// <summary>
+        /// Requests that the graphics backend become the current context.
+        /// May be unrequired for some backends.
+        /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
 
         #endregion
