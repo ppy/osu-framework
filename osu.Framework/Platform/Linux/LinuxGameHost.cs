@@ -23,7 +23,7 @@ namespace osu.Framework.Platform.Linux
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new LinuxGameWindow() : new Window(new Sdl2WindowBackend(), new PassthroughGraphicsBackend());
+            !UseSdl ? (IWindow)new LinuxGameWindow() : new Window();
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 

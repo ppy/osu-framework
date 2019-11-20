@@ -239,6 +239,15 @@ namespace osu.Framework.Platform
         #region Constructors
 
         /// <summary>
+        /// Convenience constructor that uses <see cref="Sdl2WindowBackend"/> and
+        /// <see cref="PassthroughGraphicsBackend"/>.
+        /// </summary>
+        public Window()
+            : this(new Sdl2WindowBackend(), new PassthroughGraphicsBackend())
+        {
+        }
+
+        /// <summary>
         /// Creates a new <see cref="Window"/> using the specified window and graphics backends.
         /// </summary>
         /// <param name="windowBackend">The <see cref="IWindowBackend"/> to use.</param>
