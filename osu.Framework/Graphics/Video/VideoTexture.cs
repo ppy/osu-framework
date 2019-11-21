@@ -68,9 +68,7 @@ namespace osu.Framework.Graphics.Video
 
         protected override void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
-            var videoUpload = upload as VideoTextureUpload;
-
-            if (videoUpload.Frame == null)
+            if (!(upload is VideoTextureUpload videoUpload))
                 return;
 
             if (textureIds == null)
