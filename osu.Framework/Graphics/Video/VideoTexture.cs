@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Video
             var videoUpload = upload as VideoTextureUpload;
 
             if (textureIds == null)
-                textureIds = new List<int>{ 0, 0, 0 };
+                textureIds = new List<int> { 0, 0, 0 };
 
             // Do we need to generate a new texture?
             if (!textureIds.TrueForAll(i => i > 0) || InternalWidth != Width || InternalHeight != Height)
