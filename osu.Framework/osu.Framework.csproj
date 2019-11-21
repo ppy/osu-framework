@@ -48,6 +48,6 @@
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" />
-    <PackageReference Include="StbiSharp" Version="1.0.4" />
+    <PackageReference Include="StbiSharp" Version="1.0.8" />
   </ItemGroup>
 </Project>
