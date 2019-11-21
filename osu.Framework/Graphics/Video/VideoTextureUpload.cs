@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using FFmpeg.AutoGen;
-using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
