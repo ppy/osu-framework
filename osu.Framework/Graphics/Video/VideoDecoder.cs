@@ -292,8 +292,8 @@ namespace osu.Framework.Graphics.Video
             filterGraph = ffmpeg.avfilter_graph_alloc();
 
             var args = $"video_size={stream->codec->width}x{stream->codec->height}:pix_fmt={(int)stream->codec->pix_fmt}:" +
-                $"time_base={stream->codec->time_base.num}/{stream->codec->time_base.den}:" +
-                $"pixel_aspect={stream->codec->sample_aspect_ratio.num}/{stream->codec->sample_aspect_ratio.den}";
+                       $"time_base={stream->codec->time_base.num}/{stream->codec->time_base.den}:" +
+                       $"pixel_aspect={stream->codec->sample_aspect_ratio.num}/{stream->codec->sample_aspect_ratio.den}";
 
             AVFilterContext* tmp;
             var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersrc, "in", args, null, filterGraph);
@@ -359,7 +359,7 @@ namespace osu.Framework.Graphics.Video
                 stream = formatContext->streams[i];
 
                 // The video shader only works on YUV420P pixel format
-                useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P ? true : false;
+                useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P;
 
                 codecParams = *stream->codecpar;
 

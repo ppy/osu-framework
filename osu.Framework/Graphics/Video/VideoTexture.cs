@@ -70,6 +70,9 @@ namespace osu.Framework.Graphics.Video
         {
             var videoUpload = upload as VideoTextureUpload;
 
+            if (videoUpload.Frame == null)
+                return;
+
             if (textureIds == null)
                 textureIds = new List<int> { 0, 0, 0 };
 
@@ -82,7 +85,7 @@ namespace osu.Framework.Graphics.Video
                 // We only need to generate a new texture if we don't have one already. Otherwise just re-use the current one.
                 if (!textureIds.TrueForAll(i => i > 0))
                 {
-                    for (int i = 0; i < textureIds?.Count; i++)
+                    for (int i = 0; i < textureIds.Count; i++)
                     {
                         int[] textures = new int[1];
                         GL.GenTextures(1, textures);
@@ -100,7 +103,7 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            for (int i = 0; i < textureIds?.Count; i++)
+            for (int i = 0; i < textureIds.Count; i++)
             {
                 GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);

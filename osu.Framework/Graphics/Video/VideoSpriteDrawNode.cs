@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Video
         {
         }
 
-        private int yLoc = 0, uLoc = 1, vLoc = 2;
+        private int yLoc, uLoc = 1, vLoc = 2;
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
