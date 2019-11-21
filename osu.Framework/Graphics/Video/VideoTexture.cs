@@ -92,7 +92,6 @@ namespace osu.Framework.Graphics.Video
 
                         UpdateWrapMode();
                     }
-
                 }
             }
             for (int i = 0; i < textureIds.Count; i++)
