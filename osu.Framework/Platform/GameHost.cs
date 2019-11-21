@@ -474,7 +474,8 @@ namespace osu.Framework.Platform
 
             try
             {
-                toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+                if ((this as DesktopGameHost)?.UseSdl != true)
+                    toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;

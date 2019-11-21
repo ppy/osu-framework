@@ -575,7 +575,7 @@ namespace osu.Framework.Platform
 
         public WindowMode DefaultWindowMode => WindowMode.Windowed;
 
-        public DisplayDevice CurrentDisplay { get; } = new DisplayDevice();
+        public DisplayDevice CurrentDisplay { get; }
 
         private readonly BindableBool isActive = new BindableBool(true);
         public IBindable<bool> IsActive => isActive;

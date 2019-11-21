@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected readonly bool UseSdl;
+        internal bool UseSdl { get; }
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
             : base(gameName, toolkitOptions)
