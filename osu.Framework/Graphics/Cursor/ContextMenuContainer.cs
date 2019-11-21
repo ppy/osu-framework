@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Cursor
 
             if (menu.State != MenuState.Open || menuTarget == null) return;
 
-            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this)
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this || (!menuTarget?.IsPresent ?? false))
             {
                 cancelDisplay();
                 return;
