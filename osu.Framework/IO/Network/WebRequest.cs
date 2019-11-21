@@ -163,6 +163,10 @@ namespace osu.Framework.IO.Network
         [Obsolete("Use GetResponseString method instead")] // can be removed 20200521
         public string ResponseString => GetResponseString();
 
+        /// <summary>
+        /// Retrieve the full response body as a UTF8 encoded string.
+        /// </summary>
+        /// <returns>The response body.</returns>
         public string GetResponseString()
         {
             try
@@ -180,6 +184,10 @@ namespace osu.Framework.IO.Network
         [Obsolete("Use GetResponseData method instead")] // can be removed 20200521
         public byte[] ResponseData => GetResponseData();
 
+        /// <summary>
+        /// Retrieve the full response body as an array of bytes.
+        /// </summary>
+        /// <returns>The response body.</returns>
         public byte[] GetResponseData()
         {
             try
