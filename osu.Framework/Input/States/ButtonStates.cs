@@ -25,15 +25,15 @@ namespace osu.Framework.Input.States
         }
 
         /// <summary>
-        /// Finds whether a <see cref="TButton"/> is currently pressed.
+        /// Finds whether a <typeparamref name="TButton"/> is currently pressed.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to check.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to check.</param>
         public bool IsPressed(TButton button) => pressedButtons.Contains(button);
 
         /// <summary>
-        /// Sets the state of a <see cref="TButton"/>.
+        /// Sets the state of a <typeparamref name="TButton"/>.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to set the state of.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to set the state of.</param>
         /// <param name="pressed">Whether <paramref name="button"/> should be pressed.</param>
         /// <returns>Whether the state of <paramref name="button"/> actually changed.</returns>
         public bool SetPressed(TButton button, bool pressed)
