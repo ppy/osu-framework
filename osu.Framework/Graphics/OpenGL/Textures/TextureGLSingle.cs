@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             memoryLease?.Dispose();
 
-            textureId = 0;  
+            textureId = 0;
         }
 
         #endregion

@@ -298,7 +298,7 @@ namespace osu.Framework.Graphics.Video
             AVFilterContext* tmp;
             var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersrc, "in", args, null, filterGraph);
             buffersrcCtx = tmp;
- 
+
             if (bufferSrcResult < 0)
                 throw new Exception($"Error {bufferSrcResult} creating buffer source");
 
@@ -323,7 +323,7 @@ namespace osu.Framework.Graphics.Video
                                                     &inputs, &outputs, null);
             if (filterGraphResult < 0)
                 throw new Exception($"Error {filterGraphResult} opening filter graph");
-                
+
             var filterConfigResult = ffmpeg.avfilter_graph_config(filterGraph, null);
             if (filterConfigResult < 0)
                 throw new Exception($"Error {filterConfigResult} verifiying filter graph");
@@ -410,7 +410,7 @@ namespace osu.Framework.Graphics.Video
                                 if (sendPacketResult < 0)
                                     throw new Exception($"Error {sendPacketResult} sending packet.");
 
-                                var frame = ffmpeg.av_frame_alloc();
+                                AVFrame* frame = ffmpeg.av_frame_alloc();
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
@@ -425,8 +425,7 @@ namespace osu.Framework.Graphics.Video
                                         AVFrame* outFrame;
                                         if (useFilter)
                                         {
-                                            // 8 = AV_BUFFERSRC_FLAG_KEEP_REF 
-                                            var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 8);
+                                            var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);
                                             if (addFrameResult < 0)
                                                 throw new Exception($"Error {addFrameResult} feeding filtergraph.");
 
@@ -435,6 +434,7 @@ namespace osu.Framework.Graphics.Video
                                             if (getFrameResult < 0)
                                                 throw new Exception($"Error {getFrameResult} gettting filtered frame.");
 
+                                            ffmpeg.av_frame_free(&frame);
                                         }
                                         else outFrame = frame;
 
@@ -450,6 +450,8 @@ namespace osu.Framework.Graphics.Video
                                     lastDecodedFrameTime = (float)frameTime;
                                 }
                             }
+
+                            ffmpeg.av_packet_unref(packet);
                         }
                         else if (readFrameResult == AGffmpeg.AVERROR_EOF)
                         {
@@ -533,6 +535,7 @@ namespace osu.Framework.Graphics.Video
                 av_strdup = AGffmpeg.av_strdup,
                 av_malloc = AGffmpeg.av_malloc,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
+                av_packet_unref = AGffmpeg.av_packet_unref,
                 av_packet_free = AGffmpeg.av_packet_free,
                 av_read_frame = AGffmpeg.av_read_frame,
                 av_seek_frame = AGffmpeg.av_seek_frame,

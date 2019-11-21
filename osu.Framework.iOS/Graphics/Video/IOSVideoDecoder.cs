@@ -33,6 +33,9 @@ namespace osu.Framework.iOS.Graphics.Video
         public static extern AVPacket* av_packet_alloc();
 
         [DllImport(dll_name)]
+        public static extern void av_packet_unref(AVPacket* pkt);
+
+        [DllImport(dll_name)]
         public static extern void av_packet_free(AVPacket** pkt);
 
         [DllImport(dll_name)]
@@ -113,6 +116,7 @@ namespace osu.Framework.iOS.Graphics.Video
             av_strdup = av_strdup,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
+            av_packet_unref = av_packet_unref,
             av_packet_free = av_packet_free,
             av_read_frame = av_read_frame,
             av_seek_frame = av_seek_frame,

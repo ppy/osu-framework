@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Video
                     }
 
                 }
-            } 
+            }
             for (int i = 0; i < textureIds.Count; i++)
             {
                 GL.ActiveTexture(TextureUnit.Texture0 + i);

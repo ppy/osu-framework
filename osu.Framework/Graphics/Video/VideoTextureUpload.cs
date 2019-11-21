@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
 using FFmpeg.AutoGen;
+using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.Textures
         public RectangleI Bounds { get; set; }
 
         /// <summary>
-        /// Create an empty raw texture with an efficient shared memory backing.
+        /// Sets the frame cotaining the data to be uploaded
         /// </summary>
         /// <param name="frame">The libav frame to upload.</param>
         public VideoTextureUpload(AVFrame* frame)
@@ -53,7 +54,6 @@ namespace osu.Framework.Graphics.Textures
             if (!disposed)
             {
                 disposed = true;
-                ffmpeg.av_frame_unref(Frame);
                 fixed (AVFrame** ptr = &Frame)
                     ffmpeg.av_frame_free(ptr);
             }

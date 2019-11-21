@@ -23,6 +23,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate AVPacket* AvPacketAllocDelegate();
 
+        public delegate void AvPacketUnrefDelegate(AVPacket* pkt);
+
         public delegate void AvPacketFreeDelegate(AVPacket** pkt);
 
         public delegate int AvReadFrameDelegate(AVFormatContext* s, AVPacket* pkt);
@@ -73,6 +75,7 @@ namespace osu.Framework.Graphics.Video
         public AvStrDupDelegate av_strdup;
         public AvMallocDelegate av_malloc;
         public AvPacketAllocDelegate av_packet_alloc;
+        public AvPacketUnrefDelegate av_packet_unref;
         public AvPacketFreeDelegate av_packet_free;
         public AvReadFrameDelegate av_read_frame;
         public AvSeekFrameDelegate av_seek_frame;

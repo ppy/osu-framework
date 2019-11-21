@@ -310,8 +310,8 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.BindTexture(TextureTarget.Texture2D, texture.TextureIds[i]);
                     FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
                 }
-                
-                last_bound_texture[index] = texture;             
+
+                last_bound_texture[index] = texture;
             }
         }
 

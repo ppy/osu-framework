@@ -37,6 +37,9 @@ namespace osu.Framework.Android.Graphics.Video
         public static extern AVPacket* av_packet_alloc();
 
         [DllImport(lib_avcodec)]
+        public static extern void av_packet_unref(AVPacket* pkt);
+
+        [DllImport(lib_avcodec)]
         public static extern void av_packet_free(AVPacket** pkt);
 
         [DllImport(lib_avformat)]
@@ -117,6 +120,7 @@ namespace osu.Framework.Android.Graphics.Video
             av_strdup = av_strdup,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
+            av_packet_unref = av_packet_unref,
             av_packet_free = av_packet_free,
             av_read_frame = av_read_frame,
             av_seek_frame = av_seek_frame,
