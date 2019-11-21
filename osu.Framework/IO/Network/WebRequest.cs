@@ -160,7 +160,7 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
-        [Obsolete("Use GetResponseString method instead")] // can be removed 20200220
+        [Obsolete("Use GetResponseString method instead")] // can be removed 20200521
         public string ResponseString => GetResponseString();
 
         public string GetResponseString()
@@ -177,7 +177,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        [Obsolete("Use GetResponseData method instead")] // can be removed 20200220
+        [Obsolete("Use GetResponseData method instead")] // can be removed 20200521
         public byte[] ResponseData => GetResponseData();
 
         public byte[] GetResponseData()
