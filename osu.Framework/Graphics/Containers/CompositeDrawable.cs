@@ -1340,7 +1340,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float cornerExponent = 2.5f;
+        /// <summary>
+        /// Ensures that the exponent will always be 2 if the corner radius is half the smallest edge,
+        /// unless the user has explicitly set CornerExponent.
+        /// </summary>
+        private float effectiveCornerExponent =>
+            cornerExponent ?? (Precision.AlmostEquals(cornerRadius, Math.Min(DrawSize.X, DrawSize.Y) / 2f) ? 2f : default_corner_exponent);
+
+        private const float default_corner_exponent = 2.5f;
+
+        private float? cornerExponent;
 
         /// <summary>
         /// Determines how gentle the curve of the corner straightens. A value of 2 results in
@@ -1353,7 +1362,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float CornerExponent
         {
-            get => cornerExponent;
+            get => cornerExponent ?? default_corner_exponent;
             protected set
             {
                 if (!Precision.DefinitelyBigger(value, 0) || value > 10)
@@ -1369,7 +1378,7 @@ namespace osu.Framework.Graphics.Containers
 
         // This _hacky_ modification of the corner radius (obtained from playing around) ensures that the corner remains at roughly
         // equal size (perceptually) compared to the circular arc as the CornerExponent is adjusted within the range ~2-5.
-        private float effectiveCornerRadius => CornerRadius * 0.8f * CornerExponent / 2 + 0.2f * CornerRadius;
+        private float effectiveCornerRadius => CornerRadius * 0.8f * effectiveCornerExponent / 2 + 0.2f * CornerRadius;
 
         private float borderThickness;
 
