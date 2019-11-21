@@ -194,6 +194,7 @@ namespace osu.Framework.Graphics.Video
                     return;
                 }
             }
+
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
             decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
@@ -290,10 +291,9 @@ namespace osu.Framework.Graphics.Video
 
             filterGraph = ffmpeg.avfilter_graph_alloc();
 
-            var args = string.Format("video_size={0}x{1}:pix_fmt={2}:time_base={3}/{4}:pixel_aspect={5}/{6}",
-                stream->codec->width, stream->codec->height, (int)stream->codec->pix_fmt,
-                stream->codec->time_base.num, stream->codec->time_base.den,
-                stream->codec->sample_aspect_ratio.num, stream->codec->sample_aspect_ratio.den);
+            var args = $"video_size={stream->codec->width}x{stream->codec->height}:pix_fmt={(int)stream->codec->pix_fmt}:" +
+                $"time_base={stream->codec->time_base.num}/{stream->codec->time_base.den}:" +
+                $"pixel_aspect={stream->codec->sample_aspect_ratio.num}/{stream->codec->sample_aspect_ratio.den}";
 
             AVFilterContext* tmp;
             var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersrc, "in", args, null, filterGraph);
@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics.Video
             inputs->next = null;
 
             var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, "format=pix_fmts=yuv420p",
-                                                    &inputs, &outputs, null);
+                &inputs, &outputs, null);
             if (filterGraphResult < 0)
                 throw new Exception($"Error {filterGraphResult} opening filter graph");
 
@@ -359,9 +359,7 @@ namespace osu.Framework.Graphics.Video
                 stream = formatContext->streams[i];
 
                 // The video shader only works on YUV420P pixel format
-                if (stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P)
-                    useFilter = true;
-                else useFilter = false;
+                useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P ? true : false;
 
                 codecParams = *stream->codecpar;
 
@@ -423,6 +421,7 @@ namespace osu.Framework.Graphics.Video
                                         skipOutputUntilTime = null;
 
                                         AVFrame* outFrame;
+
                                         if (useFilter)
                                         {
                                             var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);

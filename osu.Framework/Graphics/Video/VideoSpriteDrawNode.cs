@@ -10,11 +10,12 @@ namespace osu.Framework.Graphics.Video
     public class VideoSpriteDrawNode : SpriteDrawNode
     {
         public VideoSpriteDrawNode(VideoSprite source)
-                    : base(source)
+            : base(source)
         {
         }
 
         private int yLoc = 0, uLoc = 1, vLoc = 2;
+
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             Shader.GetUniform<int>("m_SamplerY").UpdateValue(ref yLoc);
