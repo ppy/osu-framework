@@ -293,7 +293,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
 
         /// <summary>
-        /// Binds a video texture to darw with.
+        /// Binds a video texture to draw with.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
@@ -316,7 +316,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Binds a texture to darw with.
+        /// Binds a texture to draw with.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>

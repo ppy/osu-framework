@@ -92,8 +92,6 @@ namespace osu.Framework.Graphics.Video
 
         private DecodedFrame lastFrame;
 
-        private bool setUniforms = false;
-
         /// <summary>
         /// The total number of frames processed by this instance.
         /// </summary>
@@ -105,6 +103,8 @@ namespace osu.Framework.Graphics.Video
         private const float lenience_before_seek = 2500;
 
         private bool isDisposed;
+
+        protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(this);
 
         public VideoSprite([NotNull] Stream stream)
         {
@@ -130,18 +130,6 @@ namespace osu.Framework.Graphics.Video
         protected override void Update()
         {
             base.Update();
-
-            if (!setUniforms)
-            {
-                int y = 0, u = 1, v = 2;
-                TextureShader.GetUniform<int>("tex_y").UpdateValue(ref y);
-                TextureShader.GetUniform<int>("tex_u").UpdateValue(ref u);
-                TextureShader.GetUniform<int>("tex_v").UpdateValue(ref v);
-                RoundedTextureShader.GetUniform<int>("tex_y").UpdateValue(ref y);
-                RoundedTextureShader.GetUniform<int>("tex_u").UpdateValue(ref u);
-                RoundedTextureShader.GetUniform<int>("tex_v").UpdateValue(ref v);
-                setUniforms = true;
-            }
 
             if (!startTime.HasValue)
                 startTime = Clock.CurrentTime;
