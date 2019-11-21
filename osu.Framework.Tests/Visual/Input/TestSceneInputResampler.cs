@@ -169,8 +169,8 @@ namespace osu.Framework.Tests.Visual.Input
 
                 for (int i = 0; i < target_raw; i++)
                 {
-                    float x = (float)(Math.Sin(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
-                    float y = (float)(Math.Cos(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float x = (MathF.Sin(i / target_raw * (MathF.PI * 0.5f)) * 200) + 50.5f;
+                    float y = (MathF.Cos(i / target_raw * (MathF.PI * 0.5f)) * 200) + 50.5f;
                     Vector2 v = keepFraction ? new Vector2(x, y) : new Vector2((int)x, (int)y);
                     if (raw)
                         AddRawVertex(v);
