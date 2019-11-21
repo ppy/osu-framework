@@ -110,12 +110,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <see cref="T"/>.
+        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
         /// </summary>
         protected abstract T DefaultMinValue { get; }
 
         /// <summary>
-        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <see cref="T"/>.
+        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <typeparamref name="T"/>.
         /// </summary>
         protected abstract T DefaultMaxValue { get; }
 
@@ -206,7 +206,7 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Whether this bindable has a user-defined range that is not the full range of the <see cref="T"/> type.
+        /// Whether this bindable has a user-defined range that is not the full range of the <typeparamref name="T"/> type.
         /// </summary>
         public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) || !MaxValue.Equals(DefaultMaxValue);
 

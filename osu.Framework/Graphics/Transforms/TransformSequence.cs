@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to generate a <see cref="TransformSequence{T}"/> for.</param>
+        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
         /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
         public delegate TransformSequence<T> Generator(T origin);
 
@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Creates a new empty <see cref="TransformSequence{T}"/> attached to a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
+        /// <param name="origin">The <typeparamref name="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
         public TransformSequence(T origin)
         {
             if (origin == null)

@@ -399,7 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
-                    monitor.FramesHeap.FreeObject(frame);
+                    monitor.FramesPool.Return(frame);
                 }
             }
         }

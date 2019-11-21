@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics
             drawable.Delay(0).Spin(revolutionDuration, direction, startRotation);
 
         /// <summary>
-        /// Rotate <see cref="numRevolutions"/> times with provided parameters.
+        /// Rotate <paramref name="numRevolutions"/> times with provided parameters.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation, int numRevolutions) where T : Drawable =>
