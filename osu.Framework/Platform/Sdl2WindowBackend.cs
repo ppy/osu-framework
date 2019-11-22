@@ -39,8 +39,7 @@ namespace osu.Framework.Platform
             {
                 title = value;
 
-                if (implementation != null)
-                    scheduler.Add(() => implementation.Title = value);
+                scheduler.Add(() => implementation.Title = value);
             }
         }
 
@@ -51,10 +50,9 @@ namespace osu.Framework.Platform
             get => implementation?.Visible ?? visible;
             set
             {
-                visible = true;
+                visible = value;
 
-                if (implementation != null)
-                    scheduler.Add(() => implementation.Visible = value);
+                scheduler.Add(() => implementation.Visible = value);
             }
         }
 
@@ -68,9 +66,6 @@ namespace osu.Framework.Platform
             set
             {
                 position = value;
-
-                if (implementation == null)
-                    return;
 
                 scheduler.Add(() =>
                 {
@@ -88,9 +83,6 @@ namespace osu.Framework.Platform
             set
             {
                 size = value;
-
-                if (implementation == null)
-                    return;
 
                 scheduler.Add(() =>
                 {
@@ -125,8 +117,7 @@ namespace osu.Framework.Platform
             {
                 cursorVisible = value;
 
-                if (implementation != null)
-                    scheduler.Add(() => implementation.CursorVisible = value);
+                scheduler.Add(() => implementation.CursorVisible = value);
             }
         }
 
@@ -141,8 +132,7 @@ namespace osu.Framework.Platform
             {
                 windowState = value;
 
-                if (implementation != null)
-                    scheduler.Add(() => implementation.WindowState = value);
+                scheduler.Add(() => implementation.WindowState = value);
             }
         }
 
