@@ -489,6 +489,8 @@ namespace osu.Framework.Platform
             set => windowBackend.CursorConfined = value;
         }
 
+#pragma warning disable 0067
+
         public event EventHandler<EventArgs> Move;
 
         public event EventHandler<EventArgs> Resize;
@@ -559,6 +561,13 @@ namespace osu.Framework.Platform
 
         public event EventHandler<FileDropEventArgs> FileDrop;
 
+        public event EventHandler<EventArgs> Load;
+        public event EventHandler<EventArgs> Unload;
+        public event EventHandler<FrameEventArgs> UpdateFrame;
+        public event EventHandler<FrameEventArgs> RenderFrame;
+
+#pragma warning restore 0067
+
         bool IWindow.CursorInWindow => CursorInWindow.Value;
 
         CursorState IWindow.CursorState
@@ -617,11 +626,6 @@ namespace osu.Framework.Platform
         public System.Drawing.Point PointToScreen(System.Drawing.Point point) => point;
 
         public Icon Icon { get; set; }
-
-        public event EventHandler<EventArgs> Load;
-        public event EventHandler<EventArgs> Unload;
-        public event EventHandler<FrameEventArgs> UpdateFrame;
-        public event EventHandler<FrameEventArgs> RenderFrame;
 
         public void Dispose()
         {
