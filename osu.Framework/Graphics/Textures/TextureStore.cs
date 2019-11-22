@@ -104,6 +104,10 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
+        /// <summary>
+        /// Disposes and removes a texture with the specified name from the texture cache.
+        /// </summary>
+        /// <param name="name">The name of the texture to purge from the cache.</param>
         protected void Purge(string name)
         {
             lock (textureCache)

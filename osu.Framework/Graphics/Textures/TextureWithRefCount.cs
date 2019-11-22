@@ -8,7 +8,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
-    /// A texture which updates the reference count of the underlying <see cref="TextureGL"/> on ctor and disposal.
+    /// A texture which shares a common reference count with all other textures using the same <see cref="TextureGL"/>.
     /// </summary>
     internal class TextureWithRefCount : Texture
     {
@@ -64,18 +64,30 @@ namespace osu.Framework.Graphics.Textures
 
             private int referenceCount;
 
+            /// <summary>
+            /// Creates a new <see cref="ReferenceCount"/>.
+            /// </summary>
+            /// <param name="lockObject">The <see cref="object"/> which locks will be taken out on.</param>
+            /// <param name="onAllReferencesLost">A delegate to invoke after all references have been lost.</param>
             public ReferenceCount(object lockObject, Action onAllReferencesLost)
             {
                 this.lockObject = lockObject;
                 this.onAllReferencesLost = onAllReferencesLost;
             }
 
+            /// <summary>
+            /// Increments the reference count.
+            /// </summary>
             public void Increment()
             {
                 lock (lockObject)
                     Interlocked.Increment(ref referenceCount);
             }
 
+            /// <summary>
+            /// Decrements the reference count, invoking <see cref="onAllReferencesLost"/> if there are no remaining references.
+            /// The delegate is invoked while a lock on the provided <see cref="lockObject"/> is held.
+            /// </summary>
             public void Decrement()
             {
                 lock (lockObject)
