@@ -34,12 +34,12 @@ namespace osu.Framework.Platform
 
         public string Title
         {
-            get => implementation?.Title ?? title;
+            get => title;
             set
             {
                 title = value;
 
-                scheduler.Add(() => implementation.Title = value);
+                scheduler.Add(() => implementation.Title = $"{value} (SDL)");
             }
         }
 
