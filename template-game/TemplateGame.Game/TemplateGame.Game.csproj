@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2019.1011.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2019.1121.0" />
   </ItemGroup>
 </Project>
