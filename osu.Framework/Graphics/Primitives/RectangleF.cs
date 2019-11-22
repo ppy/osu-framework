@@ -131,14 +131,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if obj is a <see cref="RectangleF"/> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="RectangleF"/>; otherwise, false.</returns>
         /// <param name="obj">The <see cref="System.Object"/> to test.</param>
         /// <filterpriority>1</filterpriority>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is RectangleF))
-                return false;
-
-            RectangleF ef = (RectangleF)obj;
-            return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
-        }
+        public override bool Equals(object obj) => obj is RectangleF rec && Equals(rec);
 
         /// <summary>Tests whether two <see cref="RectangleF"/> structures have equal location and size.</summary>
         /// <returns>This operator returns true if the two specified <see cref="RectangleF"/> structures have equal <see cref="X"/>, <see cref="Y"/>, <see cref="Width"/>, and <see cref="Height"/> properties.</returns>
@@ -343,6 +336,14 @@ namespace osu.Framework.Graphics.Primitives
             );
 
             return dist.LengthSquared;
+        }
+
+        internal float DistanceExponentiated(Vector2 localSpacePos, float exponent)
+        {
+            float distX = Math.Max(0.0f, Math.Max(localSpacePos.X - Right, Left - localSpacePos.X));
+            float distY = Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y));
+
+            return MathF.Pow(distX, exponent) + MathF.Pow(distY, exponent);
         }
 
         // This could be optimized further in the future, but made for a simple implementation right now.

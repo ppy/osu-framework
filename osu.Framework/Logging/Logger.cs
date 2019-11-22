@@ -314,7 +314,7 @@ namespace osu.Framework.Logging
 
                 if (DebugUtils.IsDebugBuild)
                 {
-                    void consoleLog(string msg)
+                    static void consoleLog(string msg)
                     {
                         // fire to all debug listeners (like visual studio's output window)
                         System.Diagnostics.Debug.Print(msg);
@@ -355,8 +355,10 @@ namespace osu.Framework.Logging
                     {
                         using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
+                        {
                             foreach (var line in lines)
                                 writer.WriteLine(line);
+                        }
                     }
                     catch
                     {

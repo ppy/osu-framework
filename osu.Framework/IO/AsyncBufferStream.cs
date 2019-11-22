@@ -127,8 +127,10 @@ namespace osu.Framework.IO
                     end = Math.Min(end, (position + amountBytesToRead) / block_size + blocksToReadAhead + 1);
 
                 for (int i = start; i < end; i++)
+                {
                     if (!blockLoadedStatus[i])
                         return i;
+                }
 
                 return -1;
             }

@@ -14,7 +14,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarRecordSection : ToolbarSection
     {
-        private Button recordButton;
+        private BasicButton recordButton;
         private FillFlowContainer playbackControls;
         private TestBrowser browser;
 
@@ -80,7 +80,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                             },
                         }
                     },
-                    recordButton = new Button
+                    recordButton = new BasicButton
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 100,

@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
+    /// A container which is rounded (via automatic corner-radius and corner-exponent=2) on the shortest edge.
     /// </summary>
     public class CircularContainer : Container
     {
@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.Containers
             // this shouldn't have to be done here, but it's the only place it works correctly.
             // see https://github.com/ppy/osu-framework/pull/1666
             CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
+            CornerExponent = 2;
 
             return base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
         }

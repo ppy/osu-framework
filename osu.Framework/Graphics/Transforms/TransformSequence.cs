@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to generate a <see cref="TransformSequence{T}"/> for.</param>
+        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
         /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
         public delegate TransformSequence<T> Generator(T origin);
 
@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Creates a new empty <see cref="TransformSequence{T}"/> attached to a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
+        /// <param name="origin">The <typeparamref name="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
         public TransformSequence(T origin)
         {
             if (origin == null)
@@ -74,8 +74,10 @@ namespace osu.Framework.Graphics.Transforms
         internal void Add(Transform transform)
         {
             if (!ReferenceEquals(transform.TargetTransformable, origin))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must operate upon {nameof(origin)}={origin}, but operates upon {transform.TargetTransformable}.");
+            }
 
             transforms.Add(transform);
 
@@ -204,9 +206,11 @@ namespace osu.Framework.Graphics.Transforms
         private void subscribeComplete(Action func)
         {
             if (onComplete != null)
+            {
                 throw new InvalidOperationException(
                     "May not subscribe completion multiple times." +
                     $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<T>)}.");
+            }
 
             onComplete = func;
 

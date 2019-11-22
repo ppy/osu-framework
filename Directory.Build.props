@@ -1,7 +1,7 @@
 <!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="License">
@@ -12,13 +12,20 @@
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
-  <PropertyGroup Label="Project">
+  <ItemGroup Label="Icon">
+    <None Include="$(MSBuildThisFileDirectory)assets\nupkg icon.png">
+      <Pack>True</Pack>
+      <PackagePath>icon.png</PackagePath>
+    </None>
+  </ItemGroup>
+  <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
     <Copyright>Copyright (c) 2019 ppy Pty Ltd</Copyright>
     <Product>osu!framework</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
   </PropertyGroup>

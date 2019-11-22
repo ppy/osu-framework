@@ -93,11 +93,13 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in localStores)
-            foreach (string f in filenames)
             {
-                T result = await store.GetAsync(f);
-                if (result != null)
-                    return result;
+                foreach (string f in filenames)
+                {
+                    T result = await store.GetAsync(f);
+                    if (result != null)
+                        return result;
+                }
             }
 
             return default;
@@ -114,13 +116,17 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             lock (stores)
+            {
                 foreach (IResourceStore<T> store in stores)
-                foreach (string f in filenames)
                 {
-                    T result = store.Get(f);
-                    if (result != null)
-                        return result;
+                    foreach (string f in filenames)
+                    {
+                        T result = store.Get(f);
+                        if (result != null)
+                            return result;
+                    }
                 }
+            }
 
             return default;
         }
@@ -131,19 +137,23 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             lock (stores)
+            {
                 foreach (IResourceStore<T> store in stores)
-                foreach (string f in filenames)
                 {
-                    try
+                    foreach (string f in filenames)
                     {
-                        var result = store.GetStream(f);
-                        if (result != null)
-                            return result;
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            var result = store.GetStream(f);
+                            if (result != null)
+                                return result;
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
+            }
 
             return null;
         }
@@ -187,7 +197,7 @@ namespace osu.Framework.IO.Stores
 
         public virtual IEnumerable<string> GetAvailableResources()
         {
-            lock (stores) return stores.SelectMany(s => s.GetAvailableResources());
+            lock (stores) return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
         }
 
         #region IDisposable Support

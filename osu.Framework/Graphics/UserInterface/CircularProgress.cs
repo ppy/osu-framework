@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
@@ -13,21 +12,12 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
-        private readonly Bindable<double> current = new Bindable<double>();
-
-        private Bindable<double> currentBound;
+        private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
         public Bindable<double> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         public CircularProgress()

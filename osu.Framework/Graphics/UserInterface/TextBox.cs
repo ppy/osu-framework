@@ -171,12 +171,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput.OnNewImeComposition += s =>
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate
+                textInput.OnNewImeResult += s =>
                 {
                     textUpdateScheduler.Add(onImeResult);
                     cursorAndLayout.Invalidate();
@@ -368,13 +368,17 @@ namespace osu.Framework.Graphics.UserInterface
                 Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
 
                 if (selectionLength > 0)
+                {
                     Caret
                         .FadeTo(0.5f, 200, Easing.Out)
                         .FadeColour(SelectionColour, 200, Easing.Out);
+                }
                 else
+                {
                     Caret
                         .FadeColour(Color4.White, 200, Easing.Out)
                         .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
+                }
             }
 
             if (textAtLastLayout != text)
@@ -607,21 +611,12 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
-
-        private Bindable<string> currentBound;
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
         public Bindable<string> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private string text = string.Empty;
@@ -637,7 +632,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == text)
                     return;
 
-                lastCommitText = value = value ?? string.Empty;
+                lastCommitText = value ??= string.Empty;
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 

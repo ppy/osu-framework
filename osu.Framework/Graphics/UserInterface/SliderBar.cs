@@ -87,8 +87,10 @@ namespace osu.Framework.Graphics.UserInterface
             get
             {
                 if (!currentNumberInstantaneous.HasDefinedRange)
+                {
                     throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
+                }
 
                 var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
                 var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
@@ -118,10 +120,22 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
+        private bool handleClick;
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            handleClick = true;
+            return base.OnMouseDown(e);
+        }
+
         protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(e);
-            commit();
+            if (handleClick)
+            {
+                handleMouseInput(e);
+                commit();
+            }
+
             return true;
         }
 
@@ -133,9 +147,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            handleMouseInput(e);
             Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+
+            if (Math.Abs(posDiff.X) < Math.Abs(posDiff.Y))
+            {
+                handleClick = false;
+                return false;
+            }
+
+            handleMouseInput(e);
+            return true;
         }
 
         protected override bool OnDragEnd(DragEndEvent e)
@@ -151,7 +172,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
-            if (currentNumberInstantaneous.IsInteger) step = (float)Math.Ceiling(step);
+            if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
             {

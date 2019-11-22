@@ -27,7 +27,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Create a new aggregate bindable.
         /// </summary>
-        /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <see cref="T"/> values and returning one output.</param>
+        /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <typeparamref name="T"/> values and returning one output.</param>
         /// <param name="resultBindable">An optional newly constructed bindable to use for <see cref="Result"/>. The initial value of this bindable is used as the initial value for the aggregate.</param>
         public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
         {

@@ -155,28 +155,30 @@ namespace osu.Framework.Graphics.Containers
             cells = new CellContainer[requiredRows, requiredColumns];
 
             for (int r = 0; r < cellRows; r++)
-            for (int c = 0; c < cellColumns; c++)
             {
-                // Add cell
-                cells[r, c] = new CellContainer();
+                for (int c = 0; c < cellColumns; c++)
+                {
+                    // Add cell
+                    cells[r, c] = new CellContainer();
 
-                // Allow empty rows
-                if (Content[r] == null)
-                    continue;
+                    // Allow empty rows
+                    if (Content[r] == null)
+                        continue;
 
-                // Allow non-square grids
-                if (c >= Content[r].Length)
-                    continue;
+                    // Allow non-square grids
+                    if (c >= Content[r].Length)
+                        continue;
 
-                // Allow empty cells
-                if (Content[r][c] == null)
-                    continue;
+                    // Allow empty cells
+                    if (Content[r][c] == null)
+                        continue;
 
-                // Add content
-                cells[r, c].Add(Content[r][c]);
-                cells[r, c].Depth = Content[r][c].Depth;
+                    // Add content
+                    cells[r, c].Add(Content[r][c]);
+                    cells[r, c].Depth = Content[r][c].Depth;
 
-                AddInternal(cells[r, c]);
+                    AddInternal(cells[r, c]);
+                }
             }
 
             cellContent.Validate();
@@ -194,15 +196,17 @@ namespace osu.Framework.Graphics.Containers
             var heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
 
             for (int col = 0; col < cellColumns; col++)
-            for (int row = 0; row < cellRows; row++)
             {
-                cells[row, col].Size = new Vector2(widths[col], heights[row]);
+                for (int row = 0; row < cellRows; row++)
+                {
+                    cells[row, col].Size = new Vector2(widths[col], heights[row]);
 
-                if (col > 0)
-                    cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
+                    if (col > 0)
+                        cells[row, col].X = cells[row, col - 1].X + cells[row, col - 1].Width;
 
-                if (row > 0)
-                    cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
+                    if (row > 0)
+                        cells[row, col].Y = cells[row - 1, col].Y + cells[row - 1, col].Height;
+                }
             }
 
             cellLayout.Validate();
@@ -298,15 +302,15 @@ namespace osu.Framework.Graphics.Containers
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
 
             // Write the sizes of distributed cells. Ordering is important to maximize excess at every step
-            foreach (var value in distributedDimensions.OrderBy(d => d.dim.Range))
+            foreach (var (i, dim) in distributedDimensions.OrderBy(d => d.dim.Range))
             {
                 // Cells start off at their minimum size, and the total size should not exceed their maximum size
-                cellSizes[value.i] = Math.Min(value.dim.MaxSize, value.dim.MinSize + distributionSize);
+                cellSizes[i] = Math.Min(dim.MaxSize, dim.MinSize + distributionSize);
 
                 // If there's no excess, any further distributions are guaranteed to also have no excess, so this becomes a null-op
                 // If there is an excess, the excess should be re-distributed among all other n-1 distributed cells
                 if (--distributionCount > 0)
-                    distributionSize += Math.Max(0, distributionSize - value.dim.Range) / distributionCount;
+                    distributionSize += Math.Max(0, distributionSize - dim.Range) / distributionCount;
             }
 
             return cellSizes;

@@ -96,14 +96,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if obj is a <see cref="RectangleI"/> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="RectangleI"/>; otherwise, false.</returns>
         /// <param name="obj">The <see cref="T:System.Object"/> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public override bool Equals(object obj)
-        {
-            if (!(obj is RectangleI))
-                return false;
-
-            RectangleI ef = (RectangleI)obj;
-            return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
-        }
+        public override bool Equals(object obj) => obj is RectangleI rec && Equals(rec);
 
         /// <summary>Tests whether two <see cref="RectangleI"/> structures have equal location and size.</summary>
         /// <returns>This operator returns true if the two specified <see cref="RectangleI"/> structures have equal <see cref="X"/>, <see cref="Y"/>, <see cref="Width"/>, and <see cref="Height"/> properties.</returns>
