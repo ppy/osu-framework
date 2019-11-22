@@ -47,11 +47,11 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name) => loadRaw(name, await base.GetAsync(name));
+        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
 
-        private Texture getTexture(string name) => loadRaw(name, base.Get(name));
+        private Texture getTexture(string name) => loadRaw(base.Get(name));
 
-        private Texture loadRaw(string name, TextureUpload upload)
+        private Texture loadRaw(TextureUpload upload)
         {
             if (upload == null) return null;
 
