@@ -16,13 +16,14 @@ namespace osu.Framework.Graphics.Video
         private List<int> textureIds;
         public int[] TextureIds => textureIds.ToArray();
 
-        public VideoTexture(int width, int height) :
-            base(width, height, true, All.Linear)
+        public VideoTexture(int width, int height)
+            : base(width, height, true, All.Linear)
         {
             memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
         }
 
         #region Disposal
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -41,10 +42,13 @@ namespace osu.Framework.Graphics.Video
 
             textureIds = null;
         }
+
         #endregion
 
         #region Memory Tracking
-        private NativeMemoryTracker.NativeMemoryLease memoryLease;
+
+        private readonly NativeMemoryTracker.NativeMemoryLease memoryLease;
+
         #endregion
 
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
@@ -61,12 +65,14 @@ namespace osu.Framework.Graphics.Video
 
             return true;
         }
-        protected override unsafe void DoUpload(ITextureUpload upload, IntPtr dataPointer)
+
+        protected override void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
-            var videoUpload = upload as VideoTextureUpload;
+            if (!(upload is VideoTextureUpload videoUpload))
+                return;
 
             if (textureIds == null)
-                textureIds = new List<int>() { 0, 0, 0 };
+                textureIds = new List<int> { 0, 0, 0 };
 
             // Do we need to generate a new texture?
             if (!textureIds.TrueForAll(i => i > 0) || InternalWidth != Width || InternalHeight != Height)
@@ -94,13 +100,15 @@ namespace osu.Framework.Graphics.Video
                     }
                 }
             }
+
             for (int i = 0; i < textureIds.Count; i++)
             {
                 GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);
                 GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1),
-                   PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);
+                    PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);
             }
+
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
         }
     }

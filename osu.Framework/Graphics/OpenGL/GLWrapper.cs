@@ -304,6 +304,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (last_bound_texture[index] != texture)
             {
                 FlushCurrentBatch();
+
                 for (int i = 0; i < texture.TextureIds.Length; i++)
                 {
                     GL.ActiveTexture(unit + i);

@@ -3,11 +3,12 @@
 
 using System;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 using FFmpeg.AutoGen;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace osu.Framework.Graphics.Textures
+namespace osu.Framework.Graphics.Video
 {
     public unsafe class VideoTextureUpload : ITextureUpload
     {
