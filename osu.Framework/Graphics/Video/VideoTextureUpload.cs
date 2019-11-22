@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics.Video
 
         public AVFrame* Frame;
 
+        private FFmpegFuncs.AvFrameFreeDelegate freeFrame;
+
         /// <summary>
         /// The target mipmap level to upload into.
         /// </summary>
@@ -35,9 +37,10 @@ namespace osu.Framework.Graphics.Video
         /// Sets the frame cotaining the data to be uploaded
         /// </summary>
         /// <param name="frame">The libav frame to upload.</param>
-        public VideoTextureUpload(AVFrame* frame)
+        public VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate free)
         {
             Frame = frame;
+            freeFrame = free;
         }
 
         // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
@@ -55,7 +58,7 @@ namespace osu.Framework.Graphics.Video
             {
                 disposed = true;
                 fixed (AVFrame** ptr = &Frame)
-                    ffmpeg.av_frame_free(ptr);
+                    freeFrame(ptr);
             }
         }
 
