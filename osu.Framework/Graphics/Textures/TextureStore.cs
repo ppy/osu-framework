@@ -47,11 +47,11 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
+        private async Task<Texture> getTextureAsync(string name) => loadRaw(name, await base.GetAsync(name));
 
-        private Texture getTexture(string name) => loadRaw(base.Get(name));
+        private Texture getTexture(string name) => loadRaw(name, base.Get(name));
 
-        private Texture loadRaw(TextureUpload upload)
+        private Texture loadRaw(string name, TextureUpload upload)
         {
             if (upload == null) return null;
 
@@ -67,7 +67,6 @@ namespace osu.Framework.Graphics.Textures
                 glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
-
             tex.SetData(upload);
 
             return tex;
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.Textures
             lock (textureCache)
             {
                 // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(name, out var tex) || tex?.Available == false)
+                if (!textureCache.TryGetValue(name, out var tex))
                 {
                     try
                     {
@@ -102,6 +101,16 @@ namespace osu.Framework.Graphics.Textures
                 }
 
                 return tex;
+            }
+        }
+
+        protected void Purge(string name)
+        {
+            lock (textureCache)
+            {
+                if (textureCache.TryGetValue(name, out var tex))
+                    tex.Dispose();
+                textureCache.Remove(name);
             }
         }
     }

@@ -2,46 +2,40 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.OpenGL;
+using System.Threading;
 using osu.Framework.Graphics.OpenGL.Textures;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// A texture which updates the reference count of the underlying <see cref="TextureGL"/> on ctor and disposal.
     /// </summary>
-    public class TextureWithRefCount : Texture
+    internal class TextureWithRefCount : Texture
     {
-        public TextureWithRefCount(TextureGL textureGl)
+        private readonly ReferenceCount count;
+
+        public TextureWithRefCount(TextureGL textureGl, ReferenceCount count)
             : base(textureGl)
         {
-            textureGl.Reference();
-        }
+            this.count = count;
 
-        public TextureWithRefCount(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
-            : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
-        {
+            count.Increment();
         }
-
-        internal int ReferenceCount => base.TextureGL.ReferenceCount;
 
         public sealed override TextureGL TextureGL
         {
             get
             {
-                var tex = base.TextureGL;
-                if (tex.ReferenceCount <= 0)
+                if (!Available)
                     throw new InvalidOperationException($"Attempting to access a {nameof(TextureWithRefCount)}'s underlying texture after all references are lost.");
 
-                return tex;
+                return base.TextureGL;
             }
         }
 
-        // The base property references TextureGL, but doing so may throw an exception (above)
+        // The base property invokes the overridden TextureGL property, which will throw an exception if not available
+        // So this property is redirected to reference the intended member
         public sealed override bool Available => base.TextureGL.Available;
-
-        #region Disposal
 
         ~TextureWithRefCount()
         {
@@ -49,20 +43,47 @@ namespace osu.Framework.Graphics.Textures
             Dispose(false);
         }
 
-        private bool isDisposed;
+        public bool IsDisposed { get; private set; }
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
 
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
-            isDisposed = true;
+            IsDisposed = true;
 
-            GLWrapper.ScheduleDisposal(() => base.TextureGL.Dereference());
+            count.Decrement();
         }
 
-        #endregion
+        public class ReferenceCount
+        {
+            private readonly object lockObject;
+            private readonly Action onAllReferencesLost;
+
+            private int referenceCount;
+
+            public ReferenceCount(object lockObject, Action onAllReferencesLost)
+            {
+                this.lockObject = lockObject;
+                this.onAllReferencesLost = onAllReferencesLost;
+            }
+
+            public void Increment()
+            {
+                lock (lockObject)
+                    Interlocked.Increment(ref referenceCount);
+            }
+
+            public void Decrement()
+            {
+                lock (lockObject)
+                {
+                    if (Interlocked.Decrement(ref referenceCount) == 0)
+                        onAllReferencesLost?.Invoke();
+                }
+            }
+        }
     }
 }
