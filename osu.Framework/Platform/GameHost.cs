@@ -39,9 +39,9 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
-using Veldrid;
 using Key = osuTK.Input.Key;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using WindowState = osuTK.WindowState;
@@ -679,9 +679,10 @@ namespace osu.Framework.Platform
                 cycleFrameSync();
         }
 
-        private void window_KeyDown(KeyEvent e)
+        private void window_KeyDown(KeyboardKeyInput e)
         {
-            if (e.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Veldrid.Key.F7)
+            // TODO: check for control key
+            if (e.Entries.Any(x => x.Button == Key.F7 && x.IsPressed))
                 cycleFrameSync();
         }
 

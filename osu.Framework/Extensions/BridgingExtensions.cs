@@ -4,6 +4,7 @@
 using TKVector2 = osuTK.Vector2;
 using SNVector2 = System.Numerics.Vector2;
 using SDPoint = System.Drawing.Point;
+using VPoint = Veldrid.Point;
 using SDSize = System.Drawing.Size;
 using VWindowState = Veldrid.WindowState;
 using TKWindowState = osuTK.WindowState;
@@ -32,6 +33,12 @@ namespace osu.Framework.Extensions
 
         public static SDPoint ToSystemDrawingPoint(this SNVector2 vec) =>
             new SDPoint((int)vec.X, (int)vec.Y);
+
+        public static VPoint ToVeldridPoint(this SNVector2 vec) =>
+            new VPoint((int)vec.X, (int)vec.Y);
+
+        public static SNVector2 ToSystemNumerics(this VPoint point) =>
+            new SNVector2(point.X, point.Y);
 
         public static TKWindowState ToOsuTK(this VWindowState state)
         {

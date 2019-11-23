@@ -3,8 +3,8 @@
 
 using System;
 using System.Numerics;
+using osu.Framework.Input.StateChanges;
 using Veldrid;
-using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
@@ -125,37 +125,37 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        event Action<Point> Moved;
+        event Action<Vector2> Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        event Action<MouseWheelEventArgs> MouseWheel;
+        event Action<MouseScrollRelativeInput> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        event Action<MouseMoveEventArgs> MouseMove;
+        event Action<MousePositionAbsoluteInput> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        event Action<MouseEvent> MouseDown;
+        event Action<MouseButtonInput> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        event Action<MouseEvent> MouseUp;
+        event Action<MouseButtonInput> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        event Action<KeyEvent> KeyDown;
+        event Action<KeyboardKeyInput> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        event Action<KeyEvent> KeyUp;
+        event Action<KeyboardKeyInput> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
@@ -165,7 +165,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        event Action<DragDropEvent> DragDrop;
+        event Action<string> DragDrop;
 
         #endregion
 

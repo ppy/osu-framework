@@ -2,19 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Input.States;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using Veldrid;
 using TKKey = osuTK.Input.Key;
 
 namespace osu.Framework.Input.Handlers.Keyboard
 {
-    public class Sdl2KeyboardHandler : InputHandler
+    public class KeyboardHandler : InputHandler
     {
-        private readonly KeyboardState lastKeyboardState = new KeyboardState();
-        private readonly KeyboardState thisKeyboardState = new KeyboardState();
-
         public override bool IsActive => true;
 
         public override int Priority => 0;
@@ -41,14 +36,9 @@ namespace osu.Framework.Input.Handlers.Keyboard
             return true;
         }
 
-        private void handleKeyboardEvent(KeyEvent keyEvent)
+        private void handleKeyboardEvent(KeyboardKeyInput keyEvent)
         {
-            if (keyEvent.Key == Key.Unknown)
-                return;
-
-            thisKeyboardState.Keys.SetPressed((TKKey)keyEvent.Key, keyEvent.Down);
-            PendingInputs.Enqueue(new KeyboardKeyInput(thisKeyboardState.Keys, lastKeyboardState.Keys));
-            lastKeyboardState.Keys.SetPressed((TKKey)keyEvent.Key, keyEvent.Down);
+            PendingInputs.Enqueue(keyEvent);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
     }

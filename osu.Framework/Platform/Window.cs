@@ -8,15 +8,10 @@ using System.Drawing;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Input.StateChanges;
 using osuTK;
 using osuTK.Input;
 using osuTK.Platform;
-using Veldrid;
-using Veldrid.Sdl2;
-using MouseMoveEventArgs = Veldrid.Sdl2.MouseMoveEventArgs;
-using MouseWheelEventArgs = Veldrid.Sdl2.MouseWheelEventArgs;
-using Point = Veldrid.Point;
-using Rectangle = System.Drawing.Rectangle;
 using Vector2 = System.Numerics.Vector2;
 using WindowState = Veldrid.WindowState;
 
@@ -167,37 +162,37 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        public event Action<Point> Moved;
+        public event Action<Vector2> Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        public event Action<MouseWheelEventArgs> MouseWheel;
+        public event Action<MouseScrollRelativeInput> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        public event Action<MouseMoveEventArgs> MouseMove;
+        public event Action<MousePositionAbsoluteInput> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        public event Action<MouseEvent> MouseDown;
+        public event Action<MouseButtonInput> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        public event Action<MouseEvent> MouseUp;
+        public event Action<MouseButtonInput> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<KeyEvent> KeyDown;
+        public event Action<KeyboardKeyInput> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        public event Action<KeyEvent> KeyUp;
+        public event Action<KeyboardKeyInput> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
@@ -207,7 +202,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
-        public event Action<DragDropEvent> DragDrop;
+        public event Action<string> DragDrop;
 
         #endregion
 
@@ -223,15 +218,15 @@ namespace osu.Framework.Platform
         protected virtual void OnHidden() => Hidden?.Invoke();
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(MouseWheelEventArgs args) => MouseWheel?.Invoke(args);
-        protected virtual void OnMouseMove(MouseMoveEventArgs args) => MouseMove?.Invoke(args);
-        protected virtual void OnMouseDown(MouseEvent evt) => MouseDown?.Invoke(evt);
-        protected virtual void OnMouseUp(MouseEvent evt) => MouseUp?.Invoke(evt);
-        protected virtual void OnKeyDown(KeyEvent evt) => KeyDown?.Invoke(evt);
-        protected virtual void OnKeyUp(KeyEvent evt) => KeyUp?.Invoke(evt);
+        protected virtual void OnMoved(Vector2 point) => Moved?.Invoke(point);
+        protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
+        protected virtual void OnMouseMove(MousePositionAbsoluteInput evt) => MouseMove?.Invoke(evt);
+        protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
+        protected virtual void OnMouseUp(MouseButtonInput evt) => MouseUp?.Invoke(evt);
+        protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
+        protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected virtual void OnDragDrop(DragDropEvent evt) => DragDrop?.Invoke(evt);
+        protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
 
@@ -367,12 +362,12 @@ namespace osu.Framework.Platform
             OnResized();
         }
 
-        private void windowBackend_Moved(Point point)
+        private void windowBackend_Moved(Vector2 point)
         {
             if (!boundsChanging)
             {
                 boundsChanging = true;
-                Position.Value = new Vector2(point.X, point.Y);
+                Position.Value = point;
                 boundsChanging = false;
             }
 
@@ -423,7 +418,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public System.Drawing.Point Location
+        public Point Location
         {
             get => Position.Value.ToSystemDrawingPoint();
             set => Position.Value = value.ToSystemNumerics();
@@ -547,13 +542,13 @@ namespace osu.Framework.Platform
             remove => throw new NotImplementedException();
         }
 
-        event EventHandler<osuTK.Input.MouseMoveEventArgs> INativeWindow.MouseMove
+        event EventHandler<MouseMoveEventArgs> INativeWindow.MouseMove
         {
             add => throw new NotImplementedException();
             remove => throw new NotImplementedException();
         }
 
-        event EventHandler<osuTK.Input.MouseWheelEventArgs> INativeWindow.MouseWheel
+        event EventHandler<MouseWheelEventArgs> INativeWindow.MouseWheel
         {
             add => throw new NotImplementedException();
             remove => throw new NotImplementedException();
@@ -621,9 +616,9 @@ namespace osu.Framework.Platform
         {
         }
 
-        public System.Drawing.Point PointToClient(System.Drawing.Point point) => point;
+        public Point PointToClient(Point point) => point;
 
-        public System.Drawing.Point PointToScreen(System.Drawing.Point point) => point;
+        public Point PointToScreen(Point point) => point;
 
         public Icon Icon { get; set; }
 

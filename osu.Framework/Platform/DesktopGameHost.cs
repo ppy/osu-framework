@@ -81,8 +81,8 @@ namespace osu.Framework.Platform
                 case Window _:
                     return new InputHandler[]
                     {
-                        new Sdl2KeyboardHandler(),
-                        new Sdl2MouseHandler(),
+                        new KeyboardHandler(),
+                        new MouseHandler(),
                     };
 
                 default:

@@ -4,9 +4,15 @@
 using System;
 using System.Numerics;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Threading;
 using Veldrid;
 using Veldrid.Sdl2;
+using Key = osuTK.Input.Key;
+using MouseButton = osuTK.Input.MouseButton;
+using MouseEvent = Veldrid.MouseEvent;
+using TKVector2 = osuTK.Vector2;
 
 namespace osu.Framework.Platform
 {
@@ -151,15 +157,15 @@ namespace osu.Framework.Platform
         public event Action Hidden;
         public event Action MouseEntered;
         public event Action MouseLeft;
-        public event Action<Point> Moved;
-        public event Action<MouseWheelEventArgs> MouseWheel;
-        public event Action<MouseMoveEventArgs> MouseMove;
-        public event Action<MouseEvent> MouseDown;
-        public event Action<MouseEvent> MouseUp;
-        public event Action<KeyEvent> KeyDown;
-        public event Action<KeyEvent> KeyUp;
+        public event Action<Vector2> Moved;
+        public event Action<MouseScrollRelativeInput> MouseWheel;
+        public event Action<MousePositionAbsoluteInput> MouseMove;
+        public event Action<MouseButtonInput> MouseDown;
+        public event Action<MouseButtonInput> MouseUp;
+        public event Action<KeyboardKeyInput> KeyDown;
+        public event Action<KeyboardKeyInput> KeyUp;
         public event Action<char> KeyTyped;
-        public event Action<DragDropEvent> DragDrop;
+        public event Action<string> DragDrop;
 
         #endregion
 
@@ -176,15 +182,15 @@ namespace osu.Framework.Platform
         protected virtual void OnHidden() => Hidden?.Invoke();
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(MouseWheelEventArgs args) => MouseWheel?.Invoke(args);
-        protected virtual void OnMouseMove(MouseMoveEventArgs args) => MouseMove?.Invoke(args);
-        protected virtual void OnMouseDown(MouseEvent evt) => MouseDown?.Invoke(evt);
-        protected virtual void OnMouseUp(MouseEvent evt) => MouseUp?.Invoke(evt);
-        protected virtual void OnKeyDown(KeyEvent evt) => KeyDown?.Invoke(evt);
-        protected virtual void OnKeyUp(KeyEvent evt) => KeyUp?.Invoke(evt);
+        protected virtual void OnMoved(Vector2 point) => Moved?.Invoke(point);
+        protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
+        protected virtual void OnMouseMove(MousePositionAbsoluteInput args) => MouseMove?.Invoke(args);
+        protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
+        protected virtual void OnMouseUp(MouseButtonInput evt) => MouseUp?.Invoke(evt);
+        protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
+        protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected virtual void OnDragDrop(DragDropEvent evt) => DragDrop?.Invoke(evt);
+        protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
 
@@ -204,22 +210,22 @@ namespace osu.Framework.Platform
             Size = size;
             Position = position;
 
-            implementation.MouseDown += OnMouseDown;
-            implementation.MouseUp += OnMouseUp;
-            implementation.MouseMove += OnMouseMove;
-            implementation.MouseWheel += OnMouseWheel;
-            implementation.KeyDown += OnKeyDown;
-            implementation.KeyUp += OnKeyUp;
+            implementation.MouseDown += implementation_OnMouseDown;
+            implementation.MouseUp += implementation_OnMouseUp;
+            implementation.MouseMove += implementation_OnMouseMove;
+            implementation.MouseWheel += implementation_OnMouseWheel;
+            implementation.KeyDown += implementation_OnKeyDown;
+            implementation.KeyUp += implementation_OnKeyUp;
             implementation.FocusGained += OnFocusGained;
             implementation.FocusLost += OnFocusLost;
             implementation.Resized += implementation_Resized;
-            implementation.Moved += OnMoved;
+            implementation.Moved += implementation_OnMoved;
             implementation.MouseEntered += OnMouseEntered;
             implementation.MouseLeft += OnMouseLeft;
             implementation.Hidden += OnHidden;
             implementation.Shown += OnShown;
             implementation.Closed += OnClosed;
-            implementation.DragDrop += OnDragDrop;
+            implementation.DragDrop += implementation_DragDrop;
         }
 
         public void Run()
@@ -247,6 +253,29 @@ namespace osu.Framework.Platform
         }
 
         #endregion
+
+        private void implementation_OnMoved(Point point) => Moved?.Invoke(new Vector2(point.X, point.Y));
+
+        private void implementation_OnMouseWheel(MouseWheelEventArgs args) =>
+            OnMouseWheel(new MouseScrollRelativeInput { Delta = new TKVector2(0, args.WheelDelta) });
+
+        private void implementation_OnMouseDown(MouseEvent evt) =>
+            OnMouseDown(new MouseButtonInput((MouseButton)evt.MouseButton, evt.Down));
+
+        private void implementation_OnMouseUp(MouseEvent evt) =>
+            OnMouseUp(new MouseButtonInput((MouseButton)evt.MouseButton, evt.Down));
+
+        private void implementation_OnMouseMove(MouseMoveEventArgs args) =>
+            OnMouseMove(new MousePositionAbsoluteInput { Position = args.MousePosition.ToOsuTK() * Scale });
+
+        private void implementation_OnKeyDown(KeyEvent evt) =>
+            OnKeyDown(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+
+        private void implementation_OnKeyUp(KeyEvent evt) =>
+            OnKeyUp(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+
+        private void implementation_DragDrop(DragDropEvent evt) =>
+            OnDragDrop(evt.File);
 
         private void implementation_Resized()
         {
