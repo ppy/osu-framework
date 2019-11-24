@@ -319,15 +319,15 @@ namespace osu.Framework.MathUtils
                     return .5 - .5 * Math.Cos(Math.PI * time);
 
                 case Easing.InExpo:
-                    return Math.Pow(2, 10 * (time - 1));
+                    return Math.Pow(2, 10 * (time - 1)) + Math.Pow(2, -10) * (time - 1);
 
                 case Easing.OutExpo:
-                    return -Math.Pow(2, -10 * time) + 1;
+                    return -Math.Pow(2, -10 * time) + 1 + Math.Pow(2, -10) * time;
 
                 case Easing.InOutExpo:
-                    if (time < .5) return .5 * Math.Pow(2, 20 * time - 10);
+                    if (time < .5) return .5 * (Math.Pow(2, 20 * time - 10) + Math.Pow(2, -10) * (2 * time - 1));
 
-                    return 1 - .5 * Math.Pow(2, -20 * time + 10);
+                    return 1 - .5 * (Math.Pow(2, -20 * time + 10) + Math.Pow(2, -10) * (-2 * time + 1));
 
                 case Easing.InCirc:
                     return 1 - Math.Sqrt(1 - time * time);
