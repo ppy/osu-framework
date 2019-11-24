@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Video
                 lastFrame = availableFrames.Dequeue();
 
                 // Check if the new frame has been uploaded so we don't display an old frame
-                if ((lastFrame.Texture.TextureGL as VideoTexture).IsReady)
+                if (lastFrame.Texture.TextureGL != null && (lastFrame.Texture.TextureGL as VideoTexture).IsReady)
                     Texture = lastFrame.Texture;
             }
 

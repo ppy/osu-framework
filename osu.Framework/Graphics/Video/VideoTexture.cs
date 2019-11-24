@@ -13,11 +13,11 @@ namespace osu.Framework.Graphics.Video
 {
     internal unsafe class VideoTexture : TextureGLSingle
     {
-        private List<int> textureIds = new List<int> { 0, 0, 0 };
-        public int[] TextureIds => textureIds?.ToArray() ?? null;
+        private readonly List<int> textureIds = new List<int> { 0, 0, 0 };
+        public int[] TextureIds => textureIds.ToArray();
 
         // True if the new frame data has been uploaded
-        public bool IsReady { get; private set; } = false;
+        public bool IsReady { get; private set; }
 
         public VideoTexture(int width, int height)
             : base(width, height, true, All.Linear)

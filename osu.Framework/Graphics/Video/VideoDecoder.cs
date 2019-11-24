@@ -408,6 +408,7 @@ namespace osu.Framework.Graphics.Video
                             if (packet->stream_index == stream->index)
                             {
                                 int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
+
                                 if (sendPacketResult == 0)
                                 {
                                     AVFrame* frame = ffmpeg.av_frame_alloc();
