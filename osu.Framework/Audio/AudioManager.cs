@@ -204,8 +204,8 @@ namespace osu.Framework.Audio
             string oldDevice = currentAudioDevice;
             string newDevice = preferredDevice;
 
-            // get default device if no device is preferred
-            // this falls back to "No sound" device (Bass ID: 0) if no actual audio devices are found
+            // fall back to "No sound" device (Bass ID: 0) if no actual audio devices are found
+            // this allows us to initialize and continue using Bass without failing every subsequent Bass calls
             newDevice ??= audioDevices.Find(df => df.IsDefault).Name ?? "No sound";
 
             bool oldDeviceValid = Bass.CurrentDevice >= 0;
@@ -218,12 +218,6 @@ namespace osu.Framework.Audio
 
             if (newDevice == oldDevice && oldDeviceValid)
                 return true;
-
-            if (string.IsNullOrEmpty(newDevice))
-            {
-                Logger.Log(@"BASS Initialization failed (no audio device present)");
-                return false;
-            }
 
             int newDeviceIndex = audioDevices.FindIndex(df => df.Name == newDevice);
 
@@ -252,7 +246,7 @@ namespace osu.Framework.Audio
 
                 if (preferredDevice == null)
                 {
-                    //we're fucked. the default device won't initialise.
+                    //we're fucked. even "No sound" device won't initialise.
                     currentAudioDevice = null;
                     return false;
                 }
