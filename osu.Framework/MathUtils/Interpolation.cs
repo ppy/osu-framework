@@ -341,22 +341,28 @@ namespace osu.Framework.MathUtils
                     return .5 * Math.Sqrt(1 - (time -= 2) * time) + .5;
 
                 case Easing.InElastic:
-                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const);
+                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const) + Math.Pow(2, -11) * (1 - time);
 
                 case Easing.OutElastic:
-                    return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1 - Math.Pow(2, -11) * time;
 
                 case Easing.OutElasticHalf:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1
+                           - Math.Pow(2, -10) * Math.Sin((.5 - elastic_const2) * elastic_const) * time;
 
                 case Easing.OutElasticQuarter:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1
+                           - Math.Pow(2, -10) * Math.Sin((.25 - elastic_const2) * elastic_const) * time;
 
                 case Easing.InOutElastic:
                     if ((time *= 2) < 1)
-                        return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5);
+                    {
+                        return -.5 * (Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5)
+                                      - Math.Pow(2, -10) * Math.Sin((1 - elastic_const2 * 1.5) * elastic_const / 1.5) * (1 - time));
+                    }
 
-                    return .5 * Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5) + 1;
+                    return .5 * (Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5)
+                                 - Math.Pow(2, -10) * Math.Sin((1 - elastic_const2 * 1.5) * elastic_const / 1.5) * time) + 1;
 
                 case Easing.InBack:
                     return time * time * ((back_const + 1) * time - back_const);
