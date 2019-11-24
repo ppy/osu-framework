@@ -134,7 +134,7 @@ namespace osu.Framework.Audio
             {
                 updateAvailableAudioDevices();
                 checkAudioDeviceChanged();
-            }, 1000, true);
+            }, 100, true);
         }
 
         protected override void Dispose(bool disposing)
