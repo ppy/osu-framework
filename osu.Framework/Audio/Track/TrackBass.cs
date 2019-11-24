@@ -137,6 +137,12 @@ namespace osu.Framework.Audio.Track
             InvalidateState();
         }
 
+        /// <summary>
+        /// Returns whether the playback state is considered to be running or not.
+        /// This will only return true for <see cref="PlaybackState.Playing"/> and <see cref="PlaybackState.Stalled"/>.
+        /// </summary>
+        private static bool isRunningState(PlaybackState state) => state == PlaybackState.Playing || state == PlaybackState.Stalled;
+
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
@@ -144,7 +150,7 @@ namespace osu.Framework.Audio.Track
 
             // Bass may stop us if the output device changes (this is true for "No sound" device)
             // so resume playing if we were playing previously
-            if (isPlayed && Bass.ChannelIsActive(activeStream) != PlaybackState.Playing)
+            if (isPlayed && !isRunningState(Bass.ChannelIsActive(activeStream)))
                 Start();
         }
 
@@ -156,7 +162,7 @@ namespace osu.Framework.Audio.Track
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             // update running state
-            var running = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+            var running = isRunningState(Bass.ChannelIsActive(activeStream));
 
             // if we have been played, always say/lie that we are running
             // this handles the case where Bass reports ChannelIsActive != Playing after output device changes
@@ -220,7 +226,7 @@ namespace osu.Framework.Audio.Track
 
         public Task StopAsync() => EnqueueAction(() =>
         {
-            if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
+            if (isRunningState(Bass.ChannelIsActive(activeStream)))
                 Bass.ChannelPause(activeStream);
 
             isPlayed = false;
