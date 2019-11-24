@@ -141,6 +141,10 @@ namespace osu.Framework.Audio.Track
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
             Trace.Assert(Bass.LastError == Errors.OK);
+
+            // Bass may stop this track if the output device changes (this is true for "No sound" device)
+            if (isPlayed && Bass.ChannelIsActive(activeStream) != PlaybackState.Playing)
+                Start();
         }
 
         protected override void UpdateState()
