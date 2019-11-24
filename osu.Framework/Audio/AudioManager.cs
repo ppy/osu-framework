@@ -197,6 +197,16 @@ namespace osu.Framework.Audio
                 yield return Bass.GetDeviceInfo(i);
         }
 
+        private string noSoundDeviceNameCache;
+
+        /// <summary>
+        /// Gets the name of Bass "No sound" device.
+        /// </summary>
+        /// <remarks>
+        /// Although we can refer to this device by the string "No sound", this property can be used to avoid hardcoding that string.
+        /// </remarks>
+        private string noSoundDevice => noSoundDeviceNameCache ?? (noSoundDeviceNameCache = Bass.GetDeviceInfo(0).Name);
+
         private bool setAudioDevice(string preferredDevice = null)
         {
             updateAvailableAudioDevices();
@@ -206,7 +216,7 @@ namespace osu.Framework.Audio
 
             // use in the order: preferred device, default device, fallback "No sound" device (Bass ID: 0)
             // this allows us to initialize and continue using Bass without failing every subsequent Bass calls
-            newDevice ??= audioDevices.Find(df => df.IsDefault).Name ?? "No sound";
+            newDevice ??= audioDevices.Find(df => df.IsDefault).Name ?? noSoundDevice;
 
             bool oldDeviceValid = Bass.CurrentDevice >= 0;
 
@@ -244,7 +254,7 @@ namespace osu.Framework.Audio
             {
                 //the new device didn't go as planned. we need another option.
 
-                if (preferredDevice == "No sound")
+                if (preferredDevice == noSoundDevice)
                 {
                     //we're fucked. even "No sound" device won't initialise.
                     currentAudioDevice = null;
@@ -256,7 +266,7 @@ namespace osu.Framework.Audio
                     return setAudioDevice();
 
                 // default device failed: let's try using "No sound" device.
-                return setAudioDevice("No sound");
+                return setAudioDevice(noSoundDevice);
             }
 
             if (Bass.LastError == Errors.Already)
