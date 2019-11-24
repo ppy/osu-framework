@@ -13,13 +13,16 @@ namespace osu.Framework.Graphics.Video
 {
     internal unsafe class VideoTexture : TextureGLSingle
     {
-        private List<int> textureIds;
-        public int[] TextureIds => textureIds.ToArray();
+        private List<int> textureIds = new List<int> { 0, 0, 0 };
+        public int[] TextureIds => textureIds?.ToArray() ?? null;
+
+        // True if the new frame data has been uploaded
+        public bool IsReady { get; private set; } = false;
 
         public VideoTexture(int width, int height)
             : base(width, height, true, All.Linear)
         {
-            memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
+            memoryLease = NativeMemoryTracker.AddMemory(this, width * height * 3 / 2);
         }
 
         #region Disposal
@@ -39,8 +42,6 @@ namespace osu.Framework.Graphics.Video
 
             for (int i = 0; i < textureIds.Count; i++)
                 GL.DeleteTextures(1, new[] { textureIds[i] });
-
-            textureIds = null;
         }
 
         #endregion
@@ -51,14 +52,19 @@ namespace osu.Framework.Graphics.Video
 
         #endregion
 
+        public override void SetData(ITextureUpload upload)
+        {
+            IsReady = false;
+
+            base.SetData(upload);
+        }
+
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
-            Upload();
-
-            if (textureIds.TrueForAll(i => i <= 0))
+            if (textureIds == null)
                 return false;
 
             GLWrapper.BindTexture(this, unit);
@@ -71,33 +77,24 @@ namespace osu.Framework.Graphics.Video
             if (!(upload is VideoTextureUpload videoUpload))
                 return;
 
-            if (textureIds == null)
-                textureIds = new List<int> { 0, 0, 0 };
-
             // Do we need to generate a new texture?
-            if (!textureIds.TrueForAll(i => i > 0) || InternalWidth != Width || InternalHeight != Height)
+            if (!textureIds.TrueForAll(i => i > 0))
             {
-                InternalWidth = Width;
-                InternalHeight = Height;
-
-                // We only need to generate a new texture if we don't have one already. Otherwise just re-use the current one.
-                if (!textureIds.TrueForAll(i => i > 0))
+                for (int i = 0; i < textureIds.Count; i++)
                 {
-                    for (int i = 0; i < textureIds.Count; i++)
-                    {
-                        int[] textures = new int[1];
-                        GL.GenTextures(1, textures);
+                    int[] textures = new int[1];
+                    GL.GenTextures(1, textures);
 
-                        textureIds[i] = textures[0];
+                    textureIds[i] = textures[0];
 
-                        GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
-                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
-                            videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1), 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                    GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
+                        videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1), 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
-                        UpdateWrapMode();
-                    }
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
                 }
             }
 
@@ -110,6 +107,8 @@ namespace osu.Framework.Graphics.Video
             }
 
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
+
+            IsReady = true;
         }
     }
 }

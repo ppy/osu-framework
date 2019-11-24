@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Video
 
         public AVFrame* Frame;
 
-        private FFmpegFuncs.AvFrameFreeDelegate freeFrame;
+        private readonly FFmpegFuncs.AvFrameFreeDelegate freeFrame;
 
         /// <summary>
         /// The target mipmap level to upload into.
@@ -37,6 +37,7 @@ namespace osu.Framework.Graphics.Video
         /// Sets the frame cotaining the data to be uploaded
         /// </summary>
         /// <param name="frame">The libav frame to upload.</param>
+        /// <param name="free">A function to free the frame on disposal.</param>
         public VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate free)
         {
             Frame = frame;

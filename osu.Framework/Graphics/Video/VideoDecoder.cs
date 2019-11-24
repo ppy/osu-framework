@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => stream == null ? 0 : stream->duration * timeBaseInSeconds * 1000;
+        public double Duration => stream == null ? 0 : duration * timeBaseInSeconds * 1000;
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
@@ -90,6 +90,7 @@ namespace osu.Framework.Graphics.Video
         private Stream videoStream;
 
         private double timeBaseInSeconds;
+        private long duration;
 
         private AVFilterGraph* filterGraph;
         private AVFilterContext* buffersinkCtx;
@@ -352,19 +353,21 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new Exception($"Error {findStreamInfoResult} finding stream info.");
 
+            duration = formatContext->duration;
+
             var nStreams = formatContext->nb_streams;
 
             for (var i = 0; i < nStreams; ++i)
             {
                 stream = formatContext->streams[i];
 
-                // The video shader only works on YUV420P pixel format
-                useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P;
-
                 codecParams = *stream->codecpar;
 
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
+                    // The video shader only works on YUV420P pixel format
+                    useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P;
+
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
                     if (codecPtr == null)
@@ -405,49 +408,50 @@ namespace osu.Framework.Graphics.Video
                             if (packet->stream_index == stream->index)
                             {
                                 int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
-                                if (sendPacketResult < 0)
-                                    throw new Exception($"Error {sendPacketResult} sending packet.");
-
-                                AVFrame* frame = ffmpeg.av_frame_alloc();
-
-                                var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
-
-                                if (result == 0)
+                                if (sendPacketResult == 0)
                                 {
-                                    var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                                    AVFrame* frame = ffmpeg.av_frame_alloc();
 
-                                    if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
+                                    var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+
+                                    if (result == 0)
                                     {
-                                        skipOutputUntilTime = null;
+                                        var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
-                                        AVFrame* outFrame;
-
-                                        if (useFilter)
+                                        if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
                                         {
-                                            var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);
-                                            if (addFrameResult < 0)
-                                                throw new Exception($"Error {addFrameResult} feeding filtergraph.");
+                                            skipOutputUntilTime = null;
 
-                                            outFrame = ffmpeg.av_frame_alloc();
-                                            var getFrameResult = ffmpeg.av_buffersink_get_frame(buffersinkCtx, outFrame);
-                                            if (getFrameResult < 0)
-                                                throw new Exception($"Error {getFrameResult} gettting filtered frame.");
+                                            AVFrame* outFrame;
 
-                                            ffmpeg.av_frame_free(&frame);
+                                            if (useFilter)
+                                            {
+                                                var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);
+                                                if (addFrameResult < 0)
+                                                    throw new Exception($"Error {addFrameResult} feeding filtergraph.");
+
+                                                outFrame = ffmpeg.av_frame_alloc();
+                                                var getFrameResult = ffmpeg.av_buffersink_get_frame(buffersinkCtx, outFrame);
+                                                if (getFrameResult < 0)
+                                                    throw new Exception($"Error {getFrameResult} gettting filtered frame.");
+
+                                                ffmpeg.av_frame_free(&frame);
+                                            }
+                                            else outFrame = frame;
+
+                                            if (!availableTextures.TryDequeue(out var tex))
+                                                tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
+
+                                            var upload = new VideoTextureUpload(outFrame, ffmpeg.av_frame_free);
+
+                                            tex.SetData(upload);
+                                            decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                                         }
-                                        else outFrame = frame;
 
-                                        if (!availableTextures.TryDequeue(out var tex))
-                                            tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
-
-                                        var upload = new VideoTextureUpload(outFrame, ffmpeg.av_frame_free);
-
-                                        tex.SetData(upload);
-                                        decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
+                                        lastDecodedFrameTime = (float)frameTime;
                                     }
-
-                                    lastDecodedFrameTime = (float)frameTime;
                                 }
+                                else Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
                             }
 
                             ffmpeg.av_packet_unref(packet);
