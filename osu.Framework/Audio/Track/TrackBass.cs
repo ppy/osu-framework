@@ -150,14 +150,17 @@ namespace osu.Framework.Audio.Track
 
         protected override void UpdateState()
         {
+            // update time
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
+
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
+
+            // update running state
             var running = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            // if we have been played, always say that we are running
+            // if we have been played, always say/lie that we are running
             // this handles the case where Bass reports ChannelIsActive != Playing after output device changes
-            isRunning = running || isPlayed;
-
-            // update time
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
+            isRunning = running || (isPlayed && bytePosition != byteLength);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
