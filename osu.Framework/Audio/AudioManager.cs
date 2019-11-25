@@ -322,16 +322,27 @@ namespace osu.Framework.Audio
             {
                 updateAvailableAudioDevices();
 
-                var index = audioDevices.FindIndex(d => d.IsEnabled && d.Name == currentAudioDevice);
-
-                // check if the current audio device became unavailable
-                if (index != -1)
-                    return;
-
-                // set to the preferred device (can fall back to default)
                 var preferred = string.IsNullOrEmpty(AudioDevice.Value) ? null : AudioDevice.Value;
 
-                setAudioDevice(preferred);
+                var currentIndex = audioDevices.FindIndex(d => d.IsEnabled && d.Name == currentAudioDevice);
+
+                // current audio device became unavailable
+                if (currentIndex == -1)
+                {
+                    setAudioDevice(preferred);
+                    return;
+                }
+
+                // preferred audio device, or a default device, became available
+                var preferredIndex = preferred == null
+                    ? audioDevices.FindIndex(d => d.IsDefault)
+                    : audioDevices.FindIndex(d => d.IsEnabled && d.Name == preferred);
+
+                if (preferredIndex != -1 && currentIndex != preferredIndex)
+                {
+                    setAudioDevice(preferred);
+                    return;
+                }
             }
             catch
             {
