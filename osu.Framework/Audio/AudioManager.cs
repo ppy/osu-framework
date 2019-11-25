@@ -39,6 +39,9 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The names of all available audio devices.
         /// </summary>
+        /// <remarks>
+        /// This property does not contain the names of disabled audio devices.
+        /// </remarks>
         public IEnumerable<string> AudioDeviceNames => audioDeviceNames;
 
         /// <summary>
@@ -212,7 +215,7 @@ namespace osu.Framework.Audio
 
             // use in the order: preferred device, default device, fallback "No sound" device (Bass ID: 0)
             // this allows us to initialize and continue using Bass without failing every subsequent Bass calls
-            newDevice ??= audioDevices.Find(df => df.IsDefault).Name ?? noSoundDevice;
+            newDevice ??= audioDevices.Find(d => d.IsEnabled && d.IsDefault).Name ?? noSoundDevice;
 
             bool oldDeviceValid = Bass.CurrentDevice >= 0;
 
@@ -226,12 +229,14 @@ namespace osu.Framework.Audio
             if (newDevice == oldDevice && oldDeviceValid)
                 return true;
 
-            int newDeviceIndex = audioDevices.FindIndex(df => df.Name == newDevice);
+            int newDeviceIndex = audioDevices.FindIndex(d => d.IsEnabled && d.Name == newDevice);
 
             // preferred device might be unavailable
             // in that case, continue using the old device if it is working, or fall back to default device
             if (newDeviceIndex == -1)
                 return oldDeviceValid || setAudioDevice();
+
+            var newDeviceInfo = Bass.GetDeviceInfo(newDeviceIndex);
 
             // initialize new device
             if (!InitBass(newDeviceIndex) && Bass.LastError != Errors.Already)
@@ -265,8 +270,6 @@ namespace osu.Framework.Audio
 
             Trace.Assert(Bass.LastError == Errors.OK);
 
-            var newDeviceInfo = Bass.GetDeviceInfo(newDeviceIndex);
-
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
                           BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
@@ -292,8 +295,8 @@ namespace osu.Framework.Audio
 
         private void updateAvailableAudioDevices()
         {
-            var currentDeviceList = EnumerateAllDevices().Where(d => d.IsEnabled).ToList();
-            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
+            var currentDeviceList = EnumerateAllDevices().ToList();
+            var currentDeviceNames = getDeviceNames(currentDeviceList.Where(d => d.IsEnabled)).ToList();
 
             var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
             var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
@@ -332,7 +335,7 @@ namespace osu.Framework.Audio
 
                 // preferred audio device, or a default device, became available
                 var preferredIndex = preferred == null
-                    ? audioDevices.FindIndex(d => d.IsDefault)
+                    ? audioDevices.FindIndex(d => d.IsEnabled && d.IsDefault)
                     : audioDevices.FindIndex(d => d.IsEnabled && d.Name == preferred);
 
                 if (preferredIndex != -1 && currentIndex != preferredIndex)
