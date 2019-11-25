@@ -205,7 +205,7 @@ namespace osu.Framework.Audio
         /// <remarks>
         /// Although we can refer to this device by the string "No sound", this property can be used to avoid hardcoding that string.
         /// </remarks>
-        private string noSoundDevice => noSoundDeviceNameCache ??= Bass.GetDeviceInfo(0).Name;
+        private string noSoundDevice => noSoundDeviceNameCache ??= Bass.GetDeviceInfo(Bass.NoSoundDevice).Name;
 
         private bool setAudioDevice(string preferredDevice = null)
         {
