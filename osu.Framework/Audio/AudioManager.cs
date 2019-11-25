@@ -190,7 +190,7 @@ namespace osu.Framework.Audio
             return sm;
         }
 
-        private IEnumerable<DeviceInfo> enumerateAllDevices()
+        protected virtual IEnumerable<DeviceInfo> EnumerateAllDevices()
         {
             int deviceCount = Bass.DeviceCount;
             for (int i = 0; i < deviceCount; i++)
@@ -250,7 +250,7 @@ namespace osu.Framework.Audio
                 return true;
             }
 
-            if (!Bass.Init(newDeviceIndex) && Bass.LastError != Errors.Already)
+            if (!InitBass(newDeviceIndex) && Bass.LastError != Errors.Already)
             {
                 //the new device didn't go as planned. we need another option.
 
@@ -276,7 +276,7 @@ namespace osu.Framework.Audio
                 // other fuzz.
                 Bass.CurrentDevice = newDeviceIndex;
                 Bass.Free();
-                Bass.Init(newDeviceIndex);
+                InitBass(newDeviceIndex);
             }
 
             Trace.Assert(Bass.LastError == Errors.OK);
@@ -298,9 +298,15 @@ namespace osu.Framework.Audio
             return true;
         }
 
+        /// <summary>
+        /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
+        /// It can be overridden for unit testing.
+        /// </summary>
+        protected virtual bool InitBass(int device) => Bass.Init(device);
+
         private void updateAvailableAudioDevices()
         {
-            var currentDeviceList = enumerateAllDevices().Where(d => d.IsEnabled).ToList();
+            var currentDeviceList = EnumerateAllDevices().Where(d => d.IsEnabled).ToList();
             var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
 
             var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
@@ -334,7 +340,7 @@ namespace osu.Framework.Audio
                     {
                         if (!device.IsEnabled || !setAudioDevice(device.Name))
                         {
-                            foreach (var d in enumerateAllDevices())
+                            foreach (var d in EnumerateAllDevices())
                             {
                                 if (d.Name == device.Name || !d.IsEnabled)
                                     continue;
@@ -354,7 +360,7 @@ namespace osu.Framework.Audio
                     {
                         if (!device.IsEnabled && !setAudioDevice())
                         {
-                            foreach (var d in enumerateAllDevices())
+                            foreach (var d in EnumerateAllDevices())
                             {
                                 if (d.Name == device.Name || !d.IsEnabled)
                                     continue;
@@ -366,13 +372,13 @@ namespace osu.Framework.Audio
                     }
                     else
                     {
-                        var preferredDevice = enumerateAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
+                        var preferredDevice = EnumerateAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
 
                         if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
                             setAudioDevice(preferredDevice.Name);
                         else if (!device.IsEnabled && !setAudioDevice())
                         {
-                            foreach (var d in enumerateAllDevices())
+                            foreach (var d in EnumerateAllDevices())
                             {
                                 if (d.Name == device.Name || !d.IsEnabled)
                                     continue;
