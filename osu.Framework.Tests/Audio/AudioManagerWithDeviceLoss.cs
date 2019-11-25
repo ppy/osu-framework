@@ -18,7 +18,8 @@ namespace osu.Framework.Tests.Audio
     /// </summary>
     internal class AudioManagerWithDeviceLoss : AudioManager
     {
-        public AudioManagerWithDeviceLoss(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore) : base(audioThread, trackStore, sampleStore)
+        public AudioManagerWithDeviceLoss(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+            : base(audioThread, trackStore, sampleStore)
         {
         }
 

@@ -339,10 +339,7 @@ namespace osu.Framework.Audio
                     : audioDevices.FindIndex(d => d.IsEnabled && d.Name == preferred);
 
                 if (preferredIndex != -1 && currentIndex != preferredIndex)
-                {
                     setAudioDevice(preferred);
-                    return;
-                }
             }
             catch
             {
