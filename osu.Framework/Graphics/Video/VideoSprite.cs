@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Video
                 var tex = lastFrame.Texture;
 
                 // Check if the new frame has been uploaded so we don't display an old frame
-                if (tex != null && tex.TextureGL is VideoTexture && (tex.TextureGL as VideoTexture).IsReady)
+                if ((tex?.TextureGL as VideoTexture)?.IsReady ?? false)
                     Texture = tex;
             }
 
