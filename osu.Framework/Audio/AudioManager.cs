@@ -218,27 +218,22 @@ namespace osu.Framework.Audio
 
             if (oldDeviceValid)
             {
-                DeviceInfo oldDeviceInfo = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                var oldDeviceInfo = Bass.GetDeviceInfo(Bass.CurrentDevice);
                 oldDeviceValid &= oldDeviceInfo.IsEnabled && oldDeviceInfo.IsInitialized;
             }
 
+            // same device
             if (newDevice == oldDevice && oldDeviceValid)
                 return true;
 
             int newDeviceIndex = audioDevices.FindIndex(df => df.Name == newDevice);
 
-            DeviceInfo newDeviceInfo = new DeviceInfo();
+            // preferred device might be unavailable
+            // in that case, continue using the old device if it is working, or fall back to default device
+            if (newDeviceIndex == -1)
+                return oldDeviceValid || setAudioDevice();
 
-            try
-            {
-                if (newDeviceIndex >= 0)
-                    newDeviceInfo = Bass.GetDeviceInfo(newDeviceIndex);
-                //we may have previously initialised this device.
-            }
-            catch
-            {
-            }
-
+            // initialize new device
             if (!InitBass(newDeviceIndex) && Bass.LastError != Errors.Already)
             {
                 //the new device didn't go as planned. we need another option.
@@ -269,6 +264,8 @@ namespace osu.Framework.Audio
             }
 
             Trace.Assert(Bass.LastError == Errors.OK);
+
+            var newDeviceInfo = Bass.GetDeviceInfo(newDeviceIndex);
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
