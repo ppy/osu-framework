@@ -130,11 +130,7 @@ namespace osu.Framework.Audio
                 }
             });
 
-            scheduler.AddDelayed(delegate
-            {
-                updateAvailableAudioDevices();
-                checkAudioDeviceChanged();
-            }, 100, true);
+            scheduler.AddDelayed(checkAudioDeviceChanged, 100, true);
         }
 
         protected override void Dispose(bool disposing)
@@ -243,13 +239,6 @@ namespace osu.Framework.Audio
             {
             }
 
-            if (oldDeviceValid && (newDeviceInfo.Driver == null || !newDeviceInfo.IsEnabled))
-            {
-                //handles the case we are trying to load a user setting which is currently unavailable,
-                //and we have already fallen back to a sane default.
-                return true;
-            }
-
             if (!InitBass(newDeviceIndex) && Bass.LastError != Errors.Already)
             {
                 //the new device didn't go as planned. we need another option.
@@ -331,64 +320,18 @@ namespace osu.Framework.Audio
         {
             try
             {
-                if (AudioDevice.Value == string.Empty)
-                {
-                    // use default device
-                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                updateAvailableAudioDevices();
 
-                    if (!device.IsDefault && !setAudioDevice())
-                    {
-                        if (!device.IsEnabled || !setAudioDevice(device.Name))
-                        {
-                            foreach (var d in EnumerateAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
+                var index = audioDevices.FindIndex(d => d.IsEnabled && d.Name == currentAudioDevice);
 
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // use whatever is the preferred device
-                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                // check if the current audio device became unavailable
+                if (index != -1)
+                    return;
 
-                    if (device.Name == AudioDevice.Value)
-                    {
-                        if (!device.IsEnabled && !setAudioDevice())
-                        {
-                            foreach (var d in EnumerateAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
+                // set to the preferred device (can fall back to default)
+                var preferred = string.IsNullOrEmpty(AudioDevice.Value) ? null : AudioDevice.Value;
 
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var preferredDevice = EnumerateAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
-
-                        if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
-                            setAudioDevice(preferredDevice.Name);
-                        else if (!device.IsEnabled && !setAudioDevice())
-                        {
-                            foreach (var d in EnumerateAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
-
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                }
+                setAudioDevice(preferred);
             }
             catch
             {
