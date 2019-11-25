@@ -86,7 +86,9 @@ namespace osu.Framework.Platform
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
-            MakeCurrent();
+            // We need to release the context in this thread, since Windows locks it and prevents
+            // the draw thread from taking it. macOS seems to gracefully ignore this.
+            Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, IntPtr.Zero);
         }
 
         public void MakeCurrent() => Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, Context);
