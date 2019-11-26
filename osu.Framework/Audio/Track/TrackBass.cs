@@ -148,10 +148,15 @@ namespace osu.Framework.Audio.Track
             Bass.ChannelSetDevice(activeStream, deviceIndex);
             Trace.Assert(Bass.LastError == Errors.OK);
 
-            // Bass may stop us if the output device changes (this is true for "No sound" device)
-            // so resume playing if we were playing previously
-            if (isPlayed && !isRunningState(Bass.ChannelIsActive(activeStream)))
+            // Bass may leave us in an invalid state after the output device changes (this is true for "No sound" device)
+            // if the observed state was playing before change, we should force things into a good state.
+            if (isPlayed)
+            {
+                // While on windows, changing to "No sound" changes the playback state correctly,
+                // on macOS it is left in a playing-but-stalled state. Forcefully stopping first fixes this.
+                Stop();
                 Start();
+            }
         }
 
         protected override void UpdateState()
