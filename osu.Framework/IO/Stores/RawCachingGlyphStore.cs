@@ -99,7 +99,7 @@ namespace osu.Framework.IO.Stores
             if (readBuffer == null || readBuffer.Length < pageWidth)
                 readBuffer = new byte[pageWidth];
 
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
+            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
             using (var source = CacheStorage.GetStream(page.Filename))
             {
@@ -110,14 +110,14 @@ namespace osu.Framework.IO.Stores
                 int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
                 int readableWidth = Math.Min(character.Width, pageWidth - character.X);
 
-                for (int y = 0; y < readableHeight; y++)
+                for (int y = 0; y < character.Height; y++)
                 {
                     source.Read(readBuffer, 0, pageWidth);
 
                     int writeOffset = y * character.Width;
 
-                    for (int x = 0; x < readableWidth; x++)
-                        dest[writeOffset + x] = new Rgba32(255, 255, 255, readBuffer[character.X + x]);
+                    for (int x = 0; x < character.Width; x++)
+                        dest[writeOffset + x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[character.X + x] : (byte)0);
                 }
             }
 
