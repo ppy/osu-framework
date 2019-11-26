@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.MathUtils;
@@ -12,6 +14,14 @@ namespace osu.Framework.Tests.MathUtils
     [TestFixture]
     public class TestInterpolation
     {
+        [TestCaseSource(nameof(getEasings))]
+        public void TestEasingStartsAtZero(Easing easing) => Assert.That(Interpolation.ApplyEasing(easing, 0), Is.EqualTo(0).Within(Precision.DOUBLE_EPSILON));
+
+        [TestCaseSource(nameof(getEasings))]
+        public void TestEasingEndsAtOne(Easing easing) => Assert.That(Interpolation.ApplyEasing(easing, 1), Is.EqualTo(1).Within(Precision.DOUBLE_EPSILON));
+
+        private static IEnumerable<Easing> getEasings() => Enum.GetValues(typeof(Easing)).OfType<Easing>();
+
         [Test]
         public void TestLerp()
         {
