@@ -15,6 +15,7 @@ namespace osu.Framework.Benchmarks
 
         public override void SetUp()
         {
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
         }
 
@@ -39,7 +40,7 @@ namespace osu.Framework.Benchmarks
                 runFor(store);
         }
 
-        [Benchmark]
+        //[Benchmark]
         public void BenchmarkSimple()
         {
             using (var store = new GlyphStore(baseResources, font_name))
@@ -49,8 +50,15 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public void BenchmarkTimedExpiry()
         {
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithMinimalPooling();
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
 
+            using (var store = new TimedExpiryGlyphStore(baseResources, font_name))
+                runFor(store);
+        }
+
+        [Benchmark]
+        public void BenchmarkTimedExpiryMemoryPooling()
+        {
             using (var store = new TimedExpiryGlyphStore(baseResources, font_name))
                 runFor(store);
         }
@@ -59,11 +67,16 @@ namespace osu.Framework.Benchmarks
         {
             store.LoadFontAsync().Wait();
 
-            foreach (var p in typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static))
+            var props = typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static);
+
+            for (int i = 0; i < 10; i++)
             {
-                var icon = (IconUsage)p.GetValue(null);
-                using (var upload = store.Get(icon.Icon.ToString()))
-                    Trace.Assert(upload.Data != null);
+                foreach (var p in props)
+                {
+                    var icon = (IconUsage)p.GetValue(null);
+                    using (var upload = store.Get(icon.Icon.ToString()))
+                        Trace.Assert(upload.Data != null);
+                }
             }
         }
     }
