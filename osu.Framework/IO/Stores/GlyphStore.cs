@@ -19,6 +19,12 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
 {
+    /// <summary>
+    /// A basic glyph store that will load font sprite sheets every character retrieval.
+    /// </summary>
+    /// <remarks>
+    /// For better performing solutions, consider <see cref="RawCachingGlyphStore"/> or <see cref="TimedExpiryGlyphStore"/>
+    /// </remarks>
     public class GlyphStore : IResourceStore<TextureUpload>, IGlyphStore
     {
         protected readonly string AssetName;

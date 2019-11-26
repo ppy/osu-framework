@@ -16,6 +16,13 @@ using SixLabors.Primitives;
 
 namespace osu.Framework.IO.Stores
 {
+    /// <summary>
+    /// A glyph store which caches font sprite sheets as raw pixels to disk on first use.
+    /// </summary>
+    /// <remarks>
+    /// This results in memory efficient lookups with good performance on solid state backed devices.
+    /// Consider <see cref="TimedExpiryGlyphStore"/> if memory usage is not an issue and performance should be prioritised.
+    /// </remarks>
     public class RawCachingGlyphStore : GlyphStore
     {
         public Storage CacheStorage;
