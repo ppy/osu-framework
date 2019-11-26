@@ -20,13 +20,18 @@ namespace osu.Framework.Tests.Visual.Containers
                 RelativeSizeAxes = Axes.Both,
                 Children = new[] { TestContainer }
             });
+
+            AddSliderStep("Blur quality", 0.01f, 1f, 1f, quality =>
+            {
+                buffer.BlurQuality = quality;
+            });
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            buffer.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000).Loop();
+            buffer.BlurTo(new Vector2(0.5f));
         }
     }
 }

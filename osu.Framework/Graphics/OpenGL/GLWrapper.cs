@@ -14,7 +14,6 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
-using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -34,7 +33,8 @@ namespace osu.Framework.Graphics.OpenGL
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
-        public static Matrix4 ProjectionMatrix { get; private set; }
+        public static RectangleI Scissor { get; private set; }
+        public static Matrix4 ProjectionMatrix { get; set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
 
         public static float BackbufferDrawDepth { get; private set; }
@@ -105,8 +105,12 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
+        private static Vector2 baseSize;
+
         internal static void Reset(Vector2 size)
         {
+            baseSize = size;
+
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -133,13 +137,13 @@ namespace osu.Framework.Graphics.OpenGL
 
             BindFrameBuffer(DefaultFrameBuffer);
 
-            scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
-
+            Scissor = RectangleI.Empty;
             Viewport = RectangleI.Empty;
             Ortho = RectangleF.Empty;
 
             PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
+            PushScissor(new RectangleI(0, 0, (int)size.X, (int)size.Y));
             PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = new RectangleI(0, 0, (int)size.X, (int)size.Y),
@@ -380,8 +384,6 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -402,8 +404,51 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
+        }
 
-            UpdateScissorToCurrentViewportAndOrtho();
+        public static void PushScissor(RectangleI scissor)
+        {
+            FlushCurrentBatch();
+
+            scissor_rect_stack.Push(scissor);
+            if (Scissor == scissor)
+                return;
+
+            Scissor = scissor;
+            setScissor(scissor);
+        }
+
+        public static void PopScissor()
+        {
+            Trace.Assert(scissor_rect_stack.Count > 1);
+
+            FlushCurrentBatch();
+
+            scissor_rect_stack.Pop();
+            RectangleI scissor = scissor_rect_stack.Peek();
+
+            if (Scissor == scissor)
+                return;
+
+            Scissor = scissor;
+            setScissor(scissor);
+        }
+
+        private static void setScissor(RectangleI scissor)
+        {
+            if (scissor.Width < 0)
+            {
+                scissor.X += scissor.Width;
+                scissor.Width = -scissor.Width;
+            }
+
+            if (scissor.Height < 0)
+            {
+                scissor.Y += scissor.Height;
+                scissor.Height = -scissor.Height;
+            }
+
+            GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
         }
 
         private static readonly Stack<RectangleF> ortho_stack = new Stack<RectangleF>();
@@ -424,8 +469,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -447,36 +490,12 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
         private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
         private static readonly Stack<DepthInfo> depth_stack = new Stack<DepthInfo>();
-
-        public static void UpdateScissorToCurrentViewportAndOrtho()
-        {
-            RectangleF viewportRect = Viewport;
-            Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
-
-            RectangleI currentScissorRect = scissor_rect_stack.Peek();
-
-            RectangleI scissorRect = new RectangleI(
-                currentScissorRect.X + (int)Math.Floor(offset.X),
-                Viewport.Height - currentScissorRect.Bottom - (int)Math.Ceiling(offset.Y),
-                currentScissorRect.Width,
-                currentScissorRect.Height);
-
-            if (!Precision.AlmostEquals(offset, Vector2.Zero))
-            {
-                ++scissorRect.Width;
-                ++scissorRect.Height;
-            }
-
-            GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
-        }
 
         private static void setMaskingInfo(MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
         {
@@ -513,34 +532,20 @@ namespace osu.Framework.Graphics.OpenGL
             if (maskingInfo.Hollow)
                 GlobalPropertyManager.Set(GlobalProperty.InnerCornerRadius, maskingInfo.HollowCornerRadius);
 
-            RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
-            actualRect.X += Viewport.X;
-            actualRect.Y += Viewport.Y;
-
-            // Ensure the rectangle only has positive width and height. (Required by OGL)
-            if (actualRect.Width < 0)
-            {
-                actualRect.X += actualRect.Width;
-                actualRect.Width = -actualRect.Width;
-            }
-
-            if (actualRect.Height < 0)
-            {
-                actualRect.Y += actualRect.Height;
-                actualRect.Height = -actualRect.Height;
-            }
-
             if (isPushing)
             {
-                scissor_rect_stack.Push(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
+                var scissorRect = new RectangleF(
+                    Vector2.Divide(maskingInfo.ScreenSpaceAABB.Location - Ortho.Location, baseSize),
+                    Vector2.Divide(maskingInfo.ScreenSpaceAABB.Size, baseSize));
+
+                PushScissor(new RectangleI(
+                    (int)(scissorRect.Left * Viewport.Width),
+                    (int)(scissorRect.Top * Viewport.Height),
+                    (int)(scissorRect.Width * Viewport.Width),
+                    (int)(scissorRect.Height * Viewport.Height)));
             }
             else
-            {
-                Trace.Assert(scissor_rect_stack.Count > 1);
-                scissor_rect_stack.Pop();
-            }
-
-            UpdateScissorToCurrentViewportAndOrtho();
+                PopScissor();
         }
 
         internal static void FlushCurrentBatch()

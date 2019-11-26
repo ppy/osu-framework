@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics.Containers
             private Vector2 blurSigma;
             private Vector2I blurRadius;
             private float blurRotation;
+            private float blurQuality;
 
             private long updateVersion;
 
@@ -40,6 +41,8 @@ namespace osu.Framework.Graphics.Containers
                 : base(source, new CompositeDrawableDrawNode(source), sharedData)
             {
             }
+
+            protected override float FrameBufferScale => blurSigma != Vector2.Zero ? blurQuality : 1;
 
             public override void ApplyState()
             {
@@ -55,6 +58,7 @@ namespace osu.Framework.Graphics.Containers
                 blurSigma = Source.BlurSigma;
                 blurRadius = new Vector2I(Blur.KernelSize(blurSigma.X), Blur.KernelSize(blurSigma.Y));
                 blurRotation = Source.BlurRotation;
+                blurQuality = Source.BlurQuality;
 
                 blurShader = Source.blurShader;
             }
