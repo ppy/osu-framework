@@ -2,10 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
 using NUnit.Framework;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
@@ -14,89 +11,54 @@ namespace osu.Framework.Tests.Audio
     /// A physical audio device is required to simulate the "loss" of it during playback.
     /// </remarks>
     [TestFixture]
-    public class DeviceLosingAudioTest
+    public class DeviceLosingAudioTest : AudioThreadTest
     {
-        private AudioThread thread;
-        private NamespacedResourceStore<byte[]> store;
-        private AudioManagerWithDeviceLoss manager;
-
-        [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
-            thread = new AudioThread();
-            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.dll"), @"Resources");
-
-            manager = new AudioManagerWithDeviceLoss(thread, store, store);
-
-            thread.Start();
+            base.SetUp();
 
             // wait for any device to be initialized
-            manager.WaitForDeviceChange(-1);
+            Manager.WaitForDeviceChange(-1);
 
             // if the initialized device is "No sound", it indicates that no other physical devices are available, so this unit should be ignored
-            if (manager.CurrentDevice == 0)
+            if (Manager.CurrentDevice == 0)
                 Assert.Ignore("Physical audio devices are required for this unit.");
 
             // we don't want music playing in unit tests :)
-            manager.Volume.Value = 0;
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            Assert.IsFalse(thread.Exited);
-
-            thread.Exit();
-
-            Thread.Sleep(500);
-
-            Assert.IsTrue(thread.Exited);
+            Manager.Volume.Value = 0;
         }
 
         [Test]
-        public void TestPlaybackWithDeviceLoss() => testPlayback(manager.SimulateDeviceRestore, manager.SimulateDeviceLoss);
+        public void TestPlaybackWithDeviceLoss() => testPlayback(Manager.SimulateDeviceRestore, Manager.SimulateDeviceLoss);
 
         [Test]
-        public void TestPlaybackWithDeviceRestore() => testPlayback(manager.SimulateDeviceLoss, manager.SimulateDeviceRestore);
+        public void TestPlaybackWithDeviceRestore() => testPlayback(Manager.SimulateDeviceLoss, Manager.SimulateDeviceRestore);
 
         private void testPlayback(Action preparation, Action simulate)
         {
             preparation();
 
-            var track = manager.Tracks.Get("Tracks.sample-track.mp3");
+            var track = Manager.Tracks.Get("Tracks.sample-track.mp3");
 
             // start track
             track.Restart();
 
-            Thread.Sleep(100);
+            WaitForOrAssert(() => track.IsRunning, "Track did not start running");
 
-            Assert.IsTrue(track.IsRunning);
-            Assert.That(track.CurrentTime, Is.GreaterThan(0));
-
-            var timeBeforeLosing = track.CurrentTime;
+            WaitForOrAssert(() => track.CurrentTime > 0, "Track did not start running");
 
             // simulate change (loss/restore)
             simulate();
 
-            Assert.IsTrue(track.IsRunning);
-
-            Thread.Sleep(100);
-
-            // playback should be continuing after device change
-            Assert.IsTrue(track.IsRunning);
-            Assert.That(track.CurrentTime, Is.GreaterThan(timeBeforeLosing));
+            CheckTrackIsProgressing(track);
 
             // stop track
             track.Stop();
 
-            Thread.Sleep(100);
-
-            Assert.IsFalse(track.IsRunning);
+            WaitForOrAssert(() => !track.IsRunning, "Track did not stop", 1000);
 
             // seek track
             track.Seek(0);
-
-            Thread.Sleep(100);
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.CurrentTime, 0);

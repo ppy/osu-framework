@@ -1,9 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
@@ -79,17 +77,7 @@ namespace osu.Framework.Tests.Audio
         {
             current ??= CurrentDevice;
 
-            var watch = Stopwatch.StartNew();
-
-            while (watch.ElapsedMilliseconds < timeoutMs)
-            {
-                if (CurrentDevice != current)
-                    return;
-
-                System.Threading.Thread.Sleep(50);
-            }
-
-            throw new TimeoutException($"Timed out while waiting for the device to change from {current}.");
+            AudioThreadTest.WaitForOrAssert(() => CurrentDevice != current, $"Timed out while waiting for the device to change from {current}.", 5000);
         }
     }
 }
