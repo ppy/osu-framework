@@ -16,8 +16,13 @@ namespace osu.Framework.IO.Stores
         private readonly string prefix;
 
         public DllResourceStore(string dllName)
-            : this(Assembly.Load(Path.GetFileNameWithoutExtension(dllName)))
         {
+            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName);
+
+            // prefer the local file if it exists, else load from standard dependency resolver.
+            assembly = System.IO.File.Exists(filePath) ? Assembly.LoadFile(filePath) : Assembly.Load(Path.GetFileNameWithoutExtension(dllName));
+
+            prefix = assembly.GetName().Name;
         }
 
         public DllResourceStore(Assembly assembly)
