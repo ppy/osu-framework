@@ -781,7 +781,7 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            Config.BindWith(FrameworkSetting.PerformanceLogging, performanceLogging);
+            DebugConfig.BindWith(DebugSetting.PerformanceLogging, performanceLogging);
             performanceLogging.BindValueChanged(logging =>
             {
                 threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);

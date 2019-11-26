@@ -1,6 +1,6 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
   <PropertyGroup Label="Project">
-    <TargetFramework>monoandroid80</TargetFramework>
+    <TargetFramework>monoandroid10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Android</AssemblyTitle>

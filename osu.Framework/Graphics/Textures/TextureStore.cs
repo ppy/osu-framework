@@ -67,7 +67,6 @@ namespace osu.Framework.Graphics.Textures
                 glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
-
             tex.SetData(upload);
 
             return tex;
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.Textures
             lock (textureCache)
             {
                 // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(name, out var tex) || tex?.Available == false)
+                if (!textureCache.TryGetValue(name, out var tex))
                 {
                     try
                     {
@@ -102,6 +101,20 @@ namespace osu.Framework.Graphics.Textures
                 }
 
                 return tex;
+            }
+        }
+
+        /// <summary>
+        /// Disposes and removes a texture with the specified name from the texture cache.
+        /// </summary>
+        /// <param name="name">The name of the texture to purge from the cache.</param>
+        protected void Purge(string name)
+        {
+            lock (textureCache)
+            {
+                if (textureCache.TryGetValue(name, out var tex))
+                    tex.Dispose();
+                textureCache.Remove(name);
             }
         }
     }

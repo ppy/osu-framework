@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
                     blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                     float radians = -MathHelper.DegreesToRadians(blurRotation);
-                    Vector2 blur = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
+                    Vector2 blur = new Vector2(MathF.Cos(radians), MathF.Sin(radians));
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                     blurShader.Bind();
