@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Audio
         {
         }
 
-        public volatile int CurrentDevice = -1;
+        public volatile int CurrentDevice = Bass.DefaultDevice;
 
         private volatile bool simulateLoss;
 
@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Audio
         {
             if (simulateLoss)
             {
-                if (device != 0 || !base.InitBass(device))
+                if (device != Bass.NoSoundDevice || !base.InitBass(device))
                     return false;
 
                 CurrentDevice = device;
@@ -53,13 +53,21 @@ namespace osu.Framework.Tests.Audio
             return devices;
         }
 
+        protected override bool IsCurrentDeviceValid()
+        {
+            if (simulateLoss)
+                return CurrentDevice == Bass.NoSoundDevice && base.IsCurrentDeviceValid();
+
+            return CurrentDevice != Bass.NoSoundDevice && base.IsCurrentDeviceValid();
+        }
+
         public void SimulateDeviceLoss()
         {
             var current = CurrentDevice;
 
             simulateLoss = true;
 
-            if (current != 0)
+            if (current != Bass.NoSoundDevice)
                 WaitForDeviceChange(current);
         }
 
@@ -69,7 +77,7 @@ namespace osu.Framework.Tests.Audio
 
             simulateLoss = false;
 
-            if (current == 0)
+            if (current == Bass.NoSoundDevice)
                 WaitForDeviceChange(current);
         }
 
@@ -77,7 +85,7 @@ namespace osu.Framework.Tests.Audio
         {
             current ??= CurrentDevice;
 
-            AudioThreadTest.WaitForOrAssert(() => CurrentDevice != current, $"Timed out while waiting for the device to change from {current}.", 5000);
+            AudioThreadTest.WaitForOrAssert(() => CurrentDevice != current, $"Timed out while waiting for the device to change from {current}.", timeoutMs);
         }
     }
 }
