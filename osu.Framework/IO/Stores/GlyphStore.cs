@@ -83,9 +83,12 @@ namespace osu.Framework.IO.Stores
 
         protected virtual Image<Rgba32> GetPageImageForCharacter(Character character)
         {
-            using (var stream = Store.GetStream($@"{AssetName}_{character.Page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png"))
+            using (var stream = Store.GetStream(GetFilenameForPage(character.Page)))
                 return TextureUpload.LoadFromStream<Rgba32>(stream);
         }
+
+        protected string GetFilenameForPage(int page)
+            => $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
 
         public CharacterGlyph Get(char character)
         {
