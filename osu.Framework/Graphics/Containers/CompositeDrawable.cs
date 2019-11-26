@@ -721,7 +721,7 @@ namespace osu.Framework.Graphics.Containers
         /// Make a child alive.
         /// </summary>
         /// <remarks>
-        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the child is at least <see cref="LoadState.Ready"/>.
+        /// Caller have to ensure that <paramref name="child"/> is this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the child is at least <see cref="LoadState.Ready"/>.
         /// </remarks>
         /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make alive.</param>
         protected void MakeChildAlive(Drawable child)
@@ -752,7 +752,7 @@ namespace osu.Framework.Graphics.Containers
         /// Make a child dead (not alive).
         /// </summary>
         /// <remarks>
-        /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
+        /// Caller have to ensure that <paramref name="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
         /// </remarks>
         /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make dead.</param>
         /// <returns>Returns true if <paramref name="child"/> is removed by death.</returns>
@@ -1455,8 +1455,8 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
                 Vector2 inflation = new Vector2(
-                    (float)Math.Sqrt(u.X * u.X + v.X * v.X),
-                    (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y)
+                    MathF.Sqrt(u.X * u.X + v.X * v.X),
+                    MathF.Sqrt(u.Y * u.Y + v.Y * v.Y)
                 );
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);

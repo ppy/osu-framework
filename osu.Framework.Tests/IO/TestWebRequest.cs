@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsTrue(request.ResponseString == null);
+            Assert.IsTrue(request.GetResponseString() == null);
             Assert.IsNotNull(finishedException);
         }
 
@@ -183,7 +183,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsEmpty(request.ResponseString);
+            Assert.IsEmpty(request.GetResponseString());
 
             Assert.IsTrue(hasThrown);
         }
