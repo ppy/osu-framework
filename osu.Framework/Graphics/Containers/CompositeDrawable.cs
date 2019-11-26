@@ -1455,8 +1455,8 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
                 Vector2 inflation = new Vector2(
-                    (float)Math.Sqrt(u.X * u.X + v.X * v.X),
-                    (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y)
+                    MathF.Sqrt(u.X * u.X + v.X * v.X),
+                    MathF.Sqrt(u.Y * u.Y + v.Y * v.Y)
                 );
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);
