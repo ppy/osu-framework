@@ -25,6 +25,11 @@ namespace osu.Framework.IO.Stores
             prefix = assembly.GetName().Name;
         }
 
+        public DllResourceStore(AssemblyName name)
+            : this(Assembly.Load(name))
+        {
+        }
+
         public DllResourceStore(Assembly assembly)
         {
             this.assembly = assembly;

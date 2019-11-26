@@ -105,7 +105,7 @@ namespace osu.Framework
         private void load(FrameworkConfigManager config)
         {
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
             Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
