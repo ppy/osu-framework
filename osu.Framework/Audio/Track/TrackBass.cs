@@ -154,24 +154,16 @@ namespace osu.Framework.Audio.Track
             {
                 // While on windows, changing to "No sound" changes the playback state correctly,
                 // on macOS it is left in a playing-but-stalled state. Forcefully stopping first fixes this.
-                Stop();
-                Start();
+                stopInternal();
+                startInternal();
             }
         }
 
         protected override void UpdateState()
         {
-            // update time
-            var bytePosition = Bass.ChannelGetPosition(activeStream);
+            isRunning = isRunningState(Bass.ChannelIsActive(activeStream));
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
-
-            // update running state
-            var running = isRunningState(Bass.ChannelIsActive(activeStream));
-
-            // if we have been played, always say/lie that we are running
-            // this handles the case where Bass reports ChannelIsActive != Playing after output device changes
-            isRunning = running || (isPlayed && bytePosition != byteLength);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
@@ -231,11 +223,11 @@ namespace osu.Framework.Audio.Track
 
         public Task StopAsync() => EnqueueAction(() =>
         {
-            if (isRunningState(Bass.ChannelIsActive(activeStream)))
-                Bass.ChannelPause(activeStream);
-
+            stopInternal();
             isPlayed = false;
         });
+
+        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && Bass.ChannelPause(activeStream);
 
         private int direction;
 
@@ -254,15 +246,18 @@ namespace osu.Framework.Audio.Track
 
         public Task StartAsync() => EnqueueAction(() =>
         {
+            if (startInternal())
+                isPlayed = true;
+        });
+
+        private bool startInternal()
+        {
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
             if (Bass.ChannelGetPosition(activeStream) == byteLength)
-                return;
+                return false;
 
-            if (Bass.ChannelPlay(activeStream))
-                isPlayed = true;
-            else
-                isRunning = false;
-        });
+            return Bass.ChannelPlay(activeStream);
+        }
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
 
