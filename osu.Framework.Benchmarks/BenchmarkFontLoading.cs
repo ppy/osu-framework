@@ -11,23 +11,22 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkFontLoading : BenchmarkTest
     {
-        private static NamespacedResourceStore<byte[]> baseResources;
+        private NamespacedResourceStore<byte[]> baseResources;
+        private TemporaryNativeStorage sharedTemp;
 
         public override void SetUp()
         {
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
-            baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
-        }
 
-        private static TemporaryNativeStorage sharedTemp;
+            baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            sharedTemp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true);
+        }
 
         private const string font_name = @"Fonts/FontAwesome5/FontAwesome-Solid";
 
         [Benchmark]
         public void BenchmarkRawCachingReuse()
         {
-            sharedTemp ??= new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true);
-
             using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = sharedTemp })
                 runFor(store);
         }
