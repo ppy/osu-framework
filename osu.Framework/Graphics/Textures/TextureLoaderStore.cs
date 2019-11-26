@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Textures
             catch (Exception e)
             {
                 Logger.Error(e, "Texture could not be loaded via STB; falling back to ImageSharp.");
-                stream.Seek(initialPos, SeekOrigin.Begin);
+                stream.Position = initialPos;
                 return Image.Load<TPixel>(stream);
             }
         }
