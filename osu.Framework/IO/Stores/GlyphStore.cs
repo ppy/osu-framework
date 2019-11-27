@@ -84,10 +84,13 @@ namespace osu.Framework.IO.Stores
             return Font.Common.Base;
         }
 
-        protected virtual Image<Rgba32> GetPageImage(int page)
+        protected virtual TextureUpload GetPageImage(int page)
         {
+            if (TextureLoader != null)
+                return TextureLoader.Get(GetFilenameForPage(page));
+
             using (var stream = Store.GetStream(GetFilenameForPage(page)))
-                return TextureUpload.LoadFromStream<Rgba32>(stream);
+                return new TextureUpload(stream);
         }
 
         protected string GetFilenameForPage(int page)
@@ -137,7 +140,7 @@ namespace osu.Framework.IO.Stores
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
 
             var dest = image.GetPixelSpan();
-            var source = page.GetPixelSpan();
+            var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
             int readableHeight = Math.Min(character.Height, page.Height - character.Y);

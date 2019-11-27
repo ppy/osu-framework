@@ -68,7 +68,7 @@ namespace osu.Framework.IO.Stores
                 using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>(convert.Width * convert.Height))
                 {
                     var output = buffer.Memory.Span;
-                    var source = convert.GetPixelSpan();
+                    var source = convert.Data;
 
                     for (int i = 0; i < output.Length; i++)
                         output[i] = source[i].A;
