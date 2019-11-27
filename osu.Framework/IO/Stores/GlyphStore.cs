@@ -75,9 +75,9 @@ namespace osu.Framework.IO.Stores
             return Font.Common.Base;
         }
 
-        protected virtual Image<Rgba32> GetPageImageForCharacter(Character character)
+        protected virtual Image<Rgba32> GetPageImage(int page)
         {
-            using (var stream = Store.GetStream(GetFilenameForPage(character.Page)))
+            using (var stream = Store.GetStream(GetFilenameForPage(page)))
                 return TextureUpload.LoadFromStream<Rgba32>(stream);
         }
 
@@ -122,7 +122,7 @@ namespace osu.Framework.IO.Stores
 
         protected virtual TextureUpload LoadCharacter(Character character)
         {
-            var page = GetPageImageForCharacter(character);
+            var page = GetPageImage(character.Page);
             LoadedGlyphCount++;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
