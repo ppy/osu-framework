@@ -56,13 +56,6 @@
     <Reference Include="Xamarin.iOS" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
-  <ItemGroup>
-    <NativeReference Include="..\osu.Framework.iOS\*.a">
-      <Kind>Static</Kind>
-      <SmartLink>False</SmartLink>
-      <ForceLoad>True</ForceLoad>
-    </NativeReference>
-  </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.18.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
