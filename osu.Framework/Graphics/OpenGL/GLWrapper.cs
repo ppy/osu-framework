@@ -406,6 +406,10 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
         }
 
+        /// <summary>
+        /// Applies a new scissor rectangle.
+        /// </summary>
+        /// <param name="scissor">The scissor rectangle.</param>
         public static void PushScissor(RectangleI scissor)
         {
             FlushCurrentBatch();
@@ -418,6 +422,9 @@ namespace osu.Framework.Graphics.OpenGL
             setScissor(scissor);
         }
 
+        /// <summary>
+        /// Applies the last scissor rectangle.
+        /// </summary>
         public static void PopScissor()
         {
             Trace.Assert(scissor_rect_stack.Count > 1);
