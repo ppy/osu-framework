@@ -25,9 +25,14 @@ namespace osu.Framework.Tests.Visual.Containers
                 buffer.BlurTo(new Vector2(blur));
             });
 
-            AddSliderStep("fbo scale", 0.01f, 4f, 1f, scale =>
+            AddSliderStep("fbo scale (x)", 0.01f, 4f, 1f, scale =>
             {
-                buffer.FrameBufferScale = new Vector2(scale);
+                buffer.FrameBufferScale = new Vector2(scale, buffer.FrameBufferScale.Y);
+            });
+
+            AddSliderStep("fbo scale (y)", 0.01f, 4f, 1f, scale =>
+            {
+                buffer.FrameBufferScale = new Vector2(buffer.FrameBufferScale.X, scale);
             });
         }
     }

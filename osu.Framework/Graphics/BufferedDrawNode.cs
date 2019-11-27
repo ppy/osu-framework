@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
             frameBufferScale = Source.FrameBufferScale;
 
-            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.X));
+            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * frameBufferScale.X), MathF.Ceiling(screenSpaceDrawRectangle.Height * frameBufferScale.Y));
             DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
