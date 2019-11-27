@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -87,13 +84,10 @@ namespace osu.Framework.IO.Stores
             return Font.Common.Base;
         }
 
-        protected virtual TextureUpload GetPageImageForCharacter(Character character)
+        protected virtual Image<Rgba32> GetPageImage(int page)
         {
-            if (TextureLoader != null)
-                return TextureLoader.Get(GetFilenameForPage(character.Page));
-
-            using (var stream = Store.GetStream(GetFilenameForPage(character.Page)))
-                return new TextureUpload(stream);
+            using (var stream = Store.GetStream(GetFilenameForPage(page)))
+                return TextureUpload.LoadFromStream<Rgba32>(stream);
         }
 
         protected string GetFilenameForPage(int page)
@@ -137,13 +131,13 @@ namespace osu.Framework.IO.Stores
 
         protected virtual TextureUpload LoadCharacter(Character character)
         {
-            var page = GetPageImageForCharacter(character);
+            var page = GetPageImage(character.Page);
             LoadedGlyphCount++;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
 
             var dest = image.GetPixelSpan();
-            var source = page.Data;
+            var source = page.GetPixelSpan();
 
             // the spritesheet may have unused pixels trimmed
             int readableHeight = Math.Min(character.Height, page.Height - character.Y);

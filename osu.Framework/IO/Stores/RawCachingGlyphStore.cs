@@ -36,14 +36,14 @@ namespace osu.Framework.IO.Stores
         protected override TextureUpload LoadCharacter(Character character)
         {
             if (!pageLookup.TryGetValue(character.Page, out var pageInfo))
-                pageInfo = createCachedPageInfo(character);
+                pageInfo = createCachedPageInfo(character.Page);
 
             return createTextureUpload(character, pageInfo);
         }
 
-        private PageInfo createCachedPageInfo(Character character)
+        private PageInfo createCachedPageInfo(int page)
         {
-            string filename = GetFilenameForPage(character.Page);
+            string filename = GetFilenameForPage(page);
 
             using (var stream = Store.GetStream(filename))
             {
@@ -57,18 +57,18 @@ namespace osu.Framework.IO.Stores
                 if (existing != null)
                 {
                     var split = existing.Split('#');
-                    return pageLookup[character.Page] = new PageInfo
+                    return pageLookup[page] = new PageInfo
                     {
                         Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
                         Filename = existing
                     };
                 }
 
-                using (var convert = GetPageImageForCharacter(character))
+                using (var convert = GetPageImage(page))
                 using (var buffer = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<byte>(convert.Width * convert.Height))
                 {
                     var output = buffer.Memory.Span;
-                    var source = convert.Data;
+                    var source = convert.GetPixelSpan();
 
                     for (int i = 0; i < output.Length; i++)
                         output[i] = source[i].A;
@@ -82,7 +82,7 @@ namespace osu.Framework.IO.Stores
                     using (var outStream = CacheStorage.GetStream(accessFilename, FileAccess.Write, FileMode.Create))
                         outStream.Write(buffer.Memory.Span);
 
-                    return pageLookup[character.Page] = new PageInfo
+                    return pageLookup[page] = new PageInfo
                     {
                         Size = new Size(convert.Width, convert.Height),
                         Filename = accessFilename
