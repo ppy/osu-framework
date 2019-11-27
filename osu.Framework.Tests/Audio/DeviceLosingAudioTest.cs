@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Audio
             track.Seek(0);
 
             Assert.IsFalse(track.IsRunning);
-            Assert.AreEqual(track.CurrentTime, 0);
+            WaitForOrAssert(() => track.CurrentTime == 0, "Track did not seek correctly", 1000);
         }
     }
 }
