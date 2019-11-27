@@ -165,12 +165,14 @@ namespace osu.Framework.Graphics
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
             GLWrapper.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
             GLWrapper.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            GLWrapper.PushScissorOffset(screenSpaceMaskingRect.Location);
 
             return new ValueInvokeOnDisposal(returnViewport);
         }
 
         private void returnViewport()
         {
+            GLWrapper.PopScissorOffset();
             GLWrapper.PopViewport();
             GLWrapper.PopScissor();
             GLWrapper.PopMaskingInfo();

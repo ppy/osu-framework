@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static RectangleI Scissor { get; private set; }
+        public static Vector2I ScissorOffset { get; private set; }
         public static Matrix4 ProjectionMatrix { get; set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
 
@@ -130,16 +131,19 @@ namespace osu.Framework.Graphics.OpenGL
             frame_buffer_stack.Clear();
             depth_stack.Clear();
             scissor_state_stack.Clear();
+            scissor_offset_stack.Clear();
 
             BindFrameBuffer(DefaultFrameBuffer);
 
             Scissor = RectangleI.Empty;
+            ScissorOffset = Vector2I.Zero;
             Viewport = RectangleI.Empty;
             Ortho = RectangleF.Empty;
 
             PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
             PushScissor(new RectangleI(0, 0, (int)size.X, (int)size.Y));
+            PushScissorOffset(Vector2I.Zero);
             PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = new RectangleI(0, 0, (int)size.X, (int)size.Y),
@@ -447,6 +451,41 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
         }
 
+        private static readonly Stack<Vector2I> scissor_offset_stack = new Stack<Vector2I>();
+
+        /// <summary>
+        /// Applies an offset to the scissor rectangle.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        public static void PushScissorOffset(Vector2I offset)
+        {
+            FlushCurrentBatch();
+
+            scissor_offset_stack.Push(offset);
+            if (ScissorOffset == offset)
+                return;
+
+            ScissorOffset = offset;
+        }
+
+        /// <summary>
+        /// Applies the last scissor rectangle offset.
+        /// </summary>
+        public static void PopScissorOffset()
+        {
+            Trace.Assert(scissor_offset_stack.Count > 1);
+
+            FlushCurrentBatch();
+
+            scissor_offset_stack.Pop();
+            Vector2I offset = scissor_offset_stack.Peek();
+
+            if (ScissorOffset == offset)
+                return;
+
+            ScissorOffset = offset;
+        }
+
         private static readonly Stack<RectangleF> ortho_stack = new Stack<RectangleF>();
 
         /// <summary>
@@ -533,7 +572,7 @@ namespace osu.Framework.Graphics.OpenGL
                 // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
                 Vector2 viewportScale = Vector2.Divide(Viewport.Size, Ortho.Size);
 
-                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - Ortho.Location) * viewportScale;
+                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
                 Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
 
                 RectangleI actualRect = new RectangleI(
