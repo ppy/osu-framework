@@ -26,8 +26,8 @@ namespace osu.Framework.IO.Stores
     {
         public Storage CacheStorage;
 
-        public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null)
-            : base(store, assetName)
+        public RawCachingGlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
+            : base(store, assetName, textureLoader)
         {
         }
 
@@ -69,7 +69,7 @@ namespace osu.Framework.IO.Stores
                     // todo: use i# memoryallocator once netstandard supports stream operations
                     byte[] output = new byte[convert.Width * convert.Height];
 
-                    var pxl = convert.GetPixelSpan();
+                    var pxl = convert.Data;
 
                     for (int i = 0; i < convert.Width * convert.Height; i++)
                         output[i] = pxl[i].A;
