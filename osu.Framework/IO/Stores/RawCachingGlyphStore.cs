@@ -21,7 +21,6 @@ namespace osu.Framework.IO.Stores
     /// </summary>
     /// <remarks>
     /// This results in memory efficient lookups with good performance on solid state backed devices.
-    /// Consider <see cref="TimedExpiryGlyphStore"/> if memory usage is not an issue and performance should be prioritised.
     /// </remarks>
     public class RawCachingGlyphStore : GlyphStore
     {
