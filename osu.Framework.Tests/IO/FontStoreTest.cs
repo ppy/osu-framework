@@ -24,8 +24,8 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNestedScaleAdjust()
         {
-            var fontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100);
-            var nestedFontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10);
+            var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100);
+            var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10);
 
             fontStore.AddStore(nestedFontStore);
 
