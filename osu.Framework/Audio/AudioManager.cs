@@ -120,7 +120,7 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            // check for device validity every frame
+            // check for device validity every 100ms
             scheduler.AddDelayed(() =>
             {
                 try
@@ -131,7 +131,7 @@ namespace osu.Framework.Audio
                 catch
                 {
                 }
-            }, 0, true);
+            }, 100, true);
 
             // enumerate new list of devices every second
             scheduler.AddDelayed(() =>
