@@ -22,6 +22,9 @@ namespace osu.Framework.Benchmarks
             sharedTemp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true);
         }
 
+        [Params(1, 10, 100, 1000, 10000)]
+        public int FetchCount;
+
         private const string font_name = @"Fonts/FontAwesome5/FontAwesome-Solid";
 
         [Benchmark]
@@ -39,9 +42,12 @@ namespace osu.Framework.Benchmarks
                 runFor(store);
         }
 
-        //[Benchmark]
-        public void BenchmarkSimple()
+        [Benchmark]
+        public void BenchmarkNoCache()
         {
+            if (FetchCount > 100) // gets too slow.
+                throw new NotImplementedException();
+
             using (var store = new GlyphStore(baseResources, font_name))
                 runFor(store);
         }
@@ -68,13 +74,18 @@ namespace osu.Framework.Benchmarks
 
             var props = typeof(FontAwesome.Solid).GetProperties(BindingFlags.Public | BindingFlags.Static);
 
-            for (int i = 0; i < 10; i++)
+            int remainingCount = FetchCount;
+
+            while (true)
             {
                 foreach (var p in props)
                 {
                     var icon = (IconUsage)p.GetValue(null);
                     using (var upload = store.Get(icon.Icon.ToString()))
                         Trace.Assert(upload.Data != null);
+
+                    if (remainingCount-- == 0)
+                        return;
                 }
             }
         }
