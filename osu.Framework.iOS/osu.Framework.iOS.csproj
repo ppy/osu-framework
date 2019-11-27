@@ -28,7 +28,8 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)\*.a">
+    <!-- Don't forget to update the linker attributes in AssemblyInfo.cs if you are modifying native libraries. -->
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)*.a">
       <WithCulture>false</WithCulture>
     </EmbeddedResource>
   </ItemGroup>
