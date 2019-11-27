@@ -17,17 +17,15 @@ namespace osu.Framework.Tests.IO
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            storage = new TemporaryNativeStorage("fontstore-test");
+            storage = new TemporaryNativeStorage("fontstore-test", createIfEmpty: true);
             fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly.Location), "Resources.Fonts.OpenSans");
-
-            storage.GetFullPath("./", true);
         }
 
         [Test]
         public void TestNestedScaleAdjust()
         {
-            var fontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100);
-            var nestedFontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10);
+            var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100);
+            var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10);
 
             fontStore.AddStore(nestedFontStore);
 
