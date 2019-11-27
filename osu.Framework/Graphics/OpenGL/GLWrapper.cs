@@ -530,6 +530,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (isPushing)
             {
+                // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
                 Vector2 viewportScale = Vector2.Divide(Viewport.Size, Ortho.Size);
 
                 Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - Ortho.Location) * viewportScale;
