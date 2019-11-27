@@ -161,9 +161,15 @@ namespace osu.Framework.Audio.Track
 
         protected override void UpdateState()
         {
-            isRunning = isRunningState(Bass.ChannelIsActive(activeStream));
+            var running = isRunningState(Bass.ChannelIsActive(activeStream));
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
+            // because device validity check isn't done frequently, when switching to "No sound" device,
+            // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
+            // this makes us appear to be playing, even if we may not be.
+            isRunning = running || (isPlayed && bytePosition != byteLength);
+
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
