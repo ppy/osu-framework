@@ -34,7 +34,7 @@ namespace osu.Framework.Benchmarks
                 runFor(store);
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public void BenchmarkRawCaching()
         {
             using (var temp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true))
