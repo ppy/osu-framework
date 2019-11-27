@@ -5,7 +5,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -26,12 +25,12 @@ namespace osu.Framework.IO.Stores
         {
         }
 
-        protected override Image<Rgba32> GetPageImageForCharacter(Character character)
+        protected override Image<Rgba32> GetPageImage(int page)
         {
-            if (!texturePages.TryGetValue(character.Page, out var image))
+            if (!texturePages.TryGetValue(page, out var image))
             {
                 loadedPageCount++;
-                texturePages.Add(character.Page, image = base.GetPageImageForCharacter(character));
+                texturePages.Add(page, image = base.GetPageImage(page));
             }
 
             return image;
