@@ -1,0 +1,23 @@
+﻿using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.OML.Attributes;
+
+namespace osu.Framework.OML.Objects
+{
+    [OmlObject(Aliases = new []{ "box", "square", "rectangle" })]
+    public class OmlBox : OmlObject
+    {
+        public OmlBox()
+        {
+            var box = new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                FillMode = FillMode.Stretch,
+            };
+            
+            Child = box;
+        }
+    }
+}
