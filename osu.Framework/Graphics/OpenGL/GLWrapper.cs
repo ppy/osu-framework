@@ -105,12 +105,8 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
-        private static Vector2 baseSize;
-
         internal static void Reset(Vector2 size)
         {
-            baseSize = size;
-
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -534,15 +530,18 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (isPushing)
             {
-                var scissorRect = new RectangleF(
-                    Vector2.Divide(maskingInfo.ScreenSpaceAABB.Location - Ortho.Location, baseSize),
-                    Vector2.Divide(maskingInfo.ScreenSpaceAABB.Size, baseSize));
+                Vector2 viewportScale = Vector2.Divide(Viewport.Size, Ortho.Size);
 
-                PushScissor(new RectangleI(
-                    (int)(scissorRect.Left * Viewport.Width),
-                    (int)(scissorRect.Top * Viewport.Height),
-                    (int)(scissorRect.Width * Viewport.Width),
-                    (int)(scissorRect.Height * Viewport.Height)));
+                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - Ortho.Location) * viewportScale;
+                Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
+
+                RectangleI actualRect = new RectangleI(
+                    (int)Math.Floor(location.X),
+                    (int)Math.Floor(location.Y),
+                    (int)Math.Ceiling(size.X),
+                    (int)Math.Ceiling(size.Y));
+
+                PushScissor(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
             }
             else
                 PopScissor();
