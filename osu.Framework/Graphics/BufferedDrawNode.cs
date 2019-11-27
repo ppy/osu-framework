@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-            frameBufferSize = new Vector2((float)Math.Ceiling(screenSpaceDrawRectangle.Width), (float)Math.Ceiling(screenSpaceDrawRectangle.Height));
+            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width), MathF.Ceiling(screenSpaceDrawRectangle.Height));
             DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
@@ -162,13 +162,17 @@ namespace osu.Framework.Graphics
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
             GLWrapper.PushViewport(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            GLWrapper.PushScissor(new RectangleI(0, 0, (int)frameBufferSize.X, (int)frameBufferSize.Y));
+            GLWrapper.PushScissorOffset(screenSpaceMaskingRect.Location);
 
             return new ValueInvokeOnDisposal(returnViewport);
         }
 
         private void returnViewport()
         {
+            GLWrapper.PopScissorOffset();
             GLWrapper.PopViewport();
+            GLWrapper.PopScissor();
             GLWrapper.PopMaskingInfo();
         }
 

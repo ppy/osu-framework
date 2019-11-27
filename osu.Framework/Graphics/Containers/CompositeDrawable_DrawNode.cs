@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected class CompositeDrawableDrawNode : DrawNode, ICompositeDrawNode
         {
-            private static readonly float cos_45 = (float)Math.Cos(Math.PI / 4);
+            private static readonly float cos_45 = MathF.Cos(MathF.PI / 4);
 
             protected new CompositeDrawable Source => (CompositeDrawable)base.Source;
 

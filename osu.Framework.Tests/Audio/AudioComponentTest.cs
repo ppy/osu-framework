@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ namespace osu.Framework.Tests.Audio
         public void SetUp()
         {
             thread = new AudioThread();
-            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(new AssemblyName("osu.Framework")), @"Resources");
 
             manager = new AudioManager(thread, store, store);
 
