@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// The texture format for this upload.
         /// </summary>
-        public PixelFormat Format => PixelFormat.Rgba;
+        public virtual PixelFormat Format => PixelFormat.Rgba;
 
         /// <summary>
         /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).

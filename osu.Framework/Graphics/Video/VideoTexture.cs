@@ -64,9 +64,6 @@ namespace osu.Framework.Graphics.Video
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
-            if (textureIds == null)
-                return false;
-
             GLWrapper.BindTexture(this, unit);
 
             return true;
