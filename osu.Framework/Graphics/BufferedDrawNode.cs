@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
             screenSpaceDrawRectangle = Source.ScreenSpaceDrawQuad.AABBFloat;
             DrawColourInfo = Source.FrameBufferDrawColour ?? new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
-            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width * FrameBufferScale), MathF.Ceiling(screenSpaceDrawRectangle.Height * FrameBufferScale));
+            frameBufferSize = new Vector2(MathF.Ceiling(screenSpaceDrawRectangle.Width), MathF.Ceiling(screenSpaceDrawRectangle.Height));
             DrawRectangle = SharedData.PixelSnapping
                 ? new RectangleF(screenSpaceDrawRectangle.X, screenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : screenSpaceDrawRectangle;
@@ -75,8 +75,6 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <returns>A version representing this <see cref="DrawNode"/>'s state.</returns>
         protected virtual long GetDrawVersion() => InvalidationID;
-
-        protected virtual float FrameBufferScale => 1;
 
         public sealed override void Draw(Action<TexturedVertex2D> vertexAction)
         {

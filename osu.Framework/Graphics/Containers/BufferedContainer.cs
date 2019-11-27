@@ -100,21 +100,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float blurQuality = 1;
-
-        public float BlurQuality
-        {
-            get => blurQuality;
-            set
-            {
-                if (blurQuality == value)
-                    return;
-
-                blurQuality = value;
-                ForceRedraw();
-            }
-        }
-
         private ColourInfo effectColour = Color4.White;
 
         /// <summary>
