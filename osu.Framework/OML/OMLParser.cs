@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using osu.Framework.Logging;
@@ -34,19 +37,7 @@ namespace osu.Framework.OML
             foreach (var element in _xdoc.Root?.Elements())
             {
                 var obj = _objectFactory.Create(element.Name.LocalName, element);
-                /*
-                var obj = new OmlObject
-                {
-                    Width = width, Height = height,
-                    Colour = color,
-                    Position = position,
 
-                    RelativeSizeAxes = axes,
-                    Anchor = anchor,
-                    Origin = origin,
-                    FillMode = fillMode,
-                };
-                */
                 objects.Add(obj);
             }
 

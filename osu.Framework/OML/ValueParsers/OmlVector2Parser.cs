@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
 using osuTK;
 
 namespace osu.Framework.OML.ValueParsers
@@ -13,7 +16,7 @@ namespace osu.Framework.OML.ValueParsers
         public object Parse(Type type, string value)
         {
             var data = value.Split(",");
-            
+
             return data.Length switch
             {
                 1 when float.TryParse(data[0], out var xy) => new Vector2(xy),

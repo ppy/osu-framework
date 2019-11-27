@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
 using System.Drawing;
 using osuTK.Graphics;
 
@@ -17,7 +20,7 @@ namespace osu.Framework.OML.ValueParsers
 
             if (!value.StartsWith("#"))
                 return Color4.FromSrgb(Color.FromName(value));
-            
+
             var convertedColorObj = colorConverter.ConvertFromString(value);
             return convertedColorObj != null ?
                 Color4.FromSrgb((Color) convertedColorObj) :
