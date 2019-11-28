@@ -140,7 +140,7 @@ namespace osu.Framework.IO.Stores
                 int writeOffset = y * character.Width;
 
                 for (int x = 0; x < character.Width; x++)
-                    dest[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(1, 1, 1, 0);
+                    dest[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);
