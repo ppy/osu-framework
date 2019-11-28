@@ -45,6 +45,12 @@ namespace osu.Framework
 
         public ShaderManager Shaders { get; private set; }
 
+        /// <summary>
+        /// A store containing fonts accessible game-wide.
+        /// </summary>
+        /// <remarks>
+        /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
+        /// </remarks>
         public FontStore Fonts { get; private set; }
 
         private FontStore localFonts;
@@ -143,20 +149,31 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Italic");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
 
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
-            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
 
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
         }
+
+        /// <summary>
+        /// Add a font to be globally accessible to the game.
+        /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null)
+            => addFont(Fonts, store, assetName);
+
+        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
         protected override void LoadComplete()
         {

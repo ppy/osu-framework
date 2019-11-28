@@ -131,12 +131,12 @@ namespace osu.Framework.Testing
             var resources = game.Resources;
 
             //Roboto
-            fonts.AddStore(new RawCachingGlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
-            fonts.AddStore(new RawCachingGlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Regular");
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Bold");
 
             //RobotoCondensed
-            fonts.AddStore(new RawCachingGlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            fonts.AddStore(new RawCachingGlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
