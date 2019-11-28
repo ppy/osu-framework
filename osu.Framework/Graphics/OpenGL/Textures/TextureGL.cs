@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
@@ -23,16 +22,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         ~TextureGL()
         {
             Dispose(false);
-        }
-
-        internal int ReferenceCount;
-
-        public void Reference() => Interlocked.Increment(ref ReferenceCount);
-
-        public void Dereference()
-        {
-            if (Interlocked.Decrement(ref ReferenceCount) == 0)
-                Dispose();
         }
 
         /// <summary>

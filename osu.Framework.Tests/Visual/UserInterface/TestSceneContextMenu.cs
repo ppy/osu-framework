@@ -84,7 +84,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertMenuInCentre(() => box2);
         }
 
-        [Ignore("needs to be fixed")]
         [Test]
         public void TestMenuHiddenWhenTargetHidden()
         {
