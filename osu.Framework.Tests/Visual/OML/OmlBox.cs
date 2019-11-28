@@ -7,7 +7,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class BoxTest : TestScene
+    public class OmlBox : TestScene
     {
         private const string test_data = "<oml>" +
                                          "    <Box width=\"250\" height=\"250\" colour=\"#FF0000\"             position=\"0,0\"    />" +

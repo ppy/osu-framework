@@ -7,10 +7,10 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class ImageTest : TestScene
+    public class OmlSprite : TestScene
     {
         private const string test_data = "<oml>" +
-                                         "<sprite texture=\"https://a.ppy.sh/10291354\" width=\"250\" height=\"250\"/>" +
+                                         "    <sprite texture=\"https://a.ppy.sh/10291354\" width=\"250\" height=\"250\"/>" +
                                          "</oml>";
 
         private const string blur_test_data = "<oml>" +

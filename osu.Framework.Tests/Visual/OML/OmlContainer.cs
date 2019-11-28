@@ -7,7 +7,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class ContainerTest : TestScene
+    public class OmlContainer : TestScene
     {
         private const string test_data_1 = ""
                                            + "<oml>"

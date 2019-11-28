@@ -7,14 +7,19 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class TextTest : TestScene
+    public class OmlVideo : TestScene
     {
-        private const string test_data = "<oml>" +
-                                         "    <text height=\"250\" width=\"250\" fontSize=\"16\">welcome to osu!</text>" +
+        private const string test_data = "<oml>"
+                                         + "    <video src=\"https://cdn.discordapp.com/attachments/418775953343250432/649510831012446218/wp.mp4\""
+                                         + "        anchor=\"TopLeft\""
+                                         + "        origin=\"Centre\""
+                                         + "        margin=\"0,0,0,200\""
+                                         + "        loop=\"true\""
+                                         + "     />" +
                                          "</oml>";
 
         [Test]
-        public void TestText()
+        public void TestVideo()
         {
             AddStep("Parse OML", performParse);
         }
