@@ -2,14 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Linq;
+using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osu.Framework.OML.Factories;
 using osu.Framework.OML.Objects;
 
 namespace osu.Framework.OML
 {
+    public interface IOmlParser
+    {
+        OmlObject ConstructContainer();
+
+        T ParseAttribute<T>(XAttribute attribute, T def = default) where T : struct;
+        object ParseAttribute(Type type, XAttribute attribute, object def = default);
+    }
+
     public class OmlParser : IOmlParser
     {
         private readonly XDocument _xdoc;
@@ -24,7 +32,7 @@ namespace osu.Framework.OML
             _objectFactory = objectFactory ?? new OmlObjectFactory(this);
         }
 
-        public IEnumerable<OmlObject> ConstructContainers()
+        public OmlObject ConstructContainer()
         {
             if (_xdoc.Root == null || _xdoc.Root.Name.LocalName.ToLower() != "oml")
             {
@@ -32,16 +40,36 @@ namespace osu.Framework.OML
                 return null;
             }
 
-            var objects = new List<OmlObject>();
+            OmlObject obj = null;
 
-            foreach (var element in _xdoc.Root?.Elements())
+            if (_xdoc.Root != null)
             {
-                var obj = _objectFactory.Create(element.Name.LocalName, element);
+                obj = constructContainers(_xdoc.Root);
 
-                objects.Add(obj);
+                obj.RelativeSizeAxes = Axes.Both;
+                obj.Anchor = Anchor.Centre;
+                obj.Origin = Anchor.Centre;
+                obj.FillMode = FillMode.Stretch;
             }
 
-            return objects;
+            return obj ?? _objectFactory.Create(_xdoc.Root.Name.LocalName, _xdoc.Root);
+        }
+
+        private OmlObject constructContainers(XElement element)
+        {
+            if (element == null)
+                throw new NullReferenceException("No Root Container!");
+
+            OmlObject obj = _objectFactory.Create(element.Name.LocalName, element);
+
+            foreach (var e in element.Elements())
+            {
+                var childObject = constructContainers(e); // Construct Children
+
+                obj.Add(childObject);
+            }
+
+            return obj;
         }
 
         public T ParseAttribute<T>(XAttribute attribute, T def = default) where T : struct

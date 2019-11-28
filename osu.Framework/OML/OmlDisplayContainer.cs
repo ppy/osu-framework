@@ -6,7 +6,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.OML
 {
-    public class OmlDisplayContainer : Container
+    public sealed class OmlDisplayContainer : Container
     {
         public OmlDisplayContainer(IOmlParser parser)
         {
@@ -15,7 +15,7 @@ namespace osu.Framework.OML
             Origin = Anchor.Centre;
             FillMode = FillMode.Stretch;
 
-            AddRange(parser.ConstructContainers());
+            Add(parser.ConstructContainer());
         }
     }
 }

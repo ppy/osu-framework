@@ -26,8 +26,8 @@ namespace osu.Framework.OML.Objects
                 Font = font,
 
                 RelativeSizeAxes = Axes.Both,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
                 FillMode = FillMode.Stretch,
             };
 

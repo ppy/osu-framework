@@ -41,9 +41,9 @@ namespace osu.Framework.OML.Factories
                 AppDomain.CurrentDomain
                          .GetAssemblies()
                          .SelectMany(s => s.GetTypes())
-                         .Where(p => interfaceType.IsAssignableFrom(p));
+                         .Where(p => interfaceType.IsAssignableFrom(p)).ToList();
 
-            var parser = types.FirstOrDefault();
+            var parser = types.LastOrDefault();
             if (parser == null)
                 return null;
 

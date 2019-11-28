@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.OML.Attributes;
 using osu.Framework.OML.Objects;
 
@@ -51,8 +52,11 @@ namespace osu.Framework.OML.Factories
                          .Where(p => string.Equals(((OmlObjectAttribute)p.Item1)?.Name, name, StringComparison.CurrentCultureIgnoreCase))
                          .Select(p => p.p).ToImmutableArray();
 
-            if (!types.Any())
-                return new OmlObject(); // Create empty object if no Object with alias exists.
+            if (!types.Any()) {
+                createdObject = new OmlObject();
+                applyAttributes(objectType, createdObject, element);
+                return createdObject; // Create empty object if no Object with alias exists.
+            }
 
             var objType = types.FirstOrDefault();
             _cachedObjectTypes[name] = objType;
@@ -92,8 +96,18 @@ namespace osu.Framework.OML.Factories
                 if (xamlAttribute == null)
                     continue;
 
+                createdObject.IsDefaultObject = false;
+
                 var parsedAttribute = _parser.ParseAttribute(objProp.PropertyType, xamlAttribute);
                 objProp.SetValue(createdObject, parsedAttribute);
+            }
+
+            if (createdObject.IsDefaultObject)
+            {
+                createdObject.RelativeSizeAxes = Axes.Both;
+                createdObject.Anchor = Anchor.TopLeft;
+                createdObject.Origin = Anchor.TopLeft;
+                createdObject.FillMode = FillMode.Fill;
             }
         }
     }

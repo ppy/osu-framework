@@ -15,8 +15,8 @@ namespace osu.Framework.OML.Objects
             var box = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
+                Anchor = Anchor.TopLeft,
+                Origin = Anchor.TopLeft,
                 FillMode = FillMode.Stretch,
             };
 
