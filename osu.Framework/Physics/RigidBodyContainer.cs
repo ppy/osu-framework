@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Extensions.NumericExtensions;
 
 namespace osu.Framework.Physics
 {
@@ -255,7 +256,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
-            RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
+            RotationRadians = NumericExtensions.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
             UpdateVertices();
@@ -268,7 +269,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
-            Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
+            Rotation = NumericExtensions.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 
         /// <summary>
