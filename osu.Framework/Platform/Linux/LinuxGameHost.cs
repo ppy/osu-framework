@@ -27,16 +27,7 @@ namespace osu.Framework.Platform.Linux
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
-        public override Clipboard GetClipboard()
-        {
-            if (((LinuxGameWindow)Window).IsSdl)
-            {
-                return new SdlClipboard();
-            }
-            else
-            {
-                return new LinuxClipboard();
-            }
-        }
+        public override Clipboard GetClipboard() =>
+            Window is Window || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
     }
 }
