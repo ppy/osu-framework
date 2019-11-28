@@ -105,7 +105,7 @@ namespace osu.Framework
         private void load(FrameworkConfigManager config)
         {
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
             Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
@@ -143,14 +143,14 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
+            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
+            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
+            localFonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
 
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
+            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
+            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
+            Fonts.AddStore(new RawCachingGlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
 
             dependencies.Cache(Fonts);
 
