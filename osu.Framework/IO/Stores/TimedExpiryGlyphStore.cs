@@ -5,8 +5,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.IO.Stores
 {
@@ -18,14 +17,14 @@ namespace osu.Framework.IO.Stores
     /// </remarks>
     public class TimedExpiryGlyphStore : GlyphStore
     {
-        private readonly TimedExpiryCache<int, Image<Rgba32>> texturePages = new TimedExpiryCache<int, Image<Rgba32>>();
+        private readonly TimedExpiryCache<int, TextureUpload> texturePages = new TimedExpiryCache<int, TextureUpload>();
 
         public TimedExpiryGlyphStore(ResourceStore<byte[]> store, string assetName = null)
             : base(store, assetName)
         {
         }
 
-        protected override Image<Rgba32> GetPageImage(int page)
+        protected override TextureUpload GetPageImage(int page)
         {
             if (!texturePages.TryGetValue(page, out var image))
             {
