@@ -13,15 +13,33 @@ namespace osu.Framework.Tests.Visual.OML
                                          "<img src=\"https://a.ppy.sh/10291354\" width=\"250\" height=\"250\"/>" +
                                          "</oml>";
 
+        private const string blur_test_data = "<oml>" +
+                                              "<img src=\"https://a.ppy.sh/10291354\" " +
+                                              "width=\"250\" " +
+                                              "height=\"250\" " +
+                                              "buffered=\"true\" " +
+                                              "blurSigma=\"4,-4\" " +
+                                              "/>" +
+                                              "</oml>";
+
         [Test]
         public void TestImage()
         {
-            AddStep("Parse OML", performParse);
+            AddStep("Render Image", performImageRender);
+            AddStep("Blur Image", performBlurImage);
         }
 
-        private void performParse()
+        private void performImageRender()
         {
             var parser = new OmlParser(test_data);
+            var display = new OmlDisplayContainer(parser);
+
+            Child = display;
+        }
+
+        private void performBlurImage()
+        {
+            var parser = new OmlParser(blur_test_data);
             var display = new OmlDisplayContainer(parser);
 
             Child = display;
