@@ -182,6 +182,7 @@ namespace osu.Framework.Tests.Clocks
 
             decoupleable.ProcessFrame();
 
+            Assert.That(source.IsRunning, Is.False);
             Assert.AreEqual(0, source.CurrentTime);
             Assert.AreEqual(-1000, decoupleable.CurrentTime);
 
@@ -192,7 +193,9 @@ namespace osu.Framework.Tests.Clocks
             while (decoupleable.CurrentTime < 0)
             {
                 decoupleable.ProcessFrame();
-                Assert.AreEqual(0, source.CurrentTime);
+
+                if (decoupleable.CurrentTime < 0)
+                    Assert.AreEqual(0, source.CurrentTime);
 
                 if (last.HasValue)
                     Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
@@ -200,6 +203,16 @@ namespace osu.Framework.Tests.Clocks
                 last = decoupleable.CurrentTime;
             }
 
+            Assert.That(source.IsRunning, Is.True);
+
+            last = decoupleable.CurrentTime;
+            decoupleable.ProcessFrame();
+
+            Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
+            Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
+
+            // Ensure that time continues moving forward
+            last = decoupleable.CurrentTime;
             decoupleable.ProcessFrame();
 
             Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
@@ -275,6 +288,17 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.AreEqual(0, decoupleable.CurrentTime);
             Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should not match source time.");
+        }
+
+        [Test]
+        public void TestDecoupledNotSeekedPositivelyByFailedNegativeSeek()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.Start();
+
+            decoupleable.Seek(-5000);
+
+            Assert.That(decoupleable.CurrentTime, Is.LessThan(0));
         }
 
         #endregion
