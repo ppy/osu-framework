@@ -100,7 +100,7 @@ namespace osu.Framework.IO.Stores
             if (readBuffer == null || readBuffer.Length < pageWidth * character.Height)
                 readBuffer = new byte[pageWidth * character.Height];
 
-            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
+            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
             if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
                 source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
