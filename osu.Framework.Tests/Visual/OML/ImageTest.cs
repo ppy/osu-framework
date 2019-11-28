@@ -14,12 +14,12 @@ namespace osu.Framework.Tests.Visual.OML
                                          "</oml>";
 
         private const string blur_test_data = "<oml>" +
-                                              "<bufferedContainer blurSigma=\"4,-4\">" +
-                                              "    <sprite texture=\"https://a.ppy.sh/10291354\" " +
-                                              "    width=\"250\" " +
-                                              "    height=\"250\" " +
-                                              "    />" +
-                                              "</bufferedContainer>" +
+                                              "    <bufferedContainer blurSigma=\"4,-4\">" +
+                                              "        <sprite texture=\"https://a.ppy.sh/10291354\" " +
+                                              "            width=\"250\" " +
+                                              "            height=\"250\" " +
+                                              "        />" +
+                                              "    </bufferedContainer>" +
                                               "</oml>";
 
         [Test]

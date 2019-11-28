@@ -11,10 +11,10 @@ namespace osu.Framework.Tests.Visual.OML
     {
         private const string test_data_1 = ""
                                            + "<oml>"
-                                           + "<container width=\"250\" height=\"250\">"
-                                           + "    <box width=\"250\" height=\"250\" colour=\"orange\" />"
-                                           + "    <sprite texture=\"https://a.ppy.sh/10291354\" width=\"200\" height=\"200\" margin=\"25\" />"
-                                           + "</container>"
+                                           + "    <container width=\"250\" height=\"250\">"
+                                           + "        <box width=\"250\" height=\"250\" colour=\"orange\" />"
+                                           + "        <sprite texture=\"https://a.ppy.sh/10291354\" width=\"200\" height=\"200\" margin=\"25\" />"
+                                           + "    </container>"
                                            + "</oml>";
 
         [Test]

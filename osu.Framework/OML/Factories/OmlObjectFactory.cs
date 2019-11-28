@@ -52,7 +52,8 @@ namespace osu.Framework.OML.Factories
                          .Where(p => string.Equals(((OmlObjectAttribute)p.Item1)?.Name, name, StringComparison.CurrentCultureIgnoreCase))
                          .Select(p => p.p).ToImmutableArray();
 
-            if (!types.Any()) {
+            if (!types.Any())
+            {
                 createdObject = new OmlObject();
                 applyAttributes(objectType, createdObject, element);
                 return createdObject; // Create empty object if no Object with alias exists.

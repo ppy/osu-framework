@@ -10,7 +10,7 @@ namespace osu.Framework.Tests.Visual.OML
     public class TextTest : TestScene
     {
         private const string test_data = "<oml>" +
-                                         "<text height=\"250\" width=\"250\" fontSize=\"16\">welcome to osu!</text>" +
+                                         "    <text height=\"250\" width=\"250\" fontSize=\"16\">welcome to osu!</text>" +
                                          "</oml>";
 
         [Test]
