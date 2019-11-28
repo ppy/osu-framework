@@ -9,7 +9,7 @@ using osu.Framework.OML.Attributes;
 
 namespace osu.Framework.OML.Objects
 {
-    [OmlObject(Aliases = new[] { "text" })]
+    [OmlObject("text")]
     public class OmlText : OmlObject
     {
         [UsedImplicitly]

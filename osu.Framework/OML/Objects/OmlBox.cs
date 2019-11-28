@@ -7,7 +7,7 @@ using osu.Framework.OML.Attributes;
 
 namespace osu.Framework.OML.Objects
 {
-    [OmlObject(Aliases = new[] { "box", "square", "rectangle" })]
+    [OmlObject("box")]
     public class OmlBox : OmlObject
     {
         public OmlBox()

@@ -48,7 +48,7 @@ namespace osu.Framework.OML.Factories
                          .SelectMany(s => s.GetTypes())
                          .Where(p => objectType.IsAssignableFrom(p))
                          .Select(p => (Attribute.GetCustomAttribute(p, objectAttributeType), p))
-                         .Where(p => ((OmlObjectAttribute)p.Item1)?.Aliases.Contains(name.ToLower()) == true)
+                         .Where(p => string.Equals(((OmlObjectAttribute)p.Item1)?.Name, name, StringComparison.CurrentCultureIgnoreCase))
                          .Select(p => p.p).ToImmutableArray();
 
             if (!types.Any())

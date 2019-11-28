@@ -7,6 +7,11 @@ namespace osu.Framework.OML.Attributes
 {
     public class OmlObjectAttribute : Attribute
     {
-        public string[] Aliases;
+        public string Name;
+
+        public OmlObjectAttribute(string name)
+        {
+            Name = name;
+        }
     }
 }

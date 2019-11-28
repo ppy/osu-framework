@@ -11,16 +11,16 @@ using osuTK;
 
 namespace osu.Framework.OML.Objects
 {
-    [OmlObject(Aliases = new[] { "img", "image", "sprite" })]
+    [OmlObject("sprite")]
     public class OmlSprite : OmlObject
     {
         [UsedImplicitly]
-        public string Src { get; set; }
+        public string Texture { get; set; }
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
         {
-            var tex = store.Get(Src);
+            var tex = store.Get(Texture);
 
             var sprite = new Sprite
             {
