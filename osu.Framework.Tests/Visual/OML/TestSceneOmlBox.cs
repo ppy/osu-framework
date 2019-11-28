@@ -3,18 +3,19 @@
 
 using NUnit.Framework;
 using osu.Framework.OML;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class OmlText : TestScene
+    public class TestSceneOmlBox : FrameworkTestScene
     {
         private const string test_data = "<oml>" +
-                                         "    <text height=\"250\" width=\"250\" fontSize=\"16\">welcome to osu!</text>" +
+                                         "    <Box width=\"250\" height=\"250\" colour=\"#FF0000\"             position=\"0,0\"    />" +
+                                         "    <Box width=\"250\" height=\"250\" colour=\"green\"               position=\"100,100\"/>" +
+                                         "    <Box width=\"250\" height=\"250\" colour=\"rgba(0, 0, 255, .4)\" position=\"200,200\"/>" +
                                          "</oml>";
 
         [Test]
-        public void TestText()
+        public void TestBox()
         {
             AddStep("Parse OML", performParse);
         }

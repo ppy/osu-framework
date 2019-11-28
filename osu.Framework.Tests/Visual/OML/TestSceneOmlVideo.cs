@@ -3,11 +3,10 @@
 
 using NUnit.Framework;
 using osu.Framework.OML;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class OmlVideo : TestScene
+    public class TestSceneOmlVideo : FrameworkTestScene
     {
         private const string test_data = "<oml>"
                                          + "    <video src=\"https://cdn.discordapp.com/attachments/418775953343250432/649510831012446218/wp.mp4\""

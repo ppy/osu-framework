@@ -3,11 +3,10 @@
 
 using NUnit.Framework;
 using osu.Framework.OML;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class OmlContainer : TestScene
+    public class TestSceneOmlContainer : FrameworkTestScene
     {
         private const string test_data_1 = ""
                                            + "<oml>"

@@ -3,11 +3,10 @@
 
 using NUnit.Framework;
 using osu.Framework.OML;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class OmlCircle : TestScene
+    public class TestSceneOmlCircle : FrameworkTestScene
     {
         private const string test_data = "<oml>" +
                                          "    <Circle width=\"250\" height=\"250\" colour=\"#FF0000\"             position=\"0,0\"/>" +

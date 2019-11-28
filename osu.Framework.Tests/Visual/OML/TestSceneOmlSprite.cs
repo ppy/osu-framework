@@ -3,11 +3,10 @@
 
 using NUnit.Framework;
 using osu.Framework.OML;
-using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.OML
 {
-    public class OmlSprite : TestScene
+    public class TestSceneOmlSprite : FrameworkTestScene
     {
         private const string test_data = "<oml>" +
                                          "    <sprite texture=\"https://a.ppy.sh/10291354\" width=\"250\" height=\"250\"/>" +
