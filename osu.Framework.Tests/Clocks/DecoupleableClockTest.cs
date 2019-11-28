@@ -298,6 +298,8 @@ namespace osu.Framework.Tests.Clocks
 
             decoupleable.Seek(-5000);
 
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(decoupleable.IsRunning, Is.True);
             Assert.That(decoupleable.CurrentTime, Is.LessThan(0));
         }
 
