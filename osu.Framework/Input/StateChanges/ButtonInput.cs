@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.StateChanges.Events;
@@ -14,7 +13,7 @@ namespace osu.Framework.Input.StateChanges
     /// </summary>
     /// <typeparam name="TButton">The type of button.</typeparam>
     public abstract class ButtonInput<TButton> : IInput
-        where TButton : struct, Enum
+        where TButton : struct
     {
         public IEnumerable<ButtonInputEntry<TButton>> Entries;
 
