@@ -23,6 +23,8 @@ namespace osu.Framework.IO.Stores
     {
         protected readonly string AssetName;
 
+        protected readonly IResourceStore<TextureUpload> TextureLoader;
+
         public readonly string FontName;
 
         protected readonly ResourceStore<byte[]> Store;
@@ -31,7 +33,13 @@ namespace osu.Framework.IO.Stores
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
+        /// <summary>
+        /// Create a new glyph store.
+        /// </summary>
+        /// <param name="store">The store to provide font resources.</param>
+        /// <param name="assetName">The base name of thße font.</param>
+        /// <param name="textureLoader">An optional platform-specific store for loading textures. Should load for the store provided in <param ref="param"/>.</param>
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
         {
             Store = new ResourceStore<byte[]>(store);
 
@@ -39,6 +47,7 @@ namespace osu.Framework.IO.Stores
             Store.AddExtension("bin");
 
             AssetName = assetName;
+            TextureLoader = textureLoader;
 
             FontName = assetName?.Split('/').Last();
         }
@@ -75,10 +84,13 @@ namespace osu.Framework.IO.Stores
             return Font.Common.Base;
         }
 
-        protected virtual Image<Rgba32> GetPageImage(int page)
+        protected virtual TextureUpload GetPageImage(int page)
         {
+            if (TextureLoader != null)
+                return TextureLoader.Get(GetFilenameForPage(page));
+
             using (var stream = Store.GetStream(GetFilenameForPage(page)))
-                return TextureUpload.LoadFromStream<Rgba32>(stream);
+                return new TextureUpload(stream);
         }
 
         protected string GetFilenameForPage(int page)
@@ -128,7 +140,7 @@ namespace osu.Framework.IO.Stores
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height, new Rgba32(255, 255, 255, 0));
 
             var dest = image.GetPixelSpan();
-            var source = page.GetPixelSpan();
+            var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
             int readableHeight = Math.Min(character.Height, page.Height - character.Y);
