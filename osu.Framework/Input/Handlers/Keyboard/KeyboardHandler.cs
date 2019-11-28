@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -38,6 +39,9 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         private void handleKeyboardEvent(KeyboardKeyInput keyEvent)
         {
+            if (keyEvent.Entries.Any(x => x.Button == TKKey.Unknown))
+                return;
+
             PendingInputs.Enqueue(keyEvent);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
