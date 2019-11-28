@@ -34,6 +34,6 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// The contents of the <see cref="FrameBuffer"/>s are populated at this scale, however the scale of <see cref="Drawable"/>s remains unaffected.
         /// </remarks>
-        Vector2 FrameBufferScale => Vector2.One;
+        Vector2 FrameBufferScale { get; }
     }
 }
