@@ -197,6 +197,8 @@ namespace osu.Framework.IO.Stores
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            nestedFontStores.ForEach(f => f.Dispose());
             glyphStores.ForEach(g => g.Dispose());
         }
     }
