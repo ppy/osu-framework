@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -11,6 +12,8 @@ namespace osu.Framework.OML.Objects
     {
     }
 
+    [UsedImplicitly]
+    [MeansImplicitUse]
     public class OmlObject<T> : Container<T>
         where T : Drawable
     {
@@ -18,11 +21,6 @@ namespace osu.Framework.OML.Objects
 
         protected OmlObject()
         {
-            // This clearly be done better. well, lets keep this for now. TODO: Fix
-            RelativeSizeAxes = Axes.Both;
-            Anchor = Anchor.Centre;
-            Origin = Anchor.Centre;
-            FillMode = FillMode.Stretch;
         }
     }
 }

@@ -15,7 +15,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
-using osu.Framework.OML.Attributes;
 using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;

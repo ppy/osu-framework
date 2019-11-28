@@ -2,9 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 
 namespace osu.Framework.OML.ValueParsers
 {
+    [UsedImplicitly]
     public class OmlEnumParser : IOmlEnumParser
     {
         public Te Parse<Te>(string value)

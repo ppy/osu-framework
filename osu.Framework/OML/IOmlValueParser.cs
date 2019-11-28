@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 
 namespace osu.Framework.OML
 {
@@ -10,6 +11,7 @@ namespace osu.Framework.OML
         object Parse(Type type, string value);
     }
 
+    [UsedImplicitly]
     public interface IOmlValueParser<out T> : IOmlValueParser
     {
         T Parse(string value);

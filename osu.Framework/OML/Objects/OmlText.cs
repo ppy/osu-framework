@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
@@ -11,12 +12,13 @@ namespace osu.Framework.OML.Objects
     [OmlObject(Aliases = new[] { "text" })]
     public class OmlText : OmlObject
     {
-        private float fontSize { get; } = 20;
+        [UsedImplicitly]
+        public float FontSize { get; set; } = 20;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            var font = new FontUsage(null, fontSize);
+            var font = new FontUsage(null, FontSize);
 
             var text = new SpriteText
             {

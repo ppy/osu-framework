@@ -2,15 +2,17 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 using osuTK;
 
 namespace osu.Framework.OML.ValueParsers
 {
+    [UsedImplicitly]
     public class OmlVector2Parser : IOmlValueParser<Vector2>
     {
         public Vector2 Parse(string value)
         {
-            return (Vector2) Parse(typeof(Vector2), value);
+            return (Vector2)Parse(typeof(Vector2), value);
         }
 
         public object Parse(Type type, string value)

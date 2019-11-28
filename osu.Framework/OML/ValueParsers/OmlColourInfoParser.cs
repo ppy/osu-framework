@@ -5,14 +5,15 @@ using System;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using osu.Framework.Graphics.Colour;
 using osuTK.Graphics;
 
 namespace osu.Framework.OML.ValueParsers
 {
     [UsedImplicitly]
-    public class OmlColor4Parser : IOmlValueParser<Color4>
+    public class OmlColourInfoParser : IOmlValueParser<ColourInfo>
     {
-        public Color4 Parse(string value)
+        public ColourInfo Parse(string value)
         {
             return (Color4)Parse(typeof(Color4), value);
         }
@@ -43,14 +44,14 @@ namespace osu.Framework.OML.ValueParsers
                 if (a > 1)
                     a /= byte.MaxValue;
 
-                return new Color4(r, g, b, a);
+                return (ColourInfo)new Color4(r, g, b, a);
             }
 
             if (!value.StartsWith("#"))
-                return Color4.FromSrgb(Color.FromName(value));
+                return (ColourInfo)Color4.FromSrgb(Color.FromName(value));
 
             var convertedColorObj = colorConverter.ConvertFromString(value);
-            return convertedColorObj != null ? Color4.FromSrgb((Color)convertedColorObj) : Color4.White;
+            return (ColourInfo)(convertedColorObj != null ? Color4.FromSrgb((Color)convertedColorObj) : Color4.White);
         }
     }
 }

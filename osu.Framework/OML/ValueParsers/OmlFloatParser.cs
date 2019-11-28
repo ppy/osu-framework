@@ -2,14 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using JetBrains.Annotations;
 
 namespace osu.Framework.OML.ValueParsers
 {
+    [UsedImplicitly]
     public class OmlFloatParser : IOmlValueParser<float>
     {
         public float Parse(string value)
         {
-            return (float) Parse(typeof(float), value);
+            return (float)Parse(typeof(float), value);
         }
 
         public object Parse(Type type, string value)
