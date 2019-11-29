@@ -254,6 +254,14 @@ namespace osu.Framework.Platform
 
         #endregion
 
+        /// <summary>
+        /// Don't propagate keys that osu!framework should not attempt to handle.
+        /// osuTK does not report capslock key up/down events, but SDL2 does.
+        /// This can cause issues where the capslock down is detected but not up.
+        /// </summary>
+        /// <param name="key">The key to validate.</param>
+        private bool isKeyValid(Veldrid.Key key) => key != Veldrid.Key.Unknown && key != Veldrid.Key.CapsLock;
+
         private void implementation_OnMoved(Point point) => Moved?.Invoke(new Vector2(point.X, point.Y));
 
         private void implementation_OnMouseWheel(MouseWheelEventArgs args) =>
@@ -268,11 +276,17 @@ namespace osu.Framework.Platform
         private void implementation_OnMouseMove(MouseMoveEventArgs args) =>
             OnMouseMove(new MousePositionAbsoluteInput { Position = args.MousePosition.ToOsuTK() * Scale });
 
-        private void implementation_OnKeyDown(KeyEvent evt) =>
-            OnKeyDown(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+        private void implementation_OnKeyDown(KeyEvent evt)
+        {
+            if (isKeyValid(evt.Key))
+                OnKeyDown(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+        }
 
-        private void implementation_OnKeyUp(KeyEvent evt) =>
-            OnKeyUp(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+        private void implementation_OnKeyUp(KeyEvent evt)
+        {
+            if (isKeyValid(evt.Key))
+                OnKeyUp(new KeyboardKeyInput((Key)evt.Key, evt.Down));
+        }
 
         private void implementation_DragDrop(DragDropEvent evt) =>
             OnDragDrop(evt.File);
