@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongLoading) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
             return Task.Factory.StartNew(() => loadComponents(components, deps, true), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
             {
