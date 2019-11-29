@@ -41,7 +41,7 @@
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.115" />
     <PackageReference Include="Veldrid" Version="4.7.0" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.7.0" />
-    <PackageReference Include="StbiSharp" Version="1.0.8" />
+    <PackageReference Include="StbiSharp" Version="1.0.9" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
