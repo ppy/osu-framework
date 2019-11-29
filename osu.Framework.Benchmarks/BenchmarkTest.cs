@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using NUnit.Framework;
 
@@ -19,11 +18,6 @@ namespace osu.Framework.Benchmarks
         }
 
         [Test]
-        public void RunBenchmark()
-        {
-            var config = DefaultConfig.Instance.With(ConfigOptions.DisableOptimizationsValidator);
-
-            BenchmarkRunner.Run(GetType(), config);
-        }
+        public void RunBenchmark() => BenchmarkRunner.Run(GetType());
     }
 }
