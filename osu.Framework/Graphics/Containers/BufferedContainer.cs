@@ -176,6 +176,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
         /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
