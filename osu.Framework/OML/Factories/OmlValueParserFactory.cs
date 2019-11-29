@@ -23,7 +23,9 @@ namespace osu.Framework.OML.Factories
 
         public IOmlValueParser<T> Create<T>()
         {
-            return (IOmlValueParser<T>)Create(typeof(T), typeof(IOmlValueParser<T>));
+            var parser = (IOmlValueParser<T>)Create(typeof(T), typeof(IOmlValueParser<T>));
+            parser.ParserFactory = this;
+            return parser;
         }
 
         public IOmlEnumParser CreateEnum()
@@ -48,7 +50,9 @@ namespace osu.Framework.OML.Factories
                 return null;
 
             var instance = Activator.CreateInstance(parser);
+            parser.GetProperty("ParserFactory")?.SetValue(instance, this);
             _cachedParsers[type] = instance;
+
             return instance;
         }
     }

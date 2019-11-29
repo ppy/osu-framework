@@ -9,9 +9,11 @@ namespace osu.Framework.Tests.Visual.OML
     public class TestSceneOmlBox : FrameworkTestScene
     {
         private const string test_data = "<oml>" +
-                                         "    <Box width=\"250\" height=\"250\" colour=\"#FF0000\"             position=\"0,0\"    />" +
-                                         "    <Box width=\"250\" height=\"250\" colour=\"green\"               position=\"100,100\"/>" +
-                                         "    <Box width=\"250\" height=\"250\" colour=\"rgba(0, 0, 255, .4)\" position=\"200,200\"/>" +
+                                         "    <Box width=\"250px\" height=\"250px\" colour=\"#FF0000\" position=\"0,0\"/>" +
+                                         "    <Box width=\"6.6145cm\" height=\"6.6145cm\" colour=\"green\" position=\"100,100\"/>" +
+                                         "    <Box width=\"2.6041in\" height=\"2.6041in\" colour=\"rgba(0, 0, 255, .4)\" position=\"200,200\"/>" +
+                                         "    <Box width=\"187.5pt\" height=\"187.5pt\" colour=\"rgba(0, 255, 255, .6)\" position=\"300,300\"/>" +
+                                         "    <Box width=\"15.625pc\" height=\"15.625pc\" colour=\"rgba(255, 0, 255, .8)\" position=\"400,400\"/>" +
                                          "</oml>";
 
         [Test]

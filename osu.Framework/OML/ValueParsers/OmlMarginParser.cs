@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics;
+using osu.Framework.OML.Factories;
 
 namespace osu.Framework.OML.ValueParsers
 {
@@ -13,8 +14,12 @@ namespace osu.Framework.OML.ValueParsers
             return (MarginPadding)Parse(typeof(MarginPadding), value);
         }
 
+        public IOmlValueParserFactory ParserFactory { get; set; }
+
         public object Parse(Type type, string value)
         {
+            var floatParser = ParserFactory.Create<float>();
+
             var padding = new MarginPadding();
 
             var paddingValues = value.Split(',');
@@ -23,25 +28,25 @@ namespace osu.Framework.OML.ValueParsers
             switch (paddingValues.Length)
             {
                 case 1:
-                    padding = new MarginPadding(float.Parse(paddingValues[0]));
+                    padding = new MarginPadding(floatParser.Parse(paddingValues[0]));
                     break;
 
                 case 2:
-                    padding.Top = float.Parse(paddingValues[0]);
-                    padding.Bottom = float.Parse(paddingValues[1]);
+                    padding.Top = floatParser.Parse(paddingValues[0]);
+                    padding.Bottom = floatParser.Parse(paddingValues[1]);
                     break;
 
                 case 3:
-                    padding.Top = float.Parse(paddingValues[0]);
-                    padding.Bottom = float.Parse(paddingValues[1]);
-                    padding.Left = float.Parse(paddingValues[2]);
+                    padding.Top = floatParser.Parse(paddingValues[0]);
+                    padding.Bottom = floatParser.Parse(paddingValues[1]);
+                    padding.Left = floatParser.Parse(paddingValues[2]);
                     break;
 
                 case 4:
-                    padding.Top = float.Parse(paddingValues[0]);
-                    padding.Bottom = float.Parse(paddingValues[1]);
-                    padding.Left = float.Parse(paddingValues[2]);
-                    padding.Right = float.Parse(paddingValues[3]);
+                    padding.Top = floatParser.Parse(paddingValues[0]);
+                    padding.Bottom = floatParser.Parse(paddingValues[1]);
+                    padding.Left = floatParser.Parse(paddingValues[2]);
+                    padding.Right = floatParser.Parse(paddingValues[3]);
                     break;
             }
 

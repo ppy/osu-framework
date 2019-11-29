@@ -3,6 +3,7 @@
 
 using System;
 using JetBrains.Annotations;
+using osu.Framework.OML.Factories;
 using osuTK;
 
 namespace osu.Framework.OML.ValueParsers
@@ -15,14 +16,18 @@ namespace osu.Framework.OML.ValueParsers
             return (Vector2)Parse(typeof(Vector2), value);
         }
 
+        public IOmlValueParserFactory ParserFactory { get; set; }
+
         public object Parse(Type type, string value)
         {
+            var floatParser = ParserFactory.Create<float>();
+
             var data = value.Split(",");
 
             return data.Length switch
             {
-                1 when float.TryParse(data[0], out var xy) => new Vector2(xy),
-                2 when float.TryParse(data[0], out var x) && float.TryParse(data[0], out var y) => new Vector2(x, y),
+                1 => new Vector2(floatParser.Parse(data[0])),
+                2 => new Vector2(floatParser.Parse(data[0]), floatParser.Parse(data[1])),
                 _ => Vector2.Zero
             };
         }

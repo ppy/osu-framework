@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.OML.Factories;
 
 namespace osu.Framework.OML.ValueParsers
 {
@@ -11,6 +12,8 @@ namespace osu.Framework.OML.ValueParsers
         {
             return (bool)Parse(typeof(bool), value);
         }
+
+        public IOmlValueParserFactory ParserFactory { get; set; }
 
         public object Parse(Type type, string value)
         {

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.OML.Factories;
 using osuTK.Graphics;
 
 namespace osu.Framework.OML.ValueParsers
@@ -17,6 +18,8 @@ namespace osu.Framework.OML.ValueParsers
         {
             return (Color4)Parse(typeof(Color4), value);
         }
+
+        public IOmlValueParserFactory ParserFactory { get; set; }
 
         public object Parse(Type type, string value)
         {

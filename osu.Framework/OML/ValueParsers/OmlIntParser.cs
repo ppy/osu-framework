@@ -3,6 +3,7 @@
 
 using System;
 using JetBrains.Annotations;
+using osu.Framework.OML.Factories;
 
 namespace osu.Framework.OML.ValueParsers
 {
@@ -13,6 +14,8 @@ namespace osu.Framework.OML.ValueParsers
         {
             return (int)Parse(typeof(int), value);
         }
+
+        public IOmlValueParserFactory ParserFactory { get; set; }
 
         public object Parse(Type type, string value)
         {

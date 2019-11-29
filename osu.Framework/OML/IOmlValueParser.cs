@@ -3,11 +3,14 @@
 
 using System;
 using JetBrains.Annotations;
+using osu.Framework.OML.Factories;
 
 namespace osu.Framework.OML
 {
+    [UsedImplicitly]
     public interface IOmlValueParser
     {
+        IOmlValueParserFactory ParserFactory { get; set; }
         object Parse(Type type, string value);
     }
 
