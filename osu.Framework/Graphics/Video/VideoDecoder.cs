@@ -353,8 +353,6 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new Exception($"Error {findStreamInfoResult} finding stream info.");
 
-            duration = formatContext->duration;
-
             var nStreams = formatContext->nb_streams;
 
             for (var i = 0; i < nStreams; ++i)
@@ -367,6 +365,8 @@ namespace osu.Framework.Graphics.Video
                 {
                     // The video shader only works on YUV420P pixel format
                     useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P;
+
+                    duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
 
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
