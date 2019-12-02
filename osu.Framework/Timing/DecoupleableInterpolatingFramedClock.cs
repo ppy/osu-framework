@@ -41,6 +41,8 @@ namespace osu.Framework.Timing
 
         public double ProposedCurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
 
+        public double ProposedElapsedTime => useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
+
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
         private double elapsedFrameTime;
@@ -77,6 +79,7 @@ namespace osu.Framework.Timing
 
             // the proposed time may change after clocks are started/stopped below.
             double proposedTime = ProposedCurrentTime;
+            double elapsedTime = ProposedElapsedTime;
 
             if (IsRunning)
             {
@@ -102,8 +105,8 @@ namespace osu.Framework.Timing
                 decoupledClock.ProcessFrame();
             }
 
-            elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
-            currentTime = elapsedFrameTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
+            elapsedFrameTime = elapsedTime;
+            currentTime = elapsedTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)
