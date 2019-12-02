@@ -62,9 +62,9 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                // AudioManager's disposal triggers an un-registration
-                while (managers.Count > 0)
-                    managers[0].Dispose();
+                foreach (var manager in managers)
+                    manager.Dispose();
+                managers.Clear();
             }
 
             ManagedBass.Bass.Free();
