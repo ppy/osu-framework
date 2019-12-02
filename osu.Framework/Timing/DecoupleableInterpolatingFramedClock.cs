@@ -98,9 +98,6 @@ namespace osu.Framework.Timing
             {
                 // when coupled and not running, we want to start when the source clock starts.
                 Start();
-
-                // since the decoupled clock was started, update it once more.
-                decoupledClock.ProcessFrame();
             }
 
             elapsedFrameTime = elapsedTime;
