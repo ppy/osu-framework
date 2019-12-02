@@ -75,7 +75,9 @@ namespace osu.Framework.Timing
             // process the decoupled clock to update the current proposed time.
             decoupledClock.ProcessFrame();
 
-            // the proposed time may change after clocks are started/stopped below.
+            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
+            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
+            // in all other cases the proposed time will match before and after clocks are started/stopped.
             double proposedTime = ProposedCurrentTime;
             double elapsedTime = ProposedElapsedTime;
 
