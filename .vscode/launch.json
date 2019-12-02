@@ -48,6 +48,22 @@
                 }
             },
             "console": "internalConsole"
+        },
+        {
+            "name": "Benchmarks",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/netcoreapp3.0/osu.Framework.Benchmarks.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Release)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/netcoreapp3.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
         }
     ]
 }
