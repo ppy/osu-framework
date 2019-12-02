@@ -1340,11 +1340,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float cornerExponent = 2.5f;
+        private float cornerExponent = 2f;
 
         /// <summary>
-        /// Determines how gentle the curve of the corner straightens. A value of 2 results in
-        /// circular arcs, a value of 2.5 (default) results in something closer to apple's "continuous corner".
+        /// Determines how gentle the curve of the corner straightens. A value of 2 (default) results in
+        /// circular arcs, a value of 2.5 results in something closer to apple's "continuous corner".
         /// Values between 2 and 10 result in varying degrees of "continuousness", where larger values are smoother.
         /// Values between 1 and 2 result in a "flatter" appearance than round corners.
         /// Values between 0 and 1 result in a concave, round corner as opposed to a convex round corner,
