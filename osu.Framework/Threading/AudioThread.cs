@@ -59,6 +59,14 @@ namespace osu.Framework.Threading
         protected override void PerformExit()
         {
             base.PerformExit();
+
+            lock (managers)
+            {
+                // AudioManager's disposal triggers an un-registration
+                while (managers.Count > 0)
+                    managers[0].Dispose();
+            }
+
             ManagedBass.Bass.Free();
         }
     }
