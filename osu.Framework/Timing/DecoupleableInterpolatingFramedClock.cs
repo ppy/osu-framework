@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -106,7 +104,7 @@ namespace osu.Framework.Timing
             }
 
             elapsedFrameTime = elapsedTime;
-            currentTime = elapsedTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
+            currentTime = proposedTime;
         }
 
         public override void ChangeSource(IClock source)
