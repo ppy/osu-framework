@@ -103,7 +103,7 @@ namespace osu.Framework.Timing
             }
 
             elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
-            currentTime = elapsedFrameTime < 0 ? ProposedCurrentTime : Math.Max(currentTime, proposedTime);
+            currentTime = elapsedFrameTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)
