@@ -194,6 +194,7 @@ namespace osu.Framework.Tests.Clocks
             {
                 decoupleable.ProcessFrame();
 
+                // Current time may change after the frame is processed
                 if (decoupleable.CurrentTime < 0)
                     Assert.AreEqual(0, source.CurrentTime);
 
@@ -205,18 +206,15 @@ namespace osu.Framework.Tests.Clocks
 
             Assert.That(source.IsRunning, Is.True);
 
-            last = decoupleable.CurrentTime;
-            decoupleable.ProcessFrame();
-
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
-
             // Ensure that time continues moving forward
-            last = decoupleable.CurrentTime;
-            decoupleable.ProcessFrame();
+            for (int i = 0; i < 5; i++)
+            {
+                last = decoupleable.CurrentTime;
+                decoupleable.ProcessFrame();
 
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
+                Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
+                Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
+            }
         }
 
         /// <summary>
