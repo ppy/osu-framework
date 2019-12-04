@@ -121,7 +121,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected TextBox()
         {
             Masking = true;
-            CornerRadius = 3;
 
             Children = new Drawable[]
             {

@@ -16,7 +16,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BasicTextBox()
         {
-            CornerRadius = 0;
             BackgroundFocused = FrameworkColour.BlueGreen;
             BackgroundUnfocused = FrameworkColour.BlueGreenDark;
             BackgroundCommit = FrameworkColour.Green;
@@ -40,7 +39,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectionColour = SelectionColour,
         };
 
-        private class BasicDrawableCaret : DrawableCaret
+        public class BasicDrawableCaret : DrawableCaret
         {
             private const float caret_move_time = 60;
 
