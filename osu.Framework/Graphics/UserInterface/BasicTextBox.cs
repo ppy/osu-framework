@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     if (value != null)
                     {
-                        this.ResizeWidthTo(value.Value, caret_move_time, Easing.Out);
+                        this.ResizeWidthTo(value.Value + CaretWidth / 2, caret_move_time, Easing.Out);
                         this
                             .FadeTo(0.5f, 200, Easing.Out)
                             .FadeColour(SelectionColour, 200, Easing.Out);
