@@ -25,11 +25,10 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
-        protected Drawable Caret;
         protected Container TextContainer;
 
         public override bool HandleNonPositionalInput => HasFocus;
@@ -38,10 +37,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
         protected virtual float LeftRightPadding => 5;
-
-        protected virtual float CaretWidth => 3;
-
-        private const float caret_move_time = 60;
 
         public int? LengthLimit;
 
@@ -91,8 +86,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
-
         protected virtual Color4 InputErrorColour => Color4.Red;
 
         /// <summary>
@@ -125,7 +118,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Scheduler textUpdateScheduler = new Scheduler();
 
-        public TextBox()
+        protected TextBox()
         {
             Masking = true;
             CornerRadius = 3;
@@ -144,10 +137,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
-                        Caret = new DrawableCaret(),
+                        Placeholder = CreatePlaceholder(),
+                        Caret = CreateCaret(),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
@@ -338,16 +331,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             textUpdateScheduler.Update();
 
-            float caretWidth = CaretWidth;
-
-            Vector2 cursorPos = Vector2.Zero;
+            float cursorPos = 0;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
+                cursorPos = getPositionAt(selectionLeft);
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
+            float? caretWidth = null;
             if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
+                caretWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -364,21 +356,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (HasFocus)
             {
                 Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
-
-                if (selectionLength > 0)
-                {
-                    Caret
-                        .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(SelectionColour, 200, Easing.Out);
-                }
-                else
-                {
-                    Caret
-                        .FadeColour(Color4.White, 200, Easing.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
-                }
+                Caret.SelectionWidth = caretWidth;
+                Caret.CursorPosition = new Vector2(cursorPos, 0);
             }
 
             if (textAtLastLayout != text)
@@ -561,8 +540,9 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
+                const float fade_time = 120;
                 var col = (Color4)ch.Colour;
-                ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
+                ch.FadeColour(col.Opacity(0)).FadeColour(col, fade_time, Easing.Out);
             }
         }
 
@@ -598,10 +578,7 @@ namespace osu.Framework.Graphics.UserInterface
                 TextFlow.FlashColour(InputErrorColour, 200);
         }
 
-        protected virtual SpriteText CreatePlaceholder() => new SpriteText
-        {
-            Colour = Color4.Gray,
-        };
+        protected abstract SpriteText CreatePlaceholder();
 
         protected SpriteText Placeholder;
 
@@ -610,6 +587,10 @@ namespace osu.Framework.Graphics.UserInterface
             get => Placeholder.Text;
             set => Placeholder.Text = value;
         }
+
+        protected abstract DrawableCaret CreateCaret();
+
+        protected DrawableCaret Caret;
 
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
@@ -998,26 +979,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        private class DrawableCaret : CompositeDrawable
+        public abstract class DrawableCaret : CompositeDrawable
         {
-            public DrawableCaret()
-            {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-                Alpha = 0;
-                Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
+            /// <summary>
+            /// Absolute selection width or null for default width
+            /// </summary>
+            public abstract float? SelectionWidth { set; }
 
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                };
-            }
+            /// <summary>
+            /// Absolute cursor position
+            /// </summary>
+            public abstract Vector2 CursorPosition { set; }
         }
     }
 }

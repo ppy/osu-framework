@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
@@ -19,7 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             typeof(BasicTextBox),
             typeof(TextBox),
-            typeof(PasswordTextBox)
+            typeof(BasicPasswordTextBox)
         };
 
         private FillFlowContainer textBoxes;
@@ -80,6 +81,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = textBoxes
                 });
 
+                textBoxes.Add(new OffsetTextBox
+                {
+                    PlaceholderText = @"Placeholder offset",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+
                 textBoxes.Add(new BasicTextBox
                 {
                     Text = @"prefilled placeholder",
@@ -118,7 +126,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = otherTextBoxes
                 });
 
-                otherTextBoxes.Add(new PasswordTextBox
+                otherTextBoxes.Add(new BasicPasswordTextBox
                 {
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
@@ -259,6 +267,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => char.IsNumber(character);
+        }
+
+        private class OffsetTextBox : BasicTextBox
+        {
+            protected override SpriteText CreatePlaceholder() => base.CreatePlaceholder().With(d => d.X = 3);
         }
     }
 }
