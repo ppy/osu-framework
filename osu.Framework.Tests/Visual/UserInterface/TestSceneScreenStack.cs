@@ -348,6 +348,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestEventsNotFiredBeforeScreenLoad()
+        {
+            Screen screen1 = null;
+            bool wasLoaded = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen
+            {
+                // ReSharper disable once AccessToModifiedClosure
+                Entered = () => wasLoaded &= screen1?.IsLoaded == true,
+                // ReSharper disable once AccessToModifiedClosure
+                Suspended = () => wasLoaded &= screen1?.IsLoaded == true,
+            });
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddAssert("was loaded before events", () => wasLoaded);
+        }
+
+        [Test]
         public void TestAsyncDoublePush()
         {
             TestScreenSlow screen1 = null;
