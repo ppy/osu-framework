@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Clocks
         /// Tests that the decoupled clock seeks the source clock to its time when it starts.
         /// </summary>
         [Test]
-        public void TestDecoupledStartWithSouceOffset()
+        public void TestDecoupledStartWithSourceOffset()
         {
             decoupleable.IsCoupled = false;
 
