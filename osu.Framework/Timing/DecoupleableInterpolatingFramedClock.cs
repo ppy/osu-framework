@@ -107,7 +107,7 @@ namespace osu.Framework.Timing
             elapsedFrameTime = elapsedTime;
 
             // The source may be started during forwards playback
-            currentTime = elapsedFrameTime < 0 ? proposedTime : Math.Max(currentTime, proposedTime);
+            currentTime = elapsedFrameTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
         }
 
         public override void ChangeSource(IClock source)
