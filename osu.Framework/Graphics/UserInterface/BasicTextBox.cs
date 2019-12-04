@@ -62,6 +62,8 @@ namespace osu.Framework.Graphics.UserInterface
                 };
             }
 
+            public override void Hide() => this.FadeOut(200);
+
             public float CaretWidth { get; set; }
 
             public Color4 SelectionColour { get; set; }

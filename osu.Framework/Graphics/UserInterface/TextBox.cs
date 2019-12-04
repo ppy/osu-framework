@@ -867,7 +867,7 @@ namespace osu.Framework.Graphics.UserInterface
             unbindInput();
 
             Caret.ClearTransforms();
-            Caret.FadeOut(200);
+            Caret.Hide();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
@@ -888,6 +888,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, Easing.Out);
+
+            Caret.Show();
 
             cursorAndLayout.Invalidate();
         }
@@ -980,6 +982,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         public abstract class DrawableCaret : CompositeDrawable
         {
+            protected DrawableCaret()
+            {
+                Alpha = 0;
+                RelativeSizeAxes = Axes.Y;
+            }
+
             /// <summary>
             /// Absolute selection width or null for default width
             /// </summary>
