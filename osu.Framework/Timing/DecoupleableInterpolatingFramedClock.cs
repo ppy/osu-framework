@@ -106,7 +106,8 @@ namespace osu.Framework.Timing
 
             elapsedFrameTime = elapsedTime;
 
-            // The source may be started during forwards playback
+            // the source may be started during playback but remain behind the current time in the playback direction for a number of frames.
+            // in such cases, the current time should remain paused until the source time catches up.
             currentTime = elapsedFrameTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
         }
 
