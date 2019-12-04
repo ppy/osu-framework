@@ -284,10 +284,10 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             Audio?.Dispose();
             Audio = null;
+
+            base.Dispose(isDisposing);
         }
     }
 }
