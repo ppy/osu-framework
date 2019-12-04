@@ -321,6 +321,9 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should not match source time.");
         }
 
+        /// <summary>
+        /// Tests that seeking a decoupled clock negatively does not cause it to seek to the positive source time.
+        /// </summary>
         [Test]
         public void TestDecoupledNotSeekedPositivelyByFailedNegativeSeek()
         {
