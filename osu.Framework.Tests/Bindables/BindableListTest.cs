@@ -298,6 +298,30 @@ namespace osu.Framework.Tests.Bindables
             });
         }
 
+        [Test]
+        public void TestAddRangeEnumeratesOnlyOnce()
+        {
+            BindableList<int> list1 = new BindableList<int>();
+            BindableList<int> list2 = new BindableList<int>();
+            list2.BindTo(list1);
+
+            int addeditem = 0;
+            list1.ItemsAdded += items => addeditem = items.Single();
+
+            int counter = 0;
+
+            IEnumerable<int> valueEnumerable()
+            {
+                yield return counter++;
+            }
+
+            list1.AddRange(valueEnumerable());
+
+            Assert.That(list1[0], Is.EqualTo(0));
+            Assert.That(list2[0], Is.EqualTo(0));
+            Assert.That(addeditem, Is.EqualTo(0));
+        }
+
         #endregion
 
         #region .Insert
