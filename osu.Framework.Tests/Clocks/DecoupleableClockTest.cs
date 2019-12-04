@@ -176,7 +176,26 @@ namespace osu.Framework.Tests.Clocks
         }
 
         /// <summary>
-        /// Tests that that the decoupled clock does not rewind after the source clock is started as a result of being able to handle a positive time.
+        /// Tests that the decoupled clocks starts the source as a result of being able to handle the current time.
+        /// </summary>
+        [Test]
+        public void TestDecoupledStartsSourceIfAllowable()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.CustomAllowableErrorMilliseconds = 1000;
+            decoupleable.Seek(-50);
+            decoupleable.ProcessFrame();
+            decoupleable.Start();
+
+            // Delay a bit to make sure the clock crosses the 0 boundary
+            Thread.Sleep(100);
+            decoupleable.ProcessFrame();
+
+            Assert.That(source.IsRunning, Is.True);
+        }
+
+        /// <summary>
+        /// Tests that that the decoupled clock does not rewind after the source clock is started as a result of being able to handle the current time.
         /// </summary>
         [Test]
         public void TestDecoupledTimeDoesNotRewindAfterSourceStarts()
