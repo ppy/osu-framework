@@ -286,7 +286,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(id: 0))
                     {
                         RelativeSizeAxes = Axes.Both
                     });
@@ -296,13 +296,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Perform setup", () =>
             {
                 order = new List<int>();
-                screen1 = new TestScreenSlow
+                screen1 = new TestScreenSlow(1)
                 {
                     Entered = () => order.Add(1),
                     Suspended = () => order.Add(2),
                     Resumed = () => order.Add(5),
                 };
-                screen2 = new TestScreenSlow
+                screen2 = new TestScreenSlow(2)
                 {
                     Entered = () => order.Add(3),
                     Exited = () => order.Add(4),

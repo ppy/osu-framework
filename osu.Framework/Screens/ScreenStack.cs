@@ -101,6 +101,12 @@ namespace osu.Framework.Screens
 
             var newScreenDrawable = newScreen.AsDrawable();
 
+            if (newScreenDrawable.IsLoaded)
+                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
+
+            // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
+            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
+
             if (source == null)
             {
                 // this is the first screen to be loaded.
@@ -132,7 +138,6 @@ namespace osu.Framework.Screens
                 suspend(parent, child);
 
             AddInternal(child.AsDrawable());
-            child.OnEntering(parent);
         }
 
         /// <summary>
