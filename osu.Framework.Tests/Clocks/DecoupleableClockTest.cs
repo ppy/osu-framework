@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Timing;
@@ -10,13 +11,13 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class DecoupleableClockTest
     {
-        private TestClock source;
+        private TestClockWithRange source;
         private TestDecoupleableClock decoupleable;
 
         [SetUp]
         public void SetUp()
         {
-            source = new TestClockPositiveOnly();
+            source = new TestClockWithRange();
 
             decoupleable = new TestDecoupleableClock();
             decoupleable.ChangeSource(source);
@@ -195,10 +196,11 @@ namespace osu.Framework.Tests.Clocks
         }
 
         /// <summary>
-        /// Tests that that the decoupled clock does not rewind after the source clock is started as a result of being able to handle the current time.
+        /// Tests that during forward playback the decoupled clock always moves in the forwards direction after starting the source clock.
+        /// For this test, the source clock is started when the decoupled time crosses the 0ms-boundary.
         /// </summary>
         [Test]
-        public void TestDecoupledTimeDoesNotRewindAfterSourceStarts()
+        public void TestForwardPlaybackDecoupledTimeDoesNotRewindAfterSourceStarts()
         {
             decoupleable.IsCoupled = false;
             decoupleable.CustomAllowableErrorMilliseconds = 1000;
@@ -206,14 +208,46 @@ namespace osu.Framework.Tests.Clocks
             decoupleable.ProcessFrame();
             decoupleable.Start();
 
-            // Delay a bit to make sure the clock crosses the 0 boundary
+            // Delay a bit to make sure the clock crosses the 0ms boundary
+            Thread.Sleep(100);
+            decoupleable.ProcessFrame();
+
+            // Make sure that time doesn't rewind. Note that the source clock does not move by itself,
+            double last = decoupleable.CurrentTime;
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.GreaterThanOrEqualTo(last));
+        }
+
+        /// <summary>
+        /// Tests that during backwards playback the decoupled clock always moves in the backwards direction after starting the source clock.
+        /// For this test, the source clock is started when the decoupled time crosses the 1000ms-boundary.
+        /// </summary>
+        [Test]
+        public void TestBackwardPlaybackDecoupledTimeDoesNotRewindAfterSourceStarts()
+        {
+            source.MaxTime = 1000;
+            decoupleable.IsCoupled = false;
+            decoupleable.CustomAllowableErrorMilliseconds = 1000;
+            decoupleable.Rate = -1;
+
+            // Bring the source clock into a good state by seeking to a valid time
+            decoupleable.Seek(1000);
+            decoupleable.Start();
+            decoupleable.ProcessFrame();
+            decoupleable.Stop();
+
+            decoupleable.Seek(1050);
+            decoupleable.ProcessFrame();
+            decoupleable.Start();
+
+            // Delay a bit to make sure the clock crosses the 1000ms boundary
             Thread.Sleep(100);
             decoupleable.ProcessFrame();
 
             // Make sure that time doesn't rewind
             double last = decoupleable.CurrentTime;
             decoupleable.ProcessFrame();
-            Assert.That(decoupleable.CurrentTime, Is.GreaterThanOrEqualTo(last));
+            Assert.That(decoupleable.CurrentTime, Is.LessThanOrEqualTo(last));
         }
 
         /// <summary>
@@ -339,11 +373,15 @@ namespace osu.Framework.Tests.Clocks
             public override double AllowableErrorMilliseconds => CustomAllowableErrorMilliseconds ?? base.AllowableErrorMilliseconds;
         }
 
-        private class TestClockPositiveOnly : TestClock
+        private class TestClockWithRange : TestClock
         {
+            public double MinTime { get; set; } = 0;
+            public double MaxTime { get; set; } = double.PositiveInfinity;
+
             public override bool Seek(double position)
             {
-                if (position < 0) return false;
+                if (Math.Clamp(position, MinTime, MaxTime) != position)
+                    return false;
 
                 return base.Seek(position);
             }
