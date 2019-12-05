@@ -65,6 +65,9 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Pushes a <see cref="IScreen"/> to this <see cref="ScreenStack"/>.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="IScreen"/> cannot be pushed multiple times.
+        /// </remarks>
         /// <param name="screen">The <see cref="IScreen"/> to push.</param>
         public void Push(IScreen screen)
         {
