@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void setHoldState(bool controlPressed)
         {
             box.Alpha = controlPressed ? 1 : background_alpha;
-            clock.Rate = controlPressed ? 0 : 1;
+            if (clock != null) clock.Rate = controlPressed ? 0 : 1;
         }
 
         [BackgroundDependencyLoader]
