@@ -200,6 +200,8 @@ namespace osu.Framework
 
         private GlobalStatisticsDisplay globalStatistics;
 
+        private DevicePresetsDisplay devicePresetsDisplay;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -234,6 +236,20 @@ namespace osu.Framework
                     }
 
                     globalStatistics.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleDevicePresets:
+
+                    if (devicePresetsDisplay == null)
+                    {
+                        LoadComponentAsync(devicePresetsDisplay = new DevicePresetsDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100, 100 + ToolWindow.HEIGHT)
+                        }, AddInternal);
+                    }
+
+                    devicePresetsDisplay.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleDrawVisualiser:
