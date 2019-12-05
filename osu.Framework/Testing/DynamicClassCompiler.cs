@@ -161,7 +161,7 @@ namespace osu.Framework.Testing
 #if RELEASE
                 "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.CSharp8);
+            }, languageVersion: LanguageVersion.Latest);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
