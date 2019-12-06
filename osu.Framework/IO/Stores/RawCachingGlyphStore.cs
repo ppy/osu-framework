@@ -131,8 +131,11 @@ namespace osu.Framework.IO.Stores
         {
             base.Dispose(disposing);
 
-            foreach (var h in pageStreamHandles)
-                h.Value.Dispose();
+            if (pageStreamHandles != null)
+            {
+                foreach (var h in pageStreamHandles)
+                    h.Value?.Dispose();
+            }
         }
 
         private byte[] readBuffer;
