@@ -137,6 +137,27 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
+            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
+            logOverlayVisibility.BindValueChanged(visibility =>
+            {
+                if (visibility.NewValue)
+                {
+                    if (logOverlay == null)
+                    {
+                        LoadComponentAsync(logOverlay = new LogOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    logOverlay.Show();
+                }
+                else
+                {
+                    logOverlay?.Hide();
+                }
+            }, true);
+
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
@@ -200,6 +221,8 @@ namespace osu.Framework
 
         private GlobalStatisticsDisplay globalStatistics;
 
+        private Bindable<bool> logOverlayVisibility;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -251,15 +274,7 @@ namespace osu.Framework
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
-                    if (logOverlay == null)
-                    {
-                        LoadComponentAsync(logOverlay = new LogOverlay
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    logOverlay.ToggleVisibility();
+                    logOverlayVisibility.Value = !logOverlayVisibility.Value;
                     return true;
 
                 case FrameworkAction.ToggleFullscreen:
@@ -284,10 +299,10 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             Audio?.Dispose();
             Audio = null;
+
+            base.Dispose(isDisposing);
         }
     }
 }
