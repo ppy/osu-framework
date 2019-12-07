@@ -71,8 +71,13 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
+        private static bool stbiNotFound;
+
         internal static Image<TPixel> LoadFromStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
         {
+            if (stbiNotFound)
+                return Image.Load<TPixel>(stream);
+
             long initialPos = stream.Position;
 
             try
@@ -86,6 +91,9 @@ namespace osu.Framework.Graphics.Textures
             }
             catch (Exception e)
             {
+                if (e is DllNotFoundException)
+                    stbiNotFound = true;
+
                 Logger.Error(e, "Texture could not be loaded via STB; falling back to ImageSharp.");
                 stream.Position = initialPos;
                 return Image.Load<TPixel>(stream);
