@@ -350,8 +350,7 @@ namespace osu.Framework.Tests.Threading
         }
 
         /// <summary>
-        /// Tests that delegates added from inside a scheduled callback don't get executed when the scheduled callback
-        /// cancels an intermediate task that was previously cancelled.
+        /// Tests that delegates added from inside a scheduled callback don't get executed when the scheduled callback cancels a prior intermediate task.
         ///
         /// Delegate 1 - Added at the start.
         /// Delegate 2 - Added at the start, cancelled by Delegate 1.
