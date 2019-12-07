@@ -358,17 +358,21 @@ namespace osu.Framework.Tests.Threading
         /// Delegate 3 - Added during Delegate 1 callback, should not get executed.
         /// </summary>
         [Test]
-        public void TestDelegateAddedInCallbackNotExecutedAfterIntermediateCompleteDelegate()
+        public void TestDelegateAddedInCallbackNotExecutedAfterIntermediateCancelledDelegate()
         {
             int invocations = 0;
 
+            // Delegate 2
             var cancelled = new ScheduledDelegate(() => { });
 
+            // Delegate 1
             scheduler.Add(() =>
             {
                 invocations++;
 
                 cancelled.Cancel();
+
+                // Delegate 3
                 scheduler.Add(() => invocations++);
             });
 
