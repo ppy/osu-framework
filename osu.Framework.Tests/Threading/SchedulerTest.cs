@@ -348,5 +348,34 @@ namespace osu.Framework.Tests.Threading
             scheduler.Update();
             Assert.AreEqual(1, invocations);
         }
+
+        /// <summary>
+        /// Tests that delegates added from inside a scheduled callback don't get executed when the scheduled callback
+        /// cancels an intermediate task that was previously cancelled.
+        ///
+        /// Delegate 1 - Added at the start.
+        /// Delegate 2 - Added at the start, cancelled by Delegate 1.
+        /// Delegate 3 - Added during Delegate 1 callback, should not get executed.
+        /// </summary>
+        [Test]
+        public void TestDelegateAddedInCallbackNotExecutedAfterIntermediateCompleteDelegate()
+        {
+            int invocations = 0;
+
+            var cancelled = new ScheduledDelegate(() => { });
+
+            scheduler.Add(() =>
+            {
+                invocations++;
+
+                cancelled.Cancel();
+                scheduler.Add(() => invocations++);
+            });
+
+            scheduler.Add(cancelled);
+
+            scheduler.Update();
+            Assert.That(invocations, Is.EqualTo(1));
+        }
     }
 }
