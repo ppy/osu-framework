@@ -347,19 +347,19 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                switch (Value)
+                if (typeof(T) == typeof(double))
                 {
-                    case double dValue:
-                        // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
-                        return MathUtils.Precision.AlmostEquals(dValue, (double)(object)Default, (double)(object)Precision / 2);
-
-                    case float fValue:
-                        // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
-                        return MathUtils.Precision.AlmostEquals(fValue, (float)(object)Default, (float)(object)Precision / 2);
-
-                    default:
-                        return base.IsDefault;
+                    // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
+                    return MathUtils.Precision.AlmostEquals((double)(object)Value, (double)(object)Default, (double)(object)Precision / 2);
                 }
+
+                if (typeof(T) == typeof(float))
+                {
+                    // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
+                    return MathUtils.Precision.AlmostEquals((float)(object)Value, (float)(object)Default, (float)(object)Precision / 2);
+                }
+
+                return base.IsDefault;
             }
         }
 
