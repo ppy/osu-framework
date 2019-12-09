@@ -14,7 +14,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume { get; } = new BindableDouble(1)
+        public BindableNumber<double> Volume { get; } = new BindableDouble(1)
         {
             Default = 1,
             MinValue = 0,
@@ -24,7 +24,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance { get; } = new BindableDouble
+        public BindableNumber<double> Balance { get; } = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
@@ -33,7 +33,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency { get; } = new BindableDouble(1)
+        public BindableNumber<double> Frequency { get; } = new BindableDouble(1)
         {
             Default = 1,
         };
@@ -41,7 +41,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
         /// </summary>
-        public BindableDouble Tempo { get; } = new BindableDouble(1)
+        public BindableNumber<double> Tempo { get; } = new BindableDouble(1)
         {
             Default = 1,
         };
@@ -71,7 +71,7 @@ namespace osu.Framework.Audio
             tempoAggregate.AddSource(Tempo);
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
         {
             switch (type)
             {
@@ -93,7 +93,7 @@ namespace osu.Framework.Audio
             }
         }
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
         {
             switch (type)
             {

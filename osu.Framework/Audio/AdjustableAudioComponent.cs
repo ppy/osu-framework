@@ -15,22 +15,22 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume => adjustments.Volume;
+        public BindableNumber<double> Volume => adjustments.Volume;
 
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance => adjustments.Balance;
+        public BindableNumber<double> Balance => adjustments.Balance;
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency => adjustments.Frequency;
+        public BindableNumber<double> Frequency => adjustments.Frequency;
 
         /// <summary>
         /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
         /// </summary>
-        public BindableDouble Tempo => adjustments.Tempo;
+        public BindableNumber<double> Tempo => adjustments.Tempo;
 
         protected AdjustableAudioComponent()
         {
@@ -39,10 +39,10 @@ namespace osu.Framework.Audio
             AggregateFrequency.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
 
         internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
