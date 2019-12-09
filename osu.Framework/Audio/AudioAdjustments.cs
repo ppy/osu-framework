@@ -34,13 +34,20 @@ namespace osu.Framework.Audio
         /// </summary>
         public BindableDouble Frequency { get; } = new BindableDouble(1);
 
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableDouble Tempo { get; } = new BindableDouble(1);
+
         public IBindable<double> AggregateVolume => volumeAggregate.Result;
         public IBindable<double> AggregateBalance => balanceAggregate.Result;
         public IBindable<double> AggregateFrequency => frequencyAggregate.Result;
+        public IBindable<double> AggregateTempo => tempoAggregate.Result;
 
         private readonly AggregateBindable<double> volumeAggregate;
         private readonly AggregateBindable<double> balanceAggregate;
         private readonly AggregateBindable<double> frequencyAggregate;
+        private readonly AggregateBindable<double> tempoAggregate;
 
         public AudioAdjustments()
         {
@@ -52,6 +59,9 @@ namespace osu.Framework.Audio
 
             frequencyAggregate = new AggregateBindable<double>((a, b) => a * b, Frequency.GetUnboundCopy());
             frequencyAggregate.AddSource(Frequency);
+
+            tempoAggregate = new AggregateBindable<double>((a, b) => a * b, Tempo.GetUnboundCopy());
+            tempoAggregate.AddSource(Tempo);
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
@@ -68,6 +78,10 @@ namespace osu.Framework.Audio
 
                 case AdjustableProperty.Volume:
                     volumeAggregate.AddSource(adjustBindable);
+                    break;
+
+                case AdjustableProperty.Tempo:
+                    tempoAggregate.AddSource(adjustBindable);
                     break;
             }
         }
@@ -87,6 +101,10 @@ namespace osu.Framework.Audio
                 case AdjustableProperty.Volume:
                     volumeAggregate.RemoveSource(adjustBindable);
                     break;
+
+                case AdjustableProperty.Tempo:
+                    tempoAggregate.RemoveSource(adjustBindable);
+                    break;
             }
         }
 
@@ -99,6 +117,7 @@ namespace osu.Framework.Audio
             volumeAggregate.AddSource(component.AggregateVolume);
             balanceAggregate.AddSource(component.AggregateBalance);
             frequencyAggregate.AddSource(component.AggregateFrequency);
+            tempoAggregate.AddSource(component.AggregateTempo);
         }
 
         /// <summary>
@@ -110,6 +129,7 @@ namespace osu.Framework.Audio
             volumeAggregate.RemoveSource(component.AggregateVolume);
             balanceAggregate.RemoveSource(component.AggregateBalance);
             frequencyAggregate.RemoveSource(component.AggregateFrequency);
+            tempoAggregate.RemoveSource(component.AggregateTempo);
         }
     }
 }

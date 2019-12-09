@@ -23,6 +23,11 @@ namespace osu.Framework.Audio
         BindableDouble Frequency { get; }
 
         /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        BindableDouble Tempo { get; }
+
+        /// <summary>
         /// Add a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>

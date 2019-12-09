@@ -14,7 +14,7 @@ using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
+    public sealed class TrackBass : Track, IBassAudio
     {
         public const int BYTES_PER_SAMPLE = 4;
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Audio.Track
             // todo: support this internally to match the underlying Track implementation (which can support this).
             const float tempo_minimum_supported = 0.05f;
 
-            Tempo.ValueChanged += t =>
+            AggregateTempo.ValueChanged += t =>
             {
                 if (t.NewValue < tempo_minimum_supported)
                     throw new ArgumentException($"{nameof(TrackBass)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
@@ -304,7 +304,7 @@ namespace osu.Framework.Audio.Track
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
-            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
+            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(AggregateTempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
@@ -314,12 +314,6 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
 
         public override int? Bitrate => bitrate;
-
-        public double PitchAdjust
-        {
-            get => Frequency.Value;
-            set => Frequency.Value = value;
-        }
 
         private TrackAmplitudes currentAmplitudes;
 

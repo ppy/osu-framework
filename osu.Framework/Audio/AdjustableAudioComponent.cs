@@ -27,6 +27,11 @@ namespace osu.Framework.Audio
         /// </summary>
         public BindableDouble Frequency => adjustments.Frequency;
 
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableDouble Tempo => adjustments.Tempo;
+
         protected AdjustableAudioComponent()
         {
             AggregateVolume.ValueChanged += InvalidateState;
@@ -64,6 +69,8 @@ namespace osu.Framework.Audio
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
+        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -71,6 +78,7 @@ namespace osu.Framework.Audio
             AggregateVolume.UnbindAll();
             AggregateBalance.UnbindAll();
             AggregateFrequency.UnbindAll();
+            AggregateTempo.UnbindAll();
         }
     }
 
@@ -78,6 +86,7 @@ namespace osu.Framework.Audio
     {
         Volume,
         Balance,
-        Frequency
+        Frequency,
+        Tempo
     }
 }

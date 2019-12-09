@@ -32,6 +32,11 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public BindableDouble Frequency => adjustments.Frequency;
 
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableDouble Tempo => adjustments.Tempo;
+
         private readonly AdjustableAudioComponent component;
 
         private readonly bool disposeUnderlyingComponentOnDispose;
@@ -83,6 +88,8 @@ namespace osu.Framework.Graphics.Audio
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
+        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
+
         /// <summary>
         /// Smoothly adjusts <see cref="Volume"/> over time.
         /// </summary>
@@ -103,5 +110,12 @@ namespace osu.Framework.Graphics.Audio
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public TransformSequence<DrawableAudioWrapper> FrequencyTo(double newFrequency, double duration = 0, Easing easing = Easing.None) =>
             this.TransformBindableTo(Frequency, newFrequency, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="Tempo"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public TransformSequence<DrawableAudioWrapper> TempoTo(double newTempo, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformBindableTo(Tempo, newTempo, duration, easing);
     }
 }
