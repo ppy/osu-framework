@@ -68,16 +68,23 @@ namespace osu.Framework.Testing
         public void DestroyGameHost()
         {
             host.Exit();
-            runTask.Wait();
-            host.Dispose();
 
             try
             {
-                // clean up after each run
-                host.Storage.DeleteDirectory(string.Empty);
+                runTask.Wait();
             }
-            catch
+            finally
             {
+                host.Dispose();
+
+                try
+                {
+                    // clean up after each run
+                    host.Storage.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                }
             }
         }
 

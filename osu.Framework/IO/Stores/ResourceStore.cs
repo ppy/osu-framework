@@ -142,15 +142,9 @@ namespace osu.Framework.IO.Stores
                 {
                     foreach (string f in filenames)
                     {
-                        try
-                        {
-                            var result = store.GetStream(f);
-                            if (result != null)
-                                return result;
-                        }
-                        catch
-                        {
-                        }
+                        var result = store.GetStream(f);
+                        if (result != null)
+                            return result;
                     }
                 }
             }
