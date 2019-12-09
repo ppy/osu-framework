@@ -122,6 +122,8 @@ namespace osu.Framework.Bindables
                     return (T)(object)float.MinValue;
                 if (typeof(T) == typeof(int))
                     return (T)(object)int.MinValue;
+                if (typeof(T) == typeof(long))
+                    return (T)(object)long.MinValue;
 
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} needs to override {nameof(DefaultMinValue)} to provide a sane default.");
@@ -141,6 +143,8 @@ namespace osu.Framework.Bindables
                     return (T)(object)float.MaxValue;
                 if (typeof(T) == typeof(int))
                     return (T)(object)int.MaxValue;
+                if (typeof(T) == typeof(long))
+                    return (T)(object)long.MaxValue;
 
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} needs to override {nameof(DefaultMaxValue)} to provide a sane default.");
@@ -159,6 +163,8 @@ namespace osu.Framework.Bindables
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.Epsilon;
                 if (typeof(T) == typeof(int))
+                    return (T)(object)1;
+                if (typeof(T) == typeof(long))
                     return (T)(object)1;
 
                 throw new NotSupportedException(
