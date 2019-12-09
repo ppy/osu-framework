@@ -54,6 +54,12 @@ namespace osu.Framework.Audio.Track
         {
             Frequency.Value = 1;
             Tempo.Value = 1;
+
+            Frequency.UnbindBindings();
+            Frequency.SetDefault();
+
+            Tempo.UnbindBindings();
+            Tempo.SetDefault();
         }
 
         /// <summary>
