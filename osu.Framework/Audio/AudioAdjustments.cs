@@ -16,6 +16,7 @@ namespace osu.Framework.Audio
         /// </summary>
         public BindableDouble Volume { get; } = new BindableDouble(1)
         {
+            Default = 1,
             MinValue = 0,
             MaxValue = 1
         };
@@ -32,12 +33,18 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency { get; } = new BindableDouble(1);
+        public BindableDouble Frequency { get; } = new BindableDouble(1)
+        {
+            Default = 1,
+        };
 
         /// <summary>
         /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
         /// </summary>
-        public BindableDouble Tempo { get; } = new BindableDouble(1);
+        public BindableDouble Tempo { get; } = new BindableDouble(1)
+        {
+            Default = 1,
+        };
 
         public IBindable<double> AggregateVolume => volumeAggregate.Result;
         public IBindable<double> AggregateBalance => balanceAggregate.Result;
