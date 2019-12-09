@@ -138,5 +138,31 @@ namespace osu.Framework.Audio
             frequencyAggregate.RemoveSource(component.AggregateFrequency);
             tempoAggregate.RemoveSource(component.AggregateTempo);
         }
+
+        public void RemoveAllAdjustments(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                case AdjustableProperty.Balance:
+                    balanceAggregate.RemoveAllSources();
+                    balanceAggregate.AddSource(Balance);
+                    break;
+
+                case AdjustableProperty.Frequency:
+                    frequencyAggregate.RemoveAllSources();
+                    frequencyAggregate.AddSource(Frequency);
+                    break;
+
+                case AdjustableProperty.Volume:
+                    volumeAggregate.RemoveAllSources();
+                    volumeAggregate.AddSource(Volume);
+                    break;
+
+                case AdjustableProperty.Tempo:
+                    tempoAggregate.RemoveAllSources();
+                    tempoAggregate.AddSource(Tempo);
+                    break;
+            }
+        }
     }
 }

@@ -52,14 +52,8 @@ namespace osu.Framework.Audio.Track
 
         public virtual void ResetSpeedAdjustments()
         {
-            Frequency.Value = 1;
-            Tempo.Value = 1;
-
-            Frequency.UnbindBindings();
-            Frequency.SetDefault();
-
-            Tempo.UnbindBindings();
-            Tempo.SetDefault();
+            RemoveAllAdjustments(AdjustableProperty.Frequency);
+            RemoveAllAdjustments(AdjustableProperty.Tempo);
         }
 
         /// <summary>
