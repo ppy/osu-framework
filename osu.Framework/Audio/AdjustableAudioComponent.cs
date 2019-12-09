@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
@@ -37,6 +37,7 @@ namespace osu.Framework.Audio
             AggregateVolume.ValueChanged += InvalidateState;
             AggregateBalance.ValueChanged += InvalidateState;
             AggregateFrequency.ValueChanged += InvalidateState;
+            AggregateTempo.ValueChanged += InvalidateState;
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
