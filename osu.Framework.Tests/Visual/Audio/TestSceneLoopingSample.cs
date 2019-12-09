@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("create sample", createSample);
 
             AddStep("enable looping", () => sampleChannel.Looping = true);
-            AddStep("pl    ay sample", () => sampleChannel.Play());
+            AddStep("play sample", () => sampleChannel.Play());
 
             AddWaitStep("wait", 10);
             AddAssert("is playing", () => sampleChannel.Playing);
