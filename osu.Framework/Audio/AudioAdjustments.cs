@@ -61,7 +61,7 @@ namespace osu.Framework.Audio
         {
             foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
             {
-                var aggregate = getAggregate(type) = new AggregateBindable<double>((a, b) => a * b, getProperty(type).GetUnboundCopy());
+                var aggregate = getAggregate(type) = new AggregateBindable<double>(getAggregateFunction(type), getProperty(type).GetUnboundCopy());
                 aggregate.AddSource(getProperty(type));
             }
         }
@@ -120,7 +120,7 @@ namespace osu.Framework.Audio
                     return ref tempoAggregate;
             }
 
-            throw new ArgumentException("Unsupported property", nameof(type));
+            throw new ArgumentException($"{nameof(AdjustableProperty)} \"{type}\" is missing mapping", nameof(type));
         }
 
         private BindableNumber<double> getProperty(AdjustableProperty type)
@@ -140,7 +140,19 @@ namespace osu.Framework.Audio
                     return Tempo;
             }
 
-            throw new ArgumentException("Unsupported property", nameof(type));
+            throw new ArgumentException($"{nameof(AdjustableProperty)} \"{type}\" is missing mapping", nameof(type));
+        }
+
+        private Func<double, double, double> getAggregateFunction(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                default:
+                    return (a, b) => a * b;
+
+                case AdjustableProperty.Balance:
+                    return (a, b) => a + b;
+            }
         }
     }
 }
