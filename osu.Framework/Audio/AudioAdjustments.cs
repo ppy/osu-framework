@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
@@ -51,69 +52,28 @@ namespace osu.Framework.Audio
         public IBindable<double> AggregateFrequency => frequencyAggregate.Result;
         public IBindable<double> AggregateTempo => tempoAggregate.Result;
 
-        private readonly AggregateBindable<double> volumeAggregate;
-        private readonly AggregateBindable<double> balanceAggregate;
-        private readonly AggregateBindable<double> frequencyAggregate;
-        private readonly AggregateBindable<double> tempoAggregate;
+        private AggregateBindable<double> volumeAggregate;
+        private AggregateBindable<double> balanceAggregate;
+        private AggregateBindable<double> frequencyAggregate;
+        private AggregateBindable<double> tempoAggregate;
 
         public AudioAdjustments()
         {
-            volumeAggregate = new AggregateBindable<double>((a, b) => a * b, Volume.GetUnboundCopy());
-            volumeAggregate.AddSource(Volume);
-
-            balanceAggregate = new AggregateBindable<double>((a, b) => a + b, Balance.GetUnboundCopy());
-            balanceAggregate.AddSource(Balance);
-
-            frequencyAggregate = new AggregateBindable<double>((a, b) => a * b, Frequency.GetUnboundCopy());
-            frequencyAggregate.AddSource(Frequency);
-
-            tempoAggregate = new AggregateBindable<double>((a, b) => a * b, Tempo.GetUnboundCopy());
-            tempoAggregate.AddSource(Tempo);
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+            {
+                var aggregate = getAggregate(type) = new AggregateBindable<double>((a, b) => a * b, getProperty(type).GetUnboundCopy());
+                aggregate.AddSource(getProperty(type));
+            }
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
-        {
-            switch (type)
-            {
-                case AdjustableProperty.Balance:
-                    balanceAggregate.AddSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Frequency:
-                    frequencyAggregate.AddSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Volume:
-                    volumeAggregate.AddSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Tempo:
-                    tempoAggregate.AddSource(adjustBindable);
-                    break;
-            }
-        }
+            => getAggregate(type).AddSource(adjustBindable);
 
         public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
-        {
-            switch (type)
-            {
-                case AdjustableProperty.Balance:
-                    balanceAggregate.RemoveSource(adjustBindable);
-                    break;
+            => getAggregate(type).RemoveSource(adjustBindable);
 
-                case AdjustableProperty.Frequency:
-                    frequencyAggregate.RemoveSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Volume:
-                    volumeAggregate.RemoveSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Tempo:
-                    tempoAggregate.RemoveSource(adjustBindable);
-                    break;
-            }
-        }
+        public IBindable<double> GetAggregate(AdjustableProperty type)
+            => getAggregate(type).Result;
 
         /// <summary>
         /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
@@ -121,10 +81,8 @@ namespace osu.Framework.Audio
         /// <param name="component">The adjustment source.</param>
         internal void BindAdjustments(IAggregateAudioAdjustment component)
         {
-            volumeAggregate.AddSource(component.AggregateVolume);
-            balanceAggregate.AddSource(component.AggregateBalance);
-            frequencyAggregate.AddSource(component.AggregateFrequency);
-            tempoAggregate.AddSource(component.AggregateTempo);
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+                getAggregate(type).AddSource(component.GetAggregate(type));
         }
 
         /// <summary>
@@ -133,36 +91,56 @@ namespace osu.Framework.Audio
         /// <param name="component">The adjustment source.</param>
         internal void UnbindAdjustments(IAggregateAudioAdjustment component)
         {
-            volumeAggregate.RemoveSource(component.AggregateVolume);
-            balanceAggregate.RemoveSource(component.AggregateBalance);
-            frequencyAggregate.RemoveSource(component.AggregateFrequency);
-            tempoAggregate.RemoveSource(component.AggregateTempo);
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+                getAggregate(type).RemoveSource(component.GetAggregate(type));
         }
 
         public void RemoveAllAdjustments(AdjustableProperty type)
         {
+            var aggregate = getAggregate(type);
+
+            aggregate.RemoveAllSources();
+            aggregate.AddSource(getProperty(type));
+        }
+
+        private ref AggregateBindable<double> getAggregate(AdjustableProperty type)
+        {
             switch (type)
             {
                 case AdjustableProperty.Balance:
-                    balanceAggregate.RemoveAllSources();
-                    balanceAggregate.AddSource(Balance);
-                    break;
+                    return ref balanceAggregate;
 
                 case AdjustableProperty.Frequency:
-                    frequencyAggregate.RemoveAllSources();
-                    frequencyAggregate.AddSource(Frequency);
-                    break;
+                    return ref frequencyAggregate;
 
                 case AdjustableProperty.Volume:
-                    volumeAggregate.RemoveAllSources();
-                    volumeAggregate.AddSource(Volume);
-                    break;
+                    return ref volumeAggregate;
 
                 case AdjustableProperty.Tempo:
-                    tempoAggregate.RemoveAllSources();
-                    tempoAggregate.AddSource(Tempo);
-                    break;
+                    return ref tempoAggregate;
             }
+
+            throw new ArgumentException("Unsupported property", nameof(type));
+        }
+
+        private BindableNumber<double> getProperty(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                case AdjustableProperty.Balance:
+                    return Balance;
+
+                case AdjustableProperty.Frequency:
+                    return Frequency;
+
+                case AdjustableProperty.Volume:
+                    return Volume;
+
+                case AdjustableProperty.Tempo:
+                    return Tempo;
+            }
+
+            throw new ArgumentException("Unsupported property", nameof(type));
         }
     }
 }

@@ -90,6 +90,8 @@ namespace osu.Framework.Graphics.Audio
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
 
+        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
+
         /// <summary>
         /// Smoothly adjusts <see cref="Volume"/> over time.
         /// </summary>

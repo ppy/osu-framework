@@ -74,6 +74,8 @@ namespace osu.Framework.Audio
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
 
+        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
