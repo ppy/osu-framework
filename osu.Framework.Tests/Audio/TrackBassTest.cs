@@ -240,12 +240,12 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSetTempoNegative()
         {
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = -1);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = 0.04f);
 
             Assert.IsFalse(track.IsReversed);
 
-            track.TempoAdjust = 0.05f;
+            track.Tempo.Value = 0.05f;
 
             Assert.IsFalse(track.IsReversed);
             Assert.AreEqual(0.05f, track.Tempo.Value);
