@@ -162,7 +162,7 @@ namespace osu.Framework.Allocation
     }
 
     /// <summary>
-    /// The exception that is thrown when intending to cache <see langword="null"/> using <see cref="CachedAttribute"/>.
+    /// The exception that is thrown when attempting to cache <see langword="null"/> using <see cref="CachedAttribute"/>.
     /// </summary>
     public sealed class NullDependencyException : InvalidOperationException
     {
