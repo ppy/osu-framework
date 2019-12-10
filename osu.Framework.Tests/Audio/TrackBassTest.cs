@@ -212,6 +212,41 @@ namespace osu.Framework.Tests.Audio
 
             startPlaybackAt(track.Length - 1);
 
+            forceTrackUpdate();
+
+            Assert.LessOrEqual(track.CurrentTime, 1000);
+        }
+
+        [Test]
+        public void TestReversedLoopingRestart()
+        {
+            track.Looping = true;
+            track.Frequency.Value = -1;
+            track.RestartPoint = 1000;
+
+            startPlaybackAt(1001);
+
+            forceTrackUpdate();
+
+            Assert.GreaterOrEqual(track.CurrentTime, track.Length - 1000);
+        }
+
+        [Test]
+        public void TestSetTempoNegative()
+        {
+            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
+            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
+
+            Assert.IsFalse(track.IsReversed);
+
+            track.TempoAdjust = 0.05f;
+
+            Assert.IsFalse(track.IsReversed);
+            Assert.AreEqual(0.05f, track.Tempo.Value);
+        }
+
+        private void forceTrackUpdate()
+        {
             Thread.Sleep(50);
 
             // The first update brings the track to its end time and restarts it
@@ -233,22 +268,6 @@ namespace osu.Framework.Tests.Audio
 
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
-
-            Assert.LessOrEqual(track.CurrentTime, 1000);
-        }
-
-        [Test]
-        public void TestSetTempoNegative()
-        {
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
-
-            Assert.IsFalse(track.IsReversed);
-
-            track.TempoAdjust = 0.05f;
-
-            Assert.IsFalse(track.IsReversed);
-            Assert.AreEqual(0.05f, track.Tempo.Value);
         }
 
         private void startPlaybackAt(double time)

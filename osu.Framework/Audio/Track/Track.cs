@@ -24,7 +24,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
         /// </summary>
-        public double RestartPoint { get; set; }
+        public virtual double RestartPoint { get; set; }
 
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
@@ -57,7 +57,7 @@ namespace osu.Framework.Audio.Track
         public virtual void Restart()
         {
             Stop();
-            Seek(RestartPoint);
+            Seek(!IsReversed ? RestartPoint : Length - 1);
             Start();
         }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
-        public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
+        public override bool HasCompleted => IsLoaded && (!IsReversed ? (!IsRunning && CurrentTime >= Length) : CurrentTime <= RestartPoint);
 
         /// <summary>
         /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
