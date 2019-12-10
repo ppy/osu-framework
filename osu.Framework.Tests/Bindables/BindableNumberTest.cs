@@ -39,11 +39,11 @@ namespace osu.Framework.Tests.Bindables
 
             object bindable = createBindable(type);
 
-            MethodInfo setMethod = bindable.GetType().GetMethod(nameof(BindableNumber<int>.Set), BindingFlags.Public | BindingFlags.Instance).MakeGenericMethod(type);
-            setMethod.Invoke(bindable, new[] { expectedValue });
+            MethodInfo setMethod = bindable.GetType().GetMethod(nameof(BindableNumber<int>.Set), BindingFlags.Public | BindingFlags.Instance)?.MakeGenericMethod(type);
+            setMethod?.Invoke(bindable, new[] { expectedValue });
 
             PropertyInfo valueProperty = bindable.GetType().GetProperty(nameof(BindableNumber<int>.Value), BindingFlags.Public | BindingFlags.Instance);
-            object value = valueProperty.GetValue(bindable);
+            object value = valueProperty?.GetValue(bindable);
 
             Assert.That(Convert.ChangeType(value, typeof(int)), Is.EqualTo(expectedValue));
         }
@@ -55,15 +55,15 @@ namespace osu.Framework.Tests.Bindables
 
             object bindable = createBindable(type);
 
-            MethodInfo addMethod = bindable.GetType().GetMethod(nameof(BindableNumber<int>.Add), BindingFlags.Public | BindingFlags.Instance).MakeGenericMethod(type);
-            addMethod.Invoke(bindable, new[] { expectedValue });
+            MethodInfo addMethod = bindable.GetType().GetMethod(nameof(BindableNumber<int>.Add), BindingFlags.Public | BindingFlags.Instance)?.MakeGenericMethod(type);
+            addMethod?.Invoke(bindable, new[] { expectedValue });
 
             PropertyInfo valueProperty = bindable.GetType().GetProperty(nameof(BindableNumber<int>.Value), BindingFlags.Public | BindingFlags.Instance);
-            object value = valueProperty.GetValue(bindable);
+            object value = valueProperty?.GetValue(bindable);
 
             Assert.That(Convert.ChangeType(value, typeof(int)), Is.EqualTo(expectedValue));
         }
 
-        private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), new[] { Convert.ChangeType(0, type) });
+        private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), Convert.ChangeType(0, type));
     }
 }
