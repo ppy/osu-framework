@@ -165,9 +165,9 @@ namespace osu.Framework.Bindables
                 else if (typeof(T) == typeof(ulong))
                     return (T)(object)ulong.MaxValue;
                 else if (typeof(T) == typeof(float))
-                    return (T)(object)float.MaxValue;
+                    return (T)(object)float.Epsilon;
                 else if (typeof(T) == typeof(double))
-                    return (T)(object)double.MaxValue;
+                    return (T)(object)double.Epsilon;
                 else
                     throw new NotSupportedException("How do you get here?");
             }
