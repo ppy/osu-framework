@@ -38,6 +38,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly BindableNumberWithCurrent<T> current = new BindableNumberWithCurrent<T>();
 
+        protected BindableNumber<T> CurrentNumber => current;
+
         public Bindable<T> Current
         {
             get => current;
