@@ -116,17 +116,28 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.MinValue;
-                if (typeof(T) == typeof(float))
-                    return (T)(object)float.MinValue;
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)sbyte.MinValue;
+                else if (typeof(T) == typeof(byte))
+                    return (T)(object)byte.MinValue;
+                else if (typeof(T) == typeof(short))
+                    return (T)(object)short.MinValue;
+                else if (typeof(T) == typeof(ushort))
+                    return (T)(object)ushort.MinValue;
+                else if (typeof(T) == typeof(int))
                     return (T)(object)int.MinValue;
-                if (typeof(T) == typeof(long))
+                else if (typeof(T) == typeof(uint))
+                    return (T)(object)uint.MinValue;
+                else if (typeof(T) == typeof(long))
                     return (T)(object)long.MinValue;
-
-                throw new NotSupportedException(
-                    $"{nameof(BindableNumber<T>)} needs to override {nameof(DefaultMinValue)} to provide a sane default.");
+                else if (typeof(T) == typeof(ulong))
+                    return (T)(object)ulong.MinValue;
+                else if (typeof(T) == typeof(float))
+                    return (T)(object)float.MinValue;
+                else if (typeof(T) == typeof(double))
+                    return (T)(object)double.MinValue;
+                else
+                    throw new NotSupportedException("How do you get here?");
             }
         }
 
@@ -137,17 +148,28 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.MaxValue;
-                if (typeof(T) == typeof(float))
-                    return (T)(object)float.MaxValue;
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)sbyte.MaxValue;
+                else if (typeof(T) == typeof(byte))
+                    return (T)(object)byte.MaxValue;
+                else if (typeof(T) == typeof(short))
+                    return (T)(object)short.MaxValue;
+                else if (typeof(T) == typeof(ushort))
+                    return (T)(object)ushort.MaxValue;
+                else if (typeof(T) == typeof(int))
                     return (T)(object)int.MaxValue;
-                if (typeof(T) == typeof(long))
+                else if (typeof(T) == typeof(uint))
+                    return (T)(object)uint.MaxValue;
+                else if (typeof(T) == typeof(long))
                     return (T)(object)long.MaxValue;
-
-                throw new NotSupportedException(
-                    $"{nameof(BindableNumber<T>)} needs to override {nameof(DefaultMaxValue)} to provide a sane default.");
+                else if (typeof(T) == typeof(ulong))
+                    return (T)(object)ulong.MaxValue;
+                else if (typeof(T) == typeof(float))
+                    return (T)(object)float.MaxValue;
+                else if (typeof(T) == typeof(double))
+                    return (T)(object)double.MaxValue;
+                else
+                    throw new NotSupportedException("How do you get here?");
             }
         }
 
@@ -158,17 +180,28 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.Epsilon;
-                if (typeof(T) == typeof(float))
-                    return (T)(object)float.Epsilon;
-                if (typeof(T) == typeof(int))
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)(sbyte)1;
+                else if (typeof(T) == typeof(byte))
+                    return (T)(object)(byte)1;
+                else if (typeof(T) == typeof(short))
+                    return (T)(object)(short)1;
+                else if (typeof(T) == typeof(ushort))
+                    return (T)(object)(ushort)1;
+                else if (typeof(T) == typeof(int))
                     return (T)(object)1;
-                if (typeof(T) == typeof(long))
+                else if (typeof(T) == typeof(uint))
+                    return (T)(object)1U;
+                else if (typeof(T) == typeof(long))
                     return (T)(object)1L;
-
-                throw new NotSupportedException(
-                    $"{nameof(BindableNumber<T>)} needs to override {nameof(DefaultPrecision)} to provide a sane default.");
+                else if (typeof(T) == typeof(ulong))
+                    return (T)(object)1UL;
+                else if (typeof(T) == typeof(float))
+                    return (T)(object)1f;
+                else if (typeof(T) == typeof(double))
+                    return (T)(object)1d;
+                else
+                    throw new NotSupportedException("How do you get here?");
             }
         }
 
