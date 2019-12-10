@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Bindables
 {
@@ -21,16 +23,7 @@ namespace osu.Framework.Bindables
             // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
             // Just a pointer comparison for reference types, or constant for value types.
             // The check will become NOP after optimization.
-            if (typeof(T) != typeof(sbyte) &&
-                typeof(T) != typeof(byte) &&
-                typeof(T) != typeof(short) &&
-                typeof(T) != typeof(ushort) &&
-                typeof(T) != typeof(int) &&
-                typeof(T) != typeof(uint) &&
-                typeof(T) != typeof(long) &&
-                typeof(T) != typeof(ulong) &&
-                typeof(T) != typeof(float) &&
-                typeof(T) != typeof(double))
+            if (!isSupportedType())
             {
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
@@ -116,6 +109,8 @@ namespace osu.Framework.Bindables
         {
             get
             {
+                Debug.Assert(isSupportedType());
+
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MinValue;
                 if (typeof(T) == typeof(byte))
@@ -134,10 +129,8 @@ namespace osu.Framework.Bindables
                     return (T)(object)ulong.MinValue;
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.MinValue;
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.MinValue;
 
-                throw new NotSupportedException("How do you get here?");
+                return (T)(object)double.MinValue;
             }
         }
 
@@ -148,6 +141,8 @@ namespace osu.Framework.Bindables
         {
             get
             {
+                Debug.Assert(isSupportedType());
+
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MaxValue;
                 if (typeof(T) == typeof(byte))
@@ -166,10 +161,8 @@ namespace osu.Framework.Bindables
                     return (T)(object)ulong.MaxValue;
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.MaxValue;
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.MaxValue;
 
-                throw new NotSupportedException("How do you get here?");
+                return (T)(object)double.MaxValue;
             }
         }
 
@@ -198,10 +191,8 @@ namespace osu.Framework.Bindables
                     return (T)(object)1UL;
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.Epsilon;
-                if (typeof(T) == typeof(double))
-                    return (T)(object)double.Epsilon;
 
-                throw new NotSupportedException("How do you get here?");
+                return (T)(object)double.Epsilon;
             }
         }
 
@@ -298,6 +289,8 @@ namespace osu.Framework.Bindables
         public void Set<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
+            Debug.Assert(isSupportedType());
+
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
             if (typeof(T) == typeof(byte))
@@ -320,13 +313,13 @@ namespace osu.Framework.Bindables
                 ((BindableNumber<float>)(object)this).Value = val.ToSingle(NumberFormatInfo.InvariantInfo);
             else if (typeof(T) == typeof(double))
                 ((BindableNumber<double>)(object)this).Value = val.ToDouble(NumberFormatInfo.InvariantInfo);
-            else
-                throw new NotSupportedException("How do you get here?");
         }
 
         public void Add<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
+            Debug.Assert(isSupportedType());
+
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
             if (typeof(T) == typeof(byte))
@@ -349,8 +342,6 @@ namespace osu.Framework.Bindables
                 ((BindableNumber<float>)(object)this).Value += val.ToSingle(NumberFormatInfo.InvariantInfo);
             else if (typeof(T) == typeof(double))
                 ((BindableNumber<double>)(object)this).Value += val.ToDouble(NumberFormatInfo.InvariantInfo);
-            else
-                throw new NotSupportedException("How do you get here?");
         }
 
         /// <summary>
@@ -410,5 +401,18 @@ namespace osu.Framework.Bindables
 
         private static T clamp(T value, T minValue, T maxValue)
             => max(minValue, min(maxValue, value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool isSupportedType() =>
+            typeof(T) == typeof(sbyte)
+            || typeof(T) == typeof(byte)
+            || typeof(T) == typeof(short)
+            || typeof(T) == typeof(ushort)
+            || typeof(T) == typeof(int)
+            || typeof(T) == typeof(uint)
+            || typeof(T) == typeof(long)
+            || typeof(T) == typeof(ulong)
+            || typeof(T) == typeof(float)
+            || typeof(T) == typeof(double);
     }
 }
