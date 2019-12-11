@@ -104,11 +104,11 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled || sd.Completed)
-                    continue;
-
-                //todo: error handling
-                sd.RunTask();
+                if (!sd.Cancelled && !sd.Completed)
+                {
+                    //todo: error handling
+                    sd.RunTask();
+                }
 
                 if (++countRun == countToRun)
                     break;
