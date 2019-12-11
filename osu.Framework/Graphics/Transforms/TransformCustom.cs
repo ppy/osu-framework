@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Transforms
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
+    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : class, ITransformable
     {
         private delegate TValue ReadFunc(T transformable);
 
