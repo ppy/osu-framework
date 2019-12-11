@@ -47,9 +47,25 @@ namespace osu.Framework.Bindables
                 if (value.CompareTo(default) <= 0)
                     throw new ArgumentOutOfRangeException(nameof(Precision), value, "Must be greater than 0.");
 
-                precision = value;
+                SetPrecision(value, true, this);
+            }
+        }
 
-                TriggerPrecisionChange();
+        /// <summary>
+        /// Sets the precision. This method does no equality comparisons.
+        /// </summary>
+        /// <param name="precision">The new precision.</param>
+        /// <param name="updateCurrentValue">Whether to update the current value after the precision is set.</param>
+        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
+        internal void SetPrecision(T precision, bool updateCurrentValue, BindableNumber<T> source)
+        {
+            this.precision = precision;
+            TriggerPrecisionChange(source);
+
+            if (updateCurrentValue)
+            {
+                // Re-apply the current value to apply the new precision
+                Value = Value;
             }
         }
 
@@ -200,12 +216,12 @@ namespace osu.Framework.Bindables
         {
             base.TriggerChange();
 
-            TriggerPrecisionChange(false);
+            TriggerPrecisionChange(this, false);
             TriggerMinValueChange(false);
             TriggerMaxValueChange(false);
         }
 
-        protected void TriggerPrecisionChange(bool propagateToBindings = true)
+        protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = precision;
@@ -214,8 +230,10 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
+                    if (b == source) continue;
+
                     if (b is BindableNumber<T> bn)
-                        bn.Precision = precision;
+                        bn.SetPrecision(precision, false, this);
                 }
             }
 
