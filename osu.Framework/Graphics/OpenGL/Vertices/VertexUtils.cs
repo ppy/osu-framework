@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         /// <summary>
         /// The stride of the vertex of type <typeparamref name="T"/>.
         /// </summary>
-        public static readonly int STRIDE = Marshal.SizeOf<T>();
+        public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
