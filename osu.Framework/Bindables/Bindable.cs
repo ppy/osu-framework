@@ -119,7 +119,7 @@ namespace osu.Framework.Bindables
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
         public Bindable(T defaultValue = default)
         {
-            Value = Default = defaultValue;
+            value = Default = defaultValue;
         }
 
         protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
