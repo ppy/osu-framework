@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="T">
     /// The type of the <see cref="ITransformable"/> the <see cref="Transform"/>s in this sequence operate upon.
     /// </typeparam>
-    public class TransformSequence<T> where T : ITransformable
+    public class TransformSequence<T> where T : class, ITransformable
     {
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.

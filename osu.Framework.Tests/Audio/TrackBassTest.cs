@@ -5,7 +5,9 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
+using osu.Framework.Bindables;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -249,6 +251,13 @@ namespace osu.Framework.Tests.Audio
 
             Assert.IsFalse(track.IsReversed);
             Assert.AreEqual(0.05f, track.Tempo.Value);
+        }
+
+        [Test]
+        public void TestRateWithAggregateAdjustments()
+        {
+            track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
+            Assert.AreEqual(1.5, track.Rate);
         }
 
         private void startPlaybackAt(double time)
