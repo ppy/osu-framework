@@ -7,8 +7,8 @@ namespace osu.Framework.Bindables
 {
     public class BindableFloat : BindableNumber<float>
     {
-        public BindableFloat(float value = 0)
-            : base(value)
+        public BindableFloat(float defaultValue = 0)
+            : base(defaultValue)
         {
         }
 
