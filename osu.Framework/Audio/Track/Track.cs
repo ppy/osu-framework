@@ -104,7 +104,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get => Frequency.Value * Tempo.Value;
+            get => AggregateFrequency.Value * AggregateTempo.Value;
             set => throw new InvalidOperationException($"Setting {nameof(Rate)} directly on a {nameof(Track)} is not supported. Set {nameof(Tempo)} or {nameof(Frequency)} instead.");
         }
 
