@@ -7,8 +7,8 @@ namespace osu.Framework.Bindables
 {
     public class BindableDouble : BindableNumber<double>
     {
-        public BindableDouble(double value = 0)
-            : base(value)
+        public BindableDouble(double defaultValue = 0)
+            : base(defaultValue)
         {
         }
 
