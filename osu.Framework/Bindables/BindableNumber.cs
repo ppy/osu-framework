@@ -287,7 +287,7 @@ namespace osu.Framework.Bindables
             typeof(T) != typeof(double); // Will be **constant** after JIT.
 
         public void Set<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             Debug.Assert(isSupportedType());
 
@@ -316,7 +316,7 @@ namespace osu.Framework.Bindables
         }
 
         public void Add<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             Debug.Assert(isSupportedType());
 

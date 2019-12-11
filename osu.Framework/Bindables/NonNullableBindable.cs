@@ -6,6 +6,7 @@ using System;
 namespace osu.Framework.Bindables
 {
     public class NonNullableBindable<T> : Bindable<T>
+        where T : class
     {
         public NonNullableBindable(T defaultValue)
         {
