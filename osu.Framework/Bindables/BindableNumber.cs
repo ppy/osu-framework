@@ -17,8 +17,8 @@ namespace osu.Framework.Bindables
 
         public event Action<T> MaxValueChanged;
 
-        public BindableNumber(T value = default)
-            : base(value)
+        public BindableNumber(T defaultValue = default)
+            : base(defaultValue)
         {
             // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
             // Just a pointer comparison for reference types, or constant for value types.
@@ -29,9 +29,12 @@ namespace osu.Framework.Bindables
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
             }
 
-            MinValue = DefaultMinValue;
-            MaxValue = DefaultMaxValue;
+            minValue = DefaultMinValue;
+            maxValue = DefaultMaxValue;
             precision = DefaultPrecision;
+
+            // Re-apply the current value to apply the default min/max/precision values
+            Value = Value;
         }
 
         private T precision;
@@ -96,9 +99,25 @@ namespace osu.Framework.Bindables
                 if (minValue.Equals(value))
                     return;
 
-                minValue = value;
+                SetMinValue(value, true, this);
+            }
+        }
 
-                TriggerMinValueChange();
+        /// <summary>
+        /// Sets the minimum value. This method does no equality comparisons.
+        /// </summary>
+        /// <param name="minValue">The new minimum value.</param>
+        /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
+        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
+        internal void SetMinValue(T minValue, bool updateCurrentValue, BindableNumber<T> source)
+        {
+            this.minValue = minValue;
+            TriggerMinValueChange(source);
+
+            if (updateCurrentValue)
+            {
+                // Re-apply the current value to apply the new minimum value
+                Value = Value;
             }
         }
 
@@ -112,9 +131,25 @@ namespace osu.Framework.Bindables
                 if (maxValue.Equals(value))
                     return;
 
-                maxValue = value;
+                SetMaxValue(value, true, this);
+            }
+        }
 
-                TriggerMaxValueChange();
+        /// <summary>
+        /// Sets the maximum value. This method does no equality comparisons.
+        /// </summary>
+        /// <param name="maxValue">The new maximum value.</param>
+        /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
+        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
+        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
+        {
+            this.maxValue = maxValue;
+            TriggerMaxValueChange(source);
+
+            if (updateCurrentValue)
+            {
+                // Re-apply the current value to apply the new maximum value
+                Value = Value;
             }
         }
 
@@ -217,8 +252,8 @@ namespace osu.Framework.Bindables
             base.TriggerChange();
 
             TriggerPrecisionChange(this, false);
-            TriggerMinValueChange(false);
-            TriggerMaxValueChange(false);
+            TriggerMinValueChange(this, false);
+            TriggerMaxValueChange(this, false);
         }
 
         protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
@@ -241,7 +276,7 @@ namespace osu.Framework.Bindables
                 PrecisionChanged?.Invoke(precision);
         }
 
-        protected void TriggerMinValueChange(bool propagateToBindings = true)
+        protected void TriggerMinValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
@@ -250,8 +285,10 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
+                    if (b == source) continue;
+
                     if (b is BindableNumber<T> bn)
-                        bn.MinValue = minValue;
+                        bn.SetMinValue(minValue, false, this);
                 }
             }
 
@@ -259,7 +296,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;
@@ -268,8 +305,10 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
+                    if (b == source) continue;
+
                     if (b is BindableNumber<T> bn)
-                        bn.MaxValue = maxValue;
+                        bn.SetMaxValue(maxValue, false, this);
                 }
             }
 
@@ -305,7 +344,7 @@ namespace osu.Framework.Bindables
             typeof(T) != typeof(double); // Will be **constant** after JIT.
 
         public void Set<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             Debug.Assert(isSupportedType());
 
@@ -334,7 +373,7 @@ namespace osu.Framework.Bindables
         }
 
         public void Add<U>(U val) where U : struct,
-            IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
             Debug.Assert(isSupportedType());
 

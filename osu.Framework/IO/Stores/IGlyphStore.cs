@@ -6,7 +6,7 @@ using osu.Framework.Text;
 namespace osu.Framework.IO.Stores
 {
     /// <summary>
-    /// Interface for a <see cref="IResourceStore{CharacterGlyph}"/>.
+    /// Interface for a <see cref="IResourceStore{T}"/> of <see cref="CharacterGlyph"/>.
     /// </summary>
     public interface IGlyphStore : IResourceStore<CharacterGlyph>
     {

@@ -62,7 +62,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestGetTrackManager() => showResources(() => audioManager.Tracks);
 
-        private void showResources<T>(Func<IResourceStore<T>> store) => showResources(() => store().GetAvailableResources(), l => store().Get(l));
+        private void showResources<T>(Func<IResourceStore<T>> store)
+            where T : class
+            => showResources(() => store().GetAvailableResources(), l => store().Get(l));
 
         private void showResources<T>(Func<IEnumerable<string>> getResourceNames, Func<string, T> getResource)
         {
