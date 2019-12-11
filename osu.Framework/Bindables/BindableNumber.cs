@@ -2,11 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Bindables
 {
-    public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
+    public class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         public event Action<T> PrecisionChanged;
@@ -15,22 +17,13 @@ namespace osu.Framework.Bindables
 
         public event Action<T> MaxValueChanged;
 
-        private protected BindableNumber(T value = default)
+        public BindableNumber(T value = default)
             : base(value)
         {
             // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
             // Just a pointer comparison for reference types, or constant for value types.
             // The check will become NOP after optimization.
-            if (typeof(T) != typeof(sbyte) &&
-                typeof(T) != typeof(byte) &&
-                typeof(T) != typeof(short) &&
-                typeof(T) != typeof(ushort) &&
-                typeof(T) != typeof(int) &&
-                typeof(T) != typeof(uint) &&
-                typeof(T) != typeof(long) &&
-                typeof(T) != typeof(ulong) &&
-                typeof(T) != typeof(float) &&
-                typeof(T) != typeof(double))
+            if (!isSupportedType())
             {
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
@@ -112,17 +105,96 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
         /// </summary>
-        protected abstract T DefaultMinValue { get; }
+        protected virtual T DefaultMinValue
+        {
+            get
+            {
+                Debug.Assert(isSupportedType());
+
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)sbyte.MinValue;
+                if (typeof(T) == typeof(byte))
+                    return (T)(object)byte.MinValue;
+                if (typeof(T) == typeof(short))
+                    return (T)(object)short.MinValue;
+                if (typeof(T) == typeof(ushort))
+                    return (T)(object)ushort.MinValue;
+                if (typeof(T) == typeof(int))
+                    return (T)(object)int.MinValue;
+                if (typeof(T) == typeof(uint))
+                    return (T)(object)uint.MinValue;
+                if (typeof(T) == typeof(long))
+                    return (T)(object)long.MinValue;
+                if (typeof(T) == typeof(ulong))
+                    return (T)(object)ulong.MinValue;
+                if (typeof(T) == typeof(float))
+                    return (T)(object)float.MinValue;
+
+                return (T)(object)double.MinValue;
+            }
+        }
 
         /// <summary>
         /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <typeparamref name="T"/>.
         /// </summary>
-        protected abstract T DefaultMaxValue { get; }
+        protected virtual T DefaultMaxValue
+        {
+            get
+            {
+                Debug.Assert(isSupportedType());
+
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)sbyte.MaxValue;
+                if (typeof(T) == typeof(byte))
+                    return (T)(object)byte.MaxValue;
+                if (typeof(T) == typeof(short))
+                    return (T)(object)short.MaxValue;
+                if (typeof(T) == typeof(ushort))
+                    return (T)(object)ushort.MaxValue;
+                if (typeof(T) == typeof(int))
+                    return (T)(object)int.MaxValue;
+                if (typeof(T) == typeof(uint))
+                    return (T)(object)uint.MaxValue;
+                if (typeof(T) == typeof(long))
+                    return (T)(object)long.MaxValue;
+                if (typeof(T) == typeof(ulong))
+                    return (T)(object)ulong.MaxValue;
+                if (typeof(T) == typeof(float))
+                    return (T)(object)float.MaxValue;
+
+                return (T)(object)double.MaxValue;
+            }
+        }
 
         /// <summary>
         /// The default <see cref="Precision"/>.
         /// </summary>
-        protected abstract T DefaultPrecision { get; }
+        protected virtual T DefaultPrecision
+        {
+            get
+            {
+                if (typeof(T) == typeof(sbyte))
+                    return (T)(object)(sbyte)1;
+                if (typeof(T) == typeof(byte))
+                    return (T)(object)(byte)1;
+                if (typeof(T) == typeof(short))
+                    return (T)(object)(short)1;
+                if (typeof(T) == typeof(ushort))
+                    return (T)(object)(ushort)1;
+                if (typeof(T) == typeof(int))
+                    return (T)(object)1;
+                if (typeof(T) == typeof(uint))
+                    return (T)(object)1U;
+                if (typeof(T) == typeof(long))
+                    return (T)(object)1L;
+                if (typeof(T) == typeof(ulong))
+                    return (T)(object)1UL;
+                if (typeof(T) == typeof(float))
+                    return (T)(object)float.Epsilon;
+
+                return (T)(object)double.Epsilon;
+            }
+        }
 
         public override void TriggerChange()
         {
@@ -191,9 +263,9 @@ namespace osu.Framework.Bindables
         {
             if (them is BindableNumber<T> other)
             {
-                Precision = max(Precision, other.Precision);
-                MinValue = max(MinValue, other.MinValue);
-                MaxValue = min(MaxValue, other.MaxValue);
+                Precision = other.Precision;
+                MinValue = other.MinValue;
+                MaxValue = other.MaxValue;
 
                 if (MinValue.CompareTo(MaxValue) > 0)
                 {
@@ -217,6 +289,8 @@ namespace osu.Framework.Bindables
         public void Set<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
+            Debug.Assert(isSupportedType());
+
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
             if (typeof(T) == typeof(byte))
@@ -239,13 +313,13 @@ namespace osu.Framework.Bindables
                 ((BindableNumber<float>)(object)this).Value = val.ToSingle(NumberFormatInfo.InvariantInfo);
             else if (typeof(T) == typeof(double))
                 ((BindableNumber<double>)(object)this).Value = val.ToDouble(NumberFormatInfo.InvariantInfo);
-            else
-                throw new NotSupportedException("How do you get here?");
         }
 
         public void Add<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
+            Debug.Assert(isSupportedType());
+
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
             if (typeof(T) == typeof(byte))
@@ -268,8 +342,6 @@ namespace osu.Framework.Bindables
                 ((BindableNumber<float>)(object)this).Value += val.ToSingle(NumberFormatInfo.InvariantInfo);
             else if (typeof(T) == typeof(double))
                 ((BindableNumber<double>)(object)this).Value += val.ToDouble(NumberFormatInfo.InvariantInfo);
-            else
-                throw new NotSupportedException("How do you get here?");
         }
 
         /// <summary>
@@ -293,6 +365,28 @@ namespace osu.Framework.Bindables
 
         public new BindableNumber<T> GetUnboundCopy() => (BindableNumber<T>)base.GetUnboundCopy();
 
+        public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
+
+        public override bool IsDefault
+        {
+            get
+            {
+                if (typeof(T) == typeof(double))
+                {
+                    // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
+                    return MathUtils.Precision.AlmostEquals((double)(object)Value, (double)(object)Default, (double)(object)Precision / 2);
+                }
+
+                if (typeof(T) == typeof(float))
+                {
+                    // Take 50% of the precision to ensure the value doesn't underflow and return true for non-default values.
+                    return MathUtils.Precision.AlmostEquals((float)(object)Value, (float)(object)Default, (float)(object)Precision / 2);
+                }
+
+                return base.IsDefault;
+            }
+        }
+
         private static T max(T value1, T value2)
         {
             var comparison = value1.CompareTo(value2);
@@ -307,5 +401,18 @@ namespace osu.Framework.Bindables
 
         private static T clamp(T value, T minValue, T maxValue)
             => max(minValue, min(maxValue, value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool isSupportedType() =>
+            typeof(T) == typeof(sbyte)
+            || typeof(T) == typeof(byte)
+            || typeof(T) == typeof(short)
+            || typeof(T) == typeof(ushort)
+            || typeof(T) == typeof(int)
+            || typeof(T) == typeof(uint)
+            || typeof(T) == typeof(long)
+            || typeof(T) == typeof(ulong)
+            || typeof(T) == typeof(float)
+            || typeof(T) == typeof(double);
     }
 }

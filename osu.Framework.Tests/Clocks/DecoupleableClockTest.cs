@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Timing;
 
@@ -9,15 +11,15 @@ namespace osu.Framework.Tests.Clocks
     [TestFixture]
     public class DecoupleableClockTest
     {
-        private TestClock source;
-        private DecoupleableInterpolatingFramedClock decoupleable;
+        private TestClockWithRange source;
+        private TestDecoupleableClock decoupleable;
 
         [SetUp]
         public void SetUp()
         {
-            source = new TestClockPositiveOnly();
+            source = new TestClockWithRange();
 
-            decoupleable = new DecoupleableInterpolatingFramedClock();
+            decoupleable = new TestDecoupleableClock();
             decoupleable.ChangeSource(source);
         }
 
@@ -174,43 +176,85 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreEqual(0, decoupleable.CurrentTime);
         }
 
+        /// <summary>
+        /// Tests that the decoupled clocks starts the source as a result of being able to handle the current time.
+        /// </summary>
         [Test]
-        public void TestFromNegativeDecoupledMode()
+        public void TestDecoupledStartsSourceIfAllowable()
         {
             decoupleable.IsCoupled = false;
-            decoupleable.Seek(-1000);
-
+            decoupleable.CustomAllowableErrorMilliseconds = 1000;
+            decoupleable.Seek(-50);
             decoupleable.ProcessFrame();
-
-            Assert.AreEqual(0, source.CurrentTime);
-            Assert.AreEqual(-1000, decoupleable.CurrentTime);
-
             decoupleable.Start();
 
-            double? last = null;
-
-            while (decoupleable.CurrentTime < 0)
-            {
-                decoupleable.ProcessFrame();
-                Assert.AreEqual(0, source.CurrentTime);
-
-                if (last.HasValue)
-                    Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
-
-                last = decoupleable.CurrentTime;
-            }
-
+            // Delay a bit to make sure the clock crosses the 0 boundary
+            Thread.Sleep(100);
             decoupleable.ProcessFrame();
 
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, last);
-            Assert.GreaterOrEqual(decoupleable.CurrentTime, source.CurrentTime);
+            Assert.That(source.IsRunning, Is.True);
+        }
+
+        /// <summary>
+        /// Tests that during forward playback the decoupled clock always moves in the forwards direction after starting the source clock.
+        /// For this test, the source clock is started when the decoupled time crosses the 0ms-boundary.
+        /// </summary>
+        [Test]
+        public void TestForwardPlaybackDecoupledTimeDoesNotRewindAfterSourceStarts()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.CustomAllowableErrorMilliseconds = 1000;
+            decoupleable.Seek(-50);
+            decoupleable.ProcessFrame();
+            decoupleable.Start();
+
+            // Delay a bit to make sure the clock crosses the 0ms boundary
+            Thread.Sleep(100);
+            decoupleable.ProcessFrame();
+
+            // Make sure that time doesn't rewind. Note that the source clock does not move by itself,
+            double last = decoupleable.CurrentTime;
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.GreaterThanOrEqualTo(last));
+        }
+
+        /// <summary>
+        /// Tests that during backwards playback the decoupled clock always moves in the backwards direction after starting the source clock.
+        /// For this test, the source clock is started when the decoupled time crosses the 1000ms-boundary.
+        /// </summary>
+        [Test]
+        public void TestBackwardPlaybackDecoupledTimeDoesNotRewindAfterSourceStarts()
+        {
+            source.MaxTime = 1000;
+            decoupleable.IsCoupled = false;
+            decoupleable.CustomAllowableErrorMilliseconds = 1000;
+            decoupleable.Rate = -1;
+
+            // Bring the source clock into a good state by seeking to a valid time
+            decoupleable.Seek(1000);
+            decoupleable.Start();
+            decoupleable.ProcessFrame();
+            decoupleable.Stop();
+
+            decoupleable.Seek(1050);
+            decoupleable.ProcessFrame();
+            decoupleable.Start();
+
+            // Delay a bit to make sure the clock crosses the 1000ms boundary
+            Thread.Sleep(100);
+            decoupleable.ProcessFrame();
+
+            // Make sure that time doesn't rewind
+            double last = decoupleable.CurrentTime;
+            decoupleable.ProcessFrame();
+            Assert.That(decoupleable.CurrentTime, Is.LessThanOrEqualTo(last));
         }
 
         /// <summary>
         /// Tests that the decoupled clock seeks the source clock to its time when it starts.
         /// </summary>
         [Test]
-        public void TestDecoupledStartWithSouceOffset()
+        public void TestDecoupledStartWithSourceOffset()
         {
             decoupleable.IsCoupled = false;
 
@@ -277,6 +321,22 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should not match source time.");
         }
 
+        /// <summary>
+        /// Tests that seeking a decoupled clock negatively does not cause it to seek to the positive source time.
+        /// </summary>
+        [Test]
+        public void TestDecoupledNotSeekedPositivelyByFailedNegativeSeek()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.Start();
+
+            decoupleable.Seek(-5000);
+
+            Assert.That(source.IsRunning, Is.False);
+            Assert.That(decoupleable.IsRunning, Is.True);
+            Assert.That(decoupleable.CurrentTime, Is.LessThan(0));
+        }
+
         #endregion
 
         /// <summary>
@@ -309,11 +369,22 @@ namespace osu.Framework.Tests.Clocks
             Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, decoupleable.AllowableErrorMilliseconds, "Decoupled should match source time.");
         }
 
-        private class TestClockPositiveOnly : TestClock
+        private class TestDecoupleableClock : DecoupleableInterpolatingFramedClock
         {
+            public double? CustomAllowableErrorMilliseconds { get; set; }
+
+            public override double AllowableErrorMilliseconds => CustomAllowableErrorMilliseconds ?? base.AllowableErrorMilliseconds;
+        }
+
+        private class TestClockWithRange : TestClock
+        {
+            public double MinTime { get; set; } = 0;
+            public double MaxTime { get; set; } = double.PositiveInfinity;
+
             public override bool Seek(double position)
             {
-                if (position < 0) return false;
+                if (Math.Clamp(position, MinTime, MaxTime) != position)
+                    return false;
 
                 return base.Seek(position);
             }

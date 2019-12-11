@@ -25,6 +25,17 @@ namespace osu.Framework.IO.Stores
             prefix = Path.GetFileNameWithoutExtension(dllName);
         }
 
+        public DllResourceStore(AssemblyName name)
+            : this(Assembly.Load(name))
+        {
+        }
+
+        public DllResourceStore(Assembly assembly)
+        {
+            this.assembly = assembly;
+            prefix = assembly.GetName().Name;
+        }
+
         public byte[] Get(string name)
         {
             this.LogIfNonBackgroundThread(name);
