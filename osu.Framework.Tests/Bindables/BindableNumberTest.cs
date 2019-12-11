@@ -108,6 +108,7 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.That(bindable.Value, Is.EqualTo(3));
         }
+
         private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), Convert.ChangeType(0, type));
 
         private class BindableNumberWithDefaultMinValue : BindableInt
