@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct DepthWrappingVertex<TVertex> : IVertex, IEquatable<DepthWrappingVertex<TVertex>>
-        where TVertex : IVertex, IEquatable<TVertex>
+        where TVertex : struct, IVertex, IEquatable<TVertex>
     {
         public TVertex Vertex;
 
