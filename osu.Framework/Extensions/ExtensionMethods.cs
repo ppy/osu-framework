@@ -242,7 +242,7 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="path">The path string to standardise.</param>
         /// <returns>The standardised path string.</returns>
-        public static string PathStandardise(this string path)
+        public static string ToStandardisedPath(this string path)
             => path.Replace('\\', '/');
     }
 }
