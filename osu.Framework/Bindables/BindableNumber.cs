@@ -96,9 +96,25 @@ namespace osu.Framework.Bindables
                 if (maxValue.Equals(value))
                     return;
 
-                maxValue = value;
+                SetMaxValue(value, true, this);
+            }
+        }
 
-                TriggerMaxValueChange();
+        /// <summary>
+        /// Sets the maximum value. This method does no equality comparisons.
+        /// </summary>
+        /// <param name="maxValue">The new maximum value.</param>
+        /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
+        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
+        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
+        {
+            this.maxValue = maxValue;
+            TriggerMaxValueChange(source);
+
+            if (updateCurrentValue)
+            {
+                // Re-apply the current value to apply the new maximum value
+                Value = Value;
             }
         }
 
@@ -202,7 +218,7 @@ namespace osu.Framework.Bindables
 
             TriggerPrecisionChange(false);
             TriggerMinValueChange(false);
-            TriggerMaxValueChange(false);
+            TriggerMaxValueChange(this, false);
         }
 
         protected void TriggerPrecisionChange(bool propagateToBindings = true)
@@ -241,7 +257,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;
@@ -250,8 +266,10 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
+                    if (b == source) continue;
+
                     if (b is BindableNumber<T> bn)
-                        bn.MaxValue = maxValue;
+                        bn.SetMaxValue(maxValue, false, this);
                 }
             }
 
