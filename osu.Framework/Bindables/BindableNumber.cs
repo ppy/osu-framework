@@ -286,8 +286,8 @@ namespace osu.Framework.Bindables
             typeof(T) != typeof(float) &&
             typeof(T) != typeof(double); // Will be **constant** after JIT.
 
-        public void Set<U>(U val) where U : struct,
-            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+        public void Set<TNewValue>(TNewValue val) where TNewValue : struct,
+            IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
             Debug.Assert(isSupportedType());
 
@@ -315,8 +315,8 @@ namespace osu.Framework.Bindables
                 ((BindableNumber<double>)(object)this).Value = val.ToDouble(NumberFormatInfo.InvariantInfo);
         }
 
-        public void Add<U>(U val) where U : struct,
-            IFormattable, IConvertible, IComparable<U>, IEquatable<U>
+        public void Add<TNewValue>(TNewValue val) where TNewValue : struct,
+            IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
             Debug.Assert(isSupportedType());
 
