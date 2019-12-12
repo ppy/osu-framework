@@ -175,7 +175,7 @@ namespace osu.Framework.Extensions
         {
             if (!task.IsFaulted) return;
 
-            throw task.Exception ?? new Exception("Task failed.");
+            throw task.Exception ?? (Exception)new InvalidOperationException("Task failed.");
         }
 
         /// <summary>

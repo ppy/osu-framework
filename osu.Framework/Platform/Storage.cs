@@ -30,7 +30,7 @@ namespace osu.Framework.Platform
             BaseName = filenameStrip(baseName);
             BasePath = LocateBasePath();
             if (BasePath == null)
-                throw new NullReferenceException(nameof(BasePath));
+                throw new InvalidOperationException($"{nameof(BasePath)} not correctly initialized!");
         }
 
         /// <summary>

@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }

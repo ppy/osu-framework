@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
             if (localHttpBin)
             {

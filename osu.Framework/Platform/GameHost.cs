@@ -385,7 +385,7 @@ namespace osu.Framework.Platform
         /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
         public async Task<Image<Rgba32>> TakeScreenshotAsync()
         {
-            if (Window == null) throw new NullReferenceException(nameof(Window));
+            if (Window == null) throw new InvalidOperationException($"{nameof(Window)} has not been set!");
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
@@ -793,7 +793,7 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.InvariantCultureIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
