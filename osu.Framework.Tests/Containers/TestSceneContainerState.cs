@@ -182,6 +182,8 @@ namespace osu.Framework.Tests.Containers
             }
 
             Assert.That(disposed, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [Test]
