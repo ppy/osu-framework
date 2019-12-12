@@ -114,12 +114,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Creates a new bindable instance.
+        /// Creates a new bindable instance initialised with a default value.
         /// </summary>
-        /// <param name="value">The initial value.</param>
-        public Bindable(T value = default)
+        /// <param name="defaultValue">The initial and default value for this bindable.</param>
+        public Bindable(T defaultValue = default)
         {
-            this.value = value;
+            value = Default = defaultValue;
         }
 
         protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
