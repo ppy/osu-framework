@@ -38,7 +38,7 @@ namespace osu.Framework.Platform
             path = GetFullPath(path);
 
             if (File.Exists(path))
-                File.Delete(GetFullPath(path));
+                File.Delete(path);
         }
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
