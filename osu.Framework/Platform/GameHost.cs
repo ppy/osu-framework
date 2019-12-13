@@ -702,7 +702,6 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
-
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)
@@ -715,6 +714,9 @@ namespace osu.Framework.Platform
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
             {
+                if (Window == null)
+                    return;
+
                 float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
                 if (refreshRate <= 0)
