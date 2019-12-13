@@ -463,8 +463,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                if (Window != null)
-                    toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+                SetupToolkit();
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -582,6 +581,11 @@ namespace osu.Framework.Platform
         protected virtual void SetupForRun()
         {
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+        }
+
+        protected virtual void SetupToolkit()
+        {
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
         }
 
         private void resetInputHandlers()
