@@ -34,7 +34,7 @@ namespace osu.Framework.Bindables
             precision = DefaultPrecision;
 
             // Re-apply the current value to apply the default min/max/precision values
-            Value = Value;
+            SetValue(Value);
         }
 
         private T precision;
@@ -68,25 +68,27 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new precision
-                Value = Value;
+                SetValue(Value);
             }
         }
 
         public override T Value
         {
             get => base.Value;
-            set
-            {
-                if (Precision.CompareTo(DefaultPrecision) > 0)
-                {
-                    double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
-                    doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
+            set => SetValue(value);
+        }
 
-                    base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
-                }
-                else
-                    base.Value = clamp(value, MinValue, MaxValue);
+        internal void SetValue(T value)
+        {
+            if (Precision.CompareTo(DefaultPrecision) > 0)
+            {
+                double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
+                doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
+
+                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
             }
+            else
+                base.Value = clamp(value, MinValue, MaxValue);
         }
 
         private T minValue;
@@ -117,7 +119,7 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new minimum value
-                Value = Value;
+                SetValue(Value);
             }
         }
 
@@ -149,7 +151,7 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new maximum value
-                Value = Value;
+                SetValue(Value);
             }
         }
 
