@@ -463,7 +463,8 @@ namespace osu.Framework.Platform
 
             try
             {
-                toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+                if (Window != null)
+                    toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
