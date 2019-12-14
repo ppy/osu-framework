@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Video
         public IBindable<DecoderState> State => bindableState;
 
         private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+
         private volatile DecoderState volatileState;
 
         private DecoderState state
@@ -69,12 +70,14 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (bindableState.Value != value)
-                    scheduler?.AddOnce(() => bindableState.Value = value);
+                if (volatileState == value) return;
 
+                scheduler?.Add(() => bindableState.Value = value);
                 volatileState = value;
             }
         }
+
+        private void updateState() => bindableState.Value = volatileState;
 
         private readonly Scheduler scheduler;
 
