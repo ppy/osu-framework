@@ -39,6 +39,12 @@ namespace osu.Framework.Platform
             base.SetupForRun();
         }
 
+        protected override void SetupToolkit()
+        {
+            if (!UseSdl)
+                base.SetupToolkit();
+        }
+
         private void startIPC()
         {
             Debug.Assert(ipcProvider == null);
