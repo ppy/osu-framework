@@ -137,27 +137,6 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
-            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            logOverlayVisibility.BindValueChanged(visibility =>
-            {
-                if (visibility.NewValue)
-                {
-                    if (logOverlay == null)
-                    {
-                        LoadComponentAsync(logOverlay = new LogOverlay
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    logOverlay.Show();
-                }
-                else
-                {
-                    logOverlay?.Hide();
-                }
-            }, true);
-
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
@@ -183,6 +162,27 @@ namespace osu.Framework
 
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
+
+            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
+            logOverlayVisibility.BindValueChanged(visibility =>
+            {
+                if (visibility.NewValue)
+                {
+                    if (logOverlay == null)
+                    {
+                        LoadComponentAsync(logOverlay = new LogOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    logOverlay.Show();
+                }
+                else
+                {
+                    logOverlay?.Hide();
+                }
+            }, true);
         }
 
         /// <summary>

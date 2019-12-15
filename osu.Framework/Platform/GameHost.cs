@@ -394,7 +394,7 @@ namespace osu.Framework.Platform
         /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
         public async Task<Image<Rgba32>> TakeScreenshotAsync()
         {
-            if (Window == null) throw new NullReferenceException(nameof(Window));
+            if (Window == null) throw new InvalidOperationException($"{nameof(Window)} has not been set!");
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
@@ -474,8 +474,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                if ((this as DesktopGameHost)?.UseSdl != true)
-                    toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+                SetupToolkit();
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -604,6 +603,11 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
+        protected virtual void SetupToolkit()
+        {
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
+        }
+
         private void resetInputHandlers()
         {
             if (AvailableInputHandlers != null)
@@ -729,7 +733,6 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
-
             windowMode.BindValueChanged(mode =>
             {
                 if (Window == null)
@@ -742,6 +745,9 @@ namespace osu.Framework.Platform
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
             {
+                if (Window == null)
+                    return;
+
                 float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
                 if (refreshRate <= 0)
@@ -821,7 +827,7 @@ namespace osu.Framework.Platform
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
             threadLocale.BindValueChanged(locale =>
             {
-                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.InvariantCultureIgnoreCase)) ?? CultureInfo.InvariantCulture;
+                var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
 
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;

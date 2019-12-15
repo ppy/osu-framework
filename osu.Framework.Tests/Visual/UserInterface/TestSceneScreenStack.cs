@@ -220,6 +220,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             AddStep("push", () => stack.Push(screen1 = new TestScreen()));
+
+            AddUntilStep("wait for current", () => screen1.IsCurrentScreen());
             AddStep("exit screen1", () => screen1.Exit());
             AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
 

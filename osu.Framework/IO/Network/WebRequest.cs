@@ -120,21 +120,18 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
-        private static readonly Logger logger;
-
-        private static readonly HttpClient client;
-
-        static WebRequest()
+        private static readonly HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
         {
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-
+            DefaultRequestHeaders =
+            {
+                UserAgent = { ProductInfoHeaderValue.Parse("osu!") }
+            },
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan
+        };
 
-            logger = Logger.GetLogger(LoggingTarget.Network);
-        }
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
 
         public WebRequest(string url = null, params object[] args)
         {

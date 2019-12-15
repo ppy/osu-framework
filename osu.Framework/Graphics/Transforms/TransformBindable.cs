@@ -7,7 +7,7 @@ using osu.Framework.MathUtils;
 namespace osu.Framework.Graphics.Transforms
 {
     internal class TransformBindable<TValue, T> : Transform<TValue, T>
-        where T : ITransformable
+        where T : class, ITransformable
     {
         public override string TargetMember { get; }
 
