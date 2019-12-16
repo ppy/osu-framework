@@ -2,8 +2,7 @@
 
   <PropertyGroup Label="Project">
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <OutputType>WinExe</OutputType>
-    <Optimize>true</Optimize>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
