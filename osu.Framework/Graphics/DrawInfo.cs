@@ -70,6 +70,6 @@ namespace osu.Framework.Graphics
 
         public readonly bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
 
-        public override readonly string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
+        public override string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }
 }

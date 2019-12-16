@@ -30,24 +30,24 @@ namespace osu.Framework.Graphics.Colour
         /// <param name="second">Second factor.</param>
         /// <returns>Product of first and second.</returns>
         public static SRGBColour operator *(SRGBColour first, SRGBColour second) => new Color4(
-                first.Linear.R * second.Linear.R,
-                first.Linear.G * second.Linear.G,
-                first.Linear.B * second.Linear.B,
-                first.Linear.A * second.Linear.A);
+            first.Linear.R * second.Linear.R,
+            first.Linear.G * second.Linear.G,
+            first.Linear.B * second.Linear.B,
+            first.Linear.A * second.Linear.A);
 
         public static SRGBColour operator *(SRGBColour first, float second) => new Color4(
-                first.Linear.R * second,
-                first.Linear.G * second,
-                first.Linear.B * second,
-                first.Linear.A * second);
+            first.Linear.R * second,
+            first.Linear.G * second,
+            first.Linear.B * second,
+            first.Linear.A * second);
 
         public static SRGBColour operator /(SRGBColour first, float second) => first * (1 / second);
 
         public static SRGBColour operator +(SRGBColour first, SRGBColour second) => new Color4(
-                first.Linear.R + second.Linear.R,
-                first.Linear.G + second.Linear.G,
-                first.Linear.B + second.Linear.B,
-                first.Linear.A + second.Linear.A);
+            first.Linear.R + second.Linear.R,
+            first.Linear.G + second.Linear.G,
+            first.Linear.B + second.Linear.B,
+            first.Linear.A + second.Linear.A);
 
         public Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
         public static SRGBColour FromVector(Vector4 v) => new Color4(v.X, v.Y, v.Z, v.W);

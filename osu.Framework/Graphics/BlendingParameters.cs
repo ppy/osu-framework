@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
@@ -158,6 +159,7 @@ namespace osu.Framework.Graphics
 
         public override readonly bool Equals(object obj) => obj is BlendingParameters other && this == other;
 
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override readonly int GetHashCode() => HashCode.Combine(Source, Destination, SourceAlpha, DestinationAlpha, RGBEquation, AlphaEquation);
 
         public readonly bool IsDisabled =>
