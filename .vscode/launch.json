@@ -56,6 +56,8 @@
             "program": "dotnet",
             "args": [
                 "${workspaceRoot}/osu.Framework.Benchmarks/bin/Release/netcoreapp3.0/osu.Framework.Benchmarks.dll",
+                "--filter",
+                "*",
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Release)",
