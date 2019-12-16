@@ -4,14 +4,18 @@
 using osuTK;
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Triangle : IConvexPolygon, IEquatable<Triangle>
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct Triangle : IConvexPolygon, IEquatable<Triangle>
     {
-        public Vector2 P0;
-        public Vector2 P1;
-        public Vector2 P2;
+        // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
+        // See: IPolygon.GetVertices()
+        public readonly Vector2 P0;
+        public readonly Vector2 P1;
+        public readonly Vector2 P2;
 
         public Triangle(Vector2 p0, Vector2 p1, Vector2 p2)
         {
@@ -20,12 +24,11 @@ namespace osu.Framework.Graphics.Primitives
             P2 = p2;
         }
 
-        public readonly ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public readonly unsafe ReadOnlySpan<Vector2> GetVertices()
-            => new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref Unsafe.AsRef(in this)), 3);
+        public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in P0), 3);
 
-        public readonly bool Equals(Triangle other) =>
+        public bool Equals(Triangle other) =>
             P0 == other.P0 &&
             P1 == other.P1 &&
             P2 == other.P2;
@@ -35,7 +38,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="pos">The point to check.</param>
         /// <returns>Outcome of the check.</returns>
-        public readonly bool Contains(Vector2 pos)
+        public bool Contains(Vector2 pos)
         {
             // This code parametrizes pos as a linear combination of 2 edges s*(p1-p0) + t*(p2->p0).
             // pos is contained if s>0, t>0, s+t<1
@@ -54,7 +57,7 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
-        public readonly RectangleF AABBFloat
+        public RectangleF AABBFloat
         {
             get
             {
@@ -67,6 +70,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public readonly float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
     }
 }

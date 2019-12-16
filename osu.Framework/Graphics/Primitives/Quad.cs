@@ -10,14 +10,14 @@ using osu.Framework.MathUtils;
 namespace osu.Framework.Graphics.Primitives
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Quad : IConvexPolygon, IEquatable<Quad>
+    public readonly struct Quad : IConvexPolygon, IEquatable<Quad>
     {
         // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
         // See: IPolygon.GetVertices()
-        public Vector2 TopLeft;
-        public Vector2 BottomLeft;
-        public Vector2 BottomRight;
-        public Vector2 TopRight;
+        public readonly Vector2 TopLeft;
+        public readonly Vector2 BottomLeft;
+        public readonly Vector2 BottomRight;
+        public readonly Vector2 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2Extensions.Transform(r.BottomLeft, m),
                 Vector2Extensions.Transform(r.BottomRight, m));
 
-        public readonly Matrix2 BasisTransform
+        public Matrix2 BasisTransform
         {
             get
             {
@@ -71,13 +71,13 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public readonly Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
-        public readonly Vector2 Size => new Vector2(Width, Height);
+        public Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
+        public Vector2 Size => new Vector2(Width, Height);
 
-        public readonly float Width => Vector2Extensions.Distance(TopLeft, TopRight);
-        public readonly float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
+        public float Width => Vector2Extensions.Distance(TopLeft, TopRight);
+        public float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
 
-        public readonly RectangleI AABB
+        public RectangleI AABB
         {
             get
             {
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public readonly RectangleF AABBFloat
+        public RectangleF AABBFloat
         {
             get
             {
@@ -103,12 +103,11 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public readonly ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
+        public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public readonly unsafe ReadOnlySpan<Vector2> GetVertices()
-            => new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref Unsafe.AsRef(in this)), 4);
+        public readonly unsafe ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
 
-        public readonly bool Contains(Vector2 pos) =>
+        public bool Contains(Vector2 pos) =>
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
             new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
@@ -118,15 +117,15 @@ namespace osu.Framework.Graphics.Primitives
         /// <remarks>
         /// If the quad is self-intersecting the area is interpreted as the sum of all positive and negative areas and not the "visible area" enclosed by the <see cref="Quad"/>.
         /// </remarks>
-        public readonly float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
 
-        public readonly bool Equals(Quad other) =>
+        public bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&
             TopRight == other.TopRight &&
             BottomLeft == other.BottomLeft &&
             BottomRight == other.BottomRight;
 
-        public readonly bool AlmostEquals(Quad other) =>
+        public bool AlmostEquals(Quad other) =>
             Precision.AlmostEquals(TopLeft.X, other.TopLeft.X) &&
             Precision.AlmostEquals(TopLeft.Y, other.TopLeft.Y) &&
             Precision.AlmostEquals(TopRight.X, other.TopRight.X) &&
@@ -136,6 +135,6 @@ namespace osu.Framework.Graphics.Primitives
             Precision.AlmostEquals(BottomRight.X, other.BottomRight.X) &&
             Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
 
-        public override readonly string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
+        public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
     }
 }
