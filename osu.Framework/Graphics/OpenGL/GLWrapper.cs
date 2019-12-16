@@ -30,7 +30,9 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
 
-        public static MaskingInfo CurrentMaskingInfo { get; private set; }
+        public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
+        private static MaskingInfo currentMaskingInfo;
+
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static RectangleI Scissor { get; private set; }
@@ -606,13 +608,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
         /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
-        public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        public static void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             masking_stack.Push(maskingInfo);
-            if (CurrentMaskingInfo.Equals(maskingInfo))
+            if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, true, overwritePreviousScissor);
         }
 
@@ -626,10 +628,10 @@ namespace osu.Framework.Graphics.OpenGL
             masking_stack.Pop();
             MaskingInfo maskingInfo = masking_stack.Peek();
 
-            if (CurrentMaskingInfo.Equals(maskingInfo))
+            if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, false, true);
         }
 
@@ -851,18 +853,26 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Hollow;
         public float HollowCornerRadius;
 
-        public readonly bool Equals(MaskingInfo other) =>
-            ScreenSpaceAABB == other.ScreenSpaceAABB &&
-            MaskingRect == other.MaskingRect &&
-            ToMaskingSpace == other.ToMaskingSpace &&
-            CornerRadius == other.CornerRadius &&
-            CornerExponent == other.CornerExponent &&
-            BorderThickness == other.BorderThickness &&
-            BorderColour.Equals(other.BorderColour) &&
-            BlendRange == other.BlendRange &&
-            AlphaExponent == other.AlphaExponent &&
-            EdgeOffset == other.EdgeOffset &&
-            Hollow == other.Hollow &&
-            HollowCornerRadius == other.HollowCornerRadius;
+        public readonly bool Equals(MaskingInfo other) => this == other;
+
+        public static bool operator ==(in MaskingInfo left, in MaskingInfo right) =>
+            left.ScreenSpaceAABB == right.ScreenSpaceAABB &&
+            left.MaskingRect == right.MaskingRect &&
+            left.ToMaskingSpace == right.ToMaskingSpace &&
+            left.CornerRadius == right.CornerRadius &&
+            left.CornerExponent == right.CornerExponent &&
+            left.BorderThickness == right.BorderThickness &&
+            left.BorderColour.Equals(right.BorderColour) &&
+            left.BlendRange == right.BlendRange &&
+            left.AlphaExponent == right.AlphaExponent &&
+            left.EdgeOffset == right.EdgeOffset &&
+            left.Hollow == right.Hollow &&
+            left.HollowCornerRadius == right.HollowCornerRadius;
+
+        public static bool operator !=(in MaskingInfo left, in MaskingInfo right) => !(left == right);
+
+        public override readonly bool Equals(object obj) => obj is MaskingInfo other && this == other;
+
+        public override readonly int GetHashCode() => 0; // Shouldn't be used; simplifying implementation here.
     }
 }
