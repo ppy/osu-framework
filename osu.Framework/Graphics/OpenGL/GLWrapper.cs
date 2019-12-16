@@ -327,7 +327,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="blendingParameters">The info we should use to update the active state.</param>
         public static void SetBlend(BlendingParameters blendingParameters)
         {
-            if (lastBlendingParameters.Equals(blendingParameters))
+            if (lastBlendingParameters == blendingParameters)
                 return;
 
             FlushCurrentBatch();

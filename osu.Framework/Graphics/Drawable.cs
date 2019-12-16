@@ -1302,7 +1302,7 @@ namespace osu.Framework.Graphics
             get => blending;
             set
             {
-                if (blending.Equals(value))
+                if (blending == value)
                     return;
 
                 blending = value;

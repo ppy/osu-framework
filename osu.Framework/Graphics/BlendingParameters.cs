@@ -146,6 +146,20 @@ namespace osu.Framework.Graphics
             && other.RGBEquation == RGBEquation
             && other.AlphaEquation == AlphaEquation;
 
+        public static bool operator ==(in BlendingParameters left, in BlendingParameters right) =>
+            left.Source == right.Source &&
+            left.Destination == right.Destination &&
+            left.SourceAlpha == right.SourceAlpha &&
+            left.DestinationAlpha == right.DestinationAlpha &&
+            left.RGBEquation == right.RGBEquation &&
+            left.AlphaEquation == right.AlphaEquation;
+
+        public static bool operator !=(in BlendingParameters left, in BlendingParameters right) => !(left == right);
+
+        public override readonly bool Equals(object obj) => obj is BlendingParameters other && this == other;
+
+        public override readonly int GetHashCode() => HashCode.Combine(Source, Destination, SourceAlpha, DestinationAlpha, RGBEquation, AlphaEquation);
+
         public readonly bool IsDisabled =>
             Source == BlendingType.One
             && Destination == BlendingType.Zero
