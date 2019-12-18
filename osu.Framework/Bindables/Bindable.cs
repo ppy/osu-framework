@@ -29,12 +29,14 @@ namespace osu.Framework.Bindables
         /// </summary>
         public event Action<bool> DisabledChanged;
 
+        /// <summary>
+        /// An event which is raised when <see cref="Default"/>'s has changed (or manually via <see cref="TriggerDefaultChange"/>).
+        /// </summary>
+        public event Action<DefaultChangedEvent<T>> DefaultChanged;
+
         private T value;
 
-        /// <summary>
-        /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
-        /// </summary>
-        public T Default { get; set; }
+        private T defaultValue;
 
         private bool disabled;
 
@@ -98,6 +100,32 @@ namespace osu.Framework.Bindables
         {
             this.value = value;
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
+        }
+
+        /// <summary>
+        /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
+        /// </summary>
+        public virtual T Default
+        {
+            get => defaultValue;
+            set
+            {
+                // intentionally don't have throwIfLeased() here.
+                // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
+
+                if (Disabled)
+                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
+
+                if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
+
+                SetDefault(defaultValue, value);
+            }
+        }
+
+        internal void SetDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        {
+            defaultValue = value;
+            TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
         private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
@@ -252,6 +280,25 @@ namespace osu.Framework.Bindables
 
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
+        }
+
+        protected void TriggerDefaultChange(T previousValue, Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
+        {
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = defaultValue;
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
+                {
+                    if (b == source) continue;
+
+                    b.SetDefault(previousValue, defaultValue, bypassChecks, this);
+                }
+            }
+
+            if (EqualityComparer<T>.Default.Equals(beforePropagation, defaultValue))
+                DefaultChanged?.Invoke(new DefaultChangedEvent<T>(previousValue, defaultValue));
         }
 
         protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
