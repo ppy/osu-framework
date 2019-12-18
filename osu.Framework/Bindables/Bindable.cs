@@ -185,8 +185,8 @@ namespace osu.Framework.Bindables
         public virtual void BindTo(Bindable<T> them)
         {
             Value = them.Value;
-            Disabled = them.Disabled;
             Default = them.Default;
+            Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
