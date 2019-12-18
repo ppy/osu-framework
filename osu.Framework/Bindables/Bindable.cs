@@ -118,11 +118,11 @@ namespace osu.Framework.Bindables
 
                 if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
 
-                SetDefault(defaultValue, value);
+                setDefault(defaultValue, value);
             }
         }
 
-        internal void SetDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        private void setDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
@@ -293,7 +293,7 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    b.SetDefault(previousValue, defaultValue, bypassChecks, this);
+                    b.setDefault(previousValue, defaultValue, bypassChecks, this);
                 }
             }
 
