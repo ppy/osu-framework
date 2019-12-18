@@ -32,7 +32,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when <see cref="Default"/>'s has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
-        public event Action<DefaultChangedEvent<T>> DefaultChanged;
+        public event Action<ValueChangedEvent<T>> DefaultChanged;
 
         private T value;
 
@@ -298,7 +298,7 @@ namespace osu.Framework.Bindables
             }
 
             if (EqualityComparer<T>.Default.Equals(beforePropagation, defaultValue))
-                DefaultChanged?.Invoke(new DefaultChangedEvent<T>(previousValue, defaultValue));
+                DefaultChanged?.Invoke(new ValueChangedEvent<T>(previousValue, defaultValue));
         }
 
         protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
