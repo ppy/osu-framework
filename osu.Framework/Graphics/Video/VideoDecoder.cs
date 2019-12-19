@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream.CanSeek;
+        public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -536,9 +536,6 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            videoStream.Dispose();
-            videoStream = null;
-
             while (decoderCommands.TryDequeue(out var _))
             {
             }
@@ -554,6 +551,9 @@ namespace osu.Framework.Graphics.Video
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
+
+            videoStream.Dispose();
+            videoStream = null;
 
             // gets freed by libavformat when closing the input
             contextBuffer = null;
