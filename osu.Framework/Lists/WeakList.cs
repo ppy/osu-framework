@@ -104,9 +104,9 @@ namespace osu.Framework.Lists
                 currentObject = null;
             }
 
-            public T Current => currentObject;
+            public readonly T Current => currentObject;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

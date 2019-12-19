@@ -15,7 +15,7 @@ namespace osu.Framework.Allocation
     ///
     /// This is a struct version of <see cref="InvokeOnDisposal"/> to be used when allocations are to be minimised.
     /// </summary>
-    public struct ValueInvokeOnDisposal : IDisposable
+    public readonly struct ValueInvokeOnDisposal : IDisposable
     {
         private readonly Action action;
 
