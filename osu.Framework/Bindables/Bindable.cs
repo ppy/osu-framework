@@ -25,12 +25,12 @@ namespace osu.Framework.Bindables
         public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
+        /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
         public event Action<bool> DisabledChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Default"/>'s has changed (or manually via <see cref="TriggerDefaultChange"/>).
+        /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
         /// </summary>
         public event Action<ValueChangedEvent<T>> DefaultChanged;
 
