@@ -28,14 +28,14 @@
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.4.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.57604" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.61810" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.130" />
-    <PackageReference Include="StbiSharp" Version="1.0.10" />
+    <PackageReference Include="StbiSharp" Version="1.0.11" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
