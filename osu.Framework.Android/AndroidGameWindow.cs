@@ -53,7 +53,7 @@ namespace osu.Framework.Android
 
         public override DisplayDevice CurrentDisplay
         {
-            get => null;
+            get => DisplayDevice.Default;
             set { }
         }
     }

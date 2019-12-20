@@ -39,7 +39,7 @@ namespace osu.Framework.iOS
 
         public override DisplayDevice CurrentDisplay
         {
-            get => null;
+            get => DisplayDevice.Default;
             set { }
         }
 
