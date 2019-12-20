@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osuTK;
@@ -98,9 +99,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = textBoxes
                 });
 
-                textBoxes.Add(new CaretTextBox
+                textBoxes.Add(new CustomTextBox
                 {
-                    Text = @"Custom carets",
+                    Text = @"Custom textbox",
                     Size = new Vector2(500, 30),
                     TabbableContentContainer = textBoxes
                 });
@@ -270,8 +271,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override bool CanAddCharacter(char character) => char.IsNumber(character);
         }
 
-        private class CaretTextBox : BasicTextBox
+        private class CustomTextBox : BasicTextBox
         {
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+
+            private class ScalingText : CompositeDrawable
+            {
+                private readonly SpriteText text;
+
+                public ScalingText(char c, float textSize)
+                {
+                    AddInternal(text = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = c.ToString(),
+                        Font = FrameworkFont.Condensed.With(size: textSize),
+                    });
+                }
+
+                protected override void LoadComplete()
+                {
+                    base.LoadComplete();
+
+                    Size = text.DrawSize;
+                }
+
+                public override void Show()
+                {
+                    text.Scale = Vector2.Zero;
+                    text.FadeIn(200).ScaleTo(1, 200);
+                }
+
+                public override void Hide()
+                {
+                    text.Scale = Vector2.One;
+                    text.ScaleTo(0, 200).FadeOut(200);
+                }
+            }
+
             protected override DrawableCaret CreateCaret() => new BorderCaret();
 
             private class BorderCaret : DrawableCaret

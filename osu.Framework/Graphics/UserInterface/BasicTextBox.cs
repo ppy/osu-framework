@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -12,6 +14,8 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicTextBox : TextBox
     {
         protected virtual float CaretWidth => 2;
+
+        private const float caret_move_time = 60;
 
         protected virtual Color4 SelectionColour => FrameworkColour.YellowGreen;
 
@@ -53,7 +57,11 @@ namespace osu.Framework.Graphics.UserInterface
             Background.FadeColour(BackgroundFocused, 200, Easing.Out);
         }
 
-        protected override Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: CalculatedTextSize) };
+        protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
+        {
+            AutoSizeAxes = Axes.Both,
+            Child = new SpriteText { Text = c.ToString(), Font = FrameworkFont.Condensed.With(size: CalculatedTextSize) }
+        };
 
         protected override SpriteText CreatePlaceholder() => new FadingPlaceholderText
         {
@@ -63,6 +71,21 @@ namespace osu.Framework.Graphics.UserInterface
             Origin = Anchor.CentreLeft,
             X = CaretWidth,
         };
+
+        public class FallingDownContainer : Container
+        {
+            public override void Show()
+            {
+                var col = (Color4)Colour;
+                this.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
+            }
+
+            public override void Hide()
+            {
+                this.FadeOut(200);
+                this.MoveToY(DrawSize.Y, 200, Easing.InExpo);
+            }
+        }
 
         public class FadingPlaceholderText : SpriteText
         {
@@ -79,8 +102,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class BasicDrawableCaret : DrawableCaret
         {
-            private const float caret_move_time = 60;
-
             public BasicDrawableCaret()
             {
                 RelativeSizeAxes = Axes.Y;

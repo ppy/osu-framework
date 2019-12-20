@@ -479,8 +479,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // account for potentially altered height of textbox
                 d.Y = TextFlow.BoundingBox.Y;
 
-                d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
+                d.Hide();
                 d.Expire();
             }
 
@@ -495,6 +494,11 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        /// <summary>
+        /// Creates a single character. Override <see cref="Drawable.Show"/> and <see cref="Drawable.Hide"/> for custom behavior.
+        /// </summary>
+        /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
+        /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
         protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
@@ -543,9 +547,7 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
-                const float fade_time = 120;
-                var col = (Color4)ch.Colour;
-                ch.FadeColour(col.Opacity(0)).FadeColour(col, fade_time, Easing.Out);
+                ch.Show();
             }
         }
 
@@ -579,7 +581,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract void NotifyInputError();
 
         /// <summary>
-        /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior
+        /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
         /// </summary>
         /// <returns>The placeholder</returns>
         protected abstract SpriteText CreatePlaceholder();
