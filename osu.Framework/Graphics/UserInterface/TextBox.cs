@@ -64,15 +64,14 @@ namespace osu.Framework.Graphics.UserInterface
         private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
         private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
 
-        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
-
         protected Color4 BackgroundFocused
         {
             get => backgroundFocused;
             set
             {
                 backgroundFocused = value;
-                updateFocus();
+                if (HasFocus)
+                    Background.Colour = value;
             }
         }
 
@@ -82,7 +81,8 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundUnfocused = value;
-                updateFocus();
+                if (!HasFocus)
+                    Background.Colour = value;
             }
         }
 
@@ -309,8 +309,6 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
-
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -361,8 +359,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textAtLastLayout != text)
                 Current.Value = text;
+
             if (textAtLastLayout.Length == 0 || text.Length == 0)
-                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
+            {
+                if (text.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
+            }
 
             textAtLastLayout = text;
         }
@@ -535,7 +539,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (ch == null)
                 {
-                    notifyInputError();
+                    NotifyInputError();
                     continue;
                 }
 
@@ -555,7 +559,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length + 1 > LengthLimit)
             {
-                notifyInputError();
+                NotifyInputError();
                 return null;
             }
 
@@ -569,14 +573,15 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        private void notifyInputError()
-        {
-            if (Background.Alpha > 0)
-                Background.FlashColour(InputErrorColour, 200);
-            else
-                TextFlow.FlashColour(InputErrorColour, 200);
-        }
+        /// <summary>
+        /// Called whenever an invalid character has been entered
+        /// </summary>
+        protected abstract void NotifyInputError();
 
+        /// <summary>
+        /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior
+        /// </summary>
+        /// <returns>The placeholder</returns>
         protected abstract SpriteText CreatePlaceholder();
 
         protected SpriteText Placeholder;
@@ -614,7 +619,10 @@ namespace osu.Framework.Graphics.UserInterface
 
                 lastCommitText = value ??= string.Empty;
 
-                Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
+                if (value.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
 
                 if (!IsLoaded)
                     Current.Value = text = value;
@@ -724,7 +732,7 @@ namespace osu.Framework.Graphics.UserInterface
                 manager.ChangeFocus(null);
         }
 
-        protected void Commit()
+        protected virtual void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
@@ -733,10 +741,6 @@ namespace osu.Framework.Graphics.UserInterface
                     // the commit will happen as a result of the focus loss.
                     return;
             }
-
-            Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-            Background.ClearTransforms();
-            Background.FlashColour(BackgroundCommit, 400);
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
 
@@ -870,7 +874,7 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.Hide();
 
             Background.ClearTransforms();
-            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
+            Background.Colour = BackgroundUnfocused;
 
             cursorAndLayout.Invalidate();
 
@@ -887,7 +891,7 @@ namespace osu.Framework.Graphics.UserInterface
             bindInput();
 
             Background.ClearTransforms();
-            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
+            Background.Colour = BackgroundFocused;
 
             Caret.Show();
 
