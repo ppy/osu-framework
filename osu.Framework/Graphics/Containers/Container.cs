@@ -449,9 +449,9 @@ namespace osu.Framework.Graphics.Containers
 
             public void Reset() => currentIndex = -1;
 
-            public T Current => container[currentIndex];
+            public readonly T Current => container[currentIndex];
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

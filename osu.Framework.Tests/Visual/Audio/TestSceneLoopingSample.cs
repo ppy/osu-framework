@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual.Audio
             this.samples = samples;
         }
 
-        [Test, Ignore("Needs no audio device support")]
+        [Test]
         public void TestLoopingToggle()
         {
             AddStep("create sample", createSample);
@@ -27,16 +27,16 @@ namespace osu.Framework.Tests.Visual.Audio
 
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
-            AddAssert("is playing", () => sampleChannel.Playing);
+            AddUntilStep("is playing", () => sampleChannel.Playing);
 
-            AddWaitStep("wait", 1);
+            AddWaitStep("wait", 10);
             AddAssert("is still playing", () => sampleChannel.Playing);
 
             AddStep("disable looping", () => sampleChannel.Looping = false);
             AddUntilStep("ensure stops", () => !sampleChannel.Playing);
         }
 
-        [Test, Ignore("Needs no audio device support")]
+        [Test]
         public void TestStopWhileLooping()
         {
             AddStep("create sample", createSample);
@@ -44,11 +44,11 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
 
-            AddWaitStep("wait", 1);
+            AddWaitStep("wait", 10);
             AddAssert("is playing", () => sampleChannel.Playing);
 
             AddStep("stop playing", () => sampleChannel.Stop());
-            AddAssert("not playing", () => !sampleChannel.Playing);
+            AddUntilStep("not playing", () => !sampleChannel.Playing);
         }
 
         private void createSample()

@@ -4,11 +4,11 @@
 using System;
 using System.Linq;
 using osu.Framework.Graphics;
-using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.MathUtils
 {
@@ -27,9 +27,9 @@ namespace osu.Framework.MathUtils
         public static double Damp(double start, double final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)
-                throw new ArgumentOutOfRangeException($"{nameof(@base)} has to lie in [0,1], but is {@base}.", nameof(@base));
+                throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
             if (exponent < 0)
-                throw new ArgumentOutOfRangeException($"{nameof(exponent)} has to be bigger than 0, but is {exponent}.", nameof(exponent));
+                throw new ArgumentOutOfRangeException(nameof(exponent), $"{nameof(exponent)} has to be bigger than 0, but is {exponent}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
@@ -428,14 +428,11 @@ namespace osu.Framework.MathUtils
                              .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                              ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
-            FUNCTION =
-                (InterpolationFunc<TValue>)(
-                    typeof(Interpolation).GetMethod(interpolation_method, parameters)
-                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
+            var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
+                                ?? typeof(TValue).GetMethod(interpolation_method, parameters)
+                                ?? throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
 
-            if (FUNCTION == null)
-                throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
+            FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
 
         public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)

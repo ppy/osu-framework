@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Primitives
     /// A structure that tells how "far" along an axis
     /// the projection of vertices onto the axis would be.
     /// </summary>
-    internal struct ProjectionRange
+    internal readonly struct ProjectionRange
     {
         /// <summary>
         /// The minimum projected value.

@@ -5,7 +5,7 @@ using BenchmarkDotNet.Running;
 
 namespace osu.Framework.Benchmarks
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {

@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics
         /// the absolute size of the space left empty from the right and left of the container if used as padding.
         /// Effectively <see cref="Right"/> + <see cref="Left"/>.
         /// </summary>
-        public float TotalHorizontal => Left + Right;
+        public readonly float TotalHorizontal => Left + Right;
 
         /// <summary>
         /// Sets the values of both <see cref="Left"/> and <see cref="Right"/> to the assigned value.
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics
         /// the absolute size of the space left empty from the top and bottom of the container if used as padding.
         /// Effectively <see cref="Top"/> + <see cref="Bottom"/>.
         /// </summary>
-        public float TotalVertical => Top + Bottom;
+        public readonly float TotalVertical => Top + Bottom;
 
         /// <summary>
         /// Sets the values of both <see cref="Top"/> and <see cref="Bottom"/> to the assigned value.
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Gets the total absolute size of the empty space horizontally (x coordinate) and vertically (y coordinate) around the <see cref="Drawable"/> or inside the container if used as padding.
         /// </summary>
-        public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
+        public readonly Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
 
         /// <summary>
         /// Initializes all four sides (<see cref="Left"/>, <see cref="Right"/>, <see cref="Top"/> and <see cref="Bottom"/>) to the given value.
@@ -82,9 +82,9 @@ namespace osu.Framework.Graphics
             Top = Left = Bottom = Right = allSides;
         }
 
-        public bool Equals(MarginPadding other) => Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
+        public readonly bool Equals(MarginPadding other) => Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
 
-        public override string ToString() => $@"({Top}, {Left}, {Bottom}, {Right})";
+        public override readonly string ToString() => $@"({Top}, {Left}, {Bottom}, {Right})";
 
         public static MarginPadding operator -(MarginPadding mp) =>
             new MarginPadding

@@ -1302,7 +1302,7 @@ namespace osu.Framework.Graphics
             get => blending;
             set
             {
-                if (blending.Equals(value))
+                if (blending == value)
                     return;
 
                 blending = value;
@@ -1474,7 +1474,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <typeparam name="T">The type to match.</typeparam>
         /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : IDrawable
+        internal T FindClosestParent<T>() where T : class, IDrawable
         {
             Drawable cursor = this;
 
@@ -1603,12 +1603,12 @@ namespace osu.Framework.Graphics
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
-                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                ci.Colour.ApplyChild(ourColour, interp);
+                ci.Colour.ApplyChild(ourColour,
+                    new Quad(
+                        Vector2.Divide(interp.TopLeft, parentSize),
+                        Vector2.Divide(interp.TopRight, parentSize),
+                        Vector2.Divide(interp.BottomLeft, parentSize),
+                        Vector2.Divide(interp.BottomRight, parentSize)));
             }
 
             return ci;
