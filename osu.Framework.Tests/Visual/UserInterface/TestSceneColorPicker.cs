@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
 
@@ -135,6 +136,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Size = new Vector2(10),
                         Colour = Color4.Red,
+                        Origin = Anchor.Centre
                     }
                 };
 
@@ -143,6 +145,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     background.Colour = ColourInfo.GradientHorizontal(Color4.White, value.NewValue);
                     background2.Colour = ColourInfo.GradientVertical(Color4.White, Color4.Black);
                 });
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
+            protected override bool OnDrag(DragEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
+            private void handleMouseInput(UIEvent e)
+            {
+                var position = ToLocalSpace(e.ScreenSpaceMousePosition);
+                pickerStylus.Position = position;
             }
         }
 
@@ -161,6 +181,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public ColorScroller()
             {
+                Padding = new MarginPadding { Bottom = 20 };
                 Children = new Drawable[]
                 {
                     background = new Box
@@ -169,10 +190,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     },
                     picker = new Triangle
                     {
-                        Size = new Vector2(10),
+                        Size = new Vector2(15),
                         Colour = Color4.Red,
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.TopCentre
                     }
                 };
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
+            protected override bool OnDrag(DragEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
+            private void handleMouseInput(UIEvent e)
+            {
+                var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
+                picker.X = xPosition;
             }
         }
     }
