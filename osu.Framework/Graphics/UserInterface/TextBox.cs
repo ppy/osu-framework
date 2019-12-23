@@ -109,7 +109,10 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool CanBeTabbedTo => !ReadOnly;
 
         private ITextInputSource textInput;
+
         private Clipboard clipboard;
+
+        private readonly Caret caret;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
@@ -138,7 +141,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Children = new Drawable[]
                     {
                         Placeholder = CreatePlaceholder(),
-                        Caret = CreateCaret(),
+                        caret = CreateCaret(),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
@@ -152,7 +155,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Current.ValueChanged += e => { Text = e.NewValue; };
-            Caret.Hide();
+            caret.Hide();
         }
 
         [BackgroundDependencyLoader]
@@ -351,7 +354,7 @@ namespace osu.Framework.Graphics.UserInterface
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
             if (HasFocus)
-                Caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
+                caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
 
             if (textAtLastLayout != text)
                 Current.Value = text;
@@ -591,8 +594,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected abstract Caret CreateCaret();
-
-        protected Caret Caret;
 
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
@@ -868,7 +869,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.Hide();
+            caret.Hide();
 
             Background.ClearTransforms();
             Background.Colour = BackgroundUnfocused;
@@ -890,7 +891,7 @@ namespace osu.Framework.Graphics.UserInterface
             Background.ClearTransforms();
             Background.Colour = BackgroundFocused;
 
-            Caret.Show();
+            caret.Show();
 
             cursorAndLayout.Invalidate();
         }
