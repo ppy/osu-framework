@@ -237,12 +237,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             colorParts = new GradientPart[]
                             {
-                                new GradientPart(Color4.Red ,Color4.Yellow),
-                                new GradientPart(Color4.Yellow ,Color4.Lime),
-                                new GradientPart(Color4.Lime ,Color4.Aqua),
-                                new GradientPart(Color4.Aqua ,Color4.Blue),
-                                new GradientPart(Color4.Blue ,Color4.Magenta),
-                                new GradientPart(Color4.Magenta ,Color4.Red),
+                                new GradientPart(Color4.Red, Color4.Magenta),
+                                new GradientPart(Color4.Magenta, Color4.Blue),
+                                new GradientPart(Color4.Blue, Color4.Aqua),
+                                new GradientPart(Color4.Aqua, Color4.Lime),
+                                new GradientPart(Color4.Lime, Color4.Yellow),
+                                new GradientPart(Color4.Yellow, Color4.Red),
                             }
                         }
                     },
