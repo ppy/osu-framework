@@ -68,21 +68,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
                         },
-                        new GridContainer
+                        new Container
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
-                            Content = new Drawable[][]
+                            Padding = new MarginPadding(10),
+                            Child = new GridContainer
                             {
-                                new Drawable[]
+                                RelativeSizeAxes = Axes.Both,
+                                Content = new Drawable[][]
                                 {
-                                    colorCodeTextBox = new TextBox
+                                    new Drawable[]
                                     {
-                                        RelativeSizeAxes = Axes.Both
-                                    },
-                                    previewColorBox = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both
+                                        colorCodeTextBox = new TextBox
+                                        {
+                                            RelativeSizeAxes = Axes.Both
+                                        },
+                                        previewColorBox = new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both
+                                        }
                                     }
                                 }
                             }
@@ -94,8 +99,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             colorScroller.Current.BindTo(colorCanvas.Source);
             colorCanvas.Current.BindTo(current);
 
+            current.BindValueChanged(value =>
+            {
+                // TODO : update text hex code
+                previewColorBox.Colour = value.NewValue;
+            });
+
             //Testing bindable
-            colorScroller.Current.Value = Color4.Blue;
+            colorScroller.Current.Value = Color4.Red;
         }
 
         public class ColorCanvas : Container, IHasCurrentValue<Color4>
@@ -116,6 +127,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 set => current.Current = value;
             }
 
+            private readonly Box whiteBackground;
             private readonly Box background;
             private readonly Box background2;
             private readonly Circle pickerStylus;
@@ -124,6 +136,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 Children = new Drawable[]
                 {
+                    whiteBackground = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
                     background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
@@ -142,8 +158,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 source.BindValueChanged(value =>
                 {
-                    background.Colour = ColourInfo.GradientHorizontal(Color4.White, value.NewValue);
-                    background2.Colour = ColourInfo.GradientVertical(Color4.White, Color4.Black);
+                    background.Colour = ColourInfo.GradientHorizontal(new Color4(0, 0, 0, 0), value.NewValue);
+                    background2.Colour = ColourInfo.GradientVertical(new Color4(0, 0, 0, 0), Color4.Black);
+
+                    updateToCurrent(pickerStylus.Position);
                 });
             }
 
@@ -163,6 +181,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
                 pickerStylus.Position = position;
+
+                //Update value
+                updateToCurrent(position);
+            }
+
+            private void updateToCurrent(Vector2 position)
+            {
+                var percentage = new Vector2(position.X / Width, position.Y / Height);
+                var targetColor = whiteBackground.Colour.Interpolate(percentage) +
+                    background.Colour.Interpolate(percentage) + background2.Colour.Interpolate(percentage);
+
+                Current.Value = targetColor;
             }
         }
 
