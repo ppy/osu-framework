@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -18,7 +19,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public TestSceneColorPicker()
         {
             var colorPicker = new ColorPicker();
-
             Add(colorPicker);
         }
     }
@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Container
                         {
                             RelativeSizeAxes = Axes.X,
-                            Height = 50,
+                            Height = 40,
                             Padding = new MarginPadding(10),
                             Child = new GridContainer
                             {
@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                     {
                                         colorCodeTextBox = new TextBox
                                         {
-                                            RelativeSizeAxes = Axes.Both
+                                            RelativeSizeAxes = Axes.Both,
                                         },
                                         previewColorBox = new Box
                                         {
@@ -99,9 +99,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             colorScroller.Current.BindTo(colorCanvas.Source);
             colorCanvas.Current.BindTo(current);
 
-            current.BindValueChanged(value =>
+            colorCanvas.Current.BindValueChanged(value =>
             {
                 // TODO : update text hex code
+                colorCodeTextBox.Text = value.NewValue.ToHex();
                 previewColorBox.Colour = value.NewValue;
             });
 
@@ -128,8 +129,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             private readonly Box whiteBackground;
-            private readonly Box background;
-            private readonly Box background2;
+            private readonly Box horizontalBackground;
+            private readonly Box verticalBackground;
             private readonly Circle pickerStylus;
 
             public ColorCanvas()
@@ -140,11 +141,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    background = new Box
+                    horizontalBackground = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    background2 = new Box
+                    verticalBackground = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
@@ -158,9 +159,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 source.BindValueChanged(value =>
                 {
-                    background.Colour = ColourInfo.GradientHorizontal(new Color4(0, 0, 0, 0), value.NewValue);
-                    background2.Colour = ColourInfo.GradientVertical(new Color4(0, 0, 0, 0), Color4.Black);
-
+                    horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), value.NewValue);
+                    verticalBackground.Colour = ColourInfo.GradientVertical(new Color4(), Color4.Black);
                     updateToCurrent(pickerStylus.Position);
                 });
             }
@@ -189,10 +189,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private void updateToCurrent(Vector2 position)
             {
                 var percentage = new Vector2(position.X / Width, position.Y / Height);
-                var targetColor = whiteBackground.Colour.Interpolate(percentage) +
-                    background.Colour.Interpolate(percentage) + background2.Colour.Interpolate(percentage);
 
-                Current.Value = targetColor;
+                var horizontalColor = ColourInfo.GradientHorizontal(Color4.White, source.Value).Interpolate(percentage);
+                var alpha = 1 - percentage.Y;
+                var mixedColor = (Color4)(horizontalColor * alpha);
+
+                Current.Value = mixedColor.Opacity(255);
             }
         }
 
