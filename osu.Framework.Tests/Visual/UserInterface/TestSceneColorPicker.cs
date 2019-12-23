@@ -171,6 +171,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 return true;
             }
 
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
             protected override bool OnDrag(DragEvent e)
             {
                 handleMouseInput(e);
@@ -180,6 +186,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
+                if (position.X < 0 || position.X > DrawWidth || position.Y < 0 || position.Y > DrawHeight)
+                    return;
+
                 pickerStylus.Position = position;
 
                 //Update value
@@ -208,7 +217,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 set => current.Current = value;
             }
 
-            private readonly Box background;
+            private readonly GridContainer background;
+            private readonly GradientPart[] colorParts;
             private readonly Triangle picker;
 
             public ColorScroller()
@@ -216,9 +226,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Padding = new MarginPadding { Bottom = 20 };
                 Children = new Drawable[]
                 {
-                    background = new Box
+                    background = new GridContainer
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Content = new Drawable[][]
+                        {
+                            colorParts = new GradientPart[]
+                            {
+                                new GradientPart(Color4.Red,Color4.Yellow),
+                                new GradientPart(Color4.Yellow,Color4.Lime ),
+                                new GradientPart(Color4.Lime ,Color4.Blue),
+                                new GradientPart(Color4.Blue,Color4.Blue),
+                                new GradientPart(Color4.Blue,Color4.Magenta ),
+                                new GradientPart(Color4.Magenta ,Color4.Red),
+                            }
+                        }
                     },
                     picker = new Triangle
                     {
@@ -236,6 +258,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 return true;
             }
 
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
             protected override bool OnDrag(DragEvent e)
             {
                 handleMouseInput(e);
@@ -245,7 +273,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
+                if (xPosition < 0 || xPosition > background.DrawWidth)
+                    return;
+
                 picker.X = xPosition;
+
+                //update value
+                updateToCurrent(picker.X);
+            }
+
+            private void updateToCurrent(float position)
+            {
+                var index = (int)(position / background.DrawWidth * 6);
+                var percentage = position / background.DrawWidth * 6 - index;
+
+                var color = colorParts[index].Colour.Interpolate(new Vector2(percentage));
+                Current.Value = color;
+            }
+
+            private class GradientPart : Box
+            {
+                public GradientPart(Color4 start, Color4 end)
+                {
+                    RelativeSizeAxes = Axes.Both;
+                    Colour = ColourInfo.GradientHorizontal(start, end);
+                }
             }
         }
     }
