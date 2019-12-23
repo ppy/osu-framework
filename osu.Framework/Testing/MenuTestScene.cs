@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -68,12 +69,7 @@ namespace osu.Framework.Testing
             /// <summary>
             /// Retrieves the <see cref="Menu.DrawableMenuItem"/>s of the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.
             /// </summary>
-            public IReadOnlyList<Drawable> GetMenuItems()
-            {
-                var contents = (CompositeDrawable)menu.InternalChildren[0];
-                var contentContainer = (CompositeDrawable)contents.InternalChildren[1];
-                return ((CompositeDrawable)((CompositeDrawable)contentContainer.InternalChildren[0]).InternalChildren[0]).InternalChildren;
-            }
+            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First();
 
             /// <summary>
             /// Finds the <see cref="Menu.DrawableMenuItem"/> index in the <see cref="Menu"/> represented by this <see cref="MenuStructure"/> that
