@@ -92,8 +92,20 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            colorScroller.Current.BindTo(colorCanvas.Source);
-            colorCanvas.Current.BindTo(current);
+            colorScroller.BindableH.BindTo(colorCanvas.BindableH);
+
+            Current.BindValueChanged(value =>
+            {
+                // Update text and preview area
+                colorCodeTextBox.Text = value.NewValue.ToHex();
+                previewColorBox.Colour = value.NewValue;
+
+                // Assigh canvas and scroller to change to current color
+                //Color4Extensions.RGB2HSL(value.NewValue, out double h, out double s, out double l);
+                //colorScroller.BindableH.Value = h;
+                //colorCanvas.BindableS.Value = s;
+                //colorCanvas.BindableL.Value = l;
+            }, true);
 
             // If text changed is valid, change current color.
             colorCodeTextBox.Current.BindValueChanged(value =>
@@ -104,35 +116,30 @@ namespace osu.Framework.Graphics.UserInterface
                 Current.Value = Color4Extensions.FromHex(value.NewValue);
             });
 
-            Current.BindValueChanged(value =>
-            {
-                //TODO : assigh canvas and scroller to change to current color
-            });
-
-            colorCanvas.Current.BindValueChanged(value =>
-            {
-                colorCodeTextBox.Text = value.NewValue.ToHex();
-                previewColorBox.Colour = value.NewValue;
-            });
+            // Update scroll result
+            colorCanvas.BindableH.BindValueChanged(_ => updateHsl());
+            colorCanvas.BindableS.BindValueChanged(_ => updateHsl());
+            colorCanvas.BindableL.BindValueChanged(_ => updateHsl());
         }
 
-        public class ColorCanvas : Container, IHasCurrentValue<Color4>
+        private void updateHsl()
         {
-            private readonly BindableWithCurrent<Color4> source = new BindableWithCurrent<Color4>();
+            var h = colorCanvas.BindableH.Value;
+            var s = colorCanvas.BindableS.Value;
+            var l = colorCanvas.BindableL.Value;
 
-            public Bindable<Color4> Source
-            {
-                get => source.Current;
-                set => source.Current = value;
-            }
+            // Update current color
+            var color = Color4Extensions.HSL2RGB(h, s, l);
+            Current.Value = color;
+        }
 
-            private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4>();
+        public class ColorCanvas : Container
+        {
+            public BindableDouble BindableH { get; private set; } = new BindableDouble();
 
-            public Bindable<Color4> Current
-            {
-                get => current.Current;
-                set => current.Current = value;
-            }
+            public BindableDouble BindableS { get; private set; } = new BindableDouble();
+
+            public BindableDouble BindableL { get; private set; } = new BindableDouble();
 
             private readonly Box whiteBackground;
             private readonly Box horizontalBackground;
@@ -163,14 +170,17 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 };
 
-                source.BindValueChanged(value =>
+                BindableH.BindValueChanged(value =>
                 {
-                    horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), value.NewValue);
+                    // Calculate display color
+                    var color = Color4Extensions.HSL2RGB(value.NewValue, 1, 0.5);
+                    horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), color);
                     verticalBackground.Colour = ColourInfo.GradientVertical(new Color4(), Color4.Black);
-
-                    // Update value
-                    updateToCurrent(picker.Position);
                 });
+
+                // Update picker position
+                BindableS.BindValueChanged(value => picker.X = (float)value.NewValue * DrawWidth);
+                BindableL.BindValueChanged(value => picker.Y = (float)(1 - value.NewValue) * DrawHeight);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -200,34 +210,14 @@ namespace osu.Framework.Graphics.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                picker.Position = new Vector2(Math.Clamp(position.X, 0, DrawWidth), Math.Clamp(position.Y, 0, DrawHeight));
-
-                // Update value
-                updateToCurrent(picker.Position);
-            }
-
-            private void updateToCurrent(Vector2 position)
-            {
-                // Calculate nhew color and update current color.
-                var percentage = new Vector2(position.X / DrawWidth, position.Y / DrawHeight);
-
-                var horizontalColor = (Color4)ColourInfo.GradientHorizontal(Color4.White, source.Value).Interpolate(percentage);
-                var alpha = 1 - percentage.Y;
-                var mixedColor = horizontalColor.Multiply(alpha);
-
-                Current.Value = mixedColor.Opacity(255);
+                BindableS.Value = Math.Clamp(position.X / DrawWidth, 0, 1);
+                BindableL.Value = Math.Clamp(1 - (position.Y / DrawHeight), 0, 1);
             }
         }
 
-        public class ColorScroller : Container, IHasCurrentValue<Color4>
+        public class ColorScroller : Container
         {
-            private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4>();
-
-            public Bindable<Color4> Current
-            {
-                get => current.Current;
-                set => current.Current = value;
-            }
+            public BindableDouble BindableH { get; private set; } = new BindableDouble();
 
             private readonly GridContainer background;
             private readonly GradientPart[] colorParts;
@@ -262,6 +252,9 @@ namespace osu.Framework.Graphics.UserInterface
                         Origin = Anchor.TopCentre
                     }
                 };
+
+                // Update picker position
+                BindableH.BindValueChanged(value => picker.X = (float)value.NewValue * DrawWidth);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -291,20 +284,8 @@ namespace osu.Framework.Graphics.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
-                updateToCurrent(Math.Clamp(xPosition, 0, background.DrawWidth));
-            }
-
-            private void updateToCurrent(float position)
-            {
-                // Update picker position
-                picker.X = position;
-
-                // Calculate nhew color and update current color.
-                var index = Math.Clamp((int)(position / background.DrawWidth * 6), 0, colorParts.Length - 1);
-                var percentage = position / background.DrawWidth * 6 - index;
-
-                var color = colorParts[index].Colour.Interpolate(new Vector2(percentage));
-                Current.Value = color;
+                var percentage = Math.Clamp(xPosition / DrawWidth, 0, 1);
+                BindableH.Value = percentage;
             }
 
             private class GradientPart : Box

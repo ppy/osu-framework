@@ -146,6 +146,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns></returns>
         public static Color4 HSL2RGB(double h, double sl, double l)
         {
+            h %= 1;
             double v;
             double r, g, b;
             r = l;   // default to gray
