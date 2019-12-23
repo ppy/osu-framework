@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -152,6 +152,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Current.ValueChanged += e => { Text = e.NewValue; };
+            Caret.Hide();
         }
 
         [BackgroundDependencyLoader]
@@ -350,10 +351,7 @@ namespace osu.Framework.Graphics.UserInterface
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
             if (HasFocus)
-            {
-                Caret.ClearTransforms();
                 Caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
-            }
 
             if (textAtLastLayout != text)
                 Current.Value = text;
@@ -870,7 +868,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransforms();
             Caret.Hide();
 
             Background.ClearTransforms();

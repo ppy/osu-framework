@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(1, 0.9f);
-                Alpha = 0;
+
                 Colour = Color4.Transparent;
                 Anchor = Anchor.CentreLeft;
                 Origin = Anchor.CentreLeft;
