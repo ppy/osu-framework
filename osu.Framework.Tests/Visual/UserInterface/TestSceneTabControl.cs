@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Child = switchingTabControl = new StyledTabControl
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Tabbable = true,
+                            IsSwitchable = true,
                         }
                     },
                     removeAllTabControl = new StyledTabControl
