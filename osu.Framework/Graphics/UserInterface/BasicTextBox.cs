@@ -94,15 +94,15 @@ namespace osu.Framework.Graphics.UserInterface
             public override void Hide() => this.FadeOut(200);
         }
 
-        protected override DrawableCaret CreateCaret() => new BasicDrawableCaret
+        protected override Caret CreateCaret() => new BasicCaret
         {
             CaretWidth = CaretWidth,
             SelectionColour = SelectionColour,
         };
 
-        public class BasicDrawableCaret : DrawableCaret
+        public class BasicCaret : Caret
         {
-            public BasicDrawableCaret()
+            public BasicCaret()
             {
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(1, 0.9f);

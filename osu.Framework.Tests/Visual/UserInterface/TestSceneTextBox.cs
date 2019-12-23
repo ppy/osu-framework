@@ -310,9 +310,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             }
 
-            protected override DrawableCaret CreateCaret() => new BorderCaret();
+            protected override Caret CreateCaret() => new BorderCaret();
 
-            private class BorderCaret : DrawableCaret
+            private class BorderCaret : Caret
             {
                 private const float caret_width = 2;
 

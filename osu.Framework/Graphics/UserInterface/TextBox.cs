@@ -590,9 +590,9 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        protected abstract DrawableCaret CreateCaret();
+        protected abstract Caret CreateCaret();
 
-        protected DrawableCaret Caret;
+        protected Caret Caret;
 
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
@@ -980,15 +980,5 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        public abstract class DrawableCaret : CompositeDrawable
-        {
-            /// <summary>
-            /// Request the caret be displayed at a particular location, with an optional selection length.
-            /// </summary>
-            /// <param name="position">The position (in parent space) where the caret should be displayed.</param>
-            /// <param name="selectionWidth">If a selection is active, the length (in parent space) of the selection. The caret should extend to display this selection to the user.</param>
-            public abstract void DisplayAt(Vector2 position, float? selectionWidth);
-        }
     }
 }
