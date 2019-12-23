@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -192,22 +193,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                if (position.X < 0 || position.X > DrawWidth || position.Y < 0 || position.Y > DrawHeight)
-                    return;
-
-                pickerStylus.Position = position;
+                pickerStylus.Position = new Vector2(Math.Clamp(position.X, 0, DrawWidth), Math.Clamp(position.Y, 0, DrawHeight));
 
                 //Update value
-                updateToCurrent(position);
+                updateToCurrent(pickerStylus.Position);
             }
 
             private void updateToCurrent(Vector2 position)
             {
-                var percentage = new Vector2(position.X / Width, position.Y / Height);
+                var percentage = new Vector2(position.X / DrawWidth, position.Y / DrawHeight);
 
-                var horizontalColor = ColourInfo.GradientHorizontal(Color4.White, source.Value).Interpolate(percentage);
+                var horizontalColor = (Color4)ColourInfo.GradientHorizontal(Color4.White, source.Value).Interpolate(percentage);
                 var alpha = 1 - percentage.Y;
-                var mixedColor = (Color4)(horizontalColor * alpha);
+                var mixedColor = horizontalColor.Multiply(alpha);
 
                 Current.Value = mixedColor.Opacity(255);
             }
@@ -285,10 +283,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
-                if (xPosition < 0 || xPosition > background.DrawWidth)
-                    return;
-
-                picker.X = xPosition;
+                picker.X = Math.Clamp(xPosition, 0, background.DrawWidth);
 
                 //update value
                 updateToCurrent(picker.X);
@@ -296,7 +291,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private void updateToCurrent(float position)
             {
-                var index = (int)(position / background.DrawWidth * 6);
+                var index = Math.Clamp((int)(position / background.DrawWidth * 6), 0, colorParts.Length - 1);
                 var percentage = position / background.DrawWidth * 6 - index;
 
                 var color = colorParts[index].Colour.Interpolate(new Vector2(percentage));
