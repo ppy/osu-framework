@@ -20,6 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public TestSceneColorPicker()
         {
             var colorPicker = new ColorPicker();
+            colorPicker.Current.Value = Color4.Red;
             Add(colorPicker);
         }
     }
@@ -81,9 +82,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                 {
                                     new Drawable[]
                                     {
-                                        colorCodeTextBox = new TextBox
+                                        colorCodeTextBox = new HexTextBox
                                         {
                                             RelativeSizeAxes = Axes.Both,
+                                            LengthLimit = 7
                                         },
                                         previewColorBox = new Box
                                         {
@@ -100,15 +102,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             colorScroller.Current.BindTo(colorCanvas.Source);
             colorCanvas.Current.BindTo(current);
 
+            // If text changed in valid, change current color
+            colorCodeTextBox.Current.BindValueChanged(value =>
+            {
+                if (value.NewValue.Replace("#", "").Length != 6)
+                    return;
+
+                try
+                {
+                    Current.Value = Color4Extensions.FromHex(value.NewValue);
+                }
+                catch
+                {
+                    // Ignore here
+                }
+            });
+
+            Current.BindValueChanged(value =>
+            {
+                //TODO : assigh canvas and scroller to change to current color
+            });
+
             colorCanvas.Current.BindValueChanged(value =>
             {
                 // TODO : update text hex code
                 colorCodeTextBox.Text = value.NewValue.ToHex();
                 previewColorBox.Colour = value.NewValue;
             });
-
-            //Testing bindable
-            colorScroller.Current.Value = Color4.Red;
         }
 
         public class ColorCanvas : Container, IHasCurrentValue<Color4>
@@ -306,6 +326,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Colour = ColourInfo.GradientHorizontal(start, end);
                 }
             }
+        }
+
+        public class HexTextBox : BasicTextBox
+        {
+            protected override bool CanAddCharacter(char character) => (string.IsNullOrEmpty(Text) && character == '#') || Uri.IsHexDigit(character);
         }
     }
 }
