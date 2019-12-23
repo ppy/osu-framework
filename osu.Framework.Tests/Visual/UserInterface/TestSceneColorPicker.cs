@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private readonly ColorScroller colorScroller;
         private readonly TextBox colorCodeTextBox;
         private readonly Box previewColorBox;
-        
+
 
         public ColorPicker()
         {
@@ -183,6 +183,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 return true;
             }
 
+            protected override bool OnDragEnd(DragEndEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
             private void handleMouseInput(UIEvent e)
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
@@ -233,11 +239,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             colorParts = new GradientPart[]
                             {
-                                new GradientPart(Color4.Red,Color4.Yellow),
-                                new GradientPart(Color4.Yellow,Color4.Lime ),
-                                new GradientPart(Color4.Lime ,Color4.Blue),
-                                new GradientPart(Color4.Blue,Color4.Blue),
-                                new GradientPart(Color4.Blue,Color4.Magenta ),
+                                new GradientPart(Color4.Red ,Color4.Yellow),
+                                new GradientPart(Color4.Yellow ,Color4.Lime),
+                                new GradientPart(Color4.Lime ,Color4.Aqua),
+                                new GradientPart(Color4.Aqua ,Color4.Blue),
+                                new GradientPart(Color4.Blue ,Color4.Magenta),
                                 new GradientPart(Color4.Magenta ,Color4.Red),
                             }
                         }
@@ -265,6 +271,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             protected override bool OnDrag(DragEvent e)
+            {
+                handleMouseInput(e);
+                return true;
+            }
+
+            protected override bool OnDragEnd(DragEndEvent e)
             {
                 handleMouseInput(e);
                 return true;
