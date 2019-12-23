@@ -132,9 +132,9 @@ namespace osu.Framework.Extensions.Color4Extensions
             byte b = (byte)(argb >> 0);
 
             if(!forceOutputAlpha && a == 255)
-                return string.Format("#{0:X2}{1:X2}{2:X2}", r, g, b);
+                return string.Format("#{0:X2}{1:X2}{2:X2}", r, g, b).ToLower();
 
-            return string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", r, g, b, a);
+            return string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", r, g, b, a).ToLower();
         }
     }
 }
