@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -314,6 +314,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private class BorderCaret : DrawableCaret
             {
+                private const float caret_width = 2;
+
                 public BorderCaret()
                 {
                     Masking = true;
@@ -327,9 +329,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     };
                 }
 
-                public override float? SelectionWidth { set => Width = value + 1 ?? 2; }
-
-                public override Vector2 CursorPosition { set => Position = value - Vector2.UnitX; }
+                public override void DisplayAt(Vector2 position, float? selectionWidth)
+                {
+                    Position = position - Vector2.UnitX;
+                    Width = selectionWidth + 1 ?? caret_width;
+                }
             }
         }
     }

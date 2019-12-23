@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -333,9 +333,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
-            float? caretWidth = null;
+            float? selectionWidth = null;
             if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos;
+                selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -352,8 +352,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (HasFocus)
             {
                 Caret.ClearTransforms();
-                Caret.SelectionWidth = caretWidth;
-                Caret.CursorPosition = new Vector2(cursorPos, 0);
+                Caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
             }
 
             if (textAtLastLayout != text)
@@ -987,21 +986,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         public abstract class DrawableCaret : CompositeDrawable
         {
-            protected DrawableCaret()
-            {
-                Alpha = 0;
-                RelativeSizeAxes = Axes.Y;
-            }
-
             /// <summary>
-            /// Absolute selection width or null for default width
+            /// Request the caret be displayed at a particular location, with an optional selection length.
             /// </summary>
-            public abstract float? SelectionWidth { set; }
-
-            /// <summary>
-            /// Absolute cursor position
-            /// </summary>
-            public abstract Vector2 CursorPosition { set; }
+            /// <param name="position">The position (in parent space) where the caret should be displayed.</param>
+            /// <param name="selectionWidth">If a selection is active, the length (in parent space) of the selection. The caret should extend to display this selection to the user.</param>
+            public abstract void DisplayAt(Vector2 position, float? selectionWidth);
         }
     }
 }

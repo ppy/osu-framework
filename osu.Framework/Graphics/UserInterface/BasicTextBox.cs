@@ -127,28 +127,25 @@ namespace osu.Framework.Graphics.UserInterface
 
             public Color4 SelectionColour { get; set; }
 
-            public override float? SelectionWidth
+            public override void DisplayAt(Vector2 position, float? selectionWidth)
             {
-                set
+                if (selectionWidth != null)
                 {
-                    if (value != null)
-                    {
-                        this.ResizeWidthTo(value.Value + CaretWidth / 2, caret_move_time, Easing.Out);
-                        this
-                            .FadeTo(0.5f, 200, Easing.Out)
-                            .FadeColour(SelectionColour, 200, Easing.Out);
-                    }
-                    else
-                    {
-                        this.ResizeWidthTo(CaretWidth, caret_move_time, Easing.Out);
-                        this
-                            .FadeColour(Color4.White, 200, Easing.Out)
-                            .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
-                    }
+                    this.MoveTo(new Vector2(position.X, position.Y), 60, Easing.Out);
+                    this.ResizeWidthTo(selectionWidth.Value + CaretWidth / 2, caret_move_time, Easing.Out);
+                    this
+                        .FadeTo(0.5f, 200, Easing.Out)
+                        .FadeColour(SelectionColour, 200, Easing.Out);
+                }
+                else
+                {
+                    this.MoveTo(new Vector2(position.X - CaretWidth / 2, position.Y), 60, Easing.Out);
+                    this.ResizeWidthTo(CaretWidth, caret_move_time, Easing.Out);
+                    this
+                        .FadeColour(Color4.White, 200, Easing.Out)
+                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
                 }
             }
-
-            public override Vector2 CursorPosition { set => this.MoveTo(new Vector2(value.X - CaretWidth / 2, value.Y), 60, Easing.Out); }
         }
     }
 }
