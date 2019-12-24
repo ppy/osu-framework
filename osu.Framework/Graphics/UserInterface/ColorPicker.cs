@@ -101,10 +101,10 @@ namespace osu.Framework.Graphics.UserInterface
                 previewColorBox.Colour = value.NewValue;
 
                 // Assigh canvas and scroller to change to current color
-                //Color4Extensions.RGB2HSL(value.NewValue, out double h, out double s, out double l);
-                //colorScroller.BindableH.Value = h;
-                //colorCanvas.BindableS.Value = s;
-                //colorCanvas.BindableL.Value = l;
+                Color4Extensions.ToHSV(value.NewValue, out float h, out float s, out float v);
+                colorScroller.BindableH.Value = h;
+                colorCanvas.BindableS.Value = s;
+                colorCanvas.BindableV.Value = v;
             }, true);
 
             // If text changed is valid, change current color.
@@ -119,27 +119,27 @@ namespace osu.Framework.Graphics.UserInterface
             // Update scroll result
             colorCanvas.BindableH.BindValueChanged(_ => updateHsl());
             colorCanvas.BindableS.BindValueChanged(_ => updateHsl());
-            colorCanvas.BindableL.BindValueChanged(_ => updateHsl());
+            colorCanvas.BindableV.BindValueChanged(_ => updateHsl());
         }
 
         private void updateHsl()
         {
             var h = colorCanvas.BindableH.Value;
             var s = colorCanvas.BindableS.Value;
-            var l = colorCanvas.BindableL.Value;
+            var v = colorCanvas.BindableV.Value;
 
             // Update current color
-            var color = Color4Extensions.HSL2RGB(h, s, l);
+            var color = Color4Extensions.ToRGB(h, s, v);
             Current.Value = color;
         }
 
         public class ColorCanvas : Container
         {
-            public BindableDouble BindableH { get; private set; } = new BindableDouble();
+            public BindableFloat BindableH { get; private set; } = new BindableFloat { Precision = 0.1f };
 
-            public BindableDouble BindableS { get; private set; } = new BindableDouble();
+            public BindableFloat BindableS { get; private set; } = new BindableFloat { Precision = 0.01f };
 
-            public BindableDouble BindableL { get; private set; } = new BindableDouble();
+            public BindableFloat BindableV { get; private set; } = new BindableFloat { Precision = 0.01f };
 
             private readonly Box whiteBackground;
             private readonly Box horizontalBackground;
@@ -173,14 +173,14 @@ namespace osu.Framework.Graphics.UserInterface
                 BindableH.BindValueChanged(value =>
                 {
                     // Calculate display color
-                    var color = Color4Extensions.HSL2RGB(value.NewValue, 1, 0.5);
+                    var color = Color4Extensions.ToRGB(value.NewValue, 1, 1);
                     horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), color);
                     verticalBackground.Colour = ColourInfo.GradientVertical(new Color4(), Color4.Black);
                 });
 
                 // Update picker position
-                BindableS.BindValueChanged(value => picker.X = (float)value.NewValue * DrawWidth);
-                BindableL.BindValueChanged(value => picker.Y = (float)(1 - value.NewValue) * DrawHeight);
+                BindableS.BindValueChanged(value => picker.X = value.NewValue * DrawWidth);
+                BindableV.BindValueChanged(value => picker.Y = (1 - value.NewValue) * DrawHeight);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -211,13 +211,13 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
                 BindableS.Value = Math.Clamp(position.X / DrawWidth, 0, 1);
-                BindableL.Value = Math.Clamp(1 - (position.Y / DrawHeight), 0, 1);
+                BindableV.Value = Math.Clamp(1 - (position.Y / DrawHeight), 0, 1);
             }
         }
 
         public class ColorScroller : Container
         {
-            public BindableDouble BindableH { get; private set; } = new BindableDouble();
+            public BindableFloat BindableH { get; private set; } = new BindableFloat { Precision = 0.1f };
 
             private readonly GridContainer background;
             private readonly GradientPart[] colorParts;
@@ -254,7 +254,7 @@ namespace osu.Framework.Graphics.UserInterface
                 };
 
                 // Update picker position
-                BindableH.BindValueChanged(value => picker.X = (float)value.NewValue * DrawWidth);
+                BindableH.BindValueChanged(value => picker.X = value.NewValue / 360 * DrawWidth);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -285,7 +285,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
                 var percentage = Math.Clamp(xPosition / DrawWidth, 0, 1);
-                BindableH.Value = percentage;
+                BindableH.Value = percentage * 360;
             }
 
             private class GradientPart : Box
