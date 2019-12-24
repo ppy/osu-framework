@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         // Change current value will cause recursive change, so need a record to disable this change.
-        private bool disableRecursiveUpdate;
+        private bool internalUpdate;
 
         private readonly Box background;
         private readonly FillFlowContainer fillFlowContainer;
@@ -103,16 +103,15 @@ namespace osu.Framework.Graphics.UserInterface
                 colorCodeTextBox.Text = value.NewValue.ToHex();
                 previewColorBox.Colour = value.NewValue;
 
-                
-                disableRecursiveUpdate = true;
+                // Prevent internal update cause recursive
+                if (internalUpdate)
+                    return;
 
                 // Assigh canvas and scroller to change to current color
                 Color4Extensions.ToHSV(value.NewValue, out float h, out float s, out float v);
                 colorScroller.BindableH.Value = h;
                 colorCanvas.BindableS.Value = s;
                 colorCanvas.BindableV.Value = v;
-
-                disableRecursiveUpdate = false;
             }, true);
 
             // If text changed is valid, change current color.
@@ -132,8 +131,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHsl()
         {
-            if (disableRecursiveUpdate)
-                return;
+            internalUpdate = true;
 
             var h = colorCanvas.BindableH.Value;
             var s = colorCanvas.BindableS.Value;
@@ -142,15 +140,17 @@ namespace osu.Framework.Graphics.UserInterface
             // Update current color
             var color = Color4Extensions.ToRGB(h, s, v);
             Current.Value = color;
+
+            internalUpdate = false;
         }
 
         public class ColorCanvas : Container
         {
             public BindableFloat BindableH { get; private set; } = new BindableFloat { Precision = 0.1f };
 
-            public BindableFloat BindableS { get; private set; } = new BindableFloat { Precision = 0.01f };
+            public BindableFloat BindableS { get; private set; } = new BindableFloat { Precision = 0.001f };
 
-            public BindableFloat BindableV { get; private set; } = new BindableFloat { Precision = 0.01f };
+            public BindableFloat BindableV { get; private set; } = new BindableFloat { Precision = 0.001f };
 
             private readonly Box whiteBackground;
             private readonly Box horizontalBackground;
