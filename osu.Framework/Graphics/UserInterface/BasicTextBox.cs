@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             BackgroundFocused = FrameworkColour.BlueGreen;
             BackgroundUnfocused = FrameworkColour.BlueGreenDark;
-            TextFlow.Height = 0.75f;
+            TextContainer.Height = 0.75f;
         }
 
         protected override void NotifyInputError() => background.FlashColour(InputErrorColour, 200);
