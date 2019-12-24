@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.UserInterface
             set => background.FadeColour(value);
         }
 
+        // Change current value will cause recursive change, so need a record to disable this change.
+        private bool disableRecursiveUpdate;
+
         private readonly Box background;
         private readonly FillFlowContainer fillFlowContainer;
         private readonly ColorCanvas colorCanvas;
@@ -100,11 +103,16 @@ namespace osu.Framework.Graphics.UserInterface
                 colorCodeTextBox.Text = value.NewValue.ToHex();
                 previewColorBox.Colour = value.NewValue;
 
+                
+                disableRecursiveUpdate = true;
+
                 // Assigh canvas and scroller to change to current color
                 Color4Extensions.ToHSV(value.NewValue, out float h, out float s, out float v);
                 colorScroller.BindableH.Value = h;
                 colorCanvas.BindableS.Value = s;
                 colorCanvas.BindableV.Value = v;
+
+                disableRecursiveUpdate = false;
             }, true);
 
             // If text changed is valid, change current color.
@@ -124,6 +132,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHsl()
         {
+            if (disableRecursiveUpdate)
+                return;
+
             var h = colorCanvas.BindableH.Value;
             var s = colorCanvas.BindableS.Value;
             var v = colorCanvas.BindableV.Value;
