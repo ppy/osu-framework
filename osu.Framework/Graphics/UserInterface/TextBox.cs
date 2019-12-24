@@ -25,8 +25,8 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
-        protected FillFlowContainer TextFlow;
-        protected Container TextContainer;
+        protected FillFlowContainer TextFlow { get; private set; }
+        protected Container TextContainer { get; private set; }
 
         public override bool HandleNonPositionalInput => HasFocus;
 
