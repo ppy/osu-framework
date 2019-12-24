@@ -17,7 +17,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
@@ -27,7 +26,6 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
         protected FillFlowContainer TextFlow;
-        protected Box Background;
         protected Container TextContainer;
 
         public override bool HandleNonPositionalInput => HasFocus;
@@ -59,33 +57,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Whether this TextBox should accept left and right arrow keys for navigation.
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
-
-        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
-        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
-
-        protected Color4 BackgroundFocused
-        {
-            get => backgroundFocused;
-            set
-            {
-                backgroundFocused = value;
-                if (HasFocus)
-                    Background.Colour = value;
-            }
-        }
-
-        protected Color4 BackgroundUnfocused
-        {
-            get => backgroundUnfocused;
-            set
-            {
-                backgroundUnfocused = value;
-                if (!HasFocus)
-                    Background.Colour = value;
-            }
-        }
-
-        protected virtual Color4 InputErrorColour => Color4.Red;
 
         /// <summary>
         /// Check if a character can be added to this TextBox.
@@ -126,11 +97,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Children = new Drawable[]
             {
-                Background = new Box
-                {
-                    Colour = BackgroundUnfocused,
-                    RelativeSizeAxes = Axes.Both,
-                },
                 TextContainer = new Container
                 {
                     AutoSizeAxes = Axes.X,
@@ -870,10 +836,6 @@ namespace osu.Framework.Graphics.UserInterface
             unbindInput();
 
             caret.Hide();
-
-            Background.ClearTransforms();
-            Background.Colour = BackgroundUnfocused;
-
             cursorAndLayout.Invalidate();
 
             if (CommitOnFocusLost)
@@ -888,11 +850,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             bindInput();
 
-            Background.ClearTransforms();
-            Background.Colour = BackgroundFocused;
-
             caret.Show();
-
             cursorAndLayout.Invalidate();
         }
 

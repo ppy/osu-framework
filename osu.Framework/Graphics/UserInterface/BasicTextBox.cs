@@ -21,40 +21,76 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Color4 BackgroundCommit { get; set; } = FrameworkColour.Green;
 
+        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
+        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
+
+        private readonly Box background;
+
+        protected Color4 BackgroundFocused
+        {
+            get => backgroundFocused;
+            set
+            {
+                backgroundFocused = value;
+                if (HasFocus)
+                    background.Colour = value;
+            }
+        }
+
+        protected Color4 BackgroundUnfocused
+        {
+            get => backgroundUnfocused;
+            set
+            {
+                backgroundUnfocused = value;
+                if (!HasFocus)
+                    background.Colour = value;
+            }
+        }
+
+        protected virtual Color4 InputErrorColour => Color4.Red;
+
         public BasicTextBox()
         {
+            Add(background = new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Depth = 1,
+                Colour = BackgroundUnfocused,
+            });
+
             BackgroundFocused = FrameworkColour.BlueGreen;
             BackgroundUnfocused = FrameworkColour.BlueGreenDark;
             TextFlow.Height = 0.75f;
         }
 
-        protected override void NotifyInputError() => Background.FlashColour(InputErrorColour, 200);
+        protected override void NotifyInputError() => background.FlashColour(InputErrorColour, 200);
 
         protected override void Commit()
         {
             base.Commit();
 
-            Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-            Background.ClearTransforms();
-            Background.FlashColour(BackgroundCommit, 400);
+            background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+            background.ClearTransforms();
+            background.FlashColour(BackgroundCommit, 400);
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
         {
             base.OnFocusLost(e);
 
-            Background.ClearTransforms();
-            Background.Colour = BackgroundFocused;
-            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
+            background.ClearTransforms();
+            background.Colour = BackgroundFocused;
+            background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
         }
 
         protected override void OnFocus(FocusEvent e)
         {
             base.OnFocus(e);
 
-            Background.ClearTransforms();
-            Background.Colour = BackgroundUnfocused;
-            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
+            background.ClearTransforms();
+            background.Colour = BackgroundUnfocused;
+            background.FadeColour(BackgroundFocused, 200, Easing.Out);
         }
 
         protected override Drawable GetDrawableCharacter(char c) => new FallingDownContainer
