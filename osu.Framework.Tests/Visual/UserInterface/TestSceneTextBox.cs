@@ -31,18 +31,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             Schedule(() =>
             {
-                Child = textBoxes = new FillFlowContainer
+                Child = new TabbableContentContainer
                 {
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(0, 50),
-                    Padding = new MarginPadding
-                    {
-                        Top = 50,
-                    },
-                    Anchor = Anchor.TopCentre,
-                    Origin = Anchor.TopCentre,
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.9f, 1)
+                    Child = textBoxes = new FillFlowContainer
+                    {
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(0, 50),
+                        Padding = new MarginPadding
+                        {
+                            Top = 50,
+                        },
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(0.9f, 1)
+                    }
                 };
             });
         }
@@ -55,7 +59,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 textBoxes.Add(new BasicTextBox
                 {
                     Size = new Vector2(100, 16),
-                    TabbableContentContainer = textBoxes
                 });
 
                 textBoxes.Add(new BasicTextBox
@@ -63,21 +66,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = @"Limited length",
                     Size = new Vector2(200, 20),
                     LengthLimit = 20,
-                    TabbableContentContainer = textBoxes
                 });
 
                 textBoxes.Add(new BasicTextBox
                 {
                     Text = @"Box with some more text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
                 });
 
                 textBoxes.Add(new BasicTextBox
                 {
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
                 });
 
                 textBoxes.Add(new BasicTextBox
@@ -85,7 +85,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = @"prefilled placeholder",
                     PlaceholderText = @"Placeholder text",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
                 });
 
                 textBoxes.Add(new BasicTextBox
@@ -93,7 +92,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = "Readonly textbox",
                     Size = new Vector2(500, 30),
                     ReadOnly = true,
-                    TabbableContentContainer = textBoxes
                 });
 
                 FillFlowContainer otherTextBoxes = new FillFlowContainer
@@ -115,7 +113,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     PlaceholderText = @"Textbox in separate container",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = otherTextBoxes
                 });
 
                 otherTextBoxes.Add(new PasswordTextBox
@@ -123,7 +120,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = otherTextBoxes
                 });
 
                 FillFlowContainer nestedTextBoxes = new FillFlowContainer
@@ -139,26 +135,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     PlaceholderText = @"Nested textbox 1",
                     Size = new Vector2(457, 30),
-                    TabbableContentContainer = otherTextBoxes
                 });
 
                 nestedTextBoxes.Add(new BasicTextBox
                 {
                     PlaceholderText = @"Nested textbox 2",
                     Size = new Vector2(457, 30),
-                    TabbableContentContainer = otherTextBoxes
                 });
 
                 nestedTextBoxes.Add(new BasicTextBox
                 {
                     PlaceholderText = @"Nested textbox 3",
                     Size = new Vector2(457, 30),
-                    TabbableContentContainer = otherTextBoxes
                 });
 
                 otherTextBoxes.Add(nestedTextBoxes);
 
-                Add(otherTextBoxes);
+                Add(new TabbableContentContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Child = otherTextBoxes,
+                });
             });
         }
 
@@ -173,7 +170,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     PlaceholderText = @"Only numbers",
                     Size = new Vector2(500, 30),
-                    TabbableContentContainer = textBoxes
                 });
             });
 
