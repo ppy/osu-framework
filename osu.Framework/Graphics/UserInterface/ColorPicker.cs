@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -30,12 +31,12 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         // Change current value will cause recursive change, so need a record to disable this change.
-        private bool internalUpdate;
+        private readonly Cached internalUpdate = new Cached();
 
         private readonly Box background;
         private readonly FillFlowContainer fillFlowContainer;
-        private readonly ColorCanvas colorCanvas;
-        private readonly ColorScroller colorScroller;
+        private readonly PickerArea pickerArea;
+        private readonly HueSlider hueSlider;
         private readonly TextBox colorCodeTextBox;
         private readonly Box previewColorBox;
 
@@ -57,11 +58,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Spacing = new Vector2(0, 10),
                     Children = new Drawable[]
                     {
-                        colorCanvas = new ColorCanvas
+                        pickerArea = new PickerArea
                         {
                             Size = new Vector2(200),
                         },
-                        colorScroller = new ColorScroller
+                        hueSlider = new HueSlider
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
@@ -95,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            colorScroller.BindableH.BindTo(colorCanvas.BindableH);
+            hueSlider.Hue.BindTo(pickerArea.Hue);
 
             Current.BindValueChanged(value =>
             {
@@ -104,14 +105,14 @@ namespace osu.Framework.Graphics.UserInterface
                 previewColorBox.Colour = value.NewValue;
 
                 // Prevent internal update cause recursive
-                if (internalUpdate)
+                if (internalUpdate.IsValid)
                     return;
 
                 // Assigh canvas and scroller to change to current color
                 Color4Extensions.ToHSV(value.NewValue, out float h, out float s, out float v);
-                colorScroller.BindableH.Value = h;
-                colorCanvas.BindableS.Value = s;
-                colorCanvas.BindableV.Value = v;
+                hueSlider.Hue.Value = h;
+                pickerArea.Saturation.Value = s;
+                pickerArea.Value.Value = v;
             }, true);
 
             // If text changed is valid, change current color.
@@ -124,40 +125,47 @@ namespace osu.Framework.Graphics.UserInterface
             });
 
             // Update scroll result
-            colorCanvas.BindableH.BindValueChanged(_ => updateHsl());
-            colorCanvas.BindableS.BindValueChanged(_ => updateHsl());
-            colorCanvas.BindableV.BindValueChanged(_ => updateHsl());
+            pickerArea.Hue.BindValueChanged(_ => internalUpdate.Invalidate());
+            pickerArea.Saturation.BindValueChanged(_ => internalUpdate.Invalidate());
+            pickerArea.Value.BindValueChanged(_ => internalUpdate.Invalidate());
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!internalUpdate.IsValid)
+                updateHsl();
         }
 
         private void updateHsl()
         {
-            internalUpdate = true;
+            // Set to valid
+            internalUpdate.Validate();
 
-            var h = colorCanvas.BindableH.Value;
-            var s = colorCanvas.BindableS.Value;
-            var v = colorCanvas.BindableV.Value;
+            var h = pickerArea.Hue.Value;
+            var s = pickerArea.Saturation.Value;
+            var v = pickerArea.Value.Value;
 
             // Update current color
             var color = Color4Extensions.ToRGB(h, s, v);
             Current.Value = color;
-
-            internalUpdate = false;
         }
 
-        public class ColorCanvas : Container
+        public class PickerArea : Container
         {
-            public BindableFloat BindableH { get; private set; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
 
-            public BindableFloat BindableS { get; private set; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Saturation { get; private set; } = new BindableFloat { Precision = 0.001f };
 
-            public BindableFloat BindableV { get; private set; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Value { get; private set; } = new BindableFloat { Precision = 0.001f };
 
             private readonly Box whiteBackground;
             private readonly Box horizontalBackground;
             private readonly Box verticalBackground;
             private readonly Drawable picker;
 
-            public ColorCanvas()
+            public PickerArea()
             {
                 Children = new Drawable[]
                 {
@@ -181,8 +189,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 };
 
-                // Re-calculate display color if HSV's h changed.
-                BindableH.BindValueChanged(value =>
+                // Re-calculate display color if HSV's hue changed.
+                Hue.BindValueChanged(value =>
                 {
                     var color = Color4Extensions.ToRGB(value.NewValue, 1, 1);
                     horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), color);
@@ -190,8 +198,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }, true);
 
                 // Update picker position
-                BindableS.BindValueChanged(value => picker.X = value.NewValue * DrawWidth);
-                BindableV.BindValueChanged(value => picker.Y = (1 - value.NewValue) * DrawHeight);
+                Saturation.BindValueChanged(value => picker.X = value.NewValue * DrawWidth);
+                Value.BindValueChanged(value => picker.Y = (1 - value.NewValue) * DrawHeight);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -221,20 +229,20 @@ namespace osu.Framework.Graphics.UserInterface
             private void handleMouseInput(UIEvent e)
             {
                 var position = ToLocalSpace(e.ScreenSpaceMousePosition);
-                BindableS.Value = Math.Clamp(position.X / DrawWidth, 0, 1);
-                BindableV.Value = Math.Clamp(1 - (position.Y / DrawHeight), 0, 1);
+                Saturation.Value = Math.Clamp(position.X / DrawWidth, 0, 1);
+                Value.Value = Math.Clamp(1 - (position.Y / DrawHeight), 0, 1);
             }
         }
 
-        public class ColorScroller : Container
+        public class HueSlider : Container
         {
-            public BindableFloat BindableH { get; private set; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
 
             private readonly GridContainer background;
             private readonly GradientPart[] colorParts;
             private readonly Drawable picker;
 
-            public ColorScroller()
+            public HueSlider()
             {
                 Padding = new MarginPadding { Bottom = 20 };
                 Children = new Drawable[]
@@ -265,7 +273,7 @@ namespace osu.Framework.Graphics.UserInterface
                 };
 
                 // Update picker position
-                BindableH.BindValueChanged(value => picker.X = value.NewValue / 360 * DrawWidth);
+                Hue.BindValueChanged(value => picker.X = value.NewValue / 360 * DrawWidth);
             }
 
             protected override bool OnClick(ClickEvent e)
@@ -296,7 +304,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X;
                 var percentage = Math.Clamp(xPosition / DrawWidth, 0, 1);
-                BindableH.Value = percentage * 360;
+                Hue.Value = percentage * 360;
             }
 
             private class GradientPart : Box

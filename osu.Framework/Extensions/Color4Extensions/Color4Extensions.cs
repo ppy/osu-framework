@@ -147,32 +147,32 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns></returns>
         public static Color4 ToRGB(float h, float s, float v)
         {
-            int Hi = ((int)(h / 60.0)) % 6;
+            int hi = ((int)(h / 60.0)) % 6;
             float f = h / 60.0f - (int)(h / 60.0);
             float p = v * (1 - s);
             float q = v * (1 - f * s);
             float t = v * (1 - (1 - f) * s);
 
-            switch (Hi)
+            switch (hi)
             {
                 case 0:
-                    return fromRGB(v, t, p);
+                    return toColor4(v, t, p);
                 case 1:
-                    return fromRGB(q, v, p);
+                    return toColor4(q, v, p);
                 case 2:
-                    return fromRGB(p, v, t);
+                    return toColor4(p, v, t);
                 case 3:
-                    return fromRGB(p, q, v);
+                    return toColor4(p, q, v);
                 case 4:
-                    return fromRGB(t, p, v);
+                    return toColor4(t, p, v);
                 case 5:
-                    return fromRGB(v, p, q);
+                    return toColor4(v, p, q);
             }
 
             // Should not goes to here
             throw new InvalidOperationException();
 
-            static Color4 fromRGB(float fr, float fg, float fb)
+            static Color4 toColor4(float fr, float fg, float fb)
             {
                 fr *= 255;
                 fg *= 255;
