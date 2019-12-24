@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Add(new GridContainer
             {
                 Width = 500,
-                Height = 300,
+                Height = 400,
                 Content = new Drawable[][]
                 {
                     new Drawable[]
@@ -32,6 +32,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new GridContainer
                         {
                             RelativeSizeAxes = Axes.Both,
+                            RowDimensions = new []
+                            {
+                                new Dimension( GridSizeMode.Absolute,100)
+                            },
                             Content = new Drawable[][]
                             {
                                 new Drawable[]
@@ -78,6 +82,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                                 new ClickableColor(colorPicker,Color4.Gray),
                                                 new ClickableColor(colorPicker,Color4.Orange),
                                                 new ClickableColor(colorPicker,Color4.Aqua),
+                                            },
+                                            new Drawable[]
+                                            {
+                                                new ClickableColor(colorPicker,Color4.Fuchsia),
+                                                new ClickableColor(colorPicker,Color4.PaleGoldenrod),
+                                                new ClickableColor(colorPicker,Color4.DarkGray),
                                             }
                                         }
                                     }
@@ -103,6 +113,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public ClickableColor(ColorPicker picker, Color4 color)
             {
                 RelativeSizeAxes = Axes.Both;
+                Padding = new MarginPadding(5);
                 Child = background = new Box
                 {
                     RelativeSizeAxes= Axes.Both,
