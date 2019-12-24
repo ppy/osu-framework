@@ -138,28 +138,35 @@ namespace osu.Framework.Extensions.Color4Extensions
             return string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", r, g, b, a).ToLower();
         }
 
-        public static Color4 ToRGB(float H, float S, float V)
+        /// <summary>
+        /// Convert HSV to Color4
+        /// </summary>
+        /// <param name="h"></param>
+        /// <param name="s"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public static Color4 ToRGB(float h, float s, float v)
         {
-            int Hi = ((int)(H / 60.0)) % 6;
-            float f = H / 60.0f - (int)(H / 60.0);
-            float p = V * (1 - S);
-            float q = V * (1 - f * S);
-            float t = V * (1 - (1 - f) * S);
+            int Hi = ((int)(h / 60.0)) % 6;
+            float f = h / 60.0f - (int)(h / 60.0);
+            float p = v * (1 - s);
+            float q = v * (1 - f * s);
+            float t = v * (1 - (1 - f) * s);
 
             switch (Hi)
             {
                 case 0:
-                    return fromRGB(V, t, p);
+                    return fromRGB(v, t, p);
                 case 1:
-                    return fromRGB(q, V, p);
+                    return fromRGB(q, v, p);
                 case 2:
-                    return fromRGB(p, V, t);
+                    return fromRGB(p, v, t);
                 case 3:
-                    return fromRGB(p, q, V);
+                    return fromRGB(p, q, v);
                 case 4:
-                    return fromRGB(t, p, V);
+                    return fromRGB(t, p, v);
                 case 5:
-                    return fromRGB(V, p, q);
+                    return fromRGB(v, p, q);
             }
 
             // Should not goes to here
@@ -177,6 +184,13 @@ namespace osu.Framework.Extensions.Color4Extensions
             }
         }
 
+        /// <summary>
+        /// Convert color4 to HSV
+        /// </summary>
+        /// <param name="c">Color4</param>
+        /// <param name="h">H value, between 0 to 360</param>
+        /// <param name="s">S value, between 0 to 1</param>
+        /// <param name="v">V value, between 0 to 1</param>
         public static void ToHSV(Color4 c, out float h, out float s, out float v)
         {
             float r = c.R;

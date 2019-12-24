@@ -170,13 +170,13 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 };
 
+                // Re-calculate display color if HSV's h changed.
                 BindableH.BindValueChanged(value =>
                 {
-                    // Calculate display color
                     var color = Color4Extensions.ToRGB(value.NewValue, 1, 1);
                     horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), color);
                     verticalBackground.Colour = ColourInfo.GradientVertical(new Color4(), Color4.Black);
-                });
+                }, true);
 
                 // Update picker position
                 BindableS.BindValueChanged(value => picker.X = value.NewValue * DrawWidth);
@@ -300,6 +300,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class HexTextBox : BasicTextBox
         {
+            /// <summary>
+            /// Only support Hex and start with `#`
+            /// </summary>
+            /// <param name="character">Characters should be filter</param>
+            /// <returns></returns>
             protected override bool CanAddCharacter(char character) => (string.IsNullOrEmpty(Text) && character == '#') || Uri.IsHexDigit(character);
         }
     }
