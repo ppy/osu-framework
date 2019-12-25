@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ColorPicker : Container, IHasCurrentValue<Color4>
     {
-        private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4> { Default = Color4.White};
+        private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4> { Default = Color4.White };
 
         public Bindable<Color4> Current
         {
