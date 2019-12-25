@@ -16,26 +16,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneColorPicker : ManualInputManagerTestScene
     {
-        private float DIVIATION = 0.01f;
-        private int count = 0;
+        private const float deviation = 0.01f;
+
+        private int count;
 
         protected ColorPicker.PickerAreaContainer PickerArea => colorPicker.PickerArea;
         protected ColorPicker.HueSlideContainer HueSlider => colorPicker.HueSlider;
         protected TextBox ColorCodeTextBox => colorPicker.ColorCodeTextBox;
 
         private readonly TestColorPicker colorPicker;
-        private readonly Box previewColorBox;
         private readonly SpriteText counterText;
 
         private readonly GridContainer colorArea;
 
         public TestSceneColorPicker()
         {
+            Box previewColorBox;
             Add(new GridContainer
             {
                 Width = 520,
                 Height = 400,
-                Content = new Drawable[][]
+                Content = new[]
                 {
                     new Drawable[]
                     {
@@ -59,37 +60,37 @@ namespace osu.Framework.Tests.Visual.UserInterface
                                 new SpriteText
                                 {
                                     RelativeSizeAxes = Axes.X,
-                                    Text="Click below colors to change color picker's current color."
+                                    Text = "Click below colors to change color picker's current color."
                                 },
                                 colorArea = new GridContainer
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     Height = 300,
-                                    Content = new Drawable[][]
+                                    Content = new[]
                                     {
                                         new Drawable[]
                                         {
-                                            new ClickableColor(colorPicker,Color4.Red),
-                                            new ClickableColor(colorPicker,Color4.Blue),
-                                            new ClickableColor(colorPicker,Color4.White),
+                                            new ClickableColor(colorPicker, Color4.Red),
+                                            new ClickableColor(colorPicker, Color4.Blue),
+                                            new ClickableColor(colorPicker, Color4.White),
                                         },
                                         new Drawable[]
                                         {
-                                            new ClickableColor(colorPicker,Color4.Green),
-                                            new ClickableColor(colorPicker,Color4.Yellow),
-                                            new ClickableColor(colorPicker,Color4.Purple),
+                                            new ClickableColor(colorPicker, Color4.Green),
+                                            new ClickableColor(colorPicker, Color4.Yellow),
+                                            new ClickableColor(colorPicker, Color4.Purple),
                                         },
                                         new Drawable[]
                                         {
-                                            new ClickableColor(colorPicker,Color4.Gray),
-                                            new ClickableColor(colorPicker,Color4.Orange),
-                                            new ClickableColor(colorPicker,Color4.Aqua),
+                                            new ClickableColor(colorPicker, Color4.Gray),
+                                            new ClickableColor(colorPicker, Color4.Orange),
+                                            new ClickableColor(colorPicker, Color4.Aqua),
                                         },
                                         new Drawable[]
                                         {
-                                            new ClickableColor(colorPicker,Color4.Fuchsia),
-                                            new ClickableColor(colorPicker,Color4.PaleGoldenrod),
-                                            new ClickableColor(colorPicker,Color4.DarkGray),
+                                            new ClickableColor(colorPicker, Color4.Fuchsia),
+                                            new ClickableColor(colorPicker, Color4.PaleGoldenrod),
+                                            new ClickableColor(colorPicker, Color4.DarkGray),
                                         }
                                     }
                                 }
@@ -120,31 +121,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             // Click picker center
             AddStep("Move Cursor to center",
-               () => { InputManager.MoveMouseTo(PickerArea); });
+                () => { InputManager.MoveMouseTo(PickerArea); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(new Color4(127, 63, 63, 255), 1);
 
             // Click picker left up
             AddStep("Move Cursor to left up",
-               () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(DIVIATION, DIVIATION))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation, deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 2);
 
             // Click picker right up
             AddStep("Move Cursor to right up",
-               () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - DIVIATION, DIVIATION))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 3);
 
             // Click picker left bottom
             AddStep("Move Cursor to left bottom",
-               () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(DIVIATION, PickerArea.DrawHeight - DIVIATION))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation, PickerArea.DrawHeight - deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Black, 4);
 
             // Click picker right bottom
             AddStep("Move Cursor to right bottom",
-               () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - DIVIATION, PickerArea.DrawHeight - DIVIATION))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, PickerArea.DrawHeight - deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Black, 4);
         }
@@ -154,12 +155,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             // Click picker
             AddStep("Move Cursor to picker area",
-                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - DIVIATION, DIVIATION))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
 
             // Click slider left
             AddStep("Move Cursor to slider left",
-                () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(DIVIATION, 10))); });
+                () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(deviation, 10))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 1);
 
@@ -171,7 +172,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // Click slider right
             AddStep("Move Cursor to slider right",
-                () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(HueSlider.DrawWidth - DIVIATION, 10))); });
+                () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(HueSlider.DrawWidth - deviation, 10))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 3);
         }
@@ -180,15 +181,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestEnterColorCode()
         {
             AddStep("Enter #FFFFFF",
-               () => { ColorCodeTextBox.Text = "#FFFF00"; });
+                () => { ColorCodeTextBox.Text = "#FFFF00"; });
             checkValue(Color4.Yellow, 1);
 
             AddStep("Enter FF0000",
-               () => { ColorCodeTextBox.Text = "FF0000"; });
+                () => { ColorCodeTextBox.Text = "FF0000"; });
             checkValue(Color4.Red, 2);
 
             AddStep("Enter invalid hex code",
-               () => { ColorCodeTextBox.Text = "FFGGHH"; });
+                () => { ColorCodeTextBox.Text = "FFGGHH"; });
             checkValue(Color4.Red, 2);
         }
 
@@ -197,25 +198,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             // Assign first color from right bottom
             AddStep("Assign first color",
-               () => { InputManager.MoveMouseTo(colorArea.Content[0][0]); });
+                () => { InputManager.MoveMouseTo(colorArea.Content[0][0]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 1);
 
             // Assign second color from right bottom
             AddStep("Assign second color",
-               () => { InputManager.MoveMouseTo(colorArea.Content[0][1]); });
+                () => { InputManager.MoveMouseTo(colorArea.Content[0][1]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Blue, 2);
 
             // Assign third color from right bottom
             AddStep("Assign third color",
-               () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
+                () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 3);
 
             // Assign third color again, value should not be changed
             AddStep("Assign third color",
-               () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
+                () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 3);
         }
@@ -228,10 +229,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public class ClickableColor : ClickableContainer
         {
-            private readonly Box background;
-
             public ClickableColor(ColorPicker picker, Color4 color)
             {
+                Box background;
                 RelativeSizeAxes = Axes.Both;
                 Padding = new MarginPadding(5);
                 Child = background = new Box

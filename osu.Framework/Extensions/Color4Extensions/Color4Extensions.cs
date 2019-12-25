@@ -130,12 +130,12 @@ namespace osu.Framework.Extensions.Color4Extensions
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
-            byte b = (byte)(argb >> 0);
+            byte b = (byte)argb;
 
             if (!forceOutputAlpha && a == 255)
-                return string.Format("#{0:X2}{1:X2}{2:X2}", r, g, b).ToLower();
+                return $"#{r:X2}{g:X2}{b:X2}".ToLower();
 
-            return string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", r, g, b, a).ToLower();
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}".ToLower();
         }
 
         /// <summary>
@@ -157,14 +157,19 @@ namespace osu.Framework.Extensions.Color4Extensions
             {
                 case 0:
                     return toColor4(v, t, p);
+
                 case 1:
                     return toColor4(q, v, p);
+
                 case 2:
                     return toColor4(p, v, t);
+
                 case 3:
                     return toColor4(p, q, v);
+
                 case 4:
                     return toColor4(t, p, v);
+
                 case 5:
                     return toColor4(v, p, q);
             }
@@ -191,13 +196,13 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <param name="h">H value, between 0 to 360</param>
         /// <param name="s">S value, between 0 to 1</param>
         /// <param name="v">V value, between 0 to 1</param>
-        public static void ToHSV(Color4 c, out float h, out float s, out float v)
+        public static void ToHsv(Color4 c, out float h, out float s, out float v)
         {
             float r = c.R;
             float g = c.G;
             float b = c.B;
 
-            var list = new float[] { r, g, b };
+            var list = new[] { r, g, b };
             var max = list.Max();
             var min = list.Min();
 

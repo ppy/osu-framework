@@ -34,7 +34,6 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Cached internalUpdate = new Cached();
 
         protected Box Background;
-        protected FillFlowContainer FillFlowContainer;
         protected PickerAreaContainer PickerArea;
         protected HueSlideContainer HueSlider;
         protected TextBox ColorCodeTextBox;
@@ -50,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Gray
                 },
-                FillFlowContainer = new FillFlowContainer
+                new FillFlowContainer
                 {
                     Margin = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
@@ -75,7 +74,7 @@ namespace osu.Framework.Graphics.UserInterface
                             Child = new GridContainer
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Content = new Drawable[][]
+                                Content = new[]
                                 {
                                     new Drawable[]
                                     {
@@ -111,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 // Assigh canvas and scroller to change to current color
-                Color4Extensions.ToHSV(newColor, out float h, out float s, out float v);
+                Color4Extensions.ToHsv(newColor, out float h, out float s, out float v);
                 HueSlider.Hue.Value = h;
                 PickerArea.Saturation.Value = s;
                 PickerArea.Value.Value = v;
@@ -162,16 +161,21 @@ namespace osu.Framework.Graphics.UserInterface
 
             public BindableFloat Value { get; private set; } = new BindableFloat { Precision = 0.001f };
 
-            private readonly Box whiteBackground;
-            private readonly Box horizontalBackground;
-            private readonly Box verticalBackground;
-            private readonly Drawable picker;
+            protected virtual Drawable CreatePicker() => new Circle
+            {
+                Size = new Vector2(10),
+                Colour = Color4.Red,
+                Origin = Anchor.Centre
+            };
 
             public PickerAreaContainer()
             {
-                Children = new Drawable[]
+                Box horizontalBackground;
+                Box verticalBackground;
+                Drawable picker;
+                Children = new[]
                 {
-                    whiteBackground = new Box
+                    new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
@@ -183,12 +187,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    picker = new Circle
-                    {
-                        Size = new Vector2(10),
-                        Colour = Color4.Red,
-                        Origin = Anchor.Centre
-                    }
+                    picker = CreatePicker()
                 };
 
                 // Re-calculate display color if HSV's hue changed.
@@ -240,21 +239,26 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
 
-            private readonly GridContainer background;
-            private readonly GradientPart[] colorParts;
-            private readonly Drawable picker;
+            protected virtual Drawable CreatePicker() => new Triangle
+            {
+                Size = new Vector2(15),
+                Colour = Color4.Red,
+                Anchor = Anchor.BottomLeft,
+                Origin = Anchor.TopCentre
+            };
 
             public HueSlideContainer()
             {
+                Drawable picker;
                 Padding = new MarginPadding { Bottom = 20 };
-                Children = new Drawable[]
+                Children = new[]
                 {
-                    background = new GridContainer
+                    new GridContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Content = new Drawable[][]
+                        Content = new[]
                         {
-                            colorParts = new GradientPart[]
+                            new Drawable[]
                             {
                                 new GradientPart(Color4.Red, Color4.Magenta),
                                 new GradientPart(Color4.Magenta, Color4.Blue),
@@ -265,13 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
                             }
                         }
                     },
-                    picker = new Triangle
-                    {
-                        Size = new Vector2(15),
-                        Colour = Color4.Red,
-                        Anchor = Anchor.BottomLeft,
-                        Origin = Anchor.TopCentre
-                    }
+                    picker = CreatePicker()
                 };
 
                 // Update picker position
