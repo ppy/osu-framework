@@ -133,21 +133,21 @@ namespace osu.Framework.Extensions.Color4Extensions
             byte b = (byte)argb;
 
             if (!forceOutputAlpha && a == 255)
-                return $"#{r:X2}{g:X2}{b:X2}".ToLower();
+                return $"#{r:X2}{g:X2}{b:X2}";
 
-            return $"#{r:X2}{g:X2}{b:X2}{a:X2}".ToLower();
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
         }
 
         /// <summary>
         /// Convert HSV to Color4
         /// </summary>
-        /// <param name="h"></param>
-        /// <param name="s"></param>
-        /// <param name="v"></param>
+        /// <param name="h">Hue value, between 0 to 360</param>
+        /// <param name="s">Saturation value, between 0 to 1</param>
+        /// <param name="v">Value value, between 0 to 1</param>
         /// <returns></returns>
         public static Color4 ToRGB(float h, float s, float v)
         {
-            int hi = ((int)(h / 60.0)) % 6;
+            int hi = ((int)(h / 60.0f)) % 6;
             float f = h / 60.0f - (int)(h / 60.0);
             float p = v * (1 - s);
             float q = v * (1 - f * s);
@@ -175,16 +175,13 @@ namespace osu.Framework.Extensions.Color4Extensions
             }
 
             // Should not goes to here
-            throw new InvalidOperationException();
+            throw new ArgumentOutOfRangeException($"{nameof(hi)} is not valid.");
 
             static Color4 toColor4(float fr, float fg, float fb)
             {
-                fr *= 255;
-                fg *= 255;
-                fb *= 255;
-                byte r = (byte)((fr < 0) ? 0 : (fr > 255) ? 255 : fr);
-                byte g = (byte)((fg < 0) ? 0 : (fg > 255) ? 255 : fg);
-                byte b = (byte)((fb < 0) ? 0 : (fb > 255) ? 255 : fb);
+                byte r = (byte)Math.Clamp(fr * 255, 0, 255);
+                byte g = (byte)Math.Clamp(fg * 255, 0, 255);
+                byte b = (byte)Math.Clamp(fb * 255, 0, 255);
                 return new Color4(r, g, b, 255);
             }
         }
@@ -192,15 +189,15 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <summary>
         /// Convert color4 to HSV
         /// </summary>
-        /// <param name="c">Color4</param>
-        /// <param name="h">H value, between 0 to 360</param>
-        /// <param name="s">S value, between 0 to 1</param>
-        /// <param name="v">V value, between 0 to 1</param>
-        public static void ToHsv(Color4 c, out float h, out float s, out float v)
+        /// <param name="color">Color4</param>
+        /// <param name="h">Hue value, between 0 to 360</param>
+        /// <param name="s">Saturation value, between 0 to 1</param>
+        /// <param name="v">Value value, between 0 to 1</param>
+        public static void ToHsv(this Color4 color, out float h, out float s, out float v)
         {
-            float r = c.R;
-            float g = c.G;
-            float b = c.B;
+            float r = color.R;
+            float g = color.G;
+            float b = color.B;
 
             var list = new[] { r, g, b };
             var max = list.Max();

@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             // Click picker left up
             AddStep("Move Cursor to left up",
-                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation, deviation))); });
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 2);
 

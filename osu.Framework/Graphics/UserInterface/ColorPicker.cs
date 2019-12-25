@@ -16,6 +16,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ColorPicker : Container, IHasCurrentValue<Color4>
     {
+        // Change current value will cause recursive change, so need a record to disable this change.
+        private readonly Cached internalUpdate = new Cached();
+
         private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4> { Default = Color4.White };
 
         public Bindable<Color4> Current
@@ -29,9 +32,6 @@ namespace osu.Framework.Graphics.UserInterface
             get => Background.Colour;
             set => Background.FadeColour(value);
         }
-
-        // Change current value will cause recursive change, so need a record to disable this change.
-        private readonly Cached internalUpdate = new Cached();
 
         protected Box Background;
         protected PickerAreaContainer PickerArea;
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
                 var newColor = value.NewValue;
 
                 // Update text and preview area
-                ColorCodeTextBox.Text = newColor.ToHex();
+                ColorCodeTextBox.Text = newColor.ToHex().ToLower();
                 PreviewColorBox.Colour = newColor;
 
                 // Prevent internal update cause recursive
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 // Assigh canvas and scroller to change to current color
-                Color4Extensions.ToHsv(newColor, out float h, out float s, out float v);
+                newColor.ToHsv(out float h, out float s, out float v);
                 HueSlider.Hue.Value = h;
                 PickerArea.Saturation.Value = s;
                 PickerArea.Value.Value = v;
@@ -155,11 +155,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class PickerAreaContainer : Container
         {
-            public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; } = new BindableFloat { Precision = 0.1f };
 
-            public BindableFloat Saturation { get; private set; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Saturation { get; } = new BindableFloat { Precision = 0.001f };
 
-            public BindableFloat Value { get; private set; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Value { get; } = new BindableFloat { Precision = 0.001f };
 
             protected virtual Drawable CreatePicker() => new Circle
             {
@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class HueSlideContainer : Container
         {
-            public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; } = new BindableFloat { Precision = 0.1f };
 
             protected virtual Drawable CreatePicker() => new Triangle
             {
