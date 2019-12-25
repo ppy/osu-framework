@@ -33,73 +33,63 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Add(new GridContainer
             {
-                Width = 500,
+                Width = 520,
                 Height = 400,
                 Content = new Drawable[][]
                 {
                     new Drawable[]
                     {
                         colorPicker = new TestColorPicker(),
-                        new GridContainer
+                        new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            RowDimensions = new []
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(10),
+                            Children = new Drawable[]
                             {
-                                new Dimension( GridSizeMode.Absolute,100)
-                            },
-                            Content = new Drawable[][]
-                            {
-                                new Drawable[]
+                                counterText = new SpriteText
                                 {
-                                    new Container
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Padding = new MarginPadding(10),
-                                        Children = new Drawable[]
-                                        {
-                                            previewColorBox = new Box
-                                            {
-                                                RelativeSizeAxes = Axes.Both,
-                                            },
-                                            counterText = new SpriteText
-                                            {
-                                                Anchor = Anchor.Centre,
-                                                Origin = Anchor.Centre
-                                            }
-                                        }
-                                    }
+                                    RelativeSizeAxes = Axes.X,
                                 },
-                                new Drawable[]
+                                previewColorBox = new Box
                                 {
-                                    colorArea = new GridContainer
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 50
+                                },
+                                new SpriteText
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Text="Click below colors to change color picker's current color."
+                                },
+                                colorArea = new GridContainer
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 300,
+                                    Content = new Drawable[][]
                                     {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Content = new Drawable[][]
+                                        new Drawable[]
                                         {
-                                            new Drawable[]
-                                            {
-                                                new ClickableColor(colorPicker,Color4.Red),
-                                                new ClickableColor(colorPicker,Color4.Blue),
-                                                new ClickableColor(colorPicker,Color4.White),
-                                            },
-                                            new Drawable[]
-                                            {
-                                                new ClickableColor(colorPicker,Color4.Green),
-                                                new ClickableColor(colorPicker,Color4.Yellow),
-                                                new ClickableColor(colorPicker,Color4.Purple),
-                                            },
-                                            new Drawable[]
-                                            {
-                                                new ClickableColor(colorPicker,Color4.Gray),
-                                                new ClickableColor(colorPicker,Color4.Orange),
-                                                new ClickableColor(colorPicker,Color4.Aqua),
-                                            },
-                                            new Drawable[]
-                                            {
-                                                new ClickableColor(colorPicker,Color4.Fuchsia),
-                                                new ClickableColor(colorPicker,Color4.PaleGoldenrod),
-                                                new ClickableColor(colorPicker,Color4.DarkGray),
-                                            }
+                                            new ClickableColor(colorPicker,Color4.Red),
+                                            new ClickableColor(colorPicker,Color4.Blue),
+                                            new ClickableColor(colorPicker,Color4.White),
+                                        },
+                                        new Drawable[]
+                                        {
+                                            new ClickableColor(colorPicker,Color4.Green),
+                                            new ClickableColor(colorPicker,Color4.Yellow),
+                                            new ClickableColor(colorPicker,Color4.Purple),
+                                        },
+                                        new Drawable[]
+                                        {
+                                            new ClickableColor(colorPicker,Color4.Gray),
+                                            new ClickableColor(colorPicker,Color4.Orange),
+                                            new ClickableColor(colorPicker,Color4.Aqua),
+                                        },
+                                        new Drawable[]
+                                        {
+                                            new ClickableColor(colorPicker,Color4.Fuchsia),
+                                            new ClickableColor(colorPicker,Color4.PaleGoldenrod),
+                                            new ClickableColor(colorPicker,Color4.DarkGray),
                                         }
                                     }
                                 }
@@ -122,7 +112,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             colorPicker.Current.SetDefault();
             count = 0;
-            counterText.Text = "Haven't change.";
+            counterText.Text = $"{count} changes!";
         }
 
         [Test]
