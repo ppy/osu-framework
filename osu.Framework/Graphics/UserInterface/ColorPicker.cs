@@ -155,11 +155,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class PickerAreaContainer : Container
         {
-            public BindableFloat Hue { get; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; } = new BindableFloat();
 
-            public BindableFloat Saturation { get; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Saturation { get; } = new BindableFloat();
 
-            public BindableFloat Value { get; } = new BindableFloat { Precision = 0.001f };
+            public BindableFloat Value { get; } = new BindableFloat();
 
             protected virtual Drawable CreatePicker() => new Circle
             {
@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class HueSlideContainer : Container
         {
-            public BindableFloat Hue { get; } = new BindableFloat { Precision = 0.1f };
+            public BindableFloat Hue { get; } = new BindableFloat();
 
             protected virtual Drawable CreatePicker() => new Triangle
             {

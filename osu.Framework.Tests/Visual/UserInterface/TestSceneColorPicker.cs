@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -223,7 +224,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void checkValue(Color4 expectColor, int count)
         {
-            AddAssert($"Color == {expectColor.ToString()}", () => expectColor == colorPicker.Current.Value);
+            AddAssert($"Color == {expectColor.ToString()}", () => Precision.AlmostEquals(expectColor, colorPicker.Current.Value, 0.005f));
             AddAssert($"Count == {count}", () => count == this.count);
         }
 

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
+using osuTK.Graphics;
 using System;
 
 namespace osu.Framework.MathUtils
@@ -24,5 +25,8 @@ namespace osu.Framework.MathUtils
         public static bool AlmostEquals(Vector2 value1, Vector2 value2, float acceptableDifference = FLOAT_EPSILON) => AlmostEquals(value1.X, value2.X, acceptableDifference) && AlmostEquals(value1.Y, value2.Y, acceptableDifference);
 
         public static bool AlmostEquals(double value1, double value2, double acceptableDifference = DOUBLE_EPSILON) => Math.Abs(value1 - value2) <= acceptableDifference;
+
+        public static bool AlmostEquals(Color4 value1, Color4 value2, float acceptableDifference = FLOAT_EPSILON)
+            => AlmostEquals(value1.R, value2.R, acceptableDifference) && AlmostEquals(value1.G, value2.G, acceptableDifference) && AlmostEquals(value1.B, value2.B, acceptableDifference) && AlmostEquals(value1.A, value2.A, acceptableDifference);
     }
 }
