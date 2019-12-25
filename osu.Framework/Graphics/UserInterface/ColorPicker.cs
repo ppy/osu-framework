@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ColorPicker : Container, IHasCurrentValue<Color4>
     {
-        private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4>();
+        private readonly BindableWithCurrent<Color4> current = new BindableWithCurrent<Color4> { Default = Color4.White};
 
         public Bindable<Color4> Current
         {
@@ -26,31 +26,31 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Color4 BackgroundColour
         {
-            get => background.Colour;
-            set => background.FadeColour(value);
+            get => Background.Colour;
+            set => Background.FadeColour(value);
         }
 
         // Change current value will cause recursive change, so need a record to disable this change.
         private readonly Cached internalUpdate = new Cached();
 
-        private readonly Box background;
-        private readonly FillFlowContainer fillFlowContainer;
-        private readonly PickerArea pickerArea;
-        private readonly HueSlider hueSlider;
-        private readonly TextBox colorCodeTextBox;
-        private readonly Box previewColorBox;
+        protected Box Background;
+        protected FillFlowContainer FillFlowContainer;
+        protected PickerAreaContainer PickerArea;
+        protected HueSlideContainer HueSlider;
+        protected TextBox ColorCodeTextBox;
+        protected Box PreviewColorBox;
 
         public ColorPicker()
         {
             AutoSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                background = new Box
+                Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Gray
                 },
-                fillFlowContainer = new FillFlowContainer
+                FillFlowContainer = new FillFlowContainer
                 {
                     Margin = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
@@ -58,11 +58,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Spacing = new Vector2(0, 10),
                     Children = new Drawable[]
                     {
-                        pickerArea = new PickerArea
+                        PickerArea = new PickerAreaContainer
                         {
                             Size = new Vector2(200),
                         },
-                        hueSlider = new HueSlider
+                        HueSlider = new HueSlideContainer
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
@@ -79,12 +79,12 @@ namespace osu.Framework.Graphics.UserInterface
                                 {
                                     new Drawable[]
                                     {
-                                        colorCodeTextBox = new HexTextBox
+                                        ColorCodeTextBox = new HexTextBox
                                         {
                                             RelativeSizeAxes = Axes.Both,
                                             LengthLimit = 7
                                         },
-                                        previewColorBox = new Box
+                                        PreviewColorBox = new Box
                                         {
                                             RelativeSizeAxes = Axes.Both
                                         }
@@ -96,27 +96,29 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            hueSlider.Hue.BindTo(pickerArea.Hue);
+            HueSlider.Hue.BindTo(PickerArea.Hue);
 
             Current.BindValueChanged(value =>
             {
+                var newColor = value.NewValue;
+
                 // Update text and preview area
-                colorCodeTextBox.Text = value.NewValue.ToHex();
-                previewColorBox.Colour = value.NewValue;
+                ColorCodeTextBox.Text = newColor.ToHex();
+                PreviewColorBox.Colour = newColor;
 
                 // Prevent internal update cause recursive
                 if (internalUpdate.IsValid)
                     return;
 
                 // Assigh canvas and scroller to change to current color
-                Color4Extensions.ToHSV(value.NewValue, out float h, out float s, out float v);
-                hueSlider.Hue.Value = h;
-                pickerArea.Saturation.Value = s;
-                pickerArea.Value.Value = v;
+                Color4Extensions.ToHSV(newColor, out float h, out float s, out float v);
+                HueSlider.Hue.Value = h;
+                PickerArea.Saturation.Value = s;
+                PickerArea.Value.Value = v;
             }, true);
 
             // If text changed is valid, change current color.
-            colorCodeTextBox.Current.BindValueChanged(value =>
+            ColorCodeTextBox.Current.BindValueChanged(value =>
             {
                 if (value.NewValue.Replace("#", "").Length != 6)
                     return;
@@ -125,9 +127,9 @@ namespace osu.Framework.Graphics.UserInterface
             });
 
             // Update scroll result
-            pickerArea.Hue.BindValueChanged(_ => internalUpdate.Invalidate());
-            pickerArea.Saturation.BindValueChanged(_ => internalUpdate.Invalidate());
-            pickerArea.Value.BindValueChanged(_ => internalUpdate.Invalidate());
+            PickerArea.Hue.BindValueChanged(_ => internalUpdate.Invalidate());
+            PickerArea.Saturation.BindValueChanged(_ => internalUpdate.Invalidate());
+            PickerArea.Value.BindValueChanged(_ => internalUpdate.Invalidate());
         }
 
         protected override void Update()
@@ -143,16 +145,16 @@ namespace osu.Framework.Graphics.UserInterface
             // Set to valid
             internalUpdate.Validate();
 
-            var h = pickerArea.Hue.Value;
-            var s = pickerArea.Saturation.Value;
-            var v = pickerArea.Value.Value;
+            var h = PickerArea.Hue.Value;
+            var s = PickerArea.Saturation.Value;
+            var v = PickerArea.Value.Value;
 
             // Update current color
             var color = Color4Extensions.ToRGB(h, s, v);
             Current.Value = color;
         }
 
-        public class PickerArea : Container
+        public class PickerAreaContainer : Container
         {
             public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
 
@@ -165,7 +167,7 @@ namespace osu.Framework.Graphics.UserInterface
             private readonly Box verticalBackground;
             private readonly Drawable picker;
 
-            public PickerArea()
+            public PickerAreaContainer()
             {
                 Children = new Drawable[]
                 {
@@ -234,7 +236,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class HueSlider : Container
+        public class HueSlideContainer : Container
         {
             public BindableFloat Hue { get; private set; } = new BindableFloat { Precision = 0.1f };
 
@@ -242,7 +244,7 @@ namespace osu.Framework.Graphics.UserInterface
             private readonly GradientPart[] colorParts;
             private readonly Drawable picker;
 
-            public HueSlider()
+            public HueSlideContainer()
             {
                 Padding = new MarginPadding { Bottom = 20 };
                 Children = new Drawable[]
