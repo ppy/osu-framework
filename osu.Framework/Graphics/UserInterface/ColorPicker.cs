@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.UserInterface
                 PreviewColorBox.Colour = newColor;
 
                 // Prevent internal update cause recursive
-                if (internalUpdate.IsValid)
+                if (!internalUpdate.IsValid)
                     return;
 
                 // Assigh canvas and scroller to change to current color
@@ -142,9 +142,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHsl()
         {
-            // Set to valid
-            internalUpdate.Validate();
-
             var h = PickerArea.Hue.Value;
             var s = PickerArea.Saturation.Value;
             var v = PickerArea.Value.Value;
@@ -152,6 +149,9 @@ namespace osu.Framework.Graphics.UserInterface
             // Update current color
             var color = Color4Extensions.ToRGB(h, s, v);
             Current.Value = color;
+
+            // Set to valid
+            internalUpdate.Validate();
         }
 
         public class PickerAreaContainer : Container
