@@ -60,26 +60,33 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// Returns the most common prefix of every string in this <see cref="IEnumerable{T}"/>
         /// </summary>
         /// <param name="collection">The string <see cref="IEnumerable{T}"/></param>
-        /// <returns>The most common prefix</returns>
+        /// <returns>The most common prefix, or an empty string if no common prefix could be found.</returns>
         /// <example>
         /// "ab" == { "abc", "abd" }.GetCommonPrefix()
         /// </example>
         public static string GetCommonPrefix(this IEnumerable<string> collection)
         {
-            return collection.Aggregate((prefix, str) =>
-            {
-                if (str.StartsWith(prefix)) return prefix;
+            string prefix = string.Empty;
 
-                for (int i = prefix.Length - 1; i >= 0; i--)
+            foreach (var str in collection)
+            {
+                if (prefix.Length == 0)
+                    prefix = str;
+                else
                 {
-                    if (str.StartsWith(prefix.Substring(0, i)))
+                    if (str.StartsWith(prefix))
+                        continue;
+
+                    for (int i = prefix.Length - 1; i >= 0; i--)
                     {
-                        return prefix.Substring(0, i);
+                        prefix = prefix.Substring(0, i);
+                        if (str.StartsWith(prefix))
+                            break;
                     }
                 }
+            }
 
-                return "";
-            });
+            return prefix;
         }
     }
 }
