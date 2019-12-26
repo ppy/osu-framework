@@ -18,6 +18,9 @@ namespace osu.Framework.Tests.Lists
 
             arr = new[] { "123.456", "123.789" };
             Assert.AreEqual("123.", arr.GetCommonPrefix());
+
+            arr = new[] { "123.456", "123.789", "435", "123.789" };
+            Assert.AreEqual(string.Empty, arr.GetCommonPrefix());
         }
 
         [Test]
