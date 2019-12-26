@@ -66,27 +66,29 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// </example>
         public static string GetCommonPrefix(this IEnumerable<string> collection)
         {
-            string prefix = string.Empty;
+            ReadOnlySpan<char> prefix = default;
 
             foreach (var str in collection)
             {
-                if (prefix.Length == 0)
-                    prefix = str;
-                else
+                if (prefix.IsEmpty) // the first string
                 {
-                    if (str.StartsWith(prefix))
-                        continue;
-
-                    for (int i = prefix.Length - 1; i >= 0; i--)
-                    {
-                        prefix = prefix.Substring(0, i);
-                        if (str.StartsWith(prefix))
-                            break;
-                    }
+                    prefix = str;
+                    continue;
                 }
+
+                while (!prefix.IsEmpty)
+                {
+                    if (str.AsSpan().StartsWith(prefix))
+                        break;
+                    else
+                        prefix = prefix[..^1];
+                }
+
+                if (prefix.IsEmpty)
+                    return string.Empty;
             }
 
-            return prefix;
+            return new string(prefix);
         }
     }
 }
