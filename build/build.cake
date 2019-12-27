@@ -209,7 +209,6 @@ Task("PackNativeLibs")
 Task("PackTemplate")
     .Does(() => {
         DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
-            NoBuild = true,
             OutputDirectory = artifactsDirectory,
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Quiet,
