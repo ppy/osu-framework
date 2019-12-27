@@ -200,8 +200,8 @@ namespace osu.Framework.Extensions.Color4Extensions
             float b = color.B;
 
             var list = new[] { r, g, b };
-            var max = list.Max();
-            var min = list.Min();
+            var max = Math.Max(r, Math.Max(g, b));
+            var min = Math.Min(r, Math.Min(g, b));
 
             if (max == min)
                 h = 0;

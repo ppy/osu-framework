@@ -120,32 +120,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestClickColorPicker()
         {
-            // Click picker center
             AddStep("Move Cursor to center",
                 () => { InputManager.MoveMouseTo(PickerArea); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(new Color4(127, 63, 63, 255), 1);
 
-            // Click picker left up
             AddStep("Move Cursor to left up",
                 () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 2);
 
-            // Click picker right up
             AddStep("Move Cursor to right up",
                 () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 3);
 
-            // Click picker left bottom
             AddStep("Move Cursor to left bottom",
                 () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(deviation, PickerArea.DrawHeight - deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Black, 4);
 
-            // Click picker right bottom
             AddStep("Move Cursor to right bottom",
+                () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, PickerArea.DrawHeight - deviation))); });
+            AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
+            checkValue(Color4.Black, 4);
+
+            // Click again, value should not be change.
+            AddStep("Move Cursor to right bottom again",
                 () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, PickerArea.DrawHeight - deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Black, 4);
@@ -154,25 +155,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestClickHueSlider()
         {
-            // Click picker
             AddStep("Move Cursor to picker area",
                 () => { InputManager.MoveMouseTo(PickerArea.ToScreenSpace(new Vector2(PickerArea.DrawWidth - deviation, deviation))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
 
-            // Click slider left
             AddStep("Move Cursor to slider left",
                 () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(deviation, 10))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 1);
 
-            // Click slider center
             AddStep("Move Cursor to slider center",
                 () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(HueSlider.DrawWidth / 2, 10))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Aqua, 2);
 
-            // Click slider right
             AddStep("Move Cursor to slider right",
+                () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(HueSlider.DrawWidth - deviation, 10))); });
+            AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
+            checkValue(Color4.Red, 3);
+
+            // Click again, value should not be change.
+            AddStep("Move Cursor to slider right again",
                 () => { InputManager.MoveMouseTo(HueSlider.ToScreenSpace(new Vector2(HueSlider.DrawWidth - deviation, 10))); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 3);
@@ -197,26 +200,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestAssighColor()
         {
-            // Assign first color from right bottom
             AddStep("Assign first color",
                 () => { InputManager.MoveMouseTo(colorArea.Content[0][0]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Red, 1);
 
-            // Assign second color from right bottom
             AddStep("Assign second color",
                 () => { InputManager.MoveMouseTo(colorArea.Content[0][1]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.Blue, 2);
 
-            // Assign third color from right bottom
             AddStep("Assign third color",
                 () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 3);
 
             // Assign third color again, value should not be changed
-            AddStep("Assign third color",
+            AddStep("Assign third color again",
                 () => { InputManager.MoveMouseTo(colorArea.Content[0][2]); });
             AddStep("Click", () => { InputManager.Click(MouseButton.Left); });
             checkValue(Color4.White, 3);
