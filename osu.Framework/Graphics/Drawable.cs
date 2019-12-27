@@ -2294,6 +2294,15 @@ namespace osu.Framework.Graphics
             else
                 return shortClass;
         }
+
+        /// <summary>
+        /// Represents a new instance of an empty <see cref="Drawable"/>.
+        /// </summary>
+        public static Drawable Empty => new EmptyDrawable();
+
+        private class EmptyDrawable : Drawable
+        {
+        }
     }
 
     /// <summary>
