@@ -2296,9 +2296,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Represents a new instance of an empty <see cref="Drawable"/>.
+        /// Creates a new instance of an empty <see cref="Drawable"/>.
         /// </summary>
-        public static Drawable Empty => new EmptyDrawable();
+        public static Drawable Empty() => new EmptyDrawable();
 
         private class EmptyDrawable : Drawable
         {
