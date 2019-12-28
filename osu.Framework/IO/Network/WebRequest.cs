@@ -113,6 +113,11 @@ namespace osu.Framework.IO.Network
         /// </summary>
         protected virtual string Accept => string.Empty;
 
+        /// <summary>
+        /// The value of the User-agent HTTP header.
+        /// </summary>
+        protected virtual string UserAgent => "osu-framework";
+
         internal int RetryCount { get; private set; }
 
         /// <summary>
@@ -311,6 +316,8 @@ namespace osu.Framework.IO.Network
                         if (!string.IsNullOrEmpty(ContentType))
                             request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
                     }
+
+                    request.Headers.UserAgent.TryParseAdd(UserAgent);
 
                     if (!string.IsNullOrEmpty(Accept))
                         request.Headers.Accept.TryParseAdd(Accept);
