@@ -122,10 +122,6 @@ namespace osu.Framework.IO.Network
 
         private static readonly HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
         {
-            DefaultRequestHeaders =
-            {
-                UserAgent = { ProductInfoHeaderValue.Parse("osu!") }
-            },
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
             Timeout = System.Threading.Timeout.InfiniteTimeSpan
