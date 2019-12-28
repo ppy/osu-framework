@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.IO
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
-            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
+            Assert.IsTrue(responseObject.Headers.UserAgent == "osu-framework");
 
             // disabled due to hosted version returning incorrect response (https://github.com/postmanlabs/httpbin/issues/545)
             // Assert.AreEqual(url, responseObject.Url);
