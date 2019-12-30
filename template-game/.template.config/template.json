@@ -4,7 +4,7 @@
     "classifications": [
         "Console"
     ],
-    "name": "osu!framework-based game",
+    "name": "osu!framework game template",
     "identity": "ppy.osu.Framework.Templates",
     "shortName": "osu-framework-game",
     "tags": {
