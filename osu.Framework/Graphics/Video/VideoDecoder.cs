@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream.CanSeek;
+        public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Video
         public IBindable<DecoderState> State => bindableState;
 
         private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+
         private volatile DecoderState volatileState;
 
         private DecoderState state
@@ -69,9 +70,9 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (bindableState.Value != value)
-                    scheduler?.AddOnce(() => bindableState.Value = value);
+                if (volatileState == value) return;
 
+                scheduler?.Add(() => bindableState.Value = value);
                 volatileState = value;
             }
         }
@@ -535,9 +536,6 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            videoStream.Dispose();
-            videoStream = null;
-
             while (decoderCommands.TryDequeue(out var _))
             {
             }
@@ -553,6 +551,9 @@ namespace osu.Framework.Graphics.Video
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
+
+            videoStream.Dispose();
+            videoStream = null;
 
             // gets freed by libavformat when closing the input
             contextBuffer = null;
