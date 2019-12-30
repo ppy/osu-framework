@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Extensions.NumericExtensions;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics
 {
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                float radians = NumericExtensions.DegreesToRadians(rotation);
+                float radians = Angles.DegreesToRadians(rotation);
                 MatrixExtensions.RotateFromLeft(ref Matrix, radians);
                 MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }

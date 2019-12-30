@@ -3,9 +3,9 @@
 
 using System;
 
-namespace osu.Framework.Extensions.NumericExtensions
+namespace osu.Framework.MathUtils
 {
-    public static class NumericExtensions
+    public static class Angles
     {
         /// <summary>
         /// Convert degrees to radians
