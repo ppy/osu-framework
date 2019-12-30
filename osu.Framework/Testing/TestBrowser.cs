@@ -131,12 +131,12 @@ namespace osu.Framework.Testing
             var resources = game.Resources;
 
             //Roboto
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Regular");
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Bold");
 
             //RobotoCondensed
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
@@ -393,6 +393,14 @@ namespace osu.Framework.Testing
 
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
+            if (CurrentTest?.Parent != null)
+            {
+                testContentContainer.Remove(CurrentTest.Parent);
+                CurrentTest.Dispose();
+            }
+
+            CurrentTest = null;
+
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -413,10 +421,8 @@ namespace osu.Framework.Testing
 
             Assembly.Value = testType.Assembly;
 
-            var lastTest = CurrentTest;
-
             CurrentTest = newTest;
-            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
+            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, onCompletion));
 
             updateButtons();
             resetRecording();
@@ -434,14 +440,8 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Drawable lastTest, Action onCompletion)
+        private void finishLoad(Drawable newTest, Action onCompletion)
         {
-            if (lastTest?.Parent != null)
-            {
-                testContentContainer.Remove(lastTest.Parent);
-                lastTest.Dispose();
-            }
-
             if (CurrentTest != newTest)
             {
                 // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.

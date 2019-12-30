@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
-            public bool Equals(MemberInfo x, MemberInfo y) => string.Equals(x?.Name, y?.Name);
+            public bool Equals(MemberInfo x, MemberInfo y) => x?.Name == y?.Name;
 
             public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }

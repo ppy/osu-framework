@@ -152,6 +152,8 @@ namespace osu.Framework.Tests.Containers
 
             Assert.That(container, Has.Count.Zero);
             Assert.That(unbound, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [TestCase(false)]
@@ -182,6 +184,8 @@ namespace osu.Framework.Tests.Containers
             }
 
             Assert.That(disposed, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [Test]

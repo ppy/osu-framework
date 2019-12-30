@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneTrack : FrameworkTestScene
+    public class TestSceneTrackAdjustments : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks)
@@ -162,30 +162,35 @@ namespace osu.Framework.Tests.Visual.Audio
                 base.LoadComplete();
                 audio.Volume.BindValueChanged(updateLocal);
                 audio.Balance.BindValueChanged(updateLocal);
+                audio.Tempo.BindValueChanged(updateLocal);
                 audio.Frequency.BindValueChanged(updateLocal, true);
 
                 audio.AggregateVolume.BindValueChanged(updateAggregate);
                 audio.AggregateBalance.BindValueChanged(updateAggregate);
+                audio.AggregateTempo.BindValueChanged(updateAggregate);
                 audio.AggregateFrequency.BindValueChanged(updateAggregate, true);
             }
 
             private void updateAggregate(ValueChangedEvent<double> obj)
             {
-                textAggregate.Text = $"aggregate: vol {audio.AggregateVolume.Value:F1} freq {audio.AggregateFrequency.Value:F1} bal {audio.AggregateBalance.Value:F1}";
+                textAggregate.Text = $"aggr: vol {audio.AggregateVolume.Value:F1} freq {audio.AggregateFrequency.Value:F1} tempo {audio.AggregateTempo.Value:F1} bal {audio.AggregateBalance.Value:F1}";
                 volFill.Height = (float)audio.AggregateVolume.Value;
 
                 warpContent.Rotation = (float)audio.AggregateBalance.Value * 4;
             }
 
             private void updateLocal(ValueChangedEvent<double> obj) =>
-                textLocal.Text = $"local: vol {audio.Volume.Value:F1} freq {audio.Frequency.Value:F1} bal {audio.Balance.Value:F1}";
+                textLocal.Text = $"local: vol {audio.Volume.Value:F1} freq {audio.Frequency.Value:F1} tempo {audio.Tempo.Value:F1} bal {audio.Balance.Value:F1}";
 
             protected override bool OnDrag(DragEvent e)
             {
                 Position += e.Delta;
 
                 audio.Balance.Value = X / 100f;
-                audio.Frequency.Value = 1 - Y / 100f;
+                if (e.ControlPressed)
+                    audio.Tempo.Value = 1 - Y / 100f;
+                else
+                    audio.Frequency.Value = 1 - Y / 100f;
                 return true;
             }
 

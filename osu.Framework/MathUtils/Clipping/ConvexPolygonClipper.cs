@@ -77,7 +77,7 @@ namespace osu.Framework.MathUtils.Clipping
             int inputCount = subjectVertices.Length;
 
             // Process the clip edge connecting the last vertex to the first vertex
-            inputCount = processClipEdge(new Line(clipVertices[clipVertices.Length - 1], clipVertices[0]), buffer, inputCount);
+            inputCount = processClipEdge(new Line(clipVertices[^1], clipVertices[0]), buffer, inputCount);
 
             // Process all other edges
             for (int c = 1; c < clipVertices.Length; c++)
