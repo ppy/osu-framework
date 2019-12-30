@@ -2,9 +2,7 @@
   <PropertyGroup Label="Project">
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>WinExe</OutputType>
-    <Description>osu!framework-based template game</Description>
     <AssemblyName>TemplateGame</AssemblyName>
-    <Title>o!f-based game</Title>
     <ApplicationIcon>game.ico</ApplicationIcon>
     <Version>0.0.0</Version>
     <FileVersion>0.0.0</FileVersion>
