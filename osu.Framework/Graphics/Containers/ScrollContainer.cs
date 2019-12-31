@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
         /// <returns></returns>
-        protected float Clamp(float position, float extension = 0) => Math.Clamp(position, -extension, scrollableExtent + extension);
+        protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, scrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
 
@@ -474,7 +474,7 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!IsDragging && Current != Clamp(Current) && target != Clamp(target, 0.01f))
+            if (!IsDragging && Current != Clamp(Current) && target != Clamp(target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
