@@ -32,8 +32,8 @@ namespace osu.Framework.Testing
         /// </summary>
         protected ManualInputManager InputManager { get; }
 
-        private readonly Button buttonTest;
-        private readonly Button buttonLocal;
+        private readonly BasicButton buttonTest;
+        private readonly BasicButton buttonLocal;
 
         [SetUp]
         public virtual void SetUp() => ResetInput();
@@ -88,13 +88,13 @@ namespace osu.Framework.Testing
 
                                     Children = new Drawable[]
                                     {
-                                        buttonLocal = new Button
+                                        buttonLocal = new BasicButton
                                         {
                                             Text = "local",
                                             Size = new Vector2(50, 30),
                                             Action = returnUserInput
                                         },
-                                        buttonTest = new Button
+                                        buttonTest = new BasicButton
                                         {
                                             Text = "test",
                                             Size = new Vector2(50, 30),

@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Transforms
     }
 
     public abstract class Transform<TValue, T> : Transform<TValue>
-        where T : ITransformable
+        where T : class, ITransformable
     {
         public override ITransformable TargetTransformable => Target;
 

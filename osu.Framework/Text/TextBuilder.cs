@@ -79,8 +79,10 @@ namespace osu.Framework.Text
         public void AddText(string text)
         {
             foreach (var c in text)
+            {
                 if (!AddCharacter(c))
                     break;
+            }
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace osu.Framework.Text
             if (!currentNewLine)
             {
                 if (Characters.Count > 0)
-                    kerning = glyph.GetKerning(Characters[Characters.Count - 1].Glyph);
+                    kerning = glyph.GetKerning(Characters[^1].Glyph);
                 kerning += spacing.X;
             }
 
@@ -164,8 +166,8 @@ namespace osu.Framework.Text
             if (Characters.Count == 0)
                 return;
 
-            TextBuilderGlyph removedCharacter = Characters[Characters.Count - 1];
-            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : (TextBuilderGlyph?)Characters[Characters.Count - 2];
+            TextBuilderGlyph removedCharacter = Characters[^1];
+            TextBuilderGlyph? previousCharacter = Characters.Count == 1 ? null : (TextBuilderGlyph?)Characters[^2];
 
             Characters.RemoveAt(Characters.Count - 1);
 

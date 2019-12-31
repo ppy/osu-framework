@@ -12,13 +12,13 @@ namespace osu.Framework.Text
     /// </summary>
     public struct TextBuilderGlyph : ITexturedCharacterGlyph
     {
-        public Texture Texture => Glyph.Texture;
-        public float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
-        public float YOffset => Glyph.YOffset * textSize;
-        public float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
-        public float Width => Glyph.Width * textSize;
-        public float Height => Glyph.Height * textSize;
-        public char Character => Glyph.Character;
+        public readonly Texture Texture => Glyph.Texture;
+        public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
+        public readonly float YOffset => Glyph.YOffset * textSize;
+        public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
+        public readonly float Width => Glyph.Width * textSize;
+        public readonly float Height => Glyph.Height * textSize;
+        public readonly char Character => Glyph.Character;
 
         public readonly ITexturedCharacterGlyph Glyph;
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Text
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float GetKerning<T>(T lastGlyph)
+        public readonly float GetKerning<T>(T lastGlyph)
             where T : ICharacterGlyph
             => fixedWidth != null ? 0 : Glyph.GetKerning(lastGlyph);
     }

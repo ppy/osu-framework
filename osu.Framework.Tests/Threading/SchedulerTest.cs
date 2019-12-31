@@ -243,6 +243,21 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestPerUpdateTask()
+        {
+            int invocations = 0;
+
+            scheduler.AddDelayed(() => invocations++, 0, true);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(2, invocations);
+        }
+
+        [Test]
         public void TestScheduleFromInsideDelegate([Values(false, true)] bool forceScheduled)
         {
             const int max_reschedules = 3;
@@ -273,6 +288,97 @@ namespace osu.Framework.Tests.Threading
                 reschedules++;
                 scheduleTask();
             }, forceScheduled);
+        }
+
+        [Test]
+        public void TestInvokeBeforeSchedulerRun()
+        {
+            int invocations = 0;
+
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
+
+            scheduler.Add(del);
+            Assert.AreEqual(0, invocations);
+
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestInvokeAfterSchedulerRun()
+        {
+            int invocations = 0;
+
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
+
+            scheduler.Add(del);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            Assert.Throws<InvalidOperationException>(del.RunTask);
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestInvokeBeforeScheduleUpdate()
+        {
+            int invocations = 0;
+            ScheduledDelegate del;
+            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
+            Assert.AreEqual(0, invocations);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestRepeatAlreadyCompletedSchedule()
+        {
+            int invocations = 0;
+            var del = new ScheduledDelegate(() => invocations++);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+            Assert.Throws<InvalidOperationException>(() => scheduler.Add(del));
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        /// <summary>
+        /// Tests that delegates added from inside a scheduled callback don't get executed when the scheduled callback cancels a prior intermediate task.
+        ///
+        /// Delegate 1 - Added at the start.
+        /// Delegate 2 - Added at the start, cancelled by Delegate 1.
+        /// Delegate 3 - Added during Delegate 1 callback, should not get executed.
+        /// </summary>
+        [Test]
+        public void TestDelegateAddedInCallbackNotExecutedAfterIntermediateCancelledDelegate()
+        {
+            int invocations = 0;
+
+            // Delegate 2
+            var cancelled = new ScheduledDelegate(() => { });
+
+            // Delegate 1
+            scheduler.Add(() =>
+            {
+                invocations++;
+
+                cancelled.Cancel();
+
+                // Delegate 3
+                scheduler.Add(() => invocations++);
+            });
+
+            scheduler.Add(cancelled);
+
+            scheduler.Update();
+            Assert.That(invocations, Is.EqualTo(1));
         }
     }
 }

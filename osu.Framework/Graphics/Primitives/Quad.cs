@@ -10,14 +10,14 @@ using osu.Framework.MathUtils;
 namespace osu.Framework.Graphics.Primitives
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Quad : IConvexPolygon, IEquatable<Quad>
+    public readonly struct Quad : IConvexPolygon, IEquatable<Quad>
     {
         // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
         // See: IPolygon.GetVertices()
-        public Vector2 TopLeft;
-        public Vector2 BottomLeft;
-        public Vector2 BottomRight;
-        public Vector2 TopRight;
+        public readonly Vector2 TopLeft;
+        public readonly Vector2 BottomLeft;
+        public readonly Vector2 BottomRight;
+        public readonly Vector2 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -105,13 +105,7 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public ReadOnlySpan<Vector2> GetVertices()
-        {
-            unsafe
-            {
-                return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 4);
-            }
-        }
+        public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
 
         public bool Contains(Vector2 pos) =>
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||

@@ -15,7 +15,7 @@ using osuTK;
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// Maps input actions to custom action data of type <see cref="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
+    /// Maps input actions to custom action data of type <typeparamref name="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
     public abstract class KeyBindingContainer<T> : KeyBindingContainer
@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Create a new instance.
         /// </summary>
-        /// <param name="simultaneousMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <see cref="T"/>s.</param>
+        /// <param name="simultaneousMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <typeparamref name="T"/>s.</param>
         /// <param name="matchingMode">Specify how to deal with exact <see cref="KeyCombination"/> matches.</param>
         protected KeyBindingContainer(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None, KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
         {
@@ -157,7 +157,7 @@ namespace osu.Framework.Input.Bindings
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
 
             // we want to always handle bindings with more keys before bindings with less.
-            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Count()).ToList();
+            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();
 
             if (!repeat)
                 pressedBindings.AddRange(newlyPressed);
@@ -213,8 +213,10 @@ namespace osu.Framework.Input.Bindings
         private void releasePressedActions()
         {
             foreach (var action in pressedActions)
-            foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
-                kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            {
+                foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
+                    kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            }
 
             pressedActions.Clear();
         }

@@ -164,21 +164,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        private Bindable<T> currentBound;
+        private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private DropdownMenuItem<T> selectedItem;

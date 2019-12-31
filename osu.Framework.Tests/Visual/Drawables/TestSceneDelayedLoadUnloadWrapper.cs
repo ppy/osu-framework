@@ -53,6 +53,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 references.Clear();
 
                 for (int i = 0; i < 16; i++)
+                {
                     flow.Add(new Container
                     {
                         Size = new Vector2(128),
@@ -76,6 +77,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             new SpriteText { Text = i.ToString() },
                         }
                     });
+                }
 
                 flow.Add(
                     new Container
@@ -113,6 +115,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 references.Clear();
 
                 for (int i = 0; i < 16; i++)
+                {
                     flow.Add(new Container
                     {
                         Size = new Vector2(128),
@@ -136,6 +139,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             new SpriteText { Text = i.ToString() },
                         }
                     });
+                }
             });
 
             AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
@@ -166,6 +170,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 loadCount = 0;
 
                 for (int i = 0; i < 16; i++)
+                {
                     flow.Add(new Container
                     {
                         Size = new Vector2(128),
@@ -194,6 +199,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             new SpriteText { Text = i.ToString() },
                         }
                     });
+                }
             });
 
             IReadOnlyList<Container> previousChildren = null;
@@ -223,6 +229,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 loaded = 0;
 
                 for (int i = 1; i < panel_count; i++)
+                {
                     flow.Add(new Container
                     {
                         Size = new Vector2(128),
@@ -239,6 +246,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             new SpriteText { Text = i.ToString() },
                         }
                     });
+                }
             });
 
             int childrenWithAvatarsLoaded() =>
