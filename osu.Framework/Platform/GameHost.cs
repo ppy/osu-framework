@@ -706,7 +706,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
-            windowMode.BindValueChanged(mode =>
+            windowMode?.BindValueChanged(mode =>
             {
                 if (Window == null)
                     return;
@@ -716,7 +716,7 @@ namespace osu.Framework.Platform
             }, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-            frameSyncMode.ValueChanged += e =>
+            frameSyncMode?.BindValueChanged(e =>
             {
                 if (Window == null)
                     return;
@@ -760,10 +760,10 @@ namespace osu.Framework.Platform
 
                 if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
-            };
+            });
 
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
-            ignoredInputHandlers.ValueChanged += e =>
+            ignoredInputHandlers?.BindValueChanged(e =>
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
@@ -784,7 +784,7 @@ namespace osu.Framework.Platform
                         handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                     }
                 }
-            };
+            });
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
@@ -798,7 +798,7 @@ namespace osu.Framework.Platform
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
 
             threadLocale = Config.GetBindable<string>(FrameworkSetting.Locale);
-            threadLocale.BindValueChanged(locale =>
+            threadLocale?.BindValueChanged(locale =>
             {
                 var culture = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name.Equals(locale.NewValue, StringComparison.OrdinalIgnoreCase)) ?? CultureInfo.InvariantCulture;
 

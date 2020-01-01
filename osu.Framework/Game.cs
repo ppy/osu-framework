@@ -164,7 +164,7 @@ namespace osu.Framework
             dependencies.Cache(Localisation);
 
             logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            logOverlayVisibility.BindValueChanged(visibility =>
+            logOverlayVisibility?.BindValueChanged(visibility =>
             {
                 if (visibility.NewValue)
                 {

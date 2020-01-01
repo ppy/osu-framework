@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.Containers
 
             IsDragging = true;
 
-            dragButtonManager = GetContainingInputManager().GetButtonEventManagerFor(e.Button);
+            dragButtonManager = GetContainingInputManager()?.GetButtonEventManagerFor(e.Button);
 
             return true;
         }
