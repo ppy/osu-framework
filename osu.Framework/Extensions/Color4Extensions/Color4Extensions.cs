@@ -3,7 +3,6 @@
 
 using osuTK.Graphics;
 using System;
-using System.Linq;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
