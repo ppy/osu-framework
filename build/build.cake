@@ -26,6 +26,7 @@ var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Fram
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
+var templateProject = rootDirectory.CombineWithFilePath("template-game/osu.Framework.Template.csproj");
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
@@ -205,6 +206,21 @@ Task("PackNativeLibs")
         });
     });
 
+Task("PackTemplate")
+    .Does(() => {
+        DotNetCorePack(templateProject.FullPath, new DotNetCorePackSettings{
+            OutputDirectory = artifactsDirectory,
+            Configuration = configuration,
+            Verbosity = DotNetCoreVerbosity.Quiet,
+            ArgumentCustomization = args => {
+                args.Append($"/p:Version={version}");
+                args.Append($"/p:GenerateDocumentationFile=true");
+
+                return args;
+            }
+        });
+    });
+
 Task("Publish")
     .WithCriteria(AppVeyor.IsRunningOnAppVeyor)
     .Does(() => {
@@ -224,6 +240,7 @@ Task("Build")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
     .IsDependentOn("PackNativeLibs")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployFramework")
@@ -232,12 +249,14 @@ Task("DeployFramework")
     .IsDependentOn("PackFramework")
     .IsDependentOn("PackiOSFramework")
     .IsDependentOn("PackAndroidFramework")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 Task("DeployNativeLibs")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackNativeLibs")
+    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 RunTarget(target);;
