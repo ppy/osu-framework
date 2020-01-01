@@ -27,6 +27,14 @@ namespace osu.Framework.Android
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
+
+            AddPlatformFactory(args =>
+            {
+                if (args.Length == 2 && args[0] is Stream stream && args[1] is Scheduler scheduler)
+                    return new AndroidVideoDecoder(stream, scheduler);
+                else
+                    throw new ArgumentException($"To create a video decoder you must pass in the following arguments: {nameof(Stream)} stream, {nameof(Scheduler)} scheduler");
+            });
         }
 
         protected override void SetupForRun()
@@ -65,9 +73,6 @@ namespace osu.Framework.Android
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
-
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler)
-            => new AndroidVideoDecoder(stream, scheduler);
 
         protected override void PerformExit(bool immediately)
         {

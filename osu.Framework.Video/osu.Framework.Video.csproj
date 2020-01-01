@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.1</TargetFrameworks>
+    <ApplicationIcon />
+    <StartupObject />
+    <Win32Resource />
+    <Description>Adds Video decoding and playback support for the osu!framework</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>osu game framework</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>obj\Release\netcoreapp3.0\osu.Framework.Video.xml</DocumentationFile>
+    <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+    <DocumentationFile>obj\Debug\netcoreapp3.0\osu.Framework.Video.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Video
         {
             foreach (var f in frames)
             {
-                ((TextureGLSingle)f.Texture.TextureGL).FlushUploads();
+                f.Texture.TextureGL.FlushUploads();
                 availableTextures.Enqueue(f.Texture);
             }
         }

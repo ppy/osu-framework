@@ -359,7 +359,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        internal override void FlushUploads()
+        public override void FlushUploads()
         {
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();

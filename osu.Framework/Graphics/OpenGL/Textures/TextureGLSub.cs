@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         internal override bool Upload() => false;
 
-        internal override void FlushUploads()
+        public override void FlushUploads()
         {
         }
 
