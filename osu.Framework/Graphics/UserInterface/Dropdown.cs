@@ -245,7 +245,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case DropdownHeader.DropdownSelectionAction.Last:
-                    SelectedItem = dropdownMenuItems[dropdownMenuItems.Count - 1];
+                    SelectedItem = dropdownMenuItems[^1];
                     break;
 
                 default:
