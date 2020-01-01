@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;
@@ -172,6 +172,21 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 backgroundColour = value;
+                ForceRedraw();
+            }
+        }
+
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
                 ForceRedraw();
             }
         }

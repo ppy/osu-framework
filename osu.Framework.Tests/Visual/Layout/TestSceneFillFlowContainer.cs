@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Layout
             var method =
                 GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestType == testType);
             if (method != null)
-                method.Invoke(this, new object[0]);
+                method.Invoke(this, Array.Empty<object>());
         }
 
         private void buildTest()
@@ -401,25 +401,9 @@ namespace osu.Framework.Tests.Visual.Layout
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
         }
 
-        private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
-        {
-            public AnchorDropdownMenuItem(Anchor anchor)
-                : base(anchor.ToString(), anchor)
-            {
-            }
-        }
-
         private class FillDirectionDropdown : BasicDropdown<FlowTestType>
         {
             protected override DropdownHeader CreateHeader() => new TestSceneDropdownHeader();
-        }
-
-        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestType>
-        {
-            public FillDirectionDropdownMenuItem(FlowTestType testType)
-                : base(testType.ToString(), testType)
-            {
-            }
         }
 
         [AttributeUsage(AttributeTargets.Method)]

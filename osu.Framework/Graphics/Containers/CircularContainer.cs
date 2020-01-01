@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
+    /// A container which is rounded (via automatic corner-radius and corner-exponent=2) on the shortest edge.
     /// </summary>
     public class CircularContainer : Container
     {

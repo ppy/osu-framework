@@ -13,7 +13,7 @@
                 "/p:GenerateFullPaths=true",
                 "/m",
                 "/verbosity:m",
-                "osu-framework.sln"
+                "osu.Framework.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -29,7 +29,7 @@
                 "/p:GenerateFullPaths=true",
                 "/m",
                 "/verbosity:m",
-                "osu-framework.sln"
+                "osu.Framework.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"

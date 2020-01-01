@@ -128,9 +128,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
                 var child = newChildren[i];
-                Debug.Assert(child.LoadState < LoadState.Loaded);
 
-                if (child.LoadState == LoadState.Ready)
+                if (child.LoadState >= LoadState.Ready)
                 {
                     Debug.Assert(!childStateMap.ContainsKey(child));
 
@@ -396,6 +395,6 @@ namespace osu.Framework.Graphics.Containers
             Direction = direction;
         }
 
-        public override string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
+        public override readonly string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
     }
 }

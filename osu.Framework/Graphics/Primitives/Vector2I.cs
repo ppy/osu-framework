@@ -39,9 +39,9 @@ namespace osu.Framework.Graphics.Primitives
 
         public static Vector2I operator -(Vector2I left, Vector2I right) => new Vector2I(left.X - right.X, left.Y - right.Y);
 
-        public bool Equals(Vector2I other) => other.X == X && other.Y == Y;
+        public readonly bool Equals(Vector2I other) => other.X == X && other.Y == Y;
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             if (!(obj is Vector2I))
                 return false;
@@ -50,6 +50,6 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
-        public override int GetHashCode() => (int)(((uint)X ^ ((uint)Y << 13)) | ((uint)Y >> 0x13));
+        public override readonly int GetHashCode() => (int)(((uint)X ^ ((uint)Y << 13)) | ((uint)Y >> 0x13));
     }
 }

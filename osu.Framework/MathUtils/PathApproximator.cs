@@ -243,8 +243,10 @@ namespace osu.Framework.MathUtils
         private static bool bezierIsFlatEnough(Vector2[] controlPoints)
         {
             for (int i = 1; i < controlPoints.Length - 1; i++)
+            {
                 if ((controlPoints[i - 1] - 2 * controlPoints[i] + controlPoints[i + 1]).LengthSquared > bezier_tolerance * bezier_tolerance * 4)
                     return false;
+            }
 
             return true;
         }

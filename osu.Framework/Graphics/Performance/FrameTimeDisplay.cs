@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
+using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 
@@ -17,12 +18,14 @@ namespace osu.Framework.Graphics.Performance
         private readonly SpriteText counter;
 
         private readonly ThrottledFrameClock clock;
+        private readonly GameThread thread;
 
         public bool Counting = true;
 
-        public FrameTimeDisplay(ThrottledFrameClock clock)
+        public FrameTimeDisplay(ThrottledFrameClock clock, GameThread thread)
         {
             this.clock = clock;
+            this.thread = thread;
 
             Masking = true;
             CornerRadius = 5;
@@ -57,33 +60,39 @@ namespace osu.Framework.Graphics.Performance
 
             double lastUpdate = 0;
 
-            Scheduler.AddDelayed(() =>
+            thread.Scheduler.AddDelayed(() =>
                 {
                     if (!Counting) return;
 
-                    if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
+                    double clockFps = clock.FramesPerSecond;
+                    double actualElapsed = clock.ElapsedFrameTime - clock.TimeSlept;
+                    double updateHz = clock.MaximumUpdateHz;
+
+                    Schedule(() =>
                     {
-                        ClearTransforms();
+                        if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
+                        {
+                            ClearTransforms();
 
-                        if (aimWidth == 0)
-                            Size = counter.DrawSize;
-                        else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                            this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
-                        else
-                            this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                            if (aimWidth == 0)
+                                Size = counter.DrawSize;
+                            else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
+                                this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+                            else
+                                this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
 
-                        aimWidth = counter.DrawWidth;
-                    }
+                            aimWidth = counter.DrawWidth;
+                        }
 
-                    double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+                        double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+                        lastUpdate = Clock.CurrentTime;
 
-                    displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
-                    displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+                        displayFps = Interpolation.Damp(displayFps, clockFps, 0.01, dampRate);
+                        displayFrameTime = Interpolation.Damp(displayFrameTime, actualElapsed, 0.01, dampRate);
 
-                    lastUpdate = clock.CurrentTime;
-
-                    counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
-                                   + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                        counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
+                                       + $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                    });
                 }, 1000.0 / updates_per_second, true);
         }
 

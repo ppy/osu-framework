@@ -45,6 +45,12 @@ namespace osu.Framework
 
         public ShaderManager Shaders { get; private set; }
 
+        /// <summary>
+        /// A store containing fonts accessible game-wide.
+        /// </summary>
+        /// <remarks>
+        /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
+        /// </remarks>
         public FontStore Fonts { get; private set; }
 
         private FontStore localFonts;
@@ -105,7 +111,7 @@ namespace osu.Framework
         private void load(FrameworkConfigManager config)
         {
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Game).Assembly), @"Resources"));
 
             Textures = new TextureStore(Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(Host.CreateTextureLoaderStore(new OnlineStore()));
@@ -143,20 +149,52 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Bold"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-Italic"));
-            localFonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans/OpenSans-BoldItalic"));
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Italic");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
 
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Solid"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Regular"));
-            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/FontAwesome5/FontAwesome-Brands"));
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
 
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
+
+            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
+            logOverlayVisibility.BindValueChanged(visibility =>
+            {
+                if (visibility.NewValue)
+                {
+                    if (logOverlay == null)
+                    {
+                        LoadComponentAsync(logOverlay = new LogOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    logOverlay.Show();
+                }
+                else
+                {
+                    logOverlay?.Hide();
+                }
+            }, true);
         }
+
+        /// <summary>
+        /// Add a font to be globally accessible to the game.
+        /// </summary>
+        /// <param name="store">The backing store with font resources.</param>
+        /// <param name="assetName">The base name of the font.</param>
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null)
+            => addFont(Fonts, store, assetName);
+
+        private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
 
         protected override void LoadComplete()
         {
@@ -182,6 +220,8 @@ namespace osu.Framework
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
         private GlobalStatisticsDisplay globalStatistics;
+
+        private Bindable<bool> logOverlayVisibility;
 
         public bool OnPressed(FrameworkAction action)
         {
@@ -234,15 +274,7 @@ namespace osu.Framework
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
-                    if (logOverlay == null)
-                    {
-                        LoadComponentAsync(logOverlay = new LogOverlay
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    logOverlay.ToggleVisibility();
+                    logOverlayVisibility.Value = !logOverlayVisibility.Value;
                     return true;
 
                 case FrameworkAction.ToggleFullscreen:
@@ -267,10 +299,10 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             Audio?.Dispose();
             Audio = null;
+
+            base.Dispose(isDisposing);
         }
     }
 }
