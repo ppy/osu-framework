@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = 1;
                     else
                     {
-                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
+                        int searchNext = Math.Clamp(selectionEnd, 0, Text.Length - 1);
                         while (searchNext < Text.Length && text[searchNext] == ' ')
                             searchNext++;
                         int nextSpace = text.IndexOf(' ', searchNext);
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = -1;
                     else
                     {
-                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Text.Length - 1);
                         while (searchPrev > 0 && text[searchPrev] == ' ')
                             searchPrev--;
                         int lastSpace = text.LastIndexOf(' ', searchPrev);
@@ -252,7 +252,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     case PlatformActionMethod.Delete:
                         if (selectionLength == 0)
-                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
+                            selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
                         if (selectionLength > 0)
                             removeCharacterOrSelection();
                         break;
@@ -315,7 +315,7 @@ namespace osu.Framework.Graphics.UserInterface
                 textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
             }
 
-            textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
+            textContainerPosX = Math.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
 
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
@@ -397,7 +397,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldEnd = selectionEnd;
 
             if (expand)
-                selectionEnd = MathHelper.Clamp(selectionEnd + offset, 0, text.Length);
+                selectionEnd = Math.Clamp(selectionEnd + offset, 0, text.Length);
             else
             {
                 if (selectionLength > 0 && Math.Abs(offset) <= 1)
@@ -409,7 +409,7 @@ namespace osu.Framework.Graphics.UserInterface
                         selectionEnd = selectionStart = selectionLeft;
                 }
                 else
-                    selectionEnd = selectionStart = MathHelper.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
+                    selectionEnd = selectionStart = Math.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
             }
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
@@ -427,8 +427,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (text.Length == 0) return false;
             if (selectionLength == 0 && selectionLeft == 0) return false;
 
-            int count = MathHelper.Clamp(selectionLength, 1, text.Length);
-            int start = MathHelper.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
+            int count = Math.Clamp(selectionLength, 1, text.Length);
+            int start = Math.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
 
             if (count == 0) return false;
 
@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics.UserInterface
                     foreach (char c in value)
                         addCharacter(c);
 
-                    selectionStart = MathHelper.Clamp(startBefore, 0, text.Length);
+                    selectionStart = Math.Clamp(startBefore, 0, text.Length);
                 });
 
                 cursorAndLayout.Invalidate();
