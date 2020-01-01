@@ -68,16 +68,23 @@ namespace osu.Framework.Testing
         public void DestroyGameHost()
         {
             host.Exit();
-            runTask.Wait();
-            host.Dispose();
 
             try
             {
-                // clean up after each run
-                host.Storage.DeleteDirectory(string.Empty);
+                runTask.Wait();
             }
-            catch
+            finally
             {
+                host.Dispose();
+
+                try
+                {
+                    // clean up after each run
+                    host.Storage.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -230,8 +237,7 @@ namespace osu.Framework.Testing
             {
                 if (loadableStep != null)
                 {
-                    if (loadableStep.IsMaskedAway)
-                        scroll.ScrollTo(loadableStep);
+                    scroll.ScrollIntoView(loadableStep);
                     loadableStep.PerformStep();
                 }
             }
@@ -343,7 +349,7 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => schedule(() =>
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable<T>, IConvertible, IEquatable<T> => schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
@@ -365,7 +371,7 @@ namespace osu.Framework.Testing
         // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
         private void schedule(Action action) => Scheduler.Add(action, false);
 
-        public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
+        public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {

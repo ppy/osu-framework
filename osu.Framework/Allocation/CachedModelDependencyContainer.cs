@@ -88,12 +88,16 @@ namespace osu.Framework.Allocation
             // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
 
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
-            foreach (var field in type.GetFields(activator_flags))
-                perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
+            {
+                foreach (var field in type.GetFields(activator_flags))
+                    perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
+            }
 
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
-            foreach (var field in type.GetFields(activator_flags))
-                perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
+            {
+                foreach (var field in type.GetFields(activator_flags))
+                    perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
+            }
         }
 
         /// <summary>
@@ -118,11 +122,15 @@ namespace osu.Framework.Allocation
         static CachedModelDependencyContainer()
         {
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
-            foreach (var field in type.GetFields(activator_flags))
             {
-                if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
-                    throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
-                                                        + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
+                foreach (var field in type.GetFields(activator_flags))
+                {
+                    if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
+                    {
+                        throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
+                                                            + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
+                    }
+                }
             }
         }
     }

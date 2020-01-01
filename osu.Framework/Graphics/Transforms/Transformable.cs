@@ -56,9 +56,12 @@ namespace osu.Framework.Graphics.Transforms
             {
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.EndTime > max)
                         max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                }
 
                 return max;
             }
@@ -361,9 +364,11 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() =>
             {
                 if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                {
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
                         $"(begin={newTransformDelay} end={TransformDelay})");
+                }
 
                 AddDelay(-delay, recursive);
             });
@@ -384,9 +389,11 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() =>
             {
                 if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                {
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
                         $"(begin={newTransformDelay} end={TransformDelay})");
+                }
 
                 TransformDelay = oldTransformDelay;
             });
@@ -413,9 +420,11 @@ namespace osu.Framework.Graphics.Transforms
                 throw new ArgumentNullException(nameof(transform));
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
                     "using this object prior to being added.");
+            }
 
             if (Clock == null)
             {

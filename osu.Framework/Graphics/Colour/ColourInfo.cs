@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Colour
 
         private SRGBColour singleColour
         {
-            get
+            readonly get
             {
                 if (!HasSingleColour)
                     throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
+        public readonly SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Colour
         /// </summary>
         /// <param name="alpha">The alpha parameter to multiply the alpha values of all vertices with.</param>
         /// <returns>The new ColourInfo.</returns>
-        public ColourInfo MultiplyAlpha(float alpha)
+        public readonly ColourInfo MultiplyAlpha(float alpha)
         {
             if (alpha == 1.0)
                 return this;
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Colour
             return result;
         }
 
-        public bool Equals(ColourInfo other)
+        public readonly bool Equals(ColourInfo other)
         {
             if (!HasSingleColour)
             {
@@ -165,12 +165,12 @@ namespace osu.Framework.Graphics.Colour
             return other.HasSingleColour && TopLeft.Equals(other.TopLeft);
         }
 
-        public bool Equals(SRGBColour other) => HasSingleColour && TopLeft.Equals(other);
+        public readonly bool Equals(SRGBColour other) => HasSingleColour && TopLeft.Equals(other);
 
         /// <summary>
         /// The average colour of all corners.
         /// </summary>
-        public SRGBColour AverageColour
+        public readonly SRGBColour AverageColour
         {
             get
             {
@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Colour
         /// <summary>
         /// The maximum alpha value of all four corners.
         /// </summary>
-        public float MaxAlpha
+        public readonly float MaxAlpha
         {
             get
             {
@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Colour
         /// <summary>
         /// The minimum alpha value of all four corners.
         /// </summary>
-        public float MinAlpha
+        public readonly float MinAlpha
         {
             get
             {
@@ -214,7 +214,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public override string ToString() => HasSingleColour ? $@"{TopLeft} (Single)" : $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
+        public override readonly string ToString() => HasSingleColour ? $@"{TopLeft} (Single)" : $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;

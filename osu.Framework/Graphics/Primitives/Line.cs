@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// The direction of the second point from the first.
         /// </summary>
-        public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
+        public float Theta => MathF.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
         /// <summary>
         /// The direction of this <see cref="Line"/>.

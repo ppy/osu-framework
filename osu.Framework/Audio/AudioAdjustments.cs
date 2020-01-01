@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio
@@ -14,8 +15,9 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume { get; } = new BindableDouble(1)
+        public BindableNumber<double> Volume { get; } = new BindableDouble(1)
         {
+            Default = 1,
             MinValue = 0,
             MaxValue = 1
         };
@@ -23,7 +25,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance { get; } = new BindableDouble
+        public BindableNumber<double> Balance { get; } = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
@@ -32,63 +34,46 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency { get; } = new BindableDouble(1);
+        public BindableNumber<double> Frequency { get; } = new BindableDouble(1)
+        {
+            Default = 1,
+        };
+
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableNumber<double> Tempo { get; } = new BindableDouble(1)
+        {
+            Default = 1,
+        };
 
         public IBindable<double> AggregateVolume => volumeAggregate.Result;
         public IBindable<double> AggregateBalance => balanceAggregate.Result;
         public IBindable<double> AggregateFrequency => frequencyAggregate.Result;
+        public IBindable<double> AggregateTempo => tempoAggregate.Result;
 
-        private readonly AggregateBindable<double> volumeAggregate;
-        private readonly AggregateBindable<double> balanceAggregate;
-        private readonly AggregateBindable<double> frequencyAggregate;
+        private AggregateBindable<double> volumeAggregate;
+        private AggregateBindable<double> balanceAggregate;
+        private AggregateBindable<double> frequencyAggregate;
+        private AggregateBindable<double> tempoAggregate;
 
         public AudioAdjustments()
         {
-            volumeAggregate = new AggregateBindable<double>((a, b) => a * b, Volume.GetUnboundCopy());
-            volumeAggregate.AddSource(Volume);
-
-            balanceAggregate = new AggregateBindable<double>((a, b) => a + b, Balance.GetUnboundCopy());
-            balanceAggregate.AddSource(Balance);
-
-            frequencyAggregate = new AggregateBindable<double>((a, b) => a * b, Frequency.GetUnboundCopy());
-            frequencyAggregate.AddSource(Frequency);
-        }
-
-        public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
-        {
-            switch (type)
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
             {
-                case AdjustableProperty.Balance:
-                    balanceAggregate.AddSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Frequency:
-                    frequencyAggregate.AddSource(adjustBindable);
-                    break;
-
-                case AdjustableProperty.Volume:
-                    volumeAggregate.AddSource(adjustBindable);
-                    break;
+                var aggregate = getAggregate(type) = new AggregateBindable<double>(getAggregateFunction(type), getProperty(type).GetUnboundCopy());
+                aggregate.AddSource(getProperty(type));
             }
         }
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
-        {
-            switch (type)
-            {
-                case AdjustableProperty.Balance:
-                    balanceAggregate.RemoveSource(adjustBindable);
-                    break;
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+            => getAggregate(type).AddSource(adjustBindable);
 
-                case AdjustableProperty.Frequency:
-                    frequencyAggregate.RemoveSource(adjustBindable);
-                    break;
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+            => getAggregate(type).RemoveSource(adjustBindable);
 
-                case AdjustableProperty.Volume:
-                    volumeAggregate.RemoveSource(adjustBindable);
-                    break;
-            }
-        }
+        public IBindable<double> GetAggregate(AdjustableProperty type)
+            => getAggregate(type).Result;
 
         /// <summary>
         /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
@@ -96,9 +81,8 @@ namespace osu.Framework.Audio
         /// <param name="component">The adjustment source.</param>
         internal void BindAdjustments(IAggregateAudioAdjustment component)
         {
-            volumeAggregate.AddSource(component.AggregateVolume);
-            balanceAggregate.AddSource(component.AggregateBalance);
-            frequencyAggregate.AddSource(component.AggregateFrequency);
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+                getAggregate(type).AddSource(component.GetAggregate(type));
         }
 
         /// <summary>
@@ -107,9 +91,68 @@ namespace osu.Framework.Audio
         /// <param name="component">The adjustment source.</param>
         internal void UnbindAdjustments(IAggregateAudioAdjustment component)
         {
-            volumeAggregate.RemoveSource(component.AggregateVolume);
-            balanceAggregate.RemoveSource(component.AggregateBalance);
-            frequencyAggregate.RemoveSource(component.AggregateFrequency);
+            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+                getAggregate(type).RemoveSource(component.GetAggregate(type));
+        }
+
+        public void RemoveAllAdjustments(AdjustableProperty type)
+        {
+            var aggregate = getAggregate(type);
+
+            aggregate.RemoveAllSources();
+            aggregate.AddSource(getProperty(type));
+        }
+
+        private ref AggregateBindable<double> getAggregate(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                case AdjustableProperty.Balance:
+                    return ref balanceAggregate;
+
+                case AdjustableProperty.Frequency:
+                    return ref frequencyAggregate;
+
+                case AdjustableProperty.Volume:
+                    return ref volumeAggregate;
+
+                case AdjustableProperty.Tempo:
+                    return ref tempoAggregate;
+            }
+
+            throw new ArgumentException($"{nameof(AdjustableProperty)} \"{type}\" is missing mapping", nameof(type));
+        }
+
+        private BindableNumber<double> getProperty(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                case AdjustableProperty.Balance:
+                    return Balance;
+
+                case AdjustableProperty.Frequency:
+                    return Frequency;
+
+                case AdjustableProperty.Volume:
+                    return Volume;
+
+                case AdjustableProperty.Tempo:
+                    return Tempo;
+            }
+
+            throw new ArgumentException($"{nameof(AdjustableProperty)} \"{type}\" is missing mapping", nameof(type));
+        }
+
+        private Func<double, double, double> getAggregateFunction(AdjustableProperty type)
+        {
+            switch (type)
+            {
+                default:
+                    return (a, b) => a * b;
+
+                case AdjustableProperty.Balance:
+                    return (a, b) => a + b;
+            }
         }
     }
 }

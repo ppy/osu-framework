@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private const float arc_tolerance = 0.1f;
 
+        private const float two_pi = MathF.PI * 2;
+
         protected new CircularProgress Source => (CircularProgress)base.Source;
 
         private LinearBatch<TexturedVertex2D> halfCircleBatch;
@@ -38,12 +40,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             texture = Source.Texture;
             drawSize = Source.DrawSize;
-            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            angle = (float)Source.Current.Value * two_pi;
             innerRadius = Source.InnerRadius;
         }
 
-        private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
-        private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
+        private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Sin(angle), -MathF.Cos(angle));
+        private float angleToUnitInterval(float angle) => angle / two_pi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
         private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
@@ -109,8 +111,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = Math.Min(fract * MathHelper.TwoPi, dir * angle);
-                float normalisedOffset = angularOffset / MathHelper.TwoPi;
+                float angularOffset = Math.Min(fract * two_pi, dir * angle);
+                float normalisedOffset = angularOffset / two_pi;
 
                 if (dir < 0)
                     normalisedOffset += 1.0f;

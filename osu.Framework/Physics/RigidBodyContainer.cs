@@ -152,13 +152,13 @@ namespace osu.Framework.Physics
                 {
                     Vector2 a = corners[i];
 
-                    float startTheta = (i - 1) * (float)Math.PI / 2;
+                    float startTheta = (i - 1) * MathF.PI / 2;
 
                     for (int j = 0; j < amount_corner_steps; ++j)
                     {
-                        float theta = startTheta + j * (float)Math.PI / (2 * (amount_corner_steps - 1));
+                        float theta = startTheta + j * MathF.PI / (2 * (amount_corner_steps - 1));
 
-                        Vector2 normal = new Vector2((float)Math.Sin(theta), (float)Math.Cos(theta));
+                        Vector2 normal = new Vector2(MathF.Sin(theta), MathF.Cos(theta));
                         Vertices.Add(a + offsets[i] + normal * cornerRadius);
                         Normals.Add(normal);
                     }

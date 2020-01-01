@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Shaders
@@ -9,9 +10,24 @@ namespace osu.Framework.Graphics.Shaders
     /// A mapping of a global uniform to many shaders which need to receive updates on a change.
     /// </summary>
     internal class UniformMapping<T> : IUniformMapping
-        where T : struct
+        where T : struct, IEquatable<T>
     {
-        public T Value;
+        private T val;
+
+        public T Value
+        {
+            get => val;
+            set
+            {
+                if (value.Equals(val))
+                    return;
+
+                val = value;
+
+                for (int i = 0; i < LinkedUniforms.Count; i++)
+                    LinkedUniforms[i].UpdateValue(this);
+            }
+        }
 
         public List<GlobalUniform<T>> LinkedUniforms = new List<GlobalUniform<T>>();
 
@@ -38,10 +54,15 @@ namespace osu.Framework.Graphics.Shaders
 
         public void UpdateValue(ref T newValue)
         {
-            Value = newValue;
+            if (newValue.Equals(val))
+                return;
+
+            val = newValue;
 
             for (int i = 0; i < LinkedUniforms.Count; i++)
                 LinkedUniforms[i].UpdateValue(this);
         }
+
+        public ref T GetValueByRef() => ref val;
     }
 }

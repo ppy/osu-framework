@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics
@@ -138,7 +139,7 @@ namespace osu.Framework.Graphics
                 AlphaEquation = BlendingEquation.Add;
         }
 
-        public bool Equals(BlendingParameters other) =>
+        public readonly bool Equals(BlendingParameters other) =>
             other.Source == Source
             && other.Destination == Destination
             && other.SourceAlpha == SourceAlpha
@@ -146,7 +147,22 @@ namespace osu.Framework.Graphics
             && other.RGBEquation == RGBEquation
             && other.AlphaEquation == AlphaEquation;
 
-        public bool IsDisabled =>
+        public static bool operator ==(in BlendingParameters left, in BlendingParameters right) =>
+            left.Source == right.Source &&
+            left.Destination == right.Destination &&
+            left.SourceAlpha == right.SourceAlpha &&
+            left.DestinationAlpha == right.DestinationAlpha &&
+            left.RGBEquation == right.RGBEquation &&
+            left.AlphaEquation == right.AlphaEquation;
+
+        public static bool operator !=(in BlendingParameters left, in BlendingParameters right) => !(left == right);
+
+        public override readonly bool Equals(object obj) => obj is BlendingParameters other && this == other;
+
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override readonly int GetHashCode() => HashCode.Combine(Source, Destination, SourceAlpha, DestinationAlpha, RGBEquation, AlphaEquation);
+
+        public readonly bool IsDisabled =>
             Source == BlendingType.One
             && Destination == BlendingType.Zero
             && SourceAlpha == BlendingType.One
@@ -154,39 +170,39 @@ namespace osu.Framework.Graphics
             && RGBEquation == BlendingEquation.Add
             && AlphaEquation == BlendingEquation.Add;
 
-        public override string ToString() => $"BlendingParameter: Factor: {Source}/{Destination}/{SourceAlpha}/{DestinationAlpha} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
+        public override readonly string ToString() => $"BlendingParameter: Factor: {Source}/{Destination}/{SourceAlpha}/{DestinationAlpha} RGBEquation: {RGBEquation} AlphaEquation: {AlphaEquation}";
 
         #region GL Type Getters
 
         /// <summary>
         /// Gets the <see cref="BlendEquationMode"/> for the currently specified RGB Equation.
         /// </summary>
-        public BlendEquationMode RGBEquationMode => translateEquation(RGBEquation);
+        public readonly BlendEquationMode RGBEquationMode => translateEquation(RGBEquation);
 
         /// <summary>
         /// Gets the <see cref="BlendEquationMode"/> for the currently specified Alpha Equation.
         /// </summary>
-        public BlendEquationMode AlphaEquationMode => translateEquation(AlphaEquation);
+        public readonly BlendEquationMode AlphaEquationMode => translateEquation(AlphaEquation);
 
         /// <summary>
         /// Gets the <see cref="BlendingFactorSrc"/> for the currently specified source blending mode.
         /// </summary>
-        public BlendingFactorSrc SourceBlendingFactor => translateBlendingFactorSrc(Source);
+        public readonly BlendingFactorSrc SourceBlendingFactor => translateBlendingFactorSrc(Source);
 
         /// <summary>
         /// Gets the <see cref="BlendingFactorDest"/> for the currently specified destination blending mode.
         /// </summary>
-        public BlendingFactorDest DestinationBlendingFactor => translateBlendingFactorDest(Destination);
+        public readonly BlendingFactorDest DestinationBlendingFactor => translateBlendingFactorDest(Destination);
 
         /// <summary>
         /// Gets the <see cref="BlendingFactorSrc"/> for the currently specified source alpha mode.
         /// </summary>
-        public BlendingFactorSrc SourceAlphaBlendingFactor => translateBlendingFactorSrc(SourceAlpha);
+        public readonly BlendingFactorSrc SourceAlphaBlendingFactor => translateBlendingFactorSrc(SourceAlpha);
 
         /// <summary>
         /// Gets the <see cref="BlendingFactorDest"/> for the currently specified destination alpha mode.
         /// </summary>
-        public BlendingFactorDest DestinationAlphaBlendingFactor => translateBlendingFactorDest(DestinationAlpha);
+        public readonly BlendingFactorDest DestinationAlphaBlendingFactor => translateBlendingFactorDest(DestinationAlpha);
 
         private static BlendingFactorSrc translateBlendingFactorSrc(BlendingType factor)
         {

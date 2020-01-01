@@ -110,6 +110,7 @@ namespace osu.Framework.Tests.Visual.Input
         private static readonly Type mouse_down = typeof(MouseDownEvent);
         private static readonly Type mouse_up = typeof(MouseUpEvent);
         private static readonly Type drag_start = typeof(DragStartEvent);
+        private static readonly Type drag = typeof(DragEvent);
         private static readonly Type drag_end = typeof(DragEndEvent);
         private static readonly Type click = typeof(ClickEvent);
         private static readonly Type double_click = typeof(DoubleClickEvent);
@@ -216,6 +217,12 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("move bottom left", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount(drag_start, 1);
+            checkEventCount(drag, 1);
+            checkIsDragged(true);
+
+            AddStep("move bottom right", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            checkEventCount(drag_start, 0);
+            checkEventCount(drag, 1);
             checkIsDragged(true);
 
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
@@ -384,7 +391,7 @@ namespace osu.Framework.Tests.Visual.Input
             else
             {
                 // those types are handled by state tracker 2
-                if (!new[] { drag_start, drag_end, click, double_click }.Contains(type))
+                if (!new[] { drag_start, drag, drag_end, click, double_click }.Contains(type))
                     count1 += change;
                 count2 += change;
             }
@@ -435,6 +442,7 @@ namespace osu.Framework.Tests.Visual.Input
                             addCounter(typeof(ScrollEvent)),
                             addCounter(typeof(MouseMoveEvent)),
                             addCounter(typeof(DragStartEvent)),
+                            addCounter(typeof(DragEvent)),
                             addCounter(typeof(DragEndEvent)),
                             addCounter(typeof(MouseDownEvent)),
                             addCounter(typeof(MouseUpEvent)),

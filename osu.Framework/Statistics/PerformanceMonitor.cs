@@ -1,13 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Allocation;
-using osu.Framework.MathUtils;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
+using Microsoft.Extensions.ObjectPool;
+using osu.Framework.Allocation;
+using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -26,11 +27,12 @@ namespace osu.Framework.Statistics
         private const int max_pending_frames = 10;
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-        internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
 
-        private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
+        internal readonly ObjectPool<FrameStatistics> FramesPool =
+            new DefaultObjectPoolProvider { MaximumRetained = max_pending_frames }
+                .Create(new DefaultPooledObjectPolicy<FrameStatistics>());
 
-        internal bool[] ActiveCounters => activeCounters;
+        internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
         public bool EnablePerformanceProfiling
         {
@@ -40,19 +42,20 @@ namespace osu.Framework.Statistics
 
         private double consumptionTime;
 
-        internal ThrottledFrameClock Clock;
-        private readonly Thread thread;
+        internal readonly ThrottledFrameClock Clock;
+
+        internal readonly GameThread Thread;
 
         public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
 
-        internal PerformanceMonitor(ThrottledFrameClock clock, Thread thread, IEnumerable<StatisticsCounterType> counters)
+        internal PerformanceMonitor(GameThread thread, IEnumerable<StatisticsCounterType> counters)
         {
-            Clock = clock;
-            this.thread = thread;
-            currentFrame = FramesHeap.ReserveObject();
+            Clock = thread.Clock;
+            Thread = thread;
+            currentFrame = FramesPool.Get();
 
             foreach (var c in counters)
-                activeCounters[(int)c] = true;
+                ActiveCounters[(int)c] = true;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
             {
@@ -60,7 +63,7 @@ namespace osu.Framework.Statistics
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
 
-            traceCollector = new BackgroundStackTraceCollector(thread, ourClock);
+            traceCollector = new BackgroundStackTraceCollector(thread.Thread, ourClock);
         }
 
         /// <summary>
@@ -105,25 +108,27 @@ namespace osu.Framework.Statistics
         public void NewFrame()
         {
             // Reset the counters we keep track of
-            for (int i = 0; i < activeCounters.Length; ++i)
-                if (activeCounters[i])
+            for (int i = 0; i < ActiveCounters.Length; ++i)
+            {
+                if (ActiveCounters[i])
                 {
                     var count = FrameStatistics.COUNTERS[i];
                     var type = (StatisticsCounterType)i;
 
                     if (!globalStatistics.TryGetValue(type, out var global))
-                        globalStatistics[type] = global = GlobalStatistics.Get<long>(thread.Name, type.ToString());
+                        globalStatistics[type] = global = GlobalStatistics.Get<long>(Thread.Name, type.ToString());
 
                     global.Value = count;
                     currentFrame.Counts[type] = count;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }
+            }
 
             if (PendingFrames.Count < max_pending_frames - 1)
             {
                 PendingFrames.Enqueue(currentFrame);
-                currentFrame = FramesHeap.ReserveObject();
+                currentFrame = FramesPool.Get();
             }
 
             currentFrame.Clear();

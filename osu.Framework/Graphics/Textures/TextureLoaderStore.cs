@@ -43,8 +43,8 @@ namespace osu.Framework.Graphics.Textures
 
         public Stream GetStream(string name) => store.GetStream(name);
 
-        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
-            => Image.Load<TPixel>(stream);
+        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : unmanaged, IPixel<TPixel>
+            => TextureUpload.LoadFromStream<TPixel>(stream);
 
         public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
 
