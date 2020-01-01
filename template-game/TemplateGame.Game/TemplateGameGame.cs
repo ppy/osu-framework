@@ -26,6 +26,11 @@ namespace TemplateGame.Game
                 Colour = Color4.Orange,
                 Size = new Vector2(200),
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             box.Loop(b => b.RotateTo(0).RotateTo(360, 2500));
         }
