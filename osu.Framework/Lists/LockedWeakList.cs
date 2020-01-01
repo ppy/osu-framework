@@ -58,13 +58,6 @@ namespace osu.Framework.Lists
                 list.Clear();
         }
 
-        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
-        public void ForEachAlive(Action<T> action)
-        {
-            foreach (var item in this)
-                action(item);
-        }
-
         public Enumerator GetEnumerator() => new Enumerator(list);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
@@ -93,9 +86,9 @@ namespace osu.Framework.Lists
 
             public void Reset() => listEnumerator.Reset();
 
-            public T Current => listEnumerator.Current;
+            public readonly T Current => listEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

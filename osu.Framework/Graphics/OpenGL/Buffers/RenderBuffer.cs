@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Statistics;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -12,59 +12,78 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly RenderbufferInternalFormat format;
         private readonly int renderBuffer;
-
-        private static readonly GlobalStatistic<long> loaded_bytes = GlobalStatistics.Get<long>("Native", nameof(RenderBuffer));
-
         private readonly int sizePerPixel;
+
+        private FramebufferAttachment attachment;
 
         public RenderBuffer(RenderbufferInternalFormat format)
         {
             this.format = format;
 
             renderBuffer = GL.GenRenderbuffer();
+
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+
+            // OpenGL docs don't specify that this is required, but seems to be required on some platforms
+            // to correctly attach in the GL.FramebufferRenderbuffer() call below
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, 1, 1);
 
             switch (format)
             {
                 case RenderbufferInternalFormat.DepthComponent16:
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    attachment = FramebufferAttachment.DepthAttachment;
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
                     sizePerPixel = 2;
                     break;
 
                 case RenderbufferInternalFormat.Rgb565:
                 case RenderbufferInternalFormat.Rgb5A1:
                 case RenderbufferInternalFormat.Rgba4:
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    attachment = FramebufferAttachment.ColorAttachment0;
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
                     sizePerPixel = 2;
                     break;
 
                 case RenderbufferInternalFormat.StencilIndex8:
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+                    attachment = FramebufferAttachment.StencilAttachment;
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, attachment, RenderbufferTarget.Renderbuffer, renderBuffer);
                     sizePerPixel = 1;
                     break;
             }
         }
 
-        private Vector2 size;
+        private Vector2 internalSize;
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        private int sizeInMemory => (int)(size.X * size.Y * sizePerPixel);
-
-        internal Vector2 Size
+        public void Bind(Vector2 size)
         {
-            get => size;
-            set
+            size = Vector2.Clamp(size, Vector2.One, new Vector2(GLWrapper.MaxRenderBufferSize));
+
+            // See: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_multisampled_render_to_texture.txt
+            //    + https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithEAGLContexts/WorkingwithEAGLContexts.html
+            // OpenGL ES allows the driver to discard renderbuffer contents after they are presented to the screen, so the storage must always be re-initialised for embedded devices.
+            // Such discard does not exist on non-embedded platforms, so they are only re-initialised when required.
+            if (GLWrapper.IsEmbedded || internalSize.X < size.X || internalSize.Y < size.Y)
             {
-                if (value.X <= size.X && value.Y <= size.Y)
-                    return;
-
-                loaded_bytes.Value -= sizeInMemory;
-
-                size = value;
-
-                loaded_bytes.Value += sizeInMemory;
-
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, format, (int)Math.Ceiling(size.X), (int)Math.Ceiling(size.Y));
+
+                if (!GLWrapper.IsEmbedded)
+                {
+                    memoryLease?.Dispose();
+                    memoryLease = NativeMemoryTracker.AddMemory(this, (long)(size.X * size.Y * sizePerPixel));
+                }
+
+                internalSize = size;
+            }
+        }
+
+        public void Unbind()
+        {
+            if (GLWrapper.IsEmbedded)
+            {
+                // Renderbuffers are not automatically discarded on all embedded devices, so invalidation is forced for extra performance and to unify logic between devices.
+                GL.InvalidateFramebuffer(FramebufferTarget.Framebuffer, 1, ref attachment);
             }
         }
 
@@ -90,7 +109,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             if (renderBuffer != -1)
             {
-                loaded_bytes.Value -= sizeInMemory;
+                memoryLease?.Dispose();
                 GL.DeleteRenderbuffer(renderBuffer);
             }
 

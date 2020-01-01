@@ -19,7 +19,10 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Size = new Vector2(300, 300)
+                Size = new Vector2(300, 300),
+                CornerRadius = 100,
+                CornerExponent = 5,
+                Masking = true,
             });
 
             HoverBox box2;

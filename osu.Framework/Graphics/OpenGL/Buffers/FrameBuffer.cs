@@ -18,28 +18,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
-        public bool IsInitialized { get; private set; }
+        private bool isInitialised;
 
-        public void Initialise(All filteringMode = All.Linear, RenderbufferInternalFormat[] renderBufferFormats = null)
+        private readonly All filteringMode;
+        private readonly RenderbufferInternalFormat[] renderBufferFormats;
+
+        public FrameBuffer(RenderbufferInternalFormat[] renderBufferFormats = null, All filteringMode = All.Linear)
         {
-            frameBuffer = GL.GenFramebuffer();
-
-            Texture = new FrameBufferTexture(filteringMode);
-
-            Bind();
-
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
-            GLWrapper.BindTexture(null);
-
-            if (renderBufferFormats != null)
-            {
-                foreach (var format in renderBufferFormats)
-                    attachedRenderBuffers.Add(new RenderBuffer(format));
-            }
-
-            Unbind();
-
-            IsInitialized = true;
+            this.renderBufferFormats = renderBufferFormats;
+            this.filteringMode = filteringMode;
         }
 
         private Vector2 size = Vector2.One;
@@ -57,13 +44,31 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 size = value;
 
-                Texture.Width = (int)Math.Ceiling(size.X);
-                Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUpload());
-                Texture.Upload();
+                if (isInitialised)
+                {
+                    Texture.Width = (int)Math.Ceiling(size.X);
+                    Texture.Height = (int)Math.Ceiling(size.Y);
 
-                foreach (var buffer in attachedRenderBuffers)
-                    buffer.Size = value;
+                    Texture.SetData(new TextureUpload());
+                    Texture.Upload();
+                }
+            }
+        }
+
+        private void initialise()
+        {
+            frameBuffer = GL.GenFramebuffer();
+            Texture = new FrameBufferTexture(Size, filteringMode);
+
+            GLWrapper.BindFrameBuffer(frameBuffer);
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+            GLWrapper.BindTexture(null);
+
+            if (renderBufferFormats != null)
+            {
+                foreach (var format in renderBufferFormats)
+                    attachedRenderBuffers.Add(new RenderBuffer(format));
             }
         }
 
@@ -71,12 +76,36 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
-        public void Bind() => GLWrapper.BindFrameBuffer(frameBuffer);
+        public void Bind()
+        {
+            if (!isInitialised)
+            {
+                initialise();
+                isInitialised = true;
+            }
+            else
+            {
+                // Buffer is bound during initialisation
+                GLWrapper.BindFrameBuffer(frameBuffer);
+            }
+
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Bind(Size);
+        }
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind() => GLWrapper.UnbindFrameBuffer(frameBuffer);
+        public void Unbind()
+        {
+            // See: https://community.arm.com/developer/tools-software/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
+            // Unbinding renderbuffers causes an invalidation of the relevant attachment of this framebuffer on embedded devices, causing the renderbuffers to remain transient.
+            // This must be done _before_ the framebuffer is flushed via the framebuffer unbind process, otherwise the renderbuffer may be copied to system memory.
+            foreach (var buffer in attachedRenderBuffers)
+                buffer.Unbind();
+
+            GLWrapper.UnbindFrameBuffer(frameBuffer);
+        }
 
         #region Disposal
 
@@ -98,13 +127,16 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (isDisposed)
                 return;
 
-            Texture?.Dispose();
-            Texture = null;
+            if (isInitialised)
+            {
+                Texture?.Dispose();
+                Texture = null;
 
-            GLWrapper.DeleteFrameBuffer(frameBuffer);
+                GLWrapper.DeleteFrameBuffer(frameBuffer);
 
-            foreach (var buffer in attachedRenderBuffers)
-                buffer.Dispose();
+                foreach (var buffer in attachedRenderBuffers)
+                    buffer.Dispose();
+            }
 
             isDisposed = true;
         }
@@ -113,11 +145,23 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private class FrameBufferTexture : TextureGLSingle
         {
-            public FrameBufferTexture(All filteringMode = All.Linear)
-                : base(1, 1, true, filteringMode)
+            public FrameBufferTexture(Vector2 size, All filteringMode = All.Linear)
+                : base((int)Math.Ceiling(size.X), (int)Math.Ceiling(size.Y), true, filteringMode)
             {
                 SetData(new TextureUpload());
                 Upload();
+            }
+
+            public override int Width
+            {
+                get => base.Width;
+                set => base.Width = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
+            }
+
+            public override int Height
+            {
+                get => base.Height;
+                set => base.Height = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
         }
     }

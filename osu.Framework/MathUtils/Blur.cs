@@ -38,9 +38,12 @@ namespace osu.Framework.MathUtils
 
             double center = EvalGaussian(0, sigma);
             double threshold = cutoffThreshold * center;
+
             for (int i = 0; i < max_radius; ++i)
+            {
                 if (EvalGaussian(i, sigma) < threshold)
                     return Math.Max(i - 1, 0);
+            }
 
             return max_radius;
         }

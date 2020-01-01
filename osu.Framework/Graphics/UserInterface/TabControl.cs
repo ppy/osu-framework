@@ -20,24 +20,19 @@ namespace osu.Framework.Graphics.UserInterface
     /// support for pinning items, causing them to be displayed before all other items at the
     /// start of the list.
     /// </summary>
+    /// <remarks>
+    /// If a multi-line (or vertical) tab control is required, <see cref="TabFillFlowContainer.AllowMultiline"/> must be set to true.
+    /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
+    /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        private Bindable<T> currentBound;
+        private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         /// <summary>
@@ -74,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
         /// </summary>
-        public virtual bool IsSwitchable => true;
+        public bool IsSwitchable { get; set; }
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -270,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && !tab.Pinned)
+            if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
 
             // Deactivate previously selected tab
@@ -309,7 +304,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (wrap)
             {
-                targetIndex = targetIndex % tabCount;
+                targetIndex %= tabCount;
                 if (targetIndex < 0)
                     targetIndex += tabCount;
             }
@@ -363,6 +358,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             private bool allowMultiline;
 
+            /// <summary>
+            /// Whether tabs should be allowed to flow beyond a single line. If set to false, overflowing tabs will be automatically hidden.
+            /// </summary>
             public bool AllowMultiline
             {
                 get => allowMultiline;
@@ -399,8 +397,7 @@ namespace osu.Framework.Graphics.UserInterface
                     bool isVisible = allowMultiline || result[i].Y == 0;
                     updateChildIfNeeded(child, isVisible);
 
-                    if (isVisible)
-                        yield return result[i];
+                    yield return result[i];
 
                     i++;
                 }
@@ -420,6 +417,18 @@ namespace osu.Framework.Graphics.UserInterface
                     else
                         child.Hide();
                 }
+            }
+
+            public override void Clear(bool disposeChildren)
+            {
+                tabVisibility.Clear();
+                base.Clear(disposeChildren);
+            }
+
+            public override bool Remove(TabItem<T> drawable)
+            {
+                tabVisibility.Remove(drawable);
+                return base.Remove(drawable);
             }
         }
     }

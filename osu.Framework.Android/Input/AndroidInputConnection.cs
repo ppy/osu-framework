@@ -1,25 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Android.Views;
 using Android.Views.InputMethods;
-using Android.Util;
 using Java.Lang;
-using osu.Framework.Android;
 
 namespace osu.Framework.Android.Input
 {
-    class AndroidInputConnection : BaseInputConnection
+    internal class AndroidInputConnection : BaseInputConnection
     {
         public AndroidGameView TargetView { get; set; }
 
-        public AndroidInputConnection(AndroidGameView targetView, bool fullEditor) : base(targetView, fullEditor)
+        public AndroidInputConnection(AndroidGameView targetView, bool fullEditor)
+            : base(targetView, fullEditor)
         {
             TargetView = targetView;
         }

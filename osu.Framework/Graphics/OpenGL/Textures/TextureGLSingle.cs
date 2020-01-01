@@ -12,6 +12,7 @@ using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -23,20 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static readonly Action<TexturedVertex2D> default_quad_action;
-        private static readonly Action<TexturedVertex2D> default_triangle_action;
-
-        static TextureGLSingle()
-        {
-            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-            default_quad_action = quadBatch.AddAction;
-
-            // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-            // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-            // grouping of vertices into primitives.
-            TriangleBatch<TexturedVertex2D> triangleBatch = new TriangleBatch<TexturedVertex2D>(512, 128);
-            default_triangle_action = triangleBatch.AddAction;
-        }
+        private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -83,34 +71,29 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             textureId = 0;
 
-            loadedBytes.Value -= getMemoryUsage();
+            memoryLease?.Dispose();
         }
 
         #endregion
 
         #region Memory Tracking
 
-        private GlobalStatistic<long> loadedBytes;
         private List<long> levelMemoryUsage = new List<long>();
+
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         private void updateMemoryUsage(int level, long newUsage)
         {
-            if (loadedBytes == null)
-            {
-                loadedBytes = GlobalStatistics.Get<long>("Native", GetType().Name);
+            if (levelMemoryUsage == null)
                 levelMemoryUsage = new List<long>();
-            }
-
-            long before = getMemoryUsage();
 
             while (level >= levelMemoryUsage.Count)
                 levelMemoryUsage.Add(0);
 
             levelMemoryUsage[level] = newUsage;
 
-            long after = getMemoryUsage();
-
-            loadedBytes.Value += after - before;
+            memoryLease?.Dispose();
+            memoryLease = NativeMemoryTracker.AddMemory(this, getMemoryUsage());
         }
 
         private long getMemoryUsage()
@@ -180,7 +163,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
-        public const int VERTICES_PER_TRIANGLE = 6;
+        public const int VERTICES_PER_TRIANGLE = 4;
 
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null)
@@ -193,7 +176,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
-                vertexAction = default_triangle_action;
+                vertexAction = default_quad_action;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -202,11 +185,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
-            // Left triangle half
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = topColour.Linear,
@@ -227,24 +209,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 BlendRange = inflationAmount,
                 Colour = bottomColour.Linear,
             });
-
-            // Right triangle half
-            vertexAction(new TexturedVertex2D
-            {
-                Position = vertexTriangle.P0,
-                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
-                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                BlendRange = inflationAmount,
-                Colour = topColour.Linear,
-            });
-            vertexAction(new TexturedVertex2D
-            {
-                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
-                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
-                BlendRange = inflationAmount,
-                Colour = bottomColour.Linear,
-            });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
@@ -254,7 +218,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
         }
 
         public const int VERTICES_PER_QUAD = 4;
@@ -306,7 +270,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
         private void updateWrapMode()
@@ -342,7 +306,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public override bool Bind()
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
@@ -355,7 +319,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(this);
+            GLWrapper.BindTexture(this, unit);
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();
@@ -376,13 +340,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             bool didUpload = false;
 
             while (tryGetNextUpload(out ITextureUpload upload))
+            {
                 using (upload)
                 {
-                    fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
+                    fixed (Rgba32* ptr = upload.Data)
                         doUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
                 }
+            }
 
             if (didUpload && !manualMipmaps)
             {
@@ -446,7 +412,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                 if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
                 {
-                    updateMemoryUsage(upload.Level, width * height * 4);
+                    updateMemoryUsage(upload.Level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                 }
                 else
@@ -488,11 +454,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private unsafe void initializeLevel(int level, int width, int height)
         {
             using (var image = new Image<Rgba32>(width, height))
+            {
                 fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
                 {
-                    updateMemoryUsage(level, width * height * 4);
+                    updateMemoryUsage(level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
                 }
+            }
         }
     }
 }

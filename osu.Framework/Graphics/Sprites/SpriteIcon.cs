@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
         private Container shadowVisibility;
 
         private FontStore store;
@@ -72,15 +72,18 @@ namespace osu.Framework.Graphics.Sprites
         {
             var loadableIcon = icon;
 
-            if (Equals(loadableIcon, loadedIcon)) return;
+            if (loadableIcon.Equals(loadedIcon)) return;
 
-            var texture = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
+            var glyph = store.Get(loadableIcon.FontName, Icon.Icon);
 
-            spriteMain.Texture = texture;
-            spriteShadow.Texture = texture;
+            if (glyph != null)
+            {
+                spriteMain.Texture = glyph.Texture;
+                spriteShadow.Texture = glyph.Texture;
 
-            if (Size == Vector2.Zero)
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(glyph.Width, glyph.Height);
+            }
 
             loadedIcon = loadableIcon;
         }
@@ -100,7 +103,7 @@ namespace osu.Framework.Graphics.Sprites
                 //squared result for quadratic fall-off seems to give the best result.
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
 
-                spriteShadow.Alpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+                spriteShadow.Alpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 layout.Validate();
             }
@@ -126,7 +129,7 @@ namespace osu.Framework.Graphics.Sprites
             get => icon;
             set
             {
-                if (Equals(icon, value)) return;
+                if (icon.Equals(value)) return;
 
                 icon = value;
                 if (LoadState == LoadState.Loaded)

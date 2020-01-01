@@ -1,11 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Configuration;
-using osu.Framework.Platform;
-using osuTK.Graphics;
 using System;
+using osu.Framework.Configuration;
+using osuTK.Graphics;
 using System.Collections.Generic;
+using osuTK;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Android
 {
@@ -19,12 +20,14 @@ namespace osu.Framework.Android
         public override bool Focused
             => true;
 
-        public override osuTK.WindowState WindowState {
+        public override osuTK.WindowState WindowState
+        {
             get => osuTK.WindowState.Normal;
             set { }
         }
 
-        public AndroidGameWindow() : base(View)
+        public AndroidGameWindow()
+            : base(View)
         {
         }
 
@@ -34,7 +37,7 @@ namespace osu.Framework.Android
             CursorInWindow = true;
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };
@@ -47,6 +50,12 @@ namespace osu.Framework.Android
         public override void Run(double updateRate)
         {
             View.Run(updateRate);
+        }
+
+        public override DisplayDevice CurrentDisplay
+        {
+            get => DisplayDevice.Default;
+            set => throw new InvalidOperationException();
         }
     }
 }

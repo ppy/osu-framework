@@ -9,8 +9,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
-using System;
-using System.Collections.Generic;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 
@@ -27,7 +25,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
     {
-    };
+        /// <inheritdoc />
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+            : base(formats, pixelSnapping)
+        {
+        }
+    }
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -97,25 +100,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool pixelSnapping;
-
-        /// <summary>
-        /// Whether the framebuffer's position is snapped to the nearest pixel when blitting.
-        /// Since the framebuffer's texels have the same size as pixels, this amounts to setting
-        /// the texture filtering mode to "nearest".
-        /// </summary>
-        public bool PixelSnapping
-        {
-            get => pixelSnapping;
-            set
-            {
-                if (sharedData.MainBuffer.IsInitialized)
-                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
-
-                pixelSnapping = value;
-            }
-        }
-
         private ColourInfo effectColour = Color4.White;
 
         /// <summary>
@@ -135,11 +119,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private BlendingParameters effectBlending;
+        private BlendingParameters effectBlending = BlendingParameters.Inherit;
 
         /// <summary>
-        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
-        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingType.Inherit"/>.
+        /// <see cref="BlendingType.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public BlendingParameters EffectBlending
@@ -147,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;
@@ -192,6 +176,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
+                ForceRedraw();
+            }
+        }
+
         /// <summary>
         /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -199,6 +198,24 @@ namespace osu.Framework.Graphics.Containers
         /// to calling <see cref="ForceRedraw"/> every frame.
         /// </summary>
         public bool CacheDrawnFrameBuffer;
+
+        private bool redrawOnScale = true;
+
+        /// <summary>
+        /// Whether to redraw this <see cref="BufferedContainer"/> when the draw scale changes.
+        /// </summary>
+        public bool RedrawOnScale
+        {
+            get => redrawOnScale;
+            set
+            {
+                if (redrawOnScale == value)
+                    return;
+
+                redrawOnScale = value;
+                screenSpaceSizeBacking?.Invalidate();
+            }
+        }
 
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
@@ -223,14 +240,17 @@ namespace osu.Framework.Graphics.Containers
 
         private IShader blurShader;
 
+        private readonly BufferedContainerDrawNodeSharedData sharedData;
+
         /// <summary>
         /// Constructs an empty buffered container.
         /// </summary>
-        public BufferedContainer()
+        /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
+        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".</param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
         {
-            // The initial draw cannot be cached, and thus we need to initialize
-            // with a forced draw.
-            ForceRedraw();
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
         }
 
         [BackgroundDependencyLoader]
@@ -241,35 +261,12 @@ namespace osu.Framework.Graphics.Containers
             blurShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
-        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
-
-        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData, attachedFormats.ToArray(), PixelSnapping);
-
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
-
-        /// <summary>
-        /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
-        /// be a depth component, such that the framebuffer can hold fragment depth information.
-        /// </summary>
-        /// <param name="format">The component format to attach.</param>
-        public void Attach(RenderbufferInternalFormat format)
-        {
-            if (attachedFormats.Exists(f => f == format))
-                return;
-
-            attachedFormats.Add(format);
-        }
-
-        /// <summary>
-        /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
-        /// </summary>
-        /// <param name="format">The component format to detach.</param>
-        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private Cached screenSpaceSizeBacking = new Cached();
+        private readonly Cached screenSpaceSizeBacking = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -295,12 +292,18 @@ namespace osu.Framework.Graphics.Containers
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
-                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
+                Vector2 drawSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
+                if (!RedrawOnScale)
+                {
+                    Matrix3 scaleMatrix = Matrix3.CreateScale(DrawInfo.MatrixInverse.ExtractScale());
+                    Vector2Extensions.Transform(ref drawSize, ref scaleMatrix, out drawSize);
+                }
+
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, drawSize))
                 {
                     ++updateVersion;
-                    lastScreenSpaceSize = screenSpaceSize;
+                    lastScreenSpaceSize = drawSize;
                 }
 
                 screenSpaceSizeBacking.Validate();
@@ -322,14 +325,9 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 BlendingParameters blending = EffectBlending;
-                if (blending.Mode == BlendingMode.Inherit)
-                    blending.Mode = Blending.Mode;
 
-                if (blending.RGBEquation == BlendingEquation.Inherit)
-                    blending.RGBEquation = Blending.RGBEquation;
-
-                if (blending.AlphaEquation == BlendingEquation.Inherit)
-                    blending.AlphaEquation = Blending.AlphaEquation;
+                blending.CopyFromParent(Blending);
+                blending.ApplyDefaultToInherited();
 
                 return blending;
             }

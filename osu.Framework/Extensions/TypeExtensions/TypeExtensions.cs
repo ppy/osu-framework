@@ -99,7 +99,7 @@ namespace osu.Framework.Extensions.TypeExtensions
     public enum AccessModifier
     {
         None = 0,
-        Public = 1 << 0,
+        Public = 1,
         Internal = 1 << 1,
         Protected = 1 << 2,
         Private = 1 << 3

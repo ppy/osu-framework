@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached textureCache = new Cached();
+        private readonly Cached textureCache = new Cached();
 
         protected void InvalidateTexture()
         {
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Lines
                 raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
-            var texture = new TextureWithRefCount(textureWidth, 1, true);
+            var texture = new DisposableTexture(textureWidth, 1, true);
             texture.SetData(new TextureUpload(raw));
             Texture = texture;
 

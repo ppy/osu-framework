@@ -15,9 +15,13 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgressDrawNode : TexturedShaderDrawNode
     {
-        public const int MAX_RES = 24;
+        private const float arc_tolerance = 0.1f;
+
+        private const float two_pi = MathF.PI * 2;
 
         protected new CircularProgress Source => (CircularProgress)base.Source;
+
+        private LinearBatch<TexturedVertex2D> halfCircleBatch;
 
         private float angle;
         private float innerRadius = 1;
@@ -36,16 +40,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             texture = Source.Texture;
             drawSize = Source.DrawSize;
-            angle = (float)Source.Current.Value * MathHelper.TwoPi;
+            angle = (float)Source.Current.Value * two_pi;
             innerRadius = Source.InnerRadius;
         }
 
-        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
-        // MAX_RES refers to a half-circle, so it is multiplied by 2 for the full circle and by 2 again to account for each circle part requiring two vertices.
-        private readonly LinearBatch<TexturedVertex2D> halfCircleBatch = new LinearBatch<TexturedVertex2D>(MAX_RES * 4 + 2, 1, PrimitiveType.TriangleStrip);
-
-        private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
-        private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
+        private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Sin(angle), -MathF.Cos(angle));
+        private float angleToUnitInterval(float angle) => angle / two_pi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
         private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
@@ -57,11 +57,22 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateVertexBuffer()
         {
             const float start_angle = 0;
-            const float step = MathHelper.Pi / MAX_RES;
 
             float dir = Math.Sign(angle);
+            float radius = Math.Max(drawSize.X, drawSize.Y);
 
-            int amountPoints = (int)Math.Ceiling(Math.Abs(angle) / step);
+            // The amount of points are selected such that discrete curvature is smaller than the provided tolerance.
+            // The exact angle required to meet the tolerance is: 2 * Math.Acos(1 - TOLERANCE / r)
+            // The special case is for extremely small circles where the radius is smaller than the tolerance.
+            int amountPoints = 2 * radius <= arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(Math.PI / Math.Acos(1 - arc_tolerance / radius)));
+
+            if (halfCircleBatch == null || halfCircleBatch.Size < amountPoints * 2)
+            {
+                halfCircleBatch?.Dispose();
+
+                // Amount of points is multiplied by 2 to account for each part requiring two vertices.
+                halfCircleBatch = new LinearBatch<TexturedVertex2D>(amountPoints * 2, 1, PrimitiveType.TriangleStrip);
+            }
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
@@ -94,17 +105,17 @@ namespace osu.Framework.Graphics.UserInterface
                 Colour = currentColour
             });
 
-            for (int i = 1; i <= amountPoints; i++)
+            for (int i = 1; i < amountPoints; i++)
             {
+                float fract = (float)i / (amountPoints - 1);
+
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
-                float angularOffset = dir * Math.Min(i * step, dir * angle);
-                float normalisedOffset = angularOffset / MathHelper.TwoPi;
+                float angularOffset = Math.Min(fract * two_pi, dir * angle);
+                float normalisedOffset = angularOffset / two_pi;
 
                 if (dir < 0)
-                {
                     normalisedOffset += 1.0f;
-                }
 
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
@@ -152,7 +163,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Dispose(isDisposing);
 
-            halfCircleBatch.Dispose();
+            halfCircleBatch?.Dispose();
         }
     }
 }

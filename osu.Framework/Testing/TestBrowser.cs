@@ -33,12 +33,12 @@ using osuTK.Input;
 namespace osu.Framework.Testing
 {
     [Cached]
-    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalInput
+    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
     {
         public TestScene CurrentTest { get; private set; }
 
         private BasicTextBox searchTextBox;
-        private SearchContainer<TestSceneButtonGroup> leftFlowContainer;
+        private SearchContainer<TestGroupButton> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic).ToList();
+                var tests = asm.GetLoadableTypes().Where(isValidVisualTest).ToList();
 
                 if (!tests.Any())
                 {
@@ -78,6 +78,8 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
+
         private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
@@ -90,12 +92,12 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? TestScene.RemovePrefix(t.Name) : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
                                                 ).OrderBy(g => g.Name)
-                                                .Select(t => new TestSceneButtonGroup(type => LoadTest(type), t)));
+                                                .Select(t => new TestGroupButton(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
@@ -129,12 +131,12 @@ namespace osu.Framework.Testing
             var resources = game.Resources;
 
             //Roboto
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Regular");
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Bold");
 
             //RobotoCondensed
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
@@ -194,6 +196,7 @@ namespace osu.Framework.Testing
                 {
                     RelativeSizeAxes = Axes.Y,
                     Size = new Vector2(test_list_width, 1),
+                    Masking = true,
                     Children = new Drawable[]
                     {
                         new SafeAreaContainer
@@ -229,7 +232,7 @@ namespace osu.Framework.Testing
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Masking = false,
-                                    Child = leftFlowContainer = new SearchContainer<TestSceneButtonGroup>
+                                    Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
@@ -390,6 +393,14 @@ namespace osu.Framework.Testing
 
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
+            if (CurrentTest?.Parent != null)
+            {
+                testContentContainer.Remove(CurrentTest.Parent);
+                CurrentTest.Dispose();
+            }
+
+            CurrentTest = null;
+
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -410,10 +421,8 @@ namespace osu.Framework.Testing
 
             Assembly.Value = testType.Assembly;
 
-            var lastTest = CurrentTest;
-
             CurrentTest = newTest;
-            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
+            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, onCompletion));
 
             updateButtons();
             resetRecording();
@@ -431,14 +440,8 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Drawable lastTest, Action onCompletion)
+        private void finishLoad(Drawable newTest, Action onCompletion)
         {
-            if (lastTest?.Parent != null)
-            {
-                testContentContainer.Remove(lastTest.Parent);
-                lastTest.Dispose();
-            }
-
             if (CurrentTest != newTest)
             {
                 // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
@@ -454,14 +457,18 @@ namespace osu.Framework.Testing
 
             foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
-                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel(m.Name);
+                    handleTestMethod(m);
 
-                    addSetUpSteps();
+                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    {
+                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
-                    m.Invoke(CurrentTest, null);
+                        for (int i = 2; i <= count; i++)
+                            handleTestMethod(m, $"{m.Name} ({i})");
+                    }
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
@@ -496,6 +503,15 @@ namespace osu.Framework.Testing
                 }
 
                 CurrentTest.RunSetUpSteps();
+            }
+
+            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            {
+                CurrentTest.AddLabel(name ?? methodInfo.Name);
+
+                addSetUpSteps();
+
+                methodInfo.Invoke(CurrentTest, null);
             }
         }
 

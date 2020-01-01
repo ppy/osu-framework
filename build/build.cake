@@ -1,6 +1,6 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.21"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.1.1"
+#addin "nuget:?package=CodeFileSanity&version=0.0.33"
+#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.3.0"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
 var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
@@ -19,7 +19,9 @@ var rootDirectory = new DirectoryPath("..");
 var tempDirectory = new DirectoryPath("temp");
 var artifactsDirectory = rootDirectory.Combine("artifacts");
 
-var solution = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var sln = rootDirectory.CombineWithFilePath("osu-framework.sln");
+var desktopBuilds = rootDirectory.CombineWithFilePath("build/Desktop.proj");
+var desktopSlnf = rootDirectory.CombineWithFilePath("osu-framework.Desktop.slnf");
 var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Framework.csproj");
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
@@ -82,7 +84,7 @@ Task("RunHttpBin")
 
 Task("Compile")
     .Does(() => {
-        DotNetCoreBuild(solution.FullPath, new DotNetCoreBuildSettings {
+        DotNetCoreBuild(desktopBuilds.FullPath, new DotNetCoreBuildSettings {
             Configuration = configuration,
             Verbosity = DotNetCoreVerbosity.Minimal,
         });
@@ -111,7 +113,7 @@ Task("InspectCode")
     .Does(() => {
         var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
 
-        InspectCode(solution, new InspectCodeSettings {
+        InspectCode(desktopSlnf, new InspectCodeSettings {
             CachesHome = tempDirectory.Combine("inspectcode"),
             OutputFile = inspectcodereport,
             ArgumentCustomization = args => args.Append("--verbosity=WARN")
@@ -129,6 +131,9 @@ Task("CodeFileSanity")
             IsAppveyorBuild = AppVeyor.IsRunningOnAppVeyor
         });
     });
+
+Task("DotnetFormat")
+    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
 
 Task("PackFramework")
     .Does(() => {
@@ -154,7 +159,6 @@ Task("PackiOSFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
@@ -175,7 +179,6 @@ Task("PackAndroidFramework")
                 FileName = tempDirectory.CombineWithFilePath("msbuildlog.binlog").FullPath
             },
             Verbosity = Verbosity.Minimal,
-            MSBuildPlatform = MSBuildPlatform.x86, // csc.exe is not found when 64 bit is used.
             ArgumentCustomization = args =>
             {
                 args.Append($"/p:Configuration={configuration}");
@@ -213,6 +216,7 @@ Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
+    .IsDependentOn("DotnetFormat")
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")

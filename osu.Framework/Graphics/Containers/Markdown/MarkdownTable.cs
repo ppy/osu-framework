@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private readonly Table table;
 
-        private Cached columnDefinitionCache = new Cached();
-        private Cached rowDefinitionCache = new Cached();
+        private readonly Cached columnDefinitionCache = new Cached();
+        private readonly Cached rowDefinitionCache = new Cached();
 
         public MarkdownTable(Table table)
         {
@@ -107,8 +107,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             // Compute the maximum width of each column
             for (int r = 0; r < tableContainer.Content.Length; r++)
-            for (int c = 0; c < tableContainer.Content[r].Length; c++)
-                columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
+            {
+                for (int c = 0; c < tableContainer.Content[r].Length; c++)
+                    columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
+            }
 
             float totalWidth = 0;
             for (int i = 0; i < columnWidths.Length; i++)

@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached<RectangleF> vertexBoundsCache;
+        private readonly Cached<RectangleF> vertexBoundsCache = new Cached<RectangleF>();
 
         private RectangleF vertexBounds
         {
@@ -200,8 +200,10 @@ namespace osu.Framework.Graphics.Lines
             var pathRadiusSquared = PathRadius * PathRadius;
 
             foreach (var t in segments)
+            {
                 if (t.DistanceSquaredToPoint(localPos) <= pathRadiusSquared)
                     return true;
+            }
 
             return false;
         }
@@ -232,7 +234,7 @@ namespace osu.Framework.Graphics.Lines
         }
 
         private readonly List<Line> segmentsBacking = new List<Line>();
-        private Cached segmentsCache = new Cached();
+        private readonly Cached segmentsCache = new Cached();
         private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
 
         private List<Line> generateSegments()
@@ -269,14 +271,16 @@ namespace osu.Framework.Graphics.Lines
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
+        public Vector2 FrameBufferScale { get; } = Vector2.One;
+
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
 
-        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData, new[] { RenderbufferInternalFormat.DepthComponent16 });
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
 
         protected override void Dispose(bool isDisposing)
         {

@@ -11,6 +11,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
+using System.Diagnostics;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -44,13 +45,11 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selMenuBarVisible = Selector.Get("menuBarVisible");
         private readonly IntPtr classNSMenu = Class.Get("NSMenu");
 
-        private MethodInfo methodKeyDown;
-        private MethodInfo methodKeyUp;
-        private MethodInfo methodInvalidateCursorRects;
+        private Action<osuTK.Input.Key, bool> actionKeyDown;
+        private Action<osuTK.Input.Key> actionKeyUp;
+        private Action actionInvalidateCursorRects;
 
         private WindowMode? pendingWindowMode;
-
-        private object nativeWindow;
 
         public MacOSGameWindow()
         {
@@ -78,11 +77,20 @@ namespace osu.Framework.Platform.MacOS
                 windowDidExitFullScreenHandler = windowDidExitFullScreen;
                 windowShouldZoomToFrameHandler = windowShouldZoomToFrame;
 
-                var fieldImplementation = typeof(NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
-                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
-                var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
+                const BindingFlags instance_member = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-                nativeWindow = fieldImplementation.GetValue(Implementation);
+                var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
+                Debug.Assert(fieldImplementation != null, "Reflection is broken!");
+
+                var nativeWindow = fieldImplementation.GetValue(Implementation);
+                Debug.Assert(nativeWindow != null, "Reflection is broken!");
+
+                var typeCocoaNativeWindow = nativeWindow.GetType();
+                Debug.Assert(typeCocoaNativeWindow.Name == "CocoaNativeWindow", "Reflection is broken!");
+
+                var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member);
+                Debug.Assert(fieldWindowClass != null, "Reflection is broken!");
+
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
                 // register new methods
@@ -97,9 +105,17 @@ namespace osu.Framework.Platform.MacOS
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WINDOW_DID_ENTER_FULL_SCREEN, IntPtr.Zero);
                 NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WINDOW_DID_EXIT_FULL_SCREEN, IntPtr.Zero);
 
-                methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
-                methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
-                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
+                var methodKeyDown = typeCocoaNativeWindow.GetMethod("OnKeyDown", instance_member);
+                Debug.Assert(methodKeyDown != null, "Reflection is broken!");
+                actionKeyDown = (Action<osuTK.Input.Key, bool>)methodKeyDown.CreateDelegate(typeof(Action<osuTK.Input.Key, bool>), nativeWindow);
+
+                var methodKeyUp = typeCocoaNativeWindow.GetMethod("OnKeyUp", instance_member);
+                Debug.Assert(methodKeyUp != null, "Reflection is broken!");
+                actionKeyUp = (Action<osuTK.Input.Key>)methodKeyUp.CreateDelegate(typeof(Action<osuTK.Input.Key>), nativeWindow);
+
+                var methodInvalidateCursorRects = typeCocoaNativeWindow.GetMethod("InvalidateCursorRects", instance_member);
+                Debug.Assert(methodInvalidateCursorRects != null, "Reflection is broken!");
+                actionInvalidateCursorRects = (Action)methodInvalidateCursorRects.CreateDelegate(typeof(Action), nativeWindow);
             }
             catch
             {
@@ -151,7 +167,7 @@ namespace osu.Framework.Platform.MacOS
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
             // invalidate the cursor rects to hide it.  osuTK has a private function that does this.
             if (isCursorHidden && Cocoa.CGCursorIsVisible() && !menuBarVisible)
-                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
+                actionInvalidateCursorRects();
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
@@ -209,9 +225,9 @@ namespace osu.Framework.Platform.MacOS
             }
 
             if (keyDown)
-                methodKeyDown.Invoke(nativeWindow, new object[] { key, false });
+                actionKeyDown(key, false);
             else
-                methodKeyUp.Invoke(nativeWindow, new object[] { key });
+                actionKeyUp(key);
         }
 
         // FIXME: osuTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
@@ -240,7 +256,7 @@ namespace osu.Framework.Platform.MacOS
 
     internal enum CocoaKeyModifiers
     {
-        LeftControl = 1 << 0,
+        LeftControl = 1,
         LeftShift = 1 << 1,
         RightShift = 1 << 2,
         LeftCommand = 1 << 3,
@@ -268,7 +284,7 @@ namespace osu.Framework.Platform.MacOS
     internal enum NSWindowStyleMask
     {
         Borderless = 0,
-        Titled = 1 << 0,
+        Titled = 1,
         Closable = 1 << 1,
         Miniaturizable = 1 << 2,
         Resizable = 1 << 3,
@@ -286,7 +302,7 @@ namespace osu.Framework.Platform.MacOS
     internal enum NSApplicationPresentationOptions
     {
         Default = 0,
-        AutoHideDock = 1 << 0,
+        AutoHideDock = 1,
         HideDock = 1 << 1,
         AutoHideMenuBar = 1 << 2,
         HideMenuBar = 1 << 3,

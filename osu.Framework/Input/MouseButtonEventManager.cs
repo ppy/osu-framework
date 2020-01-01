@@ -111,10 +111,9 @@ namespace osu.Framework.Input
                     if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
                         HandleMouseDragStart(state);
                 }
-                else
-                {
+
+                if (DragStarted)
                     HandleMouseDrag(state, lastPosition);
-                }
             }
         }
 
@@ -145,7 +144,7 @@ namespace osu.Framework.Input
             {
                 HandleMouseUp(state);
 
-                if (EnableClick && DraggedDrawable == null)
+                if (EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
                     if (!BlockNextClick)
                     {
@@ -190,6 +189,8 @@ namespace osu.Framework.Input
 
         protected virtual bool HandleMouseClick(InputState state)
         {
+            if (MouseDownInputQueue == null) return false;
+
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
                                                .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));
@@ -259,7 +260,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
