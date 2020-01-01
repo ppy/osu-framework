@@ -4,11 +4,11 @@
 using System;
 using System.Linq;
 using osu.Framework.Graphics;
-using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.MathUtils
 {
@@ -27,9 +27,9 @@ namespace osu.Framework.MathUtils
         public static double Damp(double start, double final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)
-                throw new ArgumentOutOfRangeException($"{nameof(@base)} has to lie in [0,1], but is {@base}.", nameof(@base));
+                throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
             if (exponent < 0)
-                throw new ArgumentOutOfRangeException($"{nameof(exponent)} has to be bigger than 0, but is {exponent}.", nameof(exponent));
+                throw new ArgumentOutOfRangeException(nameof(exponent), $"{nameof(exponent)} has to be bigger than 0, but is {exponent}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
@@ -248,16 +248,27 @@ namespace osu.Framework.MathUtils
                 val1.Height + t * (val2.X - val1.Height));
         }
 
+        #region Easing constants
+
+        private const double elastic_const = 2 * Math.PI / .3;
+        private const double elastic_const2 = .3 / 4;
+
+        private const double back_const = 1.70158;
+        private const double back_const2 = back_const * 1.525;
+
+        private const double bounce_const = 1 / 2.75;
+
+        // constants used to fix expo and elastic curves to start/end at 0/1
+        private static readonly double expo_offset = Math.Pow(2, -10);
+        private static readonly double elastic_offset_full = Math.Pow(2, -11);
+        private static readonly double elastic_offset_half = Math.Pow(2, -10) * Math.Sin((.5 - elastic_const2) * elastic_const);
+        private static readonly double elastic_offset_quarter = Math.Pow(2, -10) * Math.Sin((.25 - elastic_const2) * elastic_const);
+        private static readonly double in_out_elastic_offset = Math.Pow(2, -10) * Math.Sin((1 - elastic_const2 * 1.5) * elastic_const / 1.5);
+
+        #endregion
+
         public static double ApplyEasing(Easing easing, double time)
         {
-            const double elastic_const = 2 * Math.PI / .3;
-            const double elastic_const2 = .3 / 4;
-
-            const double back_const = 1.70158;
-            const double back_const2 = back_const * 1.525;
-
-            const double bounce_const = 1 / 2.75;
-
             switch (easing)
             {
                 default:
@@ -319,15 +330,15 @@ namespace osu.Framework.MathUtils
                     return .5 - .5 * Math.Cos(Math.PI * time);
 
                 case Easing.InExpo:
-                    return Math.Pow(2, 10 * (time - 1));
+                    return Math.Pow(2, 10 * (time - 1)) + expo_offset * (time - 1);
 
                 case Easing.OutExpo:
-                    return -Math.Pow(2, -10 * time) + 1;
+                    return -Math.Pow(2, -10 * time) + 1 + expo_offset * time;
 
                 case Easing.InOutExpo:
-                    if (time < .5) return .5 * Math.Pow(2, 20 * time - 10);
+                    if (time < .5) return .5 * (Math.Pow(2, 20 * time - 10) + expo_offset * (2 * time - 1));
 
-                    return 1 - .5 * Math.Pow(2, -20 * time + 10);
+                    return 1 - .5 * (Math.Pow(2, -20 * time + 10) + expo_offset * (-2 * time + 1));
 
                 case Easing.InCirc:
                     return 1 - Math.Sqrt(1 - time * time);
@@ -341,22 +352,26 @@ namespace osu.Framework.MathUtils
                     return .5 * Math.Sqrt(1 - (time -= 2) * time) + .5;
 
                 case Easing.InElastic:
-                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const);
+                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const) + elastic_offset_full * (1 - time);
 
                 case Easing.OutElastic:
-                    return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1 - elastic_offset_full * time;
 
                 case Easing.OutElasticHalf:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1 - elastic_offset_half * time;
 
                 case Easing.OutElasticQuarter:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1 - elastic_offset_quarter * time;
 
                 case Easing.InOutElastic:
                     if ((time *= 2) < 1)
-                        return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5);
+                    {
+                        return -.5 * (Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5)
+                                      - in_out_elastic_offset * (1 - time));
+                    }
 
-                    return .5 * Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5) + 1;
+                    return .5 * (Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5)
+                                 - in_out_elastic_offset * time) + 1;
 
                 case Easing.InBack:
                     return time * time * ((back_const + 1) * time - back_const);
@@ -413,14 +428,11 @@ namespace osu.Framework.MathUtils
                              .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                              ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
-            FUNCTION =
-                (InterpolationFunc<TValue>)(
-                    typeof(Interpolation).GetMethod(interpolation_method, parameters)
-                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
+            var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
+                                ?? typeof(TValue).GetMethod(interpolation_method, parameters)
+                                ?? throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
 
-            if (FUNCTION == null)
-                throw new InvalidOperationException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
+            FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
 
         public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)

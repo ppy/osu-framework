@@ -38,7 +38,6 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
-            Set(FrameworkSetting.PerformanceLogging, false);
         }
 
         public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
@@ -87,7 +86,5 @@ namespace osu.Framework.Configuration
         IgnoredInputHandlers,
         CursorSensitivity,
         MapAbsoluteInputToWindow,
-
-        PerformanceLogging
     }
 }

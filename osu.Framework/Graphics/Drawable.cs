@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
         private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
-        internal bool IsLongLoading => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
+        internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
         /// <summary>
         /// Disposes this drawable.
@@ -223,8 +223,8 @@ namespace osu.Framework.Graphics
         {
             lock (loadLock)
             {
-                if (!isDirectAsyncContext && IsLongLoading)
-                    throw new InvalidOperationException("Tried to load long-loading in non-async context");
+                if (!isDirectAsyncContext && IsLongRunning)
+                    throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
 
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
@@ -532,7 +532,7 @@ namespace osu.Framework.Graphics
             {
                 if (x == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
 
                 x = value;
 
@@ -550,7 +550,7 @@ namespace osu.Framework.Graphics
             {
                 if (y == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
 
                 y = value;
 
@@ -663,7 +663,7 @@ namespace osu.Framework.Graphics
             {
                 if (width == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
 
                 width = value;
 
@@ -681,7 +681,7 @@ namespace osu.Framework.Graphics
             {
                 if (height == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
 
                 height = value;
 
@@ -945,7 +945,7 @@ namespace osu.Framework.Graphics
             {
                 if (fillAspectRatio == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
                 if (value == 0) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be non-zero.");
 
                 fillAspectRatio = value;
@@ -1014,7 +1014,7 @@ namespace osu.Framework.Graphics
             {
                 if (value == rotation) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
 
@@ -1302,7 +1302,7 @@ namespace osu.Framework.Graphics
             get => blending;
             set
             {
-                if (blending.Equals(value))
+                if (blending == value)
                     return;
 
                 blending = value;
@@ -1474,7 +1474,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <typeparam name="T">The type to match.</typeparam>
         /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : IDrawable
+        internal T FindClosestParent<T>() where T : class, IDrawable
         {
             Drawable cursor = this;
 
@@ -1603,12 +1603,12 @@ namespace osu.Framework.Graphics
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
-                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                ci.Colour.ApplyChild(ourColour, interp);
+                ci.Colour.ApplyChild(ourColour,
+                    new Quad(
+                        Vector2.Divide(interp.TopLeft, parentSize),
+                        Vector2.Divide(interp.TopRight, parentSize),
+                        Vector2.Divide(interp.BottomLeft, parentSize),
+                        Vector2.Divide(interp.BottomRight, parentSize)));
             }
 
             return ci;
@@ -2293,6 +2293,15 @@ namespace osu.Framework.Graphics
                 return $@"{Name} ({shortClass})";
             else
                 return shortClass;
+        }
+
+        /// <summary>
+        /// Creates a new instance of an empty <see cref="Drawable"/>.
+        /// </summary>
+        public static Drawable Empty() => new EmptyDrawable();
+
+        private class EmptyDrawable : Drawable
+        {
         }
     }
 

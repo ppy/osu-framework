@@ -16,21 +16,17 @@ using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
+    public abstract class TextBox : TabbableContainer, IHasCurrentValue<string>, IKeyBindingHandler<PlatformAction>
     {
-        protected FillFlowContainer TextFlow;
-        protected Box Background;
-        protected Drawable Caret;
-        protected Container TextContainer;
+        protected FillFlowContainer TextFlow { get; private set; }
+        protected Container TextContainer { get; private set; }
 
         public override bool HandleNonPositionalInput => HasFocus;
 
@@ -38,10 +34,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
         protected virtual float LeftRightPadding => 5;
-
-        protected virtual float CaretWidth => 3;
-
-        private const float caret_move_time = 60;
 
         public int? LengthLimit;
 
@@ -66,35 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual bool HandleLeftRightArrows => true;
 
-        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
-        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
-
-        protected Color4 BackgroundCommit { get; set; } = new Color4(249, 90, 255, 200);
-
-        protected Color4 BackgroundFocused
-        {
-            get => backgroundFocused;
-            set
-            {
-                backgroundFocused = value;
-                updateFocus();
-            }
-        }
-
-        protected Color4 BackgroundUnfocused
-        {
-            get => backgroundUnfocused;
-            set
-            {
-                backgroundUnfocused = value;
-                updateFocus();
-            }
-        }
-
-        protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
-
-        protected virtual Color4 InputErrorColour => Color4.Red;
-
         /// <summary>
         /// Check if a character can be added to this TextBox.
         /// </summary>
@@ -117,7 +80,10 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool CanBeTabbedTo => !ReadOnly;
 
         private ITextInputSource textInput;
+
         private Clipboard clipboard;
+
+        private readonly Caret caret;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
@@ -125,18 +91,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Scheduler textUpdateScheduler = new Scheduler();
 
-        public TextBox()
+        protected TextBox()
         {
             Masking = true;
-            CornerRadius = 3;
 
             Children = new Drawable[]
             {
-                Background = new Box
-                {
-                    Colour = BackgroundUnfocused,
-                    RelativeSizeAxes = Axes.Both,
-                },
                 TextContainer = new Container
                 {
                     AutoSizeAxes = Axes.X,
@@ -144,10 +104,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Children = new Drawable[]
                     {
-                        Placeholder = CreatePlaceholder().With(p => p.X = CaretWidth),
-                        Caret = new DrawableCaret(),
+                        Placeholder = CreatePlaceholder(),
+                        caret = CreateCaret(),
                         TextFlow = new FillFlowContainer
                         {
                             Anchor = Anchor.CentreLeft,
@@ -161,6 +121,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Current.ValueChanged += e => { Text = e.NewValue; };
+            caret.Hide();
         }
 
         [BackgroundDependencyLoader]
@@ -317,8 +278,6 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        private void updateFocus() => Background.FadeColour(HasFocus ? BackgroundFocused : BackgroundUnfocused, Background.IsLoaded ? 200 : 0);
-
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -338,16 +297,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             textUpdateScheduler.Update();
 
-            float caretWidth = CaretWidth;
-
-            Vector2 cursorPos = Vector2.Zero;
+            float cursorPos = 0;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - CaretWidth / 2;
+                cursorPos = getPositionAt(selectionLeft);
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
+            float? selectionWidth = null;
             if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
+                selectionWidth = getPositionAt(selectionRight) - cursorPos;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -362,29 +320,18 @@ namespace osu.Framework.Graphics.UserInterface
             TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
             if (HasFocus)
-            {
-                Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
-
-                if (selectionLength > 0)
-                {
-                    Caret
-                        .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(SelectionColour, 200, Easing.Out);
-                }
-                else
-                {
-                    Caret
-                        .FadeColour(Color4.White, 200, Easing.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
-                }
-            }
+                caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
 
             if (textAtLastLayout != text)
                 Current.Value = text;
+
             if (textAtLastLayout.Length == 0 || text.Length == 0)
-                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
+            {
+                if (text.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
+            }
 
             textAtLastLayout = text;
         }
@@ -497,8 +444,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // account for potentially altered height of textbox
                 d.Y = TextFlow.BoundingBox.Y;
 
-                d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
+                d.Hide();
                 d.Expire();
             }
 
@@ -513,6 +459,11 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        /// <summary>
+        /// Creates a single character. Override <see cref="Drawable.Show"/> and <see cref="Drawable.Hide"/> for custom behavior.
+        /// </summary>
+        /// <param name="c">The character that this <see cref="Drawable"/> should represent.</param>
+        /// <returns>A <see cref="Drawable"/> that represents the character <paramref name="c"/> </returns>
         protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), Font = new FontUsage(size: CalculatedTextSize) };
 
         protected virtual Drawable AddCharacterToFlow(char c)
@@ -557,12 +508,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (ch == null)
                 {
-                    notifyInputError();
+                    NotifyInputError();
                     continue;
                 }
 
-                var col = (Color4)ch.Colour;
-                ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
+                ch.Show();
             }
         }
 
@@ -576,7 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length + 1 > LengthLimit)
             {
-                notifyInputError();
+                NotifyInputError();
                 return null;
             }
 
@@ -590,18 +540,16 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        private void notifyInputError()
-        {
-            if (Background.Alpha > 0)
-                Background.FlashColour(InputErrorColour, 200);
-            else
-                TextFlow.FlashColour(InputErrorColour, 200);
-        }
+        /// <summary>
+        /// Called whenever an invalid character has been entered
+        /// </summary>
+        protected abstract void NotifyInputError();
 
-        protected virtual SpriteText CreatePlaceholder() => new SpriteText
-        {
-            Colour = Color4.Gray,
-        };
+        /// <summary>
+        /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
+        /// </summary>
+        /// <returns>The placeholder</returns>
+        protected abstract SpriteText CreatePlaceholder();
 
         protected SpriteText Placeholder;
 
@@ -610,6 +558,8 @@ namespace osu.Framework.Graphics.UserInterface
             get => Placeholder.Text;
             set => Placeholder.Text = value;
         }
+
+        protected abstract Caret CreateCaret();
 
         private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
@@ -634,7 +584,10 @@ namespace osu.Framework.Graphics.UserInterface
 
                 lastCommitText = value ??= string.Empty;
 
-                Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
+                if (value.Length == 0)
+                    Placeholder.Show();
+                else
+                    Placeholder.Hide();
 
                 if (!IsLoaded)
                     Current.Value = text = value;
@@ -744,7 +697,7 @@ namespace osu.Framework.Graphics.UserInterface
                 manager.ChangeFocus(null);
         }
 
-        protected void Commit()
+        protected virtual void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
@@ -753,10 +706,6 @@ namespace osu.Framework.Graphics.UserInterface
                     // the commit will happen as a result of the focus loss.
                     return;
             }
-
-            Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-            Background.ClearTransforms();
-            Background.FlashColour(BackgroundCommit, 400);
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
 
@@ -886,12 +835,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransforms();
-            Caret.FadeOut(200);
-
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
-
+            caret.Hide();
             cursorAndLayout.Invalidate();
 
             if (CommitOnFocusLost)
@@ -906,9 +850,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             bindInput();
 
-            Background.ClearTransforms();
-            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
-
+            caret.Show();
             cursorAndLayout.Invalidate();
         }
 
@@ -997,27 +939,5 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        private class DrawableCaret : CompositeDrawable
-        {
-            public DrawableCaret()
-            {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-                Alpha = 0;
-                Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
-
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                };
-            }
-        }
     }
 }

@@ -10,7 +10,7 @@ namespace osu.Framework
     /// </summary>
     /// <typeparam name="T">Generally an Enum type local to the class implementing this interface.</typeparam>
     public interface IStateful<T>
-        where T : struct, IComparable
+        where T : struct
     {
         /// <summary>
         /// Invoked when the state of this <see cref="IStateful{T}"/> has changed.

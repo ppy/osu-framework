@@ -60,6 +60,64 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestDefaultChanged()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("default");
+            Bindable<string> bindable2 = bindable1.GetBoundCopy();
+            Bindable<string> bindable3 = bindable2.GetBoundCopy();
+
+            int changed1 = 0, changed2 = 0, changed3 = 0;
+
+            bindable1.DefaultChanged += _ => changed1++;
+            bindable2.DefaultChanged += _ => changed2++;
+            bindable3.DefaultChanged += _ => changed3++;
+
+            bindable1.Default = "new value";
+
+            Assert.AreEqual(1, changed1);
+            Assert.AreEqual(1, changed2);
+            Assert.AreEqual(1, changed3);
+
+            bindable1.Default = "new value 2";
+
+            Assert.AreEqual(2, changed1);
+            Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
+
+            // should not re-fire, as the value hasn't changed.
+            bindable1.Default = "new value 2";
+
+            Assert.AreEqual(2, changed1);
+            Assert.AreEqual(2, changed2);
+            Assert.AreEqual(2, changed3);
+        }
+
+        [Test]
+        public void TestDefaultChangedWithUpstreamRejection()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("won't change");
+            Bindable<string> bindable2 = bindable1.GetBoundCopy();
+
+            int changed1 = 0, changed2 = 0;
+
+            bindable1.DefaultChanged += v => changed1++;
+            bindable2.DefaultChanged += _ =>
+            {
+                bindable2.Default = "won't change";
+                changed2++;
+            };
+
+            bindable1.Default = "new value";
+
+            Assert.AreEqual("won't change", bindable1.Default);
+            Assert.AreEqual(bindable1.Default, bindable2.Default);
+
+            // bindable1 should only receive the final value changed, skipping the intermediary (overidden) one.
+            Assert.AreEqual(1, changed1);
+            Assert.AreEqual(2, changed2);
+        }
+
+        [Test]
         public void TestValueChanged()
         {
             Bindable<string> bindable1 = new Bindable<string>("default");

@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Layout
             var method =
                 GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestType == testType);
             if (method != null)
-                method.Invoke(this, new object[0]);
+                method.Invoke(this, Array.Empty<object>());
         }
 
         private void buildTest()
