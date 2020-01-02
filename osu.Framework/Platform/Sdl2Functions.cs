@@ -9,7 +9,7 @@ using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
-    public unsafe class Sdl2Functions
+    public static unsafe class Sdl2Functions
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void SDL_GL_GetDrawableSize_t(SDL_Window window, int* w, int* h);

@@ -588,7 +588,7 @@ namespace osu.Framework.Platform
 
         public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
 
-        public IEnumerable<DisplayResolution> AvailableResolutions => new DisplayResolution[0];
+        public IEnumerable<DisplayResolution> AvailableResolutions => Array.Empty<DisplayResolution>();
 
         bool INativeWindow.Focused => Focused.Value;
 
