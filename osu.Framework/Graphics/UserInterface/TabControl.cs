@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
         /// </summary>
-        public virtual bool IsSwitchable => true;
+        public bool IsSwitchable { get; set; }
 
         /// <summary>
         /// Creates an optional overflow dropdown.

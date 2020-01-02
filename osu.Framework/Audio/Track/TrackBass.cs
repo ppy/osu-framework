@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
-using osuTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -272,11 +271,11 @@ namespace osu.Framework.Audio.Track
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
             double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
-            double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
+            double conservativeClamped = Math.Clamp(seek, 0, conservativeLength);
 
             await EnqueueAction(() =>
             {
-                double clamped = MathHelper.Clamp(seek, 0, Length);
+                double clamped = Math.Clamp(seek, 0, Length);
 
                 long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
@@ -309,7 +308,7 @@ namespace osu.Framework.Audio.Track
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
+        private int bassFreq => (int)Math.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
 
         private volatile int bitrate;
 

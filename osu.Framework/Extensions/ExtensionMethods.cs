@@ -183,7 +183,7 @@ namespace osu.Framework.Extensions
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
         /// </summary>
         /// <param name="stream">The stream to create a hash from.</param>
-        /// <returns>A lower-case hex string representation of the has (64 characters).</returns>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
             string hash;
@@ -196,6 +196,17 @@ namespace osu.Framework.Extensions
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
+        }
+
+        /// <summary>
+        /// Gets a SHA-2 (256bit) hash for the given string.
+        /// </summary>
+        /// <param name="str">The string to create a hash from.</param>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
+        public static string ComputeSHA2Hash(this string str)
+        {
+            using (var alg = SHA256.Create())
+                return BitConverter.ToString(alg.ComputeHash(new UTF8Encoding().GetBytes(str))).Replace("-", "").ToLowerInvariant();
         }
 
         public static string ComputeMD5Hash(this Stream stream)
