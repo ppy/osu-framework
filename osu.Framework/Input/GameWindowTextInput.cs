@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -41,7 +40,7 @@ namespace osu.Framework.Input
             if (window is Window win)
                 win.KeyTyped -= HandleKeyTyped;
             else
-                window.AsLegacyWindow().KeyPress -= HandleKeyPress;
+                window.KeyPress -= HandleKeyPress;
         }
 
         public void Activate(object sender)
@@ -49,7 +48,7 @@ namespace osu.Framework.Input
             if (window is Window win)
                 win.KeyTyped += HandleKeyTyped;
             else
-                window.AsLegacyWindow().KeyPress += HandleKeyPress;
+                window.KeyPress += HandleKeyPress;
         }
 
         private void imeCompose()

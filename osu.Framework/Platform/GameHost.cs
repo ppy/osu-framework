@@ -21,7 +21,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -51,8 +50,6 @@ namespace osu.Framework.Platform
     public abstract class GameHost : IIpcHost, IDisposable
     {
         public IWindow Window { get; protected set; }
-
-        protected ILegacyWindow LegacyWindow { get; private set; }
 
         protected virtual IWindow CreateWindow() => null;
 
@@ -301,8 +298,8 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (LegacyWindow.WindowState != WindowState.Minimized)
-                Root.Size = new Vector2(LegacyWindow.ClientSize.Width, LegacyWindow.ClientSize.Height);
+            else if (Window.WindowState != WindowState.Minimized)
+                Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
@@ -316,12 +313,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
-            LegacyWindow.MakeCurrent();
+            Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(LegacyWindow.ClientSize.Width, LegacyWindow.ClientSize.Height));
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
         }
 
         private long lastDrawFrameId;
@@ -343,7 +340,7 @@ namespace osu.Framework.Platform
                     }
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-                        GLWrapper.Reset(new Vector2(LegacyWindow.ClientSize.Width, LegacyWindow.ClientSize.Height));
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
 
                     if (!bypassFrontToBackPass.Value)
                     {
@@ -379,7 +376,7 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                LegacyWindow.SwapBuffers();
+                Window.SwapBuffers();
 
                 if (Window.VSync == VSyncMode.On)
                     // without glFinish, vsync is basically unplayable due to the extra latency introduced.
@@ -398,7 +395,7 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                var image = new Image<Rgba32>(LegacyWindow.ClientSize.Width, LegacyWindow.ClientSize.Height);
+                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
                 DrawThread.Scheduler.Add(() =>
                 {
@@ -451,7 +448,7 @@ namespace osu.Framework.Platform
         {
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
             ExecutionState = ExecutionState.Stopping;
-            LegacyWindow?.Close();
+            Window?.Close();
             stopAllThreads();
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
@@ -511,7 +508,6 @@ namespace osu.Framework.Platform
                 SetupForRun();
 
                 Window = CreateWindow();
-                LegacyWindow = Window?.AsLegacyWindow();
 
                 ExecutionState = ExecutionState.Running;
 
@@ -520,7 +516,7 @@ namespace osu.Framework.Platform
                 if (Window != null)
                 {
                     Window.SetupWindow(Config);
-                    LegacyWindow.Title = $@"osu!framework (running ""{Name}"")";
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     IsActive.BindTo(Window.IsActive);
                 }
@@ -555,8 +551,8 @@ namespace osu.Framework.Platform
                         }
                         else
                         {
-                            LegacyWindow.KeyDown += legacyWindow_KeyDown;
-                            LegacyWindow.UpdateFrame += (o, e) => handleInput();
+                            Window.KeyDown += legacyWindow_KeyDown;
+                            Window.UpdateFrame += (o, e) => handleInput();
                         }
 
                         Window.ExitRequested += OnExitRequested;
@@ -566,7 +562,7 @@ namespace osu.Framework.Platform
                         //to avoid GL operations running post-cleanup).
                         Window.Exited += stopAllThreads;
 
-                        LegacyWindow.Run();
+                        Window.Run();
                     }
                     else
                     {
@@ -886,7 +882,7 @@ namespace osu.Framework.Platform
             Config?.Dispose();
             DebugConfig?.Dispose();
 
-            LegacyWindow?.Dispose();
+            Window?.Dispose();
 
             toolkit?.Dispose();
 

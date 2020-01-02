@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using osu.Framework.Platform;
 using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
@@ -256,7 +255,5 @@ namespace osu.Framework.Extensions
         /// <returns>The standardised path string.</returns>
         public static string ToStandardisedPath(this string path)
             => path.Replace('\\', '/');
-
-        public static ILegacyWindow AsLegacyWindow(this IWindow window) => window as ILegacyWindow ?? throw new NotImplementedException();
     }
 }

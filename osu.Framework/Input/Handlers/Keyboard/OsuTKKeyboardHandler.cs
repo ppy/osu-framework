@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -25,17 +24,15 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             Enabled.BindValueChanged(e =>
             {
-                var legacy = host.Window.AsLegacyWindow();
-
                 if (e.NewValue)
                 {
-                    legacy.KeyDown += handleKeyboardEvent;
-                    legacy.KeyUp += handleKeyboardEvent;
+                    host.Window.KeyDown += handleKeyboardEvent;
+                    host.Window.KeyUp += handleKeyboardEvent;
                 }
                 else
                 {
-                    legacy.KeyDown -= handleKeyboardEvent;
-                    legacy.KeyUp -= handleKeyboardEvent;
+                    host.Window.KeyDown -= handleKeyboardEvent;
+                    host.Window.KeyUp -= handleKeyboardEvent;
                     lastRawState = null;
                     lastEventState = null;
                 }

@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
     /// Implementation of <see cref="IWindow"/> that provides bindables and
     /// delegates responsibility to window and graphics backends.
     /// </summary>
-    public class Window : IWindow, ILegacyWindow
+    public class Window : IWindow
     {
         private readonly IWindowBackend windowBackend;
         private readonly IGraphicsBackend graphicsBackend;

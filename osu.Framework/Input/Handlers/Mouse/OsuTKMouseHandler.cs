@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Drawing;
-using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
@@ -22,21 +21,19 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             Enabled.BindValueChanged(e =>
             {
-                var legacy = host.Window.AsLegacyWindow();
-
                 if (e.NewValue)
                 {
-                    legacy.MouseMove += handleMouseEvent;
-                    legacy.MouseDown += handleMouseEvent;
-                    legacy.MouseUp += handleMouseEvent;
-                    legacy.MouseWheel += handleMouseEvent;
+                    host.Window.MouseMove += handleMouseEvent;
+                    host.Window.MouseDown += handleMouseEvent;
+                    host.Window.MouseUp += handleMouseEvent;
+                    host.Window.MouseWheel += handleMouseEvent;
 
                     // polling is used to keep a valid mouse position when we aren't receiving events.
                     osuTK.Input.MouseState? lastCursorState = null;
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                         {
                             // we should be getting events if the mouse is inside the window.
-                            if (MouseInWindow || !legacy.Visible || legacy.WindowState == WindowState.Minimized) return;
+                            if (MouseInWindow || !host.Window.Visible || host.Window.WindowState == WindowState.Minimized) return;
 
                             var cursorState = osuTK.Input.Mouse.GetCursorState();
 
@@ -44,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             lastCursorState = cursorState;
 
-                            var mapped = legacy.PointToClient(new Point(cursorState.X, cursorState.Y));
+                            var mapped = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
 
                             var newState = new OsuTKPollMouseState(cursorState, host.IsActive.Value, new Vector2(mapped.X, mapped.Y));
                             HandleState(newState, lastPollState, true);
@@ -55,10 +52,10 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     scheduled?.Cancel();
 
-                    legacy.MouseMove -= handleMouseEvent;
-                    legacy.MouseDown -= handleMouseEvent;
-                    legacy.MouseUp -= handleMouseEvent;
-                    legacy.MouseWheel -= handleMouseEvent;
+                    host.Window.MouseMove -= handleMouseEvent;
+                    host.Window.MouseDown -= handleMouseEvent;
+                    host.Window.MouseUp -= handleMouseEvent;
+                    host.Window.MouseWheel -= handleMouseEvent;
 
                     lastPollState = null;
                     lastEventState = null;

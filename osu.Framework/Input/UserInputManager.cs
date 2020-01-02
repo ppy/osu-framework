@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using osu.Framework.Extensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
@@ -35,7 +34,7 @@ namespace osu.Framework.Input
                     var mouse = mousePositionChange.State.Mouse;
                     // confine cursor
                     if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.AsLegacyWindow().Width, Host.Window.AsLegacyWindow().Height));
+                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:
