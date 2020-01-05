@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
             AddAssert("'invalid' is selected", () => testDropdown.Current.Value == "invalid");
-            AddAssert("label shows 'invalid'", () => testDropdown.Header.Label == "invalid");
+            AddAssert("label shows 'invalid'", () => testDropdown.Header.Label.ToString() == "invalid");
 
             AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
             AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));

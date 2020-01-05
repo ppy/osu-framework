@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -21,7 +22,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public Action Action { get; set; }
 
-        public string Text
+        public LocalisableStringDescriptor Text
         {
             get => SpriteText.Text;
             set => SpriteText.Text = value;
@@ -137,6 +138,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Light.FadeColour(Color4.YellowGreen);
         }
 
-        public override string ToString() => Text;
+        public override string ToString() => Text.ToString();
     }
 }

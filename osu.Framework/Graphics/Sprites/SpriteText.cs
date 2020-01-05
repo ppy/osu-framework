@@ -83,12 +83,12 @@ namespace osu.Framework.Graphics.Sprites
             get => text;
             set
             {
-                if (text == value)
+                if (text.Equals(value))
                     return;
 
                 text = value;
 
-                current.Value = text;
+                current.Value = text.ToString();
 
                 if (localisedText != null)
                     localisedText.Text = value;
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Sprites
 
         string IHasText.Text
         {
-            get => Text;
+            get => Text.ToString();
             set => Text = value;
         }
 

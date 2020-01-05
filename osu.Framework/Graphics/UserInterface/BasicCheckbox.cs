@@ -6,6 +6,7 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -42,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The text in the label.
         /// </summary>
-        public string LabelText
+        public LocalisableStringDescriptor LabelText
         {
             get => labelSpriteText.Text;
             set => labelSpriteText.Text = value;

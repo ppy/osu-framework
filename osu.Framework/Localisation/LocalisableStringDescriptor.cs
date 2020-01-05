@@ -21,8 +21,6 @@ namespace osu.Framework.Localisation
         private readonly string? string2;
         private readonly object?[]? args;
 
-        public static implicit operator string(LocalisableStringDescriptor localised) => localised.ToString();
-
         public static implicit operator LocalisableStringDescriptor(string text) => new LocalisableStringDescriptor(StringLocalisationType.None, text, null, null);
 
         public override string ToString()

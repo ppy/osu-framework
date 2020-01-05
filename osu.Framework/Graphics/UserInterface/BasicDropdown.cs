@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -16,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             private readonly SpriteText label;
 
-            protected internal override string Label
+            protected internal override LocalisableStringDescriptor Label
             {
                 get => label.Text;
                 set => label.Text = value;

@@ -99,6 +99,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             spriteText.Alpha = 0.8f;
         }
 
-        public override string ToString() => spriteText.Text;
+        public override string ToString() => spriteText.Text.ToString();
     }
 }

@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -281,7 +282,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledDropdownHeader : DropdownHeader
         {
-            protected internal override string Label { get; set; }
+            protected internal override LocalisableStringDescriptor Label { get; set; }
 
             public StyledDropdownHeader()
             {

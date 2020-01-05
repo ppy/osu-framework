@@ -7,14 +7,15 @@ using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicButton : Button
     {
-        public string Text
+        public LocalisableStringDescriptor Text
         {
-            get => SpriteText?.Text;
+            get => SpriteText?.Text ?? default;
             set
             {
                 if (SpriteText != null)

@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osuTK;
@@ -378,7 +379,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             private readonly SpriteText label;
 
-            protected internal override string Label
+            protected internal override LocalisableStringDescriptor Label
             {
                 get => label.Text;
                 set => label.Text = value;
