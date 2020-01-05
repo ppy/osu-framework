@@ -10,7 +10,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A class representing text that can be localised and formatted.
     /// </summary>
-    public readonly struct LocalisedString : IEquatable<LocalisedString>
+    public readonly struct LocalisableStringDescriptor : IEquatable<LocalisableStringDescriptor>
     {
         /// <summary>
         /// The text to be localised.
@@ -28,32 +28,32 @@ namespace osu.Framework.Localisation
         internal readonly bool ShouldLocalise;
 
         /// <summary>
-        /// Creates a new <see cref="LocalisedString"/>. This localises based on the value of <see cref="FrameworkSetting.Locale"/>.
+        /// Creates a new <see cref="LocalisableStringDescriptor"/>. This localises based on the value of <see cref="FrameworkSetting.Locale"/>.
         /// </summary>
         /// <param name="text">The text to be localised.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        public LocalisedString(string text, params object[] args)
+        public LocalisableStringDescriptor(string text, params object[] args)
             : this((text, text), true, args)
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="LocalisedString"/>. This localises based on the value of <see cref="FrameworkSetting.Locale"/>.
+        /// Creates a new <see cref="LocalisableStringDescriptor"/>. This localises based on the value of <see cref="FrameworkSetting.Locale"/>.
         /// </summary>
         /// <param name="text">The text to be localised. Accepts a fallback value which is used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        public LocalisedString((string original, string fallback) text, params object[] args)
+        public LocalisableStringDescriptor((string original, string fallback) text, params object[] args)
             : this(text, true, args)
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="LocalisedString"/>.
+        /// Creates a new <see cref="LocalisableStringDescriptor"/>.
         /// </summary>
         /// <param name="text">The text to use when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
         /// <param name="shouldLocalise">Whether the text should be localised.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        private LocalisedString((string original, string fallback) text, bool shouldLocalise, params object[] args)
+        private LocalisableStringDescriptor((string original, string fallback) text, bool shouldLocalise, params object[] args)
         {
             if (string.IsNullOrEmpty(text.original))
                 text.original = text.fallback ?? string.Empty;
@@ -65,13 +65,13 @@ namespace osu.Framework.Localisation
             Args = args;
         }
 
-        public static implicit operator string(LocalisedString localised) => localised.Text.Original;
+        public static implicit operator string(LocalisableStringDescriptor localised) => localised.Text.Original;
 
-        public static implicit operator LocalisedString(string text) => new LocalisedString((text, text), false);
+        public static implicit operator LocalisableStringDescriptor(string text) => new LocalisableStringDescriptor((text, text), false);
 
         public override string ToString() => Text.Original;
 
-        public bool Equals(LocalisedString other) =>
+        public bool Equals(LocalisableStringDescriptor other) =>
             Text == other.Text &&
             ShouldLocalise == other.ShouldLocalise &&
             Args.SequenceEqual(other.Args);

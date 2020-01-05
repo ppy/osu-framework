@@ -73,12 +73,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private LocalisedString text = string.Empty;
+        private LocalisableStringDescriptor text = string.Empty;
 
         /// <summary>
         /// Gets or sets the text to be displayed.
         /// </summary>
-        public LocalisedString Text
+        public LocalisableStringDescriptor Text
         {
             get => text;
             set
