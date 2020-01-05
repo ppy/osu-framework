@@ -483,12 +483,11 @@ namespace osu.Framework.Input
                     handler.FeedbackMousePositionChange(mouse.Position);
             }
 
+            updateHoverEvents(state);
             handleMouseMove(state, e.LastPosition);
 
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state, e.LastPosition);
-
-            updateHoverEvents(state);
         }
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
