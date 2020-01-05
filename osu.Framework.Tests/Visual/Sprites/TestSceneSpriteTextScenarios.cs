@@ -214,7 +214,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Children = new[]
                     {
                         new SpriteText { Text = FakeStorage.LOCALISABLE_STRING_EN },
-                        new SpriteText { Text = new LocalisableStringDescriptor(FakeStorage.LOCALISABLE_STRING_EN) },
+                        new SpriteText { Text = LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN) },
                     }
                 }
             };

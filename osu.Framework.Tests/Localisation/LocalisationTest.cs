@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Localisation
         {
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
-            var localisedText = manager.GetLocalisedString(new LocalisableStringDescriptor(FakeStorage.LOCALISABLE_STRING_EN));
+            var localisedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Localisation
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
 
-            var localisedText = manager.GetLocalisedString(new LocalisableStringDescriptor(FakeStorage.LOCALISABLE_STRING_EN));
+            var localisedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
         }
@@ -82,6 +82,21 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestFormattedInterpolation()
+        {
+            const string arg_0 = "formatted";
+
+            manager.AddLanguage("ja-JP", new FakeStorage("ja"));
+            config.Set(FrameworkSetting.Locale, "ja-JP");
+
+            string expectedResult = string.Format(FakeStorage.LOCALISABLE_FORMAT_STRING_JA, arg_0);
+
+            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromInterpolatedTranslatable($"The {arg_0} fallback should only matches argument count", FakeStorage.LOCALISABLE_FORMAT_STRING_EN));
+
+            Assert.AreEqual(expectedResult, formattedText.Value);
+        }
+
+        [Test]
         public void TestFormattedAndLocalised()
         {
             const string arg_0 = "formatted";
@@ -91,9 +106,22 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.Set(FrameworkSetting.Locale, "ja");
 
-            var formattedText = manager.GetLocalisedString(new LocalisableStringDescriptor(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0));
+            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
+        }
+
+        [Test]
+        public void TestStorageNotFound()
+        {
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+            config.Set(FrameworkSetting.Locale, "ja");
+
+            string expectedFallback = "fallback string";
+
+            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable("no such key", expectedFallback));
+
+            Assert.AreEqual(expectedFallback, formattedText.Value);
         }
 
         [Test]
@@ -102,7 +130,7 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode = "non unicode";
             const string unicode = "unicode";
 
-            var text = manager.GetLocalisedString(new LocalisableStringDescriptor((unicode, non_unicode)));
+            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanization(non_unicode, unicode));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode, text.Value);
@@ -119,18 +147,18 @@ namespace osu.Framework.Tests.Localisation
             const string unicode_1 = "unicode 1";
             const string unicode_2 = "unicode 2";
 
-            var text = manager.GetLocalisedString(new LocalisableStringDescriptor((unicode_1, non_unicode_1)));
+            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanization(non_unicode_1, unicode_1));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(non_unicode_1, text.Value);
 
-            text.Text = new LocalisableStringDescriptor((unicode_1, non_unicode_2));
+            text.Text = LocalisableStringDescriptor.FromRomanization(non_unicode_2, unicode_1);
             Assert.AreEqual(non_unicode_2, text.Value);
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode_1, text.Value);
 
-            text.Text = new LocalisableStringDescriptor((unicode_2, non_unicode_2));
+            text.Text = LocalisableStringDescriptor.FromRomanization(non_unicode_2, unicode_2);
             Assert.AreEqual(unicode_2, text.Value);
         }
 
@@ -140,12 +168,12 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode_fallback = "non unicode";
             const string unicode_fallback = "unicode";
 
-            var text = manager.GetLocalisedString(new LocalisableStringDescriptor((unicode_fallback, emptyValue)));
+            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanization(emptyValue, unicode_fallback));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(unicode_fallback, text.Value);
 
-            text = manager.GetLocalisedString(new LocalisableStringDescriptor((emptyValue, non_unicode_fallback)));
+            text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanization(non_unicode_fallback, emptyValue));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(non_unicode_fallback, text.Value);
@@ -212,7 +240,7 @@ namespace osu.Framework.Tests.Localisation
                         }
 
                     default:
-                        return name;
+                        return null;
                 }
             }
 
