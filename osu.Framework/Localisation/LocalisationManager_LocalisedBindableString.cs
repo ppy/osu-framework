@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using osu.Framework.Bindables;
-using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -11,12 +11,12 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
+            private readonly IBindable<ILocalisationStore> storage = new Bindable<ILocalisationStore>();
             private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
 
             private LocalisableStringDescriptor text;
 
-            public LocalisedBindableString(LocalisableStringDescriptor text, IBindable<IResourceStore<string>> storage, IBindable<bool> preferUnicode)
+            public LocalisedBindableString(LocalisableStringDescriptor text, IBindable<ILocalisationStore> storage, IBindable<bool> preferUnicode)
             {
                 this.text = text;
 
@@ -43,13 +43,22 @@ namespace osu.Framework.Localisation
                 }
                 else if (text.TryGetTranslatable(out string key, out string fallback, out object[] args))
                 {
-                    try
+                    var localisedFormat = storage.Value.Get(key);
+
+                    if (localisedFormat != null)
                     {
-                        Value = string.Format(storage.Value.Get(key) ?? fallback, args);
+                        try
+                        {
+                            Value = string.Format(storage.Value.EffectiveCulture, localisedFormat, args);
+                        }
+                        catch (FormatException)
+                        {
+                            Value = string.Format(CultureInfo.InvariantCulture, fallback, args);
+                        }
                     }
-                    catch (FormatException)
+                    else
                     {
-                        Value = fallback; // The formatting has failed.
+                        Value = string.Format(CultureInfo.InvariantCulture, fallback, args); // Trust fallback
                     }
                 }
                 else

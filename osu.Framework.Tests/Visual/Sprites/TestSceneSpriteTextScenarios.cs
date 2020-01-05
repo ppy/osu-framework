@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osuTK;
@@ -274,16 +274,19 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private class FakeStorage : IResourceStore<string>
+        private class FakeStorage : ILocalisationStore
         {
             public const string LOCALISABLE_STRING_EN = "localised EN";
             public const string LOCALISABLE_STRING_JA = "localised JA";
+
+            public CultureInfo EffectiveCulture { get; }
 
             private readonly string locale;
 
             public FakeStorage(string locale)
             {
                 this.locale = locale;
+                EffectiveCulture = new CultureInfo(locale);
             }
 
             public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));

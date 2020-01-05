@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
-using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Tests.Localisation
@@ -112,6 +112,22 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestNumberCultureAware()
+        {
+            const double value = 1.23;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+            config.Set(FrameworkSetting.Locale, "fr");
+
+            var expectedResult = string.Format(new CultureInfo("fr"), FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_FR, value);
+            Assert.AreEqual("number 1,23 FR", expectedResult); // FR uses comma for decimal point.
+
+            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
+
+            Assert.AreEqual(expectedResult, formattedText.Value);
+        }
+
+        [Test]
         public void TestStorageNotFound()
         {
             manager.AddLanguage("ja", new FakeStorage("ja"));
@@ -195,19 +211,24 @@ namespace osu.Framework.Tests.Localisation
             }
         }
 
-        private class FakeStorage : IResourceStore<string>
+        private class FakeStorage : ILocalisationStore
         {
             public const string LOCALISABLE_STRING_EN = "localised EN";
             public const string LOCALISABLE_STRING_JA = "localised JA";
             public const string LOCALISABLE_STRING_JA_JP = "localised JA-JP";
             public const string LOCALISABLE_FORMAT_STRING_EN = "{0} localised EN";
             public const string LOCALISABLE_FORMAT_STRING_JA = "{0} localised JA";
+            public const string LOCALISABLE_NUMBER_FORMAT_STRING_EN = "number {0} EN";
+            public const string LOCALISABLE_NUMBER_FORMAT_STRING_FR = "number {0} FR";
+
+            public CultureInfo EffectiveCulture { get; }
 
             private readonly string locale;
 
             public FakeStorage(string locale)
             {
                 this.locale = locale;
+                EffectiveCulture = new CultureInfo(locale);
             }
 
             public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
@@ -237,6 +258,16 @@ namespace osu.Framework.Tests.Localisation
 
                             case "ja":
                                 return LOCALISABLE_FORMAT_STRING_JA;
+                        }
+
+                    case LOCALISABLE_NUMBER_FORMAT_STRING_EN:
+                        switch (locale)
+                        {
+                            default:
+                                return LOCALISABLE_NUMBER_FORMAT_STRING_EN;
+
+                            case "fr":
+                                return LOCALISABLE_NUMBER_FORMAT_STRING_FR;
                         }
 
                     default:

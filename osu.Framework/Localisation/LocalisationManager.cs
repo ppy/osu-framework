@@ -3,10 +3,9 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using osu.Framework.Configuration;
-using osu.Framework.IO.Stores;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
@@ -16,7 +15,7 @@ namespace osu.Framework.Localisation
 
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> configLocale;
-        private readonly Bindable<IResourceStore<string>> currentStorage = new Bindable<IResourceStore<string>>();
+        private readonly Bindable<ILocalisationStore> currentStorage = new Bindable<ILocalisationStore>();
 
         public LocalisationManager(FrameworkConfigManager config)
         {
@@ -26,7 +25,7 @@ namespace osu.Framework.Localisation
             configLocale.BindValueChanged(updateLocale);
         }
 
-        public void AddLanguage(string language, IResourceStore<string> storage)
+        public void AddLanguage(string language, ILocalisationStore storage)
         {
             locales.Add(new LocaleMapping { Name = language, Storage = storage });
             configLocale.TriggerChange();
@@ -70,7 +69,7 @@ namespace osu.Framework.Localisation
         private class LocaleMapping
         {
             public string Name;
-            public IResourceStore<string> Storage;
+            public ILocalisationStore Storage;
         }
     }
 }
