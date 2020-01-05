@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Sprites
             set => current.Current = value;
         }
 
-        private string displayedText => localisedText?.Value ?? text.Text.Original;
+        private string displayedText => localisedText?.Value ?? text.ToString();
 
         string IHasText.Text
         {

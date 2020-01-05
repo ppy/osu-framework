@@ -29,24 +29,31 @@ namespace osu.Framework.Localisation
 
             private void updateValue()
             {
-                string newText = preferUnicode.Value ? text.Text.Original : text.Text.Fallback;
-
-                if (text.ShouldLocalise && storage.Value != null)
-                    newText = storage.Value.Get(newText);
-
-                if (text.Args?.Length > 0 && !string.IsNullOrEmpty(newText))
+                if (text.TryGetPlainText(out string plain))
+                    Value = plain;
+                else if (text.TryGetRomanization(out string romanized, out string unicode))
+                {
+                    Value = preferUnicode.Value && !string.IsNullOrEmpty(unicode) ? unicode : romanized;
+                    if (string.IsNullOrEmpty(unicode))
+                        Value = romanized;
+                    else if (string.IsNullOrEmpty(romanized))
+                        Value = unicode;
+                    else
+                        Value = preferUnicode.Value ? unicode : romanized;
+                }
+                else if (text.TryGetTranslatable(out string key, out string fallback, out object[] args))
                 {
                     try
                     {
-                        newText = string.Format(newText, text.Args);
+                        Value = string.Format(storage.Value.Get(key) ?? fallback, args);
                     }
                     catch (FormatException)
                     {
-                        // Prevent crashes if the formatting fails. The string will be in a non-formatted state.
+                        Value = fallback; // The formatting has failed.
                     }
                 }
-
-                Value = newText;
+                else
+                    Value = string.Empty;
             }
 
             LocalisableStringDescriptor ILocalisedBindableString.Text
