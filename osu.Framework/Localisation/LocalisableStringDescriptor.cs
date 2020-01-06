@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using osu.Framework.Configuration;
 
 #nullable enable
@@ -25,8 +26,8 @@ namespace osu.Framework.Localisation
 
         public override string ToString()
             => type == StringLocalisationType.Translation
-            ? string.Format(string1!, args!)
-            : (string1 ?? string.Empty);
+                ? string.Format(CultureInfo.InvariantCulture, string1!, args!)
+                : (string1 ?? string.Empty);
 
         public bool Equals(LocalisableStringDescriptor other) =>
             type == other.type &&

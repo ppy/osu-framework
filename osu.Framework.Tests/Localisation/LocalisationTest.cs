@@ -133,11 +133,11 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.Set(FrameworkSetting.Locale, "ja");
 
-            string expectedFallback = "fallback string";
+            const string expected_fallback = "fallback string";
 
-            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable("no such key", expectedFallback));
+            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable("no such key", expected_fallback));
 
-            Assert.AreEqual(expectedFallback, formattedText.Value);
+            Assert.AreEqual(expected_fallback, formattedText.Value);
         }
 
         [Test]
