@@ -52,23 +52,23 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Creates a new <see cref="LocalisableStringDescriptor"/>. This localises based on the value of <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
-        /// <param name="romanized">The romanised string.</param>
+        /// <param name="romanised">The romanised string.</param>
         /// <param name="unicode">The unicode string.</param>
         /// <returns>The descriptor of the localisable string.</returns>
-        public static LocalisableStringDescriptor FromRomanization(string romanized, string? unicode = null)
-            => new LocalisableStringDescriptor(StringLocalisationType.Romanization, romanized, unicode, null);
+        public static LocalisableStringDescriptor FromRomanisation(string romanised, string? unicode = null)
+            => new LocalisableStringDescriptor(StringLocalisationType.Romanisation, romanised, unicode, null);
 
-        public bool TryGetRomanization([NotNullWhen(true)] out string? romanized, out string? unicode)
+        public bool TryGetRomanisation([NotNullWhen(true)] out string? romanised, out string? unicode)
         {
-            if (type == StringLocalisationType.Romanization)
+            if (type == StringLocalisationType.Romanisation)
             {
-                romanized = string1;
+                romanised = string1;
                 unicode = string2;
                 return true;
             }
             else
             {
-                romanized = null;
+                romanised = null;
                 unicode = null;
                 return false;
             }
@@ -138,9 +138,9 @@ namespace osu.Framework.Localisation
             None,
 
             /// <summary>
-            /// The <see cref="LocalisableStringDescriptor"/> is constructed from Romanization/Unicode pair.
+            /// The <see cref="LocalisableStringDescriptor"/> is constructed from Romanisation/Unicode pair.
             /// </summary>
-            Romanization,
+            Romanisation,
 
             /// <summary>
             /// The <see cref="LocalisableStringDescriptor"/> is constructed from translation key.

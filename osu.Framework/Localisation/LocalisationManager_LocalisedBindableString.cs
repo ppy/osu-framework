@@ -31,15 +31,15 @@ namespace osu.Framework.Localisation
             {
                 if (text.TryGetPlainText(out string plain))
                     Value = plain;
-                else if (text.TryGetRomanization(out string romanized, out string unicode))
+                else if (text.TryGetRomanisation(out string romanised, out string unicode))
                 {
-                    Value = preferUnicode.Value && !string.IsNullOrEmpty(unicode) ? unicode : romanized;
+                    Value = preferUnicode.Value && !string.IsNullOrEmpty(unicode) ? unicode : romanised;
                     if (string.IsNullOrEmpty(unicode))
-                        Value = romanized;
-                    else if (string.IsNullOrEmpty(romanized))
+                        Value = romanised;
+                    else if (string.IsNullOrEmpty(romanised))
                         Value = unicode;
                     else
-                        Value = preferUnicode.Value ? unicode : romanized;
+                        Value = preferUnicode.Value ? unicode : romanised;
                 }
                 else if (text.TryGetTranslatable(out string key, out string fallback, out object[] args))
                 {
