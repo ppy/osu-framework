@@ -18,7 +18,7 @@ namespace osu.Framework.Localisation
         // Reuse string1 and string2 in different types to save size.
         // TODO: this is a good candidate of discriminated union (https://github.com/dotnet/csharplang/issues/113).
         private readonly StringLocalisationType type;
-        private readonly string? string1;
+        private readonly string string1;
         private readonly string? string2;
         private readonly object?[]? args;
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Localisation
 
         public override string ToString()
             => type == StringLocalisationType.Translation
-                ? string.Format(CultureInfo.InvariantCulture, string1!, args!)
+                ? string.Format(CultureInfo.InvariantCulture, string1, args!)
                 : (string1 ?? string.Empty);
 
         public bool Equals(LocalisableStringDescriptor other) =>
@@ -55,10 +55,10 @@ namespace osu.Framework.Localisation
         /// <param name="romanized">The romanised string.</param>
         /// <param name="unicode">The unicode string.</param>
         /// <returns>The descriptor of the localisable string.</returns>
-        public static LocalisableStringDescriptor FromRomanization(string romanized, string unicode)
+        public static LocalisableStringDescriptor FromRomanization(string romanized, string? unicode = null)
             => new LocalisableStringDescriptor(StringLocalisationType.Romanization, romanized, unicode, null);
 
-        public bool TryGetRomanization([NotNullWhen(true)] out string? romanized, [NotNullWhen(true)] out string? unicode)
+        public bool TryGetRomanization([NotNullWhen(true)] out string? romanized, out string? unicode)
         {
             if (type == StringLocalisationType.Romanization)
             {
