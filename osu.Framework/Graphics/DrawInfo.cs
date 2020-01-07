@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                float radians = Angles.DegreesToRadians(rotation);
+                float radians = MathUtils.DegreesToRadians(rotation);
                 MatrixExtensions.RotateFromLeft(ref Matrix, radians);
                 MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }

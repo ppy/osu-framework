@@ -256,7 +256,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
-            RotationRadians = Angles.DegreesToRadians(Rotation); // TODO: Fix rotations
+            RotationRadians = MathUtils.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
             UpdateVertices();
@@ -269,7 +269,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
-            Rotation = Angles.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
+            Rotation = MathUtils.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 
         /// <summary>

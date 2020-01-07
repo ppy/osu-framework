@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.MathUtils
 {
-    public static class Angles
+    public static class MathUtils
     {
         /// <summary>
         /// Convert degrees to radians
