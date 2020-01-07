@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Events
         public readonly bool IsPrecise;
 
         public ScrollEvent(InputState state, Vector2 scrollDelta, bool isPrecise = false)
-            : base(state)
+            : base(state, state.Mouse.Position)
         {
             ScrollDelta = scrollDelta;
             IsPrecise = isPrecise;

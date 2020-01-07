@@ -12,8 +12,8 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public class MouseDownEvent : MouseButtonEvent
     {
-        public MouseDownEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
-            : base(state, button, screenSpaceMouseDownPosition)
+        public MouseDownEvent(InputState state, Vector2 screenSpaceCurrentMousePosition, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+            : base(state, screenSpaceCurrentMousePosition, button, screenSpaceMouseDownPosition)
         {
         }
     }

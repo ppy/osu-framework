@@ -11,8 +11,9 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public class HoverEvent : MouseEvent
     {
+        // todo: pass current position of the pointer that fired this event.
         public HoverEvent(InputState state)
-            : base(state)
+            : base(state, state.Mouse.Position)
         {
         }
     }

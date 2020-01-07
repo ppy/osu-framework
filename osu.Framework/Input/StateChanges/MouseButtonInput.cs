@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK.Input;
 
@@ -25,5 +26,8 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
+
+        protected override ButtonStateChangeEvent<MouseButton> CreateEvent(InputState state, MouseButton button, ButtonStateChangeKind kind)
+            => new MouseButtonStateChangeEvent(state, this, button, kind, state.Mouse.Position);
     }
 }

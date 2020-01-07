@@ -13,16 +13,26 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public abstract class MouseButtonEvent : MouseEvent
     {
+        /// <summary>
+        /// The mouse button that fired this event.
+        /// </summary>
         public readonly MouseButton Button;
+
+        /// <summary>
+        /// The mouse position at a <see cref="MouseDownEvent"/> in the screen space.
+        /// </summary>
         public readonly Vector2 ScreenSpaceMouseDownPosition;
 
+        /// <summary>
+        /// The mouse position at a <see cref="MouseDownEvent"/> in local space.
+        /// </summary>
         public Vector2 MouseDownPosition => ToLocalSpace(ScreenSpaceMouseDownPosition);
 
-        protected MouseButtonEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition)
-            : base(state)
+        protected MouseButtonEvent(InputState state, Vector2 screenSpaceCurrentMousePosition, MouseButton button, Vector2? screenSpaceMouseDownPosition)
+            : base(state, screenSpaceCurrentMousePosition)
         {
             Button = button;
-            ScreenSpaceMouseDownPosition = screenSpaceMouseDownPosition ?? ScreenSpaceMousePosition;
+            ScreenSpaceMouseDownPosition = screenSpaceMouseDownPosition ?? ScreenSpaceCurrentMousePosition;
         }
 
         public override string ToString() => $"{GetType().ReadableName()}({Button})";

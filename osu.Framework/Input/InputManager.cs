@@ -256,9 +256,7 @@ namespace osu.Framework.Input
             }
 
             if (CurrentState.Mouse.IsPositionValid)
-            {
-                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState));
-            }
+                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState, CurrentState.Mouse.Position));
 
             updateKeyRepeat(CurrentState);
 
@@ -458,7 +456,7 @@ namespace osu.Framework.Input
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
 
-                case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
+                case MouseButtonStateChangeEvent mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
@@ -475,18 +473,17 @@ namespace osu.Framework.Input
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
         {
             var state = e.State;
-            var mouse = state.Mouse;
 
             foreach (var h in InputHandlers)
             {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
-                    handler.FeedbackMousePositionChange(mouse.Position);
+                    handler.FeedbackMousePositionChange(e.CurrentPosition);
             }
 
-            handleMouseMove(state, e.LastPosition);
+            handleMouseMove(state, e.CurrentPosition, e.LastPosition);
 
             foreach (var manager in mouseButtonEventManagers.Values)
-                manager.HandlePositionChange(state, e.LastPosition);
+                manager.HandlePositionChange(state, e.CurrentPosition, e.LastPosition);
 
             updateHoverEvents(state);
         }
@@ -496,13 +493,13 @@ namespace osu.Framework.Input
             handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
-        protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
+        protected virtual void HandleMouseButtonStateChange(MouseButtonStateChangeEvent e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
-                manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
+                manager.HandleButtonStateChange(e.State, e.Position, e.Kind, Time.Current);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
+        private bool handleMouseMove(InputState state, Vector2 currentPosition, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, currentPosition, lastPosition));
 
         private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 

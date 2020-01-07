@@ -101,25 +101,25 @@ namespace osu.Framework.Input
         /// </summary>
         public Drawable DraggedDrawable { get; protected set; }
 
-        public virtual void HandlePositionChange(InputState state, Vector2 lastPosition)
+        public virtual void HandlePositionChange(InputState state, Vector2 currentPosition, Vector2 lastPosition)
         {
             if (EnableDrag)
             {
                 if (!DragStarted)
                 {
                     var mouse = state.Mouse;
-                    if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? mouse.Position, mouse.Position) > ClickDragDistance)
-                        HandleMouseDragStart(state);
+                    if (mouse.IsPressed(Button) && Vector2Extensions.Distance(MouseDownPosition ?? currentPosition, currentPosition) > ClickDragDistance)
+                        HandleMouseDragStart(state, currentPosition);
                 }
 
                 if (DragStarted)
-                    HandleMouseDrag(state, lastPosition);
+                    HandleMouseDrag(state, currentPosition, lastPosition);
             }
         }
 
         protected bool BlockNextClick;
 
-        public virtual void HandleButtonStateChange(InputState state, ButtonStateChangeKind kind, double currentTime)
+        public virtual void HandleButtonStateChange(InputState state, Vector2 position, ButtonStateChangeKind kind, double currentTime)
         {
             Trace.Assert(state.Mouse.IsPressed(Button) == (kind == ButtonStateChangeKind.Pressed));
 
@@ -128,11 +128,11 @@ namespace osu.Framework.Input
                 if (state.Mouse.IsPositionValid)
                     MouseDownPosition = state.Mouse.Position;
 
-                HandleMouseDown(state);
+                HandleMouseDown(state, position);
 
                 if (LastClickTime != null && currentTime - LastClickTime < DoubleClickTime)
                 {
-                    if (HandleMouseDoubleClick(state))
+                    if (HandleMouseDoubleClick(state, position))
                     {
                         //when we handle a double-click we want to block a normal click from firing.
                         BlockNextClick = true;
@@ -142,31 +142,31 @@ namespace osu.Framework.Input
             }
             else
             {
-                HandleMouseUp(state);
+                HandleMouseUp(state, position);
 
                 if (EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
                     if (!BlockNextClick)
                     {
                         LastClickTime = currentTime;
-                        HandleMouseClick(state);
+                        HandleMouseClick(state, position);
                     }
                 }
 
                 BlockNextClick = false;
 
                 if (EnableDrag)
-                    HandleMouseDragEnd(state);
+                    HandleMouseDragEnd(state, position);
 
                 MouseDownPosition = null;
                 MouseDownInputQueue = null;
             }
         }
 
-        protected virtual bool HandleMouseDown(InputState state)
+        protected virtual bool HandleMouseDown(InputState state, Vector2 position)
         {
             var positionalInputQueue = PositionalInputQueue.ToList();
-            var handledBy = PropagateMouseButtonEvent(positionalInputQueue, new MouseDownEvent(state, Button, MouseDownPosition));
+            var handledBy = PropagateMouseButtonEvent(positionalInputQueue, new MouseDownEvent(state, position, Button, MouseDownPosition));
 
             // only drawables up to the one that handled mouse down should handle mouse up
             MouseDownInputQueue = positionalInputQueue;
@@ -180,14 +180,14 @@ namespace osu.Framework.Input
             return handledBy != null;
         }
 
-        protected virtual bool HandleMouseUp(InputState state)
+        protected virtual bool HandleMouseUp(InputState state, Vector2 position)
         {
             if (MouseDownInputQueue == null) return false;
 
-            return PropagateMouseButtonEvent(MouseDownInputQueue, new MouseUpEvent(state, Button, MouseDownPosition)) != null;
+            return PropagateMouseButtonEvent(MouseDownInputQueue, new MouseUpEvent(state, position, Button, MouseDownPosition)) != null;
         }
 
-        protected virtual bool HandleMouseClick(InputState state)
+        protected virtual bool HandleMouseClick(InputState state, Vector2 position)
         {
             if (MouseDownInputQueue == null) return false;
 
@@ -195,7 +195,7 @@ namespace osu.Framework.Input
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
                                                .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));
 
-            var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
+            var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, position, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked);
 
             if (ChangeFocusOnClick)
@@ -207,7 +207,7 @@ namespace osu.Framework.Input
             return clicked != null;
         }
 
-        protected virtual bool HandleMouseDoubleClick(InputState state)
+        protected virtual bool HandleMouseDoubleClick(InputState state, Vector2 position)
         {
             if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
                 return false;
@@ -215,18 +215,18 @@ namespace osu.Framework.Input
             if (!PositionalInputQueue.Contains(clicked))
                 return false;
 
-            return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
+            return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, position, Button, MouseDownPosition)) != null;
         }
 
-        protected virtual bool HandleMouseDrag(InputState state, Vector2 lastPosition)
+        protected virtual bool HandleMouseDrag(InputState state, Vector2 currentPosition, Vector2 lastPosition)
         {
             if (DraggedDrawable == null) return false;
 
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEvent(state, Button, MouseDownPosition, lastPosition)) != null;
+            return PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEvent(state, currentPosition, Button, MouseDownPosition, lastPosition)) != null;
         }
 
-        protected virtual bool HandleMouseDragStart(InputState state)
+        protected virtual bool HandleMouseDragStart(InputState state, Vector2 position)
         {
             Trace.Assert(DraggedDrawable == null, $"The {nameof(DraggedDrawable)} was not set to null by {nameof(HandleMouseDragEnd)}.");
             Trace.Assert(!DragStarted, $"A {nameof(DraggedDrawable)} was already searched for. Call {nameof(HandleMouseDragEnd)} first.");
@@ -238,20 +238,20 @@ namespace osu.Framework.Input
             // also the laziness of IEnumerable here
             var drawables = MouseDownInputQueue.Where(t => t.IsAlive && t.IsPresent);
 
-            DraggedDrawable = PropagateMouseButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
+            DraggedDrawable = PropagateMouseButtonEvent(drawables, new DragStartEvent(state, position, Button, MouseDownPosition));
             if (DraggedDrawable != null)
                 DraggedDrawable.IsDragged = true;
 
             return DraggedDrawable != null;
         }
 
-        protected virtual bool HandleMouseDragEnd(InputState state)
+        protected virtual bool HandleMouseDragEnd(InputState state, Vector2 position)
         {
             DragStarted = false;
 
             if (DraggedDrawable == null) return false;
 
-            var result = PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEndEvent(state, Button, MouseDownPosition)) != null;
+            var result = PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEndEvent(state, position, Button, MouseDownPosition)) != null;
 
             DraggedDrawable.IsDragged = false;
             DraggedDrawable = null;

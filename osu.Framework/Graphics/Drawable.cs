@@ -1919,7 +1919,16 @@ namespace osu.Framework.Graphics
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
-        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+        public bool Click()
+        {
+            var inputManager = GetContainingInputManager();
+
+            return TriggerEvent(new ClickEvent(
+                inputManager?.CurrentState ?? new InputState(),
+                inputManager?.CurrentState.Mouse.Position ?? Vector2.Zero,
+                MouseButton.Left
+            ));
+        }
 
         #region Individual event handlers
 

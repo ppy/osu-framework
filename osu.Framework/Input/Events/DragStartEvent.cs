@@ -12,8 +12,8 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public class DragStartEvent : MouseButtonEvent
     {
-        public DragStartEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
-            : base(state, button, screenSpaceMouseDownPosition)
+        public DragStartEvent(InputState state, Vector2 screenSpaceCurrentMousePosition, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+            : base(state, screenSpaceCurrentMousePosition, button, screenSpaceMouseDownPosition)
         {
         }
     }

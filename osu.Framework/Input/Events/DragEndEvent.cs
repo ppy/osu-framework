@@ -13,8 +13,8 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public class DragEndEvent : MouseButtonEvent
     {
-        public DragEndEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
-            : base(state, button, screenSpaceMouseDownPosition)
+        public DragEndEvent(InputState state, Vector2 screenSpaceCurrentMousePosition, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+            : base(state, screenSpaceCurrentMousePosition, button, screenSpaceMouseDownPosition)
         {
         }
     }

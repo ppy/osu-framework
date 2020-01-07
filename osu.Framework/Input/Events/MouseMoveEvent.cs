@@ -24,12 +24,12 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// The difference of mouse position from last position to current position in local space.
         /// </summary>
-        public Vector2 Delta => MousePosition - LastMousePosition;
+        public Vector2 Delta => CurrentMousePosition - LastMousePosition;
 
-        public MouseMoveEvent(InputState state, Vector2? screenSpaceLastMousePosition = null)
-            : base(state)
+        public MouseMoveEvent(InputState state, Vector2 screenSpaceCurrentMousePosition, Vector2? screenSpaceLastMousePosition = null)
+            : base(state, screenSpaceCurrentMousePosition)
         {
-            ScreenSpaceLastMousePosition = screenSpaceLastMousePosition ?? ScreenSpaceMousePosition;
+            ScreenSpaceLastMousePosition = screenSpaceLastMousePosition ?? ScreenSpaceCurrentMousePosition;
         }
     }
 }

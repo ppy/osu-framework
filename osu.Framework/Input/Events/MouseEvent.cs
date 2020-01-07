@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.States;
+using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Input.Events
@@ -12,6 +13,16 @@ namespace osu.Framework.Input.Events
     /// </summary>
     public abstract class MouseEvent : UIEvent
     {
+        /// <summary>
+        /// The current mouse position in the screen space.
+        /// </summary>
+        public Vector2 ScreenSpaceCurrentMousePosition;
+
+        /// <summary>
+        /// The current mouse position in local space.
+        /// </summary>
+        public Vector2 CurrentMousePosition => ToLocalSpace(ScreenSpaceCurrentMousePosition);
+
         /// <summary>
         /// Whether a specific mouse button is pressed.
         /// </summary>
@@ -27,9 +38,10 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public IEnumerable<MouseButton> PressedButtons => CurrentState.Mouse.Buttons;
 
-        protected MouseEvent(InputState state)
+        protected MouseEvent(InputState state, Vector2 screenSpaceCurrentMousePosition)
             : base(state)
         {
+            ScreenSpaceCurrentMousePosition = screenSpaceCurrentMousePosition;
         }
     }
 }
