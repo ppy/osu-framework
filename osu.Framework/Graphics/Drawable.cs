@@ -1418,19 +1418,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager()
-        {
-            Drawable search = Parent;
-
-            while (search != null)
-            {
-                if (search is InputManager test) return test;
-
-                search = search.Parent;
-            }
-
-            return null;
-        }
+        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
