@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            Vector2 posDiff = e.MouseDownPosition - e.CurrentMousePosition;
 
             if (Math.Abs(posDiff.X) < Math.Abs(posDiff.Y))
             {
@@ -200,9 +200,9 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private void handleMouseInput(UIEvent e)
+        private void handleMouseInput(MouseEvent e)
         {
-            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+            var xPosition = ToLocalSpace(e.ScreenSpaceCurrentMousePosition).X - RangePadding;
 
             if (currentNumberInstantaneous.Disabled)
                 return;

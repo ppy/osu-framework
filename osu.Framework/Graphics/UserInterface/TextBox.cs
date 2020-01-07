@@ -728,16 +728,16 @@ namespace osu.Framework.Graphics.UserInterface
             if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
+                if (getCharacterClosestTo(e.CurrentMousePosition) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.CurrentMousePosition) - 1, 1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
-                else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
+                else if (getCharacterClosestTo(e.CurrentMousePosition) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.CurrentMousePosition), -1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
@@ -753,7 +753,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (text.Length == 0) return true;
 
-                selectionEnd = getCharacterClosestTo(e.MousePosition);
+                selectionEnd = getCharacterClosestTo(e.CurrentMousePosition);
                 if (selectionLength > 0)
                     GetContainingInputManager().ChangeFocus(this);
 
@@ -767,7 +767,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (HasFocus) return true;
 
-            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
+            Vector2 posDiff = e.MouseDownPosition - e.CurrentMousePosition;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
@@ -780,7 +780,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (AllowClipboardExport)
             {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
+                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.CurrentMousePosition));
 
                 int lastSeparator = findSeparatorIndex(text, hover, -1);
                 int nextSeparator = findSeparatorIndex(text, hover, 1);
@@ -818,7 +818,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true) return true;
 
-            selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
+            selectionStart = selectionEnd = getCharacterClosestTo(e.CurrentMousePosition);
 
             cursorAndLayout.Invalidate();
 

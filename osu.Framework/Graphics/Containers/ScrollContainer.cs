@@ -303,7 +303,7 @@ namespace osu.Framework.Graphics.Containers
 
             lastDragTime = currentTime;
 
-            Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
+            Vector2 childDelta = ToLocalSpace(e.ScreenSpaceCurrentMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
@@ -317,7 +317,7 @@ namespace osu.Framework.Graphics.Containers
             // similar calculation to what is already done in MouseButtonEventManager.HandlePositionChange
             // handles the case where a drag was triggered on an axis we are not interested in.
             // can be removed if/when drag events are split out per axis or contain direction information.
-            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
+            dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.CurrentMousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
             offset(scrollOffset, false);
             return true;
@@ -578,7 +578,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDragStart(DragStartEvent e)
             {
-                dragOffset = e.MousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
+                dragOffset = e.CurrentMousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
                 return true;
             }
 
@@ -593,7 +593,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(DragEvent e)
             {
-                Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
+                Dragged?.Invoke(e.CurrentMousePosition[(int)ScrollDirection] - dragOffset);
                 return true;
             }
         }

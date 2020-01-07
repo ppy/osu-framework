@@ -44,13 +44,13 @@ namespace osu.Framework.Graphics.Cursor
             // required due to IRequireHighFrequencyMousePosition firing with the last known position even when the source is not in a
             // valid state (ie. receiving updates from user or otherwise). in this case, we generally want the cursor to remain at its
             // last *relative* position.
-            if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition.Value))
+            if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceCurrentMousePosition, lastPosition.Value))
                 return false;
 
-            lastPosition = e.ScreenSpaceMousePosition;
+            lastPosition = e.ScreenSpaceCurrentMousePosition;
 
             ActiveCursor.RelativePositionAxes = Axes.None;
-            ActiveCursor.Position = e.MousePosition;
+            ActiveCursor.Position = e.CurrentMousePosition;
             ActiveCursor.RelativePositionAxes = Axes.Both;
             return base.OnMouseMove(e);
         }
