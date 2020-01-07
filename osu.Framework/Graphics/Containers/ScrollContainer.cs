@@ -41,7 +41,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollbarVisible = value;
-                updateScrollbar();
+                if (IsLoaded)
+                    updateScrollbar();
             }
         }
 
