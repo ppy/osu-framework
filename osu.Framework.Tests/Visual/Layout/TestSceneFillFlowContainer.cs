@@ -379,7 +379,7 @@ namespace osu.Framework.Tests.Visual.Layout
         {
             private readonly SpriteText label;
 
-            protected internal override LocalisableStringDescriptor Label
+            protected internal override LocalisableString Label
             {
                 get => label.Text;
                 set => label.Text = value;

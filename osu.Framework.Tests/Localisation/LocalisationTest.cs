@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Localisation
         {
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
-            var localisedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            var localisedText = manager.GetLocalisedString(LocalisableString.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Localisation
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
 
-            var localisedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            var localisedText = manager.GetLocalisedString(LocalisableString.FromTranslatable(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
         }
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Localisation
 
             string expectedResult = string.Format(FakeStorage.LOCALISABLE_FORMAT_STRING_JA, arg_0);
 
-            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromInterpolatedTranslatable($"The {arg_0} fallback should only matches argument count", FakeStorage.LOCALISABLE_FORMAT_STRING_EN));
+            var formattedText = manager.GetLocalisedString(LocalisableString.FromInterpolatedTranslatable($"The {arg_0} fallback should only matches argument count", FakeStorage.LOCALISABLE_FORMAT_STRING_EN));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.Set(FrameworkSetting.Locale, "ja");
 
-            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0));
+            var formattedText = manager.GetLocalisedString(LocalisableString.FromTranslatable(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Localisation
             var expectedResult = string.Format(new CultureInfo("fr"), FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_FR, value);
             Assert.AreEqual("number 1,23 FR", expectedResult); // FR uses comma for decimal point.
 
-            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
+            var formattedText = manager.GetLocalisedString(LocalisableString.FromTranslatable(FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN, null, value));
 
             Assert.AreEqual(expectedResult, formattedText.Value);
         }
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Localisation
 
             const string expected_fallback = "fallback string";
 
-            var formattedText = manager.GetLocalisedString(LocalisableStringDescriptor.FromTranslatable("no such key", expected_fallback));
+            var formattedText = manager.GetLocalisedString(LocalisableString.FromTranslatable("no such key", expected_fallback));
 
             Assert.AreEqual(expected_fallback, formattedText.Value);
         }
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode = "non unicode";
             const string unicode = "unicode";
 
-            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanisation(non_unicode, unicode));
+            var text = manager.GetLocalisedString(LocalisableString.FromRomanisation(non_unicode, unicode));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode, text.Value);
@@ -163,18 +163,18 @@ namespace osu.Framework.Tests.Localisation
             const string unicode_1 = "unicode 1";
             const string unicode_2 = "unicode 2";
 
-            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanisation(non_unicode_1, unicode_1));
+            var text = manager.GetLocalisedString(LocalisableString.FromRomanisation(non_unicode_1, unicode_1));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(non_unicode_1, text.Value);
 
-            text.Text = LocalisableStringDescriptor.FromRomanisation(non_unicode_2, unicode_1);
+            text.Text = LocalisableString.FromRomanisation(non_unicode_2, unicode_1);
             Assert.AreEqual(non_unicode_2, text.Value);
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode_1, text.Value);
 
-            text.Text = LocalisableStringDescriptor.FromRomanisation(non_unicode_2, unicode_2);
+            text.Text = LocalisableString.FromRomanisation(non_unicode_2, unicode_2);
             Assert.AreEqual(unicode_2, text.Value);
         }
 
@@ -184,12 +184,12 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode_fallback = "non unicode";
             const string unicode_fallback = "unicode";
 
-            var text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanisation(emptyValue, unicode_fallback));
+            var text = manager.GetLocalisedString(LocalisableString.FromRomanisation(emptyValue, unicode_fallback));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(unicode_fallback, text.Value);
 
-            text = manager.GetLocalisedString(LocalisableStringDescriptor.FromRomanisation(non_unicode_fallback, emptyValue));
+            text = manager.GetLocalisedString(LocalisableString.FromRomanisation(non_unicode_fallback, emptyValue));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(non_unicode_fallback, text.Value);

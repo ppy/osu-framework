@@ -282,7 +282,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledDropdownHeader : DropdownHeader
         {
-            protected internal override LocalisableStringDescriptor Label { get; set; }
+            protected internal override LocalisableString Label { get; set; }
 
             public StyledDropdownHeader()
             {

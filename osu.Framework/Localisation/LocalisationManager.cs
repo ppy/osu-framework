@@ -36,7 +36,7 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
         [NotNull]
-        public ILocalisedBindableString GetLocalisedString(LocalisableStringDescriptor original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
+        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
         private void updateLocale(ValueChangedEvent<string> args)
         {

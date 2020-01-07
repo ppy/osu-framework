@@ -22,7 +22,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public Action Action { get; set; }
 
-        public LocalisableStringDescriptor Text
+        public LocalisableString Text
         {
             get => SpriteText.Text;
             set => SpriteText.Text = value;

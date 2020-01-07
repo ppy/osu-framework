@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        protected internal abstract LocalisableStringDescriptor Label { get; set; }
+        protected internal abstract LocalisableString Label { get; set; }
 
         protected DropdownHeader()
         {

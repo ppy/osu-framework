@@ -14,9 +14,9 @@ namespace osu.Framework.Localisation
             private readonly IBindable<ILocalisationStore> storage = new Bindable<ILocalisationStore>();
             private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
 
-            private LocalisableStringDescriptor text;
+            private LocalisableString text;
 
-            public LocalisedBindableString(LocalisableStringDescriptor text, IBindable<ILocalisationStore> storage, IBindable<bool> preferUnicode)
+            public LocalisedBindableString(LocalisableString text, IBindable<ILocalisationStore> storage, IBindable<bool> preferUnicode)
             {
                 this.text = text;
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Localisation
                     Value = string.Empty;
             }
 
-            LocalisableStringDescriptor ILocalisedBindableString.Text
+            LocalisableString ILocalisedBindableString.Text
             {
                 set
                 {

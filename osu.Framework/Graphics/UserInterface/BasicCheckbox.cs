@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The text in the label.
         /// </summary>
-        public LocalisableStringDescriptor LabelText
+        public LocalisableString LabelText
         {
             get => labelSpriteText.Text;
             set => labelSpriteText.Text = value;

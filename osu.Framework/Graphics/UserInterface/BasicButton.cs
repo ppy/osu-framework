@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicButton : Button
     {
-        public LocalisableStringDescriptor Text
+        public LocalisableString Text
         {
             get => SpriteText?.Text ?? default;
             set

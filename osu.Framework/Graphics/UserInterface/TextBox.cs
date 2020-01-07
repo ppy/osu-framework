@@ -554,7 +554,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected SpriteText Placeholder;
 
-        public LocalisableStringDescriptor PlaceholderText
+        public LocalisableString PlaceholderText
         {
             get => Placeholder.Text;
             set => Placeholder.Text = value;
