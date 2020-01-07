@@ -7,7 +7,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -148,8 +147,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private class TestDropdownMenu : BasicDropdownMenu
             {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
-                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
+                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?.Click();
             }
         }
     }
