@@ -215,6 +215,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestScreenPushedAfterExiting()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push", () => stack.Push(screen1 = new TestScreen()));
+
+            AddUntilStep("wait for current", () => screen1.IsCurrentScreen());
+            AddStep("exit screen1", () => screen1.Exit());
+            AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
+
+            AddStep("push again", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+        }
+
+        [Test]
         public void TestPushToNonLoadedScreenFails()
         {
             TestScreenSlow screen1 = null;
@@ -286,7 +300,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(id: 0))
                     {
                         RelativeSizeAxes = Axes.Both
                     });
@@ -296,13 +310,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Perform setup", () =>
             {
                 order = new List<int>();
-                screen1 = new TestScreenSlow
+                screen1 = new TestScreenSlow(1)
                 {
                     Entered = () => order.Add(1),
                     Suspended = () => order.Add(2),
                     Resumed = () => order.Add(5),
                 };
-                screen2 = new TestScreenSlow
+                screen2 = new TestScreenSlow(2)
                 {
                     Entered = () => order.Add(3),
                     Exited = () => order.Add(4),
@@ -345,6 +359,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestEventsNotFiredBeforeScreenLoad()
+        {
+            Screen screen1 = null;
+            bool wasLoaded = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen
+            {
+                // ReSharper disable once AccessToModifiedClosure
+                Entered = () => wasLoaded &= screen1?.IsLoaded == true,
+                // ReSharper disable once AccessToModifiedClosure
+                Suspended = () => wasLoaded &= screen1?.IsLoaded == true,
+            });
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddAssert("was loaded before events", () => wasLoaded);
         }
 
         [Test]

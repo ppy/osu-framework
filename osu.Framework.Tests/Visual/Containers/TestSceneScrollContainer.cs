@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void scrollTo(float position, float scrollContentHeight, float extension)
         {
-            float clampedTarget = MathHelper.Clamp(position, -extension, scrollContentHeight + extension);
+            float clampedTarget = Math.Clamp(position, -extension, scrollContentHeight + extension);
 
             float immediateScrollPosition = 0;
 

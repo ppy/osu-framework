@@ -20,17 +20,22 @@ namespace osu.Framework.Graphics.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume => adjustments.Volume;
+        public BindableNumber<double> Volume => adjustments.Volume;
 
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance => adjustments.Balance;
+        public BindableNumber<double> Balance => adjustments.Balance;
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency => adjustments.Frequency;
+        public BindableNumber<double> Frequency => adjustments.Frequency;
+
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableNumber<double> Tempo => adjustments.Tempo;
 
         private readonly AdjustableAudioComponent component;
 
@@ -83,6 +88,10 @@ namespace osu.Framework.Graphics.Audio
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
+        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
+
+        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
+
         /// <summary>
         /// Smoothly adjusts <see cref="Volume"/> over time.
         /// </summary>
@@ -103,5 +112,12 @@ namespace osu.Framework.Graphics.Audio
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public TransformSequence<DrawableAudioWrapper> FrequencyTo(double newFrequency, double duration = 0, Easing easing = Easing.None) =>
             this.TransformBindableTo(Frequency, newFrequency, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="Tempo"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public TransformSequence<DrawableAudioWrapper> TempoTo(double newTempo, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformBindableTo(Tempo, newTempo, duration, easing);
     }
 }

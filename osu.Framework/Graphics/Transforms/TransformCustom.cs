@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Transforms
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
+    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : class, ITransformable
     {
         private delegate TValue ReadFunc(T transformable);
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream.CanSeek;
+        public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Video
         public IBindable<DecoderState> State => bindableState;
 
         private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+
         private volatile DecoderState volatileState;
 
         private DecoderState state
@@ -69,9 +70,9 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (bindableState.Value != value)
-                    scheduler?.AddOnce(() => bindableState.Value = value);
+                if (volatileState == value) return;
 
+                scheduler?.Add(() => bindableState.Value = value);
                 volatileState = value;
             }
         }
@@ -302,11 +303,11 @@ namespace osu.Framework.Graphics.Video
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             if (openInputResult < 0)
-                throw new Exception($"Error {openInputResult} opening file or stream.");
+                throw new InvalidOperationException($"Error {openInputResult} opening file or stream.");
 
             int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
             if (findStreamInfoResult < 0)
-                throw new Exception($"Error {findStreamInfoResult} finding stream info.");
+                throw new InvalidOperationException($"Error {findStreamInfoResult} finding stream info.");
 
             var nStreams = formatContext->nb_streams;
 
@@ -321,11 +322,11 @@ namespace osu.Framework.Graphics.Video
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
                     if (codecPtr == null)
-                        throw new Exception($"Couldn't find codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Couldn't find codec with id: {codecParams.codec_id}");
 
                     int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
                     if (openCodecResult < 0)
-                        throw new Exception($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
 
                     frame = ffmpeg.av_frame_alloc();
                     ffmpegFrame = ffmpeg.av_frame_alloc();
@@ -337,7 +338,7 @@ namespace osu.Framework.Graphics.Video
                     var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;
                     var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
-                        throw new Exception("Couldn't fill image arrays.");
+                        throw new InvalidOperationException("Couldn't fill image arrays.");
 
                     for (uint j = 0; j < byte_ptrArray4.Size; ++j)
                     {
@@ -375,7 +376,7 @@ namespace osu.Framework.Graphics.Video
                             {
                                 int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
                                 if (sendPacketResult < 0)
-                                    throw new Exception($"Error {sendPacketResult} sending packet.");
+                                    throw new InvalidOperationException($"Error {sendPacketResult} sending packet.");
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
@@ -535,9 +536,6 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            videoStream.Dispose();
-            videoStream = null;
-
             while (decoderCommands.TryDequeue(out var _))
             {
             }
@@ -553,6 +551,9 @@ namespace osu.Framework.Graphics.Video
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
+
+            videoStream.Dispose();
+            videoStream = null;
 
             // gets freed by libavformat when closing the input
             contextBuffer = null;

@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Compute offset to the middle of the row, to be applied in case of centre anchor
                     // in a second pass.
-                    rowOffsetsToMiddle[rowOffsetsToMiddle.Count - 1] = rowBeginOffset - rowWidth / 2;
+                    rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
                 }
 
                 rowIndices[i] = rowOffsetsToMiddle.Count - 1;

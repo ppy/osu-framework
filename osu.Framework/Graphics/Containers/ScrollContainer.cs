@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
         /// <returns></returns>
-        protected float Clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
+        protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, scrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
 
@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
         {
             var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
             if (size > 0)
-                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
+                Scrollbar.ResizeTo(Math.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }

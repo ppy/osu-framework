@@ -106,8 +106,20 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.RawState.GetAxis(i);
-                    if (!Precision.AlmostEquals(value, 0, device.DefaultDeadzones?[i] ?? Precision.FLOAT_EPSILON))
+
+                    // do not allow a deadzone below float_epsilon
+                    var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
+
+                    if (!Precision.AlmostEquals(value, 0, deadzone))
+                    {
                         Axes.Add(new JoystickAxis(i, value));
+
+                        // We're off the center, activate negative / positive button
+                        if (value > deadzone)
+                            Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
+                        else if (value < deadzone * -1)
+                            Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
+                    }
                 }
 
                 // Populate normal buttons
@@ -123,10 +135,6 @@ namespace osu.Framework.Input.Handlers.Joystick
                     foreach (var hatButton in getHatButtons(device, i))
                         Buttons.SetPressed(hatButton, true);
                 }
-
-                // Populate axis buttons (each axis has two buttons)
-                foreach (var axis in Axes)
-                    Buttons.SetPressed((axis.Value < 0 ? JoystickButton.FirstAxisNegative : JoystickButton.FirstAxisPositive) + axis.Axis, true);
             }
 
             private IEnumerable<JoystickButton> getHatButtons(JoystickDevice device, int hat)
@@ -155,7 +163,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of buttons supported by osuTK.
             /// </summary>
-            public const int MAX_BUTTONS = 64;
+            public const int MAX_BUTTONS = 128;
 
             /// <summary>
             /// Amount of hats supported by osuTK.

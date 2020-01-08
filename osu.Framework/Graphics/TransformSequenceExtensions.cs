@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> FadeEdgeEffectTo<T>(this TransformSequence<T> t, float newAlpha, double duration, Easing easing = Easing.None)
-            where T : IContainer =>
+            where T : class, IContainer =>
             t.Append(o => o.FadeEdgeEffectTo(newAlpha, duration, easing));
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> FadeEdgeEffectTo<T>(this TransformSequence<T> t, Color4 newColour, double duration = 0, Easing easing = Easing.None)
-            where T : IContainer =>
+            where T : class, IContainer =>
             t.Append(o => o.FadeEdgeEffectTo(newColour, duration, easing));
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformRelativeChildSizeTo<T>(this TransformSequence<T> t, Vector2 newSize, double duration = 0, Easing easing = Easing.None)
-            where T : IContainer =>
+            where T : class, IContainer =>
             t.Append(o => o.TransformRelativeChildSizeTo(newSize, duration, easing));
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformRelativeChildOffsetTo<T>(this TransformSequence<T> t, Vector2 newOffset, double duration = 0, Easing easing = Easing.None)
-            where T : IContainer =>
+            where T : class, IContainer =>
             t.Append(o => o.TransformRelativeChildOffsetTo(newOffset, duration, easing));
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> BlurTo<T>(this TransformSequence<T> t, Vector2 newBlurSigma, double duration = 0, Easing easing = Easing.None)
-            where T : IBufferedContainer =>
+            where T : class, IBufferedContainer =>
             t.Append(o => o.BlurTo(newBlurSigma, duration, easing));
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformSpacingTo<T>(this TransformSequence<T> t, Vector2 newSpacing, double duration = 0, Easing easing = Easing.None)
-            where T : IFillFlowContainer =>
+            where T : class, IFillFlowContainer =>
             t.Append(o => o.TransformSpacingTo(newSpacing, duration, easing));
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None,
                                                                           InterpolationFunc<TValue> interpolationFunc = null)
-            where T : ITransformable =>
+            where T : class, ITransformable =>
             t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc));
     }
 }

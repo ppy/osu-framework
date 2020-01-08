@@ -504,6 +504,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 private readonly double startTime;
                 public double MinTime;
                 public double MaxTime = 1000;
+                private OffsetClock offsetClock;
                 private IFrameBasedClock trackingClock;
                 private bool reversed;
 
@@ -514,24 +515,24 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 public void SetSource(IFrameBasedClock trackingClock)
                 {
-                    this.trackingClock = new FramedOffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime + startTime };
+                    this.trackingClock = trackingClock;
+
+                    offsetClock = new OffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime + startTime };
                 }
 
                 public double CurrentTime { get; private set; }
-                public double Rate => trackingClock.Rate;
-                public bool IsRunning => trackingClock.IsRunning;
+                public double Rate => offsetClock.Rate;
+                public bool IsRunning => offsetClock.IsRunning;
                 public double ElapsedFrameTime => (reversed ? -1 : 1) * trackingClock.ElapsedFrameTime;
                 public double FramesPerSecond => trackingClock.FramesPerSecond;
                 public FrameTimeInfo TimeInfo => new FrameTimeInfo { Current = CurrentTime, Elapsed = ElapsedFrameTime };
 
                 public void ProcessFrame()
                 {
-                    trackingClock.ProcessFrame();
-
                     // There are two iterations, when iteration % 2 == 0 : not reversed
-                    int iteration = (int)(trackingClock.CurrentTime / (MaxTime - MinTime));
+                    int iteration = (int)(offsetClock.CurrentTime / (MaxTime - MinTime));
                     reversed = iteration % 2 == 1;
-                    double iterationTime = trackingClock.CurrentTime % (MaxTime - MinTime);
+                    double iterationTime = offsetClock.CurrentTime % (MaxTime - MinTime);
                     if (reversed)
                         CurrentTime = MaxTime - iterationTime;
                     else

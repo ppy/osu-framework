@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace osu.Framework.IO.Stores
 {
     public class ResourceStore<T> : IResourceStore<T>
+        where T : class
     {
         private readonly Dictionary<string, Action> actionList = new Dictionary<string, Action>();
 
@@ -83,6 +84,9 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public virtual async Task<T> GetAsync(string name)
         {
+            if (name == null)
+                return null;
+
             var filenames = GetFilenames(name);
 
             // required for locking
@@ -112,6 +116,9 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public virtual T Get(string name)
         {
+            if (name == null)
+                return null;
+
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
@@ -133,6 +140,9 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name)
         {
+            if (name == null)
+                return null;
+
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
@@ -142,15 +152,9 @@ namespace osu.Framework.IO.Stores
                 {
                     foreach (string f in filenames)
                     {
-                        try
-                        {
-                            var result = store.GetStream(f);
-                            if (result != null)
-                                return result;
-                        }
-                        catch
-                        {
-                        }
+                        var result = store.GetStream(f);
+                        if (result != null)
+                            return result;
                     }
                 }
             }

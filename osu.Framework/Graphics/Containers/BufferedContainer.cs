@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;

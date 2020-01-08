@@ -5,9 +5,9 @@ using System;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal struct NSArray
+    internal readonly struct NSArray
     {
-        internal IntPtr Handle { get; private set; }
+        internal IntPtr Handle { get; }
 
         private static readonly IntPtr class_pointer = Class.Get("NSArray");
         private static readonly IntPtr mutable_class_pointer = Class.Get("NSMutableArray");

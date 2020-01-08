@@ -162,6 +162,27 @@ namespace osu.Framework
 
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
+
+            logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
+            logOverlayVisibility.BindValueChanged(visibility =>
+            {
+                if (visibility.NewValue)
+                {
+                    if (logOverlay == null)
+                    {
+                        LoadComponentAsync(logOverlay = new LogOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    logOverlay.Show();
+                }
+                else
+                {
+                    logOverlay?.Hide();
+                }
+            }, true);
         }
 
         /// <summary>
@@ -199,6 +220,8 @@ namespace osu.Framework
         protected readonly Bindable<FrameStatisticsMode> FrameStatistics = new Bindable<FrameStatisticsMode>();
 
         private GlobalStatisticsDisplay globalStatistics;
+
+        private Bindable<bool> logOverlayVisibility;
 
         public bool OnPressed(FrameworkAction action)
         {
@@ -251,15 +274,7 @@ namespace osu.Framework
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
-                    if (logOverlay == null)
-                    {
-                        LoadComponentAsync(logOverlay = new LogOverlay
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    logOverlay.ToggleVisibility();
+                    logOverlayVisibility.Value = !logOverlayVisibility.Value;
                     return true;
 
                 case FrameworkAction.ToggleFullscreen:
@@ -284,10 +299,10 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             Audio?.Dispose();
             Audio = null;
+
+            base.Dispose(isDisposing);
         }
     }
 }
