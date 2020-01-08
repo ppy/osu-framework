@@ -5,7 +5,7 @@ using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Effects
 {

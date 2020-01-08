@@ -8,7 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
