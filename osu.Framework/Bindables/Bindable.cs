@@ -184,6 +184,9 @@ namespace osu.Framework.Bindables
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
         public virtual void BindTo(Bindable<T> them)
         {
+            if (Bindings != null && Bindings.Contains(them))
+                throw new InvalidOperationException($"The bindable is already bound to {them}");
+
             Value = them.Value;
             Default = them.Default;
             Disabled = them.Disabled;
