@@ -5,7 +5,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Utils.Clipping;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Tests.Polygons
