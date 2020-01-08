@@ -5,29 +5,27 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Veldrid.Sdl2;
 
-// ReSharper disable InconsistentNaming
-
 namespace osu.Framework.Platform
 {
-    public static unsafe class Sdl2Functions
+    internal static unsafe class Sdl2Functions
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void SDL_GL_GetDrawableSize_t(SDL_Window window, int* w, int* h);
+        private delegate void SdlGLGetDrawableSizeDelegate(SDL_Window window, int* w, int* h);
 
-        private static readonly SDL_GL_GetDrawableSize_t s_glGetDrawableSize = Sdl2Native.LoadFunction<SDL_GL_GetDrawableSize_t>("SDL_GL_GetDrawableSize");
+        private static readonly SdlGLGetDrawableSizeDelegate sdl_gl_get_drawable_size = Sdl2Native.LoadFunction<SdlGLGetDrawableSizeDelegate>("SDL_GL_GetDrawableSize");
 
         public static Vector2 SDL_GL_GetDrawableSize(SDL_Window window)
         {
             int w, h;
-            s_glGetDrawableSize(window, &w, &h);
+            sdl_gl_get_drawable_size(window, &w, &h);
             return new Vector2(w, h);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int SDL_GL_GetSwapInterval_t();
+        private delegate int SdlGLGetSwapIntervalDelegate();
 
-        private static readonly SDL_GL_GetSwapInterval_t s_gl_getSwapInterval = Sdl2Native.LoadFunction<SDL_GL_GetSwapInterval_t>("SDL_GL_GetSwapInterval");
+        private static readonly SdlGLGetSwapIntervalDelegate sdl_gl_get_swap_interval = Sdl2Native.LoadFunction<SdlGLGetSwapIntervalDelegate>("SDL_GL_GetSwapInterval");
 
-        public static int SDL_GL_GetSwapInterval() => s_gl_getSwapInterval();
+        public static int SDL_GL_GetSwapInterval() => sdl_gl_get_swap_interval();
     }
 }
