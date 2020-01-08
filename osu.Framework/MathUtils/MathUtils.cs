@@ -8,40 +8,40 @@ namespace osu.Framework.MathUtils
     public static class MathUtils
     {
         /// <summary>
-        /// Convert degrees to radians
+        /// Converts degrees to radians.
         /// </summary>
-        /// <param name="degrees">An angle in degrees</param>
-        /// <returns>The angle expressed in radians</returns>
+        /// <param name="degrees">An angle in degrees.</param>
+        /// <returns>The angle expressed in radians.</returns>
         public static float DegreesToRadians(float degrees)
         {
             return degrees * MathF.PI / 180.0f;
         }
 
         /// <summary>
-        /// Convert degrees to radians
+        /// Converts degrees to radians.
         /// </summary>
-        /// <param name="degrees">An angle in degrees</param>
-        /// <returns>The angle expressed in radians</returns>
+        /// <param name="degrees">An angle in degrees.</param>
+        /// <returns>The angle expressed in radians.</returns>
         public static double DegreesToRadians(double degrees)
         {
             return degrees * Math.PI / 180.0;
         }
 
         /// <summary>
-        /// Convert radians to degrees
+        /// Converts radians to degrees.
         /// </summary>
-        /// <param name="radians">An angle in radians</param>
-        /// <returns>The angle expressed in degrees</returns>
+        /// <param name="radians">An angle in radians.</param>
+        /// <returns>The angle expressed in degrees.</returns>
         public static float RadiansToDegrees(float radians)
         {
             return radians * (180.0f / MathF.PI);
         }
 
         /// <summary>
-        /// Convert radians to degrees
+        /// Converts radians to degrees.
         /// </summary>
-        /// <param name="radians">An angle in radians</param>
-        /// <returns>The angle expressed in degrees</returns>
+        /// <param name="radians">An angle in radians.</param>
+        /// <returns>The angle expressed in degrees.</returns>
         public static double RadiansToDegrees(double radians)
         {
             return radians * (180.0 / Math.PI);
