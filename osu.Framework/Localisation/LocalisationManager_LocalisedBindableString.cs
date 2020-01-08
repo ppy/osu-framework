@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Globalization;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
@@ -29,40 +27,13 @@ namespace osu.Framework.Localisation
 
             private void updateValue()
             {
-                if (text.TryGetPlainText(out string plain))
-                    Value = plain;
-                else if (text.TryGetRomanisation(out string romanised, out string unicode))
+                Value = text.Data switch
                 {
-                    Value = preferUnicode.Value && !string.IsNullOrEmpty(unicode) ? unicode : romanised;
-                    if (string.IsNullOrEmpty(unicode))
-                        Value = romanised;
-                    else if (string.IsNullOrEmpty(romanised))
-                        Value = unicode;
-                    else
-                        Value = preferUnicode.Value ? unicode : romanised;
-                }
-                else if (text.TryGetTranslatable(out string key, out string fallback, out object[] args))
-                {
-                    var localisedFormat = storage.Value.Get(key);
-
-                    if (localisedFormat != null)
-                    {
-                        try
-                        {
-                            Value = string.Format(storage.Value.EffectiveCulture, localisedFormat, args);
-                        }
-                        catch (FormatException)
-                        {
-                            Value = string.Format(CultureInfo.InvariantCulture, fallback, args);
-                        }
-                    }
-                    else
-                    {
-                        Value = string.Format(CultureInfo.InvariantCulture, fallback, args); // Trust fallback
-                    }
-                }
-                else
-                    Value = string.Empty;
+                    string plain => plain,
+                    RomanisableUnicodeString romanisable => romanisable.GetPreferred(preferUnicode.Value),
+                    TranslatableString translatable => translatable.Format(storage.Value),
+                    _ => string.Empty,
+                };
             }
 
             LocalisableString ILocalisedBindableString.Text
