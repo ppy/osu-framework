@@ -51,8 +51,6 @@ namespace osu.Framework.Platform
     {
         public IWindow Window { get; protected set; }
 
-        protected virtual IWindow CreateWindow() => null;
-
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
@@ -115,6 +113,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="url">The URL of the page which should be opened.</param>
         public abstract void OpenUrlExternally(string url);
+
+        /// <summary>
+        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// </summary>
+        protected virtual IWindow CreateWindow() => null;
 
         public virtual Clipboard GetClipboard() => null;
 
