@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers

@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     public static class Interpolation
     {

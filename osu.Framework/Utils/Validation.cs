@@ -5,7 +5,7 @@ using osuTK;
 using osu.Framework.Graphics;
 using System.Runtime.CompilerServices;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     public static class Validation
     {

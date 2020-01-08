@@ -30,7 +30,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics

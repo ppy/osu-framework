@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;

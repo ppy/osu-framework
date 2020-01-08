@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
 using osuTK;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track

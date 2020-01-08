@@ -11,7 +11,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils.Clipping;
+using osu.Framework.Utils.Clipping;
 using osu.Framework.Threading;
 using osuTK;
 

@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {
