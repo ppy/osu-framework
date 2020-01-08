@@ -49,7 +49,7 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public IWindow Window { get; protected set; }
+        public IWindow Window { get; private set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
