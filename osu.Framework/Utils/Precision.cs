@@ -5,7 +5,7 @@ using osuTK;
 using osuTK.Graphics;
 using System;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     public static class Precision
     {

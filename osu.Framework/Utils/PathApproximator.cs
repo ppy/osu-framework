@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using osuTK;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     /// <summary>
     /// Helper methods to approximate a path by interpolating a sequence of control points.
