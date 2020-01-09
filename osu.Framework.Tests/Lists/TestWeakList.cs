@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Lists
             try
             {
                 list.Remove(obj);
-                Assert.That(list.Contains(obj), Is.False);
+                Assert.That(list, Does.Not.Contain(obj));
             }
             finally
             {
@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Lists
             try
             {
                 list.Remove(weakRef);
-                Assert.That(list.Contains(weakRef), Is.False);
+                Assert.That(list, Does.Not.Contain(weakRef));
             }
             finally
             {
