@@ -49,9 +49,27 @@ namespace osu.Framework.Lists
             return found;
         }
 
-        public bool Contains(T item) => list.Any(t => !t.Invalid && t.Reference.TryGetTarget(out var obj) && obj == item);
+        public bool Contains(T item)
+        {
+            foreach (var t in list)
+            {
+                if (!t.Invalid && t.Reference.TryGetTarget(out var obj) && obj == item)
+                    return true;
+            }
 
-        public bool Contains(WeakReference<T> weakReference) => list.Any(t => !t.Invalid && t.Reference == weakReference);
+            return false;
+        }
+
+        public bool Contains(WeakReference<T> weakReference)
+        {
+            foreach (var t in list)
+            {
+                if (!t.Invalid && t.Reference == weakReference)
+                    return true;
+            }
+
+            return false;
+        }
 
         public void Clear()
         {
