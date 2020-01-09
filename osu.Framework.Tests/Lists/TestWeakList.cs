@@ -101,6 +101,57 @@ namespace osu.Framework.Tests.Lists
             }
         }
 
+        [Test]
+        public void TestRemovedObjectsAreNotContained()
+        {
+            var obj = new object();
+            var list = new WeakList<object> { obj };
+
+            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
+
+            try
+            {
+                list.Remove(obj);
+                Assert.That(list.Contains(obj), Is.False);
+            }
+            finally
+            {
+                try
+                {
+                    GC.EndNoGCRegion();
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        [Test]
+        public void TestRemovedWeakReferencesAreNotContained()
+        {
+            var obj = new object();
+            var weakRef = new WeakReference<object>(obj);
+            var list = new WeakList<object> { weakRef };
+
+            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
+
+            try
+            {
+                list.Remove(weakRef);
+                Assert.That(list.Contains(weakRef), Is.False);
+            }
+            finally
+            {
+                try
+                {
+                    GC.EndNoGCRegion();
+                }
+                catch
+                {
+                }
+            }
+        }
+
         private (WeakList<object> list, object[] alive) generateWeakObjects()
         {
             var allObjects = new[]
