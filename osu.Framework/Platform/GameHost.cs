@@ -549,12 +549,12 @@ namespace osu.Framework.Platform
                     {
                         if (Window is Window window)
                         {
-                            window.KeyDown += window_KeyDown;
+                            window.KeyDown += keyDown;
                             window.Update += handleInput;
                         }
                         else
                         {
-                            Window.KeyDown += legacyWindow_KeyDown;
+                            Window.KeyDown += legacyKeyDown;
                             Window.UpdateFrame += (o, e) => handleInput();
                         }
 
@@ -676,13 +676,13 @@ namespace osu.Framework.Platform
                 InputThread.RunUpdate();
         }
 
-        private void legacyWindow_KeyDown(object sender, KeyboardKeyEventArgs e)
+        private void legacyKeyDown(object sender, KeyboardKeyEventArgs e)
         {
             if (e.Control && e.Key == Key.F7)
                 cycleFrameSync();
         }
 
-        private void window_KeyDown(KeyboardKeyInput e)
+        private void keyDown(KeyboardKeyInput e)
         {
             // TODO: check for control key
             if (e.Entries.Any(x => x.Button == Key.F7 && x.IsPressed))
