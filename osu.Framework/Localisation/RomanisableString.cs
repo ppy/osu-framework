@@ -6,14 +6,14 @@
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A string that has variation in Unicode and Romanised form.
+    /// A string that has variations in Unicode and Romanised form.
     /// </summary>
-    public class RomanisableUnicodeString
+    public class RomanisableString
     {
         public readonly string Romanised;
         public readonly string Unicode;
 
-        public RomanisableUnicodeString(string romanised, string unicode)
+        public RomanisableString(string romanised, string unicode)
         {
             Romanised = romanised;
             Unicode = unicode;

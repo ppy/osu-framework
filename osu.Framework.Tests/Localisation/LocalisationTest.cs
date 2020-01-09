@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode = "non unicode";
             const string unicode = "unicode";
 
-            var text = manager.GetLocalisedString(new RomanisableUnicodeString(non_unicode, unicode));
+            var text = manager.GetLocalisedString(new RomanisableString(non_unicode, unicode));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode, text.Value);
@@ -163,18 +163,18 @@ namespace osu.Framework.Tests.Localisation
             const string unicode_1 = "unicode 1";
             const string unicode_2 = "unicode 2";
 
-            var text = manager.GetLocalisedString(new RomanisableUnicodeString(non_unicode_1, unicode_1));
+            var text = manager.GetLocalisedString(new RomanisableString(non_unicode_1, unicode_1));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(non_unicode_1, text.Value);
 
-            text.Text = new RomanisableUnicodeString(non_unicode_2, unicode_1);
+            text.Text = new RomanisableString(non_unicode_2, unicode_1);
             Assert.AreEqual(non_unicode_2, text.Value);
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode_1, text.Value);
 
-            text.Text = new RomanisableUnicodeString(non_unicode_2, unicode_2);
+            text.Text = new RomanisableString(non_unicode_2, unicode_2);
             Assert.AreEqual(unicode_2, text.Value);
         }
 
@@ -184,12 +184,12 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode_fallback = "non unicode";
             const string unicode_fallback = "unicode";
 
-            var text = manager.GetLocalisedString(new RomanisableUnicodeString(emptyValue, unicode_fallback));
+            var text = manager.GetLocalisedString(new RomanisableString(emptyValue, unicode_fallback));
 
             config.Set(FrameworkSetting.ShowUnicode, false);
             Assert.AreEqual(unicode_fallback, text.Value);
 
-            text = manager.GetLocalisedString(new RomanisableUnicodeString(non_unicode_fallback, emptyValue));
+            text = manager.GetLocalisedString(new RomanisableString(non_unicode_fallback, emptyValue));
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(non_unicode_fallback, text.Value);

@@ -30,7 +30,7 @@ namespace osu.Framework.Localisation
                 Value = text.Data switch
                 {
                     string plain => plain,
-                    RomanisableUnicodeString romanisable => romanisable.GetPreferred(preferUnicode.Value),
+                    RomanisableString romanisable => romanisable.GetPreferred(preferUnicode.Value),
                     TranslatableString translatable => translatable.Format(storage.Value),
                     _ => string.Empty,
                 };

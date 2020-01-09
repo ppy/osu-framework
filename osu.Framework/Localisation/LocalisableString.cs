@@ -13,7 +13,7 @@ namespace osu.Framework.Localisation
     public readonly struct LocalisableString : IEquatable<LocalisableString>
     {
         /// <summary>
-        /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableUnicodeString"/>.
+        /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableString"/>.
         /// </summary>
         internal readonly object Data;
 
@@ -25,6 +25,6 @@ namespace osu.Framework.Localisation
 
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
-        public static implicit operator LocalisableString(RomanisableUnicodeString romanisable) => new LocalisableString(romanisable);
+        public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
     }
 }
