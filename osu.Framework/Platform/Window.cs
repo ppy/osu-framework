@@ -52,6 +52,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool Exists => windowBackend.Exists;
 
+        /// <summary>
+        /// Returns the scale of window's drawable area.
+        /// In high-dpi environments this will be greater than one.
+        /// </summary>
+        public float Scale => windowBackend.Scale;
+
         #endregion
 
         #region Mutable Bindables
@@ -65,12 +71,6 @@ namespace osu.Framework.Platform
         /// Provides a bindable that controls the window's unscaled internal size.
         /// </summary>
         public Bindable<Vector2> Size { get; } = new Bindable<Vector2>();
-
-        /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
-        /// </summary>
-        public float Scale => windowBackend.Scale;
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="WindowState"/>.
