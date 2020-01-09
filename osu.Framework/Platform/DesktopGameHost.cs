@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,19 +18,36 @@ namespace osu.Framework.Platform
 {
     public abstract class DesktopGameHost : GameHost
     {
+        private Mutex mutex;
+        private readonly bool allowMultipleInstances;
+
         private TcpIpcProvider ipcProvider;
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        protected DesktopGameHost(string gameName = @"", bool allowMultipleInstances = true, bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, toolkitOptions)
         {
+            this.allowMultipleInstances = allowMultipleInstances;
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
         }
 
         protected override void SetupForRun()
         {
+            var globalMutexName = $"Global\\{Name}";
+
+            if (!allowMultipleInstances)
+            {
+                mutex = new Mutex(true, globalMutexName, out var createdNew);
+                if (!createdNew)
+                    throw new InvalidOperationException($"Only one instance of {Name} is allowed");
+
+                CleanupRequested += () => mutex?.ReleaseMutex();
+            }
+            else if (Mutex.TryOpenExisting(globalMutexName, out mutex))
+                throw new InvalidOperationException($"Only one instance of {Name} is allowed");
+
             if (bindIPCPort)
                 startIPC();
 
@@ -41,9 +59,9 @@ namespace osu.Framework.Platform
             Debug.Assert(ipcProvider == null);
 
             ipcProvider = new TcpIpcProvider();
-            IsPrimaryInstance = ipcProvider.Bind();
+            IsListeningIpc = ipcProvider.Bind();
 
-            if (IsPrimaryInstance)
+            if (IsListeningIpc)
             {
                 ipcProvider.MessageReceived += OnMessageReceived;
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -15,11 +16,11 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
-            using (var client = new BackgroundGameHeadlessGameHost(@"client", true))
+            using (var server = new BackgroundGameHeadlessGameHost(@"server", bindIPC: true))
+            using (var client = new BackgroundGameHeadlessGameHost(@"client", bindIPC: true))
             {
-                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
-                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
+                Assert.IsTrue(server.IsListeningIpc, @"Server wasn't able to bind");
+                Assert.IsFalse(client.IsListeningIpc, @"Client was able to bind when it shouldn't have been able to");
 
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
@@ -42,6 +43,43 @@ namespace osu.Framework.Tests.Platform
                 }
 
                 Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
+            }
+        }
+
+        [Test]
+        public void TestMultipleInstancesAllowed()
+        {
+            testMultipleInstancesInternal(nameof(TestMultipleInstancesAllowed), true, true);
+        }
+
+        [Test]
+        public void TestMultipleInstancesNotAllowed()
+        {
+            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestMultipleInstancesNotAllowed), false, false));
+        }
+
+        [Test]
+        public void TestAllowMultipleInstancesChanged()
+        {
+            Assert.Throws<InvalidOperationException>(() => testMultipleInstancesInternal(nameof(TestAllowMultipleInstancesChanged), false, true));
+        }
+
+        private void testMultipleInstancesInternal(string gameName, bool allowMultipleInstancesHost1, bool allowMultipleInstancesHost2)
+        {
+            using (var host1 = new HeadlessGameHost(gameName, allowMultipleInstancesHost1))
+            using (var host2 = new HeadlessGameHost(gameName, allowMultipleInstancesHost2))
+            {
+                host1.Run(new TestGame());
+                host2.Run(new TestGame());
+            }
+        }
+
+        private class TestGame : Game
+        {
+            protected override void Update()
+            {
+                base.Update();
+                Exit();
             }
         }
 
