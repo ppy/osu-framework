@@ -181,6 +181,7 @@ namespace osu.Framework.Graphics.Containers
                 Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
