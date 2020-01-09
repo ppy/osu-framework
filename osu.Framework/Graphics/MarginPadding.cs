@@ -4,7 +4,7 @@
 using osuTK;
 using System;
 using JetBrains.Annotations;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {

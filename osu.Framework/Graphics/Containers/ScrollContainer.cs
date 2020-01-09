@@ -3,10 +3,11 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -41,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollbarVisible = value;
-                updateScrollbar();
+                scrollbarCache.Invalidate();
             }
         }
 
@@ -180,6 +181,7 @@ namespace osu.Framework.Graphics.Containers
                 Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
@@ -195,18 +197,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 lastAvailableContent = availableContent;
                 lastUpdateDisplayableContent = displayableContent;
-                updateScrollbar();
+                scrollbarCache.Invalidate();
             }
         }
 
-        private void updateScrollbar()
-        {
-            var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
-            if (size > 0)
-                Scrollbar.ResizeTo(Math.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
-            Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
-            updatePadding();
-        }
+        private readonly Cached scrollbarCache = new Cached();
 
         private void updatePadding()
         {
@@ -507,6 +502,17 @@ namespace osu.Framework.Graphics.Containers
 
             updateSize();
             updatePosition();
+
+            if (!scrollbarCache.IsValid)
+            {
+                var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                if (size > 0)
+                    Scrollbar.ResizeTo(Math.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
+                Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
+                updatePadding();
+
+                scrollbarCache.Validate();
+            }
 
             if (ScrollDirection == Direction.Horizontal)
             {

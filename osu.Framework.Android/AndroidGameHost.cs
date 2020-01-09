@@ -33,8 +33,9 @@ namespace osu.Framework.Android
         {
             base.SetupForRun();
             AndroidGameWindow.View = gameView;
-            Window = new AndroidGameWindow();
         }
+
+        protected override IWindow CreateWindow() => new AndroidGameWindow();
 
         protected override bool LimitedMemoryEnvironment => true;
 

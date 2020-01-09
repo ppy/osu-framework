@@ -38,14 +38,18 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
+using Key = osuTK.Input.Key;
+using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public IWindow Window { get; protected set; }
+        public IWindow Window { get; private set; }
 
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
@@ -109,6 +113,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="url">The URL of the page which should be opened.</param>
         public abstract void OpenUrlExternally(string url);
+
+        /// <summary>
+        /// Creates the game window for the host. Should be implemented per-platform if required.
+        /// </summary>
+        protected virtual IWindow CreateWindow() => null;
 
         public virtual Clipboard GetClipboard() => null;
 
@@ -393,7 +402,9 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (GraphicsContext.CurrentContext == null)
+                    if (Window is SDLWindow win)
+                        win.MakeCurrent();
+                    else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
                     GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
@@ -499,6 +510,8 @@ namespace osu.Framework.Platform
 
                 SetupForRun();
 
+                Window = CreateWindow();
+
                 ExecutionState = ExecutionState.Running;
 
                 SetupConfig(game.GetFrameworkConfigDefaults());
@@ -534,24 +547,23 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        Window.KeyDown += window_KeyDown;
+                        if (Window is SDLWindow window)
+                        {
+                            window.KeyDown += keyDown;
+                            window.Update += handleInput;
+                        }
+                        else
+                        {
+                            Window.KeyDown += legacyKeyDown;
+                            Window.UpdateFrame += (o, e) => handleInput();
+                        }
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
 
-                        Window.UpdateFrame += delegate
-                        {
-                            inputPerformanceCollectionPeriod?.Dispose();
-                            InputThread.RunUpdate();
-                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                        };
-
-                        Window.Closed += delegate
-                        {
-                            //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                            //to avoid GL operations running post-cleanup).
-                            stopAllThreads();
-                        };
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        Window.Exited += stopAllThreads;
 
                         Window.Run();
                     }
@@ -570,6 +582,13 @@ namespace osu.Framework.Platform
                 // Close the window and stop all threads
                 PerformExit(true);
             }
+        }
+
+        private void handleInput()
+        {
+            inputPerformanceCollectionPeriod?.Dispose();
+            InputThread.RunUpdate();
+            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
         /// <summary>
@@ -657,20 +676,27 @@ namespace osu.Framework.Platform
                 InputThread.RunUpdate();
         }
 
-        private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
+        private void legacyKeyDown(object sender, KeyboardKeyEventArgs e)
         {
-            if (!e.Control)
-                return;
+            if (e.Control && e.Key == Key.F7)
+                cycleFrameSync();
+        }
 
-            switch (e.Key)
-            {
-                case Key.F7:
-                    var nextMode = frameSyncMode.Value + 1;
-                    if (nextMode > FrameSync.Unlimited)
-                        nextMode = FrameSync.VSync;
-                    frameSyncMode.Value = nextMode;
-                    break;
-            }
+        private void keyDown(KeyboardKeyInput e)
+        {
+            // TODO: check for control key
+            if (e.Entries.Any(x => x.Button == Key.F7 && x.IsPressed))
+                cycleFrameSync();
+        }
+
+        private void cycleFrameSync()
+        {
+            var nextMode = frameSyncMode.Value + 1;
+
+            if (nextMode > FrameSync.Unlimited)
+                nextMode = FrameSync.VSync;
+
+            frameSyncMode.Value = nextMode;
         }
 
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
