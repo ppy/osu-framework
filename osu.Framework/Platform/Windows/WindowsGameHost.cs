@@ -33,7 +33,7 @@ namespace osu.Framework.Platform.Windows
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new WindowsGameWindow() : new Window();
+            !UseSdl ? (IWindow)new WindowsGameWindow() : new SDLWindow();
 
         protected override void Dispose(bool isDisposing)
         {

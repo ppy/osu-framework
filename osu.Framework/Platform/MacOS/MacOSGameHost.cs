@@ -16,7 +16,7 @@ namespace osu.Framework.Platform.MacOS
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new MacOSGameWindow() : new Window();
+            !UseSdl ? (IWindow)new MacOSGameWindow() : new SDLWindow();
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 

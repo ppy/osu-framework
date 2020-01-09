@@ -402,7 +402,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is Window win)
+                    if (Window is SDLWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
@@ -547,7 +547,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        if (Window is Window window)
+                        if (Window is SDLWindow window)
                         {
                             window.KeyDown += keyDown;
                             window.Update += handleInput;

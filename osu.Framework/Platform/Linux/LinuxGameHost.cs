@@ -23,11 +23,11 @@ namespace osu.Framework.Platform.Linux
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new LinuxGameWindow() : new Window();
+            !UseSdl ? (IWindow)new LinuxGameWindow() : new SDLWindow();
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
         public override Clipboard GetClipboard() =>
-            Window is Window || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
+            Window is SDLWindow || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
     }
 }
