@@ -36,17 +36,25 @@ namespace osu.Framework.Benchmarks
         public void Remove() => weakList.Remove(objects[0]);
 
         [Benchmark]
+        public void RemoveEach()
+        {
+            foreach (var obj in objects)
+                weakList.Remove(obj);
+        }
+
+        [Benchmark]
+        public void Clear() => weakList.Clear();
+
+        [Benchmark]
         public bool Contains() => weakList.Contains(objects[0]);
 
         [Benchmark]
         public object[] Enumerate() => weakList.ToArray();
 
         [Benchmark]
-        public object[] RemoveAllAndEnumerate()
+        public object[] ClearAndEnumerate()
         {
-            foreach (var obj in objects)
-                weakList.Remove(obj);
-
+            weakList.Clear();
             return weakList.ToArray();
         }
     }
