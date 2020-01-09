@@ -7,6 +7,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\osu.Framework.Video\osu.Framework.Video.csproj" />
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">

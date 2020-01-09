@@ -77,9 +77,15 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public readonly IBindable<VideoDecoder.DecoderState> State = new Bindable<VideoDecoder.DecoderState>();
 
-        internal double CurrentFrameTime => lastFrame?.Time ?? 0;
+        /// <summary>
+        /// The time in milliseconds that the currently displayed frame in the video represents.
+        /// </summary>
+        public double CurrentFrameTime => lastFrame?.Time ?? 0;
 
-        internal int AvailableFrames => availableFrames.Count;
+        /// <summary>
+        /// The number of decoded frames available in the buffer.
+        /// </summary>
+        public int AvailableFrames => availableFrames.Count;
 
         private double? startTime;
 
@@ -116,7 +122,7 @@ namespace osu.Framework.Graphics.Video
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost)
         {
-            decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
+            decoder = gameHost.Create<VideoDecoder>(stream, Scheduler);
             decoder.Looping = Loop;
             State.BindTo(decoder.State);
             decoder.StartDecoding();

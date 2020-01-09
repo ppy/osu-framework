@@ -40,6 +40,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Video\osu.Framework.Video.csproj">
+      <Project>{55613b00-6e8d-4ddd-8367-2d64672e24c8}</Project>
+      <Name>osu.Framework.Video</Name>
+    </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
       <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
       <Name>osu.Framework</Name>

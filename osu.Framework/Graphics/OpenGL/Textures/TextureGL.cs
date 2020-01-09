@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Flush any unprocessed uploads without actually uploading.
         /// </summary>
-        internal abstract void FlushUploads();
+        public abstract void FlushUploads();
 
         public abstract void SetData(ITextureUpload upload);
     }

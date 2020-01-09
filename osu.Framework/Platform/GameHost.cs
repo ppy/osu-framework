@@ -37,7 +37,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 
@@ -50,6 +49,8 @@ namespace osu.Framework.Platform
         protected FrameworkDebugConfigManager DebugConfig { get; private set; }
 
         protected FrameworkConfigManager Config { get; private set; }
+
+        private readonly Dictionary<Type, Func<object[], object>> platformFactories = new Dictionary<Type, Func<object[], object>>();
 
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
@@ -921,13 +922,26 @@ namespace osu.Framework.Platform
             => new TextureLoaderStore(underlyingStore);
 
         /// <summary>
-        /// Create a <see cref="VideoDecoder"/> with the given stream. May be overridden by platforms that require a different
-        /// decoder implementation.
+        /// Create an object of the specified type or its platform-specific subtype. May be overridden by platforms that require specific implementations.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to decode.</param>
-        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
-        /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+        /// <param name="args">The arguments passed to the constructor of the object.</param>
+        /// <returns>An instance of the specified type or its platform-specific subtype.</returns>
+        public T Create<T>(params object[] args)
+        {
+            if (platformFactories.TryGetValue(typeof(T), out var factory))
+                return (T)factory(args);
+            else
+                return (T)Activator.CreateInstance(typeof(T), args);
+        }
+
+        protected void AddPlatformFactory<T>(Func<object[], T> factory)
+            where T : class
+        {
+            if (platformFactories.ContainsKey(typeof(T)))
+                throw new InvalidOperationException($"A factory for the type {typeof(T).FullName} has already been added.");
+
+            platformFactories.Add(typeof(T), factory);
+        }
     }
 
     /// <summary>

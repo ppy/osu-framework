@@ -31,6 +31,10 @@
       <Project>{4d112e30-462b-4264-b44d-53b61abb185e}</Project>
       <Name>osu.Framework.Android</Name>
     </ProjectReference>
+    <ProjectReference Include="..\osu.Framework.Video\osu.Framework.Video.csproj">
+      <Project>{55613B00-6E8D-4DDD-8367-2D64672E24C8}</Project>
+      <Name>osu.Framework.Video</Name>
+    </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
       <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
       <Name>osu.Framework</Name>

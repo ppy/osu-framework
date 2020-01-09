@@ -33,6 +33,14 @@ namespace osu.Framework.iOS
             this.gameView = gameView;
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
+
+            AddPlatformFactory(args =>
+            {
+                if (args.Length == 2 && args[0] is Stream stream && args[1] is Scheduler scheduler)
+                    return new IOSVideoDecoder(stream, scheduler);
+                else
+                    throw new ArgumentException($"To create a video decoder you must pass in the following arguments: {nameof(Stream)} stream, {nameof(Scheduler)} scheduler");
+            });
         }
 
         /// <summary>
@@ -107,8 +115,6 @@ namespace osu.Framework.iOS
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
-
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
