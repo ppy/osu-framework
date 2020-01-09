@@ -102,6 +102,25 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestAddedObjectIsContained()
+        {
+            var obj = new object();
+            var list = new WeakList<object> { obj };
+
+            Assert.That(list, Contains.Item(obj));
+        }
+
+        [Test]
+        public void TestAddedWeakReferenceIsContained()
+        {
+            var obj = new object();
+            var weakRef = new WeakReference<object>(obj);
+            var list = new WeakList<object> { weakRef };
+
+            Assert.That(list.Contains(weakRef), Is.True);
+        }
+
+        [Test]
         public void TestRemovedObjectsAreNotContained()
         {
             var obj = new object();
