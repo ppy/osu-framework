@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                sizes[i] = MathHelper.Clamp(sizes[i], dimension.MinSize, dimension.MaxSize);
+                sizes[i] = Math.Clamp(sizes[i], dimension.MinSize, dimension.MaxSize);
             }
 
             return sizes;

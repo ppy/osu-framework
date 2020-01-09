@@ -17,8 +17,8 @@ namespace osu.Framework.Platform.Windows
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
         {
         }
 
@@ -30,9 +30,10 @@ namespace osu.Framework.Platform.Windows
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
             timePeriod = new TimePeriod(1) { Active = true };
-
-            Window = new WindowsGameWindow();
         }
+
+        protected override IWindow CreateWindow() =>
+            !UseSdl ? (IWindow)new WindowsGameWindow() : new SDLWindow();
 
         protected override void Dispose(bool isDisposing)
         {
