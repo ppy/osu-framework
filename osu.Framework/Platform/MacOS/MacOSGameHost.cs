@@ -10,16 +10,13 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
         {
         }
 
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-            Window = new MacOSGameWindow();
-        }
+        protected override IWindow CreateWindow() =>
+            !UseSdl ? (IWindow)new MacOSGameWindow() : new SDLWindow();
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 

@@ -18,8 +18,9 @@ namespace osu.Framework.Input.Handlers.Mouse
             Host = host;
 
             MouseInWindow = host.Window.CursorInWindow;
-            Host.Window.MouseLeave += (s, e) => MouseInWindow = false;
-            Host.Window.MouseEnter += (s, e) => MouseInWindow = true;
+
+            host.Window.MouseLeave += (s, e) => MouseInWindow = false;
+            host.Window.MouseEnter += (s, e) => MouseInWindow = true;
 
             return true;
         }
