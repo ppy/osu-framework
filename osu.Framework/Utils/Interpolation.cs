@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     public static class Interpolation
     {

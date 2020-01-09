@@ -7,7 +7,7 @@ using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
