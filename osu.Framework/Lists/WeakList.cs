@@ -38,19 +38,16 @@ namespace osu.Framework.Lists
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            bool found = false;
-
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].Reference != weakReference)
                     continue;
 
                 list[i] = default;
-                found = true;
-                break;
+                return true;
             }
 
-            return found;
+            return false;
         }
 
         public bool Contains(T item)
