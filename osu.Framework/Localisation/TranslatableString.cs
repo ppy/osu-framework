@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Localisation
 {
@@ -56,9 +57,11 @@ namespace osu.Framework.Localisation
             {
                 return string.Format(store.EffectiveCulture, localisedFormat, Args);
             }
-            catch (FormatException)
+            catch (FormatException e)
             {
                 // The formatting has failed
+                Logger.Log($"Localised format failed. Key: {Key}, culture: {store.EffectiveCulture.Name}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
+                    LoggingTarget.Runtime, LogLevel.Verbose);
             }
 
             return ToString();
