@@ -29,7 +29,7 @@ namespace osu.Framework.Benchmarks
         {
             init();
 
-            weakList.Remove(objects[objects.Length - 1]);
+            weakList.Remove(objects[^1]);
         }
 
         [Benchmark]
@@ -54,7 +54,7 @@ namespace osu.Framework.Benchmarks
         {
             init();
 
-            return weakList.Contains(objects[objects.Length - 1]);
+            return weakList.Contains(objects[^1]);
         }
 
         [Benchmark]
