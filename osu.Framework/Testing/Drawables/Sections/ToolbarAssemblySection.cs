@@ -67,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 
                 foreach (var item in MenuItems.ToArray())
                 {
-                    if (item.Text.Value.Contains("dynamic"))
+                    if (item.Text.Value.ToString().Contains("dynamic"))
                         RemoveDropdownItem(item.Value);
                 }
 

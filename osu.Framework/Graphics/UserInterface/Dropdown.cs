@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -95,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(string text, T value)
+        protected void AddDropdownItem(LocalisableString text, T value)
         {
             if (boundItemSource != null)
                 throw new InvalidOperationException($"Cannot manually add dropdown items when an {nameof(ItemSource)} is bound.");
@@ -103,7 +104,7 @@ namespace osu.Framework.Graphics.UserInterface
             addDropdownItem(text, value);
         }
 
-        private void addDropdownItem(string text, T value)
+        private void addDropdownItem(LocalisableString text, T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -146,7 +147,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual string GenerateItemText(T item)
+        protected virtual LocalisableString GenerateItemText(T item)
         {
             switch (item)
             {
@@ -214,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            Header.Label = SelectedItem?.Text.Value;
+            Header.Label = SelectedItem?.Text.Value ?? default;
         }
 
         private void selectionChanged(ValueChangedEvent<T> args)
@@ -223,7 +224,7 @@ namespace osu.Framework.Graphics.UserInterface
             // null is not a valid value for Dictionary, so neither here
             if (args.NewValue == null && SelectedItem != null)
             {
-                selectedItem = new DropdownMenuItem<T>(null, default);
+                selectedItem = new DropdownMenuItem<T>(default, default);
             }
             else if (SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.NewValue))
             {

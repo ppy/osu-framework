@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -9,13 +10,13 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public readonly T Value;
 
-        public DropdownMenuItem(string text, T value)
+        public DropdownMenuItem(LocalisableString text, T value)
             : base(text)
         {
             Value = value;
         }
 
-        public DropdownMenuItem(string text, T value, Action action)
+        public DropdownMenuItem(LocalisableString text, T value, Action action)
             : base(text, action)
         {
             Value = value;
