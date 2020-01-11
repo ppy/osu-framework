@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordPrevious:
-                    if (!AllowWordNavigation || text.Length == 0)
+                    if (!AllowWordNavigation || string.IsNullOrEmpty(Text))
                         amount = -1;
                     else
                     {

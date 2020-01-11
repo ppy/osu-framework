@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -260,6 +261,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
             AddAssert("ensure new text", () => wasNewText == changeText);
         }
+
+        [Test]
+        public void TestWordsDeletion()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("Add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert some text", () => textBox.InsertString("some long text"));
+            AddStep("delete last word", () => deleteLastWord(textBox));
+            AddAssert("check text is expected", () => textBox.Text == "some long ");
+            AddStep("delete last word", () => deleteLastWord(textBox));
+            AddAssert("check text is expected", () => textBox.Text == "some ");
+            AddStep("delete last word", () => deleteLastWord(textBox));
+            AddAssert("check text is expected", () => string.IsNullOrEmpty(textBox.Text));
+            AddStep("delete last word (for empty textbox)", () => deleteLastWord(textBox));
+            AddAssert("check text is expected", () => string.IsNullOrEmpty(textBox.Text));
+        }
+
+        private void deleteLastWord(BasicTextBox textBox) => textBox.OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
 
         private class InsertableTextBox : BasicTextBox
         {
