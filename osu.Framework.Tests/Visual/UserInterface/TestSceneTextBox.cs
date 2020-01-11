@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -292,11 +292,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is empty", () => textBox.Text.Length == 0);
         }
 
+        [Test]
+        public void TestNextWordDeletion()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("some long text"));
+            AddStep("move caret to start", () => textBox.MoveToStart());
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("two words remain", () => textBox.Text == " long text");
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("one word remains", () => textBox.Text == " text");
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
         private class InsertableTextBox : BasicTextBox
         {
             public new void InsertString(string text) => base.InsertString(text);
 
+            public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
+
             public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
+            public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
         }
 
         private class NumberTextBox : BasicTextBox
