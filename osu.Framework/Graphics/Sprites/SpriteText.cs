@@ -105,12 +105,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private string displayedText => localisedText?.Value ?? text.ToString();
 
-        string IHasText.Text
-        {
-            get => Text.ToString();
-            set => Text = value;
-        }
-
         private FontUsage font = FontUsage.Default;
 
         /// <summary>
