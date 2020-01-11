@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -263,11 +263,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestWordsDeletion()
+        public void TestPreviousWordDeletion()
         {
             InsertableTextBox textBox = null;
 
-            AddStep("Add textbox", () =>
+            AddStep("add textbox", () =>
             {
                 textBoxes.Add(textBox = new InsertableTextBox
                 {
@@ -281,22 +281,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("insert some text", () => textBox.InsertString("some long text"));
-            AddStep("delete last word", () => deleteLastWord(textBox));
-            AddAssert("check text is expected", () => textBox.Text == "some long ");
-            AddStep("delete last word", () => deleteLastWord(textBox));
-            AddAssert("check text is expected", () => textBox.Text == "some ");
-            AddStep("delete last word", () => deleteLastWord(textBox));
-            AddAssert("check text is expected", () => string.IsNullOrEmpty(textBox.Text));
-            AddStep("delete last word (for empty textbox)", () => deleteLastWord(textBox));
-            AddAssert("check text is expected", () => string.IsNullOrEmpty(textBox.Text));
+            AddStep("insert three words", () => textBox.InsertString("some long text"));
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("two words remain", () => textBox.Text == "some long ");
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("one word remains", () => textBox.Text == "some ");
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
         }
-
-        private void deleteLastWord(BasicTextBox textBox) => textBox.OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
 
         private class InsertableTextBox : BasicTextBox
         {
             public new void InsertString(string text) => base.InsertString(text);
+
+            public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
         }
 
         private class NumberTextBox : BasicTextBox
