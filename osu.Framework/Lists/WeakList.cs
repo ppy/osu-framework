@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
 {
@@ -22,37 +23,41 @@ namespace osu.Framework.Lists
 
         public void Remove(T item)
         {
-            foreach (var i in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (i.Reference.TryGetTarget(out var obj) && obj == item)
-                {
-                    i.Invalidate();
-                    return;
-                }
+                if (list[i].Reference == null)
+                    continue;
+
+                if (!list[i].Reference.TryGetTarget(out var obj) || obj != item)
+                    continue;
+
+                list[i] = default;
+                break;
             }
         }
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            bool found = false;
-
-            foreach (var item in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (item.Reference == weakReference)
-                {
-                    item.Invalidate();
-                    found = true;
-                }
+                if (list[i].Reference != weakReference)
+                    continue;
+
+                list[i] = default;
+                return true;
             }
 
-            return found;
+            return false;
         }
 
         public bool Contains(T item)
         {
             foreach (var t in list)
             {
-                if (!t.Invalid && t.Reference.TryGetTarget(out var obj) && obj == item)
+                if (t.Reference == null)
+                    continue;
+
+                if (t.Reference.TryGetTarget(out var obj) && obj == item)
                     return true;
             }
 
@@ -63,7 +68,7 @@ namespace osu.Framework.Lists
         {
             foreach (var t in list)
             {
-                if (!t.Invalid && t.Reference == weakReference)
+                if (t.Reference != null && t.Reference == weakReference)
                     return true;
             }
 
@@ -72,13 +77,13 @@ namespace osu.Framework.Lists
 
         public void Clear()
         {
-            foreach (var item in list)
-                item.Invalidate();
+            for (int i = 0; i < list.Count; i++)
+                list[i] = default;
         }
 
         public Enumerator GetEnumerator()
         {
-            list.RemoveAll(item => item.Invalid || !item.Reference.TryGetTarget(out _));
+            list.RemoveAll(item => item.Reference == null || !item.Reference.TryGetTarget(out _));
 
             return new Enumerator(list);
         }
@@ -106,7 +111,7 @@ namespace osu.Framework.Lists
             {
                 while (++currentIndex < list.Count)
                 {
-                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject))
+                    if (list[currentIndex].Reference == null || !list[currentIndex].Reference.TryGetTarget(out currentObject))
                         continue;
 
                     return true;
@@ -132,23 +137,20 @@ namespace osu.Framework.Lists
             }
         }
 
-        internal class InvalidatableWeakReference
+        internal readonly struct InvalidatableWeakReference
         {
+            [CanBeNull]
             public readonly WeakReference<T> Reference;
 
-            public bool Invalid { get; private set; }
-
-            public InvalidatableWeakReference(T reference)
+            public InvalidatableWeakReference([CanBeNull] T reference)
                 : this(new WeakReference<T>(reference))
             {
             }
 
-            public InvalidatableWeakReference(WeakReference<T> weakReference)
+            public InvalidatableWeakReference([CanBeNull] WeakReference<T> weakReference)
             {
                 Reference = weakReference;
             }
-
-            public void Invalidate() => Invalid = true;
         }
     }
 }
