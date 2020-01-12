@@ -56,7 +56,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
 
-[GDEdit](https://github.com/gd-edit/GDE)
+[GDEdit](https://github.com/gd-edit/GDE) - A third-party Geometry Dash editor.
 
 <!--
 We love to see people using our framework! Add your project here via a PR!
