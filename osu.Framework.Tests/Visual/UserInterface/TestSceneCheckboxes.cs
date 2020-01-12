@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestDirectToggle()
         {
-            var testBindable = basic.Current.GetBoundCopy();
+            var testBindable = new Bindable<bool> { BindTarget = basic.Current };
 
             AddAssert("is unchecked", () => !basic.Current.Value);
             AddAssert("bindable unchecked", () => !testBindable.Value);

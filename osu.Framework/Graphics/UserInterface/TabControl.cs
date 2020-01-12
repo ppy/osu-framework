@@ -27,21 +27,12 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        private Bindable<T> currentBound;
+        private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         /// <summary>
@@ -78,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
         /// </summary>
-        public virtual bool IsSwitchable => true;
+        public bool IsSwitchable { get; set; }
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -313,7 +304,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (wrap)
             {
-                targetIndex = targetIndex % tabCount;
+                targetIndex %= tabCount;
                 if (targetIndex < 0)
                     targetIndex += tabCount;
             }

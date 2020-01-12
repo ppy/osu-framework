@@ -6,9 +6,13 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -19,7 +23,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             typeof(BasicTextBox),
             typeof(TextBox),
-            typeof(PasswordTextBox)
+            typeof(BasicPasswordTextBox)
         };
 
         private FillFlowContainer textBoxes;
@@ -96,6 +100,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = textBoxes
                 });
 
+                textBoxes.Add(new CustomTextBox
+                {
+                    Text = @"Custom textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+
                 FillFlowContainer otherTextBoxes = new FillFlowContainer
                 {
                     Direction = FillDirection.Vertical,
@@ -118,7 +129,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = otherTextBoxes
                 });
 
-                otherTextBoxes.Add(new PasswordTextBox
+                otherTextBoxes.Add(new BasicPasswordTextBox
                 {
                     PlaceholderText = @"Password textbox",
                     Text = "Secret ;)",
@@ -251,14 +262,148 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("ensure new text", () => wasNewText == changeText);
         }
 
+        [Test]
+        public void TestPreviousWordDeletion()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("some long text"));
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("two words remain", () => textBox.Text == "some long ");
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("one word remains", () => textBox.Text == "some ");
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestNextWordDeletion()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("some long text"));
+            AddStep("move caret to start", () => textBox.MoveToStart());
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("two words remain", () => textBox.Text == " long text");
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("one word remains", () => textBox.Text == " text");
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
         private class InsertableTextBox : BasicTextBox
         {
             public new void InsertString(string text) => base.InsertString(text);
+
+            public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
+
+            public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
+            public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
         }
 
         private class NumberTextBox : BasicTextBox
         {
             protected override bool CanAddCharacter(char character) => char.IsNumber(character);
+        }
+
+        private class CustomTextBox : BasicTextBox
+        {
+            protected override Drawable GetDrawableCharacter(char c) => new ScalingText(c, CalculatedTextSize);
+
+            private class ScalingText : CompositeDrawable
+            {
+                private readonly SpriteText text;
+
+                public ScalingText(char c, float textSize)
+                {
+                    AddInternal(text = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = c.ToString(),
+                        Font = FrameworkFont.Condensed.With(size: textSize),
+                    });
+                }
+
+                protected override void LoadComplete()
+                {
+                    base.LoadComplete();
+
+                    Size = text.DrawSize;
+                }
+
+                public override void Show()
+                {
+                    text.Scale = Vector2.Zero;
+                    text.FadeIn(200).ScaleTo(1, 200);
+                }
+
+                public override void Hide()
+                {
+                    text.Scale = Vector2.One;
+                    text.ScaleTo(0, 200).FadeOut(200);
+                }
+            }
+
+            protected override Caret CreateCaret() => new BorderCaret();
+
+            private class BorderCaret : Caret
+            {
+                private const float caret_width = 2;
+
+                public BorderCaret()
+                {
+                    RelativeSizeAxes = Axes.Y;
+
+                    Masking = true;
+                    BorderColour = Color4.White;
+                    BorderThickness = 3;
+
+                    InternalChild = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Transparent
+                    };
+                }
+
+                public override void DisplayAt(Vector2 position, float? selectionWidth)
+                {
+                    Position = position - Vector2.UnitX;
+                    Width = selectionWidth + 1 ?? caret_width;
+                }
+            }
         }
     }
 }

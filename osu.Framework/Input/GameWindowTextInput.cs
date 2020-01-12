@@ -19,6 +19,8 @@ namespace osu.Framework.Input
 
         protected virtual void HandleKeyPress(object sender, osuTK.KeyPressEventArgs e) => pending += e.KeyChar;
 
+        protected virtual void HandleKeyTyped(char c) => pending += c;
+
         public bool ImeActive => false;
 
         public string GetPendingText()
@@ -35,12 +37,18 @@ namespace osu.Framework.Input
 
         public void Deactivate(object sender)
         {
-            window.KeyPress -= HandleKeyPress;
+            if (window is SDLWindow win)
+                win.KeyTyped -= HandleKeyTyped;
+            else
+                window.KeyPress -= HandleKeyPress;
         }
 
         public void Activate(object sender)
         {
-            window.KeyPress += HandleKeyPress;
+            if (window is SDLWindow win)
+                win.KeyTyped += HandleKeyTyped;
+            else
+                window.KeyPress += HandleKeyPress;
         }
 
         private void imeCompose()

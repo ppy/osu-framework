@@ -8,7 +8,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 
@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
             get => effectBlending;
             set
             {
-                if (effectBlending.Equals(value))
+                if (effectBlending == value)
                     return;
 
                 effectBlending = value;
@@ -172,6 +172,21 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 backgroundColour = value;
+                ForceRedraw();
+            }
+        }
+
+        private Vector2 frameBufferScale = Vector2.One;
+
+        public Vector2 FrameBufferScale
+        {
+            get => frameBufferScale;
+            set
+            {
+                if (frameBufferScale == value)
+                    return;
+
+                frameBufferScale = value;
                 ForceRedraw();
             }
         }

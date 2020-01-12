@@ -10,30 +10,35 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        BindableDouble Volume { get; }
+        BindableNumber<double> Volume { get; }
 
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        BindableDouble Balance { get; }
+        BindableNumber<double> Balance { get; }
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        BindableDouble Frequency { get; }
+        BindableNumber<double> Frequency { get; }
+
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        BindableNumber<double> Tempo { get; }
 
         /// <summary>
         /// Add a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>
         /// <param name="adjustBindable">The bindable adjustment.</param>
-        void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable);
+        void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable);
 
         /// <summary>
         /// Remove a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>
         /// <param name="adjustBindable">The bindable adjustment.</param>
-        void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable);
+        void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable);
     }
 }

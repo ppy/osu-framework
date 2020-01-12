@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                float radians = MathHelper.DegreesToRadians(rotation);
+                float radians = MathUtils.DegreesToRadians(rotation);
                 MatrixExtensions.RotateFromLeft(ref Matrix, radians);
                 MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }
@@ -68,7 +69,7 @@ namespace osu.Framework.Graphics
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
         }
 
-        public bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
+        public readonly bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
 
         public override string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }

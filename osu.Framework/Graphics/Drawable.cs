@@ -30,7 +30,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics
@@ -65,6 +65,8 @@ namespace osu.Framework.Graphics
 
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
         private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
+
+        internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
         /// <summary>
         /// Disposes this drawable.
@@ -176,8 +178,10 @@ namespace osu.Framework.Graphics
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
+            {
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+            }
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -214,10 +218,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
             lock (loadLock)
             {
+                if (!isDirectAsyncContext && IsLongRunning)
+                    throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
+
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
 
@@ -351,9 +359,11 @@ namespace osu.Framework.Graphics
             set
             {
                 if (IsPartOfComposite)
+                {
                     throw new InvalidOperationException(
                         $"May not change {nameof(Depth)} while inside a parent {nameof(CompositeDrawable)}." +
                         $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
+                }
 
                 depth = value;
             }
@@ -522,7 +532,7 @@ namespace osu.Framework.Graphics
             {
                 if (x == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
 
                 x = value;
 
@@ -540,7 +550,7 @@ namespace osu.Framework.Graphics
             {
                 if (y == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
 
                 y = value;
 
@@ -653,7 +663,7 @@ namespace osu.Framework.Graphics
             {
                 if (width == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
 
                 width = value;
 
@@ -671,7 +681,7 @@ namespace osu.Framework.Graphics
             {
                 if (height == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
 
                 height = value;
 
@@ -935,7 +945,7 @@ namespace osu.Framework.Graphics
             {
                 if (fillAspectRatio == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
                 if (value == 0) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be non-zero.");
 
                 fillAspectRatio = value;
@@ -1004,7 +1014,7 @@ namespace osu.Framework.Graphics
             {
                 if (value == rotation) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
 
@@ -1292,7 +1302,7 @@ namespace osu.Framework.Graphics
             get => blending;
             set
             {
-                if (blending.Equals(value))
+                if (blending == value)
                     return;
 
                 blending = value;
@@ -1408,19 +1418,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager()
-        {
-            Drawable search = Parent;
-
-            while (search != null)
-            {
-                if (search is InputManager test) return test;
-
-                search = search.Parent;
-            }
-
-            return null;
-        }
+        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1463,14 +1461,16 @@ namespace osu.Framework.Graphics
         /// This can be a potentially expensive operation and should be used with discretion.
         /// </remarks>
         /// <typeparam name="T">The type to match.</typeparam>
-        /// <returns>The first matching parent, or null if no parent of type <see cref="T"/> is found.</returns>
-        internal T FindClosestParent<T>() where T : IDrawable
+        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
+        internal T FindClosestParent<T>() where T : class, IDrawable
         {
             Drawable cursor = this;
 
             while ((cursor = cursor.Parent) != null)
+            {
                 if (cursor is T match)
                     return match;
+            }
 
             return default;
         }
@@ -1591,12 +1591,12 @@ namespace osu.Framework.Graphics
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
-                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                ci.Colour.ApplyChild(ourColour, interp);
+                ci.Colour.ApplyChild(ourColour,
+                    new Quad(
+                        Vector2.Divide(interp.TopLeft, parentSize),
+                        Vector2.Divide(interp.TopRight, parentSize),
+                        Vector2.Divide(interp.BottomLeft, parentSize),
+                        Vector2.Divide(interp.BottomRight, parentSize)));
             }
 
             return ci;
@@ -2162,6 +2162,14 @@ namespace osu.Framework.Graphics
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
+        /// Whether clicks should be blocked when this drawable is in a dragged state.
+        /// </summary>
+        /// <remarks>
+        /// This is queried when a click is to be actuated.
+        /// </remarks>
+        public virtual bool DragBlocksClick => true;
+
+        /// <summary>
         /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -2218,9 +2226,13 @@ namespace osu.Framework.Graphics
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.StartTime < min)
                         min = t.StartTime;
+                }
+
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
@@ -2269,6 +2281,15 @@ namespace osu.Framework.Graphics
                 return $@"{Name} ({shortClass})";
             else
                 return shortClass;
+        }
+
+        /// <summary>
+        /// Creates a new instance of an empty <see cref="Drawable"/>.
+        /// </summary>
+        public static Drawable Empty() => new EmptyDrawable();
+
+        private class EmptyDrawable : Drawable
+        {
         }
     }
 

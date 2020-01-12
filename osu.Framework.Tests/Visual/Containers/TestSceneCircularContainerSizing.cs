@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             AddAssert("has correct corner radius", () => hasCorrectCornerRadius);
 
-            void onUpdate(Container parent)
+            static void onUpdate(Container parent)
             {
                 // Suppose the parent has some arbitrary size prior to the child being updated...
                 parent.Size = Vector2.One;

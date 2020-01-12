@@ -1,39 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <ContentTargetFolders>contentFiles</ContentTargetFolders>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
     <AssemblyName>osu.Framework.NativeLibs</AssemblyName>
-    <Description>Native libraries for osu!framework</Description>
-    <Product>osu!framework Libraries</Product>
-    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
+    <IsPackable>true</IsPackable>
     <Title>osu!framework Libraries</Title>
+    <Description>Native libraries for osu!framework</Description>
     <PackageId>ppy.osu.Framework.NativeLibs</PackageId>
-    <Authors>ppy Pty Ltd</Authors>
-    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
-    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
-    <copyright>Copyright (c) 2019 ppy Pty Ltd</copyright>
     <PackageTags>osu game framework libraries</PackageTags>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.a" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <None Include="@(NativeLibs)">
+    <None Include="runtimes\**\*">
       <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>runtimes</PackagePath>
+    </None>
+    <None Include="_._">
+      <!-- Means this package doesn't provide any reference assembly to the target framework.
+           nupkg is a zip file and doesn't has concept for folders,
+           so there must be something under the path, otherwise client will consider this package broken.
+           See https://docs.microsoft.com/en-us/nuget/reference/errors-and-warnings/nu5128#scenario-2 . -->
+      <Pack>true</Pack>
+      <PackagePath>lib\$(TargetFramework)</PackagePath>
     </None>
   </ItemGroup>
-  <PropertyGroup>
-    <IsPackable>true</IsPackable>
-  </PropertyGroup>
 </Project>

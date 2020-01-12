@@ -4,10 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
+    [HeadlessTest]
     [System.ComponentModel.Description("ensure validity of drawables when receiving certain values")]
     public class TestScenePropertyBoundaries : FrameworkTestScene
     {

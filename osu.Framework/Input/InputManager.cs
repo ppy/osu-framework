@@ -130,6 +130,15 @@ namespace osu.Framework.Input
             }
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // Set mouse position to zero in input manager local space instead of screen space zero.
+            // This ensures initial mouse position is non-negative in nested input managers whose origin is not (0, 0).
+            CurrentState.Mouse.Position = ToScreenSpace(Vector2.Zero);
+        }
+
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
         /// </summary>
@@ -148,6 +157,14 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Get the <see cref="MouseButtonEventManager"/> responsible for a specified mouse button.
+        /// </summary>
+        /// <param name="button">The button find the manager for.</param>
+        /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
+        public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
+            mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
+
+        /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
         /// <param name="triggerSource">The source which triggered this event.</param>
@@ -160,9 +177,9 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
-        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
-        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
+        /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <paramref name="potentialFocusTarget"/>.
+        /// <paramref name="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
@@ -170,9 +187,9 @@ namespace osu.Framework.Input
         public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
-        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
-        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
-        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
+        /// Changes the currently-focused drawable. First checks that <paramref name="potentialFocusTarget"/> is in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <paramref name="potentialFocusTarget"/>.
+        /// <paramref name="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
@@ -463,8 +480,10 @@ namespace osu.Framework.Input
             var mouse = state.Mouse;
 
             foreach (var h in InputHandlers)
+            {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
+            }
 
             handleMouseMove(state, e.LastPosition);
 
@@ -498,7 +517,7 @@ namespace osu.Framework.Input
         private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
 
         /// <summary>
-        /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
