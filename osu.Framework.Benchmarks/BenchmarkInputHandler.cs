@@ -37,6 +37,7 @@ namespace osu.Framework.Benchmarks
         {
             for (var i = 0; i < repetitions; i++)
             {
+                // ReSharper disable once UnusedVariable
                 foreach (var pendingInput in inputHandlers[i].GetPendingInputs())
                 {
                 }
