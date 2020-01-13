@@ -286,13 +286,18 @@ namespace osu.Framework.Input
             }
         }
 
-        protected virtual IEnumerable<IInput> GetPendingInputs()
+        private readonly List<IInput> pendingInputs = new List<IInput>();
+
+        protected virtual IReadOnlyList<IInput> GetPendingInputs()
         {
-            foreach (var handler in InputHandlers)
+            pendingInputs.Clear();
+
+            foreach (var h in InputHandlers)
             {
-                foreach (var input in handler.GetPendingInputs())
-                    yield return input;
+                pendingInputs.AddRange(h.GetPendingInputs());
             }
+
+            return pendingInputs;
         }
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
