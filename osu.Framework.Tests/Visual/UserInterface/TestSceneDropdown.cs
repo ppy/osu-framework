@@ -22,8 +22,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown;
-        private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown;
+        private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection, platformActionContainerEmptyDropdown;
         private readonly BindableList<string> bindableList = new BindableList<string>();
 
         private int previousIndex;
@@ -75,6 +75,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Width = 150,
                 Position = new Vector2(600, 70),
                 ItemSource = bindableList
+            });
+
+            Add(platformActionContainerEmptyDropdown = new PlatformActionContainer
+            {
+                Child = emptyDropdown = new TestDropdown
+                {
+                    Width = 150,
+                    Position = new Vector2(800, 70),
+                }
             });
         }
 
@@ -185,6 +194,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
 
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
+
+            AddStep($"Select next item when empty", () => performKeypress(emptyDropdown.Header, Key.Up));
+
+            AddStep($"Select previous item when empty", () => performKeypress(emptyDropdown.Header, Key.Down));
+
+            AddStep($"Select last item when empty", () => performKeypress(emptyDropdown.Header, Key.PageUp));
+
+            AddStep($"Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
         }
 
         [Test]
@@ -271,6 +288,34 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertDropdownIsClosed();
 
             assertLastItemSelected();
+
+            AddStep($"Click {emptyDropdown}", () => toggleDropdownViaClick(emptyDropdown));
+
+            AddStep("Preselect next item when empty", () =>
+            {
+                performKeypress(emptyDropdown.Menu, Key.Down);
+            });
+
+            AddStep("Preselect previous item when empty", () =>
+            {
+                performKeypress(emptyDropdown.Menu, Key.Up);
+            });
+
+            AddStep("Preselect first visible item when empty", () =>
+            {
+                performKeypress(emptyDropdown.Menu, Key.PageUp);
+            });
+
+            AddStep("Preselect last visible item when empty", () =>
+            {
+                performKeypress(emptyDropdown.Menu, Key.PageDown);
+            });
+
+            AddStep("Preselect first item when empty",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerEmptyDropdown, emptyDropdown));
+
+            AddStep("Preselect last item when empty",
+                () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerEmptyDropdown, emptyDropdown));
 
             void clickKeyboardPreselectionDropdown() => AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(testDropdownMenu));
 
