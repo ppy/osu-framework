@@ -521,6 +521,9 @@ namespace osu.Framework.Graphics.UserInterface
             protected override bool OnKeyDown(KeyDownEvent e)
             {
                 var drawableMenuItemsList = DrawableMenuItems.ToList();
+                if (!drawableMenuItemsList.Any())
+                    return base.OnKeyDown(e);
+
                 var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
                 var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
 
@@ -570,11 +573,11 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (action.ActionType)
                 {
                     case PlatformActionType.ListStart:
-                        PreselectItem((DropdownMenuItem<T>)Items.First());
+                        PreselectItem((DropdownMenuItem<T>)Items?.FirstOrDefault());
                         return true;
 
                     case PlatformActionType.ListEnd:
-                        PreselectItem((DropdownMenuItem<T>)Items.Last());
+                        PreselectItem((DropdownMenuItem<T>)Items?.LastOrDefault());
                         return true;
 
                     default:
