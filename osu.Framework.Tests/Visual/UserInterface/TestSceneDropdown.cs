@@ -195,13 +195,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
 
-            AddStep($"Select next item when empty", () => performKeypress(emptyDropdown.Header, Key.Up));
+            AddStep("Select next item when empty", () => performKeypress(emptyDropdown.Header, Key.Up));
 
-            AddStep($"Select previous item when empty", () => performKeypress(emptyDropdown.Header, Key.Down));
+            AddStep("Select previous item when empty", () => performKeypress(emptyDropdown.Header, Key.Down));
 
-            AddStep($"Select last item when empty", () => performKeypress(emptyDropdown.Header, Key.PageUp));
+            AddStep("Select last item when empty", () => performKeypress(emptyDropdown.Header, Key.PageUp));
 
-            AddStep($"Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
+            AddStep("Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
         }
 
         [Test]
