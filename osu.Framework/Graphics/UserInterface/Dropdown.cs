@@ -573,11 +573,11 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (action.ActionType)
                 {
                     case PlatformActionType.ListStart:
-                        PreselectItem((DropdownMenuItem<T>)Items?.FirstOrDefault());
+                        PreselectItem((DropdownMenuItem<T>)Items.FirstOrDefault());
                         return true;
 
                     case PlatformActionType.ListEnd:
-                        PreselectItem((DropdownMenuItem<T>)Items?.LastOrDefault());
+                        PreselectItem((DropdownMenuItem<T>)Items.LastOrDefault());
                         return true;
 
                     default:
