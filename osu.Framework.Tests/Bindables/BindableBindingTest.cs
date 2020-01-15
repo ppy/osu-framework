@@ -14,6 +14,15 @@ namespace osu.Framework.Tests.Bindables
     public class BindableBindingTest
     {
         [Test]
+        public void TestBindToAlreadyBound()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("default");
+            Bindable<string> bindable2 = bindable1.GetBoundCopy();
+
+            Assert.Throws<InvalidOperationException>(() => bindable1.BindTo(bindable2));
+        }
+
+        [Test]
         public void TestPropagation()
         {
             Bindable<string> bindable1 = new Bindable<string>("default");

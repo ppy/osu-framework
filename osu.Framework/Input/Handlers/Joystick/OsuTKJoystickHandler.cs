@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;

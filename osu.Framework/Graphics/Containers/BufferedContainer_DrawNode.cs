@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Containers
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 size = current.Size;
                     blurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
-                    float radians = -MathHelper.DegreesToRadians(blurRotation);
+                    float radians = -MathUtils.DegreesToRadians(blurRotation);
                     Vector2 blur = new Vector2(MathF.Cos(radians), MathF.Sin(radians));
                     blurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 

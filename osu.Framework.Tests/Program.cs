@@ -14,8 +14,9 @@ namespace osu.Framework.Tests
         {
             bool benchmark = args.Contains(@"--benchmark");
             bool portable = args.Contains(@"--portable");
+            bool useSdl = args.Contains(@"--sdl");
 
-            using (GameHost host = Host.GetSuitableHost(@"visual-tests", portableInstallation: portable))
+            using (GameHost host = Host.GetSuitableHost(@"visual-tests", portableInstallation: portable, useSdl: useSdl))
             {
                 if (benchmark)
                     host.Run(new AutomatedVisualTestGame());

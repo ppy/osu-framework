@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using osuTK;
 using System.Linq;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
 {

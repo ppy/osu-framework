@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using osuTK;
 
 namespace osu.Framework.IO
 {
@@ -170,7 +169,7 @@ namespace osu.Framework.IO
         public override long Position
         {
             get => position;
-            set => position = MathHelper.Clamp((int)value, 0, data.Length);
+            set => position = Math.Clamp((int)value, 0, data.Length);
         }
 
         public override void Flush()

@@ -182,8 +182,12 @@ namespace osu.Framework.Bindables
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
         public virtual void BindTo(Bindable<T> them)
         {
+            if (Bindings?.Contains(them) == true)
+                throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
+
             Value = them.Value;
             Default = them.Default;
             Disabled = them.Disabled;

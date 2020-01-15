@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 
-namespace osu.Framework.MathUtils.Clipping
+namespace osu.Framework.Utils
 {
     public readonly ref struct ConvexPolygonClipper<TClip, TSubject>
         where TClip : IConvexPolygon

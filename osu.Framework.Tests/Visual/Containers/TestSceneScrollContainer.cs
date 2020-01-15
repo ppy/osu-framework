@@ -9,7 +9,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void scrollTo(float position, float scrollContentHeight, float extension)
         {
-            float clampedTarget = MathHelper.Clamp(position, -extension, scrollContentHeight + extension);
+            float clampedTarget = Math.Clamp(position, -extension, scrollContentHeight + extension);
 
             float immediateScrollPosition = 0;
 

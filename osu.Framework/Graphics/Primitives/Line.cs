@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives

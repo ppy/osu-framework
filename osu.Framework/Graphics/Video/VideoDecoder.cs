@@ -536,9 +536,7 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            while (decoderCommands.TryDequeue(out var _))
-            {
-            }
+            decoderCommands.Clear();
 
             StopDecoding(true);
 

@@ -10,7 +10,7 @@ using osu.Framework.Threading;
 using System;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.MathUtils
+namespace osu.Framework.Utils
 {
     /// <summary>
     /// Exposes functionality for formatting numbers.

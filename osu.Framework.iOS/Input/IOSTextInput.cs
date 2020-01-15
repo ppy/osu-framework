@@ -55,6 +55,7 @@ namespace osu.Framework.iOS.Input
             add { }
             remove { }
         }
+
         public event Action<string> OnNewImeResult
         {
             add { }

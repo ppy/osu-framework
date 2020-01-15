@@ -63,8 +63,9 @@ namespace osu.Framework.iOS
         {
             base.SetupForRun();
             IOSGameWindow.GameView = gameView;
-            Window = new IOSGameWindow();
         }
+
+        protected override IWindow CreateWindow() => new IOSGameWindow();
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
         {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Tests.MathUtils
