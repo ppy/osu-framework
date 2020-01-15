@@ -1916,6 +1916,15 @@ namespace osu.Framework.Graphics
                 case KeyUpEvent keyUp:
                     return OnKeyUp(keyUp);
 
+                case TouchMoveEvent touchMove:
+                    return OnTouchMove(touchMove);
+
+                case TouchDownEvent touchDown:
+                    return OnTouchDown(touchDown);
+
+                case TouchUpEvent touchUp:
+                    return OnTouchUp(touchUp);
+
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
@@ -1964,6 +1973,9 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
         protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
+        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
+        protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
+        protected virtual bool OnTouchUp(TouchUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
@@ -2014,6 +2026,7 @@ namespace osu.Framework.Graphics
             private static readonly string[] positional_input_methods =
             {
                 nameof(Handle),
+                nameof(OnMouseMove),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -2026,7 +2039,9 @@ namespace osu.Framework.Graphics
                 nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnMouseMove)
+                nameof(OnTouchMove),
+                nameof(OnTouchDown),
+                nameof(OnTouchUp)
             };
 
             private static readonly string[] non_positional_input_methods =
