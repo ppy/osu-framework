@@ -326,6 +326,52 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
         }
 
+        [Test]
+        public void TestUnloadWithOffscreenParent()
+        {
+            Container parent = null;
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(parent = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("move parent offscreen", () => parent.X = 1000000); // Should be offscreen
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
+        [Test]
+        public void TestUnloadWithParentRemovedFromHierarchy()
+        {
+            Container parent = null;
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(parent = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("remove parent", () => Remove(parent));
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
