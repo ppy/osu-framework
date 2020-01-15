@@ -169,8 +169,12 @@ namespace osu.Framework.Graphics.Containers
                     optimisingContainerCache.Validate();
                 }
 
-                // The quad intersection is bounded by the IsMaskedAway AABB intersection such that IsMaskedAway can be used as a general optimisation.
-                IsIntersecting = !IsMaskedAway && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
+                // The first condition is an intersection against the hierarchy, including any parents that may be masking this wrapper.
+                // It is the same calculation as Drawable.IsMaskedAway, however IsMaskedAway is optimised out for some CompositeDrawables (which this wrapper is).
+                // The second condition is an exact intersection against the optimising container, which further optimises rotated AABBs where the wrapper content is not visible.
+                IsIntersecting = maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
+                                 && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
+
                 isIntersectingCache.Validate();
             }
 
