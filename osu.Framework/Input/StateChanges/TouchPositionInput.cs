@@ -38,7 +38,7 @@ namespace osu.Framework.Input.StateChanges
                 return;
 
             Vector2? lastPosition = touch.GetTouchPosition(Source);
-            if (lastPosition != null && lastPosition == Position)
+            if (lastPosition == Position)
                 return;
 
             touch.TouchPositions[Source] = Position;

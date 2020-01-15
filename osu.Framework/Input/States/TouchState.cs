@@ -16,18 +16,17 @@ namespace osu.Framework.Input.States
 
         /// <summary>
         /// The dictionary to retrieve current touch positions from and save them.
-        /// The values in this dictionary remain the same regardless of any touch activity change, use <see cref="GetTouchPosition"/> instead.
         /// </summary>
         public readonly Dictionary<MouseButton, Vector2> TouchPositions = new Dictionary<MouseButton, Vector2>();
 
         /// <summary>
-        /// Retrieves the current touch position of a specified <paramref name="source"/>, or null if not active nor existing in the <see cref="TouchPositions"/> dictionary.
+        /// Retrieves the current touch position of a specified <paramref name="source"/>, or null if not existing in the <see cref="TouchPositions"/> dictionary.
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
         public Vector2? GetTouchPosition(MouseButton source)
         {
-            if (!IsActive(source) || !TouchPositions.TryGetValue(source, out var pos))
+            if (!TouchPositions.TryGetValue(source, out var pos))
                 return null;
 
             return pos;

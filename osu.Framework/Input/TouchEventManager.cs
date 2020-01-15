@@ -55,18 +55,17 @@ namespace osu.Framework.Input
         {
             Trace.Assert(state.Touch.IsActive(Source) == (kind == ButtonStateChangeKind.Pressed));
 
-            var hasPosition = state.Touch.TouchPositions.TryGetValue(Source, out var currentPosition);
+            var position = state.Touch.GetTouchPosition(Source);
 
             if (kind == ButtonStateChangeKind.Pressed)
             {
-                if (hasPosition)
-                    TouchDownPosition = currentPosition;
+                TouchDownPosition = position;
 
                 HandleTouchDown(state);
             }
             else
             {
-                HandleTouchUp(state, currentPosition);
+                HandleTouchUp(state, position);
 
                 TouchDownPosition = null;
                 TouchDownInputQueue = null;
@@ -94,12 +93,12 @@ namespace osu.Framework.Input
             return true;
         }
 
-        protected virtual bool HandleTouchUp(InputState state, Vector2 position)
+        protected virtual bool HandleTouchUp(InputState state, Vector2? position)
         {
-            if (TouchDownInputQueue == null)
+            if (!(position is Vector2 pos) || TouchDownInputQueue == null)
                 return false;
 
-            return PropagateTouchEvent(TouchDownInputQueue, new TouchUpEvent(state, new Touch(Source, position), TouchDownPosition)) != null;
+            return PropagateTouchEvent(TouchDownInputQueue, new TouchUpEvent(state, new Touch(Source, pos), TouchDownPosition)) != null;
         }
 
         protected virtual Drawable PropagateTouchEvent(IEnumerable<Drawable> drawables, TouchEvent e)
