@@ -327,7 +327,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state)
+        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state, Vector2? screenSpacePos = null)
         {
             positionalInputQueue.Clear();
 
@@ -336,7 +336,7 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(state.Mouse.Position, positionalInputQueue);
+                children[i].BuildPositionalInputQueue(screenSpacePos ?? state.Mouse.Position, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
