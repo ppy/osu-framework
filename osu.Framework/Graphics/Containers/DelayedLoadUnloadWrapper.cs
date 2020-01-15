@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
-        private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
+        private static readonly GlobalStatistic<int> total_loaded = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s");
 
         private double timeHidden;
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
                 Debug.Assert(unloadSchedule != null);
 
-                loaded_optimised.Value++;
+                total_loaded.Value++;
             });
         }
 
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule.Cancel();
                 unloadSchedule = null;
 
-                loaded_optimised.Value--;
+                total_loaded.Value--;
             }
         }
 
