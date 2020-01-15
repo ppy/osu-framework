@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 // The quad intersection is bounded by the IsMaskedAway AABB intersection such that IsMaskedAway can be used as a general optimisation.
-                IsIntersecting = !IsMaskedAway && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) == true;
+                IsIntersecting = !IsMaskedAway && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
                 isIntersectingCache.Validate();
             }
 
