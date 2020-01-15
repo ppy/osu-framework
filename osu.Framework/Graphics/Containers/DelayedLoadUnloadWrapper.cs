@@ -4,7 +4,9 @@
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using osu.Framework.Caching;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -93,13 +95,29 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            bool result = base.Invalidate(invalidation, source, shallPropagate);
+
+            if ((invalidation & Invalidation.Parent) > 0)
+                result &= !unloadClockBacking.Invalidate();
+
+            return result;
+        }
+
+        private readonly Cached<IFrameBasedClock> unloadClockBacking = new Cached<IFrameBasedClock>();
+
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = getUnloadClock());
+
+        private IFrameBasedClock getUnloadClock() => FindClosestParent<Game>() == null ? Game.Clock : Clock;
+
         private void checkForUnload()
         {
             // This code can be expensive, so only run if we haven't yet loaded.
             if (IsIntersecting)
                 timeHidden = 0;
             else
-                timeHidden += Time.Elapsed;
+                timeHidden += unloadClock.ElapsedFrameTime;
 
             if (ShouldUnloadContent)
             {
