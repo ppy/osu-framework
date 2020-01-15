@@ -88,11 +88,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
-
             AddStep("scroll to end", () => scroll.ScrollToEnd());
-
-            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
             AddUntilStep("references lost", () =>
             {
@@ -144,11 +140,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("references loaded", () => references.Count() == 16 && references.All(c => c.IsLoaded));
 
-            AddAssert("check schedulers present", () => scroll.Scheduler.HasPendingTasks);
-
             AddStep("Remove all panels", () => flow.Clear(false));
-
-            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
 
             AddUntilStep("references lost", () =>
             {
