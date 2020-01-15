@@ -157,6 +157,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We can accurately compute intersections - the scheduled reset is no longer required.
             isIntersectingReset?.Cancel();
+            isIntersectingReset = null;
 
             if (!isIntersectingCache.IsValid)
             {
