@@ -103,6 +103,18 @@ namespace osu.Framework.Input
                         new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
                     break;
 
+                case TouchMoveEvent touchMove:
+                    new TouchPositionInput(touchMove.ScreenSpaceTouch.Source, touchMove.ScreenSpaceTouchPosition).Apply(CurrentState, this);
+                    break;
+
+                case TouchDownEvent touchDown:
+                    new TouchActivityInput(touchDown.ScreenSpaceTouch.Source, true).Apply(CurrentState, this);
+                    break;
+
+                case TouchUpEvent touchUp:
+                    new TouchActivityInput(touchUp.ScreenSpaceTouch.Source, false).Apply(CurrentState, this);
+                    break;
+
                 case ScrollEvent scroll:
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
                     break;
