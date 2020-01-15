@@ -107,9 +107,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Cached<IFrameBasedClock> unloadClockBacking = new Cached<IFrameBasedClock>();
 
-        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = getUnloadClock());
-
-        private IFrameBasedClock getUnloadClock() => FindClosestParent<Game>() == null ? Game.Clock : Clock;
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
 
         private void checkForUnload()
         {
