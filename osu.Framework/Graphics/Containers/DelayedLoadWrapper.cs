@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Containers
             bool result = base.UpdateSubTreeMasking(source, maskingBounds);
 
             // We can accurately compute intersections - the scheduled reset is no longer required.
-            isIntersectingReset.Cancel();
+            isIntersectingReset?.Cancel();
 
             if (!isIntersectingCache.IsValid)
             {
