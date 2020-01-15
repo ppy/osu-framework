@@ -3,59 +3,82 @@
 
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using NUnit.Framework;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Benchmarks
 {
     public class BenchmarkWeakList : BenchmarkTest
     {
+        [Params(1, 10, 100, 1000)]
+        public int ItemCount { get; set; }
+
         private readonly object[] objects = new object[1000];
         private WeakList<object> weakList;
 
         public override void SetUp()
         {
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < ItemCount; i++)
                 objects[i] = new object();
         }
 
-        [IterationSetup]
-        [SetUp]
-        public void IterationSetup()
-        {
-            weakList = new WeakList<object>();
+        [Benchmark(Baseline = true)]
+        public void Add() => init();
 
-            foreach (var obj in objects)
-                weakList.Add(obj);
+        [Benchmark]
+        public void RemoveOne()
+        {
+            init();
+
+            weakList.Remove(objects[^1]);
         }
 
         [Benchmark]
-        public void Add() => weakList.Add(new object());
-
-        [Benchmark]
-        public void Remove() => weakList.Remove(objects[0]);
-
-        [Benchmark]
-        public void RemoveEach()
+        public void RemoveAllIteratively()
         {
-            foreach (var obj in objects)
-                weakList.Remove(obj);
+            init();
+
+            for (int i = 0; i < ItemCount; i++)
+                weakList.Remove(objects[i]);
         }
 
         [Benchmark]
-        public void Clear() => weakList.Clear();
+        public void Clear()
+        {
+            init();
+
+            weakList.Clear();
+        }
 
         [Benchmark]
-        public bool Contains() => weakList.Contains(objects[0]);
+        public bool Contains()
+        {
+            init();
+
+            return weakList.Contains(objects[^1]);
+        }
 
         [Benchmark]
-        public object[] Enumerate() => weakList.ToArray();
+        public object[] AddAndEnumerate()
+        {
+            init();
+
+            return weakList.ToArray();
+        }
 
         [Benchmark]
         public object[] ClearAndEnumerate()
         {
+            init();
+
             weakList.Clear();
             return weakList.ToArray();
+        }
+
+        private void init()
+        {
+            weakList = new WeakList<object>();
+            for (int i = 0; i < ItemCount; i++)
+                weakList.Add(objects[i]);
         }
     }
 }

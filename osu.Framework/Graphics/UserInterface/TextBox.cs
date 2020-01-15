@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = 1;
                     else
                     {
-                        int searchNext = Math.Clamp(selectionEnd, 0, Text.Length - 1);
+                        int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
                         while (searchNext < Text.Length && text[searchNext] == ' ')
                             searchNext++;
                         int nextSpace = text.IndexOf(' ', searchNext);
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = -1;
                     else
                     {
-                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Math.Max(0, Text.Length - 1));
                         while (searchPrev > 0 && text[searchPrev] == ' ')
                             searchPrev--;
                         int lastSpace = text.LastIndexOf(' ', searchPrev);
