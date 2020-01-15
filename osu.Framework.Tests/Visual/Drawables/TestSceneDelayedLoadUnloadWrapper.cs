@@ -304,6 +304,28 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
         }
 
+        [Test]
+        public void TestUnloadWithNonOptimisingParent()
+        {
+            DelayedLoadUnloadWrapper wrapper = null;
+
+            AddStep("add panel", () =>
+            {
+                Add(new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Masking = true,
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                });
+            });
+
+            AddUntilStep("wait for load", () => wrapper.Content?.IsLoaded == true);
+            AddStep("move wrapper outside", () => wrapper.X = 129);
+            AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
+        }
+
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
