@@ -21,7 +21,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
-        private static readonly GlobalStatistic<int> loaded_unoptimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (unoptimised)");
 
         private double timeHidden;
 
@@ -74,14 +73,10 @@ namespace osu.Framework.Graphics.Containers
 
                 contentLoaded = true;
 
-                if (OptimisingContainer != null)
-                {
-                    unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
-                    Debug.Assert(unloadSchedule != null);
-                    loaded_optimised.Value++;
-                }
-                else
-                    loaded_unoptimised.Value++;
+                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
+                Debug.Assert(unloadSchedule != null);
+
+                loaded_optimised.Value++;
             });
         }
 
@@ -96,8 +91,6 @@ namespace osu.Framework.Graphics.Containers
 
                 loaded_optimised.Value--;
             }
-            else if (contentLoaded)
-                loaded_unoptimised.Value--;
         }
 
         private void checkForUnload()

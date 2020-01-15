@@ -21,6 +21,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework
 {
@@ -304,5 +305,7 @@ namespace osu.Framework
 
             base.Dispose(isDisposing);
         }
+
+        internal new Scheduler Scheduler => base.Scheduler;
     }
 }
