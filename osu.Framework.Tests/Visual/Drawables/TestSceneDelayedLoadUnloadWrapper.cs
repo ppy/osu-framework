@@ -317,7 +317,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Origin = Anchor.Centre,
                     Size = new Vector2(128),
                     Masking = true,
-                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
                 });
             });
 
@@ -340,7 +340,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Origin = Anchor.Centre,
                     Size = new Vector2(128),
                     Masking = true,
-                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
                 });
             });
 
@@ -363,7 +363,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Origin = Anchor.Centre,
                     Size = new Vector2(128),
                     Masking = true,
-                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 0)
+                    Child = wrapper = new DelayedLoadUnloadWrapper(() => new TestBox { RelativeSizeAxes = Axes.Both }, 0, 1000)
                 });
             });
 
