@@ -936,6 +936,7 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageDown), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save))
         };
 
         /// <summary>
