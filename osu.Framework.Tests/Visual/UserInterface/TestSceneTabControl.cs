@@ -206,8 +206,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestClicksBlockedWhenBindableDisabled()
         {
-            Bindable<TestEnum?> bindable = null;
-
             AddStep("add tabcontrol", () =>
             {
                 Child = simpleTabcontrol = new StyledTabControl { Size = new Vector2(200, 30) };
@@ -215,7 +213,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 foreach (var item in items)
                     simpleTabcontrol.AddItem(item);
 
-                simpleTabcontrol.Current = bindable = new Bindable<TestEnum?>
+                simpleTabcontrol.Current = new Bindable<TestEnum?>
                 {
                     Value = TestEnum.Test0,
                     Disabled = true
