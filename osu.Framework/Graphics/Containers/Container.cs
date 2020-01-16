@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The publicly accessibly list of alive children. Forwards to the alive children of <see cref="Content"/>.
+        /// The publicly accessible list of alive children. Forwards to the alive children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.AliveInternalChildren"/>.
         /// </summary>
         public IReadOnlyList<T> AliveChildren
