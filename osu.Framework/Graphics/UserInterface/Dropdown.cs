@@ -393,6 +393,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
+            protected void PreselectItem(int index) => PreselectItem(Items[MathHelper.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
+
             /// <summary>
             /// Preselects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
@@ -524,39 +526,40 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!drawableMenuItemsList.Any())
                     return base.OnKeyDown(e);
 
-                var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
-                var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
+                var currentPreselected = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
 
-                int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
+                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
                     case Key.Up:
-                        PreselectItem(Items[clampIndex(preselectedIndex - 1)]);
+                        PreselectItem(targetPreselectionIndex - 1);
                         return true;
 
                     case Key.Down:
-                        PreselectItem(Items[clampIndex(preselectedIndex + 1)]);
+                        PreselectItem(targetPreselectionIndex + 1);
                         return true;
 
                     case Key.PageUp:
                         var firstVisibleItem = VisibleMenuItems.First();
-                        preselectedIndex = preselectedItem == firstVisibleItem
-                            ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
-                            : drawableMenuItemsList.IndexOf(firstVisibleItem);
-                        PreselectItem(Items[preselectedIndex]);
+
+                        if (currentPreselected == firstVisibleItem)
+                            PreselectItem(targetPreselectionIndex - VisibleMenuItems.Count());
+                        else
+                            PreselectItem(drawableMenuItemsList.IndexOf(firstVisibleItem));
                         return true;
 
                     case Key.PageDown:
                         var lastVisibleItem = VisibleMenuItems.Last();
-                        preselectedIndex = preselectedItem == lastVisibleItem
-                            ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
-                            : drawableMenuItemsList.IndexOf(lastVisibleItem);
-                        PreselectItem(Items[preselectedIndex]);
+
+                        if (currentPreselected == lastVisibleItem)
+                            PreselectItem(targetPreselectionIndex + VisibleMenuItems.Count());
+                        else
+                            PreselectItem(drawableMenuItemsList.IndexOf(lastVisibleItem));
                         return true;
 
                     case Key.Enter:
-                        PreselectionConfirmed?.Invoke(preselectedIndex);
+                        PreselectionConfirmed?.Invoke(targetPreselectionIndex);
                         return true;
 
                     case Key.Escape:
