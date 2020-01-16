@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Cached optimisingContainerCache = new Cached();
         private readonly Cached isIntersectingCache = new Cached();
-        private ScheduledDelegate isIntersectingReset;
+        private ScheduledDelegate isIntersectingResetDelegate;
 
         protected bool IsIntersecting { get; private set; }
 
@@ -147,8 +147,8 @@ namespace osu.Framework.Graphics.Containers
             // It is important that this is scheduled such that it occurs on the NEXT frame, in order to give this wrapper a chance to load its contents.
             // For example, if a parent invalidated this wrapper every frame, IsIntersecting would be false by the time Update() is run and may only become true at the very end of the frame.
             // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
-            if (isIntersectingReset == null)
-                isIntersectingReset = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+            if (isIntersectingResetDelegate == null)
+                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
 
             return result;
         }
@@ -158,8 +158,8 @@ namespace osu.Framework.Graphics.Containers
             bool result = base.UpdateSubTreeMasking(source, maskingBounds);
 
             // We can accurately compute intersections - the scheduled reset is no longer required.
-            isIntersectingReset?.Cancel();
-            isIntersectingReset = null;
+            isIntersectingResetDelegate?.Cancel();
+            isIntersectingResetDelegate = null;
 
             if (!isIntersectingCache.IsValid)
             {
