@@ -2673,7 +2673,7 @@ namespace osu.Framework.Platform.Windows.Native
         CLOSE = 0xF060,
 
         /// <summary>
-        /// Changes the cursor to a question mark with a pointer. If the user then clicks a control in the dialog box, the control receives a <see cref="WindowsMessage.HELP"/> message.
+        /// Changes the cursor to a question mark with a pointer. If the user then clicks a control in the dialog box, the control receives a <see cref="WindowsMessages.HELP"/> message.
         /// </summary>
         CONTEXTHELP = 0xF180,
 
