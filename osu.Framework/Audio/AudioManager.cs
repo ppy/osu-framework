@@ -268,7 +268,16 @@ namespace osu.Framework.Audio
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
         /// It can be overridden for unit testing.
         /// </summary>
-        protected virtual bool InitBass(int device) => Bass.Init(device);
+        protected virtual bool InitBass(int device)
+        {
+            // reduce latency to a known sane minimum.
+            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
+
+            // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
+            Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
+
+            return Bass.Init(device);
+        }
 
         private void updateAvailableAudioDevices()
         {

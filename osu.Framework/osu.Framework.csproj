@@ -23,7 +23,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.18.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
