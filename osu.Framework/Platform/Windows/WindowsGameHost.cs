@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Input;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -31,6 +32,8 @@ namespace osu.Framework.Platform.Windows
 
             timePeriod = new TimePeriod(1) { Active = true };
         }
+
+        public override ITextInputSource GetTextInput() => Window == null ? null : new WindowsTextInput(Window);
 
         protected override IWindow CreateWindow() =>
             !UseSdl ? (IWindow)new WindowsGameWindow() : new SDLWindow();
