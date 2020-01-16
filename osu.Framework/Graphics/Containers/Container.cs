@@ -43,6 +43,11 @@ namespace osu.Framework.Graphics.Containers
                 internalChildrenAsT = (IReadOnlyList<T>)InternalChildren;
             else
                 internalChildrenAsT = new LazyList<Drawable, T>(InternalChildren, c => (T)c);
+
+            if (typeof(T) == typeof(Drawable))
+                aliveInternalChildrenAsT = (IReadOnlyList<T>)AliveInternalChildren;
+            else
+                aliveInternalChildrenAsT = new LazyList<Drawable, T>(AliveInternalChildren, c => (T)c);
         }
 
         /// <summary>
@@ -73,6 +78,21 @@ namespace osu.Framework.Graphics.Containers
                 return internalChildrenAsT;
             }
             set => ChildrenEnumerable = value;
+        }
+
+        /// <summary>
+        /// The publicly accessible list of alive children. Forwards to the alive children of <see cref="Content"/>.
+        /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        public IReadOnlyList<T> AliveChildren
+        {
+            get
+            {
+                if (Content != this)
+                    return Content.AliveChildren;
+
+                return aliveInternalChildrenAsT;
+            }
         }
 
         /// <summary>
@@ -142,6 +162,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly IReadOnlyList<T> internalChildrenAsT;
+        private readonly IReadOnlyList<T> aliveInternalChildrenAsT;
 
         /// <summary>
         /// The index of a given child within <see cref="Children"/>.

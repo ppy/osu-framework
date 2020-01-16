@@ -272,6 +272,30 @@ namespace osu.Framework.Tests.Containers
             AddAssert("correct count", () => count == 2);
         }
 
+        [Test]
+        public void TestAliveChildrenContainsOnlyAliveChildren()
+        {
+            Container container = null;
+            Drawable aliveChild = null;
+            Drawable nonAliveChild = null;
+
+            AddStep("create container", () =>
+            {
+                Child = container = new Container
+                {
+                    Children = new[]
+                    {
+                        aliveChild = new Box(),
+                        nonAliveChild = new Box { LifetimeStart = double.MaxValue }
+                    }
+                };
+            });
+
+            AddAssert("1 alive child", () => container.AliveChildren.Count == 1);
+            AddAssert("alive child contained", () => container.AliveChildren.Contains(aliveChild));
+            AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
+        }
+
         private class TestContainer : Container
         {
             public new void ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
