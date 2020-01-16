@@ -44,10 +44,3 @@ namespace osu.Framework.Platform.Windows
         }
     }
 }
-
-
-
-
-
-
-
