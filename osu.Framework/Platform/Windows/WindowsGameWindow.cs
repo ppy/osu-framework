@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using osu.Framework.Platform.Windows.Native;
 using osuTK.Input;
 
@@ -11,8 +10,6 @@ namespace osu.Framework.Platform.Windows
 {
     internal class WindowsGameWindow : DesktopGameWindow
     {
-        private const int seticon_message = 0x0080;
-
         private IconGroup iconGroup;
         private Icon smallIcon;
         private Icon largeIcon;
@@ -38,11 +35,8 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(24, 24);
             largeIcon = iconGroup.CreateIcon(256, 256);
 
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
+            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessage.SETICON, (IntPtr)0, smallIcon.Handle);
+            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessage.SETICON, (IntPtr)1, largeIcon.Handle);
         }
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     }
 }
