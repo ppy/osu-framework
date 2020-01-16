@@ -35,7 +35,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public void Deactivate(object sender)
+        public virtual void Deactivate(object sender)
         {
             if (window is SDLWindow win)
                 win.KeyTyped -= HandleKeyTyped;
@@ -43,7 +43,7 @@ namespace osu.Framework.Input
                 window.KeyPress -= HandleKeyPress;
         }
 
-        public void Activate(object sender)
+        public virtual void Activate(object sender)
         {
             if (window is SDLWindow win)
                 win.KeyTyped += HandleKeyTyped;
