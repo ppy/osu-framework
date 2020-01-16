@@ -377,20 +377,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// Preselects an item from this <see cref="DropdownMenu"/>.
-            /// </summary>
-            /// <param name="item">The item to select.</param>
-            public void PreselectItem(MenuItem item)
-            {
-                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
-                {
-                    c.IsPreSelected = c.Item == item;
-                    if (c.IsPreSelected)
-                        ContentContainer.ScrollIntoView(c);
-                });
-            }
-
-            /// <summary>
             /// Shows an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to show.</param>
@@ -406,6 +392,20 @@ namespace osu.Framework.Graphics.UserInterface
             /// Whether any items part of this <see cref="DropdownMenu"/> are present.
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
+
+            /// <summary>
+            /// Preselects an item from this <see cref="DropdownMenu"/>.
+            /// </summary>
+            /// <param name="item">The item to select.</param>
+            protected void PreselectItem(MenuItem item)
+            {
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
+                {
+                    c.IsPreSelected = c.Item == item;
+                    if (c.IsPreSelected)
+                        ContentContainer.ScrollIntoView(c);
+                });
+            }
 
             protected sealed override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => CreateDrawableDropdownMenuItem(item);
 
