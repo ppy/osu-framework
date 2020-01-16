@@ -26,7 +26,7 @@ namespace osu.Framework.Platform.Windows
         private void closeTouchKeyboard()
         {
             var kbdWnd = Methods.FindWindow("IPTIP_Main_Window", null);
-            Methods.PostMessage(kbdWnd, (uint)WindowsMessage.SYSCOMMAND, (IntPtr)SystemCommand.CLOSE, IntPtr.Zero);
+            Methods.PostMessage(kbdWnd, (uint)WindowsMessages.SYSCOMMAND, (IntPtr)SystemCommand.CLOSE, IntPtr.Zero);
         }
 
         public override void Activate(object sender)

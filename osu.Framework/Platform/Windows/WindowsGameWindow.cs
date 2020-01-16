@@ -35,8 +35,8 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(24, 24);
             largeIcon = iconGroup.CreateIcon(256, 256);
 
-            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessage.SETICON, (IntPtr)0, smallIcon.Handle);
-            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessage.SETICON, (IntPtr)1, largeIcon.Handle);
+            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessages.SETICON, (IntPtr)0, smallIcon.Handle);
+            Methods.SendMessage(WindowInfo.Handle, (int)WindowsMessages.SETICON, (IntPtr)1, largeIcon.Handle);
         }
     }
 }
