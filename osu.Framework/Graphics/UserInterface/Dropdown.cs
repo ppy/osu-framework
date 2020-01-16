@@ -380,7 +380,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// Preselects an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to select.</param>
-            public void PreselectItem(DropdownMenuItem<T> item)
+            public void PreselectItem(MenuItem item)
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
@@ -532,11 +532,11 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (e.Key)
                 {
                     case Key.Up:
-                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
+                        PreselectItem(Items[clampIndex(preselectedIndex - 1)]);
                         return true;
 
                     case Key.Down:
-                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
+                        PreselectItem(Items[clampIndex(preselectedIndex + 1)]);
                         return true;
 
                     case Key.PageUp:
@@ -544,7 +544,7 @@ namespace osu.Framework.Graphics.UserInterface
                         preselectedIndex = preselectedItem == firstVisibleItem
                             ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
                             : drawableMenuItemsList.IndexOf(firstVisibleItem);
-                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        PreselectItem(Items[preselectedIndex]);
                         return true;
 
                     case Key.PageDown:
@@ -552,7 +552,7 @@ namespace osu.Framework.Graphics.UserInterface
                         preselectedIndex = preselectedItem == lastVisibleItem
                             ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
                             : drawableMenuItemsList.IndexOf(lastVisibleItem);
-                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        PreselectItem(Items[preselectedIndex]);
                         return true;
 
                     case Key.Enter:
@@ -573,11 +573,11 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (action.ActionType)
                 {
                     case PlatformActionType.ListStart:
-                        PreselectItem((DropdownMenuItem<T>)Items.FirstOrDefault());
+                        PreselectItem(Items.FirstOrDefault());
                         return true;
 
                     case PlatformActionType.ListEnd:
-                        PreselectItem((DropdownMenuItem<T>)Items.LastOrDefault());
+                        PreselectItem(Items.LastOrDefault());
                         return true;
 
                     default:
