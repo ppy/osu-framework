@@ -2680,7 +2680,7 @@ namespace osu.Framework.Platform.Windows.Native
         /// <summary>
         /// Selects the default item; the user double-clicked the window menu.
         /// </summary>
-        DEFAUKT = 0xF160,
+        DEFAULT = 0xF160,
 
         /// <summary>
         /// Activates the window associated with the application-specified hot key. The lParam parameter identifies the window to activate.
