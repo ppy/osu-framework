@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -249,7 +250,7 @@ namespace osu.Framework.Bindables
                     break;
 
                 default:
-                    Value = (T)Convert.ChangeType(input, underlyingType);
+                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
                     break;
             }
         }
