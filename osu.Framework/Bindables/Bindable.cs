@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -237,23 +236,21 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
+            Type underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
             switch (input)
             {
                 case T t:
                     Value = t;
                     break;
 
-                case string s:
-                    var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
-                    if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, s);
-                    else
-                        Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
+                case string s when underlyingType.IsEnum:
+                    Value = (T)Enum.Parse(underlyingType, s);
                     break;
 
                 default:
-                    throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+                    Value = (T)Convert.ChangeType(input, underlyingType);
+                    break;
             }
         }
 
