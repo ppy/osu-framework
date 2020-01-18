@@ -8,7 +8,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 
@@ -625,7 +624,5 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public bool OnReleased(PlatformAction action) => false;
-
-        ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
     }
 }
