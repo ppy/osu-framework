@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
 
         protected readonly Direction Direction;
 
