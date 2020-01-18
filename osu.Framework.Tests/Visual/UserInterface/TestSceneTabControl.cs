@@ -18,6 +18,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(TabControl<>),
+            typeof(TabItem),
+            typeof(BasicTabControl<>),
+        };
+
         private readonly TestEnum[] items;
 
         private StyledTabControl pinnedAndAutoSort;
@@ -171,7 +178,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestDisabledBindable()
+        public void TestTabSelectedWhenDisabledBindableIsBound()
         {
             Bindable<TestEnum?> bindable;
 
@@ -194,9 +201,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test2);
+        }
 
-            // Todo: Should not fail
-            // AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test0].Click());
+        [Test]
+        public void TestClicksBlockedWhenBindableDisabled()
+        {
+            AddStep("add tabcontrol", () =>
+            {
+                Child = simpleTabcontrol = new StyledTabControl { Size = new Vector2(200, 30) };
+
+                foreach (var item in items)
+                    simpleTabcontrol.AddItem(item);
+
+                simpleTabcontrol.Current = new Bindable<TestEnum?>
+                {
+                    Value = TestEnum.Test0,
+                    Disabled = true
+                };
+            });
+
+            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].Click());
+            AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
         }
 
         [TestCase(true)]

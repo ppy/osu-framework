@@ -218,8 +218,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += performTabSort;
-
-            tab.ActivationRequested += SelectTab;
+            tab.ActivationRequested += activationRequested;
 
             items.Add(tab.Value);
             tabMap[tab.Value] = tab;
@@ -320,6 +319,14 @@ namespace osu.Framework.Graphics.UserInterface
             targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
 
             SelectTab(switchableTabs[targetIndex]);
+        }
+
+        private void activationRequested(TabItem<T> tab)
+        {
+            if (Current.Disabled)
+                return;
+
+            SelectTab(tab);
         }
 
         private void performTabSort(TabItem<T> tab)

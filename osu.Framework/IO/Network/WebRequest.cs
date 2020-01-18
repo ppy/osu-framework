@@ -517,7 +517,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Performs any post-processing of the response.
-        /// Exceptions thrown in this method will be passed to <see cref="Finished"/>.
+        /// Exceptions thrown in this method will be passed to <see cref="Failed"/>.
         /// </summary>
         protected virtual void ProcessResponse()
         {
