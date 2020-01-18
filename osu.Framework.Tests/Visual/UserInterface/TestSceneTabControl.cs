@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Length);
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -248,6 +248,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
+        [Test]
+        public void TestItemsImmediatelyUpdatedAfterAdd()
+        {
+            TabControlWithNoDropdown tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControl = new TabControlWithNoDropdown { Size = new Vector2(200, 30) };
+
+                foreach (var item in items)
+                    tabControl.AddItem(item);
+            });
+
+            AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
+        }
+
+        [Test]
+        public void TestItemsAddedWhenSet()
+        {
+            TabControlWithNoDropdown tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControl = new TabControlWithNoDropdown
+                {
+                    Size = new Vector2(200, 30),
+                    Items = items
+                };
+            });
+
+            AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
@@ -323,6 +356,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     new Box { Width = 20, Height = 20 }
                 };
             }
+        }
+
+        private class TabControlWithNoDropdown : BasicTabControl<TestEnum>
+        {
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
         }
 
         private enum TestEnum
