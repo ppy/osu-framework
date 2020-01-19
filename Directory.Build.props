@@ -29,7 +29,7 @@
   <PropertyGroup Label="NuGet">
     <Authors>ppy Pty Ltd</Authors>
     <Company>ppy Pty Ltd</Company>
-    <Copyright>Copyright (c) 2019 ppy Pty Ltd</Copyright>
+    <Copyright>Copyright (c) 2020 ppy Pty Ltd</Copyright>
     <Product>osu!framework</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
