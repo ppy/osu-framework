@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using JetBrains.Annotations;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -28,13 +27,11 @@ namespace osu.Framework.Input
         /// <summary>
         /// Used for requesting focus from click.
         /// </summary>
-        [NotNull]
         internal Action<Drawable> RequestFocus;
 
         /// <summary>
         /// A function for retrieving the current time.
         /// </summary>
-        [NotNull]
         internal Func<double> GetCurrentTime;
 
         /// <summary>
@@ -108,7 +105,7 @@ namespace osu.Framework.Input
             }
         }
 
-        protected override Drawable HandleButtonDownInternal(InputState state, List<Drawable> targets)
+        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
             Trace.Assert(state.Mouse.IsPressed(Button));
 
@@ -130,7 +127,7 @@ namespace osu.Framework.Input
             return handledBy;
         }
 
-        protected override void HandleButtonUpInternal(InputState state, List<Drawable> targets)
+        protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
             Trace.Assert(!state.Mouse.IsPressed(Button));
 
