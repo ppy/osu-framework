@@ -116,6 +116,8 @@ namespace osu.Framework.Input
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
+        private readonly Dictionary<Key, KeyButtonEventManager> keyButtonEventManagers = new Dictionary<Key, KeyButtonEventManager>();
+
         protected InputManager()
         {
             CurrentState = CreateInitialState();
@@ -164,6 +166,18 @@ namespace osu.Framework.Input
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
             mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
+
+        protected virtual KeyButtonEventManager CreateButtonManagerFor(Key key) => new KeyButtonEventManager(key);
+
+        public KeyButtonEventManager GetButtonEventMangerFor(Key key)
+        {
+            if (keyButtonEventManagers.TryGetValue(key, out var existing))
+                return existing;
+
+            var manager = CreateButtonManagerFor(key);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return keyButtonEventManagers[key] = manager;
+        }
 
         /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
@@ -282,7 +296,7 @@ namespace osu.Framework.Input
 
             while (keyboardRepeatTime < 0)
             {
-                handleKeyDown(state, key, true);
+                GetButtonEventMangerFor(key).HandleRepeat(state);
                 keyboardRepeatTime += repeat_tick_rate;
             }
         }
@@ -409,10 +423,10 @@ namespace osu.Framework.Input
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
 
+            GetButtonEventMangerFor(key).HandleButtonStateChange(state, kind);
+
             if (kind == ButtonStateChangeKind.Pressed)
             {
-                handleKeyDown(state, key, false);
-
                 if (!isModifierKey(key))
                 {
                     keyboardRepeatKey = key;
@@ -421,8 +435,6 @@ namespace osu.Framework.Input
             }
             else
             {
-                handleKeyUp(state, key);
-
                 if (key == keyboardRepeatKey)
                 {
                     keyboardRepeatKey = null;
@@ -506,10 +518,6 @@ namespace osu.Framework.Input
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
         private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
-
-        private bool handleKeyDown(InputState state, Key key, bool repeat) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
-
-        private bool handleKeyUp(InputState state, Key key) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
 
         private bool handleJoystickPress(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
 
