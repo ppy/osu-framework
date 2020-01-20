@@ -34,7 +34,6 @@ namespace osu.Framework.Input
         /// <summary>
         /// A function to retrieve the input queue.
         /// </summary>
-        [NotNull]
         internal Func<IEnumerable<Drawable>> GetInputQueue;
 
         /// <summary>
@@ -45,9 +44,9 @@ namespace osu.Framework.Input
         public void HandleButtonStateChange(InputState state, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
-                HandleButtonDown(state);
+                handleButtonDown(state);
             else
-                HandleButtonUp(state);
+                handleButtonUp(state);
         }
 
         /// <summary>
@@ -55,10 +54,10 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <returns>Whether the event was handled.</returns>
-        public bool HandleButtonDown(InputState state)
+        private bool handleButtonDown(InputState state)
         {
             List<Drawable> inputQueue = InputQueue.ToList();
-            Drawable handledBy = HandleButtonDownInternal(state, inputQueue);
+            Drawable handledBy = HandleButtonDown(state, inputQueue);
 
             if (handledBy != null)
             {
@@ -78,15 +77,15 @@ namespace osu.Framework.Input
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="targets">The list of possible targets that can handle the event.</param>
         /// <returns>The <see cref="Drawable"/> that handled the event.</returns>
-        protected abstract Drawable HandleButtonDownInternal(InputState state, List<Drawable> targets);
+        protected abstract Drawable HandleButtonDown(InputState state, List<Drawable> targets);
 
         /// <summary>
         /// Handles the button being released.
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
-        public void HandleButtonUp(InputState state)
+        private void handleButtonUp(InputState state)
         {
-            HandleButtonUpInternal(state, ButtonDownInputQueue);
+            HandleButtonUp(state, ButtonDownInputQueue);
             ButtonDownInputQueue = null;
         }
 
@@ -95,7 +94,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="targets">The list of targets that must handle the event.</param>
-        protected abstract void HandleButtonUpInternal(InputState state, List<Drawable> targets);
+        protected abstract void HandleButtonUp(InputState state, List<Drawable> targets);
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.

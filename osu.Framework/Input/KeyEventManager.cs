@@ -26,9 +26,9 @@ namespace osu.Framework.Input
 
         public void HandleRepeat(InputState state) => PropagateButtonEvent(ButtonDownInputQueue, new KeyDownEvent(state, Key, true));
 
-        protected override Drawable HandleButtonDownInternal(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Key));
+        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Key));
 
-        protected override void HandleButtonUpInternal(InputState state, List<Drawable> targets)
+        protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
             if (targets == null)
                 return;
