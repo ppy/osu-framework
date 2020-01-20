@@ -123,8 +123,9 @@ namespace osu.Framework.Input
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
-                var manager = CreateButtonManagerFor(button, () => PositionalInputQueue);
+                var manager = CreateButtonManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
+                manager.GetInputQueue = () => PositionalInputQueue;
                 manager.GetCurrentTime = () => Time.Current;
                 mouseButtonEventManagers.Add(button, manager);
             }
@@ -144,15 +145,15 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="button">The button to be handled by the returned manager.</param>
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
-        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
+        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button)
         {
             switch (button)
             {
                 case MouseButton.Left:
-                    return new MouseLeftButtonEventManager(button, getInputQueueFunc);
+                    return new MouseLeftButtonEventManager(button);
 
                 default:
-                    return new MouseMinorButtonEventManager(button, getInputQueueFunc);
+                    return new MouseMinorButtonEventManager(button);
             }
         }
 
@@ -610,8 +611,8 @@ namespace osu.Framework.Input
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
         {
-            public MouseLeftButtonEventManager(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
-                : base(button, getInputQueueFunc)
+            public MouseLeftButtonEventManager(MouseButton button)
+                : base(button)
             {
             }
 
@@ -624,8 +625,8 @@ namespace osu.Framework.Input
 
         private class MouseMinorButtonEventManager : MouseButtonEventManager
         {
-            public MouseMinorButtonEventManager(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
-                : base(button, getInputQueueFunc)
+            public MouseMinorButtonEventManager(MouseButton button)
+                : base(button)
             {
             }
 

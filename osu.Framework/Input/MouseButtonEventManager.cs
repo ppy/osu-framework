@@ -52,8 +52,7 @@ namespace osu.Framework.Input
         /// </summary>
         public abstract bool ChangeFocusOnClick { get; }
 
-        protected MouseButtonEventManager(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
-            : base(getInputQueueFunc)
+        protected MouseButtonEventManager(MouseButton button)
         {
             Button = button;
         }

@@ -29,18 +29,13 @@ namespace osu.Framework.Input
         /// The input queue.
         /// </summary>
         [NotNull]
-        protected IEnumerable<Drawable> InputQueue => getInputQueueFunc?.Invoke() ?? Enumerable.Empty<Drawable>();
-
-        private readonly Func<IEnumerable<Drawable>> getInputQueueFunc;
+        protected IEnumerable<Drawable> InputQueue => GetInputQueue.Invoke() ?? Enumerable.Empty<Drawable>();
 
         /// <summary>
-        /// Creates a new <see cref="ButtonEventManager"/>.
+        /// A function to retrieve the input queue.
         /// </summary>
-        /// <param name="getInputQueueFunc">A function that is used to retrieve the input queue.</param>
-        protected ButtonEventManager([CanBeNull] Func<IEnumerable<Drawable>> getInputQueueFunc)
-        {
-            this.getInputQueueFunc = getInputQueueFunc;
-        }
+        [NotNull]
+        internal Func<IEnumerable<Drawable>> GetInputQueue;
 
         /// <summary>
         /// Handles the button state changing.
