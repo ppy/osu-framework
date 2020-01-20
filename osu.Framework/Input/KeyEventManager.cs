@@ -12,14 +12,14 @@ namespace osu.Framework.Input
     /// <summary>
     /// Manages state events for a single key.
     /// </summary>
-    public class KeyButtonEventManager : ButtonEventManager
+    public class KeyEventManager : ButtonEventManager
     {
         /// <summary>
         /// The key this manager manages.
         /// </summary>
         public readonly Key Key;
 
-        public KeyButtonEventManager(Key key)
+        public KeyEventManager(Key key)
         {
             Key = key;
         }

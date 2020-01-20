@@ -115,8 +115,7 @@ namespace osu.Framework.Input
         public IEnumerable<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
-
-        private readonly Dictionary<Key, KeyButtonEventManager> keyButtonEventManagers = new Dictionary<Key, KeyButtonEventManager>();
+        private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
 
         protected InputManager()
         {
@@ -167,9 +166,19 @@ namespace osu.Framework.Input
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
             mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
 
-        protected virtual KeyButtonEventManager CreateButtonManagerFor(Key key) => new KeyButtonEventManager(key);
+        /// <summary>
+        /// Create a <see cref="KeyEventManager"/> for a specified key.
+        /// </summary>
+        /// <param name="key">The key to be handled by the returned manager.</param>
+        /// <returns>The <see cref="KeyEventManager"/>.</returns>
+        protected virtual KeyEventManager CreateButtonManagerFor(Key key) => new KeyEventManager(key);
 
-        public KeyButtonEventManager GetButtonEventMangerFor(Key key)
+        /// <summary>
+        /// Get the <see cref="KeyEventManager"/> responsible for a specified key.
+        /// </summary>
+        /// <param name="key">The key find the manager for.</param>
+        /// <returns>The <see cref="KeyEventManager"/>.</returns>
+        public KeyEventManager GetButtonEventMangerFor(Key key)
         {
             if (keyButtonEventManagers.TryGetValue(key, out var existing))
                 return existing;
