@@ -17,13 +17,8 @@ namespace osu.Framework.Input
     /// <summary>
     /// Manages state and events (click, drag and double-click) for a single mouse button.
     /// </summary>
-    public abstract class MouseButtonEventManager : ButtonEventManager
+    public abstract class MouseButtonEventManager : ButtonEventManager<MouseButton>
     {
-        /// <summary>
-        /// The mouse button this manager manages.
-        /// </summary>
-        public readonly MouseButton Button;
-
         /// <summary>
         /// Used for requesting focus from click.
         /// </summary>
@@ -50,8 +45,8 @@ namespace osu.Framework.Input
         public abstract bool ChangeFocusOnClick { get; }
 
         protected MouseButtonEventManager(MouseButton button)
+            : base(button)
         {
-            Button = button;
         }
 
         /// <summary>
