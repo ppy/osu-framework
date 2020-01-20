@@ -8,16 +8,11 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input
 {
-    public class JoystickButtonEventManager : ButtonEventManager
+    public class JoystickButtonEventManager : ButtonEventManager<JoystickButton>
     {
-        /// <summary>
-        /// The joystick button this manager manages.
-        /// </summary>
-        public readonly JoystickButton Button;
-
         public JoystickButtonEventManager(JoystickButton button)
+            : base(button)
         {
-            Button = button;
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new JoystickPressEvent(state, Button));
