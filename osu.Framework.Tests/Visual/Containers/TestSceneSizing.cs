@@ -1163,10 +1163,6 @@ namespace osu.Framework.Tests.Visual.Containers
             Position += e.Delta;
         }
 
-        protected override void OnDragEnd(DragEndEvent e)
-        {
-        }
-
         protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
 
         public InfofulBox()
