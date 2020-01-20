@@ -105,7 +105,7 @@ namespace osu.Framework.Input
             }
         }
 
-        protected override Drawable HandleButtonDownInternal(InputState state, List<Drawable> targets)
+        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
             Trace.Assert(state.Mouse.IsPressed(Button));
 
@@ -127,7 +127,7 @@ namespace osu.Framework.Input
             return handledBy;
         }
 
-        protected override void HandleButtonUpInternal(InputState state, List<Drawable> targets)
+        protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
             Trace.Assert(!state.Mouse.IsPressed(Button));
 
