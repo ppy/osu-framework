@@ -178,7 +178,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
             AddAssert("Received the key", () =>
                 focusBottomLeft.KeyDownCount == 1 && focusBottomLeft.KeyUpCount == 1 &&
-                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 1);
+                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 0);
             AddStep("Press a joystick (non blocking)", () =>
             {
                 InputManager.PressJoystickButton(JoystickButton.Button1);
