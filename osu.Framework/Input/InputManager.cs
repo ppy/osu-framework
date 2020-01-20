@@ -123,9 +123,9 @@ namespace osu.Framework.Input
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
-                var manager = CreateButtonManagerFor(button);
+                var manager = CreateButtonManagerFor(button, () => PositionalInputQueue);
                 manager.RequestFocus = ChangeFocusFromClick;
-                manager.GetPositionalInputQueue = () => PositionalInputQueue;
+                manager.GetCurrentTime = () => Time.Current;
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -144,15 +144,15 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="button">The button to be handled by the returned manager.</param>
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
-        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button)
+        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
         {
             switch (button)
             {
                 case MouseButton.Left:
-                    return new MouseLeftButtonEventManager(button);
+                    return new MouseLeftButtonEventManager(button, getInputQueueFunc);
 
                 default:
-                    return new MouseMinorButtonEventManager(button);
+                    return new MouseMinorButtonEventManager(button, getInputQueueFunc);
             }
         }
 
@@ -499,7 +499,7 @@ namespace osu.Framework.Input
         protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
-                manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
+                manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
@@ -610,8 +610,8 @@ namespace osu.Framework.Input
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
         {
-            public MouseLeftButtonEventManager(MouseButton button)
-                : base(button)
+            public MouseLeftButtonEventManager(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
+                : base(button, getInputQueueFunc)
             {
             }
 
@@ -624,8 +624,8 @@ namespace osu.Framework.Input
 
         private class MouseMinorButtonEventManager : MouseButtonEventManager
         {
-            public MouseMinorButtonEventManager(MouseButton button)
-                : base(button)
+            public MouseMinorButtonEventManager(MouseButton button, Func<IEnumerable<Drawable>> getInputQueueFunc)
+                : base(button, getInputQueueFunc)
             {
             }
 
