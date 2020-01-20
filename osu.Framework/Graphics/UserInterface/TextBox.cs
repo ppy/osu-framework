@@ -713,12 +713,12 @@ namespace osu.Framework.Graphics.UserInterface
             lastCommitText = text;
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.HasAnyKeyPressed)
                 EndConsumingText();
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         protected override bool OnDrag(DragEvent e)

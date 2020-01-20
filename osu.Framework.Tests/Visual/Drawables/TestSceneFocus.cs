@@ -329,10 +329,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return true;
             }
 
-            protected override bool OnKeyUp(KeyUpEvent e)
+            protected override void OnKeyUp(KeyUpEvent e)
             {
                 ++KeyUpCount;
-                return base.OnKeyUp(e);
+                base.OnKeyUp(e);
             }
 
             protected override bool OnJoystickPress(JoystickPressEvent e)

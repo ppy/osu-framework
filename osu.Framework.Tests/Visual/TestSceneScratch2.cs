@@ -54,10 +54,9 @@ namespace osu.Framework.Tests.Visual
                 return true;
             }
 
-            protected override bool OnKeyUp(KeyUpEvent e)
+            protected override void OnKeyUp(KeyUpEvent e)
             {
                 UpReceived = true;
-                return true;
             }
         }
     }

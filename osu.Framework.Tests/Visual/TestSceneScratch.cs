@@ -77,14 +77,6 @@ namespace osu.Framework.Tests.Visual
                 return true;
             }
 
-            protected override bool OnKeyUp(KeyUpEvent e)
-            {
-                if (!IsHovered)
-                    return false;
-
-                return !keybindings;
-            }
-
             public bool OnPressed(TestKeyBinding action)
             {
                 if (!keybindings)
