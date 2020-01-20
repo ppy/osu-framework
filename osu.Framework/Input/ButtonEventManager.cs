@@ -34,7 +34,6 @@ namespace osu.Framework.Input
         /// <summary>
         /// A function to retrieve the input queue.
         /// </summary>
-        [NotNull]
         internal Func<IEnumerable<Drawable>> GetInputQueue;
 
         /// <summary>
