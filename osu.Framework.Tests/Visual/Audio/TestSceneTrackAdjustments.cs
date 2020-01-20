@@ -205,10 +205,6 @@ namespace osu.Framework.Tests.Visual.Audio
                 spinner.Rotation += (float)(audio.AggregateFrequency.Value * Clock.ElapsedFrameTime);
             }
 
-            protected override void OnDragEnd(DragEndEvent e)
-            {
-            }
-
             protected override bool OnDragStart(DragStartEvent e) => true;
         }
     }
