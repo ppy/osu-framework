@@ -205,8 +205,8 @@ namespace osu.Framework.Tests.Bindables
 
             // value propagates everywhere
             Assert.AreEqual(original.Value, 2);
-            Assert.AreEqual(original.Value, leased.Value);
             Assert.AreEqual(original.Value, copy.Value);
+            Assert.AreEqual(original.Value, leased.Value);
 
             // bound copies of the lease still allow setting value / disabled.
             var leasedCopy = leased.GetBoundCopy();
@@ -214,8 +214,9 @@ namespace osu.Framework.Tests.Bindables
             leasedCopy.Value = 3;
 
             Assert.AreEqual(original.Value, 3);
-            Assert.AreEqual(original.Value, leased.Value);
             Assert.AreEqual(original.Value, copy.Value);
+            Assert.AreEqual(original.Value, leased.Value);
+            Assert.AreEqual(original.Value, leasedCopy.Value);
 
             leasedCopy.Disabled = false;
             leasedCopy.Disabled = true;
@@ -265,25 +266,19 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestBindingToLeased()
+        public void TestLeasedBoundToMultiple()
         {
             var leased = original.BeginLease(false);
 
-            var copy1 = leased.GetBoundCopy();
-            copy1.Value = 2;
-            Assert.AreEqual(original.Value, 2);
-            Assert.AreEqual(original.Value, leased.Value);
-            Assert.AreEqual(original.Value, copy1.Value);
-
-            var copy2 = new Bindable<int>();
-            leased.BindTo(copy2);
-            copy2.Value = 3;
-            Assert.AreEqual(copy2.Value, 3);
-            Assert.AreEqual(copy2.Value, leased.Value);
+            var another = new Bindable<int>();
+            leased.BindTo(another);
+            another.Value = 3;
+            Assert.AreEqual(another.Value, 3);
+            Assert.AreEqual(another.Value, leased.Value);
 
             leased.Value = 4;
             Assert.AreEqual(original.Value, 4);
-            Assert.AreEqual(original.Value, copy2.Value);
+            Assert.AreEqual(another.Value, 4);
             Assert.AreEqual(original.Value, leased.Value);
         }
     }
