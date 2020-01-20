@@ -16,8 +16,13 @@ namespace osu.Framework.Input
     /// <summary>
     /// Manages state and events for a single button.
     /// </summary>
-    public abstract class ButtonEventManager
+    public abstract class ButtonEventManager<TButton>
     {
+        /// <summary>
+        /// The button this <see cref="ButtonEventManager{TButton}"/> manages.
+        /// </summary>
+        public readonly TButton Button;
+
         /// <summary>
         /// The input queue for propagating button up events.
         /// This is created from <see cref="InputQueue"/> when the the button is pressed.
@@ -35,6 +40,11 @@ namespace osu.Framework.Input
         /// A function to retrieve the input queue.
         /// </summary>
         internal Func<IEnumerable<Drawable>> GetInputQueue;
+
+        protected ButtonEventManager(TButton button)
+        {
+            Button = button;
+        }
 
         /// <summary>
         /// Handles the button state changing.
