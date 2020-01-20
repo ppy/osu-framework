@@ -116,6 +116,8 @@ namespace osu.Framework.Input
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
+        private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
+
         protected InputManager()
         {
             CurrentState = CreateInitialState();
@@ -164,6 +166,28 @@ namespace osu.Framework.Input
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
             mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
+
+        /// <summary>
+        /// Create a <see cref="JoystickButtonEventManager"/> for a specified joystick button.
+        /// </summary>
+        /// <param name="button">The button to be handled by the returned manager.</param>
+        /// <returns>The <see cref="JoystickButtonEventManager"/>.</returns>
+        protected virtual JoystickButtonEventManager CreateButtonManagerFor(JoystickButton button) => new JoystickButtonEventManager(button);
+
+        /// <summary>
+        /// Get the <see cref="JoystickButtonEventManager"/> responsible for a specified joystick button.
+        /// </summary>
+        /// <param name="button">The button find the manager for.</param>
+        /// <returns>The <see cref="JoystickButtonEventManager"/>.</returns>
+        public JoystickButtonEventManager GetButtonEventManagerFor(JoystickButton button)
+        {
+            if (joystickButtonEventManagers.TryGetValue(button, out var existing))
+                return existing;
+
+            var manager = CreateButtonManagerFor(button);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return joystickButtonEventManagers[button] = manager;
+        }
 
         /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
@@ -432,20 +456,7 @@ namespace osu.Framework.Input
         }
 
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
-        {
-            var state = joystickButtonStateChange.State;
-            var button = joystickButtonStateChange.Button;
-            var kind = joystickButtonStateChange.Kind;
-
-            if (kind == ButtonStateChangeKind.Pressed)
-            {
-                handleJoystickPress(state, button);
-            }
-            else
-            {
-                handleJoystickRelease(state, button);
-            }
-        }
+            => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
@@ -510,10 +521,6 @@ namespace osu.Framework.Input
         private bool handleKeyDown(InputState state, Key key, bool repeat) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
 
         private bool handleKeyUp(InputState state, Key key) => PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
-
-        private bool handleJoystickPress(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
-
-        private bool handleJoystickRelease(InputState state, JoystickButton button) => PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
