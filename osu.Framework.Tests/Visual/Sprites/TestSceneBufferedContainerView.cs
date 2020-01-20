@@ -124,13 +124,15 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Position += e.Delta;
-                return true;
             }
 
-            protected override bool OnDragEnd(DragEndEvent e) => true;
+            protected override void OnDragEnd(DragEndEvent e)
+            {
+            }
+
             protected override bool OnDragStart(DragStartEvent e) => true;
         }
     }

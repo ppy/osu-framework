@@ -235,13 +235,14 @@ namespace osu.Framework.Tests.Visual.Containers
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Position += e.Delta;
-                return true;
             }
 
-            protected override bool OnDragEnd(DragEndEvent e) => true;
+            protected override void OnDragEnd(DragEndEvent e)
+            {
+            }
 
             protected override bool OnDragStart(DragStartEvent e) => true;
         }

@@ -1141,15 +1141,16 @@ namespace osu.Framework.Tests.Visual.Containers
 
         public bool AllowDrag = true;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
-            if (!AllowDrag) return false;
+            if (!AllowDrag) return;
 
             Position += e.Delta;
-            return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e) => true;
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+        }
 
         protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
     }
@@ -1159,15 +1160,16 @@ namespace osu.Framework.Tests.Visual.Containers
         public bool Chameleon = false;
         public bool AllowDrag = true;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
-            if (!AllowDrag) return false;
+            if (!AllowDrag) return;
 
             Position += e.Delta;
-            return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e) => true;
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+        }
 
         protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
 
