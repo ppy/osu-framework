@@ -60,8 +60,6 @@ namespace osu.Framework.Tests.Input
 
         private class InputReceptor : Box, IKeyBindingHandler<TestKeyBinding>
         {
-            public bool DownReceived { get; private set; }
-            public bool UpReceived { get; private set; }
             public bool PressedReceived { get; private set; }
             public bool ReleasedReceived { get; private set; }
 
@@ -82,13 +80,11 @@ namespace osu.Framework.Tests.Input
                 if (!IsHovered)
                     return false;
 
-                DownReceived = true;
                 return true;
             }
 
             protected override void OnKeyUp(KeyUpEvent e)
             {
-                UpReceived = true;
             }
 
             public bool OnPressed(TestKeyBinding action)
