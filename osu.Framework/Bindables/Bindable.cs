@@ -122,7 +122,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        protected void SetDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
