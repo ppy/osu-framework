@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
@@ -450,6 +451,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             text = text.Remove(start, count);
 
+            // Reorder characters depth after removal to avoid ordering issues with newly added characters.
+            for (int i = 0; i < TextFlow.Count; i++)
+                TextFlow.ChangeChildDepth(TextFlow[i], -i);
+
             if (selectionLength > 0)
                 selectionStart = selectionEnd = selectionLeft;
             else
@@ -483,6 +488,9 @@ namespace osu.Framework.Graphics.UserInterface
             // Add the character
             Drawable ch = GetDrawableCharacter(c);
             ch.Depth = -selectionLeft;
+
+            // Assert no existing character has same depth as this to avoid ordering issues on a text box.
+            Trace.Assert(TextFlow.All(d => d.Depth != ch.Depth), $"The {nameof(TextFlow)} has more than one character with the same depth.");
 
             TextFlow.Add(ch);
 
