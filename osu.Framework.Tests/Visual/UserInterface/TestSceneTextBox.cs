@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -323,11 +324,114 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text is empty", () => textBox.Text.Length == 0);
         }
 
+        /// <summary>
+        /// Removes first 2 characters and append them, this tests layout positioning of the characters in the text box.
+        /// </summary>
+        [Test]
+        public void TestRemoveAndAppend()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert word", () => textBox.InsertString("eventext"));
+            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("append string", () => textBox.AppendString("ev"));
+            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("append string", () => textBox.AppendString("en"));
+            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("append string", () => textBox.AppendString("te"));
+            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("append string", () => textBox.AppendString("xt"));
+            AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
+
+            void remove2FirstLetters()
+            {
+                textBox.MoveToStart();
+                textBox.DeleteNextCharacter();
+                textBox.DeleteNextCharacter();
+            }
+        }
+
+        /// <summary>
+        /// Removes last 2 characters and prepend them, this tests layout positioning of the characters in the text box.
+        /// </summary>
+        [Test]
+        public void TestRemoveAndPrepend()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert word", () => textBox.InsertString("eventext"));
+            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("prepend string", () => textBox.PrependString("xt"));
+            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("prepend string", () => textBox.PrependString("te"));
+            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("prepend string", () => textBox.PrependString("en"));
+            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("prepend string", () => textBox.PrependString("ev"));
+            AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
+
+            void remove2LastLetters()
+            {
+                textBox.MoveToEnd();
+                textBox.DeletePreviousCharacter();
+                textBox.DeletePreviousCharacter();
+            }
+        }
+
         private class InsertableTextBox : BasicTextBox
         {
+            /// <summary>
+            /// Returns the shown-in-screen text.
+            /// </summary>
+            public string FlowingText => string.Concat(TextFlow.FlowingChildren.OfType<FallingDownContainer>().Select(c => c.OfType<SpriteText>().Single().Text.ToString()[0]));
+
             public new void InsertString(string text) => base.InsertString(text);
 
+            public void PrependString(string text)
+            {
+                MoveToStart();
+                InsertString(text);
+            }
+
+            public void AppendString(string text)
+            {
+                MoveToEnd();
+                InsertString(text);
+            }
+
             public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
+            public void MoveToEnd() => OnPressed(new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move));
+
+            public void DeletePreviousCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete));
+            public void DeleteNextCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete));
 
             public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
             public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
