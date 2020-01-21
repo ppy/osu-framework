@@ -347,22 +347,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert word", () => textBox.InsertString("eventext"));
-            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
             AddStep("append string", () => textBox.AppendString("ev"));
-            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
             AddStep("append string", () => textBox.AppendString("en"));
-            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
             AddStep("append string", () => textBox.AppendString("te"));
-            AddStep("remove 2 letters", remove2FirstLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
             AddStep("append string", () => textBox.AppendString("xt"));
             AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
-
-            void remove2FirstLetters()
-            {
-                textBox.MoveToStart();
-                textBox.DeleteNextCharacter();
-                textBox.DeleteNextCharacter();
-            }
         }
 
         /// <summary>
@@ -388,22 +381,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert word", () => textBox.InsertString("eventext"));
-            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
             AddStep("prepend string", () => textBox.PrependString("xt"));
-            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
             AddStep("prepend string", () => textBox.PrependString("te"));
-            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
             AddStep("prepend string", () => textBox.PrependString("en"));
-            AddStep("remove 2 letters", remove2LastLetters);
+            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
             AddStep("prepend string", () => textBox.PrependString("ev"));
             AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
-
-            void remove2LastLetters()
-            {
-                textBox.MoveToEnd();
-                textBox.DeletePreviousCharacter();
-                textBox.DeletePreviousCharacter();
-            }
         }
 
         private class InsertableTextBox : BasicTextBox
@@ -425,6 +411,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 MoveToEnd();
                 InsertString(text);
+            }
+
+            public void RemoveFirstCharacters(int count)
+            {
+                MoveToStart();
+
+                for (int i = 0; i < count; i++)
+                    DeleteNextCharacter();
+            }
+
+            public void RemoveLastCharacters(int count)
+            {
+                MoveToEnd();
+
+                for (int i = 0; i < count; i++)
+                    DeletePreviousCharacter();
             }
 
             public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
