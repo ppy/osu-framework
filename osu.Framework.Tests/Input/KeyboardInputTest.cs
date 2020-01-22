@@ -75,10 +75,10 @@ namespace osu.Framework.Tests.Input
                 return KeyDown?.Invoke() ?? false;
             }
 
-            protected override bool OnKeyUp(KeyUpEvent e)
+            protected override void OnKeyUp(KeyUpEvent e)
             {
                 UpReceived = true;
-                return KeyUp?.Invoke() ?? false;
+                KeyUp?.Invoke();
             }
         }
     }
