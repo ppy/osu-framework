@@ -452,7 +452,7 @@ namespace osu.Framework.Graphics.UserInterface
             text = text.Remove(start, count);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
-            for (int i = 0; i < TextFlow.Count; i++)
+            for (int i = start; i < TextFlow.Count; i++)
                 TextFlow.ChangeChildDepth(TextFlow[i], -i);
 
             if (selectionLength > 0)
