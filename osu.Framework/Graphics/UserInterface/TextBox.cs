@@ -489,9 +489,6 @@ namespace osu.Framework.Graphics.UserInterface
             Drawable ch = GetDrawableCharacter(c);
             ch.Depth = -selectionLeft;
 
-            // Assert no existing character has same depth as this to avoid ordering issues on a text box.
-            Trace.Assert(TextFlow.All(d => d.Depth != ch.Depth), $"The {nameof(TextFlow)} has more than one character with the same depth.");
-
             TextFlow.Add(ch);
 
             // Add back all the previously removed characters
