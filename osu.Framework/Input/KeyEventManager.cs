@@ -12,28 +12,23 @@ namespace osu.Framework.Input
     /// <summary>
     /// Manages state events for a single key.
     /// </summary>
-    public class KeyEventManager : ButtonEventManager
+    public class KeyEventManager : ButtonEventManager<Key>
     {
-        /// <summary>
-        /// The key this manager manages.
-        /// </summary>
-        public readonly Key Key;
-
         public KeyEventManager(Key key)
+            : base(key)
         {
-            Key = key;
         }
 
-        public void HandleRepeat(InputState state) => PropagateButtonEvent(ButtonDownInputQueue, new KeyDownEvent(state, Key, true));
+        public void HandleRepeat(InputState state) => PropagateButtonEvent(ButtonDownInputQueue, new KeyDownEvent(state, Button, true));
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Key));
+        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new KeyDownEvent(state, Button));
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
             if (targets == null)
                 return;
 
-            PropagateButtonEvent(targets, new KeyUpEvent(state, Key));
+            PropagateButtonEvent(targets, new KeyUpEvent(state, Button));
         }
     }
 }

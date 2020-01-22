@@ -721,7 +721,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnKeyUp(e);
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
 
@@ -751,7 +751,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (text.Length == 0) return true;
+                if (text.Length == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
@@ -759,8 +759,6 @@ namespace osu.Framework.Graphics.UserInterface
 
                 cursorAndLayout.Invalidate();
             }
-
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -825,10 +823,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e)
+        protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
-            return true;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
