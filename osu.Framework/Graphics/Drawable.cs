@@ -1928,36 +1928,146 @@ namespace osu.Framework.Graphics
 
         #region Individual event handlers
 
+        /// <summary>
+        /// An event that occurs every time the mouse is moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse starts hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="HoverEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnHover(HoverEvent e) => Handle(e);
 
-        protected virtual void OnHoverLost(HoverLostEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when the mouse stops hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnHover"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="HoverLostEvent"/> containing information about the input event.</param>
+        protected virtual void OnHoverLost(HoverLostEvent e) => Handle(e);
 
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is pressed on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> that was pressed on this <see cref="Drawable"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnMouseDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="MouseUpEvent"/> containing information about the input event.</param>
         protected virtual void OnMouseUp(MouseUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This can only be invoked if <see cref="OnMouseDown"/> was invoked, but invocation is not guaranteed.<br />
+        /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
+        /// </remarks>
+        /// <param name="e">The <see cref="ClickEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is double-clicked on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnClick"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DoubleClickEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the next <see cref="OnClick"/> event from occurring.</returns>
         protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse starts dragging on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="DragEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time the mouse moves while dragging this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnDragStart"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DragEvent"/> containing information about the input event.</param>
         protected virtual void OnDrag(DragEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse stops dragging this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnDragStart"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DragEndEvent"/> containing information about the input event.</param>
         protected virtual void OnDragEnd(DragEndEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse wheel is scrolled on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="ScrollEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
 
-        protected virtual void OnFocus(FocusEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when this <see cref="Drawable"/> gains focus.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from both <see cref="AcceptsFocus"/> and a previous <see cref="OnClick"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="FocusEvent"/> containing information about the input event.</param>
+        protected virtual void OnFocus(FocusEvent e) => Handle(e);
 
-        protected virtual void OnFocusLost(FocusLostEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when this <see cref="Drawable"/> loses focus.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that previously had focus (<see cref="OnFocus"/> was invoked).
+        /// </remarks>
+        /// <param name="e">The <see cref="FocusLostEvent"/> containing information about the input event.</param>
+        protected virtual void OnFocusLost(FocusLostEvent e) => Handle(e);
 
+        /// <summary>
+        /// An event that occurs when a <see cref="Key"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="KeyDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Key"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnKeyDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="KeyUpEvent"/> containing information about the input event.</param>
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="JoystickPressEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickButton"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnJoystickPress"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="JoystickReleaseEvent"/> containing information about the input event.</param>
         protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
         #endregion
