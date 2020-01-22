@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Audio
             private void updateLocal(ValueChangedEvent<double> obj) =>
                 textLocal.Text = $"local: vol {audio.Volume.Value:F1} freq {audio.Frequency.Value:F1} tempo {audio.Tempo.Value:F1} bal {audio.Balance.Value:F1}";
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Position += e.Delta;
 
@@ -191,7 +191,6 @@ namespace osu.Framework.Tests.Visual.Audio
                     audio.Tempo.Value = 1 - Y / 100f;
                 else
                     audio.Frequency.Value = 1 - Y / 100f;
-                return true;
             }
 
             protected override bool OnScroll(ScrollEvent e)
@@ -205,8 +204,6 @@ namespace osu.Framework.Tests.Visual.Audio
                 base.Update();
                 spinner.Rotation += (float)(audio.AggregateFrequency.Value * Clock.ElapsedFrameTime);
             }
-
-            protected override bool OnDragEnd(DragEndEvent e) => true;
 
             protected override bool OnDragStart(DragStartEvent e) => true;
         }
