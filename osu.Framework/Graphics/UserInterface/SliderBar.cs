@@ -128,10 +128,9 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             handleMouseInput(e);
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -148,11 +147,10 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             handleMouseInput(e);
             commit();
-            return true;
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
