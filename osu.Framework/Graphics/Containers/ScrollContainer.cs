@@ -623,6 +623,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public void OnReleased(PlatformAction action)
+        {
+        }
     }
 }

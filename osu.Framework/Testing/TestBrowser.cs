@@ -389,7 +389,9 @@ namespace osu.Framework.Testing
             return false;
         }
 
-        public bool OnReleased(TestBrowserAction action) => false;
+        public void OnReleased(TestBrowserAction action)
+        {
+        }
 
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {

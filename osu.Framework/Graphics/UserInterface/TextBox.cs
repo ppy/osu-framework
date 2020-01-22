@@ -264,7 +264,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public virtual bool OnReleased(PlatformAction action) => false;
+        public virtual void OnReleased(PlatformAction action)
+        {
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
