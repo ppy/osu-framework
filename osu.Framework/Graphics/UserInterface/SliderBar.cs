@@ -128,10 +128,9 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             handleMouseInput(e);
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -148,11 +147,10 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             handleMouseInput(e);
             commit();
-            return true;
         }
 
         protected override bool OnKeyDown(KeyDownEvent e)
@@ -180,12 +178,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (e.Key == Key.Left || e.Key == Key.Right)
-                return commit();
-
-            return false;
+                commit();
         }
 
         private bool uncommittedChanges;

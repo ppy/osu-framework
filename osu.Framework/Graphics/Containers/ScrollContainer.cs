@@ -284,7 +284,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool DragBlocksClick => dragBlocksClick;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -314,10 +314,9 @@ namespace osu.Framework.Graphics.Containers
             dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
             offset(scrollOffset, false);
-            return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -326,7 +325,7 @@ namespace osu.Framework.Graphics.Containers
             IsDragging = false;
 
             if (averageDragTime <= 0.0)
-                return true;
+                return;
 
             double velocity = averageDragDelta / averageDragTime;
 
@@ -341,8 +340,6 @@ namespace osu.Framework.Graphics.Containers
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
             offset((float)distance, true, DistanceDecayDrag);
-
-            return true;
         }
 
         protected override bool OnScroll(ScrollEvent e)
@@ -596,10 +593,9 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
-                return true;
             }
         }
 
