@@ -83,7 +83,7 @@ namespace osu.Framework.Bindables
 
                 if (EqualityComparer<T>.Default.Equals(Default, value)) return;
 
-                SetDefault(base.Default, value, true);
+                SetDefaultValue(base.Default, value, true);
             }
         }
 
