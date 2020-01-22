@@ -1877,7 +1877,8 @@ namespace osu.Framework.Graphics
                     return OnClick(click);
 
                 case DoubleClickEvent doubleClick:
-                    return OnDoubleClick(doubleClick);
+                    OnDoubleClick(doubleClick);
+                    return false;
 
                 case DragStartEvent dragStart:
                     return OnDragStart(dragStart);
@@ -1939,7 +1940,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
         protected virtual void OnMouseUp(MouseUpEvent e) => Handle(e);
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
-        protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
+        protected virtual void OnDoubleClick(DoubleClickEvent e) => Handle(e);
         protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
         protected virtual void OnDrag(DragEvent e) => Handle(e);
         protected virtual void OnDragEnd(DragEndEvent e) => Handle(e);

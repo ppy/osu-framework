@@ -311,10 +311,9 @@ namespace osu.Framework.Graphics.Visualisation
             return true;
         }
 
-        protected override bool OnDoubleClick(DoubleClickEvent e)
+        protected override void OnDoubleClick(DoubleClickEvent e)
         {
             RequestTarget?.Invoke(Target);
-            return true;
         }
 
         private bool isExpanded = true;

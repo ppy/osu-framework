@@ -772,11 +772,11 @@ namespace osu.Framework.Graphics.UserInterface
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDoubleClick(DoubleClickEvent e)
+        protected override void OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.ImeActive == true) return;
 
-            if (text.Length == 0) return true;
+            if (text.Length == 0) return;
 
             if (AllowClipboardExport)
             {
@@ -798,7 +798,6 @@ namespace osu.Framework.Graphics.UserInterface
             doubleClickWord = new[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         private static int findSeparatorIndex(string input, int searchPos, int direction)
