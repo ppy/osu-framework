@@ -72,10 +72,10 @@ namespace osu.Framework.Tests.Input
                 return Press?.Invoke() ?? false;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 ReleaseReceived = true;
-                return Release?.Invoke() ?? false;
+                Release?.Invoke();
             }
         }
     }

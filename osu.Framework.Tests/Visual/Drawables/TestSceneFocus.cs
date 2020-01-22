@@ -341,10 +341,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return base.OnJoystickPress(e);
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 ++JoystickReleaseCount;
-                return base.OnJoystickRelease(e);
+                base.OnJoystickRelease(e);
             }
         }
     }

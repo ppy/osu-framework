@@ -1912,7 +1912,8 @@ namespace osu.Framework.Graphics
                     return OnJoystickPress(joystickPress);
 
                 case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease);
+                    OnJoystickRelease(joystickRelease);
+                    return false;
 
                 default:
                     return Handle(e);
@@ -1957,7 +1958,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
-        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+        protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
         #endregion
 
