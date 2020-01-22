@@ -187,7 +187,7 @@ namespace osu.Framework.Testing.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     switch (e.Button)
                     {
@@ -201,7 +201,7 @@ namespace osu.Framework.Testing.Input
                     }
 
                     updateBorder(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 protected override bool OnScroll(ScrollEvent e)
