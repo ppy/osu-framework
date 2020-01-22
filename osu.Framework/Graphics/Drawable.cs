@@ -1870,7 +1870,8 @@ namespace osu.Framework.Graphics
                     return OnMouseDown(mouseDown);
 
                 case MouseUpEvent mouseUp:
-                    return OnMouseUp(mouseUp);
+                    OnMouseUp(mouseUp);
+                    return false;
 
                 case ClickEvent click:
                     return OnClick(click);
@@ -1882,10 +1883,12 @@ namespace osu.Framework.Graphics
                     return OnDragStart(dragStart);
 
                 case DragEvent drag:
-                    return OnDrag(drag);
+                    OnDrag(drag);
+                    return false;
 
                 case DragEndEvent dragEnd:
-                    return OnDragEnd(dragEnd);
+                    OnDragEnd(dragEnd);
+                    return false;
 
                 case ScrollEvent scroll:
                     return OnScroll(scroll);
@@ -1902,13 +1905,15 @@ namespace osu.Framework.Graphics
                     return OnKeyDown(keyDown);
 
                 case KeyUpEvent keyUp:
-                    return OnKeyUp(keyUp);
+                    OnKeyUp(keyUp);
+                    return false;
 
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
                 case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease);
+                    OnJoystickRelease(joystickRelease);
+                    return false;
 
                 default:
                     return Handle(e);
@@ -1932,12 +1937,12 @@ namespace osu.Framework.Graphics
         }
 
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
-        protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
+        protected virtual void OnMouseUp(MouseUpEvent e) => Handle(e);
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
         protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
         protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
-        protected virtual bool OnDrag(DragEvent e) => Handle(e);
-        protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
+        protected virtual void OnDrag(DragEvent e) => Handle(e);
+        protected virtual void OnDragEnd(DragEndEvent e) => Handle(e);
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
 
         protected virtual void OnFocus(FocusEvent e)
@@ -1951,9 +1956,9 @@ namespace osu.Framework.Graphics
         }
 
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
-        protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
+        protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
-        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+        protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
         #endregion
 

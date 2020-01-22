@@ -115,7 +115,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public void OnReleased(PlatformAction action)
+        {
+        }
 
         public enum DropdownSelectionAction
         {

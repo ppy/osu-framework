@@ -255,7 +255,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             if (changeText)
                 AddStep("insert more text", () => textBox.InsertString(" Plus More"));
 
-            AddStep("commit via enter", () => InputManager.PressKey(Key.Enter));
+            AddStep("commit via enter", () =>
+            {
+                InputManager.PressKey(Key.Enter);
+                InputManager.ReleaseKey(Key.Enter);
+            });
 
             int expectedCount = 1 + (commitOnFocusLost ? 1 : 0);
 

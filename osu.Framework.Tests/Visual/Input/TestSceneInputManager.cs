@@ -128,11 +128,11 @@ namespace osu.Framework.Tests.Visual.Input
 
             public int MouseUpCount;
 
-            protected override bool OnMouseUp(MouseUpEvent e)
+            protected override void OnMouseUp(MouseUpEvent e)
             {
                 ++MouseUpCount;
                 onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={e.MouseDownPosition}";
-                return base.OnMouseUp(e);
+                base.OnMouseUp(e);
             }
 
             public int MouseMoveCount;
