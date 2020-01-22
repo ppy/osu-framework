@@ -99,10 +99,12 @@ namespace osu.Framework.Tests.Input
                 return true;
             }
 
-            public bool OnReleased(TestKeyBinding action)
+            public void OnReleased(TestKeyBinding action)
             {
+                if (!keybindings)
+                    return;
+
                 ReleasedReceived = true;
-                return keybindings;
             }
         }
 

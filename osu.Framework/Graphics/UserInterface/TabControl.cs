@@ -359,7 +359,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public void OnReleased(PlatformAction action)
+        {
+        }
 
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
