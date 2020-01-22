@@ -454,7 +454,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = start; i < TextFlow.Count; i++)
-                TextFlow.ChangeChildDepth(TextFlow[i], -i);
+                TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
             if (selectionLength > 0)
                 selectionStart = selectionEnd = selectionLeft;
@@ -482,13 +482,13 @@ namespace osu.Framework.Graphics.UserInterface
             TextFlow.RemoveRange(charsRight);
 
             // Update their depth to make room for the to-be inserted character.
-            int i = -selectionLeft;
+            int i = selectionLeft;
             foreach (Drawable d in charsRight)
-                d.Depth = --i;
+                d.Depth = getDepthForCharacterIndex(i++);
 
             // Add the character
             Drawable ch = GetDrawableCharacter(c);
-            ch.Depth = -selectionLeft;
+            ch.Depth = getDepthForCharacterIndex(selectionLeft);
 
             TextFlow.Add(ch);
 
@@ -497,6 +497,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             return ch;
         }
+
+        private float getDepthForCharacterIndex(int index) => -index;
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
