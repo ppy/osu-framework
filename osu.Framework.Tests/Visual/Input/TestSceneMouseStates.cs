@@ -600,10 +600,10 @@ namespace osu.Framework.Tests.Visual.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     adjustForMouseDown(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 private void adjustForMouseDown(MouseEvent e)

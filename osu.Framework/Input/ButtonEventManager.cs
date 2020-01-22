@@ -71,11 +71,11 @@ namespace osu.Framework.Input
 
             if (handledBy != null)
             {
+                // only drawables up to the one that handled mouse down should handle mouse up, so remove all subsequent drawables from the queue (for future use).
                 var count = inputQueue.IndexOf(handledBy) + 1;
                 inputQueue.RemoveRange(count, inputQueue.Count - count);
             }
 
-            // only drawables up to the one that handled mouse down should handle mouse up
             ButtonDownInputQueue = inputQueue;
 
             return handledBy != null;
@@ -103,7 +103,7 @@ namespace osu.Framework.Input
         /// Handles the button being released.
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
-        /// <param name="targets">The list of targets that must handle the event.</param>
+        /// <param name="targets">The list of targets that must handle the event. This will contain targets up to the target that handled the button down event.</param>
         protected abstract void HandleButtonUp(InputState state, List<Drawable> targets);
 
         /// <summary>
