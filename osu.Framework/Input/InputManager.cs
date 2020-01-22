@@ -125,7 +125,8 @@ namespace osu.Framework.Input
             {
                 var manager = CreateButtonManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
-                manager.GetPositionalInputQueue = () => PositionalInputQueue;
+                manager.GetInputQueue = () => PositionalInputQueue;
+                manager.GetCurrentTime = () => Time.Current;
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -499,7 +500,7 @@ namespace osu.Framework.Input
         protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
-                manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
+                manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
