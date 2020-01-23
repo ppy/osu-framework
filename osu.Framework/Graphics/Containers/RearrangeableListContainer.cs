@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes all items from this container.
         /// </summary>
-        public void Clear()
+        public void ClearItems()
         {
             ListContainer.Clear();
 
