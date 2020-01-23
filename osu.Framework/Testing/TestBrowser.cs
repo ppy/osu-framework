@@ -12,6 +12,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -219,7 +220,8 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>()
+                                                                         .FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
                                     },
@@ -454,6 +456,16 @@ namespace osu.Framework.Testing
             updateButtons();
 
             var methods = newTest.GetType().GetMethods();
+            var setUpMethods = new List<MethodInfo>();
+
+            foreach (var type in newTest.GetType().EnumerateBaseTypes())
+            {
+                setUpMethods.AddRange(type.GetMethods()
+                                          .Where(m => m.DeclaringType == type && m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0));
+            }
+
+            // To match NUnit, setup methods should be invoked from base classes before derived classes
+            setUpMethods.Reverse();
 
             bool hadTestAttributeTest = false;
 
@@ -494,8 +506,6 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = methods.Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
-
                 if (setUpMethods.Any())
                 {
                     CurrentTest.AddStep(new SetUpStep
