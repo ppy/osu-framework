@@ -40,7 +40,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected RearrangeableListContainer()
         {
-            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer().With(d => d.Rearranged += OnRearrange));
+            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer().With(d =>
+            {
+                d.Direction = FillDirection.Vertical;
+                d.Rearranged += OnRearrange;
+            }));
         }
 
         /// <summary>
@@ -92,10 +96,6 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.X,
             AutoSizeAxes = Axes.Y,
-            LayoutDuration = 160,
-            LayoutEasing = Easing.OutQuint,
-            Direction = FillDirection.Vertical,
-            Spacing = new Vector2(1),
         };
 
         /// <summary>

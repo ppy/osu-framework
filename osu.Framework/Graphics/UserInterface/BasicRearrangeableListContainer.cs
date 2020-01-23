@@ -26,6 +26,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
+        protected override ListFillFlowContainer CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
+        {
+            d.LayoutDuration = 160;
+            d.LayoutEasing = Easing.OutQuint;
+            d.Spacing = new Vector2(1);
+        });
+
         protected override ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new BasicListScrollContainer(flowContainer);
 
         protected override DrawableRearrangeableListItem CreateDrawable(T item) => new BasicDrawableRearrangeableListItem(item)
