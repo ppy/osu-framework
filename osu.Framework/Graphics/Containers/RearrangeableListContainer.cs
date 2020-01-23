@@ -215,12 +215,13 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
                 currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
 
+                if (currentlyDraggedItem == null)
+                    return false;
+
                 cachedFlowingChildren.AddRange(FlowingChildren);
+                DragStart?.Invoke(e);
 
-                if (currentlyDraggedItem != null)
-                    DragStart?.Invoke(e);
-
-                return currentlyDraggedItem != null || base.OnDragStart(e);
+                return true;
             }
 
             protected override void OnDrag(DragEvent e)
@@ -229,8 +230,7 @@ namespace osu.Framework.Graphics.Containers
 
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
-                if (currentlyDraggedItem != null)
-                    Drag?.Invoke(e);
+                Drag?.Invoke(e);
             }
 
             protected override void OnDragEnd(DragEndEvent e)
@@ -240,9 +240,7 @@ namespace osu.Framework.Graphics.Containers
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
                 cachedFlowingChildren.Clear();
-
-                if (currentlyDraggedItem != null)
-                    DragEnd?.Invoke(e);
+                DragEnd?.Invoke(e);
 
                 currentlyDraggedItem = null;
             }
