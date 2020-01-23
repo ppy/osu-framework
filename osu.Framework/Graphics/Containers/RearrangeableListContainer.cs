@@ -40,8 +40,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected RearrangeableListContainer()
         {
-            RelativeSizeAxes = Axes.Both;
-
             InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer().With(d => d.Rearranged += OnRearrange));
         }
 
