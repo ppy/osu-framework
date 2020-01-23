@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -16,16 +16,22 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicRearrangeableListContainer<T> : RearrangeableListContainer<T>
         where T : IEquatable<T>
     {
-        public bool UseDragHandle = true;
+        /// <summary>
+        /// Whether items should display a drag handle.
+        /// </summary>
+        public readonly Bindable<bool> ShowDragHandle = new Bindable<bool>();
 
-        public bool ShowRemoveButton = true;
+        /// <summary>
+        /// Whether items should display a remove button.
+        /// </summary>
+        public readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
         protected override ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new BasicListScrollContainer(flowContainer);
 
         protected override DrawableRearrangeableListItem CreateDrawable(T item) => new BasicDrawableRearrangeableListItem(item)
         {
-            UseDragHandle = UseDragHandle,
-            ShowRemoveButton = ShowRemoveButton,
+            ShowDragHandle = { BindTarget = ShowDragHandle },
+            ShowRemoveButton = { BindTarget = ShowRemoveButton },
             RequestRemoval = d => RemoveItem(d.Model)
         };
 
@@ -45,11 +51,8 @@ namespace osu.Framework.Graphics.UserInterface
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
             internal Action<DrawableRearrangeableListItem> RequestRemoval;
-
-            public bool UseDragHandle = true;
-            public bool ShowRemoveButton = true;
-
-            protected override bool IsDraggableAt(Vector2 screenSpacePos) => (!ShowRemoveButton || !removeButton.IsHovered) && (!UseDragHandle || dragHandle.ReceivePositionalInputAt(screenSpacePos));
+            internal readonly Bindable<bool> ShowDragHandle = new Bindable<bool>();
+            internal readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
             private Drawable dragHandle;
             private Drawable removeButton;
@@ -62,117 +65,90 @@ namespace osu.Framework.Graphics.UserInterface
             [BackgroundDependencyLoader]
             private void load()
             {
-                var contentWidth = 1f;
-
-                if (UseDragHandle)
-                    contentWidth -= 0.05f;
-
-                if (ShowRemoveButton)
-                    contentWidth -= 0.05f;
-
-                var items = new Drawable[]
-                {
-                    new Container
-                    {
-                        Width = contentWidth,
-                        RelativeSizeAxes = Axes.Both,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        CornerRadius = 2,
-                        Masking = true,
-                        Children = new Drawable[]
-                        {
-                            new Box
-                            {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.DarkSlateGray,
-                            },
-                            new SpriteText
-                            {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-
-                                AllowMultiline = false,
-                                Padding = new MarginPadding(5),
-                                Text = Model.ToString(),
-                            }
-                        },
-                    },
-                };
-
-                if (UseDragHandle)
-                {
-                    dragHandle = new Button(FontAwesome.Solid.Bars)
-                    {
-                        Width = 0.05f,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                    };
-
-                    items = items.Prepend(dragHandle).ToArray();
-                }
-
-                if (ShowRemoveButton)
-                {
-                    var drawable = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        CornerRadius = 2,
-                        Masking = true,
-                        Width = 0.05f,
-                        Child = removeButton = new Button(FontAwesome.Solid.Times)
-                        {
-                            Colour = Color4.DarkRed,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                        },
-                    };
-
-                    items = items.Append(drawable).ToArray();
-                }
-
                 Height = 25;
                 RelativeSizeAxes = Axes.X;
-                InternalChild = new FillFlowContainer
+
+                InternalChild = new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Children = items,
+                    Content = new[]
+                    {
+                        new[]
+                        {
+                            dragHandle = new Button(FontAwesome.Solid.Bars)
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                Width = 25,
+                            },
+                            new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                CornerRadius = 2,
+                                Masking = true,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = Color4.DarkSlateGray,
+                                    },
+                                    new SpriteText
+                                    {
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        AllowMultiline = false,
+                                        Padding = new MarginPadding(5),
+                                        Text = Model.ToString(),
+                                    }
+                                },
+                            },
+                            removeButton = new Button(FontAwesome.Solid.Times)
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                Width = 25,
+                                Colour = Color4.DarkRed,
+                                Action = () => RequestRemoval?.Invoke(this)
+                            },
+                        },
+                    },
+                    ColumnDimensions = new[]
+                    {
+                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(GridSizeMode.Distributed),
+                        new Dimension(GridSizeMode.AutoSize),
+                    }
                 };
+
+                ShowDragHandle.BindValueChanged(shown => dragHandle.Alpha = shown.NewValue ? 1 : 0);
+                ShowRemoveButton.BindValueChanged(shown => removeButton.Alpha = shown.NewValue ? 1 : 0);
             }
 
-            protected override bool OnClick(ClickEvent e)
-            {
-                if (removeButton.IsHovered)
-                {
-                    RequestRemoval?.Invoke(this);
-                    return true;
-                }
-
-                return false;
-            }
+            protected override bool IsDraggableAt(Vector2 screenSpacePos) => !removeButton.IsHovered && !dragHandle.IsHovered;
 
             protected internal class Button : Container
             {
+                public Action Action;
+
                 public override bool HandlePositionalInput => true;
 
                 public Button(IconUsage icon)
                 {
                     RelativeSizeAxes = Axes.Both;
-                    InternalChildren = new Drawable[]
+
+                    InternalChild = new SpriteIcon
                     {
-                        new SpriteIcon
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Icon = icon,
-                            Scale = new Vector2(0.5f),
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                        }
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                        Scale = new Vector2(0.5f),
+                        Icon = icon,
                     };
+                }
+
+                protected override bool OnClick(ClickEvent e)
+                {
+                    Action?.Invoke();
+                    return true;
                 }
             }
         }
