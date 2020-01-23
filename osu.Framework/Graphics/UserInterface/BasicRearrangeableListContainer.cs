@@ -13,7 +13,8 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicRearrangeableListContainer : RearrangeableListContainer<BasicRearrangeableItem>
+    public class BasicRearrangeableListContainer<T> : RearrangeableListContainer<T>
+        where T : IEquatable<T>
     {
         public bool UseDragHandle = true;
 
@@ -21,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new BasicListScrollContainer(flowContainer);
 
-        protected override DrawableRearrangeableListItem CreateDrawable(BasicRearrangeableItem item) => new BasicDrawableRearrangeableListItem(item)
+        protected override DrawableRearrangeableListItem CreateDrawable(T item) => new BasicDrawableRearrangeableListItem(item)
         {
             UseDragHandle = UseDragHandle,
             ShowRemoveButton = ShowRemoveButton,
@@ -53,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
             private Drawable dragHandle;
             private Drawable removeButton;
 
-            public BasicDrawableRearrangeableListItem(BasicRearrangeableItem item)
+            public BasicDrawableRearrangeableListItem(T item)
                 : base(item)
             {
             }
@@ -95,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                                 AllowMultiline = false,
                                 Padding = new MarginPadding(5),
-                                Text = Model.Text,
+                                Text = Model.ToString(),
                             }
                         },
                     },

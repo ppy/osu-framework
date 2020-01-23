@@ -13,9 +13,9 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
-    /// <typeparam name="T">The type of <see cref="RearrangeableListItem"/>.</typeparam>
+    /// <typeparam name="T">The type of rearrangeable item</typeparam>
     public abstract class RearrangeableListContainer<T> : CompositeDrawable
-        where T : RearrangeableListItem
+        where T : IEquatable<T>
     {
         /// <summary>
         /// The spacing between individual elements.
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool RemoveItem(T item)
         {
-            var drawable = ListContainer.FirstOrDefault(d => d.Model == item);
+            var drawable = ListContainer.FirstOrDefault(d => d.Model.Equals(item));
             if (drawable == null)
                 return false;
 
@@ -306,14 +306,14 @@ namespace osu.Framework.Graphics.Containers
             internal bool IsBeingDragged { get; private set; }
 
             /// <summary>
-            /// The <see cref="RearrangeableListItem"/> this <see cref="DrawableRearrangeableListItem"/> represents.
+            /// The item this <see cref="DrawableRearrangeableListItem"/> represents.
             /// </summary>
             public T Model;
 
             /// <summary>
             /// Creates a new <see cref="DrawableRearrangeableListItem"/>.
             /// </summary>
-            /// <param name="item">The <see cref="RearrangeableListItem"/> to represent.</param>
+            /// <param name="item">The item to represent.</param>
             protected DrawableRearrangeableListItem(T item)
             {
                 Model = item;
