@@ -30,10 +30,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private FillFlowContainer textBoxes;
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             Schedule(() =>
             {
                 Child = textBoxes = new FillFlowContainer
@@ -50,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Size = new Vector2(0.9f, 1)
                 };
             });
-        }
+        });
 
         [Test]
         public void VariousTextBoxes()

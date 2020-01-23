@@ -38,13 +38,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             clickCount = 0;
             button.Enabled.Value = true;
-        }
+        });
 
         [Test]
         public void Button()
