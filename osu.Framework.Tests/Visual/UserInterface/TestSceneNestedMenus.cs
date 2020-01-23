@@ -21,10 +21,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private Random rng;
 
         [SetUp]
-        public new void SetUp() => Schedule(() =>
-        {
-            rng = new Random(1337);
-        });
+        public new void SetUp() => rng = new Random(1337);
 
         protected override Menu CreateMenu() => new ClickOpenMenu(TimePerAction)
         {
