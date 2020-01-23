@@ -16,7 +16,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
-    public class TestCaseRearrangeableListContainer : ManualInputManagerTestScene
+    public class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
     {
         private TestRearrangeableListContainer list, listWithSpacing, listWithoutHandles, listWithoutHandlesWithSpacing;
         private readonly List<TestRearrangeableListContainer> lists = new List<TestRearrangeableListContainer>();
