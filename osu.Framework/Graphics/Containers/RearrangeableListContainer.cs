@@ -109,9 +109,18 @@ namespace osu.Framework.Graphics.Containers
 
         protected abstract class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
-            private const float scroll_trigger_distance = 10;
-            private const double max_power = 50;
             private const double exp_base = 1.05;
+
+            /// <summary>
+            /// The distance from the top and bottom of this <see cref="ListScrollContainer"/> at which automatic scroll begins.
+            /// </summary>
+            protected double AutomaticTriggerDistance = 10;
+
+            /// <summary>
+            /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="ListScrollContainer"/>.
+            /// </summary>
+            protected double MaxExponent = 50;
+
             private bool autoScrolling;
             private double scrollSpeed;
 
@@ -143,14 +152,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 var localPos = ToLocalSpace(dragEvent.ScreenSpaceMousePosition);
 
-                if (localPos.Y < scroll_trigger_distance)
+                if (localPos.Y < AutomaticTriggerDistance)
                 {
-                    var power = Math.Min(max_power, Math.Abs(scroll_trigger_distance - localPos.Y));
+                    var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
                     scrollSpeed = -(float)Math.Pow(exp_base, power);
                 }
-                else if (localPos.Y > DrawHeight - scroll_trigger_distance)
+                else if (localPos.Y > DrawHeight - AutomaticTriggerDistance)
                 {
-                    var power = Math.Min(max_power, Math.Abs(DrawHeight - scroll_trigger_distance - localPos.Y));
+                    var power = Math.Min(MaxExponent, Math.Abs(DrawHeight - AutomaticTriggerDistance - localPos.Y));
                     scrollSpeed = (float)Math.Pow(exp_base, power);
                 }
                 else
