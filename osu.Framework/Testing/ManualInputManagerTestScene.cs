@@ -23,9 +23,8 @@ namespace osu.Framework.Testing
 
         /// <summary>
         /// The position which is used to initialize the mouse position before at setup.
-        /// If the value is null, the mouse position is not moved.
         /// </summary>
-        protected virtual Vector2? InitialMousePosition => null;
+        protected virtual Vector2 InitialMousePosition => Vector2.Zero;
 
         /// <summary>
         /// The <see cref="ManualInputManager"/>.
@@ -36,7 +35,7 @@ namespace osu.Framework.Testing
         private readonly BasicButton buttonLocal;
 
         [SetUp]
-        public virtual void SetUp() => ResetInput();
+        public void SetUp() => ResetInput();
 
         protected ManualInputManagerTestScene()
         {
@@ -126,8 +125,7 @@ namespace osu.Framework.Testing
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
-            var position = InitialMousePosition;
-            if (position != null) InputManager.MoveMouseTo(position.Value);
+            InputManager.MoveMouseTo(InitialMousePosition);
             mouse.Buttons.ForEach(InputManager.ReleaseButton);
 
             var keyboard = currentState.Keyboard;
