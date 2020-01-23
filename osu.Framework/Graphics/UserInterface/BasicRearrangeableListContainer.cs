@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -24,6 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             UseDragHandle = UseDragHandle,
             ShowRemoveButton = ShowRemoveButton,
+            RequestRemoval = d => RemoveItem(d.Model)
         };
 
         protected class BasicListScrollContainer : ListScrollContainer
@@ -41,8 +43,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
-            public bool UseDragHandle = true;
+            internal Action<DrawableRearrangeableListItem> RequestRemoval;
 
+            public bool UseDragHandle = true;
             public bool ShowRemoveButton = true;
 
             protected override bool IsDraggableAt(Vector2 screenSpacePos) => (!ShowRemoveButton || !removeButton.IsHovered) && (!UseDragHandle || dragHandle.ReceivePositionalInputAt(screenSpacePos));
@@ -144,15 +147,14 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (removeButton.IsHovered)
                 {
-                    RequestRemoval();
-
+                    RequestRemoval?.Invoke(this);
                     return true;
                 }
 
                 return false;
             }
 
-            protected class Button : Container
+            protected internal class Button : Container
             {
                 public override bool HandlePositionalInput => true;
 

@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void AddItem(T item)
         {
-            var drawable = CreateDrawable(item).With(d => d.RemovalRequested += RemoveItem);
+            var drawable = CreateDrawable(item);
 
             ListContainer.Add(drawable);
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
@@ -59,7 +59,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes an item from this container.
         /// </summary>
-        public void RemoveItem(DrawableRearrangeableListItem item) => ListContainer.Remove(item);
+        public bool RemoveItem(T item)
+        {
+            var drawable = ListContainer.FirstOrDefault(d => d.Model == item);
+            if (drawable == null)
+                return false;
+
+            return ListContainer.Remove(drawable);
+        }
 
         /// <summary>
         /// Removes all items from this container.
@@ -294,11 +301,6 @@ namespace osu.Framework.Graphics.Containers
         public abstract class DrawableRearrangeableListItem : CompositeDrawable
         {
             /// <summary>
-            /// Invoked when a removal is requested. e.g. on item removal.
-            /// </summary>
-            internal event Action<DrawableRearrangeableListItem> RemovalRequested;
-
-            /// <summary>
             /// Whether the item is currently being dragged.
             /// </summary>
             internal bool IsBeingDragged { get; private set; }
@@ -321,12 +323,6 @@ namespace osu.Framework.Graphics.Containers
             /// Returns whether the item is currently able to be dragged.
             /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
-
-            /// <summary>
-            /// Requests the removal of this <see cref="DrawableRearrangeableListItem"/> and the represented <see cref="RearrangeableListItem"/>
-            /// from the <see cref="RearrangeableListContainer{T}"/>.
-            /// </summary>
-            protected void RequestRemoval() => RemovalRequested?.Invoke(this);
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
