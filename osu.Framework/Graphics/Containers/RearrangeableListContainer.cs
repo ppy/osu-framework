@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates the <see cref="ListScrollContainer"/> for the list of items.
         /// </summary>
-        protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new ListScrollContainer(flowContainer);
+        protected abstract ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer);
 
         /// <summary>
         /// Creates the <see cref="Drawable"/> representation of an item.
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region ListScrollContainer
 
-        protected class ListScrollContainer : BasicScrollContainer<ListFillFlowContainer>
+        protected abstract class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
         {
             private const float scroll_trigger_distance = 10;
             private const double max_power = 50;
@@ -115,11 +115,9 @@ namespace osu.Framework.Graphics.Containers
             private bool autoScrolling;
             private double scrollSpeed;
 
-            public ListScrollContainer(ListFillFlowContainer flowContainer)
+            protected ListScrollContainer(ListFillFlowContainer flowContainer)
             {
                 RelativeSizeAxes = Axes.Both;
-                ScrollbarOverlapsContent = false;
-                Padding = new MarginPadding(5);
 
                 Child = flowContainer.With(d =>
                 {

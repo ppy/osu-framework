@@ -18,11 +18,26 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ShowRemoveButton = true;
 
+        protected override ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new BasicListScrollContainer(flowContainer);
+
         protected override DrawableRearrangeableListItem CreateDrawable(BasicRearrangeableItem item) => new BasicDrawableRearrangeableListItem(item)
         {
             UseDragHandle = UseDragHandle,
             ShowRemoveButton = ShowRemoveButton,
         };
+
+        protected class BasicListScrollContainer : ListScrollContainer
+        {
+            public BasicListScrollContainer(ListFillFlowContainer flowContainer)
+                : base(flowContainer)
+            {
+                ScrollbarOverlapsContent = false;
+                Padding = new MarginPadding(5);
+            }
+
+            // Todo: This isn't good.
+            protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollContainer<ListFillFlowContainer>.BasicScrollbar(direction);
+        }
 
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
