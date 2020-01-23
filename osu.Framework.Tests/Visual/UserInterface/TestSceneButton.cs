@@ -40,6 +40,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [SetUp]
         public override void SetUp()
         {
+            base.SetUp();
+
             clickCount = 0;
             button.Enabled.Value = true;
         }
