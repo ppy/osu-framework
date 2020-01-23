@@ -52,9 +52,11 @@ namespace osu.Framework.IO.Network
         {
             int num = 0;
             int num2 = 0;
+
             for (int i = 0; i < count; i++)
             {
                 char ch = (char)bytes[offset + i];
+
                 if (paramEncode && ch == ' ')
                 {
                     num++;
@@ -72,10 +74,12 @@ namespace osu.Framework.IO.Network
 
             byte[] buffer = new byte[count + num2 * 2];
             int num4 = 0;
+
             for (int j = 0; j < count; j++)
             {
                 byte num6 = bytes[offset + j];
                 char ch2 = (char)num6;
+
                 if (IsSafe(ch2))
                 {
                     buffer[num4++] = num6;

@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
             if (localHttpBin)
             {
@@ -55,6 +55,24 @@ namespace osu.Framework.Tests.IO
                 AllowInsecureRequests = true
             };
 
+            testValidGetInternal(async, request, "osu-framework");
+        }
+
+        [Test, Retry(5)]
+        public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        {
+            var url = $"{protocol}://{host}/get";
+            var request = new CustomUserAgentWebRequest(url)
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            testValidGetInternal(async, request, "custom-ua");
+        }
+
+        private static void testValidGetInternal(bool async, JsonWebRequest<HttpBinGetResponse> request, string expectedUserAgent)
+        {
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
@@ -69,7 +87,7 @@ namespace osu.Framework.Tests.IO
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
-            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
+            Assert.IsTrue(responseObject.Headers.UserAgent == expectedUserAgent);
 
             // disabled due to hosted version returning incorrect response (https://github.com/postmanlabs/httpbin/issues/545)
             // Assert.AreEqual(url, responseObject.Url);
@@ -96,6 +114,7 @@ namespace osu.Framework.Tests.IO
             List<long> startTimes = new List<long>();
 
             List<Task> running = new List<Task>();
+
             for (int i = 0; i < request_count; i++)
             {
                 var request = new DelayedWebRequest
@@ -159,7 +178,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsTrue(request.ResponseString == null);
+            Assert.IsTrue(request.GetResponseString() == null);
             Assert.IsNotNull(finishedException);
         }
 
@@ -182,7 +201,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsEmpty(request.ResponseString);
+            Assert.IsEmpty(request.GetResponseString());
 
             Assert.IsTrue(hasThrown);
         }
@@ -354,6 +373,7 @@ namespace osu.Framework.Tests.IO
             Assert.DoesNotThrow(request.Perform);
 
             var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+
             foreach (var e in events)
             {
                 var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
@@ -368,6 +388,7 @@ namespace osu.Framework.Tests.IO
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
+
             using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
             {
                 Method = HttpMethod.Get,
@@ -383,6 +404,7 @@ namespace osu.Framework.Tests.IO
             }
 
             var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+
             foreach (var e in events)
             {
                 var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
@@ -525,6 +547,16 @@ namespace osu.Framework.Tests.IO
         public class TestObject
         {
             public string TestString = "readable";
+        }
+
+        private class CustomUserAgentWebRequest : JsonWebRequest<HttpBinGetResponse>
+        {
+            public CustomUserAgentWebRequest(string url)
+                : base(url)
+            {
+            }
+
+            protected override string UserAgent => "custom-ua";
         }
 
         private class DelayedWebRequest : WebRequest

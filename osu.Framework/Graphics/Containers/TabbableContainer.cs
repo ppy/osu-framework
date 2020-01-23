@@ -53,6 +53,7 @@ namespace osu.Framework.Graphics.Containers
             stack.Push(target);
 
             bool started = false;
+
             while (stack.Count > 0)
             {
                 var drawable = stack.Pop();
@@ -66,6 +67,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;
+
                     if (!started)
                     {
                         // Find self, to know starting point

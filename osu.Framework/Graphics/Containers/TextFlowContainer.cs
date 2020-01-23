@@ -275,11 +275,13 @@ namespace osu.Framework.Graphics.Containers
         {
             bool first = true;
             var sprites = new List<Drawable>();
+
             foreach (string l in line.Text.Split('\n'))
             {
                 if (!first)
                 {
                     Drawable lastChild = Children.LastOrDefault();
+
                     if (lastChild != null)
                     {
                         var newLine = new NewLineContainer(newLineIsParagraph);
@@ -326,12 +328,13 @@ namespace osu.Framework.Graphics.Containers
             return words.ToArray();
         }
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
 
         private void computeLayout()
         {
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
+
             foreach (var c in Children)
             {
                 c.Anchor = TextAnchor;
@@ -361,6 +364,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
+
             foreach (var line in childrenByLine)
             {
                 bool isFirstChild = true;

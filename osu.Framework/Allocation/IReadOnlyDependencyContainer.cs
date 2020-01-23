@@ -75,11 +75,10 @@ namespace osu.Framework.Allocation
         /// <returns>The requested dependency, or default(<typeparamref name="T"/>) if not found.</returns>
         internal static T GetValue<T>(this IReadOnlyDependencyContainer container, CacheInfo info)
         {
-            var result = container.Get(typeof(T), info);
-            if (result == null)
-                return default;
+            if (container.Get(typeof(T), info) is T value)
+                return value;
 
-            return (T)container.Get(typeof(T), info);
+            return default;
         }
 
         /// <summary>

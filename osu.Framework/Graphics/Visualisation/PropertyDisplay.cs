@@ -30,16 +30,24 @@ namespace osu.Framework.Graphics.Visualisation
             Width = width;
             RelativeSizeAxes = Axes.Y;
 
-            AddInternal(new ScrollContainer
+            AddRangeInternal(new Drawable[]
             {
-                Padding = new MarginPadding(10),
-                RelativeSizeAxes = Axes.Both,
-                ScrollbarOverlapsContent = false,
-                Child = flow = new FillFlowContainer
+                new Box
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Vertical
+                    Colour = FrameworkColour.GreenDarker,
+                    RelativeSizeAxes = Axes.Both,
+                },
+                new BasicScrollContainer<Drawable>
+                {
+                    Padding = new MarginPadding(10),
+                    RelativeSizeAxes = Axes.Both,
+                    ScrollbarOverlapsContent = false,
+                    Child = flow = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical
+                    }
                 }
             });
         }
@@ -54,9 +62,11 @@ namespace osu.Framework.Graphics.Visualisation
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
             foreach (var type in source.GetType().EnumerateBaseTypes())
+            {
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
                     .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
                     .ForEach(m => allMembers.Add(m));
+            }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
             AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
@@ -84,22 +94,21 @@ namespace osu.Framework.Graphics.Visualisation
             public PropertyItem(MemberInfo info, IDrawable d)
             {
                 Type type;
-                switch (info.MemberType)
+
+                switch (info)
                 {
-                    case MemberTypes.Property:
-                        PropertyInfo propertyInfo = (PropertyInfo)info;
+                    case PropertyInfo propertyInfo:
                         type = propertyInfo.PropertyType;
                         getValue = () => propertyInfo.GetValue(d);
                         break;
 
-                    case MemberTypes.Field:
-                        FieldInfo fieldInfo = (FieldInfo)info;
+                    case FieldInfo fieldInfo:
                         type = fieldInfo.FieldType;
                         getValue = () => fieldInfo.GetValue(d);
                         break;
 
                     default:
-                        throw new NotImplementedException(@"Not a value member.");
+                        throw new ArgumentException(@"Not a value member.", nameof(info));
                 }
 
                 RelativeSizeAxes = Axes.X;
@@ -126,12 +135,12 @@ namespace osu.Framework.Graphics.Visualisation
                                 new SpriteText
                                 {
                                     Text = info.Name,
-                                    Colour = Color4.LightBlue,
+                                    Colour = FrameworkColour.Yellow,
                                 },
                                 new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
-                                    Colour = Color4.MediumPurple,
+                                    Colour = FrameworkColour.YellowGreen,
                                 },
                                 valueText = new SpriteText
                                 {
@@ -164,6 +173,7 @@ namespace osu.Framework.Graphics.Visualisation
             private void updateValue()
             {
                 object value;
+
                 try
                 {
                     value = getValue() ?? "<null>";
@@ -173,7 +183,8 @@ namespace osu.Framework.Graphics.Visualisation
                     value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
 
-                if (!value.Equals(lastValue))
+                // An alternative of object.Equals, which is banned.
+                if (!EqualityComparer<object>.Default.Equals(value, lastValue))
                 {
                     changeMarker.ClearTransforms();
                     changeMarker.Alpha = 0.8f;
@@ -187,7 +198,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
-            public bool Equals(MemberInfo x, MemberInfo y) => string.Equals(x?.Name, y?.Name);
+            public bool Equals(MemberInfo x, MemberInfo y) => x?.Name == y?.Name;
 
             public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }

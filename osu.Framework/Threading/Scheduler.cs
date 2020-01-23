@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,7 +15,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler
     {
-        private readonly ConcurrentQueue<ScheduledDelegate> runQueue = new ConcurrentQueue<ScheduledDelegate>();
+        private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
@@ -24,10 +23,12 @@ namespace osu.Framework.Threading
         private IClock clock;
         private double currentTime => clock?.CurrentTime ?? 0;
 
+        private readonly object queueLock = new object();
+
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
         /// </summary>
-        public bool HasPendingTasks => !runQueue.IsEmpty || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
+        public bool HasPendingTasks => runQueue.Count > 0 || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
@@ -64,7 +65,7 @@ namespace osu.Framework.Threading
             if (newClock == clock)
                 return;
 
-            lock (timedTasks)
+            lock (queueLock)
             {
                 if (clock == null)
                 {
@@ -92,67 +93,22 @@ namespace osu.Framework.Threading
         /// <returns>true if any tasks were run.</returns>
         public virtual int Update()
         {
-            lock (timedTasks)
+            lock (queueLock)
             {
-                double currentTimeLocal = currentTime;
-
-                if (timedTasks.Count > 0)
-                {
-                    foreach (var sd in timedTasks)
-                    {
-                        if (sd.ExecutionTime <= currentTimeLocal)
-                        {
-                            tasksToRemove.Add(sd);
-
-                            if (sd.Cancelled) continue;
-
-                            runQueue.Enqueue(sd);
-
-                            if (sd.RepeatInterval >= 0)
-                            {
-                                if (timedTasks.Count > 1000)
-                                    throw new ArgumentException("Too many timed tasks are in the queue!");
-
-                                sd.ExecutionTime += sd.RepeatInterval;
-                                tasksToSchedule.Add(sd);
-                            }
-                        }
-                    }
-
-                    foreach (var t in tasksToRemove)
-                        timedTasks.Remove(t);
-
-                    tasksToRemove.Clear();
-
-                    foreach (var t in tasksToSchedule)
-                        timedTasks.AddInPlace(t);
-
-                    tasksToSchedule.Clear();
-                }
-            }
-
-            for (int i = 0; i < perUpdateTasks.Count; i++)
-            {
-                ScheduledDelegate task = perUpdateTasks[i];
-                if (task.Cancelled)
-                {
-                    perUpdateTasks.RemoveAt(i--);
-                    continue;
-                }
-
-                runQueue.Enqueue(task);
+                queueTimedTasks();
+                queuePerUpdateTasks();
             }
 
             int countToRun = runQueue.Count;
             int countRun = 0;
 
-            while (runQueue.TryDequeue(out ScheduledDelegate sd))
+            while (getNextTask(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled)
-                    continue;
-
-                //todo: error handling
-                sd.RunTask();
+                if (!sd.Cancelled && !sd.Completed)
+                {
+                    //todo: error handling
+                    sd.RunTask();
+                }
 
                 if (++countRun == countToRun)
                     break;
@@ -161,12 +117,85 @@ namespace osu.Framework.Threading
             return countRun;
         }
 
+        private void queueTimedTasks()
+        {
+            double currentTimeLocal = currentTime;
+
+            if (timedTasks.Count > 0)
+            {
+                foreach (var sd in timedTasks)
+                {
+                    if (sd.ExecutionTime <= currentTimeLocal)
+                    {
+                        tasksToRemove.Add(sd);
+
+                        if (sd.Cancelled) continue;
+
+                        if (sd.RepeatInterval >= 0)
+                        {
+                            if (timedTasks.Count > 1000)
+                                throw new ArgumentException("Too many timed tasks are in the queue!");
+
+                            sd.SetNextExecution(currentTimeLocal);
+
+                            tasksToSchedule.Add(sd);
+                        }
+
+                        if (!sd.Completed)
+                            runQueue.Enqueue(sd);
+                    }
+                }
+
+                foreach (var t in tasksToRemove)
+                    timedTasks.Remove(t);
+
+                tasksToRemove.Clear();
+
+                foreach (var t in tasksToSchedule)
+                    timedTasks.AddInPlace(t);
+
+                tasksToSchedule.Clear();
+            }
+        }
+
+        private void queuePerUpdateTasks()
+        {
+            for (int i = 0; i < perUpdateTasks.Count; i++)
+            {
+                ScheduledDelegate task = perUpdateTasks[i];
+                task.Completed = false;
+
+                if (task.Cancelled)
+                {
+                    perUpdateTasks.RemoveAt(i--);
+                    continue;
+                }
+
+                runQueue.Enqueue(task);
+            }
+        }
+
+        private bool getNextTask(out ScheduledDelegate task)
+        {
+            lock (queueLock)
+            {
+                if (runQueue.Count > 0)
+                {
+                    task = runQueue.Dequeue();
+                    return true;
+                }
+            }
+
+            task = null;
+            return false;
+        }
+
         /// <summary>
         /// Cancel any pending work tasks.
         /// </summary>
         public void CancelDelayedTasks()
         {
-            lock (timedTasks)
+            lock (queueLock)
             {
                 foreach (var t in timedTasks)
                     t.Cancel();
@@ -199,14 +228,23 @@ namespace osu.Framework.Threading
                 return true;
             }
 
-            runQueue.Enqueue(new ScheduledDelegate(task));
+            lock (queueLock)
+                runQueue.Enqueue(new ScheduledDelegate(task));
 
             return false;
         }
 
+        /// <summary>
+        /// Add a task to be scheduled.
+        /// </summary>
+        /// <param name="task">The scheduled delegate to add.</param>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to add a scheduled delegate that has been already completed.</exception>
         public void Add(ScheduledDelegate task)
         {
-            lock (timedTasks)
+            if (task.Completed)
+                throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
+
+            lock (queueLock)
             {
                 if (task.RepeatInterval == 0)
                     perUpdateTasks.Add(task);
@@ -224,7 +262,7 @@ namespace osu.Framework.Threading
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
             // We are locking here already to make sure we have no concurrent access to currentTime
-            lock (timedTasks)
+            lock (queueLock)
             {
                 ScheduledDelegate del = new ScheduledDelegate(task, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
                 Add(del);
@@ -239,10 +277,13 @@ namespace osu.Framework.Threading
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
         {
-            if (runQueue.Any(sd => sd.Task == task))
-                return false;
+            lock (queueLock)
+            {
+                if (runQueue.Any(sd => sd.Task == task))
+                    return false;
 
-            runQueue.Enqueue(new ScheduledDelegate(task));
+                runQueue.Enqueue(new ScheduledDelegate(task));
+            }
 
             return true;
         }
@@ -261,9 +302,16 @@ namespace osu.Framework.Threading
         public readonly double RepeatInterval;
 
         /// <summary>
+        /// In the case of a repeating execution, setting this to true will allow the delegate to run more than once at already elapsed points in time in order to catch up to current.
+        /// This will ensure a consistent number of runs over real-time, even if the <see cref="Scheduler"/> running the delegate is suspended.
+        /// Setting to false will skip catch-up executions, ensuring a future time is used after each execution.
+        /// </summary>
+        public bool PerformRepeatCatchUpExecutions = true;
+
+        /// <summary>
         /// Whether this task has finished running.
         /// </summary>
-        public bool Completed { get; private set; }
+        public bool Completed { get; internal set; }
 
         /// <summary>
         /// Whether this task has been cancelled.
@@ -283,10 +331,17 @@ namespace osu.Framework.Threading
             RepeatInterval = repeatInterval;
         }
 
+        /// <summary>
+        /// Invokes the scheduled task.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to run a task that has been cancelled or already completed.</exception>
         public void RunTask()
         {
             if (Cancelled)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}.");
+
+            if (Completed)
+                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}.");
 
             Task();
             Completed = true;
@@ -295,5 +350,15 @@ namespace osu.Framework.Threading
         public void Cancel() => Cancelled = true;
 
         public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
+
+        internal void SetNextExecution(double currentTime)
+        {
+            Completed = false;
+
+            ExecutionTime += RepeatInterval;
+
+            if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
+                ExecutionTime = currentTime + RepeatInterval;
+        }
     }
 }

@@ -21,12 +21,12 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
-        public TrackManager Track => GetTrackManager();
+        public ITrackStore Tracks => globalTrackStore.Value;
 
         /// <summary>
         /// The manager component responsible for audio samples (e.g. sound effects).
         /// </summary>
-        public SampleManager Sample => GetSampleManager();
+        public ISampleStore Samples => globalSampleStore.Value;
 
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
@@ -39,6 +39,9 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The names of all available audio devices.
         /// </summary>
+        /// <remarks>
+        /// This property does not contain the names of disabled audio devices.
+        /// </remarks>
         public IEnumerable<string> AudioDeviceNames => audioDeviceNames;
 
         /// <summary>
@@ -56,8 +59,6 @@ namespace osu.Framework.Audio
         /// <see cref="string.Empty"/> denotes the OS default.
         /// </summary>
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
-
-        private string currentAudioDevice;
 
         /// <summary>
         /// Volume of all samples played game-wide.
@@ -86,11 +87,11 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        private readonly Lazy<TrackManager> globalTrackManager;
-        private readonly Lazy<SampleManager> globalSampleManager;
+        private readonly Lazy<TrackStore> globalTrackStore;
+        private readonly Lazy<SampleStore> globalSampleStore;
 
         /// <summary>
-        /// Constructs an AudioManager given a track resource store, and a sample resource store.
+        /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
         /// <param name="audioThread">The host's audio thread.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
@@ -103,29 +104,45 @@ namespace osu.Framework.Audio
 
             AudioDevice.ValueChanged += onDeviceChanged;
 
-            trackStore.AddExtension(@"mp3");
+            globalTrackStore = new Lazy<TrackStore>(() =>
+            {
+                var store = new TrackStore(trackStore);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
+                return store;
+            });
 
-            sampleStore.AddExtension(@"wav");
-            sampleStore.AddExtension(@"mp3");
+            globalSampleStore = new Lazy<SampleStore>(() =>
+            {
+                var store = new SampleStore(sampleStore);
+                AddItem(store);
+                store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
+                return store;
+            });
 
-            globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
-            globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
-
-            scheduler.Add(() =>
+            // check for device validity every 100ms
+            scheduler.AddDelayed(() =>
             {
                 try
                 {
-                    setAudioDevice();
+                    if (!IsCurrentDeviceValid())
+                        setAudioDevice();
                 }
                 catch
                 {
                 }
-            });
+            }, 100, true);
 
-            scheduler.AddDelayed(delegate
+            // enumerate new list of devices every second
+            scheduler.AddDelayed(() =>
             {
-                updateAvailableAudioDevices();
-                checkAudioDeviceChanged();
+                try
+                {
+                    setAudioDevice(AudioDevice.Value);
+                }
+                catch
+                {
+                }
             }, 1000, true);
         }
 
@@ -141,147 +158,109 @@ namespace osu.Framework.Audio
 
         private void onDeviceChanged(ValueChangedEvent<string> args)
         {
-            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(args.NewValue) ? null : args.NewValue));
+            scheduler.Add(() => setAudioDevice(args.NewValue));
         }
 
         /// <summary>
-        /// Returns a list of the names of recognized audio devices.
+        /// Obtains the <see cref="TrackStore"/> corresponding to a given resource store.
+        /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
-        /// <remarks>
-        /// The No Sound device that is in the list of Audio Devices that are stored internally is not returned.
-        /// Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
-        /// </remarks>
-        /// <returns>A list of the names of recognized audio devices.</returns>
-        private IEnumerable<string> getDeviceNames(List<DeviceInfo> devices) => devices.Skip(1).Select(d => d.Name);
-
-        /// <summary>
-        /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
-        /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
-        /// </summary>
-        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
+        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalTrackManager.Value;
+            if (store == null) return globalTrackStore.Value;
 
-            TrackManager tm = new TrackManager(store);
-            AddItem(tm);
-            tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += e => tm.InvalidateState(e.NewValue);
-
+            TrackStore tm = new TrackStore(store);
+            globalTrackStore.Value.AddItem(tm);
             return tm;
         }
 
         /// <summary>
-        /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
-        /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
+        /// Obtains the <see cref="SampleStore"/> corresponding to a given resource store.
+        /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
-        public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalSampleManager.Value;
+            if (store == null) return globalSampleStore.Value;
 
-            SampleManager sm = new SampleManager(store);
-            AddItem(sm);
-            sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += e => sm.InvalidateState(e.NewValue);
-
+            SampleStore sm = new SampleStore(store);
+            globalSampleStore.Value.AddItem(sm);
             return sm;
         }
 
-        private List<DeviceInfo> getAllDevices()
-        {
-            int deviceCount = Bass.DeviceCount;
-            List<DeviceInfo> info = new List<DeviceInfo>();
-            for (int i = 0; i < deviceCount; i++)
-                info.Add(Bass.GetDeviceInfo(i));
+        private DeviceInfo currentAudioDevice;
 
-            return info;
-        }
-
-        private bool setAudioDevice(string preferredDevice = null)
+        /// <summary>
+        /// Sets the output audio device by its name.
+        /// This will automatically fall back to the system default device on failure.
+        /// </summary>
+        /// <param name="deviceName">Name of the audio device, or null to use the configured device preference <see cref="AudioDevice"/>.</param>
+        private bool setAudioDevice(string deviceName = null)
         {
             updateAvailableAudioDevices();
 
-            string oldDevice = currentAudioDevice;
-            string newDevice = preferredDevice;
+            deviceName ??= AudioDevice.Value;
 
-            if (string.IsNullOrEmpty(newDevice))
-                newDevice = audioDevices.Find(df => df.IsDefault).Name;
-
-            bool oldDeviceValid = Bass.CurrentDevice >= 0;
-            if (oldDeviceValid)
-            {
-                DeviceInfo oldDeviceInfo = Bass.GetDeviceInfo(Bass.CurrentDevice);
-                oldDeviceValid &= oldDeviceInfo.IsEnabled && oldDeviceInfo.IsInitialized;
-            }
-
-            if (newDevice == oldDevice && oldDeviceValid)
+            // try using the specified device
+            if (setAudioDevice(audioDevices.FindIndex(d => d.Name == deviceName)))
                 return true;
 
-            if (string.IsNullOrEmpty(newDevice))
-            {
-                Logger.Log(@"BASS Initialization failed (no audio device present)");
+            // try using the system default device
+            if (setAudioDevice(audioDevices.FindIndex(d => d.Name != deviceName && d.IsDefault)))
+                return true;
+
+            // no audio devices can be used, so try using Bass-provided "No sound" device as last resort
+            if (setAudioDevice(Bass.NoSoundDevice))
+                return true;
+
+            //we're fucked. even "No sound" device won't initialise.
+            currentAudioDevice = default;
+            return false;
+        }
+
+        private bool setAudioDevice(int deviceIndex)
+        {
+            var device = audioDevices.ElementAtOrDefault(deviceIndex);
+
+            // device is invalid
+            if (!device.IsEnabled)
                 return false;
-            }
 
-            int newDeviceIndex = audioDevices.FindIndex(df => df.Name == newDevice);
-
-            DeviceInfo newDeviceInfo = new DeviceInfo();
-
-            try
-            {
-                if (newDeviceIndex >= 0)
-                    newDeviceInfo = Bass.GetDeviceInfo(newDeviceIndex);
-                //we may have previously initialised this device.
-            }
-            catch
-            {
-            }
-
-            if (oldDeviceValid && (newDeviceInfo.Driver == null || !newDeviceInfo.IsEnabled))
-            {
-                //handles the case we are trying to load a user setting which is currently unavailable,
-                //and we have already fallen back to a sane default.
+            // same device
+            if (device.IsInitialized && device.Name == currentAudioDevice.Name)
                 return true;
-            }
 
-            if (!Bass.Init(newDeviceIndex) && Bass.LastError != Errors.Already)
-            {
-                //the new device didn't go as planned. we need another option.
-
-                if (preferredDevice == null)
-                {
-                    //we're fucked. the default device won't initialise.
-                    currentAudioDevice = null;
-                    return false;
-                }
-
-                //let's try again using the default device.
-                return setAudioDevice();
-            }
+            // initialize new device
+            if (!InitBass(deviceIndex) && Bass.LastError != Errors.Already)
+                return false;
 
             if (Bass.LastError == Errors.Already)
             {
                 // We check if the initialization error is that we already initialized the device
                 // If it is, it means we can just tell Bass to use the already initialized device without much
                 // other fuzz.
-                Bass.CurrentDevice = newDeviceIndex;
+                Bass.CurrentDevice = deviceIndex;
                 Bass.Free();
-                Bass.Init(newDeviceIndex);
+                InitBass(deviceIndex);
             }
 
-            Trace.Assert(Bass.LastError == Errors.OK);
+            if (Bass.LastError != Errors.OK)
+            {
+                Logger.Log($@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.", LoggingTarget.Runtime, LogLevel.Important);
+                return false;
+            }
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
                           BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
-                          Device:                     {newDeviceInfo.Name}
-                          Drive:                      {newDeviceInfo.Driver}");
+                          Device:                     {device.Name}
+                          Drive:                      {device.Driver}");
 
             //we have successfully initialised a new device.
-            currentAudioDevice = newDevice;
+            currentAudioDevice = device;
 
-            UpdateDevice(newDeviceIndex);
+            UpdateDevice(deviceIndex);
 
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
@@ -289,19 +268,33 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        public override void UpdateDevice(int deviceIndex)
+        /// <summary>
+        /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
+        /// It can be overridden for unit testing.
+        /// </summary>
+        protected virtual bool InitBass(int device)
         {
-            Sample.UpdateDevice(deviceIndex);
-            Track.UpdateDevice(deviceIndex);
+            // reduce latency to a known sane minimum.
+            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
+
+            // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
+            Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
+
+            return Bass.Init(device);
         }
 
         private void updateAvailableAudioDevices()
         {
-            var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
-            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
+            audioDevices = EnumerateAllDevices().ToList();
 
-            var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
-            var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
+            // Bass should always be providing "No sound" device
+            Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+
+            var oldDeviceNames = audioDeviceNames;
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToList();
+
+            var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
+            var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
@@ -313,74 +306,21 @@ namespace osu.Framework.Audio
                         OnLostDevice?.Invoke(d);
                 });
             }
-
-            audioDevices = currentDeviceList;
-            audioDeviceNames = currentDeviceNames;
         }
 
-        private void checkAudioDeviceChanged()
+        protected virtual IEnumerable<DeviceInfo> EnumerateAllDevices()
         {
-            try
-            {
-                if (AudioDevice.Value == string.Empty)
-                {
-                    // use default device
-                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
-                    if (!device.IsDefault && !setAudioDevice())
-                    {
-                        if (!device.IsEnabled || !setAudioDevice(device.Name))
-                        {
-                            foreach (var d in getAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
+            int deviceCount = Bass.DeviceCount;
+            for (int i = 0; i < deviceCount; i++)
+                yield return Bass.GetDeviceInfo(i);
+        }
 
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // use whatever is the preferred device
-                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
-                    if (device.Name == AudioDevice.Value)
-                    {
-                        if (!device.IsEnabled && !setAudioDevice())
-                        {
-                            foreach (var d in getAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
+        protected virtual bool IsCurrentDeviceValid()
+        {
+            var deviceIndex = Bass.CurrentDevice;
+            var device = deviceIndex == Bass.DefaultDevice ? default : Bass.GetDeviceInfo(deviceIndex);
 
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
-                        if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
-                            setAudioDevice(preferredDevice.Name);
-                        else if (!device.IsEnabled && !setAudioDevice())
-                        {
-                            foreach (var d in getAllDevices())
-                            {
-                                if (d.Name == device.Name || !d.IsEnabled)
-                                    continue;
-
-                                if (setAudioDevice(d.Name))
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-            }
+            return device.IsEnabled && device.IsInitialized;
         }
 
         public override string ToString() => $@"{GetType().ReadableName()} ({currentAudioDevice})";

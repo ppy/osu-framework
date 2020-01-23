@@ -80,6 +80,7 @@ namespace osu.Framework.Bindables
                         Right = float.Parse(split[3], CultureInfo.InvariantCulture),
                     };
                     break;
+
                 default:
                     base.Parse(input);
                     break;

@@ -45,7 +45,7 @@ namespace osu.Framework.Input
                 }
 
                 // HD if it has fractions
-                if (position.X - (float)Math.Truncate(position.X) != 0)
+                if (position.X - MathF.Truncate(position.X) != 0)
                     isRawInput = true;
             }
 

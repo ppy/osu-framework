@@ -3,9 +3,11 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -19,7 +21,7 @@ namespace osu.Framework.Input
 
         protected internal UserInputManager()
         {
-            // UserInputManager is at the very top of the draw hierarchy, so it has no parnt updating its IsAlive state
+            // UserInputManager is at the very top of the draw hierarchy, so it has no parent updating its IsAlive state
             IsAlive = true;
             UseParentInput = false;
         }
@@ -35,8 +37,14 @@ namespace osu.Framework.Input
                         mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
                     break;
 
+                case ButtonStateChangeEvent<MouseButton> buttonChange:
+                    if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow == false)
+                        return;
+
+                    break;
+
                 case MouseScrollChangeEvent _:
-                    if (Host.Window != null && !Host.Window.CursorInWindow)
+                    if (Host.Window?.CursorInWindow == false)
                         return;
 
                     break;

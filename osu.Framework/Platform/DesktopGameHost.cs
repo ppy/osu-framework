@@ -11,7 +11,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Platform
@@ -22,24 +21,28 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        internal bool UseSdl { get; }
+
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
             : base(gameName, toolkitOptions)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
+            UseSdl = useSdl;
         }
 
         protected override void SetupForRun()
         {
-            //todo: yeah.
-            Architecture.SetIncludePath();
-
-            Logger.Storage = Storage.GetStorageForDirectory("logs");
-
             if (bindIPCPort)
                 startIPC();
 
             base.SetupForRun();
+        }
+
+        protected override void SetupToolkit()
+        {
+            if (!UseSdl)
+                base.SetupToolkit();
         }
 
         private void startIPC()
@@ -79,22 +82,33 @@ namespace osu.Framework.Platform
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            var defaultEnabled = new InputHandler[]
+            switch (Window)
             {
-                new OsuTKMouseHandler(),
-                new OsuTKKeyboardHandler(),
-                new OsuTKJoystickHandler(),
-            };
+                case GameWindow _:
+                    var defaultEnabled = new InputHandler[]
+                    {
+                        new OsuTKMouseHandler(),
+                        new OsuTKKeyboardHandler(),
+                        new OsuTKJoystickHandler(),
+                    };
 
-            var defaultDisabled = new InputHandler[]
-            {
-                new OsuTKRawMouseHandler(),
-            };
+                    var defaultDisabled = new InputHandler[]
+                    {
+                        new OsuTKRawMouseHandler(),
+                    };
 
-            foreach (var h in defaultDisabled)
-                h.Enabled.Value = false;
+                    foreach (var h in defaultDisabled)
+                        h.Enabled.Value = false;
 
-            return defaultEnabled.Concat(defaultDisabled);
+                    return defaultEnabled.Concat(defaultDisabled);
+
+                default:
+                    return new InputHandler[]
+                    {
+                        new KeyboardHandler(),
+                        new MouseHandler(),
+                    };
+            }
         }
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);

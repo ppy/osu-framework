@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -25,20 +24,22 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                Action waitAction = () =>
+                void waitAction()
                 {
-                    bool received = false;
-                    serverChannel.MessageReceived += message =>
+                    using (var received = new ManualResetEventSlim(false))
                     {
-                        Assert.AreEqual("example", message.Bar);
-                        received = true;
-                    };
+                        serverChannel.MessageReceived += message =>
+                        {
+                            Assert.AreEqual("example", message.Bar);
+                            // ReSharper disable once AccessToDisposedClosure
+                            received.Set();
+                        };
 
-                    clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
 
-                    while (!received)
-                        Thread.Sleep(1);
-                };
+                        received.Wait();
+                    }
+                }
 
                 Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
             }

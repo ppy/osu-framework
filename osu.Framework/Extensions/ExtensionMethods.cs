@@ -8,8 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,22 +22,6 @@ namespace osu.Framework.Extensions
     /// </summary>
     public static class ExtensionMethods
     {
-        /// <summary>
-        /// Searches for an element that matches the conditions defined by the specified predicate.
-        /// </summary>
-        /// <param name="list">The list to take values</param>
-        /// <param name="match">The predicate that needs to be matched.</param>
-        /// <param name="startIndex">The index to start conditional search.</param>
-        /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
-        public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
-        {
-            if (!list.IsValidIndex(startIndex)) return default;
-
-            int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
-
-            return list.ElementAtOrDefault(val);
-        }
-
         /// <summary>
         /// Adds the given item to the list according to standard sorting rules. Do not use on unsorted lists.
         /// </summary>
@@ -77,18 +59,6 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
-        public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
-
-        /// <summary>
-        /// Compares every item in list to given list.
-        /// </summary>
-        public static bool CompareTo<T>(this List<T> list, List<T> list2)
-        {
-            if (list.Count != list2.Count) return false;
-
-            return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
-        }
-
         /// <summary>
         /// Converts a rectangular array to a jagged array.
         /// <para>
@@ -103,6 +73,7 @@ namespace osu.Framework.Extensions
                 return null;
 
             var jagged = new T[rectangular.GetLength(0)][];
+
             for (int r = 0; r < rectangular.GetLength(0); r++)
             {
                 jagged[r] = new T[rectangular.GetLength(1)];
@@ -130,16 +101,19 @@ namespace osu.Framework.Extensions
             var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
 
             var rectangular = new T[rows, cols];
+
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
             {
-                if (jagged[r] == null)
-                    continue;
+                for (int c = 0; c < cols; c++)
+                {
+                    if (jagged[r] == null)
+                        continue;
 
-                if (c >= jagged[r].Length)
-                    continue;
+                    if (c >= jagged[r].Length)
+                        continue;
 
-                rectangular[r, c] = jagged[r][c];
+                    rectangular[r, c] = jagged[r][c];
+                }
             }
 
             return rectangular;
@@ -161,8 +135,10 @@ namespace osu.Framework.Extensions
             var result = new T[cols, rows];
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                result[c, r] = array[r, c];
+            {
+                for (int c = 0; c < cols; c++)
+                    result[c, r] = array[r, c];
+            }
 
             return result;
         }
@@ -174,27 +150,7 @@ namespace osu.Framework.Extensions
         /// <returns>The inverted array. This is always a square array.</returns>
         public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
-        public static string ToResolutionString(this Size size) => size.Width.ToString() + 'x' + size.Height;
-
-        public static void WriteLineExplicit(this Stream s, string str = @"")
-        {
-            byte[] data = Encoding.UTF8.GetBytes($"{str}\r\n");
-            s.Write(data, 0, data.Length);
-        }
-
-        public static string UnsecureRepresentation(this SecureString s)
-        {
-            IntPtr bstr = Marshal.SecureStringToBSTR(s);
-
-            try
-            {
-                return Marshal.PtrToStringBSTR(bstr);
-            }
-            finally
-            {
-                Marshal.FreeBSTR(bstr);
-            }
-        }
+        public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
 
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
@@ -214,18 +170,19 @@ namespace osu.Framework.Extensions
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 
+        [Obsolete("Use GetAwaiter().GetResult() if you know it's completed.")] // can be removed 20200516
         public static void ThrowIfFaulted(this Task task)
         {
             if (!task.IsFaulted) return;
 
-            throw task.Exception ?? new Exception("Task failed.");
+            throw task.Exception ?? (Exception)new InvalidOperationException("Task failed.");
         }
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
         /// </summary>
         /// <param name="stream">The stream to create a hash from.</param>
-        /// <returns>A lower-case hex string representation of the has (64 characters).</returns>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
             string hash;
@@ -240,6 +197,17 @@ namespace osu.Framework.Extensions
             return hash;
         }
 
+        /// <summary>
+        /// Gets a SHA-2 (256bit) hash for the given string.
+        /// </summary>
+        /// <param name="str">The string to create a hash from.</param>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
+        public static string ComputeSHA2Hash(this string str)
+        {
+            using (var alg = SHA256.Create())
+                return BitConverter.ToString(alg.ComputeHash(new UTF8Encoding().GetBytes(str))).Replace("-", "").ToLowerInvariant();
+        }
+
         public static string ComputeMD5Hash(this Stream stream)
         {
             string hash;
@@ -252,16 +220,40 @@ namespace osu.Framework.Extensions
             return hash;
         }
 
+        public static string ComputeMD5Hash(this string input)
+        {
+            StringBuilder hash = new StringBuilder();
+
+            using (var md5 = MD5.Create())
+            {
+                byte[] bytes = md5.ComputeHash(new UTF8Encoding().GetBytes(input));
+
+                for (int i = 0; i < bytes.Length; i++)
+                    hash.Append(bytes[i].ToString("x2"));
+
+                return hash.ToString();
+            }
+        }
+
         public static DisplayIndex GetIndex(this DisplayDevice display)
         {
             if (display == null) return DisplayIndex.Default;
 
-            for (int i = 0;; i++)
+            for (int i = 0; true; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) return DisplayIndex.Default;
                 if (device == display) return (DisplayIndex)i;
             }
         }
+
+        /// <summary>
+        /// Standardise the path string using '/' as directory separator.
+        /// Useful as output.
+        /// </summary>
+        /// <param name="path">The path string to standardise.</param>
+        /// <returns>The standardised path string.</returns>
+        public static string ToStandardisedPath(this string path)
+            => path.Replace('\\', '/');
     }
 }

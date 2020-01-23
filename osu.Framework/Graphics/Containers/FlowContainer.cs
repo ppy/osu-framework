@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
+        private readonly Cached layout = new Cached();
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -116,6 +116,17 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Inserts a new drawable at the specified layout position.
+        /// </summary>
+        /// <param name="position">The layout position of the new child.</param>
+        /// <param name="drawable">The drawable to be inserted.</param>
+        public void Insert(int position, T drawable)
+        {
+            Add(drawable);
+            SetLayoutPosition(drawable, position);
+        }
+
+        /// <summary>
         /// Gets the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
         /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
         /// </summary>
@@ -164,6 +175,7 @@ namespace osu.Framework.Graphics.Containers
             var positions = ComputeLayoutPositions().ToArray();
 
             int i = 0;
+
             foreach (var d in FlowingChildren)
             {
                 if (i > positions.Length)
@@ -192,8 +204,10 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (i != positions.Length)
+            {
                 throw new InvalidOperationException(
                     $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+            }
         }
 
         protected override void UpdateAfterChildren()

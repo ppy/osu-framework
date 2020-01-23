@@ -25,6 +25,7 @@ namespace osu.Framework.Platform
         public bool Bind()
         {
             listener = new TcpListener(IPAddress.Loopback, ipc_port);
+
             try
             {
                 listener.Start();
@@ -45,6 +46,7 @@ namespace osu.Framework.Platform
         public async Task StartAsync()
         {
             var token = cancelListener.Token;
+
             try
             {
                 while (!token.IsCancellationRequested)
@@ -101,6 +103,7 @@ namespace osu.Framework.Platform
             using (var client = new TcpClient())
             {
                 await client.ConnectAsync(IPAddress.Loopback, ipc_port);
+
                 using (var stream = client.GetStream())
                 {
                     var str = JsonConvert.SerializeObject(message, Formatting.None);

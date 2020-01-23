@@ -19,12 +19,13 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class TabItem<T> : TabItem
     {
         internal Action<TabItem<T>> ActivationRequested;
-
         internal Action<TabItem<T>> PinnedChanged;
 
-        public override bool IsPresent => base.IsPresent && Y == 0;
+        public readonly BindableBool Active = new BindableBool();
 
-        public override bool IsRemovable => false;
+        public override bool IsPresent => base.IsPresent || Y == 0;
+
+        public override bool IsRemovable => true;
 
         /// <summary>
         /// When true, this tab can be switched to using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext. Otherwise, it will be skipped.
@@ -37,15 +38,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Value = value;
 
-            Active.ValueChanged += active_ValueChanged;
-        }
-
-        private void active_ValueChanged(ValueChangedEvent<bool> args)
-        {
-            if (args.NewValue)
-                OnActivated();
-            else
-                OnDeactivated();
+            Active.ValueChanged += active =>
+            {
+                if (active.NewValue)
+                    OnActivated();
+                else
+                    OnDeactivated();
+            };
         }
 
         private bool pinned;
@@ -64,8 +63,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract void OnActivated();
         protected abstract void OnDeactivated();
-
-        public readonly BindableBool Active = new BindableBool();
 
         protected override bool OnClick(ClickEvent e)
         {

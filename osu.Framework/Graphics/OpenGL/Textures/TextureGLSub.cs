@@ -7,6 +7,7 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -61,34 +62,42 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
-        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                            Vector2? inflationPercentage = null)
         {
-            parent.DrawTriangle(vertexTriangle, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                        Vector2? blendRangeOverride = null)
         {
-            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
+            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
         }
 
         internal override bool Upload() => false;
 
-        public override bool Bind()
+        internal override void FlushUploads()
+        {
+        }
+
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind();
+            return parent.Bind(unit);
         }
 
         public override void SetData(ITextureUpload upload)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
+            {
                 throw new ArgumentOutOfRangeException(
-                    $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.",
-                    nameof(upload));
+                    nameof(upload),
+                    $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.");
+            }
 
             if (upload.Bounds.IsEmpty)
                 upload.Bounds = bounds;

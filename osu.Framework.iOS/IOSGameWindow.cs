@@ -3,10 +3,11 @@
 
 using osuTK.Graphics;
 using osu.Framework.Configuration;
-using osu.Framework.Platform;
 using osu.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using osuTK;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.iOS
 {
@@ -36,7 +37,13 @@ namespace osu.Framework.iOS
             set { }
         }
 
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new WindowMode[]
+        public override DisplayDevice CurrentDisplay
+        {
+            get => DisplayDevice.Default;
+            set => throw new InvalidOperationException();
+        }
+
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
             Configuration.WindowMode.Fullscreen,
         };

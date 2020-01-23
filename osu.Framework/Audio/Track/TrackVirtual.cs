@@ -1,20 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Timing;
-using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackVirtual : Track
+    public sealed class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
         private double seekOffset;
 
-        public TrackVirtual()
+        public TrackVirtual(double length)
         {
-            Length = double.PositiveInfinity;
+            Length = length;
         }
 
         public override bool Seek(double seek)
@@ -31,7 +31,7 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            seekOffset = MathHelper.Clamp(seekOffset, 0, Length);
+            seekOffset = Math.Clamp(seekOffset, 0, Length);
 
             return current != seekOffset;
         }
@@ -89,7 +89,7 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo.Value;
+                clock.Rate = Tempo.Value * AggregateFrequency.Value;
         }
     }
 }

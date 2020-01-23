@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics.Shaders
         MaskingRect,
         ToMaskingSpace,
         CornerRadius,
+        CornerExponent,
         BorderThickness,
         BorderColour,
         MaskingBlendRange,
@@ -20,5 +21,6 @@ namespace osu.Framework.Graphics.Shaders
         DiscardInner,
         InnerCornerRadius,
         GammaCorrection,
+        BackbufferDraw,
     }
 }

@@ -11,6 +11,7 @@ namespace osu.Framework.Allocation
     /// Thread safety assumes at most one writer and one reader.
     /// </summary>
     public class TripleBuffer<T>
+        where T : class
     {
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
@@ -55,6 +56,7 @@ namespace osu.Framework.Allocation
 
                     buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
                     return buffers[write];
+
                 case UsageType.Read:
                     if (lastWrite < 0) return null;
 
@@ -78,6 +80,7 @@ namespace osu.Framework.Allocation
                     lock (buffers)
                         buffers[read].Usage = UsageType.None;
                     break;
+
                 case UsageType.Write:
                     lock (buffers)
                     {

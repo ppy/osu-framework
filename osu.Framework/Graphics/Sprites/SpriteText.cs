@@ -7,14 +7,15 @@ using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
+using osu.Framework.Development;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
+using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
 
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Sprites
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
-        private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
+        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ' };
 
         [Resolved]
         private FontStore store { get; set; }
@@ -35,8 +36,6 @@ namespace osu.Framework.Graphics.Sprites
         private LocalisationManager localisation { get; set; }
 
         private ILocalisedBindableString localisedText;
-
-        private float spaceWidth;
 
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
@@ -64,14 +63,14 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }, true);
 
-            spaceWidth = getTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
-
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
             foreach (var character in displayedText)
-                getTextureForCharacter(character);
+            {
+                var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
+            }
         }
 
         private LocalisedString text = string.Empty;
@@ -96,19 +95,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
         public Bindable<string> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                current.UnbindBindings();
-                current.BindTo(value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private string displayedText => localisedText?.Value ?? text.Text.Original;
@@ -129,12 +121,6 @@ namespace osu.Framework.Graphics.Sprites
             get => font;
             set
             {
-                // The implicit operator can be used to convert strings to fonts, which discards size + fixedwidth in doing so
-                // For the time being, we'll forward those members from the original value
-                // Todo: Remove this along with all other obsolete members
-                if (value.Legacy)
-                    value = new FontUsage(value.Family, font.Size, value.Weight, value.Italics, font.FixedWidth);
-
                 font = value;
 
                 invalidate(true);
@@ -142,31 +128,14 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        /// <summary>
-        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
-        /// </summary>
-        [Obsolete("Setting TextSize directly is deprecated. Use `Font = text.Font.With(size: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public float TextSize
-        {
-            get => Font.Size;
-            set => Font = Font.With(size: value);
-        }
-
-        /// <summary>
-        /// True if all characters should be spaced apart the same distance.
-        /// </summary>
-        [Obsolete("Setting FixedWidth directly is deprecated. Use `Font = text.Font.With(fixedWidth: value)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public bool FixedWidth
-        {
-            get => Font.FixedWidth;
-            set => Font = Font.With(fixedWidth: value);
-        }
-
         private bool allowMultiline = true;
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
         /// </summary>
+        /// <remarks>
+        /// If enabled, <see cref="Truncate"/> will be disabled.
+        /// </remarks>
         public bool AllowMultiline
         {
             get => allowMultiline;
@@ -174,6 +143,9 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (allowMultiline == value)
                     return;
+
+                if (value)
+                    Truncate = false;
 
                 allowMultiline = value;
 
@@ -219,6 +191,26 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private Vector2 shadowOffset = new Vector2(0, 0.06f);
+
+        /// <summary>
+        /// The offset of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
+        public Vector2 ShadowOffset
+        {
+            get => shadowOffset;
+            set
+            {
+                if (shadowOffset == value)
+                    return;
+
+                shadowOffset = value;
+
+                invalidate(true);
+                shadowOffsetCache.Invalidate();
+            }
+        }
+
         private bool useFullGlyphHeight = true;
 
         /// <summary>
@@ -235,6 +227,48 @@ namespace osu.Framework.Graphics.Sprites
 
                 useFullGlyphHeight = value;
 
+                invalidate(true);
+            }
+        }
+
+        private bool truncate;
+
+        /// <summary>
+        /// If true, text should be truncated when it exceeds the <see cref="Drawable.DrawWidth"/> of this <see cref="SpriteText"/>.
+        /// </summary>
+        /// <remarks>
+        /// Has no effect if no <see cref="Width"/> or custom sizing is set.
+        /// If enabled, <see cref="AllowMultiline"/> will be disabled.
+        /// </remarks>
+        public bool Truncate
+        {
+            get => truncate;
+            set
+            {
+                if (truncate == value) return;
+
+                if (value)
+                    AllowMultiline = false;
+
+                truncate = value;
+                invalidate(true);
+            }
+        }
+
+        private string ellipsisString = "…";
+
+        /// <summary>
+        /// When <see cref="Truncate"/> is enabled, this decides what string is used to signify that truncation has occured.
+        /// Defaults to "…".
+        /// </summary>
+        public string EllipsisString
+        {
+            get => ellipsisString;
+            set
+            {
+                if (ellipsisString == value) return;
+
+                ellipsisString = value;
                 invalidate(true);
             }
         }
@@ -264,6 +298,27 @@ namespace osu.Framework.Graphics.Sprites
                 base.Width = value;
                 explicitWidth = value;
 
+                invalidate(true);
+            }
+        }
+
+        private float maxWidth = float.PositiveInfinity;
+
+        /// <summary>
+        /// The maximum width of this <see cref="SpriteText"/>. Affects both auto and fixed sizing modes.
+        /// </summary>
+        /// <remarks>
+        /// This becomes a relative value if this <see cref="SpriteText"/> is relatively-sized on the X-axis.
+        /// </remarks>
+        public float MaxWidth
+        {
+            get => maxWidth;
+            set
+            {
+                if (maxWidth == value)
+                    return;
+
+                maxWidth = value;
                 invalidate(true);
             }
         }
@@ -355,13 +410,13 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached charactersCache = new Cached();
-        private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
+        private readonly Cached charactersCache = new Cached();
+        private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
         /// The characters in local space.
         /// </summary>
-        private List<CharacterPart> characters
+        private List<TextBuilderGlyph> characters
         {
             get
             {
@@ -372,8 +427,14 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool isComputingCharacters;
 
+        /// <summary>
+        /// Compute character textures and positions.
+        /// </summary>
         private void computeCharacters()
         {
+            if (LoadState >= LoadState.Loaded)
+                ThreadSafety.EnsureUpdateThread();
+
             if (store == null)
                 return;
 
@@ -385,97 +446,31 @@ namespace osu.Framework.Graphics.Sprites
             Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
 
-            Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
+            TextBuilder textBuilder = null;
 
             try
             {
                 if (string.IsNullOrEmpty(displayedText))
                     return;
 
-                float maxWidth = float.PositiveInfinity;
-                if (!requiresAutoSizedWidth)
-                    maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
-
-                float currentRowHeight = 0;
-
-                foreach (var character in displayedText)
-                {
-                    bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
-
-                    // Unscaled size (i.e. not multiplied by Font.Size)
-                    Vector2 textureSize;
-                    Texture texture = null;
-
-                    // Retrieve the texture + size
-                    if (char.IsWhiteSpace(character))
-                    {
-                        float size = useFixedWidth ? constantWidth : spaceWidth;
-
-                        if (character == 0x3000)
-                        {
-                            // Double-width space
-                            size *= 2;
-                        }
-
-                        textureSize = new Vector2(size);
-                    }
-                    else
-                    {
-                        texture = getTextureForCharacter(character);
-                        textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
-                    }
-
-                    // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
-
-                    // Texture size scaled by Font.Size
-                    Vector2 scaledTextureSize = textureSize * Font.Size;
-
-                    // Check if we need to go onto the next line
-                    if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
-                    {
-                        currentPos.X = Padding.Left;
-                        currentPos.Y += currentRowHeight + spacing.Y;
-                        currentRowHeight = 0;
-                    }
-
-                    // The height of the row depends on whether we want to use the full glyph height or not
-                    currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                    if (!char.IsWhiteSpace(character) && texture != null)
-                    {
-                        // If we have fixed width, we'll need to centre the texture to the glyph size
-                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
-
-                        charactersBacking.Add(new CharacterPart
-                        {
-                            Texture = texture,
-                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
-                        });
-                    }
-
-                    currentPos.X += glyphSize.X + spacing.X;
-                }
-
-                // When we added the last character, we also added the spacing, but we should remove it to get the correct size
-                currentPos.X -= spacing.X;
-
-                // The last row needs to be included in the height
-                currentPos.Y += currentRowHeight;
+                textBuilder = CreateTextBuilder(store);
+                textBuilder.AddText(displayedText);
             }
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = currentPos.X + Padding.Right;
+                    base.Width = (textBuilder?.Bounds.X ?? 0) + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = currentPos.Y + Padding.Bottom;
+                    base.Height = (textBuilder?.Bounds.Y ?? 0) + Padding.Bottom;
+
+                base.Width = Math.Min(base.Width, MaxWidth);
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
             }
         }
 
-        private Cached screenSpaceCharactersCache = new Cached();
+        private readonly Cached screenSpaceCharactersCache = new Cached();
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -497,11 +492,14 @@ namespace osu.Framework.Graphics.Sprites
 
             screenSpaceCharactersBacking.Clear();
 
+            Vector2 inflationAmount = DrawInfo.MatrixInverse.ExtractScale().Xy;
+
             foreach (var character in characters)
             {
                 screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
                 {
-                    DrawQuad = ToScreenSpace(character.DrawRectangle),
+                    DrawQuad = ToScreenSpace(character.DrawRectangle.Inflate(inflationAmount)),
+                    InflationPercentage = Vector2.Divide(inflationAmount, character.DrawRectangle.Size),
                     Texture = character.Texture
                 });
             }
@@ -509,11 +507,10 @@ namespace osu.Framework.Graphics.Sprites
             screenSpaceCharactersCache.Validate();
         }
 
-        private Cached<float> constantWidthCache;
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTextureForCharacter('D')?.DisplayWidth ?? 0;
+        private readonly Cached<Vector2> shadowOffsetCache = new Cached<Vector2>();
 
-        private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
+        private Vector2 premultipliedShadowOffset =>
+            shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -558,46 +555,43 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        private Texture getTextureForCharacter(char c) => GetTextureForCharacter(c) ?? GetFallbackTextureForCharacter(c);
+        /// <summary>
+        /// The characters that should be excluded from fixed-width application. Defaults to (".", ",", ":", " ") if null.
+        /// </summary>
+        protected virtual char[] FixedWidthExcludeCharacters { get; } = null;
 
         /// <summary>
-        /// Gets the texture for the given character.
+        /// The character to fallback to use if a character glyph lookup failed.
         /// </summary>
-        /// <param name="c">The character to get the texture for.</param>
-        /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetTextureForCharacter(char c)
+        protected virtual char FallbackCharacter => '?';
+
+        /// <summary>
+        /// Creates a <see cref="TextBuilder"/> to generate the character layout for this <see cref="SpriteText"/>.
+        /// </summary>
+        /// <param name="store">The <see cref="ITexturedGlyphLookupStore"/> where characters should be retrieved from.</param>
+        /// <returns>The <see cref="TextBuilder"/>.</returns>
+        protected virtual TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
         {
-            if (store == null)
-                return null;
+            var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
-            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c);
-        }
+            float builderMaxWidth = requiresAutoSizedWidth
+                ? MaxWidth
+                : ApplyRelativeAxes(RelativeSizeAxes, new Vector2(Math.Min(MaxWidth, base.Width), base.Height), FillMode).X - Padding.Right;
 
-        /// <summary>
-        /// Gets a <see cref="Texture"/> that represents a character which doesn't exist in the current font.
-        /// </summary>
-        /// <param name="c">The character which doesn't exist in the current font.</param>
-        /// <returns>The texture for the given character.</returns>
-        protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
-
-        /// <summary>
-        /// Whether the visual representation of a character should use fixed width when <see cref="FontUsage.FixedWidth"/> is true.
-        /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
-        /// </summary>
-        /// <param name="c">The character.</param>
-        /// <returns>Whether the visual representation of <paramref name="c"/> should use a fixed width.</returns>
-        protected virtual bool UseFixedWidthForCharacter(char c)
-        {
-            switch (c)
+            if (AllowMultiline)
             {
-                case '.':
-                case ',':
-                case ':':
-                case ' ':
-                    return false;
+                return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                    excludeCharacters, FallbackCharacter);
             }
 
-            return true;
+            if (Truncate)
+            {
+                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                    excludeCharacters, FallbackCharacter);
+            }
+
+            return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                excludeCharacters, FallbackCharacter);
         }
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();
@@ -620,9 +614,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms
-        {
-            get { yield return displayedText; }
-        }
+        public IEnumerable<string> FilterTerms => displayedText.Yield();
     }
 }

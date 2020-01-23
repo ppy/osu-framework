@@ -58,7 +58,8 @@ namespace osu.Framework.Testing
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
 
-                    validDirectories.Add(dir);
+                    lock (compileLock) // enumeration over this list occurs during compilation
+                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
@@ -75,7 +76,7 @@ namespace osu.Framework.Testing
                 }
             });
 
-            string getSolutionPath(DirectoryInfo d)
+            static string getSolutionPath(DirectoryInfo d)
             {
                 if (d == null)
                     return null;
@@ -98,7 +99,7 @@ namespace osu.Framework.Testing
                 // add ourselves as a required type.
                 reqTypes.Add(removeGenerics(checkpointName));
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestCase.RemovePrefix(removeGenerics(checkpointName)));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
 
                 if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
@@ -108,10 +109,13 @@ namespace osu.Framework.Testing
                     requiredTypeNames = reqTypes;
 
                     requiredFiles.Clear();
+
                     foreach (var d in validDirectories)
+                    {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
                                                .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                    }
                 }
 
                 lastTouchedFile = e.FullPath;
@@ -157,7 +161,7 @@ namespace osu.Framework.Testing
 #if RELEASE
                 "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.CSharp7_3);
+            }, languageVersion: LanguageVersion.Latest);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -201,7 +205,7 @@ namespace osu.Framework.Testing
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
 
-                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
+                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
                     }
                 }
             }

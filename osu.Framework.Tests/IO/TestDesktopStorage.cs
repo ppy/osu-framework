@@ -14,6 +14,7 @@ namespace osu.Framework.Tests.IO
         public void TestRelativePaths()
         {
             var guid = new Guid().ToString();
+
             using (var storage = new TemporaryNativeStorage(guid))
             {
                 var basePath = storage.GetFullPath(string.Empty);

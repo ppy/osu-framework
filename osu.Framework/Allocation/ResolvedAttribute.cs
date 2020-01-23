@@ -73,6 +73,7 @@ namespace osu.Framework.Allocation
             var activators = new List<Action<object, IReadOnlyDependencyContainer>>();
 
             var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);
+
             foreach (var property in properties)
             {
                 if (!property.CanWrite)
@@ -85,6 +86,7 @@ namespace osu.Framework.Allocation
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
 
                 var cacheInfo = new CacheInfo(attribute.Name);
+
                 if (attribute.Parent != null)
                 {
                     // When a parent type exists, infer the property name if one is not provided

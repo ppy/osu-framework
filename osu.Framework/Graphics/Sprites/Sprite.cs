@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Sprites
         /// of this sprite will be set to the size of the texture.
         /// <see cref="Drawable.FillAspectRatio"/> is automatically set to the aspect ratio of the given texture or 1 if the texture is null.
         /// </summary>
-        public Texture Texture
+        public virtual Texture Texture
         {
             get => texture;
             set
@@ -97,8 +97,10 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
+            {
                 throw new InvalidOperationException(
                     $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
+            }
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 

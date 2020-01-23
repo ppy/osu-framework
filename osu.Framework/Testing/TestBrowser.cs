@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -32,12 +33,12 @@ using osuTK.Input;
 namespace osu.Framework.Testing
 {
     [Cached]
-    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalInput
+    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>, IHandleGlobalKeyboardInput
     {
-        public TestCase CurrentTest { get; private set; }
+        public TestScene CurrentTest { get; private set; }
 
         private BasicTextBox searchTextBox;
-        private SearchContainer<TestCaseButtonGroup> leftFlowContainer;
+        private SearchContainer<TestGroupButton> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -45,7 +46,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestCase> backgroundCompiler;
+        private DynamicClassCompiler<TestScene> backgroundCompiler;
 
         private bool interactive;
 
@@ -62,7 +63,7 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract && t.IsPublic).ToList();
+                var tests = asm.GetLoadableTypes().Where(isValidVisualTest).ToList();
 
                 if (!tests.Any())
                 {
@@ -77,6 +78,8 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
+        private bool isValidVisualTest(Type t) => t.IsSubclassOf(typeof(TestScene)) && !t.IsAbstract && t.IsPublic && !t.GetCustomAttributes<HeadlessTestAttribute>().Any();
+
         private void updateList(ValueChangedEvent<Assembly> args)
         {
             leftFlowContainer.Clear();
@@ -89,12 +92,12 @@ namespace osu.Framework.Testing
                                                     t =>
                                                     {
                                                         string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
-                                                        return string.IsNullOrWhiteSpace(group) ? TestCase.RemovePrefix(t.Name) : group;
+                                                        return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
                                                     (group, types) => new TestGroup { Name = group, TestTypes = types.ToArray() }
                                                 ).OrderBy(g => g.Name)
-                                                .Select(t => new TestCaseButtonGroup(type => LoadTest(type), t)));
+                                                .Select(t => new TestGroupButton(type => LoadTest(type), t)));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2, Default = 1 };
@@ -113,23 +116,27 @@ namespace osu.Framework.Testing
 
         private Bindable<bool> showLogOverlay;
 
+        private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
+
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
 
+            audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
+
             var resources = game.Resources;
 
             //Roboto
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/Roboto/Roboto-Bold"));
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Regular");
+            game.AddFont(resources, @"Fonts/Roboto/Roboto-Bold");
 
             //RobotoCondensed
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular"));
-            fonts.AddStore(new GlyphStore(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold"));
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
@@ -138,16 +145,69 @@ namespace osu.Framework.Testing
 
             Children = new Drawable[]
             {
+                mainContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Left = test_list_width },
+                    Children = new Drawable[]
+                    {
+                        new SafeAreaContainer
+                        {
+                            SafeAreaOverrideEdges = Edges.Right | Edges.Bottom,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = testContentContainer = new Container
+                            {
+                                Clock = framedClock,
+                                RelativeSizeAxes = Axes.Both,
+                                Padding = new MarginPadding { Top = 50 },
+                                Child = compilingNotice = new Container
+                                {
+                                    Alpha = 0,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Masking = true,
+                                    Depth = float.MinValue,
+                                    CornerRadius = 5,
+                                    AutoSizeAxes = Axes.Both,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.Black,
+                                        },
+                                        new SpriteText
+                                        {
+                                            Font = new FontUsage(size: 30),
+                                            Text = @"Compiling new version..."
+                                        }
+                                    },
+                                }
+                            }
+                        },
+                        toolbar = new TestBrowserToolbar
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 50,
+                        },
+                    }
+                },
                 leftContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Y,
                     Size = new Vector2(test_list_width, 1),
+                    Masking = true,
                     Children = new Drawable[]
                     {
-                        new Box
+                        new SafeAreaContainer
                         {
-                            Colour = FrameworkColour.GreenDark,
-                            RelativeSizeAxes = Axes.Both
+                            SafeAreaOverrideEdges = Edges.Left | Edges.Top | Edges.Bottom,
+                            RelativeSizeAxes = Axes.Both,
+                            Child = new Box
+                            {
+                                Colour = FrameworkColour.GreenDark,
+                                RelativeSizeAxes = Axes.Both
+                            }
                         },
                         new FillFlowContainer
                         {
@@ -159,21 +219,22 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestCaseSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
                                     },
                                     Height = 25,
                                     RelativeSizeAxes = Axes.X,
-                                    PlaceholderText = "type to search"
+                                    PlaceholderText = "type to search",
+                                    Depth = -1,
                                 },
-                                new ScrollContainer
+                                new BasicScrollContainer
                                 {
-                                    Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
-                                    Child = leftFlowContainer = new SearchContainer<TestCaseButtonGroup>
+                                    Masking = false,
+                                    Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
-                                        Padding = new MarginPadding(3),
+                                        Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,
@@ -183,59 +244,17 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
-                mainContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = test_list_width },
-                    Children = new Drawable[]
-                    {
-                        toolbar = new TestBrowserToolbar
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 50,
-                            Depth = -1,
-                        },
-                        testContentContainer = new Container
-                        {
-                            Clock = framedClock,
-                            RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 50 },
-                            Child = compilingNotice = new Container
-                            {
-                                Alpha = 0,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Masking = true,
-                                Depth = float.MinValue,
-                                CornerRadius = 5,
-                                AutoSizeAxes = Axes.Both,
-                                Children = new Drawable[]
-                                {
-                                    new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.Black,
-                                    },
-                                    new SpriteText
-                                    {
-                                        Font = new FontUsage(size: 30),
-                                        Text = @"Compiling new version..."
-                                    }
-                                },
-                            }
-                        }
-                    }
-                }
             };
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
             if (RuntimeInfo.SupportsJIT)
             {
-                backgroundCompiler = new DynamicClassCompiler<TestCase>();
+                backgroundCompiler = new DynamicClassCompiler<TestScene>();
                 backgroundCompiler.CompilationStarted += compileStarted;
                 backgroundCompiler.CompilationFinished += compileFinished;
                 backgroundCompiler.CompilationFailed += compileFailed;
+
                 try
                 {
                     backgroundCompiler.Start();
@@ -251,7 +270,11 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(e => rateAdjustClock.Rate = e.NewValue, true);
+            PlaybackRate.BindValueChanged(e =>
+            {
+                rateAdjustClock.Rate = e.NewValue;
+                audioRateAdjust.Value = e.NewValue;
+            }, true);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -353,9 +376,11 @@ namespace osu.Framework.Testing
                     if (leftContainer.Width == 0) toggleTestList();
                     GetContainingInputManager().ChangeFocus(searchTextBox);
                     return true;
+
                 case TestBrowserAction.Reload:
                     LoadTest(CurrentTest.GetType());
                     return true;
+
                 case TestBrowserAction.ToggleTestList:
                     toggleTestList();
                     return true;
@@ -364,10 +389,20 @@ namespace osu.Framework.Testing
             return false;
         }
 
-        public bool OnReleased(TestBrowserAction action) => false;
+        public void OnReleased(TestBrowserAction action)
+        {
+        }
 
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
+            if (CurrentTest?.Parent != null)
+            {
+                testContentContainer.Remove(CurrentTest.Parent);
+                CurrentTest.Dispose();
+            }
+
+            CurrentTest = null;
+
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -376,7 +411,7 @@ namespace osu.Framework.Testing
             if (testType == null)
                 return;
 
-            var newTest = (TestCase)Activator.CreateInstance(testType);
+            var newTest = (TestScene)Activator.CreateInstance(testType);
 
             const string dynamic_prefix = "dynamic";
 
@@ -388,10 +423,8 @@ namespace osu.Framework.Testing
 
             Assembly.Value = testType.Assembly;
 
-            var lastTest = CurrentTest;
-
             CurrentTest = newTest;
-            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, lastTest, onCompletion));
+            CurrentTest.OnLoadComplete += _ => Schedule(() => finishLoad(newTest, onCompletion));
 
             updateButtons();
             resetRecording();
@@ -409,14 +442,8 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Drawable lastTest, Action onCompletion)
+        private void finishLoad(Drawable newTest, Action onCompletion)
         {
-            if (lastTest?.Parent != null)
-            {
-                testContentContainer.Remove(lastTest.Parent);
-                lastTest.Dispose();
-            }
-
             if (CurrentTest != newTest)
             {
                 // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
@@ -430,16 +457,20 @@ namespace osu.Framework.Testing
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestCase.TestConstructor)))
+            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
-                if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel(m.Name);
+                    handleTestMethod(m);
 
-                    addSetUpSteps();
+                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    {
+                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
-                    m.Invoke(CurrentTest, null);
+                        for (int i = 2; i <= count; i++)
+                            handleTestMethod(m, $"{m.Name} ({i})");
+                    }
                 }
 
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
@@ -463,7 +494,7 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = methods.Where(m => m.Name != nameof(TestCase.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
+                var setUpMethods = methods.Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
 
                 if (setUpMethods.Any())
                 {
@@ -474,6 +505,15 @@ namespace osu.Framework.Testing
                 }
 
                 CurrentTest.RunSetUpSteps();
+            }
+
+            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            {
+                CurrentTest.AddLabel(name ?? methodInfo.Name);
+
+                addSetUpSteps();
+
+                methodInfo.Invoke(CurrentTest, null);
             }
         }
 
@@ -550,7 +590,7 @@ namespace osu.Framework.Testing
 
         private class TestBrowserTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => TestCaseButton.LEFT_TEXT_PADDING;
+            protected override float LeftRightPadding => TestSceneButton.LEFT_TEXT_PADDING;
 
             public TestBrowserTextBox()
             {

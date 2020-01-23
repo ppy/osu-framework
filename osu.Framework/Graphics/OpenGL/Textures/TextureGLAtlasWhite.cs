@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Primitives;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -16,13 +17,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind()
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             //we can use the special white space from any atlas texture.
-            if (GLWrapper.AtlasTextureIsBound)
+            if (GLWrapper.AtlasTextureIsBound(unit))
                 return true;
 
-            return base.Bind();
+            return base.Bind(unit);
         }
     }
 }

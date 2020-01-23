@@ -6,9 +6,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Lists
 {
-    /// <summary>
-    /// An IComparer that uses the result of a Comparison.
-    /// </summary>
+    [Obsolete("Use Comparer<T>.Create() instead.")] // can be removed 20200421
     public class ComparisonComparer<T> : IComparer<T>
     {
         private readonly Comparison<T> comparison;

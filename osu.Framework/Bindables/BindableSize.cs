@@ -60,6 +60,7 @@ namespace osu.Framework.Bindables
 
                     Value = new Size(int.Parse(split[0]), int.Parse(split[1]));
                     break;
+
                 default:
                     base.Parse(input);
                     break;

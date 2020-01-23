@@ -90,7 +90,19 @@ namespace osu.Framework.Statistics
             while (!cancellation.IsCancellationRequested)
             {
                 if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
-                    backgroundMonitorStackTrace = getStackTrace(targetThread);
+                {
+                    try
+                    {
+                        Logger.Log("Retrieving background stack trace...");
+                        backgroundMonitorStackTrace = getStackTrace(targetThread);
+                    }
+                    catch (Exception e)
+                    {
+                        Enabled = false;
+                        Logger.Log($"Failed to retrieve background stack trace: {e}");
+                    }
+                }
+
                 Thread.Sleep(5);
             }
         }

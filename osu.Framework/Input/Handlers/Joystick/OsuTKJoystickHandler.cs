@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -17,8 +17,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class OsuTKJoystickHandler : InputHandler
     {
-        private ScheduledDelegate scheduledPoll;
-        private ScheduledDelegate scheduledRefreshDevices;
+        private ScheduledDelegate scheduled;
 
         private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
         private readonly List<osuTK.Input.JoystickState> rawStates = new List<osuTK.Input.JoystickState>();
@@ -29,25 +28,24 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (e.NewValue)
                 {
-                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
-
-                    host.InputThread.Scheduler.Add(scheduledPoll = new ScheduledDelegate(delegate
+                    host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
+                        refreshDevices();
+
                         foreach (var device in devices)
                         {
-                            if (device.RawState.Equals(device.LastRawState))
+                            if ((device.LastRawState.HasValue && device.RawState.Equals(device.LastRawState.Value))
+                                || !device.RawState.IsConnected)
                                 continue;
 
-                            var newState = new OsuTKJoystickState(device);
-                            handleState(device, newState);
+                            handleState(device, new OsuTKJoystickState(device));
                             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                         }
                     }, 0, 0));
                 }
                 else
                 {
-                    scheduledPoll?.Cancel();
-                    scheduledRefreshDevices?.Cancel();
+                    scheduled?.Cancel();
 
                     foreach (var device in devices)
                     {
@@ -80,6 +78,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             for (int index = 0; index < rawStates.Count; index++)
             {
                 var rawState = rawStates[index];
+
                 if (index < devices.Count)
                 {
                     devices[index].UpdateRawState(rawState);
@@ -107,8 +106,20 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.RawState.GetAxis(i);
-                    if (!Precision.AlmostEquals(value, 0, device.DefaultDeadzones?[i] ?? Precision.FLOAT_EPSILON))
+
+                    // do not allow a deadzone below float_epsilon
+                    var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
+
+                    if (!Precision.AlmostEquals(value, 0, deadzone))
+                    {
                         Axes.Add(new JoystickAxis(i, value));
+
+                        // We're off the center, activate negative / positive button
+                        if (value > deadzone)
+                            Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
+                        else if (value < deadzone * -1)
+                            Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
+                    }
                 }
 
                 // Populate normal buttons
@@ -124,10 +135,6 @@ namespace osu.Framework.Input.Handlers.Joystick
                     foreach (var hatButton in getHatButtons(device, i))
                         Buttons.SetPressed(hatButton, true);
                 }
-
-                // Populate axis buttons (each axis has two buttons)
-                foreach (var axis in Axes)
-                    Buttons.SetPressed((axis.Value < 0 ? JoystickButton.FirstAxisNegative : JoystickButton.FirstAxisPositive) + axis.Axis, true);
             }
 
             private IEnumerable<JoystickButton> getHatButtons(JoystickDevice device, int hat)
@@ -156,7 +163,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of buttons supported by osuTK.
             /// </summary>
-            public const int MAX_BUTTONS = 64;
+            public const int MAX_BUTTONS = 128;
 
             /// <summary>
             /// Amount of hats supported by osuTK.

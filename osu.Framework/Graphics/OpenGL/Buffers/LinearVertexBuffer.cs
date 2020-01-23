@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         private readonly int amountVertices;
 
-        public LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
+        internal LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
             : base(amountVertices, usage)
         {
             this.amountVertices = amountVertices;

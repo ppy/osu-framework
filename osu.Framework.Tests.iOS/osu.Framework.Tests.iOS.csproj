@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\NUnit.3.10.1\build\NUnit.props" Condition="Exists('..\packages\NUnit.3.10.1\build\NUnit.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhoneSimulator</Platform>
@@ -13,8 +12,12 @@
   </PropertyGroup>
   <Import Project="..\osu.Framework.iOS.props" />
   <ItemGroup>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
-    <ImageAsset Include="Assets.xcassets\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
+      <Visible>false</Visible>
+    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\Contents.json">
+      <Visible>false</Visible>
+    </ImageAsset>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -22,14 +25,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
-    <None Include="..\osu.Framework.NativeLibs\libbass.a">
-      <Link>libbass.a</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\osu.Framework.NativeLibs\libbass_fx.a">
-      <Link>libbass_fx.a</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <LinkDescription Include="Linker.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -37,39 +32,12 @@
     <Compile Include="AppDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\osu.Framework.Tests\**\Bindables\**\*.cs">
+    <Compile Include="..\osu.Framework.Tests\**\*.cs" Exclude="..\osu.Framework.Tests\Program.cs;..\osu.Framework.Tests\obj\**\*;..\osu.Framework.Tests\bin\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Clocks\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Dependencies\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Exceptions\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\IO\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Lists\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\MathUtils\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Platform\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Visual\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <EmbeddedResource Include="..\osu.Framework.Tests\**\Resources\**\*.*">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <EmbeddedResource Include="..\osu.Framework.Tests\Resources\**\*">
+      <Link>Resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
-    <Compile Include="..\osu.Framework.Tests\*.cs" Exclude="**\Program.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -82,5 +50,4 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
-  <Import Project="..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" />
 </Project>

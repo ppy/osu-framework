@@ -53,6 +53,7 @@ namespace osu.Framework.Graphics.Cursor
                 // We keep track of all drawables we found while traversing the parent chain upwards.
                 newChildDrawables.Clear();
                 newChildDrawables.Add(candidate);
+
                 // When we encounter a drawable we already encountered before, then there is no need
                 // to keep going upward, since we already recorded it previously. At that point we know
                 // the drawables we found are in fact children of ours.

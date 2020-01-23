@@ -6,27 +6,42 @@ using osu.Framework.Allocation;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleBass : Sample, IBassAudio
+    internal sealed class SampleBass : Sample, IBassAudio
     {
         private volatile int sampleId;
 
         public override bool IsLoaded => sampleId != 0;
 
-        public SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
+
+        internal SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
             : base(concurrency)
         {
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            EnqueueAction(() => { sampleId = loadSample(data); });
+            if (data.Length > 0)
+            {
+                EnqueueAction(() =>
+                {
+                    sampleId = loadSample(data);
+                    memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
+                });
+            }
         }
 
         protected override void Dispose(bool disposing)
         {
-            Bass.SampleFree(sampleId);
+            if (IsLoaded)
+            {
+                Bass.SampleFree(sampleId);
+                memoryLease?.Dispose();
+            }
+
             base.Dispose(disposing);
         }
 

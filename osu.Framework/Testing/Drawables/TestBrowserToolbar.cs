@@ -17,16 +17,23 @@ namespace osu.Framework.Testing.Drawables
         [BackgroundDependencyLoader]
         private void load()
         {
+            const float section_padding = 10;
+
             InternalChildren = new Drawable[]
             {
-                new Box
+                new SafeAreaContainer
                 {
+                    SafeAreaOverrideEdges = Edges.Top | Edges.Right,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = FrameworkColour.GreenDark,
+                    Child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.GreenDark,
+                    },
                 },
                 new Container
                 {
-                    Padding = new MarginPadding(10),
+                    Padding = new MarginPadding(section_padding),
                     RelativeSizeAxes = Axes.Both,
                     Child = new GridContainer
                     {
@@ -43,7 +50,26 @@ namespace osu.Framework.Testing.Drawables
                             {
                                 assemblySection = new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
                                 new ToolbarRateSection { RelativeSizeAxes = Axes.Both },
-                                new ToolbarRecordSection { RelativeSizeAxes = Axes.Y }
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Y,
+                                    AutoSizeAxes = Axes.X,
+                                    Margin = new MarginPadding { Left = section_padding },
+                                    Children = new Drawable[]
+                                    {
+                                        new Container //Backdrop of the record section
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Padding = new MarginPadding(-section_padding),
+                                            Child = new Box
+                                            {
+                                                RelativeSizeAxes = Axes.Both,
+                                                Colour = FrameworkColour.GreenDarker,
+                                            },
+                                        },
+                                        new ToolbarRecordSection { RelativeSizeAxes = Axes.Y }
+                                    }
+                                },
                             }
                         },
                     },

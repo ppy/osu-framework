@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
@@ -191,8 +193,10 @@ namespace osu.Framework.Tests.Localisation
                         {
                             default:
                                 return LOCALISABLE_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_STRING_JA;
+
                             case "ja-JP":
                                 return LOCALISABLE_STRING_JA_JP;
                         }
@@ -202,6 +206,7 @@ namespace osu.Framework.Tests.Localisation
                         {
                             default:
                                 return LOCALISABLE_FORMAT_STRING_EN;
+
                             case "ja":
                                 return LOCALISABLE_FORMAT_STRING_JA;
                         }
@@ -216,6 +221,8 @@ namespace osu.Framework.Tests.Localisation
             public void Dispose()
             {
             }
+
+            public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
         }
     }
 }

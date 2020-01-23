@@ -22,6 +22,29 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(value, bindable.Value);
         }
 
+        [TestCase(-1.0, 1.0)]
+        [TestCase(1.1, 1.0)]
+        [TestCase(-1.1, 1.0)]
+        [TestCase(-1.00000000, 1.00000000, 0.00000001)]
+        [TestCase(1.00000001, 1.00000000, 0.00000001)]
+        [TestCase(-1.00000001, 1.00000000, 0.00000001)]
+        [TestCase(0.99999999, 1.00000000, 0.00000001)]
+        [TestCase(-0.99999999, 1.00000000, 0.00000001)]
+        [TestCase(199.1223345568, 199.1223345567, 0.0000000001)]
+        [TestCase(-199.1223345568, 199.1223345567, 0.0000000001)]
+        [TestCase(-199.1223345567, 199.1223345567, 0.0000000001)]
+        public void TestDefaultCheck(double value, double def, double? precision = null)
+        {
+            var bindable = new BindableDouble { Value = def, Default = def };
+            if (precision.HasValue)
+                bindable.Precision = precision.Value;
+
+            Assert.IsTrue(bindable.IsDefault);
+
+            bindable.Value = value;
+            Assert.IsFalse(bindable.IsDefault);
+        }
+
         [TestCase("0", 0f)]
         [TestCase("1", 1f)]
         [TestCase("-0", 0f)]

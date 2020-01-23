@@ -65,9 +65,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case TableColumnAlign.Center:
                     textFlow.TextAnchor = Anchor.Centre;
                     break;
+
                 case TableColumnAlign.Right:
                     textFlow.TextAnchor = Anchor.CentreRight;
                     break;
+
                 default:
                     textFlow.TextAnchor = Anchor.CentreLeft;
                     break;

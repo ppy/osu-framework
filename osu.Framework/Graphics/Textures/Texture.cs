@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
@@ -16,7 +17,8 @@ namespace osu.Framework.Graphics.Textures
     public class Texture : IDisposable
     {
         // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
-        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() => new TextureAtlas(3, 3, true).WhitePixel);
+        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() =>
+            new TextureAtlas(TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, true).WhitePixel);
 
         public static Texture WhitePixel => white_pixel.Value;
 
@@ -112,18 +114,37 @@ namespace osu.Framework.Graphics.Textures
 
         public RectangleF GetTextureRect(RectangleF? textureRect = null) => TextureGL.GetTextureRect(TextureBounds(textureRect));
 
-        public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        /// <summary>
+        /// Draws a triangle to the screen.
+        /// </summary>
+        /// <param name="vertexTriangle">The triangle to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
+                                   Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage);
         }
 
-        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        /// <summary>
+        /// Draws a quad to the screen.
+        /// </summary>
+        /// <param name="vertexQuad">The quad to draw.</param>
+        /// <param name="drawColour">The vertex colour.</param>
+        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                               Vector2? blendRangeOverride = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage, blendRangeOverride);
+            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";

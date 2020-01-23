@@ -20,6 +20,7 @@ namespace osu.Framework.Input
             if (!handler.Initialize(Host)) return;
 
             int index = inputHandlers.BinarySearch(handler, new InputHandlerComparer());
+
             if (index < 0)
             {
                 index = ~index;

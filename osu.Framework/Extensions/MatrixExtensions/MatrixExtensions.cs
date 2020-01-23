@@ -28,8 +28,8 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
         public static void RotateFromLeft(ref Matrix3 m, float radians)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            float cos = MathF.Cos(radians);
+            float sin = MathF.Sin(radians);
 
             Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
@@ -38,8 +38,8 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
         public static void RotateFromRight(ref Matrix3 m, float radians)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            float cos = MathF.Cos(radians);
+            float sin = MathF.Sin(radians);
 
             //Vector3 column0 = m.Column0 * cos + m.Column1 * sin;
             float m11 = m.M11 * cos - m.M12 * sin;

@@ -10,8 +10,8 @@ namespace osu.Framework.Configuration.Tracking
     {
         public event Action<SettingDescription> SettingChanged;
 
-        public void LoadFrom<T>(ConfigManager<T> configManager)
-            where T : struct
+        public void LoadFrom<TLookup>(ConfigManager<TLookup> configManager)
+            where TLookup : struct, Enum
         {
             foreach (var value in this)
             {

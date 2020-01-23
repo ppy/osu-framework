@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Performance
                         labelText.Origin = Anchor.CentreRight;
                         labelText.Rotation = 0;
                         break;
+
                     case FrameStatisticsMode.Full:
                         mainContainer.AutoSizeAxes = Axes.None;
                         mainContainer.Size = new Vector2(WIDTH, HEIGHT);
@@ -99,7 +100,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
+        public FrameStatisticsDisplay(GameThread thread)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
@@ -143,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
+                                            Texture = new Texture(1, HEIGHT),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -177,11 +178,11 @@ namespace osu.Framework.Graphics.Performance
                                 RelativeSizeAxes = Axes.Both,
                                 Children = timeBars = new[]
                                 {
-                                    new TimeBar(atlas),
-                                    new TimeBar(atlas),
+                                    new TimeBar(),
+                                    new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, monitor.Thread)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -238,8 +239,10 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-            for (int k = 0; k < WIDTH; k++)
-                fullBackground[k, i] = column[0, i];
+            {
+                for (int k = 0; k < WIDTH; k++)
+                    fullBackground[k, i] = column[0, i];
+            }
 
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
 
@@ -312,6 +315,7 @@ namespace osu.Framework.Graphics.Performance
                 case Key.ControlLeft:
                     Expanded = true;
                     break;
+
                 case Key.ShiftLeft:
                     Running = false;
                     break;
@@ -320,19 +324,20 @@ namespace osu.Framework.Graphics.Performance
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             switch (e.Key)
             {
                 case Key.ControlLeft:
                     Expanded = false;
                     break;
+
                 case Key.ShiftLeft:
                     Running = true;
                     break;
             }
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -341,12 +346,10 @@ namespace osu.Framework.Graphics.Performance
                 addEvent(gcLevel);
         }
 
-        private readonly BufferStack<Rgba32> timeBarImages = new BufferStack<Rgba32>(100);
-
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new BufferStackTextureUpload(1, HEIGHT, timeBarImages)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -364,8 +367,10 @@ namespace osu.Framework.Graphics.Performance
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();
+            }
         }
 
         private void applyFrameCounts(FrameStatistics frame)
@@ -394,7 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
-                    monitor.FramesHeap.FreeObject(frame);
+                    monitor.FramesPool.Return(frame);
                 }
             }
         }
@@ -405,6 +410,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.YellowGreen;
+
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG
@@ -413,10 +419,13 @@ namespace osu.Framework.Graphics.Performance
 #endif
                 case PerformanceCollectionType.Sleep:
                     return Color4.DarkBlue;
+
                 case PerformanceCollectionType.Scheduler:
                     return Color4.HotPink;
+
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
+
                 case PerformanceCollectionType.GLReset:
                     return Color4.Cyan;
             }
@@ -430,16 +439,22 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.BlueViolet;
+
                 case 1:
                     return Color4.YellowGreen;
+
                 case 2:
                     return Color4.HotPink;
+
                 case 3:
                     return Color4.Red;
+
                 case 4:
                     return Color4.Cyan;
+
                 case 5:
                     return Color4.Yellow;
+
                 case 6:
                     return Color4.SkyBlue;
             }
@@ -468,6 +483,7 @@ namespace osu.Framework.Graphics.Performance
                 bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
+
                 if (!frameTimeType.HasValue)
                 {
                     int step = amountSteps / HEIGHT;
@@ -488,12 +504,12 @@ namespace osu.Framework.Graphics.Performance
         {
             public readonly Sprite Sprite;
 
-            public TimeBar(TextureAtlas atlas)
+            public TimeBar()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
+                Sprite.Texture = new Texture(WIDTH, HEIGHT);
             }
         }
 

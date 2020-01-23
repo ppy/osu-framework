@@ -26,7 +26,8 @@ namespace osu.Framework.Audio.Callbacks
         private static void syncCallback(int handle, int channel, int data, IntPtr user)
         {
             var ptr = new ObjectHandle<SyncCallback>(user);
-            ptr.Target.Sync(handle, channel, data, user);
+            if (ptr.GetTarget(out SyncCallback target))
+                target.Sync(handle, channel, data, user);
         }
     }
 }

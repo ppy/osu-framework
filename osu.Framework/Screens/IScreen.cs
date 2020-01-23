@@ -94,9 +94,11 @@ namespace osu.Framework.Screens
                 case null:
                     onFail?.Invoke();
                     return;
+
                 case ScreenStack stack:
                     onRoot(stack);
                     break;
+
                 default:
                     runOnRoot(current.Parent, onRoot, onFail);
                     break;
@@ -112,8 +114,10 @@ namespace osu.Framework.Screens
                         return onFail.Invoke();
 
                     return default;
+
                 case ScreenStack stack:
                     return onRoot(stack);
+
                 default:
                     return runOnRoot(current.Parent, onRoot, onFail);
             }

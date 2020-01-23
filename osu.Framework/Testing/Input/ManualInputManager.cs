@@ -177,6 +177,7 @@ namespace osu.Framework.Testing.Input
                         case MouseButton.Left:
                             left.FadeIn();
                             break;
+
                         case MouseButton.Right:
                             right.FadeIn();
                             break;
@@ -186,20 +187,21 @@ namespace osu.Framework.Testing.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     switch (e.Button)
                     {
                         case MouseButton.Left:
                             left.FadeOut(500);
                             break;
+
                         case MouseButton.Right:
                             right.FadeOut(500);
                             break;
                     }
 
                     updateBorder(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 protected override bool OnScroll(ScrollEvent e)

@@ -703,47 +703,47 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The first extra mouse button.
         /// </summary>
-        MouseButton1 = 135,
+        ExtraMouseButton1 = 135,
 
         /// <summary>
         /// The second extra mouse button.
         /// </summary>
-        MouseButton2 = 136,
+        ExtraMouseButton2 = 136,
 
         /// <summary>
         /// The third extra mouse button.
         /// </summary>
-        MouseButton3 = 137,
+        ExtraMouseButton3 = 137,
 
         /// <summary>
         /// The fourth extra mouse button.
         /// </summary>
-        MouseButton4 = 138,
+        ExtraMouseButton4 = 138,
 
         /// <summary>
         /// The fifth extra mouse button.
         /// </summary>
-        MouseButton5 = 139,
+        ExtraMouseButton5 = 139,
 
         /// <summary>
         /// The sixth extra mouse button.
         /// </summary>
-        MouseButton6 = 140,
+        ExtraMouseButton6 = 140,
 
         /// <summary>
         /// The seventh extra mouse button.
         /// </summary>
-        MouseButton7 = 141,
+        ExtraMouseButton7 = 141,
 
         /// <summary>
         /// The eigth extra mouse button.
         /// </summary>
-        MouseButton8 = 142,
+        ExtraMouseButton8 = 142,
 
         /// <summary>
         /// The ninth extra mouse button.
         /// </summary>
-        MouseButton9 = 143,
+        ExtraMouseButton9 = 143,
 
         /// <summary>
         /// Indicates the last available mouse button.
@@ -759,6 +759,41 @@ namespace osu.Framework.Input.Bindings
         /// Mouse wheel rolled down.
         /// </summary>
         MouseWheelDown = 146,
+
+        /// <summary>
+        /// The media mute key.
+        /// </summary>
+        Mute = 256,
+
+        /// <summary>
+        /// The media play / pause key.
+        /// </summary>
+        PlayPause,
+
+        /// <summary>
+        /// The media stop key.
+        /// </summary>
+        Stop,
+
+        /// <summary>
+        /// The media volume up key.
+        /// </summary>
+        VolumeUp,
+
+        /// <summary>
+        /// The media volume down key.
+        /// </summary>
+        VolumeDown,
+
+        /// <summary>
+        /// The media previous key.
+        /// </summary>
+        TrackPrevious,
+
+        /// <summary>
+        /// The media next key.
+        /// </summary>
+        TrackNext,
 
         /// <summary>
         /// Indicates the first available joystick button.

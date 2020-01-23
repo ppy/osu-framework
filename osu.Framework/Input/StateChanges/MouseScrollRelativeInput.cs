@@ -26,6 +26,7 @@ namespace osu.Framework.Input.StateChanges
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var mouse = state.Mouse;
+
             if (Delta != Vector2.Zero)
             {
                 var lastScroll = mouse.Scroll;
