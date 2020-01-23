@@ -184,22 +184,22 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Invoked after a rearrangement has occurred via dragging.
             /// </summary>
-            public event Action Rearranged;
+            internal event Action Rearranged;
 
             /// <summary>
             /// Invoked when a drag start occurs.
             /// </summary>
-            public event Action<DragStartEvent> DragStart;
+            internal event Action<DragStartEvent> DragStart;
 
             /// <summary>
             /// Invoked when a drag occurs.
             /// </summary>
-            public event Action<DragEvent> Drag;
+            internal event Action<DragEvent> Drag;
 
             /// <summary>
             /// Invoked when a drag end occurs.
             /// </summary>
-            public event Action<DragEndEvent> DragEnd;
+            internal event Action<DragEndEvent> DragEnd;
 
             private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
@@ -296,12 +296,12 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Invoked when a removal is requested. e.g. on item removal.
             /// </summary>
-            public event Action<DrawableRearrangeableListItem> RemovalRequested;
+            internal event Action<DrawableRearrangeableListItem> RemovalRequested;
 
             /// <summary>
             /// Whether the item is currently being dragged.
             /// </summary>
-            public bool IsBeingDragged { get; private set; }
+            internal bool IsBeingDragged { get; private set; }
 
             /// <summary>
             /// The <see cref="RearrangeableListItem"/> this <see cref="DrawableRearrangeableListItem"/> represents.
