@@ -35,7 +35,13 @@ namespace osu.Framework.Testing
         private readonly BasicButton buttonLocal;
 
         [SetUp]
-        public virtual void SetUp() => ResetInput();
+        public void SetUpBase()
+        {
+            ResetInput();
+            SetUp();
+        }
+
+        public virtual void SetUp() { }
 
         protected ManualInputManagerTestScene()
         {
