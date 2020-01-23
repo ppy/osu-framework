@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region ListScrollContainer
 
-        protected class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
+        protected class ListScrollContainer : BasicScrollContainer<ListFillFlowContainer>
         {
             private const float scroll_trigger_distance = 10;
             private const double max_power = 50;
@@ -204,18 +204,20 @@ namespace osu.Framework.Graphics.Containers
                 return currentlyDraggedItem != null || base.OnDragStart(e);
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
+                base.OnDrag(e);
+
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
                 if (currentlyDraggedItem != null)
                     Drag?.Invoke(e);
-
-                return currentlyDraggedItem != null || base.OnDrag(e);
             }
 
-            protected override bool OnDragEnd(DragEndEvent e)
+            protected override void OnDragEnd(DragEndEvent e)
             {
+                base.OnDragEnd(e);
+
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
                 cachedFlowingChildren.Clear();
@@ -223,10 +225,7 @@ namespace osu.Framework.Graphics.Containers
                 if (currentlyDraggedItem != null)
                     DragEnd?.Invoke(e);
 
-                var handled = currentlyDraggedItem != null || base.OnDragEnd(e);
                 currentlyDraggedItem = null;
-
-                return handled;
             }
 
             protected override void Update()
@@ -246,6 +245,7 @@ namespace osu.Framework.Graphics.Containers
                 // the item positions as they are being transformed
                 float heightAccumulator = 0;
                 int dstIndex = 0;
+
                 for (; dstIndex < Count; dstIndex++)
                 {
                     // Using BoundingBox here takes care of scale, paddings, etc...
@@ -309,10 +309,9 @@ namespace osu.Framework.Graphics.Containers
                 return base.OnMouseDown(e);
             }
 
-            protected override bool OnMouseUp(MouseUpEvent e)
+            protected override void OnMouseUp(MouseUpEvent e)
             {
                 IsBeingDragged = false;
-                return base.OnMouseUp(e);
             }
 
             protected DrawableRearrangeableListItem(T item)
