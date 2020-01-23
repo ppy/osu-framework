@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (removeButton.IsHovered)
                 {
-                    OnRequestRemoval();
+                    RequestRemoval();
 
                     return true;
                 }

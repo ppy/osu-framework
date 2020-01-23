@@ -14,10 +14,11 @@ namespace osu.Framework.Graphics.Containers
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
     /// <typeparam name="T">The type of <see cref="RearrangeableListItem"/>.</typeparam>
-    public abstract class RearrangeableListContainer<T> : CompositeDrawable where T : RearrangeableListItem
+    public abstract class RearrangeableListContainer<T> : CompositeDrawable
+        where T : RearrangeableListItem
     {
         /// <summary>
-        /// The spacing between individual elements. Default is <see cref="Vector2.Zero"/>.
+        /// The spacing between individual elements.
         /// </summary>
         public Vector2 Spacing
         {
@@ -26,12 +27,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// This event is fired after a rearrangement has occurred via dragging.
-        /// </summary>
-        public event Action Rearranged;
-
-        /// <summary>
-        /// Children as they are currently arranged.
+        /// The items contained by this <see cref="RearrangeableListContainer{T}"/> in their arranged order.
         /// </summary>
         public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem>().Select(i => i.Model);
 
@@ -40,63 +36,73 @@ namespace osu.Framework.Graphics.Containers
         protected readonly ListFillFlowContainer ListContainer;
 
         /// <summary>
-        /// Creates a rearrangeable list container.
+        /// Creates a new <see cref="RearrangeableListContainer{T}"/>.
         /// </summary>
         protected RearrangeableListContainer()
         {
             RelativeSizeAxes = Axes.Both;
-            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer());
-            ListContainer.Rearranged += OnRearrange;
+
+            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer().With(d => d.Rearranged += OnRearrange));
         }
 
         /// <summary>
-        /// Adds a child to the end of this list.
+        /// Adds an item to the end of this container.
         /// </summary>
         public void AddItem(T item)
         {
-            var drawable = CreateDrawable(item);
-            drawable.RemovalRequested += RemoveItem;
+            var drawable = CreateDrawable(item).With(d => d.RemovalRequested += RemoveItem);
+
             ListContainer.Add(drawable);
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
 
         /// <summary>
-        /// Removes a child from this container.
+        /// Removes an item from this container.
         /// </summary>
         public void RemoveItem(DrawableRearrangeableListItem item) => ListContainer.Remove(item);
 
         /// <summary>
-        /// Removes all <see cref="Container{T}.Children"/> from this container.
+        /// Removes all items from this container.
         /// </summary>
         public void Clear()
         {
             ListContainer.Clear();
+
             // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
             // scroll position if we quickly add new items after calling a Clear().
             ScrollContainer.ScrollToStart();
         }
 
-        protected virtual void OnRearrange() => Rearranged?.Invoke();
-
         /// <summary>
-        /// Allows subclasses to customise the <see cref="ListFillFlowContainer"/>.
+        /// Invoked after an arrangement has occurred.
         /// </summary>
-        protected virtual ListFillFlowContainer CreateListFillFlowContainer() =>
-            new ListFillFlowContainer
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                LayoutDuration = 160,
-                LayoutEasing = Easing.OutQuint,
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(1),
-            };
+        protected virtual void OnRearrange()
+        {
+        }
 
         /// <summary>
-        /// Allows subclasses to customise the <see cref="ListScrollContainer"/>.
+        /// Creates the <see cref="ListFillFlowContainer"/> for the items.
+        /// </summary>
+        protected virtual ListFillFlowContainer CreateListFillFlowContainer() => new ListFillFlowContainer
+        {
+            RelativeSizeAxes = Axes.X,
+            AutoSizeAxes = Axes.Y,
+            LayoutDuration = 160,
+            LayoutEasing = Easing.OutQuint,
+            Direction = FillDirection.Vertical,
+            Spacing = new Vector2(1),
+        };
+
+        /// <summary>
+        /// Creates the <see cref="ListScrollContainer"/> for the list of items.
         /// </summary>
         protected virtual ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new ListScrollContainer(flowContainer);
 
+        /// <summary>
+        /// Creates the <see cref="Drawable"/> representation of an item.
+        /// </summary>
+        /// <param name="item">The item to create the <see cref="Drawable"/> representation of.</param>
+        /// <returns>The <see cref="DrawableRearrangeableListItem"/>.</returns>
         protected abstract DrawableRearrangeableListItem CreateDrawable(T item);
 
         #region ListScrollContainer
@@ -115,15 +121,16 @@ namespace osu.Framework.Graphics.Containers
                 ScrollbarOverlapsContent = false;
                 Padding = new MarginPadding(5);
 
-                Child = flowContainer;
-
-                flowContainer.DragStart += _ => autoScrolling = true;
-                flowContainer.Drag += updateDragPosition;
-                flowContainer.DragEnd += _ =>
+                Child = flowContainer.With(d =>
                 {
-                    autoScrolling = false;
-                    scrollSpeed = 0;
-                };
+                    d.DragStart += _ => autoScrolling = true;
+                    d.Drag += updateDragPosition;
+                    d.DragEnd += _ =>
+                    {
+                        autoScrolling = false;
+                        scrollSpeed = 0;
+                    };
+                });
             }
 
             protected override void Update()
@@ -168,22 +175,22 @@ namespace osu.Framework.Graphics.Containers
         protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>, IRequireHighFrequencyMousePosition
         {
             /// <summary>
-            /// This event is fired after a rearrangement has occurred via dragging.
+            /// Invoked after a rearrangement has occurred via dragging.
             /// </summary>
             public event Action Rearranged;
 
             /// <summary>
-            /// This event is fired when a drag start occurs.
+            /// Invoked when a drag start occurs.
             /// </summary>
             public event Action<DragStartEvent> DragStart;
 
             /// <summary>
-            /// This event is fired when a drag occurs.
+            /// Invoked when a drag occurs.
             /// </summary>
             public event Action<DragEvent> Drag;
 
             /// <summary>
-            /// This event is fired when a drag end occurs.
+            /// Invoked when a drag end occurs.
             /// </summary>
             public event Action<DragEndEvent> DragEnd;
 
@@ -280,43 +287,55 @@ namespace osu.Framework.Graphics.Containers
         public abstract class DrawableRearrangeableListItem : CompositeDrawable
         {
             /// <summary>
-            /// This event is fired when a removal is requested. e.g. on item removal.
+            /// Invoked when a removal is requested. e.g. on item removal.
             /// </summary>
             public event Action<DrawableRearrangeableListItem> RemovalRequested;
 
             /// <summary>
-            /// Returns whether the item is currently being dragged.
+            /// Whether the item is currently being dragged.
             /// </summary>
             public bool IsBeingDragged { get; private set; }
+
+            /// <summary>
+            /// The <see cref="RearrangeableListItem"/> this <see cref="DrawableRearrangeableListItem"/> represents.
+            /// </summary>
+            public T Model;
+
+            /// <summary>
+            /// Creates a new <see cref="DrawableRearrangeableListItem"/>.
+            /// </summary>
+            /// <param name="item">The <see cref="RearrangeableListItem"/> to represent.</param>
+            protected DrawableRearrangeableListItem(T item)
+            {
+                Model = item;
+            }
 
             /// <summary>
             /// Returns whether the item is currently able to be dragged.
             /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
 
-            protected void OnRequestRemoval() => RemovalRequested?.Invoke(this);
-
             /// <summary>
-            /// The RearrangeableListItem backing for this Drawable.
+            /// Requests the removal of this <see cref="DrawableRearrangeableListItem"/> and the represented <see cref="RearrangeableListItem"/>
+            /// from the <see cref="RearrangeableListContainer{T}"/>.
             /// </summary>
-            public T Model;
+            protected void RequestRemoval() => RemovalRequested?.Invoke(this);
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
+                base.OnMouseDown(e);
+
                 if (IsDraggableAt(e.ScreenSpaceMousePosition))
                     IsBeingDragged = true;
 
-                return base.OnMouseDown(e);
+                // Don't block drag to allow parenting containers to handle it
+                return false;
             }
 
             protected override void OnMouseUp(MouseUpEvent e)
             {
+                base.OnMouseUp(e);
                 IsBeingDragged = false;
-            }
-
-            protected DrawableRearrangeableListItem(T item)
-            {
-                Model = item;
             }
         }
 
