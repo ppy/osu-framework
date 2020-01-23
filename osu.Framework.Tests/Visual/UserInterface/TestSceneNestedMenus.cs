@@ -21,10 +21,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private Random rng;
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             rng = new Random(1337);
         });
 

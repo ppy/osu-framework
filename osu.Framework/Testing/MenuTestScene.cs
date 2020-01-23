@@ -27,7 +27,7 @@ namespace osu.Framework.Testing
         };
 
         [SetUp]
-        public new virtual void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
             Menu menu;
             Child = new Container
