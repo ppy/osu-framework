@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
                 ShowRemoveButton.BindValueChanged(shown => removeButton.Alpha = shown.NewValue ? 1 : 0);
             }
 
-            protected override bool IsDraggableAt(Vector2 screenSpacePos) => !removeButton.IsHovered && !dragHandle.IsHovered;
+            protected override bool IsDraggableAt(Vector2 screenSpacePos) => dragHandle.IsHovered;
 
             protected internal class Button : Container
             {
