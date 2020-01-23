@@ -27,10 +27,8 @@ namespace osu.Framework.Testing
         };
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             Menu menu;
             Child = new Container
             {

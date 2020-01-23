@@ -35,12 +35,11 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
             foreach (var b in Children.OfType<HittableBox>())
                 b.Reset();
-        }
+        });
 
         [Test]
         public void SeparateClicks()
