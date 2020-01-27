@@ -291,7 +291,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 ((RepeatCountingScrollContainer)scrollContainer).RepeatCount = 0;
             });
 
-            AddUntilStep("wait for repeats", () => ((RepeatCountingScrollContainer)scrollContainer).RepeatCount > 0);
+            AddWaitStep("wait for repeats", 5);
         }
 
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
