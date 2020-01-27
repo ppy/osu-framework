@@ -77,6 +77,7 @@ namespace osu.Framework.Tests.Input
             });
 
             AddStep("press key", () => InputManager.PressKey(Key.A));
+
             AddStep("remove receptor 0 & reset repeat", () =>
             {
                 Remove(receptors[0]);
@@ -115,6 +116,7 @@ namespace osu.Framework.Tests.Input
 
             AddUntilStep("wait for repeat on receptor 1", () => receptors[1].RepeatReceived);
             AddStep("add back receptor 0", () => Add(receptors[0]));
+
             AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
         }
 

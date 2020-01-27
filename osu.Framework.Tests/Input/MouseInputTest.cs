@@ -85,6 +85,7 @@ namespace osu.Framework.Tests.Input
 
             AddStep("move mouse to receptor", () => InputManager.MoveMouseTo(receptor));
             AddStep("click", () => InputManager.Click(MouseButton.Left));
+
             AddStep("remove receptor and double click", () =>
             {
                 Remove(receptor); // Test correctness can be asserted by removing this line and ensuring the test fails
