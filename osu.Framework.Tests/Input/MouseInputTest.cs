@@ -16,8 +16,7 @@ namespace osu.Framework.Tests.Input
     public class MouseInputTest : ManualInputManagerTestScene
     {
         /// <summary>
-        /// Tests that if a drawable is removed from the hierarchy (or is otherwise removed from the input queues),
-        /// it won't receive an OnClick() event on mouse up.
+        /// Tests that a drawable that is removed from the hierarchy (or is otherwise removed from the input queues) does not receive an OnClick() event on mouse up.
         /// </summary>
         [Test]
         public void TestNoLongerValidDrawableDoesNotReceiveClick()
@@ -43,7 +42,7 @@ namespace osu.Framework.Tests.Input
         }
 
         /// <summary>
-        /// Tests that a drawable that is removed and re-added to the hierarchy can still handle OnClick().
+        /// Tests that a drawable that is removed and re-added to the hierarchy still receives an OnClick() event.
         /// </summary>
         [Test]
         public void TestReValidatedDrawableReceivesClick()
@@ -69,6 +68,9 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptor 0 received click", () => receptors[0].ClickReceived);
         }
 
+        /// <summary>
+        /// Tests that a drawable that is removed from the hierarchy (or is otherwise removed from the input queues) does not receive an OnDoubleClick() event.
+        /// </summary>
         [Test]
         public void TestNoLongerValidDrawableDoesNotReceiveDoubleClick()
         {

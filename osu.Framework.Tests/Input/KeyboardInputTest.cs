@@ -59,8 +59,7 @@ namespace osu.Framework.Tests.Input
         }
 
         /// <summary>
-        /// Tests that if a drawable is removed from the hierarchy (or is otherwise removed from the input queues),
-        /// it won't receive an OnKeyDown() event for every subsequent repeat.
+        /// Tests that a drawable that is removed from the hierarchy (or is otherwise removed from the input queues) won't receive OnKeyDown() events for every subsequent repeat.
         /// </summary>
         [Test]
         public void TestNoLongerValidDrawableDoesNotReceiveRepeat()
@@ -77,6 +76,7 @@ namespace osu.Framework.Tests.Input
             });
 
             AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
 
             AddStep("remove receptor 0 & reset repeat", () =>
             {
@@ -90,7 +90,8 @@ namespace osu.Framework.Tests.Input
         }
 
         /// <summary>
-        /// Tests that a drawable that was previously removed from the hierarchy receives OnKeyDown() for repeat events if the drawable previously received OnKeyDown().
+        /// Tests that a drawable that was previously removed from the hierarchy receives repeat OnKeyDown() events when re-added to the hierarchy,
+        /// if it previously received a non-repeat OnKeyDown() event.
         /// </summary>
         [Test]
         public void TestReValidatedDrawableReceivesRepeat()
