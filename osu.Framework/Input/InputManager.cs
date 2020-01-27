@@ -180,7 +180,7 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="key">The key find the manager for.</param>
         /// <returns>The <see cref="KeyEventManager"/>.</returns>
-        public KeyEventManager GetButtonEventMangerFor(Key key)
+        public KeyEventManager GetButtonEventManagerFor(Key key)
         {
             if (keyButtonEventManagers.TryGetValue(key, out var existing))
                 return existing;
@@ -329,7 +329,7 @@ namespace osu.Framework.Input
 
             while (keyboardRepeatTime < 0)
             {
-                GetButtonEventMangerFor(key).HandleRepeat(state);
+                GetButtonEventManagerFor(key).HandleRepeat(state);
                 keyboardRepeatTime += repeat_tick_rate;
             }
         }
@@ -456,7 +456,7 @@ namespace osu.Framework.Input
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
 
-            GetButtonEventMangerFor(key).HandleButtonStateChange(state, kind);
+            GetButtonEventManagerFor(key).HandleButtonStateChange(state, kind);
 
             if (kind == ButtonStateChangeKind.Pressed)
             {
