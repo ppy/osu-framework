@@ -208,7 +208,6 @@ namespace osu.Framework.Graphics.Containers
 
             private DrawableRearrangeableListItem currentlyDraggedItem;
             private Vector2 nativeDragPosition;
-            private readonly List<Drawable> cachedFlowingChildren = new List<Drawable>();
 
             protected override bool OnDragStart(DragStartEvent e)
             {
@@ -218,7 +217,6 @@ namespace osu.Framework.Graphics.Containers
                 if (currentlyDraggedItem == null)
                     return false;
 
-                cachedFlowingChildren.AddRange(FlowingChildren);
                 DragStart?.Invoke(e);
 
                 return true;
@@ -239,19 +237,28 @@ namespace osu.Framework.Graphics.Containers
 
                 nativeDragPosition = e.ScreenSpaceMousePosition;
 
-                cachedFlowingChildren.Clear();
                 DragEnd?.Invoke(e);
 
                 currentlyDraggedItem = null;
             }
 
-            protected override void Update()
+            public override bool Remove(DrawableRearrangeableListItem drawable)
             {
-                base.Update();
+                if (drawable == currentlyDraggedItem)
+                    currentlyDraggedItem = null;
+
+                return base.Remove(drawable);
+            }
+
+            protected override void UpdateAfterChildren()
+            {
+                base.UpdateAfterChildren();
 
                 if (currentlyDraggedItem != null)
                     updateDragPosition();
             }
+
+            private readonly List<Drawable> flowingChildrenCache = new List<Drawable>();
 
             private void updateDragPosition()
             {
@@ -276,16 +283,18 @@ namespace osu.Framework.Graphics.Containers
                 if (srcIndex == dstIndex)
                     return;
 
-                cachedFlowingChildren.Remove(currentlyDraggedItem);
+                flowingChildrenCache.AddRange(FlowingChildren);
+                flowingChildrenCache.Remove(currentlyDraggedItem);
 
                 if (srcIndex < dstIndex - 1)
                     dstIndex--;
 
-                cachedFlowingChildren.Insert(dstIndex, currentlyDraggedItem);
+                flowingChildrenCache.Insert(dstIndex, currentlyDraggedItem);
 
-                for (int i = 0; i < cachedFlowingChildren.Count; i++)
-                    SetLayoutPosition(cachedFlowingChildren[i], i);
+                for (int i = 0; i < flowingChildrenCache.Count; i++)
+                    SetLayoutPosition(flowingChildrenCache[i], i);
 
+                flowingChildrenCache.Clear();
                 Rearranged?.Invoke();
             }
         }

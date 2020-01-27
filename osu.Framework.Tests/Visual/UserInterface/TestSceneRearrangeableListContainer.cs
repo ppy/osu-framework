@@ -177,6 +177,71 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("52 is the last item", () => list.ArrangedItems.Last() == "52");
         }
 
+        [Test]
+        public void TestRearrangeWhileAddingItems()
+        {
+            int i = 0;
+
+            AddStep("add two items", () =>
+            {
+                i = 0;
+
+                list.AddItem(i++.ToString());
+                list.AddItem(i++.ToString());
+            });
+
+            AddStep("grab item 0", () =>
+            {
+                InputManager.MoveMouseTo(getDragger(0));
+                InputManager.PressButton(MouseButton.Left);
+            });
+
+            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft)));
+
+            AddRepeatStep("add items", () =>
+            {
+                list.AddItem(i++.ToString());
+            }, 10);
+
+            AddUntilStep("0 is the last item", () => list.ArrangedItems.Last() == "0");
+        }
+
+        [Test]
+        public void TestRearrangeWhileRemovingItems()
+        {
+            int lastItem = 49;
+
+            AddStep("add 50 items", () =>
+            {
+                lastItem = 49;
+
+                for (int i = 0; i < 50; i++)
+                    list.AddItem(i.ToString());
+            });
+
+            AddStep("grab item 0", () =>
+            {
+                InputManager.MoveMouseTo(getDragger(0));
+                InputManager.PressButton(MouseButton.Left);
+            });
+
+            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft)));
+
+            AddRepeatStep("remove item", () =>
+            {
+                list.RemoveItem(lastItem--.ToString());
+            }, 25);
+
+            AddUntilStep("0 is the last item", () => list.ArrangedItems.Last() == "0");
+
+            AddRepeatStep("remove item", () =>
+            {
+                list.RemoveItem(lastItem--.ToString());
+            }, 25);
+
+            AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
