@@ -58,10 +58,71 @@ namespace osu.Framework.Tests.Input
             AddAssert("receptor 2 did not handle key up", () => !receptors[2].UpReceived);
         }
 
+        /// <summary>
+        /// Tests that if a drawable is removed from the hierarchy (or is otherwise removed from the input queues),
+        /// it won't receive an OnKeyDown() event for every subsequent repeat.
+        /// </summary>
+        [Test]
+        public void TestNoLongerValidDrawableDoesNotReceiveRepeat()
+        {
+            var receptors = new InputReceptor[2];
+
+            AddStep("create hierarchy", () =>
+            {
+                Children = new Drawable[]
+                {
+                    receptors[0] = new InputReceptor { Size = new Vector2(100) },
+                    receptors[1] = new InputReceptor { Size = new Vector2(100) }
+                };
+            });
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddStep("remove receptor 0 & reset repeat", () =>
+            {
+                Remove(receptors[0]);
+                receptors[0].RepeatReceived = false;
+                receptors[1].RepeatReceived = false;
+            });
+
+            AddUntilStep("wait for repeat on receptor 1", () => receptors[1].RepeatReceived);
+            AddAssert("receptor 0 did not receive repeat", () => !receptors[0].RepeatReceived);
+        }
+
+        /// <summary>
+        /// Tests that a drawable that was previously removed from the hierarchy receives OnKeyDown() for repeat events if the drawable previously received OnKeyDown().
+        /// </summary>
+        [Test]
+        public void TestReValidatedDrawableReceivesRepeat()
+        {
+            var receptors = new InputReceptor[2];
+
+            AddStep("create hierarchy", () =>
+            {
+                Children = new Drawable[]
+                {
+                    receptors[0] = new InputReceptor { Size = new Vector2(100) },
+                    receptors[1] = new InputReceptor { Size = new Vector2(100) }
+                };
+            });
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddStep("remove receptor 0 & reset repeat", () =>
+            {
+                Remove(receptors[0]);
+                receptors[0].RepeatReceived = false;
+                receptors[1].RepeatReceived = false;
+            });
+
+            AddUntilStep("wait for repeat on receptor 1", () => receptors[1].RepeatReceived);
+            AddStep("add back receptor 0", () => Add(receptors[0]));
+            AddUntilStep("wait for repeat on receptor 0", () => receptors[0].RepeatReceived);
+        }
+
         private class InputReceptor : Box
         {
-            public bool DownReceived { get; private set; }
-            public bool UpReceived { get; private set; }
+            public bool DownReceived { get; set; }
+            public bool UpReceived { get; set; }
+            public bool RepeatReceived { get; set; }
 
             public Func<bool> KeyDown;
             public Func<bool> KeyUp;
@@ -69,7 +130,10 @@ namespace osu.Framework.Tests.Input
             protected override bool OnKeyDown(KeyDownEvent e)
             {
                 if (e.Repeat)
+                {
+                    RepeatReceived = true;
                     return false;
+                }
 
                 DownReceived = true;
                 return KeyDown?.Invoke() ?? false;
