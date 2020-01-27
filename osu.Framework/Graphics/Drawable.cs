@@ -1971,7 +1971,8 @@ namespace osu.Framework.Graphics
         /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked if <see cref="OnMouseDown"/> was invoked, but invocation is not guaranteed.<br />
+        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
         /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
         /// </remarks>
         /// <param name="e">The <see cref="ClickEvent"/> containing information about the input event.</param>
@@ -2041,6 +2042,10 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// An event that occurs when a <see cref="Key"/> is pressed.
         /// </summary>
+        /// <remarks>
+        /// Repeat events can only be invoked on the <see cref="Drawable"/>s that received a previous non-repeat <see cref="OnKeyDown"/> invocation
+        /// which are still present in the input queue (via <see cref="BuildNonPositionalInputQueue"/>) when the repeat occurs.
+        /// </remarks>
         /// <param name="e">The <see cref="KeyDownEvent"/> containing information about the input event.</param>
         /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);

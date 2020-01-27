@@ -32,10 +32,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             Children = new Drawable[]
             {
                 focusTopLeft = new FocusBox

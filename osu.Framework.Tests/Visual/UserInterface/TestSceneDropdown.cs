@@ -237,7 +237,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Preselect last visible item on the next page", () =>
             {
                 lastVisibleIndexOnTheNextPage =
-                    MathHelper.Clamp(lastVisibleIndexOnTheCurrentPage + testDropdownMenu.Menu.VisibleMenuItems.Count(), 0, testDropdownMenu.Menu.Items.Count - 1);
+                    Math.Clamp(lastVisibleIndexOnTheCurrentPage + testDropdownMenu.Menu.VisibleMenuItems.Count(), 0, testDropdownMenu.Menu.Items.Count - 1);
 
                 performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Preselect first visible item on the previous page", () =>
             {
-                firstVisibleIndexOnThePreviousPage = MathHelper.Clamp(firstVisibleIndexOnTheCurrentPage - testDropdownMenu.Menu.VisibleMenuItems.Count(), 0,
+                firstVisibleIndexOnThePreviousPage = Math.Clamp(firstVisibleIndexOnTheCurrentPage - testDropdownMenu.Menu.VisibleMenuItems.Count(), 0,
                     testDropdownMenu.Menu.Items.Count - 1);
                 performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
