@@ -283,12 +283,11 @@ namespace osu.Framework.Graphics.Containers
                 if (srcIndex == dstIndex)
                     return;
 
-                flowingChildrenCache.AddRange(FlowingChildren);
-                flowingChildrenCache.Remove(currentlyDraggedItem);
-
                 if (srcIndex < dstIndex - 1)
                     dstIndex--;
 
+                flowingChildrenCache.AddRange(FlowingChildren);
+                flowingChildrenCache.Remove(currentlyDraggedItem);
                 flowingChildrenCache.Insert(dstIndex, currentlyDraggedItem);
 
                 for (int i = 0; i < flowingChildrenCache.Count; i++)
