@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
 
@@ -17,6 +16,18 @@ namespace osu.Framework.Graphics.Containers
     public abstract class RearrangeableListContainer<T> : CompositeDrawable
         where T : IEquatable<T>
     {
+        private const double exp_base = 1.05;
+
+        /// <summary>
+        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
+        /// </summary>
+        protected double AutomaticTriggerDistance = 10;
+
+        /// <summary>
+        /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{T}"/>.
+        /// </summary>
+        protected double MaxExponent = 50;
+
         /// <summary>
         /// The spacing between individual elements.
         /// </summary>
@@ -31,20 +42,30 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem>().Select(i => i.Model);
 
+        protected readonly ScrollContainer<Drawable> ScrollContainer;
+        protected readonly FillFlowContainer<DrawableRearrangeableListItem> ListContainer;
+
         private int maxLayoutPosition;
-        protected readonly ListScrollContainer ScrollContainer;
-        protected readonly ListFillFlowContainer ListContainer;
+        private DrawableRearrangeableListItem currentlyDraggedItem;
+        private Vector2 screenSpaceDragPosition;
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListContainer{T}"/>.
         /// </summary>
         protected RearrangeableListContainer()
         {
-            InternalChild = ScrollContainer = CreateListScrollContainer(ListContainer = CreateListFillFlowContainer().With(d =>
+            ListContainer = CreateListFillFlowContainer().With(d =>
             {
+                d.RelativeSizeAxes = Axes.X;
+                d.AutoSizeAxes = Axes.Y;
                 d.Direction = FillDirection.Vertical;
-                d.Rearranged += OnRearrange;
-            }));
+            });
+
+            InternalChild = ScrollContainer = CreateScrollContainer().With(d =>
+            {
+                d.RelativeSizeAxes = Axes.Both;
+                d.Child = ListContainer;
+            });
         }
 
         /// <summary>
@@ -52,11 +73,26 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void AddItem(T item)
         {
-            var drawable = CreateDrawable(item);
+            var drawable = CreateDrawable(item).With(d =>
+            {
+                d.StartArrangement += startArrangement;
+                d.Arrange += arrange;
+                d.EndArrangement += endArrangement;
+            });
 
             ListContainer.Add(drawable);
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
+
+        private void startArrangement(DrawableRearrangeableListItem item, DragStartEvent e)
+        {
+            currentlyDraggedItem = item;
+            screenSpaceDragPosition = e.ScreenSpaceMousePosition;
+        }
+
+        private void arrange(DrawableRearrangeableListItem item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
+
+        private void endArrangement(DrawableRearrangeableListItem item, DragEndEvent e) => currentlyDraggedItem = null;
 
         /// <summary>
         /// Removes an item from this container.
@@ -66,6 +102,9 @@ namespace osu.Framework.Graphics.Containers
             var drawable = ListContainer.FirstOrDefault(d => d.Model.Equals(item));
             if (drawable == null)
                 return false;
+
+            if (drawable == currentlyDraggedItem)
+                currentlyDraggedItem = null;
 
             return ListContainer.Remove(drawable);
         }
@@ -82,26 +121,89 @@ namespace osu.Framework.Graphics.Containers
             ScrollContainer.ScrollToStart();
         }
 
-        /// <summary>
-        /// Invoked after an arrangement has occurred.
-        /// </summary>
-        protected virtual void OnRearrange()
+        protected override void Update()
         {
+            base.Update();
+
+            if (currentlyDraggedItem != null)
+                updateScrollPosition();
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            if (currentlyDraggedItem != null)
+                updateArrangement();
+        }
+
+        private void updateScrollPosition()
+        {
+            Vector2 localPos = ScrollContainer.ToLocalSpace(screenSpaceDragPosition);
+            double scrollSpeed = 0;
+
+            if (localPos.Y < AutomaticTriggerDistance)
+            {
+                var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
+                scrollSpeed = -(float)Math.Pow(exp_base, power);
+            }
+            else if (localPos.Y > DrawHeight - AutomaticTriggerDistance)
+            {
+                var power = Math.Min(MaxExponent, Math.Abs(DrawHeight - AutomaticTriggerDistance - localPos.Y));
+                scrollSpeed = (float)Math.Pow(exp_base, power);
+            }
+
+            if ((scrollSpeed < 0 && ScrollContainer.Current > 0) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
+                ScrollContainer.ScrollBy((float)scrollSpeed);
+        }
+
+        private readonly List<Drawable> flowingChildrenCache = new List<Drawable>();
+
+        private void updateArrangement()
+        {
+            var localPos = ListContainer.ToLocalSpace(screenSpaceDragPosition);
+            int srcIndex = (int)ListContainer.GetLayoutPosition(currentlyDraggedItem);
+
+            // Find the last item with position < mouse position. Note we can't directly use
+            // the item positions as they are being transformed
+            float heightAccumulator = 0;
+            int dstIndex = 0;
+
+            for (; dstIndex < ListContainer.Count; dstIndex++)
+            {
+                // Using BoundingBox here takes care of scale, paddings, etc...
+                heightAccumulator += ListContainer[dstIndex].BoundingBox.Height + Spacing.Y;
+                if (heightAccumulator - Spacing.Y / 2 > localPos.Y)
+                    break;
+            }
+
+            dstIndex = MathHelper.Clamp(dstIndex, 0, ListContainer.Count - 1);
+
+            if (srcIndex == dstIndex)
+                return;
+
+            if (srcIndex < dstIndex - 1)
+                dstIndex--;
+
+            flowingChildrenCache.AddRange(ListContainer.FlowingChildren);
+            flowingChildrenCache.Remove(currentlyDraggedItem);
+            flowingChildrenCache.Insert(dstIndex, currentlyDraggedItem);
+
+            for (int i = 0; i < flowingChildrenCache.Count; i++)
+                ListContainer.SetLayoutPosition(flowingChildrenCache[i], i);
+
+            flowingChildrenCache.Clear();
         }
 
         /// <summary>
-        /// Creates the <see cref="ListFillFlowContainer"/> for the items.
+        /// Creates the <see cref="FillFlowContainer{DrawableRearrangeableListItem}"/> for the items.
         /// </summary>
-        protected virtual ListFillFlowContainer CreateListFillFlowContainer() => new ListFillFlowContainer
-        {
-            RelativeSizeAxes = Axes.X,
-            AutoSizeAxes = Axes.Y,
-        };
+        protected virtual FillFlowContainer<DrawableRearrangeableListItem> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem>();
 
         /// <summary>
-        /// Creates the <see cref="ListScrollContainer"/> for the list of items.
+        /// Creates the <see cref="ScrollContainer"/> for the list of items.
         /// </summary>
-        protected abstract ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer);
+        protected abstract ScrollContainer<Drawable> CreateScrollContainer();
 
         /// <summary>
         /// Creates the <see cref="Drawable"/> representation of an item.
@@ -110,204 +212,15 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The <see cref="DrawableRearrangeableListItem"/>.</returns>
         protected abstract DrawableRearrangeableListItem CreateDrawable(T item);
 
-        #region ListScrollContainer
-
-        protected abstract class ListScrollContainer : ScrollContainer<ListFillFlowContainer>
-        {
-            private const double exp_base = 1.05;
-
-            /// <summary>
-            /// The distance from the top and bottom of this <see cref="ListScrollContainer"/> at which automatic scroll begins.
-            /// </summary>
-            protected double AutomaticTriggerDistance = 10;
-
-            /// <summary>
-            /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="ListScrollContainer"/>.
-            /// </summary>
-            protected double MaxExponent = 50;
-
-            private bool autoScrolling;
-            private double scrollSpeed;
-
-            protected ListScrollContainer(ListFillFlowContainer flowContainer)
-            {
-                RelativeSizeAxes = Axes.Both;
-
-                Child = flowContainer.With(d =>
-                {
-                    d.DragStart += _ => autoScrolling = true;
-                    d.Drag += updateDragPosition;
-                    d.DragEnd += _ =>
-                    {
-                        autoScrolling = false;
-                        scrollSpeed = 0;
-                    };
-                });
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                if (autoScrolling)
-                    updateScrollPosition();
-            }
-
-            private void updateDragPosition(DragEvent dragEvent)
-            {
-                var localPos = ToLocalSpace(dragEvent.ScreenSpaceMousePosition);
-
-                if (localPos.Y < AutomaticTriggerDistance)
-                {
-                    var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
-                    scrollSpeed = -(float)Math.Pow(exp_base, power);
-                }
-                else if (localPos.Y > DrawHeight - AutomaticTriggerDistance)
-                {
-                    var power = Math.Min(MaxExponent, Math.Abs(DrawHeight - AutomaticTriggerDistance - localPos.Y));
-                    scrollSpeed = (float)Math.Pow(exp_base, power);
-                }
-                else
-                {
-                    scrollSpeed = 0;
-                }
-            }
-
-            private void updateScrollPosition()
-            {
-                if ((scrollSpeed < 0 && Current > 0) || (scrollSpeed > 0 && !IsScrolledToEnd()))
-                    ScrollBy((float)scrollSpeed);
-            }
-        }
-
-        #endregion
-
-        #region ListFillFlowContainer
-
-        protected class ListFillFlowContainer : FillFlowContainer<DrawableRearrangeableListItem>, IRequireHighFrequencyMousePosition
-        {
-            /// <summary>
-            /// Invoked after a rearrangement has occurred via dragging.
-            /// </summary>
-            internal event Action Rearranged;
-
-            /// <summary>
-            /// Invoked when a drag start occurs.
-            /// </summary>
-            internal event Action<DragStartEvent> DragStart;
-
-            /// <summary>
-            /// Invoked when a drag occurs.
-            /// </summary>
-            internal event Action<DragEvent> Drag;
-
-            /// <summary>
-            /// Invoked when a drag end occurs.
-            /// </summary>
-            internal event Action<DragEndEvent> DragEnd;
-
-            private DrawableRearrangeableListItem currentlyDraggedItem;
-            private Vector2 nativeDragPosition;
-
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                nativeDragPosition = e.ScreenSpaceMousePosition;
-                currentlyDraggedItem = this.FirstOrDefault(d => d.IsBeingDragged);
-
-                if (currentlyDraggedItem == null)
-                    return false;
-
-                DragStart?.Invoke(e);
-
-                return true;
-            }
-
-            protected override void OnDrag(DragEvent e)
-            {
-                base.OnDrag(e);
-
-                nativeDragPosition = e.ScreenSpaceMousePosition;
-
-                Drag?.Invoke(e);
-            }
-
-            protected override void OnDragEnd(DragEndEvent e)
-            {
-                base.OnDragEnd(e);
-
-                nativeDragPosition = e.ScreenSpaceMousePosition;
-
-                DragEnd?.Invoke(e);
-
-                currentlyDraggedItem = null;
-            }
-
-            public override bool Remove(DrawableRearrangeableListItem drawable)
-            {
-                if (drawable == currentlyDraggedItem)
-                    currentlyDraggedItem = null;
-
-                return base.Remove(drawable);
-            }
-
-            protected override void UpdateAfterChildren()
-            {
-                base.UpdateAfterChildren();
-
-                if (currentlyDraggedItem != null)
-                    updateDragPosition();
-            }
-
-            private readonly List<Drawable> flowingChildrenCache = new List<Drawable>();
-
-            private void updateDragPosition()
-            {
-                var itemsPos = ToLocalSpace(nativeDragPosition);
-                int srcIndex = (int)GetLayoutPosition(currentlyDraggedItem);
-
-                // Find the last item with position < mouse position. Note we can't directly use
-                // the item positions as they are being transformed
-                float heightAccumulator = 0;
-                int dstIndex = 0;
-
-                for (; dstIndex < Count; dstIndex++)
-                {
-                    // Using BoundingBox here takes care of scale, paddings, etc...
-                    heightAccumulator += this[dstIndex].BoundingBox.Height + Spacing.Y;
-                    if (heightAccumulator - Spacing.Y / 2 > itemsPos.Y)
-                        break;
-                }
-
-                dstIndex = MathHelper.Clamp(dstIndex, 0, Count - 1);
-
-                if (srcIndex == dstIndex)
-                    return;
-
-                if (srcIndex < dstIndex - 1)
-                    dstIndex--;
-
-                flowingChildrenCache.AddRange(FlowingChildren);
-                flowingChildrenCache.Remove(currentlyDraggedItem);
-                flowingChildrenCache.Insert(dstIndex, currentlyDraggedItem);
-
-                for (int i = 0; i < flowingChildrenCache.Count; i++)
-                    SetLayoutPosition(flowingChildrenCache[i], i);
-
-                flowingChildrenCache.Clear();
-                Rearranged?.Invoke();
-            }
-        }
-
-        #endregion
-
         #region DrawableRearrangeableListItem
 
         public abstract class DrawableRearrangeableListItem : CompositeDrawable
         {
-            /// <summary>
-            /// Whether the item is currently being dragged.
-            /// </summary>
-            internal bool IsBeingDragged { get; private set; }
+            internal Action<DrawableRearrangeableListItem, DragStartEvent> StartArrangement;
+
+            internal Action<DrawableRearrangeableListItem, DragEvent> Arrange;
+
+            internal Action<DrawableRearrangeableListItem, DragEndEvent> EndArrangement;
 
             /// <summary>
             /// The item this <see cref="DrawableRearrangeableListItem"/> represents.
@@ -328,22 +241,20 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
 
-            protected override bool OnMouseDown(MouseDownEvent e)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                base.OnMouseDown(e);
-
                 if (IsDraggableAt(e.ScreenSpaceMousePosition))
-                    IsBeingDragged = true;
+                {
+                    StartArrangement?.Invoke(this, e);
+                    return true;
+                }
 
-                // Don't block drag to allow parenting containers to handle it
                 return false;
             }
 
-            protected override void OnMouseUp(MouseUpEvent e)
-            {
-                base.OnMouseUp(e);
-                IsBeingDragged = false;
-            }
+            protected override void OnDrag(DragEvent e) => Arrange?.Invoke(this, e);
+
+            protected override void OnDragEnd(DragEndEvent e) => EndArrangement?.Invoke(this, e);
         }
 
         #endregion

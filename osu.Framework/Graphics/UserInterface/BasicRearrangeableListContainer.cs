@@ -26,14 +26,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
-        protected override ListFillFlowContainer CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
+        protected override FillFlowContainer<DrawableRearrangeableListItem> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
             d.LayoutDuration = 160;
             d.LayoutEasing = Easing.OutQuint;
             d.Spacing = new Vector2(1);
         });
 
-        protected override ListScrollContainer CreateListScrollContainer(ListFillFlowContainer flowContainer) => new BasicListScrollContainer(flowContainer);
+        protected override ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer().With(d =>
+        {
+            d.RelativeSizeAxes = Axes.Both;
+            d.ScrollbarOverlapsContent = false;
+            d.Padding = new MarginPadding(5);
+        });
 
         protected override DrawableRearrangeableListItem CreateDrawable(T item) => new BasicDrawableRearrangeableListItem(item)
         {
@@ -41,19 +46,6 @@ namespace osu.Framework.Graphics.UserInterface
             ShowRemoveButton = { BindTarget = ShowRemoveButton },
             RequestRemoval = d => RemoveItem(d.Model)
         };
-
-        protected class BasicListScrollContainer : ListScrollContainer
-        {
-            public BasicListScrollContainer(ListFillFlowContainer flowContainer)
-                : base(flowContainer)
-            {
-                ScrollbarOverlapsContent = false;
-                Padding = new MarginPadding(5);
-            }
-
-            // Todo: This isn't good.
-            protected override ScrollbarContainer CreateScrollbar(Direction direction) => new BasicScrollContainer<ListFillFlowContainer>.BasicScrollbar(direction);
-        }
 
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
