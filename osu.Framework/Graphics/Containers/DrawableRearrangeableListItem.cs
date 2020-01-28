@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDraggableAt(e.ScreenSpaceMousePosition))
+            if (IsDraggableAt(e.ScreenSpaceMouseDownPosition))
             {
                 StartArrangement?.Invoke(this, e);
                 return true;
