@@ -147,9 +147,9 @@ namespace osu.Framework.Graphics.Containers
                 var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
                 scrollSpeed = -(float)Math.Pow(exp_base, power);
             }
-            else if (localPos.Y > DrawHeight - AutomaticTriggerDistance)
+            else if (localPos.Y > ScrollContainer.DrawHeight - AutomaticTriggerDistance)
             {
-                var power = Math.Min(MaxExponent, Math.Abs(DrawHeight - AutomaticTriggerDistance - localPos.Y));
+                var power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - AutomaticTriggerDistance - localPos.Y));
                 scrollSpeed = (float)Math.Pow(exp_base, power);
             }
 
