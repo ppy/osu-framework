@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -16,16 +15,6 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
         where TModel : IEquatable<TModel>
     {
-        /// <summary>
-        /// Whether items should display a drag handle.
-        /// </summary>
-        public readonly Bindable<bool> ShowDragHandle = new Bindable<bool>();
-
-        /// <summary>
-        /// Whether items should display a remove button.
-        /// </summary>
-        public readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
-
         protected override FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
             d.LayoutDuration = 160;
