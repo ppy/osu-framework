@@ -40,13 +40,13 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The items contained by this <see cref="RearrangeableListContainer{T}"/> in their arranged order.
         /// </summary>
-        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem>().Select(i => i.Model);
+        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem<T>>().Select(i => i.Model);
 
         protected readonly ScrollContainer<Drawable> ScrollContainer;
-        protected readonly FillFlowContainer<DrawableRearrangeableListItem> ListContainer;
+        protected readonly FillFlowContainer<DrawableRearrangeableListItem<T>> ListContainer;
 
         private int maxLayoutPosition;
-        private DrawableRearrangeableListItem currentlyDraggedItem;
+        private DrawableRearrangeableListItem<T> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
 
         /// <summary>
@@ -84,15 +84,15 @@ namespace osu.Framework.Graphics.Containers
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
 
-        private void startArrangement(DrawableRearrangeableListItem item, DragStartEvent e)
+        private void startArrangement(DrawableRearrangeableListItem<T> item, DragStartEvent e)
         {
             currentlyDraggedItem = item;
             screenSpaceDragPosition = e.ScreenSpaceMousePosition;
         }
 
-        private void arrange(DrawableRearrangeableListItem item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
+        private void arrange(DrawableRearrangeableListItem<T> item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
 
-        private void endArrangement(DrawableRearrangeableListItem item, DragEndEvent e) => currentlyDraggedItem = null;
+        private void endArrangement(DrawableRearrangeableListItem<T> item, DragEndEvent e) => currentlyDraggedItem = null;
 
         /// <summary>
         /// Removes an item from this container.
@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates the <see cref="FillFlowContainer{DrawableRearrangeableListItem}"/> for the items.
         /// </summary>
-        protected virtual FillFlowContainer<DrawableRearrangeableListItem> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem>();
+        protected virtual FillFlowContainer<DrawableRearrangeableListItem<T>> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem<T>>();
 
         /// <summary>
         /// Creates the <see cref="ScrollContainer"/> for the list of items.
@@ -209,54 +209,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates the <see cref="Drawable"/> representation of an item.
         /// </summary>
         /// <param name="item">The item to create the <see cref="Drawable"/> representation of.</param>
-        /// <returns>The <see cref="DrawableRearrangeableListItem"/>.</returns>
-        protected abstract DrawableRearrangeableListItem CreateDrawable(T item);
-
-        #region DrawableRearrangeableListItem
-
-        public abstract class DrawableRearrangeableListItem : CompositeDrawable
-        {
-            internal Action<DrawableRearrangeableListItem, DragStartEvent> StartArrangement;
-
-            internal Action<DrawableRearrangeableListItem, DragEvent> Arrange;
-
-            internal Action<DrawableRearrangeableListItem, DragEndEvent> EndArrangement;
-
-            /// <summary>
-            /// The item this <see cref="DrawableRearrangeableListItem"/> represents.
-            /// </summary>
-            public T Model;
-
-            /// <summary>
-            /// Creates a new <see cref="DrawableRearrangeableListItem"/>.
-            /// </summary>
-            /// <param name="item">The item to represent.</param>
-            protected DrawableRearrangeableListItem(T item)
-            {
-                Model = item;
-            }
-
-            /// <summary>
-            /// Returns whether the item is currently able to be dragged.
-            /// </summary>
-            protected virtual bool IsDraggableAt(Vector2 screenSpacePos) => true;
-
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                if (IsDraggableAt(e.ScreenSpaceMousePosition))
-                {
-                    StartArrangement?.Invoke(this, e);
-                    return true;
-                }
-
-                return false;
-            }
-
-            protected override void OnDrag(DragEvent e) => Arrange?.Invoke(this, e);
-
-            protected override void OnDragEnd(DragEndEvent e) => EndArrangement?.Invoke(this, e);
-        }
-
-        #endregion
+        /// <returns>The <see cref="DrawableRearrangeableListItem{T}"/>.</returns>
+        protected abstract DrawableRearrangeableListItem<T> CreateDrawable(T item);
     }
 }
