@@ -12,9 +12,9 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
-    /// <typeparam name="T">The type of rearrangeable item</typeparam>
-    public abstract class RearrangeableListContainer<T> : CompositeDrawable
-        where T : IEquatable<T>
+    /// <typeparam name="TModel">The type of rearrangeable item</typeparam>
+    public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
+        where TModel : IEquatable<TModel>
     {
         private const double exp_base = 1.05;
 
@@ -40,13 +40,13 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The items contained by this <see cref="RearrangeableListContainer{T}"/> in their arranged order.
         /// </summary>
-        public IEnumerable<T> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem<T>>().Select(i => i.Model);
+        public IEnumerable<TModel> ArrangedItems => ListContainer.FlowingChildren.Cast<DrawableRearrangeableListItem<TModel>>().Select(i => i.Model);
 
         protected readonly ScrollContainer<Drawable> ScrollContainer;
-        protected readonly FillFlowContainer<DrawableRearrangeableListItem<T>> ListContainer;
+        protected readonly FillFlowContainer<DrawableRearrangeableListItem<TModel>> ListContainer;
 
         private int maxLayoutPosition;
-        private DrawableRearrangeableListItem<T> currentlyDraggedItem;
+        private DrawableRearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds an item to the end of this container.
         /// </summary>
-        public void AddItem(T item)
+        public void AddItem(TModel item)
         {
             var drawable = CreateDrawable(item).With(d =>
             {
@@ -84,20 +84,20 @@ namespace osu.Framework.Graphics.Containers
             ListContainer.SetLayoutPosition(drawable, maxLayoutPosition++);
         }
 
-        private void startArrangement(DrawableRearrangeableListItem<T> item, DragStartEvent e)
+        private void startArrangement(DrawableRearrangeableListItem<TModel> item, DragStartEvent e)
         {
             currentlyDraggedItem = item;
             screenSpaceDragPosition = e.ScreenSpaceMousePosition;
         }
 
-        private void arrange(DrawableRearrangeableListItem<T> item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
+        private void arrange(DrawableRearrangeableListItem<TModel> item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
 
-        private void endArrangement(DrawableRearrangeableListItem<T> item, DragEndEvent e) => currentlyDraggedItem = null;
+        private void endArrangement(DrawableRearrangeableListItem<TModel> item, DragEndEvent e) => currentlyDraggedItem = null;
 
         /// <summary>
         /// Removes an item from this container.
         /// </summary>
-        public bool RemoveItem(T item)
+        public bool RemoveItem(TModel item)
         {
             var drawable = ListContainer.FirstOrDefault(d => d.Model.Equals(item));
             if (drawable == null)
@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates the <see cref="FillFlowContainer{DrawableRearrangeableListItem}"/> for the items.
         /// </summary>
-        protected virtual FillFlowContainer<DrawableRearrangeableListItem<T>> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem<T>>();
+        protected virtual FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem<TModel>>();
 
         /// <summary>
         /// Creates the <see cref="ScrollContainer"/> for the list of items.
@@ -210,6 +210,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="item">The item to create the <see cref="Drawable"/> representation of.</param>
         /// <returns>The <see cref="DrawableRearrangeableListItem{T}"/>.</returns>
-        protected abstract DrawableRearrangeableListItem<T> CreateDrawable(T item);
+        protected abstract DrawableRearrangeableListItem<TModel> CreateDrawable(TModel item);
     }
 }

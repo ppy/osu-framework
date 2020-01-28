@@ -13,8 +13,8 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicRearrangeableListContainer<T> : RearrangeableListContainer<T>
-        where T : IEquatable<T>
+    public class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
+        where TModel : IEquatable<TModel>
     {
         /// <summary>
         /// Whether items should display a drag handle.
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
-        protected override FillFlowContainer<DrawableRearrangeableListItem<T>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
+        protected override FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
             d.LayoutDuration = 160;
             d.LayoutEasing = Easing.OutQuint;
@@ -40,23 +40,23 @@ namespace osu.Framework.Graphics.UserInterface
             d.Padding = new MarginPadding(5);
         });
 
-        protected sealed override DrawableRearrangeableListItem<T> CreateDrawable(T item) => CreateBasicItem(item).With(d =>
+        protected sealed override DrawableRearrangeableListItem<TModel> CreateDrawable(TModel item) => CreateBasicItem(item).With(d =>
         {
             d.RequestRemoval += _ => RemoveItem(item);
         });
 
-        protected virtual BasicDrawableRearrangeableListItem<T> CreateBasicItem(T item) => new BasicDrawableRearrangeableListItem<T>(item);
+        protected virtual BasicDrawableRearrangeableListItem<TModel> CreateBasicItem(TModel item) => new BasicDrawableRearrangeableListItem<TModel>(item);
     }
 
-    public class BasicDrawableRearrangeableListItem<T> : DrawableRearrangeableListItem<T>
-        where T : IEquatable<T>
+    public class BasicDrawableRearrangeableListItem<TModel> : DrawableRearrangeableListItem<TModel>
+        where TModel : IEquatable<TModel>
     {
-        internal Action<DrawableRearrangeableListItem<T>> RequestRemoval;
+        internal Action<DrawableRearrangeableListItem<TModel>> RequestRemoval;
 
         private readonly bool removable;
         private Drawable dragHandle;
 
-        public BasicDrawableRearrangeableListItem(T item, bool removable = false)
+        public BasicDrawableRearrangeableListItem(TModel item, bool removable = false)
             : base(item)
         {
             this.removable = removable;
