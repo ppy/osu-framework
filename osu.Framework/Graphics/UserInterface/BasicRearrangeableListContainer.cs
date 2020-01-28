@@ -40,25 +40,24 @@ namespace osu.Framework.Graphics.UserInterface
             d.Padding = new MarginPadding(5);
         });
 
-        protected override DrawableRearrangeableListItem CreateDrawable(T item) => new BasicDrawableRearrangeableListItem(item)
+        protected sealed override DrawableRearrangeableListItem CreateDrawable(T item) => CreateBasicItem(item).With(d =>
         {
-            ShowDragHandle = { BindTarget = ShowDragHandle },
-            ShowRemoveButton = { BindTarget = ShowRemoveButton },
-            RequestRemoval = d => RemoveItem(d.Model)
-        };
+            d.RequestRemoval += _ => RemoveItem(item);
+        });
+
+        protected virtual BasicDrawableRearrangeableListItem CreateBasicItem(T item) => new BasicDrawableRearrangeableListItem(item);
 
         public class BasicDrawableRearrangeableListItem : DrawableRearrangeableListItem
         {
             internal Action<DrawableRearrangeableListItem> RequestRemoval;
-            internal readonly Bindable<bool> ShowDragHandle = new Bindable<bool>();
-            internal readonly Bindable<bool> ShowRemoveButton = new Bindable<bool>();
 
+            private readonly bool removable;
             private Drawable dragHandle;
-            private Drawable removeButton;
 
-            public BasicDrawableRearrangeableListItem(T item)
+            public BasicDrawableRearrangeableListItem(T item, bool removable = false)
                 : base(item)
             {
+                this.removable = removable;
             }
 
             [BackgroundDependencyLoader]
@@ -101,12 +100,13 @@ namespace osu.Framework.Graphics.UserInterface
                                     }
                                 },
                             },
-                            removeButton = new Button(FontAwesome.Solid.Times)
+                            new Button(FontAwesome.Solid.Times)
                             {
                                 RelativeSizeAxes = Axes.Y,
-                                Width = 25,
+                                Width = removable ? 25 : 0, // https://github.com/ppy/osu-framework/issues/3214
                                 Colour = Color4.DarkRed,
-                                Action = () => RequestRemoval?.Invoke(this)
+                                Alpha = removable ? 1 : 0,
+                                Action = () => RequestRemoval?.Invoke(this),
                             },
                         },
                     },
@@ -117,9 +117,6 @@ namespace osu.Framework.Graphics.UserInterface
                         new Dimension(GridSizeMode.AutoSize),
                     }
                 };
-
-                ShowDragHandle.BindValueChanged(shown => dragHandle.Alpha = shown.NewValue ? 1 : 0);
-                ShowRemoveButton.BindValueChanged(shown => removeButton.Alpha = shown.NewValue ? 1 : 0);
             }
 
             protected override bool IsDraggableAt(Vector2 screenSpacePos) => dragHandle.IsHovered;
