@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
     public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
     {
-        private const double exp_base = 1.05;
+        private const float exp_base = 1.05f;
 
         /// <summary>
         /// The items contained by this <see cref="RearrangeableListContainer{TModel}"/>, in the order they are arranged.
@@ -25,12 +25,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{TModel}"/> at which automatic scroll begins.
         /// </summary>
-        protected double AutomaticTriggerDistance = 0;
+        protected float AutomaticTriggerDistance = 0;
 
         /// <summary>
         /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{TModel}"/>.
         /// </summary>
-        protected double MaxExponent = 50;
+        protected float MaxExponent = 50;
 
         /// <summary>
         /// The <see cref="ScrollContainer"/> containing the flow of items.
@@ -154,21 +154,21 @@ namespace osu.Framework.Graphics.Containers
         private void updateScrollPosition()
         {
             Vector2 localPos = ScrollContainer.ToLocalSpace(screenSpaceDragPosition);
-            double scrollSpeed = 0;
+            float scrollSpeed = 0;
 
             if (localPos.Y < AutomaticTriggerDistance)
             {
                 var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
-                scrollSpeed = -(float)Math.Pow(exp_base, power);
+                scrollSpeed = -MathF.Pow(exp_base, power);
             }
             else if (localPos.Y > ScrollContainer.DrawHeight - AutomaticTriggerDistance)
             {
                 var power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - AutomaticTriggerDistance - localPos.Y));
-                scrollSpeed = (float)Math.Pow(exp_base, power);
+                scrollSpeed = MathF.Pow(exp_base, power);
             }
 
             if ((scrollSpeed < 0 && ScrollContainer.Current > 0) || (scrollSpeed > 0 && !ScrollContainer.IsScrolledToEnd()))
-                ScrollContainer.ScrollBy((float)scrollSpeed);
+                ScrollContainer.ScrollBy(scrollSpeed);
         }
 
         private void updateArrangement()
