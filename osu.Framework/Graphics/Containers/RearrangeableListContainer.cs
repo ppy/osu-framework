@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            dstIndex = MathHelper.Clamp(dstIndex, 0, Items.Count - 1);
+            dstIndex = Math.Clamp(dstIndex, 0, Items.Count - 1);
 
             if (srcIndex == dstIndex)
                 return;
