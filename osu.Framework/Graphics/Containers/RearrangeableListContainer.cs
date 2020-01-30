@@ -182,18 +182,33 @@ namespace osu.Framework.Graphics.Containers
             for (; dstIndex < Items.Count; dstIndex++)
             {
                 // Using BoundingBox here takes care of scale, paddings, etc...
-                heightAccumulator += itemMap[Items[dstIndex]].BoundingBox.Height + Spacing.Y;
-                if (heightAccumulator - Spacing.Y / 2 > localPos.Y)
+                float height = itemMap[Items[dstIndex]].BoundingBox.Height;
+
+                // Rearrangement should occur only after the mid-point of items is crossed
+                heightAccumulator += height / 2;
+
+                // Check if the midpoint has been crossed (i.e. cursor is located above the midpoint)
+                if (heightAccumulator > localPos.Y)
+                {
+                    if (dstIndex > srcIndex)
+                    {
+                        // Suppose an item is dragged just slightly below its own midpoint. The rearrangement condition (accumulator > pos) will be satisfied for the next immediate item
+                        // but not the currently-dragged item, which will invoke a rearrangement. This is an off-by-one condition.
+                        // Rearrangement should not occur until the midpoint of the next item is crossed, and so to fix this the next item's index is discarded.
+                        dstIndex--;
+                    }
+
                     break;
+                }
+
+                // Add the remainder of the height of the current item
+                heightAccumulator += height / 2 + Spacing.Y;
             }
 
             dstIndex = Math.Clamp(dstIndex, 0, Items.Count - 1);
 
             if (srcIndex == dstIndex)
                 return;
-
-            if (srcIndex < dstIndex - 1)
-                dstIndex--;
 
             isCurrentlyRearranging = true;
 
