@@ -23,18 +23,28 @@ namespace osu.Framework.Graphics.Containers
         public readonly BindableList<TModel> Items = new BindableList<TModel>();
 
         /// <summary>
-        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
+        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{TModel}"/> at which automatic scroll begins.
         /// </summary>
         protected double AutomaticTriggerDistance = 0;
 
         /// <summary>
-        /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{T}"/>.
+        /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{TModel}"/>.
         /// </summary>
         protected double MaxExponent = 50;
 
+        /// <summary>
+        /// The <see cref="ScrollContainer"/> containing the flow of items.
+        /// </summary>
         protected readonly ScrollContainer<Drawable> ScrollContainer;
+
+        /// <summary>
+        /// The <see cref="FillFlowContainer"/> containing of all the <see cref="DrawableRearrangeableListItem{TModel}"/>s.
+        /// </summary>
         protected readonly FillFlowContainer<DrawableRearrangeableListItem<TModel>> ListContainer;
 
+        /// <summary>
+        /// The mapping of <see cref="TModel"/> to <see cref="DrawableRearrangeableListItem{TModel}"/>.
+        /// </summary>
         protected IReadOnlyDictionary<TModel, DrawableRearrangeableListItem<TModel>> ItemMap => itemMap;
 
         private readonly Dictionary<TModel, DrawableRearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, DrawableRearrangeableListItem<TModel>>();
@@ -43,7 +53,7 @@ namespace osu.Framework.Graphics.Containers
         private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
         /// <summary>
-        /// Creates a new <see cref="RearrangeableListContainer{T}"/>.
+        /// Creates a new <see cref="RearrangeableListContainer{TModel}"/>.
         /// </summary>
         protected RearrangeableListContainer()
         {
@@ -194,7 +204,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 // Add the remainder of the height of the current item
-                heightAccumulator += height / 2 + Spacing.Y;
+                heightAccumulator += height / 2 + ListContainer.Spacing.Y;
             }
 
             dstIndex = Math.Clamp(dstIndex, 0, Items.Count - 1);
