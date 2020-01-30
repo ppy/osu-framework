@@ -81,9 +81,17 @@ namespace osu.Framework.Screens
         /// Retrieves the child <see cref="IScreen"/> of an <see cref="IScreen"/>.
         /// </summary>
         /// <param name="screen">The <see cref="IScreen"/> to retrieve the child of.</param>
-        /// <returns>The child <see cref="IScreen"/> of <paramref name="screen"/>, or <paramref name="screen"/> has no child.</returns>
+        /// <returns>The child <see cref="IScreen"/> of <paramref name="screen"/>, or null if <paramref name="screen"/> has no child.</returns>
         public static IScreen GetChildScreen(this IScreen screen)
             => runOnRoot(screen, stack => stack.GetChildScreen(screen), () => null);
+
+        /// <summary>
+        /// Retrieves the parent <see cref="IScreen"/> of an <see cref="IScreen"/>.
+        /// </summary>
+        /// <param name="screen">The <see cref="IScreen"/> to retrieve the parent of.</param>
+        /// <returns>The parent <see cref="IScreen"/> of <paramref name="screen"/>, or null if <paramref name="screen"/> has no parent.</returns>
+        public static IScreen GetParentScreen(this IScreen screen)
+            => runOnRoot(screen, stack => stack.GetParentScreen(screen), () => null);
 
         internal static Drawable AsDrawable(this IScreen screen) => (Drawable)screen;
 
