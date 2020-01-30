@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
-    /// <typeparam name="TModel">The type of rearrangeable item</typeparam>
+    /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
     public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
     {
         private const double exp_base = 1.05;
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         private DrawableRearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
-        private bool isRearranging;
+        private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListContainer{T}"/>.
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void addItems(IEnumerable<TModel> items)
         {
-            if (isRearranging)
+            if (isCurrentlyRearranging)
                 return;
 
             foreach (var item in items)
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void removeItems(IEnumerable<TModel> items)
         {
-            if (isRearranging)
+            if (isCurrentlyRearranging)
                 return;
 
             foreach (var item in items)
@@ -195,13 +195,13 @@ namespace osu.Framework.Graphics.Containers
             if (srcIndex < dstIndex - 1)
                 dstIndex--;
 
-            isRearranging = true;
+            isCurrentlyRearranging = true;
 
             Items.RemoveAt(srcIndex);
             Items.Insert(dstIndex, currentlyDraggedItem.Model);
             reSort();
 
-            isRearranging = false;
+            isCurrentlyRearranging = false;
         }
 
         /// <summary>
