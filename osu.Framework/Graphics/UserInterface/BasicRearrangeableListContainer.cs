@@ -13,7 +13,6 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
-        where TModel : IEquatable<TModel>
     {
         protected override FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
@@ -38,7 +37,6 @@ namespace osu.Framework.Graphics.UserInterface
     }
 
     public class BasicDrawableRearrangeableListItem<TModel> : DrawableRearrangeableListItem<TModel>
-        where TModel : IEquatable<TModel>
     {
         internal Action<DrawableRearrangeableListItem<TModel>> RequestRemoval;
 

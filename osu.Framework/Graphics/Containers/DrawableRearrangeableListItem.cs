@@ -8,7 +8,6 @@ using osuTK;
 namespace osu.Framework.Graphics.Containers
 {
     public abstract class DrawableRearrangeableListItem<TModel> : CompositeDrawable
-        where TModel : IEquatable<TModel>
     {
         internal Action<DrawableRearrangeableListItem<TModel>, DragStartEvent> StartArrangement;
 

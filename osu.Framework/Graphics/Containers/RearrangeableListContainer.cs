@@ -14,7 +14,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     /// <typeparam name="TModel">The type of rearrangeable item</typeparam>
     public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
-        where TModel : IEquatable<TModel>
     {
         private const double exp_base = 1.05;
 
@@ -99,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool RemoveItem(TModel item)
         {
-            var drawable = ListContainer.FirstOrDefault(d => d.Model.Equals(item));
+            var drawable = ListContainer.FirstOrDefault(d => EqualityComparer<TModel>.Default.Equals(d.Model, item));
             if (drawable == null)
                 return false;
 
