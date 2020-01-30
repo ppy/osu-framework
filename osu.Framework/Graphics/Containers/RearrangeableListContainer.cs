@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
         /// </summary>
-        protected double AutomaticTriggerDistance = 10;
+        protected double AutomaticTriggerDistance = 0;
 
         /// <summary>
         /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{T}"/>.
@@ -214,6 +214,8 @@ namespace osu.Framework.Graphics.Containers
 
             Items.RemoveAt(srcIndex);
             Items.Insert(dstIndex, currentlyDraggedItem.Model);
+
+            // Todo: this could be optimised, but it's a very simple iteration over all the items
             reSort();
 
             isCurrentlyRearranging = false;
