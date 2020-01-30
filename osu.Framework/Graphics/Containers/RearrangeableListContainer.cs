@@ -18,14 +18,9 @@ namespace osu.Framework.Graphics.Containers
         private const double exp_base = 1.05;
 
         /// <summary>
-        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
+        /// The items contained by this <see cref="RearrangeableListContainer{TModel}"/>, in the order they are arranged.
         /// </summary>
-        protected double AutomaticTriggerDistance = 0;
-
-        /// <summary>
-        /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{T}"/>.
-        /// </summary>
-        protected double MaxExponent = 50;
+        public readonly BindableList<TModel> Items = new BindableList<TModel>();
 
         /// <summary>
         /// The spacing between individual elements.
@@ -37,15 +32,21 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The items contained by this <see cref="RearrangeableListContainer{TModel}"/>, in the order they are arranged.
+        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
         /// </summary>
-        public readonly BindableList<TModel> Items = new BindableList<TModel>();
+        protected double AutomaticTriggerDistance = 0;
+
+        /// <summary>
+        /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{T}"/>.
+        /// </summary>
+        protected double MaxExponent = 50;
 
         protected readonly ScrollContainer<Drawable> ScrollContainer;
         protected readonly FillFlowContainer<DrawableRearrangeableListItem<TModel>> ListContainer;
 
-        private readonly Dictionary<TModel, DrawableRearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, DrawableRearrangeableListItem<TModel>>();
+        protected IReadOnlyDictionary<TModel, DrawableRearrangeableListItem<TModel>> ItemMap => itemMap;
 
+        private readonly Dictionary<TModel, DrawableRearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, DrawableRearrangeableListItem<TModel>>();
         private DrawableRearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
         private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
