@@ -231,6 +231,9 @@ namespace osu.Framework.Screens
 
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
 
+        internal IScreen GetParentScreen(IScreen source)
+            => stack.Reverse().TakeWhile(s => s != source).LastOrDefault();
+
         internal IScreen GetChildScreen(IScreen source)
             => stack.TakeWhile(s => s != source).LastOrDefault();
 
