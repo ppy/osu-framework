@@ -131,9 +131,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     list.Items.Add(i.ToString());
             });
 
+            // Scroll
             AddStep("move mouse to first item", () => InputManager.MoveMouseTo(getItem(0)));
             AddStep("begin a drag", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("move the mouse", () => InputManager.MoveMouseTo(getItem(0).ToScreenSpace(getItem(0).LayoutRectangle.Centre + new Vector2(0, 30))));
+            AddStep("move the mouse", () => InputManager.MoveMouseTo(getItem(0), new Vector2(0, 30)));
             AddStep("end the drag", () => InputManager.ReleaseButton(MouseButton.Left));
 
             AddStep("remove all but one item", () =>
@@ -142,9 +143,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     list.Items.Remove(getItem(i).Model);
             });
 
+            // Drag
             AddStep("move mouse to first dragger", () => InputManager.MoveMouseTo(getDragger(4)));
             AddStep("begin a drag", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("move the mouse", () => InputManager.MoveMouseTo(getDragger(4).ToScreenSpace(getDragger(4).LayoutRectangle.Centre + new Vector2(0, 30))));
+            AddStep("move the mouse", () => InputManager.MoveMouseTo(getDragger(4), new Vector2(0, 30)));
             AddStep("end the drag", () => InputManager.ReleaseButton(MouseButton.Left));
         }
 
@@ -168,11 +170,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressButton(MouseButton.Left);
             });
 
-            AddStep("drag to 0", () => InputManager.MoveMouseTo(getDragger(0)));
+            AddStep("drag to 0", () => InputManager.MoveMouseTo(getDragger(0), new Vector2(0, -1)));
+
             AddUntilStep("scrolling up", () => list.ScrollPosition < scrollPosition);
             AddUntilStep("52 is the first item", () => list.Items.First() == "52");
 
-            AddStep("drag to 99", () => InputManager.MoveMouseTo(getDragger(99)));
+            AddStep("drag to 99", () => InputManager.MoveMouseTo(getDragger(99), new Vector2(0, 1)));
+
             AddUntilStep("scrolling down", () => list.ScrollPosition > scrollPosition);
             AddUntilStep("52 is the last item", () => list.Items.Last() == "52");
         }
@@ -196,7 +200,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressButton(MouseButton.Left);
             });
 
-            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft)));
+            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft) + new Vector2(0, 10)));
 
             AddRepeatStep("add items", () =>
             {
@@ -225,7 +229,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressButton(MouseButton.Left);
             });
 
-            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft)));
+            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft) + new Vector2(0, 10)));
 
             AddRepeatStep("remove item", () =>
             {
@@ -250,7 +254,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressButton(MouseButton.Left);
             });
 
-            AddStep($"drag to {to}", () => InputManager.MoveMouseTo(getDragger(to)));
+            AddStep($"drag to {to}", () =>
+            {
+                var fromDragger = getDragger(from);
+                var toDragger = getDragger(to);
+
+                InputManager.MoveMouseTo(getDragger(to), fromDragger.ScreenSpaceDrawQuad.TopLeft.Y < toDragger.ScreenSpaceDrawQuad.TopLeft.Y ? new Vector2(0, 1) : new Vector2(0, -1));
+            });
 
             assertSequence(expectedSequence);
 
