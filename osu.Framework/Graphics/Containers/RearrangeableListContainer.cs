@@ -38,17 +38,17 @@ namespace osu.Framework.Graphics.Containers
         protected readonly ScrollContainer<Drawable> ScrollContainer;
 
         /// <summary>
-        /// The <see cref="FillFlowContainer"/> containing of all the <see cref="DrawableRearrangeableListItem{TModel}"/>s.
+        /// The <see cref="FillFlowContainer"/> containing of all the <see cref="RearrangeableListItem{TModel}"/>s.
         /// </summary>
-        protected readonly FillFlowContainer<DrawableRearrangeableListItem<TModel>> ListContainer;
+        protected readonly FillFlowContainer<RearrangeableListItem<TModel>> ListContainer;
 
         /// <summary>
-        /// The mapping of <see cref="TModel"/> to <see cref="DrawableRearrangeableListItem{TModel}"/>.
+        /// The mapping of <see cref="TModel"/> to <see cref="RearrangeableListItem{TModel}"/>.
         /// </summary>
-        protected IReadOnlyDictionary<TModel, DrawableRearrangeableListItem<TModel>> ItemMap => itemMap;
+        protected IReadOnlyDictionary<TModel, RearrangeableListItem<TModel>> ItemMap => itemMap;
 
-        private readonly Dictionary<TModel, DrawableRearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, DrawableRearrangeableListItem<TModel>>();
-        private DrawableRearrangeableListItem<TModel> currentlyDraggedItem;
+        private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
+        private RearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
         private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
@@ -125,15 +125,15 @@ namespace osu.Framework.Graphics.Containers
                 ListContainer.SetLayoutPosition(itemMap[Items[i]], i);
         }
 
-        private void startArrangement(DrawableRearrangeableListItem<TModel> item, DragStartEvent e)
+        private void startArrangement(RearrangeableListItem<TModel> item, DragStartEvent e)
         {
             currentlyDraggedItem = item;
             screenSpaceDragPosition = e.ScreenSpaceMousePosition;
         }
 
-        private void arrange(DrawableRearrangeableListItem<TModel> item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
+        private void arrange(RearrangeableListItem<TModel> item, DragEvent e) => screenSpaceDragPosition = e.ScreenSpaceMousePosition;
 
-        private void endArrangement(DrawableRearrangeableListItem<TModel> item, DragEndEvent e) => currentlyDraggedItem = null;
+        private void endArrangement(RearrangeableListItem<TModel> item, DragEndEvent e) => currentlyDraggedItem = null;
 
         protected override void Update()
         {
@@ -226,7 +226,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates the <see cref="FillFlowContainer{DrawableRearrangeableListItem}"/> for the items.
         /// </summary>
-        protected virtual FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => new FillFlowContainer<DrawableRearrangeableListItem<TModel>>();
+        protected virtual FillFlowContainer<RearrangeableListItem<TModel>> CreateListFillFlowContainer() => new FillFlowContainer<RearrangeableListItem<TModel>>();
 
         /// <summary>
         /// Creates the <see cref="ScrollContainer"/> for the list of items.
@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.Containers
         /// Creates the <see cref="Drawable"/> representation of an item.
         /// </summary>
         /// <param name="item">The item to create the <see cref="Drawable"/> representation of.</param>
-        /// <returns>The <see cref="DrawableRearrangeableListItem{T}"/>.</returns>
-        protected abstract DrawableRearrangeableListItem<TModel> CreateDrawable(TModel item);
+        /// <returns>The <see cref="RearrangeableListItem{TModel}"/>.</returns>
+        protected abstract RearrangeableListItem<TModel> CreateDrawable(TModel item);
     }
 }

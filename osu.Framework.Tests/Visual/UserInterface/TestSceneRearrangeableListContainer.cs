@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 string itemString = i.ToString();
 
                 AddStep($"add item \"{itemString}\"", () => list.Items.Add(itemString));
-                AddAssert($"last item is \"{itemString}\"", () => list.ChildrenOfType<DrawableRearrangeableListItem<string>>().Last().Model == itemString);
+                AddAssert($"last item is \"{itemString}\"", () => list.ChildrenOfType<RearrangeableListItem<string>>().Last().Model == itemString);
             }
         }
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 string itemString = i.ToString();
 
                 AddStep($"remove item \"{itemString}\"", () => list.Items.Remove(itemString));
-                AddAssert($"first item is not \"{itemString}\"", () => list.ChildrenOfType<DrawableRearrangeableListItem<string>>().FirstOrDefault()?.Model != itemString);
+                AddAssert($"first item is not \"{itemString}\"", () => list.ChildrenOfType<RearrangeableListItem<string>>().FirstOrDefault()?.Model != itemString);
             }
         }
 
@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("clear items", () => list.Items.Clear());
 
-            AddAssert("no items contained", () => !list.ChildrenOfType<DrawableRearrangeableListItem<string>>().Any());
+            AddAssert("no items contained", () => !list.ChildrenOfType<RearrangeableListItem<string>>().Any());
         }
 
         [Test]
@@ -263,19 +263,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 () => list.Items.SequenceEqual(sequence.Select(value => value.ToString())));
         }
 
-        private DrawableRearrangeableListItem<string> getItem(int index)
-            => list.ChildrenOfType<DrawableRearrangeableListItem<string>>().First(i => i.Model == index.ToString());
+        private RearrangeableListItem<string> getItem(int index)
+            => list.ChildrenOfType<RearrangeableListItem<string>>().First(i => i.Model == index.ToString());
 
-        private BasicDrawableRearrangeableListItem<string>.Button getDragger(int index)
-            => list.ChildrenOfType<BasicDrawableRearrangeableListItem<string>>().First(i => i.Model == index.ToString())
-                   .ChildrenOfType<BasicDrawableRearrangeableListItem<string>.Button>().First();
+        private BasicRearrangeableListItem<string>.Button getDragger(int index)
+            => list.ChildrenOfType<BasicRearrangeableListItem<string>>().First(i => i.Model == index.ToString())
+                   .ChildrenOfType<BasicRearrangeableListItem<string>.Button>().First();
 
         private class TestRearrangeableList : BasicRearrangeableListContainer<string>
         {
             public float ScrollPosition => ScrollContainer.Current;
 
             public void ScrollTo(string item)
-                => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicDrawableRearrangeableListItem<string>>().First(i => i.Model == item), false);
+                => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<string>>().First(i => i.Model == item), false);
         }
     }
 }

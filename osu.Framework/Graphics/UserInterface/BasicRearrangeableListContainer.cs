@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicRearrangeableListContainer<TModel> : RearrangeableListContainer<TModel>
     {
-        protected override FillFlowContainer<DrawableRearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
+        protected override FillFlowContainer<RearrangeableListItem<TModel>> CreateListFillFlowContainer() => base.CreateListFillFlowContainer().With(d =>
         {
             d.LayoutDuration = 160;
             d.LayoutEasing = Easing.OutQuint;
@@ -28,22 +28,22 @@ namespace osu.Framework.Graphics.UserInterface
             d.Padding = new MarginPadding(5);
         });
 
-        protected sealed override DrawableRearrangeableListItem<TModel> CreateDrawable(TModel item) => CreateBasicItem(item).With(d =>
+        protected sealed override RearrangeableListItem<TModel> CreateDrawable(TModel item) => CreateBasicItem(item).With(d =>
         {
             d.RequestRemoval += _ => Items.Remove(item);
         });
 
-        protected virtual BasicDrawableRearrangeableListItem<TModel> CreateBasicItem(TModel item) => new BasicDrawableRearrangeableListItem<TModel>(item);
+        protected virtual BasicRearrangeableListItem<TModel> CreateBasicItem(TModel item) => new BasicRearrangeableListItem<TModel>(item);
     }
 
-    public class BasicDrawableRearrangeableListItem<TModel> : DrawableRearrangeableListItem<TModel>
+    public class BasicRearrangeableListItem<TModel> : RearrangeableListItem<TModel>
     {
-        internal Action<DrawableRearrangeableListItem<TModel>> RequestRemoval;
+        internal Action<RearrangeableListItem<TModel>> RequestRemoval;
 
         private readonly bool removable;
         private Drawable dragHandle;
 
-        public BasicDrawableRearrangeableListItem(TModel item, bool removable = false)
+        public BasicRearrangeableListItem(TModel item, bool removable = false)
             : base(item)
         {
             this.removable = removable;
