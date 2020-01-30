@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected sealed override DrawableRearrangeableListItem<TModel> CreateDrawable(TModel item) => CreateBasicItem(item).With(d =>
         {
-            d.RequestRemoval += _ => RemoveItem(item);
+            d.RequestRemoval += _ => Items.Remove(item);
         });
 
         protected virtual BasicDrawableRearrangeableListItem<TModel> CreateBasicItem(TModel item) => new BasicDrawableRearrangeableListItem<TModel>(item);

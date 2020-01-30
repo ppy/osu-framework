@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 string itemString = i.ToString();
 
-                AddStep($"add item \"{itemString}\"", () => list.AddItem(itemString));
+                AddStep($"add item \"{itemString}\"", () => list.Items.Add(itemString));
                 AddAssert($"last item is \"{itemString}\"", () => list.ChildrenOfType<DrawableRearrangeableListItem<string>>().Last().Model == itemString);
             }
         }
@@ -54,14 +54,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 5 items", () =>
             {
                 for (int i = 0; i < 5; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             for (int i = 0; i < 5; i++)
             {
                 string itemString = i.ToString();
 
-                AddStep($"remove item \"{itemString}\"", () => list.RemoveItem(itemString));
+                AddStep($"remove item \"{itemString}\"", () => list.Items.Remove(itemString));
                 AddAssert($"first item is not \"{itemString}\"", () => list.ChildrenOfType<DrawableRearrangeableListItem<string>>().FirstOrDefault()?.Model != itemString);
             }
         }
@@ -72,10 +72,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 5 items", () =>
             {
                 for (int i = 0; i < 5; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
-            AddStep("clear items", () => list.ClearItems());
+            AddStep("clear items", () => list.Items.Clear());
 
             AddAssert("no items contained", () => !list.ChildrenOfType<DrawableRearrangeableListItem<string>>().Any());
         }
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 5 items", () =>
             {
                 for (int i = 0; i < 5; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             addDragSteps(1, 4, new[] { 0, 2, 3, 4, 1 });
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 5 items", () =>
             {
                 for (int i = 0; i < 5; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             addDragSteps(0, 4, new[] { 1, 2, 3, 4, 0 });
@@ -113,8 +113,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove 3 and 2", () =>
             {
-                list.RemoveItem("3");
-                list.RemoveItem("2");
+                list.Items.Remove("3");
+                list.Items.Remove("2");
             });
 
             addDragSteps(4, 0, new[] { 1, 0, 4 });
@@ -128,7 +128,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 5 items", () =>
             {
                 for (int i = 0; i < 5; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             AddStep("move mouse to first item", () => InputManager.MoveMouseTo(getItem(0)));
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("remove all but one item", () =>
             {
                 for (int i = 0; i < 4; i++)
-                    list.RemoveItem(getItem(i).Model);
+                    list.Items.Remove(getItem(i).Model);
             });
 
             AddStep("move mouse to first dragger", () => InputManager.MoveMouseTo(getDragger(4)));
@@ -154,7 +154,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add 100 items", () =>
             {
                 for (int i = 0; i < 100; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             AddStep("scroll to item 50", () => list.ScrollTo("50"));
@@ -170,11 +170,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("drag to 0", () => InputManager.MoveMouseTo(getDragger(0)));
             AddUntilStep("scrolling up", () => list.ScrollPosition < scrollPosition);
-            AddUntilStep("52 is the first item", () => list.ArrangedItems.First() == "52");
+            AddUntilStep("52 is the first item", () => list.Items.First() == "52");
 
             AddStep("drag to 99", () => InputManager.MoveMouseTo(getDragger(99)));
             AddUntilStep("scrolling down", () => list.ScrollPosition > scrollPosition);
-            AddUntilStep("52 is the last item", () => list.ArrangedItems.Last() == "52");
+            AddUntilStep("52 is the last item", () => list.Items.Last() == "52");
         }
 
         [Test]
@@ -186,8 +186,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 i = 0;
 
-                list.AddItem(i++.ToString());
-                list.AddItem(i++.ToString());
+                list.Items.Add(i++.ToString());
+                list.Items.Add(i++.ToString());
             });
 
             AddStep("grab item 0", () =>
@@ -200,10 +200,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddRepeatStep("add items", () =>
             {
-                list.AddItem(i++.ToString());
+                list.Items.Add(i++.ToString());
             }, 10);
 
-            AddUntilStep("0 is the last item", () => list.ArrangedItems.Last() == "0");
+            AddUntilStep("0 is the last item", () => list.Items.Last() == "0");
         }
 
         [Test]
@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 lastItem = 49;
 
                 for (int i = 0; i < 50; i++)
-                    list.AddItem(i.ToString());
+                    list.Items.Add(i.ToString());
             });
 
             AddStep("grab item 0", () =>
@@ -229,14 +229,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddRepeatStep("remove item", () =>
             {
-                list.RemoveItem(lastItem--.ToString());
+                list.Items.Remove(lastItem--.ToString());
             }, 25);
 
-            AddUntilStep("0 is the last item", () => list.ArrangedItems.Last() == "0");
+            AddUntilStep("0 is the last item", () => list.Items.Last() == "0");
 
             AddRepeatStep("remove item", () =>
             {
-                list.RemoveItem(lastItem--.ToString());
+                list.Items.Remove(lastItem--.ToString());
             }, 25);
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
@@ -260,7 +260,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void assertSequence(params int[] sequence)
         {
             AddAssert($"sequence is {string.Join(", ", sequence)}",
-                () => list.ArrangedItems.SequenceEqual(sequence.Select(value => value.ToString())));
+                () => list.Items.SequenceEqual(sequence.Select(value => value.ToString())));
         }
 
         private DrawableRearrangeableListItem<string> getItem(int index)
