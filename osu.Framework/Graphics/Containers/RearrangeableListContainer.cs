@@ -23,15 +23,6 @@ namespace osu.Framework.Graphics.Containers
         public readonly BindableList<TModel> Items = new BindableList<TModel>();
 
         /// <summary>
-        /// The spacing between individual elements.
-        /// </summary>
-        public Vector2 Spacing
-        {
-            get => ListContainer.Spacing;
-            set => ListContainer.Spacing = value;
-        }
-
-        /// <summary>
         /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{T}"/> at which automatic scroll begins.
         /// </summary>
         protected double AutomaticTriggerDistance = 0;
