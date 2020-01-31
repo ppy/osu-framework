@@ -17,20 +17,20 @@ namespace osu.Framework.Tests.Visual.Testing
         private int testRunCount;
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             setupRun++;
         }
 
         [SetUpSteps]
-        public void SetUpSteps()
+        public virtual void SetUpSteps()
         {
             AddStep("set up dummy", () => setupStepsDummyRun++);
             setupStepsRun++;
         }
 
         [TearDownSteps]
-        public void TearDownSteps()
+        public virtual void TearDownSteps()
         {
             AddStep("tear down dummy", () => teardownStepsDummyRun++);
             teardownStepsRun++;

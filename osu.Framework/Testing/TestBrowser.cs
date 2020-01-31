@@ -12,7 +12,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -444,7 +443,7 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Action onCompletion)
+        private void finishLoad(TestScene newTest, Action onCompletion)
         {
             if (CurrentTest != newTest)
             {
@@ -455,21 +454,11 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var methods = newTest.GetType().GetMethods();
-            var setUpMethods = new List<MethodInfo>();
-
-            foreach (var type in newTest.GetType().EnumerateBaseTypes())
-            {
-                setUpMethods.AddRange(type.GetMethods()
-                                          .Where(m => m.DeclaringType == type && m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0));
-            }
-
-            // To match NUnit, setup methods should be invoked from base classes before derived classes
-            setUpMethods.Reverse();
+            var setUpMethods = newTest.GetRunnableMethodsFor(typeof(SetUpAttribute));
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
+            foreach (var m in newTest.GetType().GetMethods().Where(m => m.Name != nameof(TestScene.TestConstructor)))
             {
                 if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
