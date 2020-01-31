@@ -52,6 +52,12 @@ namespace osu.Framework.Tests.Visual.Testing
             teardownStepsRun++;
         }
 
+        public TestSceneTest()
+        {
+            // A dummy test used to pad the setup steps for visual testing purposes.
+            AddStep("dummy test", () => { });
+        }
+
         [Test, Repeat(2)]
         public void Test()
         {
