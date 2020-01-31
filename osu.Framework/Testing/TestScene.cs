@@ -387,15 +387,15 @@ namespace osu.Framework.Testing
 
         public ICollection<MethodInfo> GetRunnableMethodsFor(Type attributeType)
         {
-            var setUpMethods = new List<MethodInfo>();
+            var methods = new List<MethodInfo>();
 
             foreach (var type in GetType().EnumerateBaseTypes())
-                setUpMethods.AddRange(type.GetMethods().Where(m => m.DeclaringType == type && m.GetCustomAttributes(attributeType, false).Length > 0));
+                methods.AddRange(type.GetMethods().Where(m => m.DeclaringType == type && m.GetCustomAttributes(attributeType, false).Length > 0));
 
-            // To match NUnit, setup methods should be invoked from base classes before derived classes
-            setUpMethods.Reverse();
+            // To match NUnit, methods should be invoked from base classes before derived classes
+            methods.Reverse();
 
-            return setUpMethods;
+            return methods;
         }
 
         /// <summary>
