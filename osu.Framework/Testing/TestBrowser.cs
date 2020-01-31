@@ -12,7 +12,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -444,7 +443,7 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Action onCompletion)
+        private void finishLoad(TestScene newTest, Action onCompletion)
         {
             if (CurrentTest != newTest)
             {
@@ -455,33 +454,34 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var methods = newTest.GetType().GetMethods();
-            var setUpMethods = new List<MethodInfo>();
+            var methods = newTest.GetType().GetMethods()
+                                 .Where(m =>
+                                     m.Name != nameof(TestScene.TestConstructor) &&
+                                     (m.GetCustomAttribute(typeof(TestAttribute), false) != null ||
+                                      m.GetCustomAttributes(typeof(TestCaseAttribute), false).Length > 0)
+                                 ).ToArray();
 
-            foreach (var type in newTest.GetType().EnumerateBaseTypes())
-            {
-                setUpMethods.AddRange(type.GetMethods()
-                                          .Where(m => m.DeclaringType == type && m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0));
-            }
-
-            // To match NUnit, setup methods should be invoked from base classes before derived classes
-            setUpMethods.Reverse();
+            var setUpMethods = newTest.GetRunnableMethodsFor(typeof(SetUpAttribute));
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
+            string commonPrefix = methods.Select(m => m.Name).GetCommonPrefix();
+
+            foreach (var m in methods)
             {
+                var name = m.Name.Substring(commonPrefix.Length);
+
                 if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    handleTestMethod(m);
+                    handleTestMethod(m, name);
 
                     if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                     {
                         var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
                         for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{m.Name} ({i})");
+                            handleTestMethod(m, $"{name} ({i})");
                     }
                 }
 
@@ -524,6 +524,8 @@ namespace osu.Framework.Testing
                 addSetUpSteps();
 
                 methodInfo.Invoke(CurrentTest, null);
+
+                CurrentTest.RunTearDownSteps();
             }
         }
 
