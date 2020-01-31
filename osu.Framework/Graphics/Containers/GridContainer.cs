@@ -258,13 +258,13 @@ namespace osu.Framework.Graphics.Containers
                         {
                             // Go through each row and get the width of the cell at the indexed column
                             for (int r = 0; r < cellRows; r++)
-                                size = Math.Max(size, Content[r]?[i]?.BoundingBox.Width ?? 0);
+                                size = Math.Max(size, getCellWidth(Content[r]?[i]));
                         }
                         else
                         {
                             // Go through each column and get the height of the cell at the indexed row
                             for (int c = 0; c < cellColumns; c++)
-                                size = Math.Max(size, Content[i]?[c]?.BoundingBox.Height ?? 0);
+                                size = Math.Max(size, getCellHeight(Content[i]?[c]));
                         }
 
                         sizes[i] = size;
@@ -276,6 +276,9 @@ namespace osu.Framework.Graphics.Containers
 
             return sizes;
         }
+
+        private float getCellWidth(Drawable cell) => cell?.IsPresent == true ? cell.BoundingBox.Width : 0;
+        private float getCellHeight(Drawable cell) => cell?.IsPresent == true ? cell.BoundingBox.Height : 0;
 
         /// <summary>
         /// Distributes any available length along all distributed dimensions, if required.
