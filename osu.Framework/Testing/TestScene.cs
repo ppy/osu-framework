@@ -121,6 +121,8 @@ namespace osu.Framework.Testing
         [TearDown]
         public void RunTests()
         {
+            RunTearDownSteps();
+
             checkForErrors();
             runner.RunTestBlocking(this);
             checkForErrors();
@@ -376,6 +378,12 @@ namespace osu.Framework.Testing
         internal void RunSetUpSteps()
         {
             foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+                method.Invoke(this, null);
+        }
+
+        internal void RunTearDownSteps()
+        {
+            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(TearDownStepsAttribute), false).Length > 0))
                 method.Invoke(this, null);
         }
 

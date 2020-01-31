@@ -11,6 +11,9 @@ namespace osu.Framework.Tests.Visual.Testing
     {
         private int setupRun;
         private int setupStepsRun;
+        private int setupStepsDummyRun;
+        private int teardownStepsRun;
+        private int teardownStepsDummyRun;
         private int testRunCount;
 
         [SetUp]
@@ -22,7 +25,15 @@ namespace osu.Framework.Tests.Visual.Testing
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddStep("set up dummy", () => setupStepsDummyRun++);
             setupStepsRun++;
+        }
+
+        [TearDownSteps]
+        public void TearDownSteps()
+        {
+            AddStep("tear down dummy", () => teardownStepsDummyRun++);
+            teardownStepsRun++;
         }
 
         public TestSceneTest()
@@ -43,8 +54,11 @@ namespace osu.Framework.Tests.Visual.Testing
         public void Test()
         {
             AddStep("increment run count", () => testRunCount++);
+            AddAssert("set up dummy step run", () => testRunCount == setupStepsDummyRun);
             AddAssert("correct setup run count", () => testRunCount == setupRun);
             AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddAssert("correct teardown steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == teardownStepsRun);
+            AddAssert("tear down dummy step run", () => testRunCount - 1 == teardownStepsDummyRun);
         }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();

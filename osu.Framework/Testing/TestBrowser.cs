@@ -524,6 +524,8 @@ namespace osu.Framework.Testing
                 addSetUpSteps();
 
                 methodInfo.Invoke(CurrentTest, null);
+
+                CurrentTest.RunTearDownSteps();
             }
         }
 
