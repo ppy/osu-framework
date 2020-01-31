@@ -454,23 +454,34 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
+            var methods = newTest.GetType().GetMethods()
+                                 .Where(m =>
+                                     m.Name != nameof(TestScene.TestConstructor) &&
+                                     (m.GetCustomAttribute(typeof(TestAttribute), false) != null ||
+                                      m.GetCustomAttributes(typeof(TestCaseAttribute), false).Length > 0)
+                                 ).ToArray();
+
             var setUpMethods = newTest.GetRunnableMethodsFor(typeof(SetUpAttribute));
 
             bool hadTestAttributeTest = false;
 
-            foreach (var m in newTest.GetType().GetMethods().Where(m => m.Name != nameof(TestScene.TestConstructor)))
+            string commonPrefix = methods.Select(m => m.Name).GetCommonPrefix();
+
+            foreach (var m in methods)
             {
+                var name = m.Name.Substring(commonPrefix.Length);
+
                 if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
                     hadTestAttributeTest = true;
-                    handleTestMethod(m);
+                    handleTestMethod(m, name);
 
                     if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                     {
                         var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
                         for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{m.Name} ({i})");
+                            handleTestMethod(m, $"{name} ({i})");
                     }
                 }
 
