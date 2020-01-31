@@ -385,7 +385,7 @@ namespace osu.Framework.Testing
                 method.Invoke(this, null);
         }
 
-        public ICollection<MethodInfo> GetRunnableMethodsFor(Type attributeType)
+        internal ICollection<MethodInfo> GetRunnableMethodsFor(Type attributeType)
         {
             var methods = new List<MethodInfo>();
 
