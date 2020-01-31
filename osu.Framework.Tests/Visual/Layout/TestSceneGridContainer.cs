@@ -689,7 +689,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
         [TestCase(true)]
         [TestCase(false)]
-        public void TestAutoSizedColumnTransparentContent(bool row)
+        public void TestAutoSizedRowOrColumnWithTransparentContent(bool row)
         {
             float getDimension(Drawable drawable) => row ? drawable.DrawHeight : drawable.DrawWidth;
 
