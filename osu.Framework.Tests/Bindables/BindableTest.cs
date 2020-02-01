@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -78,7 +79,7 @@ namespace osu.Framework.Tests.Bindables
 
                     try
                     {
-                        expectedOutput = Convert.ChangeType(input, type);
+                        expectedOutput = Convert.ChangeType(input, type, CultureInfo.InvariantCulture);
                     }
                     catch
                     {
