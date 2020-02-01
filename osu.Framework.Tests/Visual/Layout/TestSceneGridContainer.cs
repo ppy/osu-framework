@@ -691,13 +691,11 @@ namespace osu.Framework.Tests.Visual.Layout
         [TestCase(false)]
         public void TestAutoSizedRowOrColumnWithTransparentContent(bool row)
         {
-            float getDimension(Drawable drawable) => row ? drawable.DrawHeight : drawable.DrawWidth;
-
             var boxes = new FillBox[5];
 
             var dimensions = new[]
             {
-                new Dimension(GridSizeMode.Absolute, 100),
+                new Dimension(GridSizeMode.Absolute, 100f),
                 new Dimension(),
                 new Dimension(GridSizeMode.AutoSize),
                 new Dimension(GridSizeMode.Relative, 0.2f),
@@ -716,12 +714,12 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             }.Invert(), dimensions, row);
 
-            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0]), 100f));
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 100f));
             AddAssert("box 1 has correct size", () =>
-                Precision.AlmostEquals(getDimension(boxes[1]), (getDimension(grid) * 0.8f - 100f) / 2));
-            AddAssert("box 3 has correct size", () => Precision.AlmostEquals(getDimension(boxes[3]), getDimension(grid) * 0.2f));
+                Precision.AlmostEquals(getDimension(boxes[1], row), (getDimension(grid, row) * 0.8f - 100f) / 2));
+            AddAssert("box 3 has correct size", () => Precision.AlmostEquals(getDimension(boxes[3], row), getDimension(grid, row) * 0.2f));
             AddAssert("box 4 has correct size", () =>
-                Precision.AlmostEquals(getDimension(boxes[4]), (getDimension(grid) * 0.8f - 100f) / 2));
+                Precision.AlmostEquals(getDimension(boxes[4], row), (getDimension(grid, row) * 0.8f - 100f) / 2));
         }
 
         private FillBox transparentBox(bool alwaysPresent) => new FillBox
@@ -731,6 +729,49 @@ namespace osu.Framework.Tests.Visual.Layout
             RelativeSizeAxes = Axes.None,
             Size = new Vector2(50)
         };
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestAutoSizedRowOrColumnWithDelayedLifetimeContent(bool row)
+        {
+            var boxes = new FillBox[3];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Absolute, 75f),
+                new Dimension(GridSizeMode.AutoSize),
+                new Dimension()
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        LifetimeStart = double.MaxValue,
+                        Size = new Vector2(50)
+                    },
+                    boxes[2] = new FillBox()
+                }
+            }.Invert(), dimensions, row);
+
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
+            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 75f));
+
+            AddStep("make box 1 alive", () => boxes[1].LifetimeStart = Time.Current);
+            AddUntilStep("wait for alive", () => boxes[1].IsAlive);
+
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
+            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 125f));
+        }
+
+        /// <summary>
+        /// Returns drawable dimension along desired axis.
+        /// </summary>
+        private float getDimension(Drawable drawable, bool row) => row ? drawable.DrawHeight : drawable.DrawWidth;
 
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
         {
