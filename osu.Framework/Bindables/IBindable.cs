@@ -17,6 +17,12 @@ namespace osu.Framework.Bindables
         void BindTo(IBindable them);
 
         /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public IBindable BindTarget { set; }
+
+        /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.
@@ -51,6 +57,12 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable<T> them);
+
+        /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public new IBindable<T> BindTarget { set; }
 
         /// <summary>
         /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.

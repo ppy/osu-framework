@@ -29,6 +29,12 @@ namespace osu.Framework.Bindables
         void BindTo(IBindableList<T> them);
 
         /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        new IBindableList<T> BindTarget { set; }
+
+        /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.

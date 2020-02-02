@@ -160,6 +160,11 @@ namespace osu.Framework.Bindables
             BindTo(tThem);
         }
 
+        IBindable IBindable.BindTarget
+        {
+            set => ((IBindable)this).BindTo(value);
+        }
+
         void IBindable<T>.BindTo(IBindable<T> them)
         {
             if (!(them is Bindable<T> tThem))
@@ -172,9 +177,9 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        public Bindable<T> BindTarget
+        public IBindable<T> BindTarget
         {
-            set => BindTo(value);
+            set => ((IBindable<T>)this).BindTo(value);
         }
 
         /// <summary>
