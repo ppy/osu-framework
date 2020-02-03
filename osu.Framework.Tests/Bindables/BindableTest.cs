@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -28,6 +29,30 @@ namespace osu.Framework.Tests.Bindables
         public void TestConstructorValueUsedAsInitialValue()
         {
             Assert.That(new Bindable<int>(10).Value, Is.EqualTo(10));
+        }
+
+        /// <summary>
+        /// Tests binding via the various <see cref="Bindable{T}.BindTarget"/> methods.
+        /// </summary>
+        [Test]
+        public void TestBindViaBindTarget()
+        {
+            Bindable<int> parentBindable = new Bindable<int>();
+
+            Bindable<int> bindable1 = new Bindable<int>();
+            IBindable<int> bindable2 = new Bindable<int>();
+            IBindable bindable3 = new Bindable<int>();
+
+            bindable1.BindTarget = parentBindable;
+            bindable2.BindTarget = parentBindable;
+            bindable3.BindTarget = parentBindable;
+
+            parentBindable.Value = 5;
+            parentBindable.Disabled = true;
+
+            Assert.That(bindable1.Value, Is.EqualTo(5));
+            Assert.That(bindable2.Value, Is.EqualTo(5));
+            Assert.That(bindable3.Disabled, Is.True); // Only have access to disabled
         }
 
         [TestCaseSource(nameof(getParsingConversionTests))]
@@ -78,7 +103,7 @@ namespace osu.Framework.Tests.Bindables
 
                     try
                     {
-                        expectedOutput = Convert.ChangeType(input, type);
+                        expectedOutput = Convert.ChangeType(input, type, CultureInfo.InvariantCulture);
                     }
                     catch
                     {

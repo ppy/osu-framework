@@ -536,6 +536,15 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public IBindableList<T> BindTarget
+        {
+            set => ((IBindableList<T>)this).BindTo(value);
+        }
+
+        /// <summary>
         /// Binds this <see cref="BindableList{T}"/> to another.
         /// </summary>
         /// <param name="them">The <see cref="BindableList{T}"/> to be bound to.</param>
