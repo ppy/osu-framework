@@ -32,7 +32,10 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        new IBindableList<T> BindTarget { set; }
+        new IBindableList<T> BindTarget
+        {
+            set => BindTo(value);
+        }
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.

@@ -527,11 +527,6 @@ namespace osu.Framework.Bindables
             BindTo(tThem);
         }
 
-        IBindable IBindable.BindTarget
-        {
-            set => ((IBindable)this).BindTarget = value;
-        }
-
         void IBindableList<T>.BindTo(IBindableList<T> them)
         {
             if (!(them is BindableList<T> tThem))
