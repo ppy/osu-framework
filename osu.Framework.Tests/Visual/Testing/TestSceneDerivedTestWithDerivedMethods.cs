@@ -1,20 +1,17 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using NUnit.Framework;
-using osu.Framework.Testing;
-
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDerivedTest : TestSceneTest
+    public class TestSceneDerivedTestWithDerivedMethods : TestSceneTest
     {
-        [SetUp]
+        // ReSharper disable once RedundantOverriddenMember
         public override void SetUp() => base.SetUp();
 
-        [SetUpSteps]
+        // ReSharper disable once RedundantOverriddenMember
         public override void SetUpSteps() => base.SetUpSteps();
 
-        [TearDownSteps]
+        // ReSharper disable once RedundantOverriddenMember
         public override void TearDownSteps() => base.TearDownSteps();
     }
 }
