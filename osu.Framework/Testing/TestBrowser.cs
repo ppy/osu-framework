@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -21,7 +22,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
@@ -29,6 +29,7 @@ using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
@@ -454,7 +455,7 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var setUpMethods = newTest.GetRunnableMethodsFor(typeof(SetUpAttribute));
+            var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
 
             bool hadTestAttributeTest = false;
 

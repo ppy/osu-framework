@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -375,27 +374,14 @@ namespace osu.Framework.Testing
 
         internal void RunSetUpSteps()
         {
-            foreach (var method in GetRunnableMethodsFor(typeof(SetUpStepsAttribute)))
+            foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(SetUpStepsAttribute), true))
                 method.Invoke(this, null);
         }
 
         internal void RunTearDownSteps()
         {
-            foreach (var method in GetRunnableMethodsFor(typeof(TearDownStepsAttribute)))
+            foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(TearDownStepsAttribute), true))
                 method.Invoke(this, null);
-        }
-
-        internal ICollection<MethodInfo> GetRunnableMethodsFor(Type attributeType)
-        {
-            var methods = new List<MethodInfo>();
-
-            foreach (var type in GetType().EnumerateBaseTypes())
-                methods.AddRange(type.GetMethods().Where(m => m.DeclaringType == type && m.GetCustomAttributes(attributeType, false).Length > 0));
-
-            // To match NUnit, methods should be invoked from base classes before derived classes
-            methods.Reverse();
-
-            return methods;
         }
 
         /// <summary>
