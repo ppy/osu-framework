@@ -23,11 +23,6 @@ namespace osu.Framework.Graphics.Containers
         public readonly BindableList<TModel> Items = new BindableList<TModel>();
 
         /// <summary>
-        /// The distance from the top and bottom of this <see cref="RearrangeableListContainer{TModel}"/> at which automatic scroll begins.
-        /// </summary>
-        protected float AutomaticTriggerDistance = 0;
-
-        /// <summary>
         /// The maximum exponent of the automatic scroll speed at the boundaries of this <see cref="RearrangeableListContainer{TModel}"/>.
         /// </summary>
         protected float MaxExponent = 50;
@@ -156,14 +151,14 @@ namespace osu.Framework.Graphics.Containers
             Vector2 localPos = ScrollContainer.ToLocalSpace(screenSpaceDragPosition);
             float scrollSpeed = 0;
 
-            if (localPos.Y < AutomaticTriggerDistance)
+            if (localPos.Y < 0)
             {
-                var power = Math.Min(MaxExponent, Math.Abs(AutomaticTriggerDistance - localPos.Y));
+                var power = Math.Min(MaxExponent, Math.Abs(localPos.Y));
                 scrollSpeed = (float)(-MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
-            else if (localPos.Y > ScrollContainer.DrawHeight - AutomaticTriggerDistance)
+            else if (localPos.Y > ScrollContainer.DrawHeight)
             {
-                var power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - AutomaticTriggerDistance - localPos.Y));
+                var power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - localPos.Y));
                 scrollSpeed = (float)(MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
 
