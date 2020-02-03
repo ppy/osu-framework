@@ -121,7 +121,6 @@ namespace osu.Framework.Testing
         /// </summary>
         protected void ResetInput()
         {
-            InputManager.UseParentInput = true;
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
@@ -133,6 +132,8 @@ namespace osu.Framework.Testing
 
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
+
+            InputManager.UseParentInput = true;
         }
 
         private void returnUserInput() =>
