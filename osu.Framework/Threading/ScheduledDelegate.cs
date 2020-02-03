@@ -55,6 +55,9 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Invokes the scheduled task.
         /// </summary>
+        /// <remarks>
+        /// This call may block if the task is currently being run on another thread.
+        /// </remarks>
         /// <exception cref="InvalidOperationException">Thrown when attempting to run a task that has been cancelled or already completed.</exception>
         public void RunTask()
         {
@@ -81,31 +84,28 @@ namespace osu.Framework.Threading
                     return;
 
                 State = RunState.Running;
-            }
 
-            Task();
+                Task();
 
-            lock (runLock)
-            {
+                // task may have been cancelled during execution.
+                if (State == RunState.Cancelled)
+                    return;
+
                 Trace.Assert(State == RunState.Running);
                 State = RunState.Complete;
             }
         }
 
         /// <summary>
-        /// Cancel a pending task. Will silently complete without cancelling if the task is not in a <see cref="RunState.Waiting"/> state.
+        /// Cancel a task.
         /// </summary>
+        /// <remarks>
+        /// This call may block if the task is currently being run on another thread.
+        /// </remarks>
         public void Cancel()
         {
-            // avoid lock if possible.
-            if (State == RunState.Running || State == RunState.Cancelled)
-                return;
-
             lock (runLock)
             {
-                if (State == RunState.Running || State == RunState.Cancelled)
-                    return;
-
                 State = RunState.Cancelled;
             }
         }
