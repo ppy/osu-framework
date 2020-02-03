@@ -6,7 +6,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneDerivedTestWithOverriddenTestMethodsWithCustomAttributes : TestSceneTest
+    public class TestSceneDerivedTestWithDerivedMethodsWithAttributes : TestSceneTest
     {
         [SetUp]
         public override void SetUp() => base.SetUp();
