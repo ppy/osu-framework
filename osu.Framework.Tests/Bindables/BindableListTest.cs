@@ -49,6 +49,30 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region BindTarget
+
+        /// <summary>
+        /// Tests binding via the various <see cref="BindableList{T}.BindTarget"/> methods.
+        /// </summary>
+        [Test]
+        public void TestBindViaBindTarget()
+        {
+            BindableList<int> parentBindable = new BindableList<int>();
+
+            BindableList<int> bindable1 = new BindableList<int>();
+            IBindableList<int> bindable2 = new BindableList<int>();
+
+            bindable1.BindTarget = parentBindable;
+            bindable2.BindTarget = parentBindable;
+
+            parentBindable.Add(5);
+
+            Assert.That(bindable1[0], Is.EqualTo(5));
+            Assert.That(bindable2[0], Is.EqualTo(5));
+        }
+
+        #endregion
+
         #region list[index]
 
         [Test]
