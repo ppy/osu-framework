@@ -160,6 +160,8 @@ namespace osu.Framework.Tests.Threading
             scheduler.Add(del = new ScheduledDelegate(() =>
             {
                 invocations++;
+
+                // ReSharper disable once AccessToModifiedClosure
                 del?.Cancel();
             }, 1000));
 
