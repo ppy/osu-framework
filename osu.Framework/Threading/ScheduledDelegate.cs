@@ -9,7 +9,7 @@ namespace osu.Framework.Threading
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
         /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
+        /// The earliest ElapsedTime value at which this task will be executed via a <see cref="Scheduler"/>.
         /// </summary>
         public double ExecutionTime { get; internal set; }
 
