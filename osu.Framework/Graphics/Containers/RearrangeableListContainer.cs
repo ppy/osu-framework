@@ -65,11 +65,11 @@ namespace osu.Framework.Graphics.Containers
                 d.Child = ListContainer;
             });
 
-            Items.ItemsAdded += addItems;
-            Items.ItemsRemoved += removeItems;
+            Items.ItemsAdded += itemsAdded;
+            Items.ItemsRemoved += itemsRemoved;
         }
 
-        private void addItems(IEnumerable<TModel> items)
+        private void itemsAdded(IEnumerable<TModel> items)
         {
             if (isCurrentlyRearranging)
                 return;
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Containers
             reSort();
         }
 
-        private void removeItems(IEnumerable<TModel> items)
+        private void itemsRemoved(IEnumerable<TModel> items)
         {
             if (isCurrentlyRearranging)
                 return;
