@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -47,6 +48,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 AddStep($"add item \"{itemString}\"", () => list.Items.Add(itemString));
                 AddAssert($"last item is \"{itemString}\"", () => list.ChildrenOfType<RearrangeableListItem<string>>().Last().Model == itemString);
             }
+        }
+
+        [Test]
+        public void TestAddDuplicateItemsFails()
+        {
+            const string item = "1";
+
+            AddStep($"add item 1", () => list.Items.Add(item));
+
+            AddAssert("add same item throws", () =>
+            {
+                try
+                {
+                    list.Items.Add(item);
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return true;
+                }
+            });
         }
 
         [Test]
