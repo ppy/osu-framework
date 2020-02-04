@@ -19,7 +19,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(BasicRearrangeableListContainer<>),
-            typeof(RearrangeableListContainer<>)
+            typeof(RearrangeableListContainer<>),
+            typeof(RearrangeableListItem<>)
         };
 
         private TestRearrangeableList list;
