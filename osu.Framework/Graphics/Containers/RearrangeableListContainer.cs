@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// A list container that enables its children to be rearranged via dragging.
     /// </summary>
     /// <remarks>
-    /// Adding duplicate items are not currently supported.
+    /// Adding duplicate items is not currently supported.
     /// </remarks>
     /// <typeparam name="TModel">The type of rearrangeable item.</typeparam>
     public abstract class RearrangeableListContainer<TModel> : CompositeDrawable
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (itemMap.ContainsKey(item))
                 {
-                    throw new InvalidOperationException($"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}");
+                    throw new InvalidOperationException($"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
                 }
 
                 var drawable = CreateDrawable(item).With(d =>
