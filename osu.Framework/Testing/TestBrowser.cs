@@ -455,8 +455,6 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true);
-
             bool hadTestAttributeTest = false;
 
             foreach (var m in newTest.GetType().GetMethods())
@@ -504,6 +502,9 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
+                var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
+                                          .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
+
                 if (setUpMethods.Any())
                 {
                     CurrentTest.AddStep(new SetUpStep
