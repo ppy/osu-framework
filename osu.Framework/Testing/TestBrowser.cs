@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -21,7 +22,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
@@ -29,6 +29,7 @@ using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
@@ -454,22 +455,17 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var methods = newTest.GetType().GetMethods()
-                                 .Where(m =>
-                                     m.Name != nameof(TestScene.TestConstructor) &&
-                                     (m.GetCustomAttribute(typeof(TestAttribute), false) != null ||
-                                      m.GetCustomAttributes(typeof(TestCaseAttribute), false).Length > 0)
-                                 ).ToArray();
-
-            var setUpMethods = newTest.GetRunnableMethodsFor(typeof(SetUpAttribute));
-
             bool hadTestAttributeTest = false;
 
-            string commonPrefix = methods.Select(m => m.Name).GetCommonPrefix();
-
-            foreach (var m in methods)
+            foreach (var m in newTest.GetType().GetMethods())
             {
-                var name = m.Name.Substring(commonPrefix.Length);
+                var name = m.Name;
+
+                if (name == nameof(TestScene.TestConstructor))
+                    continue;
+
+                if (name.StartsWith("Test"))
+                    name = name.Substring(4);
 
                 if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
@@ -488,7 +484,7 @@ namespace osu.Framework.Testing
                 foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
                 {
                     hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+                    CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
 
                     addSetUpSteps();
 
@@ -506,6 +502,9 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
+                var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
+                                          .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
+
                 if (setUpMethods.Any())
                 {
                     CurrentTest.AddStep(new SetUpStep
