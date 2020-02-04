@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -55,7 +54,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             const string item = "1";
 
-            AddStep($"add item 1", () => list.Items.Add(item));
+            AddStep("add item 1", () => list.Items.Add(item));
 
             AddAssert("add same item throws", () =>
             {
