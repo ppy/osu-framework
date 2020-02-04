@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The item this <see cref="RearrangeableListItem{TModel}"/> represents.
         /// </summary>
-        public TModel Model;
+        public readonly TModel Model;
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListItem{TModel}"/>.
