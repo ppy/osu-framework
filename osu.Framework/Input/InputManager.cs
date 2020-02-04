@@ -566,6 +566,7 @@ namespace osu.Framework.Input
                     return !k.Repeat;
 
                 case DragEvent _:
+                case ScrollEvent _:
                 case MouseMoveEvent _:
                     return false;
 
