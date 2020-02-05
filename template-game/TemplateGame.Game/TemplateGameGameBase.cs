@@ -2,6 +2,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using osuTK;
 
 namespace TemplateGame.Game
 {
@@ -16,7 +17,11 @@ namespace TemplateGame.Game
         protected TemplateGameGameBase()
         {
             // ensure game and tests scale with window size and screen DPI.
-            base.Content.Add(Content = new DrawSizePreservingFillContainer());
+            base.Content.Add(Content = new DrawSizePreservingFillContainer
+            {
+                // you may want to change TargetDrawSize to your "default" resolution, which will decide how things scale and position when using absolute coordinates.
+                TargetDrawSize = new Vector2(1366, 768)
+            });
         }
 
         [BackgroundDependencyLoader]
