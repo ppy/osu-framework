@@ -3,34 +3,27 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Shapes;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Screens;
 
 namespace TemplateGame.Game
 {
     public class TemplateGameGame : TemplateGameGameBase
     {
-        private Box box;
+        private ScreenStack screenStack;
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            // Add your game components here.
-            Child = box = new Box
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Colour = Color4.Orange,
-                Size = new Vector2(200),
-            };
+            // Add your top-level game components here.
+            // A screen stack and sample screen has been provided for convenience, but you can replace this if you don't want to use screens.
+            Child = screenStack = new ScreenStack { RelativeSizeAxes = Axes.Both };
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            box.Loop(b => b.RotateTo(0).RotateTo(360, 2500));
+            screenStack.Push(new MainScreen());
         }
     }
 }
