@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+    </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\**\*" />
+    <EmbeddedResource Include="Samples\**\*" />
+    <EmbeddedResource Include="Textures\**\*" />
+    <EmbeddedResource Include="Tracks\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Fonts" />
+    <Folder Include="Samples" />
+    <Folder Include="Textures" />
+    <Folder Include="Tracks" />
+  </ItemGroup>
+
+</Project>

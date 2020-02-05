@@ -1,30 +1,48 @@
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osuTK;
 
 namespace TemplateGame.Game
 {
     public class SpinningBox : CompositeDrawable
     {
-        private Box box;
+        private Container box;
 
         public SpinningBox()
         {
-            Size = new Vector2(100);
+            AutoSizeAxes = Axes.Both;
             Origin = Anchor.Centre;
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TextureStore textures)
         {
-            AddInternal(box = new Box
+            InternalChild = box = new Container
             {
-                RelativeSizeAxes = Axes.Both,
+                AutoSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
+                Origin = Anchor.Centre,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    },
+                    new Sprite
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Texture = textures.Get("logo")
+                    },
+                }
+            };
         }
 
         protected override void LoadComplete()

@@ -1,5 +1,7 @@
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.IO.Stores;
 
 namespace TemplateGame.Game
 {
@@ -15,6 +17,12 @@ namespace TemplateGame.Game
         {
             // ensure game and tests scale with window size and screen DPI.
             base.Content.Add(Content = new DrawSizePreservingFillContainer());
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            Resources.AddStore(new DllResourceStore("TemplateGame.Resources.dll"));
         }
     }
 }
