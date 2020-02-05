@@ -200,7 +200,6 @@ Task("PackNativeLibs")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
-
                 return args;
             }
         });
@@ -215,6 +214,7 @@ Task("PackTemplate")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append($"/p:NoDefaultExcludes=true");
 
                 return args;
             }
