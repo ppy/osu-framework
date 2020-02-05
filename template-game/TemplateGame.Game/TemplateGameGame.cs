@@ -9,7 +9,7 @@ using osuTK.Graphics;
 
 namespace TemplateGame.Game
 {
-    public class TemplateGameGame : osu.Framework.Game
+    public class TemplateGameGame : TemplateGameGameBase
     {
         private Box box;
 
@@ -17,8 +17,6 @@ namespace TemplateGame.Game
         private void load()
         {
             // Add your game components here.
-            // The rotating box can be removed.
-
             Child = box = new Box
             {
                 Anchor = Anchor.Centre,
