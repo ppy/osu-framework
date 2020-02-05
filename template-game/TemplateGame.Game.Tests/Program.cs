@@ -3,7 +3,6 @@
 
 using osu.Framework;
 using osu.Framework.Platform;
-using TemplateGame.Game.Testing;
 
 namespace TemplateGame.Game.Tests
 {

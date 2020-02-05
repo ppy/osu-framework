@@ -6,7 +6,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
-namespace TemplateGame.Game.Testing
+namespace TemplateGame.Game.Tests
 {
     public class TemplateGameTestBrowser : TemplateGameGameBase
     {
