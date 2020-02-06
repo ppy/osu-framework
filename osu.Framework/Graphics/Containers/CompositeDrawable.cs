@@ -202,11 +202,11 @@ namespace osu.Framework.Graphics.Containers
             loadComponents(components, Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken? cancellation = null) where TLoadable : Drawable
+        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default) where TLoadable : Drawable
         {
             foreach (var c in components)
             {
-                if (cancellation?.IsCancellationRequested == true)
+                if (cancellation.IsCancellationRequested == true)
                     return;
 
                 c.Load(Clock, dependencies, isDirectAsyncContext);
