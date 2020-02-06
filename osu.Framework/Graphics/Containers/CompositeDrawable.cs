@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (var c in components)
             {
-                if (cancellation.IsCancellationRequested == true)
+                if (cancellation.IsCancellationRequested)
                     return;
 
                 c.Load(Clock, dependencies, isDirectAsyncContext);
