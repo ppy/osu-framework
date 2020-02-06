@@ -214,6 +214,26 @@ namespace osu.Framework.Graphics
         private static double getPerfTime() => perf.CurrentTime;
 
         /// <summary>
+        /// Load this drawable from an async context.
+        /// Because we can't be sure of the disposal state, it is returned as a bool rather than thrown as in <see cref="Load"/>.
+        /// </summary>
+        /// <param name="clock">The clock we should use by default.</param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        /// <returns>Whether the load was successful.</returns>
+        internal bool LoadFromAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
+        {
+            lock (loadLock)
+            {
+                if (IsDisposed)
+                    return false;
+
+                Load(clock, dependencies, isDirectAsyncContext);
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
