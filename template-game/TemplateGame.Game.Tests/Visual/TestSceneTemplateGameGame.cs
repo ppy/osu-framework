@@ -1,6 +1,3 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -11,6 +8,9 @@ namespace TemplateGame.Game.Tests.Visual
 {
     public class TestSceneTemplateGameGame : TestScene
     {
+        // Add visual tests to ensure correct behaviour of your game: https://github.com/ppy/osu-framework/wiki/Development-and-Testing
+        // You can make changes to classes associated with the tests and they will recompile and update immediately.
+
         private TemplateGameGame game;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
@@ -26,7 +26,5 @@ namespace TemplateGame.Game.Tests.Visual
 
             Add(game);
         }
-
-        // Add visual tests to ensure correct behaviour of your game: https://github.com/ppy/osu-framework/wiki/Development-and-Testing
     }
 }
