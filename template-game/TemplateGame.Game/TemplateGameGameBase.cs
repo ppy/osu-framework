@@ -16,10 +16,10 @@ namespace TemplateGame.Game
 
         protected TemplateGameGameBase()
         {
-            // ensure game and tests scale with window size and screen DPI.
+            // Ensure game and tests scale with window size and screen DPI.
             base.Content.Add(Content = new DrawSizePreservingFillContainer
             {
-                // you may want to change TargetDrawSize to your "default" resolution, which will decide how things scale and position when using absolute coordinates.
+                // You may want to change TargetDrawSize to your "default" resolution, which will decide how things scale and position when using absolute coordinates.
                 TargetDrawSize = new Vector2(1366, 768)
             });
         }
