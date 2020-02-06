@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Colour;
 using osuTK;
 using System.Collections;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics.Containers
@@ -49,6 +50,12 @@ namespace osu.Framework.Graphics.Containers
             else
                 aliveInternalChildrenAsT = new LazyList<Drawable, T>(AliveInternalChildren, c => (T)c);
         }
+
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true) =>
+            AliveInternalChildren.Any() && base.BuildNonPositionalInputQueue(queue, allowBlocking);
+
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue) =>
+            AliveInternalChildren.Any() && base.BuildPositionalInputQueue(screenSpacePos, queue);
 
         /// <summary>
         /// The content of this container. <see cref="Children"/> and all methods that mutate
