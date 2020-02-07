@@ -294,6 +294,36 @@ namespace osu.Framework.Tests.Visual.Containers
             AddWaitStep("wait for repeats", 5);
         }
 
+        [Test]
+        public void TestEmptyScrollContainerDoesNotHandleInput()
+        {
+            AddStep("create scroll container", () =>
+            {
+                Add(scrollContainer = new InputHandlingScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(500),
+                });
+            });
+
+            AddStep("move mouse to scroll container", () => InputManager.MoveMouseTo(scrollContainer));
+            AddStep("press page down", () =>
+            {
+                InputManager.PressKey(Key.PageDown);
+                InputManager.ReleaseKey(Key.PageDown);
+            });
+            AddAssert("Keyboard input was not handled", () => !((InputHandlingScrollContainer)scrollContainer).KeyboardInputHandled);
+
+            AddStep("Press mouse button", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Button1);
+                InputManager.ReleaseButton(MouseButton.Button1);
+            });
+            AddAssert("Mouse input was not handled", () => !((InputHandlingScrollContainer)scrollContainer).MouseInputHandled);
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
@@ -359,6 +389,24 @@ namespace osu.Framework.Tests.Visual.Containers
                     : base(direction)
                 {
                 }
+            }
+        }
+
+        private class InputHandlingScrollContainer : BasicScrollContainer
+        {
+            public bool KeyboardInputHandled { get; private set; }
+            public bool MouseInputHandled { get; private set; }
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                KeyboardInputHandled = true;
+                return base.OnKeyDown(e);
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                MouseInputHandled = true;
+                return base.OnMouseDown(e);
             }
         }
     }
