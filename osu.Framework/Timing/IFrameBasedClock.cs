@@ -14,6 +14,10 @@ namespace osu.Framework.Timing
         /// </summary>
         double ElapsedFrameTime { get; }
 
+        /// <summary>
+        /// A moving average representation of the frames per second of this clock.
+        /// Do not use this for any timing purposes (use <see cref="ElapsedFrameTime"/> instead).
+        /// </summary>
         double FramesPerSecond { get; }
 
         FrameTimeInfo TimeInfo { get; }
