@@ -54,7 +54,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new UserDrawnPath
                 {
                     DrawText = text[2],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                 },
@@ -78,7 +77,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new SmoothedUserDrawnPath
                 {
                     DrawText = text[5],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                     InputResampler = new InputResampler(),
@@ -103,7 +101,6 @@ namespace osu.Framework.Tests.Visual.Input
                 new SmoothedUserDrawnPath
                 {
                     DrawText = text[5],
-                    RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
                     InputResampler = new InputResampler
@@ -162,15 +159,18 @@ namespace osu.Framework.Tests.Visual.Input
             public ArcPath(bool raw, bool keepFraction, InputResampler inputResampler, Texture texture, Color4 colour, SpriteText output)
             {
                 InputResampler = inputResampler;
-                const int target_raw = 1024;
+
+                AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.Both;
                 Texture = texture;
                 Colour = colour;
 
-                for (int i = 0; i < target_raw; i++)
+                const float target_raw = 1024;
+
+                for (float i = 0; i < target_raw; i++)
                 {
-                    float x = (float)(Math.Sin(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
-                    float y = (float)(Math.Cos(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float x = (MathF.Sin(i / target_raw * (MathF.PI * 0.5f)) * 200) + 50.5f;
+                    float y = (MathF.Cos(i / target_raw * (MathF.PI * 0.5f)) * 200) + 50.5f;
                     Vector2 v = keepFraction ? new Vector2(x, y) : new Vector2((int)x, (int)y);
                     if (raw)
                         AddRawVertex(v);
@@ -186,6 +186,12 @@ namespace osu.Framework.Tests.Visual.Input
         {
             public SpriteText DrawText;
 
+            public UserDrawnPath()
+            {
+                AutoSizeAxes = Axes.None;
+                RelativeSizeAxes = Axes.Both;
+            }
+
             protected virtual void AddUserVertex(Vector2 v) => AddRawVertex(v);
 
             protected override bool OnDragStart(DragStartEvent e)
@@ -195,11 +201,11 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 AddUserVertex(e.MousePosition);
                 DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
-                return base.OnDrag(e);
+                base.OnDrag(e);
             }
         }
 

@@ -14,7 +14,7 @@ using osu.Framework.Input.Events;
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public class StepSlider<T> : SliderBar<T>
-        where T : struct, IComparable, IConvertible
+        where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         private readonly Box selection;
         private readonly Box background;
@@ -66,13 +66,13 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             var flash = new Box
             {
                 RelativeSizeAxes = Axes.Both,
                 Colour = Color4.RoyalBlue,
-                Blending = BlendingMode.Additive,
+                Blending = BlendingParameters.Additive,
                 Alpha = 0.6f,
             };
 
@@ -80,7 +80,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             flash.FadeOut(200).Expire();
 
             Success();
-            return base.OnDragEnd(e);
+            base.OnDragEnd(e);
         }
 
         protected override void UpdateValue(float normalizedValue)

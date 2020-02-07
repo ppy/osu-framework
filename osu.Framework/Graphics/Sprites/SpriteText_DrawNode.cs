@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Sprites
                 Shader.Bind();
 
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
-                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+                float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
                 //squared result for quadratic fall-off seems to give the best result.
@@ -63,35 +63,21 @@ namespace osu.Framework.Graphics.Sprites
                     if (shadow)
                     {
                         var shadowQuad = parts[i].DrawQuad;
-                        shadowQuad.TopLeft += shadowOffset;
-                        shadowQuad.TopRight += shadowOffset;
-                        shadowQuad.BottomLeft += shadowOffset;
-                        shadowQuad.BottomRight += shadowOffset;
 
-                        DrawQuad(parts[i].Texture, shadowQuad, finalShadowColour, vertexAction: vertexAction);
+                        DrawQuad(parts[i].Texture,
+                            new Quad(
+                                shadowQuad.TopLeft + shadowOffset,
+                                shadowQuad.TopRight + shadowOffset,
+                                shadowQuad.BottomLeft + shadowOffset,
+                                shadowQuad.BottomRight + shadowOffset),
+                            finalShadowColour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
                     }
 
-                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
+                    DrawQuad(parts[i].Texture, parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, inflationPercentage: parts[i].InflationPercentage);
                 }
 
                 Shader.Unbind();
             }
-        }
-
-        /// <summary>
-        /// A character of a <see cref="SpriteText"/> provided with local space coordinates.
-        /// </summary>
-        internal struct CharacterPart
-        {
-            /// <summary>
-            /// The local-space rectangle for the character to be drawn in.
-            /// </summary>
-            public RectangleF DrawRectangle;
-
-            /// <summary>
-            /// The texture to draw the character with.
-            /// </summary>
-            public Texture Texture;
         }
 
         /// <summary>
@@ -103,6 +89,11 @@ namespace osu.Framework.Graphics.Sprites
             /// The screen-space quad for the character to be drawn in.
             /// </summary>
             public Quad DrawQuad;
+
+            /// <summary>
+            /// Extra padding for the character's texture.
+            /// </summary>
+            public Vector2 InflationPercentage;
 
             /// <summary>
             /// The texture to draw the character with.

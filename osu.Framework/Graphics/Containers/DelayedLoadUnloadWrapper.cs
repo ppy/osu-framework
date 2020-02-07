@@ -4,7 +4,9 @@
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using osu.Framework.Caching;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -20,8 +22,7 @@ namespace osu.Framework.Graphics.Containers
             this.timeBeforeUnload = timeBeforeUnload;
         }
 
-        private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
-        private static readonly GlobalStatistic<int> loaded_unoptimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (unoptimised)");
+        private static readonly GlobalStatistic<int> total_loaded = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s");
 
         private double timeHidden;
 
@@ -66,19 +67,19 @@ namespace osu.Framework.Graphics.Containers
             content.LifetimeStart = lifetimeStart;
             content.LifetimeEnd = lifetimeEnd;
 
-            Debug.Assert(!contentLoaded);
-            Debug.Assert(unloadSchedule == null);
-
-            contentLoaded = true;
-
-            if (OptimisingContainer != null)
+            // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
+            Schedule(() =>
             {
-                unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
+                Debug.Assert(!contentLoaded);
+                Debug.Assert(unloadSchedule == null);
+
+                contentLoaded = true;
+
+                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
                 Debug.Assert(unloadSchedule != null);
-                loaded_optimised.Value++;
-            }
-            else
-                loaded_unoptimised.Value++;
+
+                total_loaded.Value++;
+            });
         }
 
         protected override void CancelTasks()
@@ -90,11 +91,23 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule.Cancel();
                 unloadSchedule = null;
 
-                loaded_optimised.Value--;
+                total_loaded.Value--;
             }
-            else if (contentLoaded)
-                loaded_unoptimised.Value--;
         }
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            bool result = base.Invalidate(invalidation, source, shallPropagate);
+
+            if ((invalidation & Invalidation.Parent) > 0)
+                result &= !unloadClockBacking.Invalidate();
+
+            return result;
+        }
+
+        private readonly Cached<IFrameBasedClock> unloadClockBacking = new Cached<IFrameBasedClock>();
+
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
 
         private void checkForUnload()
         {
@@ -102,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
             if (IsIntersecting)
                 timeHidden = 0;
             else
-                timeHidden += Time.Elapsed;
+                timeHidden += unloadClock.ElapsedFrameTime;
 
             if (ShouldUnloadContent)
             {

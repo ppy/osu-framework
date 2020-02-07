@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "ppy Pty Ltd",
+    "classifications": [
+        "Console"
+    ],
+    "name": "osu!framework game template",
+    "identity": "ppy.osu.Framework.Templates",
+    "shortName": "osu-framework-game",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "sourceName": "TemplateGame",
+    "preferNameDirectory": true
+}

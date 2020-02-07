@@ -761,6 +761,41 @@ namespace osu.Framework.Input.Bindings
         MouseWheelDown = 146,
 
         /// <summary>
+        /// The media mute key.
+        /// </summary>
+        Mute = 256,
+
+        /// <summary>
+        /// The media play / pause key.
+        /// </summary>
+        PlayPause,
+
+        /// <summary>
+        /// The media stop key.
+        /// </summary>
+        Stop,
+
+        /// <summary>
+        /// The media volume up key.
+        /// </summary>
+        VolumeUp,
+
+        /// <summary>
+        /// The media volume down key.
+        /// </summary>
+        VolumeDown,
+
+        /// <summary>
+        /// The media previous key.
+        /// </summary>
+        TrackPrevious,
+
+        /// <summary>
+        /// The media next key.
+        /// </summary>
+        TrackNext,
+
+        /// <summary>
         /// Indicates the first available joystick button.
         /// </summary>
         FirstJoystickButton = 1024 + 1,

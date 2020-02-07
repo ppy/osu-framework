@@ -19,8 +19,11 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class TabItem<T> : TabItem
     {
         internal Action<TabItem<T>> ActivationRequested;
-
         internal Action<TabItem<T>> PinnedChanged;
+
+        public readonly BindableBool Active = new BindableBool();
+
+        public override bool IsPresent => base.IsPresent || Y == 0;
 
         public override bool IsRemovable => true;
 
@@ -35,15 +38,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Value = value;
 
-            Active.ValueChanged += active_ValueChanged;
-        }
-
-        private void active_ValueChanged(ValueChangedEvent<bool> args)
-        {
-            if (args.NewValue)
-                OnActivated();
-            else
-                OnDeactivated();
+            Active.ValueChanged += active =>
+            {
+                if (active.NewValue)
+                    OnActivated();
+                else
+                    OnDeactivated();
+            };
         }
 
         private bool pinned;
@@ -62,8 +63,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract void OnActivated();
         protected abstract void OnDeactivated();
-
-        public readonly BindableBool Active = new BindableBool();
 
         protected override bool OnClick(ClickEvent e)
         {

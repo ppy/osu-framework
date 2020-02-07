@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -173,8 +173,10 @@ namespace osu.Framework.Tests.Visual.Layout
             bool testColumn(int index, Anchor anchor)
             {
                 for (int r = 0; r < getGrid().Content.Length; r++)
+                {
                     if (getGrid().Content[r][index].Anchor != anchor)
                         return false;
+                }
 
                 return true;
             }
@@ -238,8 +240,10 @@ namespace osu.Framework.Tests.Visual.Layout
             bool testRows(float expectedHeight)
             {
                 for (int row = 0; row < getGrid().Content.Length; row++)
+                {
                     if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent.DrawHeight))
                         return false;
+                }
 
                 return true;
             }
@@ -273,8 +277,10 @@ namespace osu.Framework.Tests.Visual.Layout
             int cellIndex = 0;
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < columns; c++)
-                content[r, c] = new Cell(cellIndex++);
+            {
+                for (int c = 0; c < columns; c++)
+                    content[r, c] = new Cell(cellIndex++);
+            }
 
             return content;
         }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Input;
 using osu.Framework.Tests.Visual.Containers;
 using osuTK;
 
@@ -34,15 +35,19 @@ namespace osu.Framework.Tests.Visual.Testing
             DrawVisualiser vis;
             Drawable target;
 
-            Children = new[]
+            // Avoid stack-overflow scenarios by isolating the hovered drawables through a new input manager
+            Child = new PassThroughInputManager
             {
-                target = new TestSceneDynamicDepth
+                Children = new[]
                 {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Size = new Vector2(0.5f)
-                },
-                vis = new DrawVisualiser(),
+                    target = new TestSceneDynamicDepth
+                    {
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Size = new Vector2(0.5f)
+                    },
+                    vis = new DrawVisualiser(),
+                }
             };
 
             vis.Show();

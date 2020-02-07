@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
@@ -17,6 +18,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Resolved]
         private GameHost host { get; set; }
 
+        private Drawable background;
         private Sprite display;
 
         [BackgroundDependencyLoader]
@@ -31,7 +33,16 @@ namespace osu.Framework.Tests.Visual.Sprites
                 Masking = true,
                 BorderColour = Color4.Green,
                 BorderThickness = 2,
-                Child = display = new Sprite { RelativeSizeAxes = Axes.Both }
+                Children = new[]
+                {
+                    background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Red,
+                        Alpha = 0
+                    },
+                    display = new Sprite { RelativeSizeAxes = Axes.Both }
+                }
             };
 
             AddStep("take screenshot", takeScreenshot);
@@ -50,6 +61,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 tex.SetData(new TextureUpload(image));
 
                 display.Texture = tex;
+                background.Show();
             }));
         }
     }

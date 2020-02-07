@@ -71,11 +71,13 @@ namespace osu.Framework.Testing
             }
 
             if (browser.CurrentTest?.GetType() != loadableTestType)
+            {
                 browser.LoadTest(loadableTestType, () =>
                 {
                     testIndex++;
                     Scheduler.AddDelayed(runNext, time_between_tests);
                 });
+            }
         }
     }
 }

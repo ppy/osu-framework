@@ -19,14 +19,14 @@ namespace osu.Framework.Audio.Sample
 
         private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
 
-        /// <summary>
-        /// How many instances of a single sample should be allowed to playback concurrently before stopping the longest playing.
-        /// </summary>
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
         internal SampleStore(IResourceStore<byte[]> store)
         {
             this.store = store;
+
+            (store as ResourceStore<byte[]>)?.AddExtension(@"wav");
+            (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
         public SampleChannel Get(string name)

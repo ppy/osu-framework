@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
             filterValid.Invalidate();
         }
 
-        private Cached filterValid = new Cached();
+        private readonly Cached filterValid = new Cached();
 
         protected override void Update()
         {
@@ -71,14 +71,14 @@ namespace osu.Framework.Graphics.Containers
                 !filterable.FilterTerms.Any(filterTerm =>
                     filterTerm.IndexOf(term, StringComparison.InvariantCultureIgnoreCase) >= 0)).ToArray();
 
-            var hasFilterableChildren = filterable as IHasFilterableChildren;
-
             bool matching = childTerms.Length == 0;
 
             //We need to check the children and should any child match this matches as well
-            if (hasFilterableChildren != null)
+            if (filterable is IHasFilterableChildren hasFilterableChildren)
+            {
                 foreach (IFilterable child in hasFilterableChildren.FilterableChildren)
                     matching |= match(child, childTerms, searchActive);
+            }
 
             filterable.FilteringActive = searchActive;
             return filterable.MatchingFilter = matching;

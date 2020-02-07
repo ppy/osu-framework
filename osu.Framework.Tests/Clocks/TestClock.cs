@@ -10,12 +10,11 @@ namespace osu.Framework.Tests.Clocks
         public double CurrentTime { get; set; }
         public double Rate { get; set; } = 1;
 
-        private bool isRunning;
-        public bool IsRunning => isRunning;
+        public bool IsRunning { get; private set; }
 
         public void Reset() => throw new System.NotImplementedException();
-        public void Start() => isRunning = true;
-        public void Stop() => isRunning = false;
+        public void Start() => IsRunning = true;
+        public void Stop() => IsRunning = false;
 
         public virtual bool Seek(double position)
         {

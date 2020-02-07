@@ -43,6 +43,11 @@ namespace osu.Framework.Graphics.Containers
                 internalChildrenAsT = (IReadOnlyList<T>)InternalChildren;
             else
                 internalChildrenAsT = new LazyList<Drawable, T>(InternalChildren, c => (T)c);
+
+            if (typeof(T) == typeof(Drawable))
+                aliveInternalChildrenAsT = (IReadOnlyList<T>)AliveInternalChildren;
+            else
+                aliveInternalChildrenAsT = new LazyList<Drawable, T>(AliveInternalChildren, c => (T)c);
         }
 
         /// <summary>
@@ -73,6 +78,21 @@ namespace osu.Framework.Graphics.Containers
                 return internalChildrenAsT;
             }
             set => ChildrenEnumerable = value;
+        }
+
+        /// <summary>
+        /// The publicly accessible list of alive children. Forwards to the alive children of <see cref="Content"/>.
+        /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        public IReadOnlyList<T> AliveChildren
+        {
+            get
+            {
+                if (Content != this)
+                    return Content.AliveChildren;
+
+                return aliveInternalChildrenAsT;
+            }
         }
 
         /// <summary>
@@ -142,6 +162,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly IReadOnlyList<T> internalChildrenAsT;
+        private readonly IReadOnlyList<T> aliveInternalChildrenAsT;
 
         /// <summary>
         /// The index of a given child within <see cref="Children"/>.
@@ -290,7 +311,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Determines over how many pixels the alpha component smoothly fades out when an inner <see cref="EdgeEffect"/> or <see cref="BorderThickness"/> is present.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public new float MaskingSmoothness
@@ -307,6 +328,21 @@ namespace osu.Framework.Graphics.Containers
         {
             get => base.CornerRadius;
             set => base.CornerRadius = value;
+        }
+
+        /// <summary>
+        /// Determines how gentle the curve of the corner straightens. A value of 2 results in
+        /// circular arcs, a value of 2.5 (default) results in something closer to apple's "continuous corner".
+        /// Values between 2 and 10 result in varying degrees of "continuousness", where larger values are smoother.
+        /// Values between 1 and 2 result in a "flatter" appearance than round corners.
+        /// Values between 0 and 1 result in a concave, round corner as opposed to a convex round corner,
+        /// where a value of 0.5 is a circular concave arc.
+        /// Only has an effect when <see cref="Masking"/> is true and <see cref="CornerRadius"/> is non-zero.
+        /// </summary>
+        public new float CornerExponent
+        {
+            get => base.CornerExponent;
+            set => base.CornerExponent = value;
         }
 
         /// <summary>
@@ -434,9 +470,9 @@ namespace osu.Framework.Graphics.Containers
 
             public void Reset() => currentIndex = -1;
 
-            public T Current => container[currentIndex];
+            public readonly T Current => container[currentIndex];
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

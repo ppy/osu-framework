@@ -7,6 +7,7 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -79,22 +80,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind()
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind();
+            return parent.Bind(unit);
         }
 
         public override void SetData(ITextureUpload upload)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
+            {
                 throw new ArgumentOutOfRangeException(
-                    $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.",
-                    nameof(upload));
+                    nameof(upload),
+                    $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.");
+            }
 
             if (upload.Bounds.IsEmpty)
                 upload.Bounds = bounds;

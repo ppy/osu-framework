@@ -15,30 +15,38 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The volume of this component.
         /// </summary>
-        public BindableDouble Volume => adjustments.Volume;
+        public BindableNumber<double> Volume => adjustments.Volume;
 
         /// <summary>
         /// The playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public BindableDouble Balance => adjustments.Balance;
+        public BindableNumber<double> Balance => adjustments.Balance;
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
         /// </summary>
-        public BindableDouble Frequency => adjustments.Frequency;
+        public BindableNumber<double> Frequency => adjustments.Frequency;
+
+        /// <summary>
+        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
+        /// </summary>
+        public BindableNumber<double> Tempo => adjustments.Tempo;
 
         protected AdjustableAudioComponent()
         {
             AggregateVolume.ValueChanged += InvalidateState;
             AggregateBalance.ValueChanged += InvalidateState;
             AggregateFrequency.ValueChanged += InvalidateState;
+            AggregateTempo.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
+
+        public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
 
         internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
 
@@ -64,6 +72,10 @@ namespace osu.Framework.Audio
 
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
+        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
+
+        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -71,6 +83,7 @@ namespace osu.Framework.Audio
             AggregateVolume.UnbindAll();
             AggregateBalance.UnbindAll();
             AggregateFrequency.UnbindAll();
+            AggregateTempo.UnbindAll();
         }
     }
 
@@ -78,6 +91,7 @@ namespace osu.Framework.Audio
     {
         Volume,
         Balance,
-        Frequency
+        Frequency,
+        Tempo
     }
 }

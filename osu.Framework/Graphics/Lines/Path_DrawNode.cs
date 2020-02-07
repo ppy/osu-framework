@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Lines
                 pathShader = Source.pathShader;
             }
 
-            private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
+            private Vector2 pointOnCircle(float angle) => new Vector2(MathF.Sin(angle), -MathF.Cos(angle));
 
             private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Lines
 
             private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
             {
-                const float step = MathHelper.Pi / MAX_RES;
+                const float step = MathF.PI / MAX_RES;
 
                 float dir = Math.Sign(thetaDiff);
                 thetaDiff = dir * thetaDiff;
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Lines
                 int amountPoints = (int)Math.Ceiling(thetaDiff / step);
 
                 if (dir < 0)
-                    theta += MathHelper.Pi;
+                    theta += MathF.PI;
 
                 Vector2 current = origin + pointOnCircle(theta) * radius;
                 Color4 currentColour = colourAt(current);
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Lines
 
                 // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
                 RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));
-                addLineCap(line.StartPoint, theta + MathHelper.Pi, MathHelper.Pi, texRect);
+                addLineCap(line.StartPoint, theta + MathF.PI, MathF.PI, texRect);
 
                 for (int i = 1; i < segments.Count; ++i)
                 {
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Lines
                     theta = nextTheta;
                 }
 
-                addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
+                addLineCap(line.EndPoint, theta, MathF.PI, texRect);
 
                 foreach (Line segment in segments)
                     addLineQuads(segment, texRect);
@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Lines
                 GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                 // Blending is removed to allow for correct blending between the wedges of the path.
-                GLWrapper.SetBlend(new BlendingInfo(BlendingMode.None));
+                GLWrapper.SetBlend(BlendingParameters.None);
 
                 pathShader.Bind();
 

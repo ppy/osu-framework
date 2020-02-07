@@ -101,10 +101,7 @@ namespace osu.Framework.Testing
                         Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
-                        if (e is DependencyInjectionException die)
-                            exception = die.DispatchInfo;
-                        else
-                            exception = ExceptionDispatchInfo.Capture(e);
+                        exception = ExceptionDispatchInfo.Capture(e);
                         complete();
                     });
                 });

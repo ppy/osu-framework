@@ -2,12 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 
@@ -15,16 +17,38 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneBlending : FrameworkTestScene
     {
-        private readonly Dropdown<BlendingMode> colourModeDropdown;
+        private readonly Dropdown<string> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;
         private readonly Dropdown<BlendingEquation> alphaEquation;
         private readonly BufferedContainer foregroundContainer;
+
+        private readonly FillFlowContainer blendingSrcContainer;
+        private readonly FillFlowContainer blendingDestContainer;
+        private readonly FillFlowContainer blendingAlphaSrcContainer;
+        private readonly FillFlowContainer blendingAlphaDestContainer;
+
+        private readonly Dropdown<BlendingType> blendingSrcDropdown;
+        private readonly Dropdown<BlendingType> blendingDestDropdown;
+        private readonly Dropdown<BlendingType> blendingAlphaSrcDropdown;
+        private readonly Dropdown<BlendingType> blendingAlphaDestDropdown;
+
+        private readonly FillFlowContainer settingsBox;
+
+        private readonly Dictionary<string, BlendingParameters> blendingModes = new Dictionary<string, BlendingParameters>
+        {
+            { "Inherit", BlendingParameters.Inherit },
+            { "Additive", BlendingParameters.Additive },
+            { "Mixture", BlendingParameters.Mixture },
+            { "Custom", BlendingParameters.Mixture },
+        };
+
+        private bool inCustomMode;
 
         public TestSceneBlending()
         {
             Children = new Drawable[]
             {
-                new FillFlowContainer
+                settingsBox = new FillFlowContainer
                 {
                     Name = "Settings",
                     AutoSizeAxes = Axes.Both,
@@ -41,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             Children = new Drawable[]
                             {
                                 new SpriteText { Text = "Blending mode" },
-                                colourModeDropdown = new BasicDropdown<BlendingMode> { Width = 200 }
+                                colourModeDropdown = new BasicDropdown<string> { Width = 200 }
                             }
                         },
                         new FillFlowContainer
@@ -135,27 +159,136 @@ namespace osu.Framework.Tests.Visual.Drawables
                 },
             };
 
-            colourModeDropdown.Items = (BlendingMode[])Enum.GetValues(typeof(BlendingMode));
+            blendingSrcContainer = new FillFlowContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Custom: Source" },
+                    blendingSrcDropdown = new BasicDropdown<BlendingType> { Width = 200 }
+                },
+            };
+
+            blendingDestContainer = new FillFlowContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Custom: Destination" },
+                    blendingDestDropdown = new BasicDropdown<BlendingType> { Width = 200 }
+                },
+            };
+
+            blendingAlphaSrcContainer = new FillFlowContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Custom: Alpha Source" },
+                    blendingAlphaSrcDropdown = new BasicDropdown<BlendingType> { Width = 200 }
+                },
+            };
+
+            blendingAlphaDestContainer = new FillFlowContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Custom: Alpha Destination" },
+                    blendingAlphaDestDropdown = new BasicDropdown<BlendingType> { Width = 200 }
+                },
+            };
+
+            colourModeDropdown.Items = blendingModes.Keys;
             colourEquation.Items = (BlendingEquation[])Enum.GetValues(typeof(BlendingEquation));
             alphaEquation.Items = (BlendingEquation[])Enum.GetValues(typeof(BlendingEquation));
 
-            colourModeDropdown.Current.Value = foregroundContainer.Blending.Mode;
+            blendingSrcDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
+            blendingDestDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
+            blendingAlphaSrcDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
+            blendingAlphaDestDropdown.Items = (BlendingType[])Enum.GetValues(typeof(BlendingType));
+
+            colourModeDropdown.Current.Value = "Mixture";
             colourEquation.Current.Value = foregroundContainer.Blending.RGBEquation;
             alphaEquation.Current.Value = foregroundContainer.Blending.AlphaEquation;
+
+            blendingSrcDropdown.Current.Value = BlendingType.SrcAlpha;
+            blendingDestDropdown.Current.Value = BlendingType.OneMinusSrcAlpha;
+            blendingAlphaSrcDropdown.Current.Value = BlendingType.One;
+            blendingAlphaDestDropdown.Current.Value = BlendingType.One;
 
             colourModeDropdown.Current.ValueChanged += v => updateBlending();
             colourEquation.Current.ValueChanged += v => updateBlending();
             alphaEquation.Current.ValueChanged += v => updateBlending();
+            blendingSrcDropdown.Current.ValueChanged += v => updateBlending();
+            blendingDestDropdown.Current.ValueChanged += v => updateBlending();
+            blendingAlphaSrcDropdown.Current.ValueChanged += v => updateBlending();
+            blendingAlphaDestDropdown.Current.ValueChanged += v => updateBlending();
+        }
+
+        private void switchToCustomBlending()
+        {
+            settingsBox.Add(blendingSrcContainer);
+            settingsBox.Add(blendingDestContainer);
+            settingsBox.Add(blendingAlphaSrcContainer);
+            settingsBox.Add(blendingAlphaDestContainer);
+        }
+
+        private void switchOffCustomBlending()
+        {
+            settingsBox.Remove(blendingSrcContainer);
+            settingsBox.Remove(blendingDestContainer);
+            settingsBox.Remove(blendingAlphaSrcContainer);
+            settingsBox.Remove(blendingAlphaDestContainer);
         }
 
         private void updateBlending()
         {
-            foregroundContainer.Blending = new BlendingParameters
+            if (colourModeDropdown.Current.Value == "Custom")
             {
-                Mode = colourModeDropdown.Current.Value,
-                RGBEquation = colourEquation.Current.Value,
-                AlphaEquation = alphaEquation.Current.Value
-            };
+                if (!inCustomMode)
+                    switchToCustomBlending();
+
+                var blending = new BlendingParameters
+                {
+                    Source = blendingSrcDropdown.Current.Value,
+                    Destination = blendingDestDropdown.Current.Value,
+                    SourceAlpha = blendingAlphaSrcDropdown.Current.Value,
+                    DestinationAlpha = blendingAlphaDestDropdown.Current.Value,
+                    RGBEquation = colourEquation.Current.Value,
+                    AlphaEquation = alphaEquation.Current.Value
+                };
+
+                Logger.Log("Changed blending mode to: " + blending, LoggingTarget.Runtime, LogLevel.Debug);
+
+                foregroundContainer.Blending = blending;
+
+                inCustomMode = true;
+            }
+            else
+            {
+                if (inCustomMode)
+                    switchOffCustomBlending();
+
+                var blending = blendingModes[colourModeDropdown.Current.Value];
+
+                blending.RGBEquation = colourEquation.Current.Value;
+                blending.AlphaEquation = alphaEquation.Current.Value;
+
+                Logger.Log("Changed blending mode to: " + blending, LoggingTarget.Runtime, LogLevel.Debug);
+
+                foregroundContainer.Blending = blending;
+
+                inCustomMode = false;
+            }
         }
 
         private class GradientPart : Box

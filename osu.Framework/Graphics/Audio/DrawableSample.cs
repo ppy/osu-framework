@@ -30,5 +30,11 @@ namespace osu.Framework.Graphics.Audio
         public bool Playing => channel.Playing;
 
         public bool Played => channel.Played;
+
+        public bool Looping
+        {
+            get => channel.Looping;
+            set => channel.Looping = value;
+        }
     }
 }

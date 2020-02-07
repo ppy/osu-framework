@@ -4,7 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
 {
@@ -15,60 +15,75 @@ namespace osu.Framework.Lists
     public class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
-        private readonly List<InvalidatableWeakReference<T>> list = new List<InvalidatableWeakReference<T>>();
+        private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
 
-        public void Add(T obj) => list.Add(new InvalidatableWeakReference<T>(obj));
+        public void Add(T obj) => list.Add(new InvalidatableWeakReference(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference<T>(weakReference));
+        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference(weakReference));
 
         public void Remove(T item)
         {
-            foreach (var i in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (i.Reference.TryGetTarget(out var obj) && obj == item)
-                {
-                    i.Invalidate();
-                    return;
-                }
+                if (list[i].Reference == null)
+                    continue;
+
+                if (!list[i].Reference.TryGetTarget(out var obj) || obj != item)
+                    continue;
+
+                list[i] = default;
+                break;
             }
         }
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            bool found = false;
-
-            foreach (var item in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (item.Reference == weakReference)
-                {
-                    item.Invalidate();
-                    found = true;
-                }
+                if (list[i].Reference != weakReference)
+                    continue;
+
+                list[i] = default;
+                return true;
             }
 
-            return found;
+            return false;
         }
 
-        public bool Contains(T item) => list.Any(t => t.Reference.TryGetTarget(out var obj) && obj == item);
+        public bool Contains(T item)
+        {
+            foreach (var t in list)
+            {
+                if (t.Reference == null)
+                    continue;
 
-        public bool Contains(WeakReference<T> weakReference) => list.Any(t => t.Reference == weakReference);
+                if (t.Reference.TryGetTarget(out var obj) && obj == item)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool Contains(WeakReference<T> weakReference)
+        {
+            foreach (var t in list)
+            {
+                if (t.Reference != null && t.Reference == weakReference)
+                    return true;
+            }
+
+            return false;
+        }
 
         public void Clear()
         {
-            foreach (var item in list)
-                item.Invalidate();
-        }
-
-        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")]
-        public void ForEachAlive(Action<T> action)
-        {
-            foreach (var obj in this)
-                action(obj);
+            for (int i = 0; i < list.Count; i++)
+                list[i] = default;
         }
 
         public Enumerator GetEnumerator()
         {
-            list.RemoveAll(item => item.Invalid || !item.Reference.TryGetTarget(out _));
+            list.RemoveAll(item => item.Reference == null || !item.Reference.TryGetTarget(out _));
 
             return new Enumerator(list);
         }
@@ -79,12 +94,12 @@ namespace osu.Framework.Lists
 
         public struct Enumerator : IEnumerator<T>
         {
-            private List<InvalidatableWeakReference<T>> list;
+            private List<InvalidatableWeakReference> list;
 
             private int currentIndex;
             private T currentObject;
 
-            internal Enumerator(List<InvalidatableWeakReference<T>> list)
+            internal Enumerator(List<InvalidatableWeakReference> list)
             {
                 this.list = list;
 
@@ -96,7 +111,7 @@ namespace osu.Framework.Lists
             {
                 while (++currentIndex < list.Count)
                 {
-                    if (list[currentIndex].Invalid || !list[currentIndex].Reference.TryGetTarget(out currentObject))
+                    if (list[currentIndex].Reference == null || !list[currentIndex].Reference.TryGetTarget(out currentObject))
                         continue;
 
                     return true;
@@ -111,9 +126,9 @@ namespace osu.Framework.Lists
                 currentObject = null;
             }
 
-            public T Current => currentObject;
+            public readonly T Current => currentObject;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {
@@ -122,24 +137,20 @@ namespace osu.Framework.Lists
             }
         }
 
-        internal class InvalidatableWeakReference<U>
-            where U : class
+        internal readonly struct InvalidatableWeakReference
         {
-            public readonly WeakReference<U> Reference;
+            [CanBeNull]
+            public readonly WeakReference<T> Reference;
 
-            public bool Invalid { get; private set; }
-
-            public InvalidatableWeakReference(U reference)
-                : this(new WeakReference<U>(reference))
+            public InvalidatableWeakReference([CanBeNull] T reference)
+                : this(new WeakReference<T>(reference))
             {
             }
 
-            public InvalidatableWeakReference(WeakReference<U> weakReference)
+            public InvalidatableWeakReference([CanBeNull] WeakReference<T> weakReference)
             {
                 Reference = weakReference;
             }
-
-            public void Invalidate() => Invalid = true;
         }
     }
 }

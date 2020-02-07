@@ -5,7 +5,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio
 {
-    public interface IAdjustableResourceStore<T> : IResourceStore<T>, IAdjustableAudioComponent
+    public interface IAdjustableResourceStore<T> : IResourceStore<T>, IAdjustableAudioComponent, IAggregateAudioAdjustment
         where T : AudioComponent
     {
     }

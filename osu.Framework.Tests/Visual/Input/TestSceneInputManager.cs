@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -112,9 +111,9 @@ namespace osu.Framework.Tests.Visual.Input
                 var currentState = inputManager.CurrentState;
                 var mouse = currentState.Mouse;
                 inputManagerStatus.Text = $"{inputManager}";
-                mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + String.Join(" ", mouse.Buttons);
-                keyboardStatus.Text = "Keyboard: " + String.Join(" ", currentState.Keyboard.Keys);
-                joystickStatus.Text = "Joystick: " + String.Join(" ", currentState.Joystick.Buttons);
+                mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + string.Join(" ", mouse.Buttons);
+                keyboardStatus.Text = "Keyboard: " + string.Join(" ", currentState.Keyboard.Keys);
+                joystickStatus.Text = "Joystick: " + string.Join(" ", currentState.Joystick.Buttons);
                 base.Update();
             }
 
@@ -129,11 +128,11 @@ namespace osu.Framework.Tests.Visual.Input
 
             public int MouseUpCount;
 
-            protected override bool OnMouseUp(MouseUpEvent e)
+            protected override void OnMouseUp(MouseUpEvent e)
             {
                 ++MouseUpCount;
                 onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={e.MouseDownPosition}";
-                return base.OnMouseUp(e);
+                base.OnMouseUp(e);
             }
 
             public int MouseMoveCount;

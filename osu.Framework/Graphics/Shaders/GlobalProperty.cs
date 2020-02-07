@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics.Shaders
         MaskingRect,
         ToMaskingSpace,
         CornerRadius,
+        CornerExponent,
         BorderThickness,
         BorderColour,
         MaskingBlendRange,

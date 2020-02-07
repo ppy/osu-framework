@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
-using osuTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackBass : Track, IBassAudio, IHasPitchAdjust
+    public sealed class TrackBass : Track, IBassAudio
     {
         public const int BYTES_PER_SAMPLE = 4;
 
@@ -68,7 +67,7 @@ namespace osu.Framework.Audio.Track
             // todo: support this internally to match the underlying Track implementation (which can support this).
             const float tempo_minimum_supported = 0.05f;
 
-            Tempo.ValueChanged += t =>
+            AggregateTempo.ValueChanged += t =>
             {
                 if (t.NewValue < tempo_minimum_supported)
                     throw new ArgumentException($"{nameof(TrackBass)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
@@ -96,7 +95,7 @@ namespace osu.Framework.Audio.Track
 
                     Bass.ChannelSetDevice(activeStream, bass_nodevice);
                     tempoAdjustStream = BassFx.TempoCreate(activeStream, BassFlags.Decode | BassFlags.FxFreeSource);
-                    Bass.ChannelSetDevice(activeStream, bass_nodevice);
+                    Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
                     activeStream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
 
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
@@ -137,17 +136,39 @@ namespace osu.Framework.Audio.Track
             InvalidateState();
         }
 
+        /// <summary>
+        /// Returns whether the playback state is considered to be running or not.
+        /// This will only return true for <see cref="PlaybackState.Playing"/> and <see cref="PlaybackState.Stalled"/>.
+        /// </summary>
+        private static bool isRunningState(PlaybackState state) => state == PlaybackState.Playing || state == PlaybackState.Stalled;
+
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
             Trace.Assert(Bass.LastError == Errors.OK);
+
+            // Bass may leave us in an invalid state after the output device changes (this is true for "No sound" device)
+            // if the observed state was playing before change, we should force things into a good state.
+            if (isPlayed)
+            {
+                // While on windows, changing to "No sound" changes the playback state correctly,
+                // on macOS it is left in a playing-but-stalled state. Forcefully stopping first fixes this.
+                stopInternal();
+                startInternal();
+            }
         }
 
         protected override void UpdateState()
         {
-            isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+            var running = isRunningState(Bass.ChannelIsActive(activeStream));
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000);
+            // because device validity check isn't done frequently, when switching to "No sound" device,
+            // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
+            // this makes us appear to be playing, even if we may not be.
+            isRunning = running || (isPlayed && bytePosition != byteLength);
+
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
@@ -207,11 +228,11 @@ namespace osu.Framework.Audio.Track
 
         public Task StopAsync() => EnqueueAction(() =>
         {
-            if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
-                Bass.ChannelPause(activeStream);
-
+            stopInternal();
             isPlayed = false;
         });
+
+        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && Bass.ChannelPause(activeStream);
 
         private int direction;
 
@@ -230,15 +251,18 @@ namespace osu.Framework.Audio.Track
 
         public Task StartAsync() => EnqueueAction(() =>
         {
+            if (startInternal())
+                isPlayed = true;
+        });
+
+        private bool startInternal()
+        {
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
             if (Bass.ChannelGetPosition(activeStream) == byteLength)
-                return;
+                return false;
 
-            if (Bass.ChannelPlay(activeStream))
-                isPlayed = true;
-            else
-                isRunning = false;
-        });
+            return Bass.ChannelPlay(activeStream);
+        }
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
 
@@ -247,11 +271,11 @@ namespace osu.Framework.Audio.Track
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
             double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
-            double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
+            double conservativeClamped = Math.Clamp(seek, 0, conservativeLength);
 
             await EnqueueAction(() =>
             {
-                double clamped = MathHelper.Clamp(seek, 0, Length);
+                double clamped = Math.Clamp(seek, 0, Length);
 
                 long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
@@ -279,22 +303,16 @@ namespace osu.Framework.Audio.Track
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
-            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo.Value) - 1) * 100);
+            Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(AggregateTempo.Value) - 1) * 100);
         }
 
         private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
+        private int bassFreq => (int)Math.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
 
         private volatile int bitrate;
 
         public override int? Bitrate => bitrate;
-
-        public double PitchAdjust
-        {
-            get => Frequency.Value;
-            set => Frequency.Value = value;
-        }
 
         private TrackAmplitudes currentAmplitudes;
 

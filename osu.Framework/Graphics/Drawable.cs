@@ -30,7 +30,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics
@@ -66,6 +66,8 @@ namespace osu.Framework.Graphics
         private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
         private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
 
+        internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
+
         /// <summary>
         /// Disposes this drawable.
         /// </summary>
@@ -75,7 +77,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed { get; private set; }
+        protected internal bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
@@ -102,10 +104,6 @@ namespace osu.Framework.Graphics
 
                 OnUpdate = null;
                 OnInvalidate = null;
-
-                // If this Drawable is disposed, then we need to also
-                // stop remotely rendering it.
-                proxy?.Dispose();
 
                 OnDispose?.Invoke();
                 OnDispose = null;
@@ -180,8 +178,10 @@ namespace osu.Framework.Graphics
             unbindComplete = true;
 
             foreach (var type in GetType().EnumerateBaseTypes())
+            {
                 if (unbind_action_cache.TryGetValue(type, out var existing))
                     existing?.Invoke(this);
+            }
 
             OnUnbindAllBindables?.Invoke();
         }
@@ -214,14 +214,38 @@ namespace osu.Framework.Graphics
         private static double getPerfTime() => perf.CurrentTime;
 
         /// <summary>
+        /// Load this drawable from an async context.
+        /// Because we can't be sure of the disposal state, it is returned as a bool rather than thrown as in <see cref="Load"/>.
+        /// </summary>
+        /// <param name="clock">The clock we should use by default.</param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        /// <returns>Whether the load was successful.</returns>
+        internal bool LoadFromAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
+        {
+            lock (loadLock)
+            {
+                if (IsDisposed)
+                    return false;
+
+                Load(clock, dependencies, isDirectAsyncContext);
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
             lock (loadLock)
             {
+                if (!isDirectAsyncContext && IsLongRunning)
+                    throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
+
                 if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
 
@@ -355,9 +379,11 @@ namespace osu.Framework.Graphics
             set
             {
                 if (IsPartOfComposite)
+                {
                     throw new InvalidOperationException(
                         $"May not change {nameof(Depth)} while inside a parent {nameof(CompositeDrawable)}." +
                         $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
+                }
 
                 depth = value;
             }
@@ -405,7 +431,7 @@ namespace osu.Framework.Graphics
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler.Value;
+        protected internal Scheduler Scheduler => scheduler.Value;
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -526,7 +552,7 @@ namespace osu.Framework.Graphics
             {
                 if (x == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
 
                 x = value;
 
@@ -544,7 +570,7 @@ namespace osu.Framework.Graphics
             {
                 if (y == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
 
                 y = value;
 
@@ -657,7 +683,7 @@ namespace osu.Framework.Graphics
             {
                 if (width == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
 
                 width = value;
 
@@ -675,7 +701,7 @@ namespace osu.Framework.Graphics
             {
                 if (height == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
 
                 height = value;
 
@@ -734,7 +760,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Cached<Vector2> drawSizeBacking;
+        private readonly Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
 
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
@@ -939,7 +965,7 @@ namespace osu.Framework.Graphics
             {
                 if (fillAspectRatio == value) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
                 if (value == 0) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be non-zero.");
 
                 fillAspectRatio = value;
@@ -1008,7 +1034,7 @@ namespace osu.Framework.Graphics
             {
                 if (value == rotation) return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
+                if (!float.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
 
@@ -1296,7 +1322,7 @@ namespace osu.Framework.Graphics
             get => blending;
             set
             {
-                if (blending.Equals(value))
+                if (blending == value)
                     return;
 
                 blending = value;
@@ -1412,19 +1438,7 @@ namespace osu.Framework.Graphics
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
         /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager()
-        {
-            Drawable search = Parent;
-
-            while (search != null)
-            {
-                if (search is InputManager test) return test;
-
-                search = search.Parent;
-            }
-
-            return null;
-        }
+        protected InputManager GetContainingInputManager() => FindClosestParent<InputManager>();
 
         private CompositeDrawable parent;
 
@@ -1458,6 +1472,27 @@ namespace osu.Framework.Graphics
                     UpdateClock(parent.Clock);
                 }
             }
+        }
+
+        /// <summary>
+        /// Find the closest parent of a specified type.
+        /// </summary>
+        /// <remarks>
+        /// This can be a potentially expensive operation and should be used with discretion.
+        /// </remarks>
+        /// <typeparam name="T">The type to match.</typeparam>
+        /// <returns>The first matching parent, or null if no parent of type <typeparamref name="T"/> is found.</returns>
+        internal T FindClosestParent<T>() where T : class, IDrawable
+        {
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+            {
+                if (cursor is T match)
+                    return match;
+            }
+
+            return default;
         }
 
         /// <summary>
@@ -1511,7 +1546,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
 
-        private Cached<Quad> screenSpaceDrawQuadBacking;
+        private readonly Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
@@ -1520,7 +1555,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad();
 
-        private Cached<DrawInfo> drawInfoBacking;
+        private readonly Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         private DrawInfo computeDrawInfo()
         {
@@ -1542,7 +1577,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : drawInfoBacking.Value = computeDrawInfo();
 
-        private Cached<DrawColourInfo> drawColourInfoBacking;
+        private readonly Cached<DrawColourInfo> drawColourInfoBacking = new Cached<DrawColourInfo>();
 
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
@@ -1556,18 +1591,11 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
-                if (localBlending.Mode == BlendingMode.Inherit)
-                    localBlending.Mode = Parent.Blending.Mode;
+                localBlending.CopyFromParent(Parent.Blending);
 
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+            localBlending.ApplyDefaultToInherited();
 
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
-
-            ci.Blending = new BlendingInfo(localBlending);
+            ci.Blending = localBlending;
 
             ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
@@ -1583,18 +1611,18 @@ namespace osu.Framework.Graphics
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
-                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                ci.Colour.ApplyChild(ourColour, interp);
+                ci.Colour.ApplyChild(ourColour,
+                    new Quad(
+                        Vector2.Divide(interp.TopLeft, parentSize),
+                        Vector2.Divide(interp.TopRight, parentSize),
+                        Vector2.Divide(interp.BottomLeft, parentSize),
+                        Vector2.Divide(interp.BottomRight, parentSize)));
             }
 
             return ci;
         }
 
-        private Cached<Vector2> requiredParentSizeToFitBacking;
+        private readonly Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
 
         private Vector2 computeRequiredParentSizeToFit()
         {
@@ -1862,7 +1890,8 @@ namespace osu.Framework.Graphics
                     return OnMouseDown(mouseDown);
 
                 case MouseUpEvent mouseUp:
-                    return OnMouseUp(mouseUp);
+                    OnMouseUp(mouseUp);
+                    return false;
 
                 case ClickEvent click:
                     return OnClick(click);
@@ -1874,10 +1903,12 @@ namespace osu.Framework.Graphics
                     return OnDragStart(dragStart);
 
                 case DragEvent drag:
-                    return OnDrag(drag);
+                    OnDrag(drag);
+                    return false;
 
                 case DragEndEvent dragEnd:
-                    return OnDragEnd(dragEnd);
+                    OnDragEnd(dragEnd);
+                    return false;
 
                 case ScrollEvent scroll:
                     return OnScroll(scroll);
@@ -1894,16 +1925,18 @@ namespace osu.Framework.Graphics
                     return OnKeyDown(keyDown);
 
                 case KeyUpEvent keyUp:
-                    return OnKeyUp(keyUp);
+                    OnKeyUp(keyUp);
+                    return false;
 
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
                 case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease);
+                    OnJoystickRelease(joystickRelease);
+                    return false;
 
                 default:
-                    return false;
+                    return Handle(e);
             }
         }
 
@@ -1915,37 +1948,152 @@ namespace osu.Framework.Graphics
 
         #region Individual event handlers
 
+        /// <summary>
+        /// An event that occurs every time the mouse is moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse starts hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="HoverEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnHover(HoverEvent e) => Handle(e);
 
-        protected virtual void OnHoverLost(HoverLostEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when the mouse stops hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnHover"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="HoverLostEvent"/> containing information about the input event.</param>
+        protected virtual void OnHoverLost(HoverLostEvent e) => Handle(e);
 
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is pressed on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
-        protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> that was pressed on this <see cref="Drawable"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnMouseDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="MouseUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnMouseUp(MouseUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
+        /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
+        /// </remarks>
+        /// <param name="e">The <see cref="ClickEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MouseButton"/> is double-clicked on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnClick"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DoubleClickEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the next <see cref="OnClick"/> event from occurring.</returns>
         protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse starts dragging on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="DragEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
-        protected virtual bool OnDrag(DragEvent e) => Handle(e);
-        protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time the mouse moves while dragging this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnDragStart"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DragEvent"/> containing information about the input event.</param>
+        protected virtual void OnDrag(DragEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse stops dragging this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnDragStart"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="DragEndEvent"/> containing information about the input event.</param>
+        protected virtual void OnDragEnd(DragEndEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when the mouse wheel is scrolled on this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="ScrollEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
 
-        protected virtual void OnFocus(FocusEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when this <see cref="Drawable"/> gains focus.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from both <see cref="AcceptsFocus"/> and a previous <see cref="OnClick"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="FocusEvent"/> containing information about the input event.</param>
+        protected virtual void OnFocus(FocusEvent e) => Handle(e);
 
-        protected virtual void OnFocusLost(FocusLostEvent e)
-        {
-            Handle(e);
-        }
+        /// <summary>
+        /// An event that occurs when this <see cref="Drawable"/> loses focus.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that previously had focus (<see cref="OnFocus"/> was invoked).
+        /// </remarks>
+        /// <param name="e">The <see cref="FocusLostEvent"/> containing information about the input event.</param>
+        protected virtual void OnFocusLost(FocusLostEvent e) => Handle(e);
 
+        /// <summary>
+        /// An event that occurs when a <see cref="Key"/> is pressed.
+        /// </summary>
+        /// <remarks>
+        /// Repeat events can only be invoked on the <see cref="Drawable"/>s that received a previous non-repeat <see cref="OnKeyDown"/> invocation
+        /// which are still present in the input queue (via <see cref="BuildNonPositionalInputQueue"/>) when the repeat occurs.
+        /// </remarks>
+        /// <param name="e">The <see cref="KeyDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
-        protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Key"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnKeyDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="KeyUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="JoystickPressEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
-        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickButton"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnJoystickPress"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="JoystickReleaseEvent"/> containing information about the input event.</param>
+        protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
         #endregion
 
@@ -2023,6 +2171,7 @@ namespace osu.Framework.Graphics
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
+                typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
             };
 
@@ -2153,6 +2302,14 @@ namespace osu.Framework.Graphics
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
+        /// Whether clicks should be blocked when this drawable is in a dragged state.
+        /// </summary>
+        /// <remarks>
+        /// This is queried when a click is to be actuated.
+        /// </remarks>
+        public virtual bool DragBlocksClick => true;
+
+        /// <summary>
         /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -2209,9 +2366,13 @@ namespace osu.Framework.Graphics
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.StartTime < min)
                         min = t.StartTime;
+                }
+
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
@@ -2261,6 +2422,15 @@ namespace osu.Framework.Graphics
             else
                 return shortClass;
         }
+
+        /// <summary>
+        /// Creates a new instance of an empty <see cref="Drawable"/>.
+        /// </summary>
+        public static Drawable Empty() => new EmptyDrawable();
+
+        private class EmptyDrawable : Drawable
+        {
+        }
     }
 
     /// <summary>
@@ -2273,7 +2443,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
         /// is assumed unless indicated by additional flags.
         /// </summary>
-        DrawInfo = 1 << 0,
+        DrawInfo = 1,
 
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
@@ -2344,7 +2514,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The vertical counterpart is at "Top" position.
         /// </summary>
-        y0 = 1 << 0,
+        y0 = 1,
 
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
@@ -2382,10 +2552,26 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
-        X = 1 << 0,
+        X = 1,
         Y = 1 << 1,
 
         Both = X | Y,
+    }
+
+    [Flags]
+    public enum Edges
+    {
+        None = 0,
+
+        Top = 1,
+        Left = 1 << 1,
+        Bottom = 1 << 2,
+        Right = 1 << 3,
+
+        Horizontal = Left | Right,
+        Vertical = Top | Bottom,
+
+        All = Top | Left | Bottom | Right,
     }
 
     public enum Direction

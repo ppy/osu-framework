@@ -19,6 +19,8 @@ namespace osu.Framework.Graphics
             {
                 Original = original;
                 originalDrawNodes = (original as ProxyDrawable)?.originalDrawNodes ?? original.drawNodes;
+
+                original.LifetimeChanged += _ => LifetimeChanged?.Invoke(this);
             }
 
             internal override void ValidateProxyDrawNode(int treeIndex, ulong frame)
@@ -47,14 +49,24 @@ namespace osu.Framework.Graphics
 
             internal sealed override Drawable Original { get; }
 
-            public override bool RemoveWhenNotAlive => base.RemoveWhenNotAlive && Original.RemoveWhenNotAlive;
+            public override bool RemoveWhenNotAlive => Original.RemoveWhenNotAlive;
 
-            protected internal override bool ShouldBeAlive => base.ShouldBeAlive && Original.ShouldBeAlive;
+            protected internal override bool ShouldBeAlive => Original.ShouldBeAlive;
+
+            public override double LifetimeStart => Original.LifetimeStart;
+
+            public override double LifetimeEnd => Original.LifetimeEnd;
 
             // We do not want to receive updates. That is the business of the original drawable.
             public override bool IsPresent => false;
 
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds) => Original.UpdateSubTreeMasking(this, maskingBounds);
+            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+            {
+                if (Original.IsDisposed)
+                    return false;
+
+                return Original.UpdateSubTreeMasking(this, maskingBounds);
+            }
 
             private class ProxyDrawNode : DrawNode
             {
@@ -92,6 +104,9 @@ namespace osu.Framework.Graphics
                         return null;
 
                     if (Source.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
+                        return null;
+
+                    if (target.IsDisposed)
                         return null;
 
                     return target;

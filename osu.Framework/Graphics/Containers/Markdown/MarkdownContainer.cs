@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        private Cached contentCache = new Cached();
+        private readonly Cached contentCache = new Cached();
 
         private readonly FillFlowContainer document;
 

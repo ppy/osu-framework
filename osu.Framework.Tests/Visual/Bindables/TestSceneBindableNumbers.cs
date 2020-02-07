@@ -205,7 +205,7 @@ namespace osu.Framework.Tests.Visual.Bindables
         }
 
         private class BindableDisplayContainer<T> : CompositeDrawable
-            where T : struct, IComparable, IConvertible
+            where T : struct, IComparable<T>, IConvertible, IEquatable<T>
         {
             public BindableDisplayContainer(BindableNumber<T> bindable)
             {

@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
+using osuTK;
 
 namespace osu.Framework.Graphics.Animations
 {
@@ -10,7 +11,7 @@ namespace osu.Framework.Graphics.Animations
     /// Represents a generic, frame-based animation. Inherit this class if you need custom animations.
     /// </summary>
     /// <typeparam name="T">The type of content in the frames of the animation.</typeparam>
-    public abstract class Animation<T> : Container, IAnimation
+    public abstract class Animation<T> : CompositeDrawable, IAnimation
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
@@ -39,11 +40,40 @@ namespace osu.Framework.Graphics.Animations
 
         protected Animation()
         {
-            AutoSizeAxes = Axes.Both;
-
             frameData = new List<FrameData<T>>();
             IsPlaying = true;
             Repeat = true;
+        }
+
+        private bool hasCustomWidth;
+
+        public override float Width
+        {
+            set
+            {
+                base.Width = value;
+                hasCustomWidth = true;
+            }
+        }
+
+        private bool hasCustomHeight;
+
+        public override float Height
+        {
+            set
+            {
+                base.Height = value;
+                hasCustomHeight = true;
+            }
+        }
+
+        public override Vector2 Size
+        {
+            set
+            {
+                Width = value.X;
+                Height = value.Y;
+            }
         }
 
         /// <summary>
@@ -104,7 +134,23 @@ namespace osu.Framework.Graphics.Animations
                 AddFrame(t.Content, t.Duration);
         }
 
-        private void displayFrame(int index) => DisplayFrame(frameData[index].Content);
+        private void displayFrame(int index)
+        {
+            var frame = frameData[index];
+
+            if (RelativeSizeAxes != Axes.Both)
+            {
+                var frameSize = GetFrameSize(frame.Content);
+
+                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
+                    base.Width = frameSize.X;
+
+                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
+                    base.Height = frameSize.Y;
+            }
+
+            DisplayFrame(frameData[index].Content);
+        }
 
         /// <summary>
         /// Displays the given contents.
@@ -121,6 +167,13 @@ namespace osu.Framework.Graphics.Animations
         protected virtual void OnFrameAdded(T content, double displayDuration)
         {
         }
+
+        /// <summary>
+        /// Retrieves the size of a given frame.
+        /// </summary>
+        /// <param name="content">The frame to retrieve the size of.</param>
+        /// <returns>The size of <paramref name="content"/>.</returns>
+        protected abstract Vector2 GetFrameSize(T content);
 
         protected override void Update()
         {

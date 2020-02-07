@@ -89,9 +89,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             new TooltipSpriteText("this text has a tooltip!"),
                             new InstantTooltipSpriteText("this text has an instant tooltip!"),
-                            new TooltipSpriteText("this one too!"),
-                            new CustomTooltipSpriteText("this text has an empty tooltip!", string.Empty),
-                            new CustomTooltipSpriteText("this text has a nulled tooltip!", null),
+                            new CustomTooltipSpriteText("this one is custom!"),
+                            new CustomTooltipSpriteText("this one is also!"),
+                            new TooltipSpriteText("this text has an empty tooltip!", string.Empty),
+                            new TooltipSpriteText("this text has a nulled tooltip!", null),
                             new TooltipTextbox
                             {
                                 Text = "with real time updates!",
@@ -143,39 +144,100 @@ namespace osu.Framework.Tests.Visual.UserInterface
             ttc.Add(makeBox(Anchor.BottomRight));
         }
 
-        private class CustomTooltipSpriteText : Container, IHasTooltip
+        private class CustomTooltipSpriteText : Container, IHasCustomTooltip
         {
-            private readonly string tooltipText;
+            public object TooltipContent { get; }
 
-            public string TooltipText => tooltipText;
-
-            public CustomTooltipSpriteText(string displayedText, string tooltipText)
+            public CustomTooltipSpriteText(string displayedContent, string tooltipContent = null)
             {
-                this.tooltipText = tooltipText;
+                TooltipContent = new CustomContent(tooltipContent ?? displayedContent);
 
                 AutoSizeAxes = Axes.Both;
                 Children = new[]
                 {
                     new SpriteText
                     {
-                        Text = displayedText,
+                        Text = displayedContent,
+                    }
+                };
+            }
+
+            public ITooltip GetCustomTooltip() => new CustomTooltip();
+
+            private class CustomContent
+            {
+                public readonly string Text;
+
+                public CustomContent(string text)
+                {
+                    Text = text;
+                }
+            }
+
+            private class CustomTooltip : TooltipContainer.Tooltip
+            {
+                private static int i;
+
+                public CustomTooltip()
+                {
+                    AddRangeInternal(new Drawable[]
+                    {
+                        new Box
+                        {
+                            Anchor = Anchor.BottomLeft,
+                            Colour = Color4.Black,
+                            RelativeSizeAxes = Axes.X,
+                            Height = 12,
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.BottomLeft,
+                            Font = FontUsage.Default.With(size: 12),
+                            Colour = Color4.Yellow,
+                            Text = $"Custom tooltip instance {i++}"
+                        }
+                    });
+                }
+
+                public override bool SetContent(object content)
+                {
+                    if (!(content is CustomContent custom))
+                        return false;
+
+                    base.SetContent(custom.Text);
+                    return true;
+                }
+            }
+        }
+
+        private class TooltipSpriteText : Container, IHasTooltip
+        {
+            public string TooltipText { get; }
+
+            public TooltipSpriteText(string displayedContent)
+                : this(displayedContent, displayedContent)
+            {
+            }
+
+            public TooltipSpriteText(string displayedContent, string tooltipContent)
+            {
+                TooltipText = tooltipContent;
+
+                AutoSizeAxes = Axes.Both;
+                Children = new[]
+                {
+                    new SpriteText
+                    {
+                        Text = displayedContent,
                     }
                 };
             }
         }
 
-        private class TooltipSpriteText : CustomTooltipSpriteText
+        private class InstantTooltipSpriteText : TooltipSpriteText, IHasAppearDelay
         {
-            public TooltipSpriteText(string tooltipText)
-                : base(tooltipText, tooltipText)
-            {
-            }
-        }
-
-        private class InstantTooltipSpriteText : CustomTooltipSpriteText, IHasAppearDelay
-        {
-            public InstantTooltipSpriteText(string tooltipText)
-                : base(tooltipText, tooltipText)
+            public InstantTooltipSpriteText(string tooltipContent)
+                : base(tooltipContent, tooltipContent)
             {
             }
 

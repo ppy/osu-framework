@@ -22,19 +22,16 @@ namespace osu.Framework.iOS
             aotImageSharp();
 
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
+
             gameView = new IOSGameView(new RectangleF(0.0f, 0.0f, (float)Window.Frame.Size.Width, (float)Window.Frame.Size.Height));
+            host = new IOSGameHost(gameView);
 
-            GameViewController viewController = new GameViewController
-            {
-                View = gameView
-            };
-
-            Window.RootViewController = viewController;
+            Window.RootViewController = new GameViewController(gameView, host);
             Window.MakeKeyAndVisible();
 
+            // required to trigger the osuTK update loop, which is used for input handling.
             gameView.Run();
 
-            host = new IOSGameHost(gameView);
             host.Run(CreateGame());
 
             return true;
@@ -44,6 +41,7 @@ namespace osu.Framework.iOS
         {
             System.Runtime.CompilerServices.Unsafe.SizeOf<Rgba32>();
             System.Runtime.CompilerServices.Unsafe.SizeOf<long>();
+
             try
             {
                 new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);

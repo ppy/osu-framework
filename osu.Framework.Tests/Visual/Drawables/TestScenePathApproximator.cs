@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -63,6 +63,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 points[3] = new Vector2(200, 80);
                 points[4] = new Vector2(250, 50);
 
+                AutoSizeAxes = Axes.None;
                 RelativeSizeAxes = Axes.Both;
                 PathRadius = 2;
                 Vertices = approximator(points);

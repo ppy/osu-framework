@@ -10,9 +10,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -23,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Input
     public class TestSceneMouseStates : ManualInputManagerTestScene
     {
         private readonly Box marginBox, outerMarginBox;
-        private readonly FrameworkActionContainer actionContainer;
+        private readonly Container actionContainer;
 
         private readonly StateTracker s1, s2;
 
@@ -58,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Input
                                 Size = new Vector2(0.9f),
                                 Colour = Color4.SkyBlue.Opacity(0.1f),
                             },
-                            actionContainer = new FrameworkActionContainer
+                            actionContainer = new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.6f),
@@ -111,6 +110,7 @@ namespace osu.Framework.Tests.Visual.Input
         private static readonly Type mouse_down = typeof(MouseDownEvent);
         private static readonly Type mouse_up = typeof(MouseUpEvent);
         private static readonly Type drag_start = typeof(DragStartEvent);
+        private static readonly Type drag = typeof(DragEvent);
         private static readonly Type drag_end = typeof(DragEndEvent);
         private static readonly Type click = typeof(ClickEvent);
         private static readonly Type double_click = typeof(DoubleClickEvent);
@@ -217,6 +217,12 @@ namespace osu.Framework.Tests.Visual.Input
 
             AddStep("move bottom left", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount(drag_start, 1);
+            checkEventCount(drag, 1);
+            checkIsDragged(true);
+
+            AddStep("move bottom right", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            checkEventCount(drag_start, 0);
+            checkEventCount(drag, 1);
             checkIsDragged(true);
 
             AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
@@ -385,7 +391,7 @@ namespace osu.Framework.Tests.Visual.Input
             else
             {
                 // those types are handled by state tracker 2
-                if (!new[] { drag_start, drag_end, click, double_click }.Contains(type))
+                if (!new[] { drag_start, drag, drag_end, click, double_click }.Contains(type))
                     count1 += change;
                 count2 += change;
             }
@@ -436,6 +442,7 @@ namespace osu.Framework.Tests.Visual.Input
                             addCounter(typeof(ScrollEvent)),
                             addCounter(typeof(MouseMoveEvent)),
                             addCounter(typeof(DragStartEvent)),
+                            addCounter(typeof(DragEvent)),
                             addCounter(typeof(DragEndEvent)),
                             addCounter(typeof(MouseDownEvent)),
                             addCounter(typeof(MouseUpEvent)),
@@ -593,10 +600,10 @@ namespace osu.Framework.Tests.Visual.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     adjustForMouseDown(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 private void adjustForMouseDown(MouseEvent e)

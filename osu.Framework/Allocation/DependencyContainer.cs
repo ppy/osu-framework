@@ -180,8 +180,6 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
-        /// <exception cref="DependencyInjectionException">When any user error has occurred.
-        /// Rethrow <see cref="DependencyInjectionException.DispatchInfo"/> when appropriate to retrieve the original exception.</exception>
         /// <exception cref="OperationCanceledException">When the injection process was cancelled.</exception>
         public void Inject<T>(T instance)
             where T : class

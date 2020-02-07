@@ -15,7 +15,6 @@ using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
@@ -217,7 +216,7 @@ namespace osu.Framework.Platform
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
 
-            throw new ArgumentException(nameof(version));
+            throw new ArgumentException($"Cannot get version number from {version}!", nameof(version));
         }
 
         public abstract void SetupWindow(FrameworkConfigManager config);
@@ -229,7 +228,7 @@ namespace osu.Framework.Platform
         /// devices.  This usually corresponds to areas of the screen hidden under notches and rounded corners.
         /// The safe area insets are provided by the operating system and dynamically change as the user rotates the device.
         /// </summary>
-        public virtual IBindable<MarginPadding> SafeAreaPadding { get; } = new BindableMarginPadding();
+        public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
 
