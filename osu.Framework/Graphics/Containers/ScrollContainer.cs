@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -293,6 +295,12 @@ namespace osu.Framework.Graphics.Containers
         private bool dragBlocksClick;
 
         public override bool DragBlocksClick => dragBlocksClick;
+
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue) =>
+            AliveInternalChildren.Any() && base.BuildPositionalInputQueue(screenSpacePos, queue);
+
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true) =>
+            AliveInternalChildren.Any() && base.BuildNonPositionalInputQueue(queue, allowBlocking);
 
         protected override void OnDrag(DragEvent e)
         {
