@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected class CompositeDrawableDrawNode : DrawNode, ICompositeDrawNode
         {
-            private static readonly float cos_45 = (float)Math.Cos(Math.PI / 4);
+            private static readonly float cos_45 = MathF.Cos(MathF.PI / 4);
 
             protected new CompositeDrawable Source => (CompositeDrawable)base.Source;
 
@@ -93,7 +93,8 @@ namespace osu.Framework.Graphics.Containers
                         MaskingRect = Source.DrawRectangle,
                         ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
-                        CornerRadius = Source.CornerRadius,
+                        CornerRadius = Source.effectiveCornerRadius,
+                        CornerExponent = Source.CornerExponent,
                         BorderThickness = Source.BorderThickness,
                         BorderColour = Source.BorderColour,
                         // We are setting the linear blend range to the approximate size of a _pixel_ here.
@@ -196,8 +197,10 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 if (Children != null)
+                {
                     for (int i = 0; i < Children.Count; i++)
                         Children[i].Draw(vertexAction);
+                }
 
                 if (maskingInfo != null)
                     GLWrapper.PopMaskingInfo();

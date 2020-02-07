@@ -155,13 +155,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             public override int Width
             {
                 get => base.Width;
-                set => base.Width = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Width = Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
 
             public override int Height
             {
                 get => base.Height;
-                set => base.Height = MathHelper.Clamp(value, 1, GLWrapper.MaxTextureSize);
+                set => base.Height = Math.Clamp(value, 1, GLWrapper.MaxTextureSize);
             }
         }
     }

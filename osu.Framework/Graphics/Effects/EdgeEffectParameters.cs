@@ -46,13 +46,13 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool Hollow;
 
-        public bool Equals(EdgeEffectParameters other) =>
+        public readonly bool Equals(EdgeEffectParameters other) =>
             Colour.Equals(other.Colour) &&
             Offset == other.Offset &&
             Type == other.Type &&
             Roundness == other.Roundness &&
             Radius == other.Radius;
 
-        public override string ToString() => Type != EdgeEffectType.None ? $@"{Radius} {Type}EdgeEffect" : @"EdgeEffect (Disabled)";
+        public override readonly string ToString() => Type != EdgeEffectType.None ? $@"{Radius} {Type}EdgeEffect" : @"EdgeEffect (Disabled)";
     }
 }

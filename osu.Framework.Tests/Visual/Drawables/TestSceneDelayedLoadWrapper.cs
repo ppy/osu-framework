@@ -47,6 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
 
                 for (int i = 1; i < panel_count; i++)
+                {
                     flow.Add(new Container
                     {
                         Size = new Vector2(128),
@@ -63,6 +64,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             new SpriteText { Text = i.ToString() },
                         }
                     });
+                }
             });
 
             var childrenWithAvatarsLoaded = new Func<IEnumerable<Drawable>>(() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false));

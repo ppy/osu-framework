@@ -46,7 +46,10 @@ namespace osu.Framework.Timing
 
         private double currentTime;
 
-        public double AllowableErrorMilliseconds = 1000.0 / 60 * 2;
+        /// <summary>
+        /// The amount of error that is allowed between the source and interpolated time before the interpolated time is ignored and the source time is used.
+        /// </summary>
+        public virtual double AllowableErrorMilliseconds => 1000.0 / 60 * 2 * Rate;
 
         private bool sourceIsRunning;
 
@@ -62,7 +65,10 @@ namespace osu.Framework.Timing
 
         public virtual double ElapsedFrameTime => CurrentInterpolatedTime - LastInterpolatedTime;
 
-        private bool allowInterpolation;
+        /// <summary>
+        /// Whether time is being interpolated for the frame currently being processed.
+        /// </summary>
+        public bool IsInterpolating { get; private set; }
 
         public virtual void ProcessFrame()
         {
@@ -78,18 +84,18 @@ namespace osu.Framework.Timing
             if (FramedSourceClock.IsRunning)
             {
                 if (FramedSourceClock.ElapsedFrameTime != 0)
-                    allowInterpolation = true;
+                    IsInterpolating = true;
 
                 CurrentInterpolatedTime += clock.ElapsedFrameTime * Rate;
 
-                if (!allowInterpolation || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
+                if (!IsInterpolating || Math.Abs(FramedSourceClock.CurrentTime - CurrentInterpolatedTime) > AllowableErrorMilliseconds)
                 {
                     // if we've exceeded the allowable error, we should use the source clock's time value.
                     // seeking backwards should only be allowed if the source is explicitly doing that.
                     CurrentInterpolatedTime = FramedSourceClock.ElapsedFrameTime < 0 ? FramedSourceClock.CurrentTime : Math.Max(LastInterpolatedTime, FramedSourceClock.CurrentTime);
 
                     // once interpolation fails, we don't want to resume interpolating until the source clock starts to move again.
-                    allowInterpolation = false;
+                    IsInterpolating = false;
                 }
                 else
                 {

@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Shaders
                 GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
                 IUniform createUniform<T>(string name)
-                    where T : struct
+                    where T : struct, IEquatable<T>
                 {
                     int location = GL.GetUniformLocation(this, name);
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="name">The name of the uniform.</param>
         /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
-            where T : struct
+            where T : struct, IEquatable<T>
         {
             EnsureLoaded();
 

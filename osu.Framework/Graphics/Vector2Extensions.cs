@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics
         /// <param name="result">The distance</param>
         public static void Distance(ref Vector2 vec1, ref Vector2 vec2, out float result)
         {
-            result = (float)Math.Sqrt((vec2.X - vec1.X) * (vec2.X - vec1.X) + (vec2.Y - vec1.Y) * (vec2.Y - vec1.Y));
+            result = MathF.Sqrt((vec2.X - vec1.X) * (vec2.X - vec1.X) + (vec2.Y - vec1.Y) * (vec2.Y - vec1.Y));
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics
             for (int i = 0; i < vertices.Length - 1; ++i)
                 rotation += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y);
 
-            rotation += (vertices[0].X - vertices[vertices.Length - 1].X) * (vertices[0].Y + vertices[vertices.Length - 1].Y);
+            rotation += (vertices[0].X - vertices[^1].X) * (vertices[0].Y + vertices[^1].Y);
 
             return rotation;
         }

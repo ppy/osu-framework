@@ -144,7 +144,7 @@ namespace osu.Framework.Allocation
                         if (allowValueTypes)
                             return;
 
-                        throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
+                        throw new NullDependencyException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
                     }
 
                     var cacheInfo = new CacheInfo(info.Name ?? attribute.Name);
@@ -158,6 +158,17 @@ namespace osu.Framework.Allocation
                     dc.CacheAs(attribute.Type ?? value.GetType(), cacheInfo, value, allowValueTypes);
                 };
             }
+        }
+    }
+
+    /// <summary>
+    /// The exception that is thrown when attempting to cache <see langword="null"/> using <see cref="CachedAttribute"/>.
+    /// </summary>
+    public sealed class NullDependencyException : InvalidOperationException
+    {
+        public NullDependencyException(string message)
+            : base(message)
+        {
         }
     }
 }

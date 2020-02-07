@@ -14,7 +14,7 @@ namespace osu.Framework.Statistics
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if (eventSource.Name.Equals("Microsoft-Windows-DotNETRuntime"))
+            if (eventSource.Name == "Microsoft-Windows-DotNETRuntime")
                 EnableEvents(eventSource, EventLevel.Verbose, (EventKeywords)gc_keyword);
         }
 

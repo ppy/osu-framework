@@ -17,11 +17,13 @@ namespace osu.Framework.Configuration
             base.InitialiseDefaults();
 
             Set(DebugSetting.BypassFrontToBackPass, false);
+            Set(DebugSetting.PerformanceLogging, false);
         }
     }
 
     public enum DebugSetting
     {
-        BypassFrontToBackPass
+        BypassFrontToBackPass,
+        PerformanceLogging
     }
 }

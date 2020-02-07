@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.Platform
             const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
-            for (int i = 0;; i++)
+            for (int i = 0; true; i++)
             {
                 var display = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (display == null) break;
@@ -181,7 +181,7 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Clear();
             var bounds = new RectangleI();
 
-            for (int i = 0;; i++)
+            for (int i = 0; true; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) break;

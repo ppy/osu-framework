@@ -22,7 +22,7 @@ namespace osu.Framework.Platform.Windows.Native
             internal uint ImageOffset;
 
             // larger icons are defined as 0x0 and point to PNG data
-            internal bool HasRawData => Width == 0 && Height == 0;
+            internal readonly bool HasRawData => Width == 0 && Height == 0;
         }
 
         [StructLayout(LayoutKind.Sequential)]

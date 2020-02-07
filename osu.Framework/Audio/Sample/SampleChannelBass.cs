@@ -67,6 +67,7 @@ namespace osu.Framework.Audio.Sample
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 setLoopFlag(Looping);
             });

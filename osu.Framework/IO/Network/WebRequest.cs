@@ -113,6 +113,11 @@ namespace osu.Framework.IO.Network
         /// </summary>
         protected virtual string Accept => string.Empty;
 
+        /// <summary>
+        /// The value of the User-agent HTTP header.
+        /// </summary>
+        protected virtual string UserAgent => "osu-framework";
+
         internal int RetryCount { get; private set; }
 
         /// <summary>
@@ -120,21 +125,14 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
-        private static readonly Logger logger;
-
-        private static readonly HttpClient client;
-
-        static WebRequest()
+        private static readonly HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
         {
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+            Timeout = System.Threading.Timeout.InfiniteTimeSpan
+        };
 
-            logger = Logger.GetLogger(LoggingTarget.Network);
-        }
+        private static readonly Logger logger = Logger.GetLogger(LoggingTarget.Network);
 
         public WebRequest(string url = null, params object[] args)
         {
@@ -160,38 +158,46 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
-        public string ResponseString
+        [Obsolete("Use GetResponseString method instead")] // can be removed 20200521
+        public string ResponseString => GetResponseString();
+
+        /// <summary>
+        /// Retrieve the full response body as a UTF8 encoded string.
+        /// </summary>
+        /// <returns>The response body.</returns>
+        public string GetResponseString()
         {
-            get
+            try
             {
-                try
-                {
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
-                    return r.ReadToEnd();
-                }
-                catch
-                {
-                    return null;
-                }
+                ResponseStream.Seek(0, SeekOrigin.Begin);
+                StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8);
+                return r.ReadToEnd();
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        public byte[] ResponseData
+        [Obsolete("Use GetResponseData method instead")] // can be removed 20200521
+        public byte[] ResponseData => GetResponseData();
+
+        /// <summary>
+        /// Retrieve the full response body as an array of bytes.
+        /// </summary>
+        /// <returns>The response body.</returns>
+        public byte[] GetResponseData()
         {
-            get
+            try
             {
-                try
-                {
-                    byte[] data = new byte[ResponseStream.Length];
-                    ResponseStream.Seek(0, SeekOrigin.Begin);
-                    ResponseStream.Read(data, 0, data.Length);
-                    return data;
-                }
-                catch
-                {
-                    return null;
-                }
+                byte[] data = new byte[ResponseStream.Length];
+                ResponseStream.Seek(0, SeekOrigin.Begin);
+                ResponseStream.Read(data, 0, data.Length);
+                return data;
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -237,7 +243,7 @@ namespace osu.Framework.IO.Network
                 url = @"https://" + url.Replace(@"http://", @"");
             }
 
-            using (abortToken = abortToken ?? new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
+            using (abortToken ??= new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
@@ -310,6 +316,8 @@ namespace osu.Framework.IO.Network
                         if (!string.IsNullOrEmpty(ContentType))
                             request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
                     }
+
+                    request.Headers.UserAgent.TryParseAdd(UserAgent);
 
                     if (!string.IsNullOrEmpty(Accept))
                         request.Headers.Accept.TryParseAdd(Accept);
@@ -509,7 +517,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Performs any post-processing of the response.
-        /// Exceptions thrown in this method will be passed to <see cref="Finished"/>.
+        /// Exceptions thrown in this method will be passed to <see cref="Failed"/>.
         /// </summary>
         protected virtual void ProcessResponse()
         {

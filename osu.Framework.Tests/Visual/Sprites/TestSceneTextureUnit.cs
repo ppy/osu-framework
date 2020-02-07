@@ -78,9 +78,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             private Texture createTexture(Rgba32 pixel)
             {
                 var texData = new Image<Rgba32>(32, 32);
+
                 for (int x = 0; x < texData.Width; x++)
-                for (int y = 0; y < texData.Height; y++)
-                    texData[x, y] = pixel;
+                {
+                    for (int y = 0; y < texData.Height; y++)
+                        texData[x, y] = pixel;
+                }
 
                 var tex = new Texture(texData.Width, texData.Height, true);
                 tex.SetData(new TextureUpload(texData));

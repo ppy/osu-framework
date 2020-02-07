@@ -29,8 +29,6 @@ namespace osu.Framework.Graphics.Textures
 
         private Vector2I currentPosition;
 
-        private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
-
         internal TextureWhitePixel WhitePixel
         {
             get

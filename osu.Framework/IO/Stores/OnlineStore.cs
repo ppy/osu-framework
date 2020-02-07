@@ -21,7 +21,7 @@ namespace osu.Framework.IO.Stores
                 using (WebRequest req = new WebRequest($@"{url}"))
                 {
                     await req.PerformAsync();
-                    return req.ResponseData;
+                    return req.GetResponseData();
                 }
             }
             catch
@@ -42,7 +42,7 @@ namespace osu.Framework.IO.Stores
                 using (WebRequest req = new WebRequest($@"{url}"))
                 {
                     req.Perform();
-                    return req.ResponseData;
+                    return req.GetResponseData();
                 }
             }
             catch

@@ -19,7 +19,7 @@ namespace osu.Framework.Statistics
         {
             get
             {
-                switch (value)
+                switch (Value)
                 {
                     case double d:
                         return d.ToString("#,0.##");
@@ -34,18 +34,12 @@ namespace osu.Framework.Statistics
                         return l.ToString("#,0");
 
                     default:
-                        return value?.ToString() ?? string.Empty;
+                        return Value?.ToString() ?? string.Empty;
                 }
             }
         }
 
-        private T value;
-
-        public T Value
-        {
-            get => value;
-            set => this.value = value;
-        }
+        public T Value { get; set; }
 
         public virtual void Clear() => Value = default;
     }

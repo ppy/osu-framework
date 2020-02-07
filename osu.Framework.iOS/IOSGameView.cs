@@ -58,6 +58,7 @@ namespace osu.Framework.iOS
             {
                 if (value.Equals(safeArea))
                     return;
+
                 safeArea = value;
                 OnResize(EventArgs.Empty);
             }
@@ -138,6 +139,7 @@ namespace osu.Framework.iOS
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
 
             private bool softwareKeyboard = true;
+
             internal bool SoftwareKeyboard
             {
                 get => softwareKeyboard;

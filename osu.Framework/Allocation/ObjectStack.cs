@@ -1,10 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Allocation
 {
+    [Obsolete("Microsoft.Extensions.ObjectPool.ObjectPool<T> instead.")] // can be removed 20200510
     public class ObjectStack<T> where T : new()
     {
         private readonly int maxAmountObjects;

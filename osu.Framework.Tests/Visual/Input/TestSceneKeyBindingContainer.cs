@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Input
 {
+    [HeadlessTest]
     public class TestSceneKeyBindingContainer : FrameworkTestScene
     {
         [Test]
@@ -59,10 +61,9 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            public bool OnReleased(TestAction action)
+            public void OnReleased(TestAction action)
             {
                 Released?.Invoke(action);
-                return true;
             }
         }
 

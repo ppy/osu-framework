@@ -216,7 +216,7 @@ namespace osu.Framework.Platform
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
 
-            throw new ArgumentException(nameof(version));
+            throw new ArgumentException($"Cannot get version number from {version}!", nameof(version));
         }
 
         public abstract void SetupWindow(FrameworkConfigManager config);

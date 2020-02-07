@@ -76,7 +76,7 @@ namespace osu.Framework.Testing
                 }
             });
 
-            string getSolutionPath(DirectoryInfo d)
+            static string getSolutionPath(DirectoryInfo d)
             {
                 if (d == null)
                     return null;
@@ -109,10 +109,13 @@ namespace osu.Framework.Testing
                     requiredTypeNames = reqTypes;
 
                     requiredFiles.Clear();
+
                     foreach (var d in validDirectories)
+                    {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
                                                .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                    }
                 }
 
                 lastTouchedFile = e.FullPath;
@@ -158,7 +161,7 @@ namespace osu.Framework.Testing
 #if RELEASE
                 "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.CSharp7_3);
+            }, languageVersion: LanguageVersion.Latest);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -202,7 +205,7 @@ namespace osu.Framework.Testing
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
 
-                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
+                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
                     }
                 }
             }

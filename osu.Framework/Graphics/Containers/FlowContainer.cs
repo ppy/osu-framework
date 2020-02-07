@@ -204,8 +204,10 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (i != positions.Length)
+            {
                 throw new InvalidOperationException(
                     $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+            }
         }
 
         protected override void UpdateAfterChildren()

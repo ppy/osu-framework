@@ -159,8 +159,10 @@ namespace osu.Framework.Graphics.Video
             }
 
             if (availableFrames.Count == 0)
+            {
                 foreach (var f in decoder.GetDecodedFrames())
                     availableFrames.Enqueue(f);
+            }
 
             Buffering = decoder.IsRunning && availableFrames.Count == 0;
 

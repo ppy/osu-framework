@@ -53,8 +53,10 @@ namespace osu.Framework.Graphics.Batches
         protected void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
+            }
         }
 
         #endregion

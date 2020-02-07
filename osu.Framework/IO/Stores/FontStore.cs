@@ -9,6 +9,7 @@ using osu.Framework.Logging;
 using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using osu.Framework.Text;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -37,11 +38,9 @@ namespace osu.Framework.IO.Stores
             this.cacheStorage = cacheStorage;
         }
 
-        protected override IEnumerable<string> GetFilenames(string name)
-        {
+        protected override IEnumerable<string> GetFilenames(string name) =>
             // extensions should not be used as they interfere with character lookup.
-            yield return name;
-        }
+            name.Yield();
 
         public override void AddStore(IResourceStore<TextureUpload> store)
         {
@@ -62,8 +61,8 @@ namespace osu.Framework.IO.Stores
 
                 case GlyphStore gs:
 
-                    if (gs.CacheStorage == null)
-                        gs.CacheStorage = cacheStorage;
+                    if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
+                        raw.CacheStorage = cacheStorage;
 
                     glyphStores.Add(gs);
                     queueLoad(gs);
@@ -122,8 +121,10 @@ namespace osu.Framework.IO.Stores
             if (found == null)
             {
                 foreach (var store in nestedFontStores)
+                {
                     if ((found = store.Get(name)) != null)
                         break;
+                }
             }
 
             return found;
@@ -196,6 +197,8 @@ namespace osu.Framework.IO.Stores
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            nestedFontStores.ForEach(f => f.Dispose());
             glyphStores.ForEach(g => g.Dispose());
         }
     }
