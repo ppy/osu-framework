@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Input;
 using osuTK;
@@ -125,7 +125,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo == screen2);
             AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom == screen1);
 
-            AddAssert("ensure child", () => screen1.GetChildScreen() != null);
+            AddAssert("ensure child", () => screen1.GetChildScreen() == screen2);
+            AddAssert("ensure parent 1", () => screen1.GetParentScreen() == baseScreen);
+            AddAssert("ensure parent 2", () => screen2.GetParentScreen() == screen1);
 
             AddStep("pop", () => screen2.Exit());
 
@@ -134,6 +136,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure parent gone", () => screen2.GetParentScreen() == null);
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());
@@ -215,6 +218,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestScreenPushedAfterExiting()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push", () => stack.Push(screen1 = new TestScreen()));
+
+            AddUntilStep("wait for current", () => screen1.IsCurrentScreen());
+            AddStep("exit screen1", () => screen1.Exit());
+            AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
+
+            AddStep("push again", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+        }
+
+        [Test]
         public void TestPushToNonLoadedScreenFails()
         {
             TestScreenSlow screen1 = null;
@@ -286,7 +303,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(id: 0))
                     {
                         RelativeSizeAxes = Axes.Both
                     });
@@ -296,13 +313,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Perform setup", () =>
             {
                 order = new List<int>();
-                screen1 = new TestScreenSlow
+                screen1 = new TestScreenSlow(1)
                 {
                     Entered = () => order.Add(1),
                     Suspended = () => order.Add(2),
                     Resumed = () => order.Add(5),
                 };
-                screen2 = new TestScreenSlow
+                screen2 = new TestScreenSlow(2)
                 {
                     Entered = () => order.Add(3),
                     Exited = () => order.Add(4),
@@ -345,6 +362,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestEventsNotFiredBeforeScreenLoad()
+        {
+            Screen screen1 = null;
+            bool wasLoaded = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen
+            {
+                // ReSharper disable once AccessToModifiedClosure
+                Entered = () => wasLoaded &= screen1?.IsLoaded == true,
+                // ReSharper disable once AccessToModifiedClosure
+                Suspended = () => wasLoaded &= screen1?.IsLoaded == true,
+            });
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddAssert("was loaded before events", () => wasLoaded);
         }
 
         [Test]
@@ -428,6 +464,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("block exit", () => screen3.Exiting = () => true);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom == null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd == double.MaxValue);
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
             AddAssert("screen 1 valid for resume", () => screen1.ValidForResume);
@@ -435,9 +473,75 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("don't block exit", () => screen3.Exiting = () => false);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo == screen2);
+            AddAssert("screen 2 exited fired", () => screen2.ExitedTo == screen1);
+            AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom == screen2);
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd != double.MaxValue);
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestMakeCurrentMidwayExitBlocking(bool validForResume)
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+            TestScreen screen4 = null;
+            int screen3ResumedCount = 0;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3)
+            {
+                Resumed = () => screen3ResumedCount++
+            }, () => screen2);
+            pushAndEnsureCurrent(() => screen4 = new TestScreen(id: 4), () => screen3);
+
+            AddStep("block exit screen3", () =>
+            {
+                screen3.Exiting = () => true;
+                screen3.ValidForResume = validForResume;
+            });
+
+            AddStep("make screen1 current", () => screen1.MakeCurrent());
+
+            // check the exit worked for one level
+            AddUntilStep("screen4 is not alive", () => !screen4.AsDrawable().IsAlive);
+            AddAssert("screen4 has lifetime end", () => screen4.LifetimeEnd != double.MaxValue);
+
+            if (validForResume)
+            {
+                // check we blocked at screen 3
+                AddAssert("screen 3 valid for resume", () => screen3.ValidForResume);
+                AddAssert("screen3 is current", () => screen3.IsCurrentScreen());
+                AddAssert("screen3 resumed", () => screen3ResumedCount == 1);
+
+                // check the ValidForResume state wasn't changed on parents
+                AddAssert("screen 1 still valid for resume", () => screen1.ValidForResume);
+                AddAssert("screen 2 still valid for resume", () => screen2.ValidForResume);
+
+                AddStep("make screen 1 current", () => screen1.MakeCurrent());
+
+                // check blocking is consistent on a second attempt
+                AddAssert("screen3 not resumed again", () => screen3ResumedCount == 1);
+                AddAssert("screen3 is still current", () => screen3.IsCurrentScreen());
+
+                AddStep("stop blocking exit", () => screen3.Exiting = () => false);
+
+                AddStep("make screen1 current", () => screen1.MakeCurrent());
+            }
+            else
+            {
+                AddAssert("screen 3 not valid for resume", () => !screen3.ValidForResume);
+                AddAssert("screen3 not current", () => !screen3.IsCurrentScreen());
+                AddAssert("screen3 did not resume", () => screen3ResumedCount == 0);
+            }
+
+            AddAssert("screen1 current", () => screen1.IsCurrentScreen());
+            AddAssert("screen1 doesn't have lifetime end", () => screen1.LifetimeEnd == double.MaxValue);
+            AddUntilStep("screen3 is not alive", () => !screen3.AsDrawable().IsAlive);
         }
 
         [Test]
@@ -731,7 +835,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public IScreen ResumedFrom;
 
             public static int Sequence;
-            private Button popButton;
+            private BasicButton popButton;
 
             private const int transition_time = 500;
 
@@ -783,7 +887,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Origin = Anchor.Centre,
                         Font = new FontUsage(size: 50)
                     },
-                    popButton = new Button
+                    popButton = new BasicButton
                     {
                         Text = @"Pop",
                         RelativeSizeAxes = Axes.Both,
@@ -794,7 +898,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Alpha = 0,
                         Action = this.Exit
                     },
-                    new Button
+                    new BasicButton
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,
@@ -816,6 +920,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 BorderColour = Color4.Red;
                 Masking = true;
             }
+
+            public override string ToString() => Name;
 
             protected override void OnFocus(FocusEvent e)
             {

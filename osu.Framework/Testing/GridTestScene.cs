@@ -37,9 +37,12 @@ namespace osu.Framework.Testing
             Add(testContainer = new GridContainer { RelativeSizeAxes = Axes.Both });
 
             cells = new Drawable[rows, cols];
+
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                cells[r, c] = new Container { RelativeSizeAxes = Axes.Both };
+            {
+                for (int c = 0; c < cols; c++)
+                    cells[r, c] = new Container { RelativeSizeAxes = Axes.Both };
+            }
 
             testContainer.Content = cells.ToJagged();
         }

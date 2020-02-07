@@ -1,0 +1,13 @@
+{
+  "solution": {
+    "path": "osu-framework.sln",
+    "projects": [
+      "SampleGame.Desktop\\SampleGame.Desktop.csproj",
+      "SampleGame\\SampleGame.csproj",
+      "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
+      "osu.Framework.Tests\\osu.Framework.Tests.csproj",
+      "osu.Framework\\osu.Framework.csproj",
+      "osu.Framework.Benchmarks\\osu.Framework.Benchmarks.csproj"
+    ]
+  }
+}

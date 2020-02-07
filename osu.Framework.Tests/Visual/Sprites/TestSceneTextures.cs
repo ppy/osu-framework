@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -54,7 +55,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 avatar2.Dispose();
             });
 
-            AddUntilStep("gl textures disposed", () => texture.ReferenceCount == 0);
+            assertAvailability(() => texture, false);
         }
 
         /// <summary>
@@ -68,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("get texture", () => texture = largeStore.Get("https://a.ppy.sh/3"));
             AddStep("dispose texture", () => texture.Dispose());
 
-            AddAssert("texture is not available", () => !texture.Available);
+            assertAvailability(() => texture, false);
         }
 
         /// <summary>
@@ -85,6 +86,9 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("texture is still available", () => texture.Available);
         }
 
+        private void assertAvailability(Func<Texture> textureFunc, bool available)
+            => AddAssert($"texture available = {available}", () => ((TextureWithRefCount)textureFunc()).IsDisposed == !available);
+
         private Avatar addSprite(string url)
         {
             var avatar = new Avatar(url);
@@ -92,6 +96,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             return avatar;
         }
 
+        [LongRunningLoad]
         private class Avatar : Sprite
         {
             private readonly string url;

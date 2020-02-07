@@ -59,6 +59,14 @@ namespace osu.Framework.Threading
         protected override void PerformExit()
         {
             base.PerformExit();
+
+            lock (managers)
+            {
+                foreach (var manager in managers)
+                    manager.Dispose();
+                managers.Clear();
+            }
+
             ManagedBass.Bass.Free();
         }
     }

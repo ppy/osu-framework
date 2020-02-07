@@ -5,9 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Allocation
@@ -155,14 +153,6 @@ namespace osu.Framework.Allocation
             : base(modifier, member, $"A property with an attached {nameof(ResolvedAttribute)} must have a private setter.")
         {
         }
-    }
-
-    /// <summary>
-    /// Occurs when dependencies dependency injection into a <see cref="Drawable"/> fails.
-    /// </summary>
-    internal class DependencyInjectionException : Exception
-    {
-        public ExceptionDispatchInfo DispatchInfo;
     }
 
     internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);

@@ -119,14 +119,14 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             public new Vector2 RelativeChildSize
             {
-                protected get { return innerContainer.RelativeChildSize; }
-                set { innerContainer.RelativeChildSize = value; }
+                protected get => innerContainer.RelativeChildSize;
+                set => innerContainer.RelativeChildSize = value;
             }
 
             public new Vector2 RelativeChildOffset
             {
-                protected get { return innerContainer.RelativeChildOffset; }
-                set { innerContainer.RelativeChildOffset = value; }
+                protected get => innerContainer.RelativeChildOffset;
+                set => innerContainer.RelativeChildOffset = value;
             }
 
             private readonly Container innerContainer;

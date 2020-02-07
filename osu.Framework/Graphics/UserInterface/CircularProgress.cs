@@ -7,27 +7,17 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
-        private readonly Bindable<double> current = new Bindable<double>();
-
-        private Bindable<double> currentBound;
+        private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
         public Bindable<double> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         public CircularProgress()
@@ -91,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
-                innerRadius = MathHelper.Clamp(value, 0, 1);
+                innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }

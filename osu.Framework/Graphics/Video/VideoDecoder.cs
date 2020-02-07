@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream.CanSeek;
+        public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Video
         public IBindable<DecoderState> State => bindableState;
 
         private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+
         private volatile DecoderState volatileState;
 
         private DecoderState state
@@ -69,9 +70,9 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (bindableState.Value != value)
-                    scheduler?.AddOnce(() => bindableState.Value = value);
+                if (volatileState == value) return;
 
+                scheduler?.Add(() => bindableState.Value = value);
                 volatileState = value;
             }
         }
@@ -145,7 +146,7 @@ namespace osu.Framework.Graphics.Video
             state = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
-            availableTextures = new ConcurrentQueue<Texture>();
+            availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
         }
 
@@ -302,11 +303,11 @@ namespace osu.Framework.Graphics.Video
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             if (openInputResult < 0)
-                throw new Exception($"Error {openInputResult} opening file or stream.");
+                throw new InvalidOperationException($"Error {openInputResult} opening file or stream.");
 
             int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
             if (findStreamInfoResult < 0)
-                throw new Exception($"Error {findStreamInfoResult} finding stream info.");
+                throw new InvalidOperationException($"Error {findStreamInfoResult} finding stream info.");
 
             var nStreams = formatContext->nb_streams;
 
@@ -321,11 +322,11 @@ namespace osu.Framework.Graphics.Video
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
                     if (codecPtr == null)
-                        throw new Exception($"Couldn't find codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Couldn't find codec with id: {codecParams.codec_id}");
 
                     int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
                     if (openCodecResult < 0)
-                        throw new Exception($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
 
                     frame = ffmpeg.av_frame_alloc();
                     ffmpegFrame = ffmpeg.av_frame_alloc();
@@ -337,7 +338,7 @@ namespace osu.Framework.Graphics.Video
                     var linesizeArr4 = *(int_array4*)&ffmpegFrame->linesize;
                     var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
-                        throw new Exception("Couldn't fill image arrays.");
+                        throw new InvalidOperationException("Couldn't fill image arrays.");
 
                     for (uint j = 0; j < byte_ptrArray4.Size; ++j)
                     {
@@ -375,7 +376,7 @@ namespace osu.Framework.Graphics.Video
                             {
                                 int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
                                 if (sendPacketResult < 0)
-                                    throw new Exception($"Error {sendPacketResult} sending packet.");
+                                    throw new InvalidOperationException($"Error {sendPacketResult} sending packet.");
 
                                 var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
@@ -459,30 +460,61 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        protected virtual FFmpegFuncs CreateFuncs() => new FFmpegFuncs
+        protected virtual FFmpegFuncs CreateFuncs()
         {
-            av_frame_alloc = AGffmpeg.av_frame_alloc,
-            av_frame_free = AGffmpeg.av_frame_free,
-            av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
-            av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
-            av_malloc = AGffmpeg.av_malloc,
-            av_packet_alloc = AGffmpeg.av_packet_alloc,
-            av_packet_free = AGffmpeg.av_packet_free,
-            av_read_frame = AGffmpeg.av_read_frame,
-            av_seek_frame = AGffmpeg.av_seek_frame,
-            avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
-            avcodec_open2 = AGffmpeg.avcodec_open2,
-            avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
-            avcodec_send_packet = AGffmpeg.avcodec_send_packet,
-            avformat_alloc_context = AGffmpeg.avformat_alloc_context,
-            avformat_close_input = AGffmpeg.avformat_close_input,
-            avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
-            avformat_open_input = AGffmpeg.avformat_open_input,
-            avio_alloc_context = AGffmpeg.avio_alloc_context,
-            sws_freeContext = AGffmpeg.sws_freeContext,
-            sws_getContext = AGffmpeg.sws_getContext,
-            sws_scale = AGffmpeg.sws_scale
-        };
+            // other frameworks should handle native libraries themselves
+#if NETCOREAPP
+            AGffmpeg.GetOrLoadLibrary = name =>
+            {
+                int version = AGffmpeg.LibraryVersionMap[name];
+
+                string libraryName = null;
+
+                // "lib" prefix and extensions are resolved by .net core
+                switch (RuntimeInfo.OS)
+                {
+                    case RuntimeInfo.Platform.MacOsx:
+                        libraryName = $"{name}.{version}";
+                        break;
+
+                    case RuntimeInfo.Platform.Windows:
+                        libraryName = $"{name}-{version}";
+                        break;
+
+                    case RuntimeInfo.Platform.Linux:
+                        libraryName = name;
+                        break;
+                }
+
+                return NativeLibrary.Load(libraryName, System.Reflection.Assembly.GetEntryAssembly(), DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.SafeDirectories);
+            };
+#endif
+
+            return new FFmpegFuncs
+            {
+                av_frame_alloc = AGffmpeg.av_frame_alloc,
+                av_frame_free = AGffmpeg.av_frame_free,
+                av_image_fill_arrays = AGffmpeg.av_image_fill_arrays,
+                av_image_get_buffer_size = AGffmpeg.av_image_get_buffer_size,
+                av_malloc = AGffmpeg.av_malloc,
+                av_packet_alloc = AGffmpeg.av_packet_alloc,
+                av_packet_free = AGffmpeg.av_packet_free,
+                av_read_frame = AGffmpeg.av_read_frame,
+                av_seek_frame = AGffmpeg.av_seek_frame,
+                avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
+                avcodec_open2 = AGffmpeg.avcodec_open2,
+                avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
+                avcodec_send_packet = AGffmpeg.avcodec_send_packet,
+                avformat_alloc_context = AGffmpeg.avformat_alloc_context,
+                avformat_close_input = AGffmpeg.avformat_close_input,
+                avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
+                avformat_open_input = AGffmpeg.avformat_open_input,
+                avio_alloc_context = AGffmpeg.avio_alloc_context,
+                sws_freeContext = AGffmpeg.sws_freeContext,
+                sws_getContext = AGffmpeg.sws_getContext,
+                sws_scale = AGffmpeg.sws_scale
+            };
+        }
 
         #region Disposal
 
@@ -504,12 +536,7 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            videoStream.Dispose();
-            videoStream = null;
-
-            while (decoderCommands.TryDequeue(out var _))
-            {
-            }
+            decoderCommands.Clear();
 
             StopDecoding(true);
 
@@ -522,6 +549,9 @@ namespace osu.Framework.Graphics.Video
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
+
+            videoStream.Dispose();
+            videoStream = null;
 
             // gets freed by libavformat when closing the input
             contextBuffer = null;
@@ -546,6 +576,9 @@ namespace osu.Framework.Graphics.Video
 
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();
+
+            while (availableTextures.TryDequeue(out var t))
+                t.Dispose();
 
             handle.Dispose();
         }

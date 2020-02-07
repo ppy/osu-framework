@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Physics
 {
@@ -152,13 +153,13 @@ namespace osu.Framework.Physics
                 {
                     Vector2 a = corners[i];
 
-                    float startTheta = (i - 1) * (float)Math.PI / 2;
+                    float startTheta = (i - 1) * MathF.PI / 2;
 
                     for (int j = 0; j < amount_corner_steps; ++j)
                     {
-                        float theta = startTheta + j * (float)Math.PI / (2 * (amount_corner_steps - 1));
+                        float theta = startTheta + j * MathF.PI / (2 * (amount_corner_steps - 1));
 
-                        Vector2 normal = new Vector2((float)Math.Sin(theta), (float)Math.Cos(theta));
+                        Vector2 normal = new Vector2(MathF.Sin(theta), MathF.Cos(theta));
                         Vertices.Add(a + offsets[i] + normal * cornerRadius);
                         Normals.Add(normal);
                     }
@@ -255,7 +256,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
             Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
-            RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
+            RotationRadians = MathUtils.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
             UpdateVertices();
@@ -268,7 +269,7 @@ namespace osu.Framework.Physics
         {
             Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
             Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
-            Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
+            Rotation = MathUtils.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 
         /// <summary>

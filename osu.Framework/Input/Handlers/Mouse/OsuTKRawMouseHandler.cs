@@ -18,9 +18,7 @@ namespace osu.Framework.Input.Handlers.Mouse
     {
         private ScheduledDelegate scheduled;
 
-        private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
-
-        public BindableDouble Sensitivity => sensitivity;
+        public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         private readonly Bindable<ConfineMouseMode> confineMode = new Bindable<ConfineMouseMode>();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
@@ -126,8 +124,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (mapAbsoluteInputToWindow.Value)
                 {
                     // map directly to local window
-                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;
-                    currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution
+                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;
+                    currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution
                                         * Host.Window.Height;
                 }
                 else
@@ -144,8 +142,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     var clientPos = Host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
 
                     // apply sensitivity from window's centre
-                    currentPosition.X = (float)((clientPos.X - Host.Window.Width / 2f) * sensitivity.Value + Host.Window.Width / 2f);
-                    currentPosition.Y = (float)((clientPos.Y - Host.Window.Height / 2f) * sensitivity.Value + Host.Window.Height / 2f);
+                    currentPosition.X = (float)((clientPos.X - Host.Window.Width / 2f) * Sensitivity.Value + Host.Window.Width / 2f);
+                    currentPosition.Y = (float)((clientPos.Y - Host.Window.Height / 2f) * Sensitivity.Value + Host.Window.Height / 2f);
                 }
             }
             else
@@ -160,7 +158,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
+                    currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)Sensitivity.Value;
                 }
             }
 

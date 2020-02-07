@@ -205,8 +205,8 @@ namespace osu.Framework.Tests.Bindables
 
             // value propagates everywhere
             Assert.AreEqual(original.Value, 2);
-            Assert.AreEqual(original.Value, leased.Value);
             Assert.AreEqual(original.Value, copy.Value);
+            Assert.AreEqual(original.Value, leased.Value);
 
             // bound copies of the lease still allow setting value / disabled.
             var leasedCopy = leased.GetBoundCopy();
@@ -214,8 +214,9 @@ namespace osu.Framework.Tests.Bindables
             leasedCopy.Value = 3;
 
             Assert.AreEqual(original.Value, 3);
-            Assert.AreEqual(original.Value, leased.Value);
             Assert.AreEqual(original.Value, copy.Value);
+            Assert.AreEqual(original.Value, leased.Value);
+            Assert.AreEqual(original.Value, leasedCopy.Value);
 
             leasedCopy.Disabled = false;
             leasedCopy.Disabled = true;
@@ -262,6 +263,23 @@ namespace osu.Framework.Tests.Bindables
             var leased = original.BeginLease(true);
             leased.UnbindAll();
             leased.UnbindAll();
+        }
+
+        [Test]
+        public void TestLeasedBoundToMultiple()
+        {
+            var leased = original.BeginLease(false);
+
+            var another = new Bindable<int>();
+            leased.BindTo(another);
+            another.Value = 3;
+            Assert.AreEqual(another.Value, 3);
+            Assert.AreEqual(another.Value, leased.Value);
+
+            leased.Value = 4;
+            Assert.AreEqual(original.Value, 4);
+            Assert.AreEqual(another.Value, 4);
+            Assert.AreEqual(original.Value, leased.Value);
         }
     }
 }

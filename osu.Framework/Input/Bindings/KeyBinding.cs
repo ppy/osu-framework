@@ -51,7 +51,7 @@ namespace osu.Framework.Input.Bindings
         /// Get the action associated with this binding, cast to the required enum type.
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
-        /// <returns>A cast <see cref="T"/> representation of <see cref="Action"/>.</returns>
+        /// <returns>A cast <typeparamref name="T"/> representation of <see cref="Action"/>.</returns>
         public virtual T GetAction<T>() => (T)Action;
 
         public override string ToString() => $"{KeyCombination}=>{Action}";

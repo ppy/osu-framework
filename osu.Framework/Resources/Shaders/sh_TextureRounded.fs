@@ -8,6 +8,7 @@ varying mediump vec2 v_BlendRange;
 
 uniform lowp sampler2D m_Sampler;
 uniform highp float g_CornerRadius;
+uniform highp float g_CornerExponent;
 uniform highp vec4 g_MaskingRect;
 uniform highp float g_BorderThickness;
 uniform lowp vec4 g_BorderColour;
@@ -40,7 +41,10 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 		return maxDist;
 	// Outside of the shrunk rectangle
 	else
-		return length(max(vec2(0.0), distanceFromShrunkRect));
+	{
+		distanceFromShrunkRect = max(vec2(0.0), distanceFromShrunkRect);
+		return pow(pow(distanceFromShrunkRect.x, g_CornerExponent) + pow(distanceFromShrunkRect.y, g_CornerExponent), 1.0 / g_CornerExponent);
+	}
 }
 
 highp float distanceFromDrawingRect()

@@ -152,6 +152,8 @@ namespace osu.Framework.Tests.Containers
 
             Assert.That(container, Has.Count.Zero);
             Assert.That(unbound, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [TestCase(false)]
@@ -182,6 +184,8 @@ namespace osu.Framework.Tests.Containers
             }
 
             Assert.That(disposed, Is.EqualTo(shouldDispose));
+
+            GC.KeepAlive(drawableA);
         }
 
         [Test]
@@ -236,6 +240,65 @@ namespace osu.Framework.Tests.Containers
 
                 HasCleared = true;
             }
+        }
+
+        [Test]
+        public void TestAliveChangesDuringExpiry()
+        {
+            TestContainer container = null;
+
+            int count = 0;
+
+            void checkCount() => count = container.AliveInternalChildren.Count;
+
+            AddStep("create container", () => Child = container = new TestContainer());
+
+            AddStep("perform test", () =>
+            {
+                container.Add(new Box());
+                container.Add(new Box());
+                container.ScheduleAfterChildren(checkCount);
+            });
+
+            AddAssert("correct count", () => count == 2);
+
+            AddStep("perform test", () =>
+            {
+                container.First().Expire();
+                container.Add(new Box());
+                container.ScheduleAfterChildren(checkCount);
+            });
+
+            AddAssert("correct count", () => count == 2);
+        }
+
+        [Test]
+        public void TestAliveChildrenContainsOnlyAliveChildren()
+        {
+            Container container = null;
+            Drawable aliveChild = null;
+            Drawable nonAliveChild = null;
+
+            AddStep("create container", () =>
+            {
+                Child = container = new Container
+                {
+                    Children = new[]
+                    {
+                        aliveChild = new Box(),
+                        nonAliveChild = new Box { LifetimeStart = double.MaxValue }
+                    }
+                };
+            });
+
+            AddAssert("1 alive child", () => container.AliveChildren.Count == 1);
+            AddAssert("alive child contained", () => container.AliveChildren.Contains(aliveChild));
+            AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
+        }
+
+        private class TestContainer : Container
+        {
+            public new void ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
         }
     }
 }

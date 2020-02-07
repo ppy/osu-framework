@@ -1,0 +1,13 @@
+{
+  "solution": {
+    "path": "osu-framework.sln",
+    "projects": [
+      "SampleGame.Android\\SampleGame.Android.csproj",
+      "SampleGame\\SampleGame.csproj",
+      "osu.Framework.Android\\osu.Framework.Android.csproj",
+      "osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
+      "osu.Framework.Tests.Android\\osu.Framework.Tests.Android.csproj",
+      "osu.Framework\\osu.Framework.csproj"
+    ]
+  }
+}

@@ -40,9 +40,8 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
             ChildrenEnumerable = Enumerable.Empty<Drawable>();
         });
 
