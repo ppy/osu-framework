@@ -280,6 +280,9 @@ namespace osu.Framework.Audio
             // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
             Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
 
+            // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
+            Bass.Configure((ManagedBass.Configuration)68, 1);
+
             return Bass.Init(device);
         }
 
