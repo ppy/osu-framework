@@ -19,88 +19,88 @@ namespace osu.Framework.Android.Graphics.Video
         private const string lib_avfilter = "libavfilter.so";
 
         [DllImport(lib_avutil)]
-        public static extern AVFrame* av_frame_alloc();
+        private static extern AVFrame* av_frame_alloc();
 
         [DllImport(lib_avutil)]
-        public static extern void av_frame_free(AVFrame** frame);
+        private static extern void av_frame_free(AVFrame** frame);
 
         [DllImport(lib_avutil)]
-        public static extern void av_frame_unref(AVFrame* frame);
+        private static extern void av_frame_unref(AVFrame* frame);
 
         [DllImport(lib_avutil)]
-        public static extern byte* av_strdup(string s);
+        private static extern byte* av_strdup(string s);
 
         [DllImport(lib_avutil)]
-        public static extern void* av_malloc(ulong size);
+        private static extern void* av_malloc(ulong size);
 
         [DllImport(lib_avcodec)]
-        public static extern AVPacket* av_packet_alloc();
+        private static extern AVPacket* av_packet_alloc();
 
         [DllImport(lib_avcodec)]
-        public static extern void av_packet_unref(AVPacket* pkt);
+        private static extern void av_packet_unref(AVPacket* pkt);
 
         [DllImport(lib_avcodec)]
-        public static extern void av_packet_free(AVPacket** pkt);
+        private static extern void av_packet_free(AVPacket** pkt);
 
         [DllImport(lib_avformat)]
-        public static extern int av_read_frame(AVFormatContext* s, AVPacket* pkt);
+        private static extern int av_read_frame(AVFormatContext* s, AVPacket* pkt);
 
         [DllImport(lib_avformat)]
-        public static extern int av_seek_frame(AVFormatContext* s, int stream_index, long timestamp, int flags);
+        private static extern int av_seek_frame(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
         [DllImport(lib_avcodec)]
-        public static extern AVCodec* avcodec_find_decoder(AVCodecID id);
+        private static extern AVCodec* avcodec_find_decoder(AVCodecID id);
 
         [DllImport(lib_avcodec)]
-        public static extern int avcodec_open2(AVCodecContext* avctx, AVCodec* codec, AVDictionary** options);
+        private static extern int avcodec_open2(AVCodecContext* avctx, AVCodec* codec, AVDictionary** options);
 
         [DllImport(lib_avcodec)]
-        public static extern int avcodec_receive_frame(AVCodecContext* avctx, AVFrame* frame);
+        private static extern int avcodec_receive_frame(AVCodecContext* avctx, AVFrame* frame);
 
         [DllImport(lib_avcodec)]
-        public static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
+        private static extern int avcodec_send_packet(AVCodecContext* avctx, AVPacket* avpkt);
 
         [DllImport(lib_avformat)]
-        public static extern AVFormatContext* avformat_alloc_context();
+        private static extern AVFormatContext* avformat_alloc_context();
 
         [DllImport(lib_avformat)]
-        public static extern void avformat_close_input(AVFormatContext** s);
+        private static extern void avformat_close_input(AVFormatContext** s);
 
         [DllImport(lib_avformat)]
-        public static extern int avformat_find_stream_info(AVFormatContext* ic, AVDictionary** options);
+        private static extern int avformat_find_stream_info(AVFormatContext* ic, AVDictionary** options);
 
         [DllImport(lib_avformat)]
-        public static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
+        private static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
 
         [DllImport(lib_avformat)]
-        public static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
+        private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
         [DllImport(lib_avfilter)]
-        public static extern AVFilter* avfilter_get_by_name(string name);
+        private static extern AVFilter* avfilter_get_by_name(string name);
 
         [DllImport(lib_avfilter)]
-        public static extern AVFilterInOut* avfilter_inout_alloc();
+        private static extern AVFilterInOut* avfilter_inout_alloc();
 
         [DllImport(lib_avfilter)]
-        public static extern void avfilter_graph_free(AVFilterGraph** graph);
+        private static extern void avfilter_graph_free(AVFilterGraph** graph);
 
         [DllImport(lib_avfilter)]
-        public static extern int avfilter_graph_create_filter(AVFilterContext** filt_ctx, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
+        private static extern int avfilter_graph_create_filter(AVFilterContext** filt_ctx, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
 
         [DllImport(lib_avfilter)]
-        public static extern AVFilterGraph* avfilter_graph_alloc();
+        private static extern AVFilterGraph* avfilter_graph_alloc();
 
         [DllImport(lib_avfilter)]
-        public static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
+        private static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
 
         [DllImport(lib_avfilter)]
-        public static extern int avfilter_graph_config(AVFilterGraph* graphctx, void* log_ctx);
+        private static extern int avfilter_graph_config(AVFilterGraph* graphctx, void* log_ctx);
 
         [DllImport(lib_avfilter)]
-        public static extern int av_buffersrc_add_frame_flags(AVFilterContext* buffer_src, AVFrame* frame, int flags);
+        private static extern int av_buffersrc_add_frame_flags(AVFilterContext* buffer_src, AVFrame* frame, int flags);
 
         [DllImport(lib_avfilter)]
-        public static extern int av_buffersink_get_frame(AVFilterContext* ctx, AVFrame* frame);
+        private static extern int av_buffersink_get_frame(AVFilterContext* ctx, AVFrame* frame);
 
         public AndroidVideoDecoder(string filename, Scheduler scheduler)
             : base(filename, scheduler)

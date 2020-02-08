@@ -3,11 +3,11 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
-using osu.Framework.Threading;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollbarVisible = value;
-                updateScrollbar();
+                scrollbarCache.Invalidate();
             }
         }
 
@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
         /// <returns></returns>
-        protected float Clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
+        protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, scrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
 
@@ -147,7 +147,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
-        public bool IsHandlingKeyboardScrolling => IsHovered || ReceivePositionalInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
+        public bool IsHandlingKeyboardScrolling
+        {
+            get
+            {
+                if (IsHovered)
+                    return true;
+
+                InputManager inputManager = GetContainingInputManager();
+                return inputManager != null && ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
+            }
+        }
 
         /// <summary>
         /// The direction in which scrolling is supported.
@@ -180,6 +190,7 @@ namespace osu.Framework.Graphics.Containers
                 Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Hide();
             Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
@@ -195,18 +206,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 lastAvailableContent = availableContent;
                 lastUpdateDisplayableContent = displayableContent;
-                updateScrollbar();
+                scrollbarCache.Invalidate();
             }
         }
 
-        private void updateScrollbar()
-        {
-            var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
-            if (size > 0)
-                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.MinimumDimSize / size, 1), 200, Easing.OutQuint);
-            Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
-            updatePadding();
-        }
+        private readonly Cached scrollbarCache = new Cached();
 
         private void updatePadding()
         {
@@ -290,7 +294,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool DragBlocksClick => dragBlocksClick;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -320,10 +324,9 @@ namespace osu.Framework.Graphics.Containers
             dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
             offset(scrollOffset, false);
-            return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -332,7 +335,7 @@ namespace osu.Framework.Graphics.Containers
             IsDragging = false;
 
             if (averageDragTime <= 0.0)
-                return true;
+                return;
 
             double velocity = averageDragDelta / averageDragTime;
 
@@ -347,8 +350,6 @@ namespace osu.Framework.Graphics.Containers
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
             offset((float)distance, true, DistanceDecayDrag);
-
-            return true;
         }
 
         protected override bool OnScroll(ScrollEvent e)
@@ -508,6 +509,17 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
+            if (!scrollbarCache.IsValid)
+            {
+                var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                if (size > 0)
+                    Scrollbar.ResizeTo(Math.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
+                Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
+                updatePadding();
+
+                scrollbarCache.Validate();
+            }
+
             if (ScrollDirection == Direction.Horizontal)
             {
                 Scrollbar.X = toScrollbarPosition(Current);
@@ -591,10 +603,9 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
-                return true;
             }
         }
 
@@ -618,8 +629,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
-
-        ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
+        public void OnReleased(PlatformAction action)
+        {
+        }
     }
 }

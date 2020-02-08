@@ -161,7 +161,7 @@ namespace osu.Framework.Testing
 #if RELEASE
                 "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.CSharp7_3);
+            }, languageVersion: LanguageVersion.Latest);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -205,7 +205,7 @@ namespace osu.Framework.Testing
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
 
-                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
+                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
                     }
                 }
             }

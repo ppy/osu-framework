@@ -61,10 +61,9 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            public bool OnReleased(TestAction action)
+            public void OnReleased(TestAction action)
             {
                 Released?.Invoke(action);
-                return true;
             }
         }
 

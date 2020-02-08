@@ -395,6 +395,6 @@ namespace osu.Framework.Graphics.Containers
             Direction = direction;
         }
 
-        public override string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
+        public override readonly string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
     }
 }

@@ -42,16 +42,6 @@ namespace osu.Framework.Screens
         private readonly bool suspendImmediately;
 
         /// <summary>
-        /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
-        /// </summary>
-        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
-        public ScreenStack(bool suspendImmediately = true)
-        {
-            this.suspendImmediately = suspendImmediately;
-            ScreenExited += onExited;
-        }
-
-        /// <summary>
         /// Creates a new <see cref="ScreenStack"/>, and immediately pushes a <see cref="IScreen"/>.
         /// </summary>
         /// <param name="baseScreen">The initial <see cref="IScreen"/> to be loaded</param>
@@ -63,8 +53,23 @@ namespace osu.Framework.Screens
         }
 
         /// <summary>
+        /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
+        /// </summary>
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(bool suspendImmediately = true)
+        {
+            RelativeSizeAxes = Axes.Both;
+
+            this.suspendImmediately = suspendImmediately;
+            ScreenExited += onExited;
+        }
+
+        /// <summary>
         /// Pushes a <see cref="IScreen"/> to this <see cref="ScreenStack"/>.
         /// </summary>
+        /// <remarks>
+        /// An <see cref="IScreen"/> cannot be pushed multiple times.
+        /// </remarks>
         /// <param name="screen">The <see cref="IScreen"/> to push.</param>
         public void Push(IScreen screen)
         {
@@ -101,6 +106,12 @@ namespace osu.Framework.Screens
 
             var newScreenDrawable = newScreen.AsDrawable();
 
+            if (newScreenDrawable.IsLoaded)
+                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
+
+            // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
+            newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
+
             if (source == null)
             {
                 // this is the first screen to be loaded.
@@ -132,7 +143,6 @@ namespace osu.Framework.Screens
                 suspend(parent, child);
 
             AddInternal(child.AsDrawable());
-            child.OnEntering(parent);
         }
 
         /// <summary>
@@ -222,6 +232,9 @@ namespace osu.Framework.Screens
         }
 
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
+
+        internal IScreen GetParentScreen(IScreen source)
+            => stack.Reverse().TakeWhile(s => s != source).LastOrDefault();
 
         internal IScreen GetChildScreen(IScreen source)
             => stack.TakeWhile(s => s != source).LastOrDefault();

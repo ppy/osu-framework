@@ -155,7 +155,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     box.OnUpdate += delegate
                     {
                         box.Rotation += 0.05f;
-                        box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01);
+                        box.CornerRadius = 100 + 100 * MathF.Sin(box.Rotation * 0.01f);
                     };
                     break;
                 }

@@ -24,7 +24,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -152,9 +152,9 @@ namespace osu.Framework.Graphics.Containers
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongLoading) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
-            return Task.Factory.StartNew(() => loadComponents(components, deps, true), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
@@ -199,13 +199,19 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            loadComponents(components, Dependencies, false);
+            loadComponents(ref components, Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isAsyncContext) where TLoadable : Drawable
+        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default) where TLoadable : Drawable
         {
             foreach (var c in components)
-                c.Load(Clock, dependencies, isAsyncContext);
+            {
+                if (cancellation.IsCancellationRequested)
+                    return;
+
+                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components = components.Except(c.Yield());
+            }
         }
 
         [BackgroundDependencyLoader(true)]
@@ -1340,11 +1346,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float cornerExponent = 2.5f;
+        private float cornerExponent = 2f;
 
         /// <summary>
-        /// Determines how gentle the curve of the corner straightens. A value of 2 results in
-        /// circular arcs, a value of 2.5 (default) results in something closer to apple's "continuous corner".
+        /// Determines how gentle the curve of the corner straightens. A value of 2 (default) results in
+        /// circular arcs, a value of 2.5 results in something closer to apple's "continuous corner".
         /// Values between 2 and 10 result in varying degrees of "continuousness", where larger values are smoother.
         /// Values between 1 and 2 result in a "flatter" appearance than round corners.
         /// Values between 0 and 1 result in a concave, round corner as opposed to a convex round corner,
@@ -1455,8 +1461,8 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
                 Vector2 inflation = new Vector2(
-                    (float)Math.Sqrt(u.X * u.X + v.X * v.X),
-                    (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y)
+                    MathF.Sqrt(u.X * u.X + v.X * v.X),
+                    MathF.Sqrt(u.Y * u.Y + v.Y * v.Y)
                 );
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);

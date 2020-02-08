@@ -65,7 +65,7 @@ namespace osu.Framework.Android
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
-                throw new Exception("Can't load egl, aborting", e);
+                throw new InvalidOperationException("Can't load egl, aborting", e);
             }
         }
 
@@ -114,7 +114,18 @@ namespace osu.Framework.Android
         public void RenderGame()
         {
             Host = new AndroidGameHost(this);
+            Host.ExceptionThrown += handleException;
             Host.Run(game);
+        }
+
+        private bool handleException(Exception ex)
+        {
+            // suppress exceptions related to MobileAuthenticatedStream disposal
+            // (see: https://github.com/ppy/osu/issues/6264 and linked related mono/xamarin issues)
+            // to be removed when upstream fixes come in
+            return ex is AggregateException ae
+                && ae.InnerException is ObjectDisposedException ode
+                && ode.ObjectName == "MobileAuthenticatedStream";
         }
 
         public override bool OnCheckIsTextEditor() => true;

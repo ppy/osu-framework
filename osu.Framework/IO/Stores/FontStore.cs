@@ -61,8 +61,8 @@ namespace osu.Framework.IO.Stores
 
                 case GlyphStore gs:
 
-                    if (gs.CacheStorage == null)
-                        gs.CacheStorage = cacheStorage;
+                    if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
+                        raw.CacheStorage = cacheStorage;
 
                     glyphStores.Add(gs);
                     queueLoad(gs);
@@ -197,6 +197,8 @@ namespace osu.Framework.IO.Stores
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            nestedFontStores.ForEach(f => f.Dispose());
             glyphStores.ForEach(g => g.Dispose());
         }
     }

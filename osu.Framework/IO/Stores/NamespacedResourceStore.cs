@@ -7,6 +7,7 @@ using System.Linq;
 namespace osu.Framework.IO.Stores
 {
     public class NamespacedResourceStore<T> : ResourceStore<T>
+        where T : class
     {
         public string Namespace;
 

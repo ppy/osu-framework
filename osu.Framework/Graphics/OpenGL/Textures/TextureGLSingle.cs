@@ -24,13 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static readonly Action<TexturedVertex2D> default_quad_action;
-
-        static TextureGLSingle()
-        {
-            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(100, 1000);
-            default_quad_action = quadBatch.AddAction;
-        }
+        private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 

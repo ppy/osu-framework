@@ -10,6 +10,7 @@ namespace osu.Framework.Allocation
     /// Wrapper on <see cref="GCHandle" /> that supports the <see cref="IDisposable" /> pattern.
     /// </summary>
     public struct ObjectHandle<T> : IDisposable
+        where T : class
     {
         /// <summary>
         /// The pointer from the <see cref="GCHandle" />, if it is allocated.  Otherwise <see cref="IntPtr.Zero" />.

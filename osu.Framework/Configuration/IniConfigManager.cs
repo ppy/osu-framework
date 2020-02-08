@@ -10,8 +10,8 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
-    public class IniConfigManager<T> : ConfigManager<T>
-        where T : struct
+    public class IniConfigManager<TLookup> : ConfigManager<TLookup>
+        where TLookup : struct, Enum
     {
         /// <summary>
         /// The backing file used to store the config. Null means no persistent storage.
@@ -20,7 +20,7 @@ namespace osu.Framework.Configuration
 
         private readonly Storage storage;
 
-        public IniConfigManager(Storage storage, IDictionary<T, object> defaultOverrides = null)
+        public IniConfigManager(Storage storage, IDictionary<TLookup, object> defaultOverrides = null)
             : base(defaultOverrides)
         {
             this.storage = storage;
@@ -51,7 +51,7 @@ namespace osu.Framework.Configuration
                         string key = line.Substring(0, equalsIndex).Trim();
                         string val = line.Remove(0, equalsIndex + 1).Trim();
 
-                        if (!Enum.TryParse(key, out T lookup))
+                        if (!Enum.TryParse(key, out TLookup lookup))
                             continue;
 
                         if (ConfigStore.TryGetValue(lookup, out IBindable b))

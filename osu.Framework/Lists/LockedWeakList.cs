@@ -86,9 +86,9 @@ namespace osu.Framework.Lists
 
             public void Reset() => listEnumerator.Reset();
 
-            public T Current => listEnumerator.Current;
+            public readonly T Current => listEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

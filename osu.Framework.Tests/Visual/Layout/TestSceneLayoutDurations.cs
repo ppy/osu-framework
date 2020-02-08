@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;

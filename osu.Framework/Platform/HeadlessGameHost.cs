@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -32,11 +34,21 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        {
+            base.SetupConfig(gameDefaults);
+            Config.Set(FrameworkSetting.AudioDevice, "No sound");
+        }
+
         protected override void SetupForRun()
         {
             base.SetupForRun();
 
             if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
+        }
+
+        protected override void SetupToolkit()
+        {
         }
 
         protected override void UpdateInitialize()
@@ -59,7 +71,7 @@ namespace osu.Framework.Platform
             base.UpdateFrame();
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => Array.Empty<InputHandler>();
 
         private class FastClock : IClock
         {

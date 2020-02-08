@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -55,7 +54,7 @@ namespace osu.Framework.Platform.Windows
                 {
                     if (active)
                     {
-                        canAdjust &= 0 == timeBeginPeriod(MathHelper.Clamp(period, MinimumPeriod, MaximumPeriod));
+                        canAdjust &= 0 == timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod));
                     }
                     else
                     {

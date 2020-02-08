@@ -14,6 +14,7 @@ using osu.Framework.Logging;
 namespace osu.Framework.IO.Stores
 {
     public interface IResourceStore<T> : IDisposable
+        where T : class
     {
         /// <summary>
         /// Retrieves an object from the store.
@@ -59,6 +60,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store which the resources was retrieved from.</param>
         /// <param name="resourceName">The resource retrieved.</param>
         internal static void LogIfNonBackgroundThread<T>(this IResourceStore<T> store, string resourceName)
+            where T : class
         {
             if (!DebugUtils.LogPerformanceIssues)
                 return;

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
@@ -324,7 +324,7 @@ namespace osu.Framework.Graphics.Performance
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             switch (e.Key)
             {
@@ -337,7 +337,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)

@@ -497,9 +497,9 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items, null);
+            => addRange(items as ICollection<T> ?? items.ToArray(), null);
 
-        private void addRange(IEnumerable<T> items, BindableList<T> caller)
+        private void addRange(ICollection<T> items, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -533,6 +533,15 @@ namespace osu.Framework.Bindables
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
             BindTo(tThem);
+        }
+
+        /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public IBindableList<T> BindTarget
+        {
+            set => ((IBindableList<T>)this).BindTo(value);
         }
 
         /// <summary>

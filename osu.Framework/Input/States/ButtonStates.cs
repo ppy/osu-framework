@@ -74,7 +74,7 @@ namespace osu.Framework.Input.States
         // for collection initializer
         public void Add(TButton button) => SetPressed(button, true);
 
-        public struct ButtonStateDifference
+        public readonly struct ButtonStateDifference
         {
             public readonly IEnumerable<TButton> Released;
             public readonly IEnumerable<TButton> Pressed;

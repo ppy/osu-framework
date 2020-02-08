@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -15,17 +17,13 @@ namespace osu.Framework.Tests.Containers
     [HeadlessTest]
     public class TestSceneLoadComponentAsync : FrameworkTestScene
     {
-        private AsyncChildLoadingComposite composite;
-
-        [SetUpSteps]
-        public void SetUpSteps()
-        {
-            AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
-        }
-
         [Test]
         public void TestUnpublishedChildDisposal()
         {
+            AsyncChildLoadingComposite composite = null;
+
+            AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
+
             AddStep("Allow load", () => composite.AllowChildLoad());
 
             AddUntilStep("Wait for child load", () => composite.AsyncChild.LoadState == LoadState.Ready);
@@ -38,6 +36,10 @@ namespace osu.Framework.Tests.Containers
         [Test]
         public void TestUnpublishedChildLoadBlockDisposal()
         {
+            AsyncChildLoadingComposite composite = null;
+
+            AddStep("Add new composite", () => { Child = composite = new AsyncChildLoadingComposite(); });
+
             AddUntilStep("Wait for child load began", () => composite.AsyncChildLoadBegan);
 
             AddStep("Dispose composite", Clear);
@@ -55,6 +57,52 @@ namespace osu.Framework.Tests.Containers
             AddUntilStep("Composite was disposed", () => composite.IsDisposed);
 
             AddUntilStep("Child was disposed", () => composite.AsyncChildDisposed);
+        }
+
+        [Test]
+        public void TestDisposalDuringAsyncLoad()
+        {
+            AsyncChildrenLoadingComposite composite = null;
+
+            AddStep("Add new composite", () => { Child = composite = new AsyncChildrenLoadingComposite(); });
+
+            AddStep("Dispose child 2", () => composite.AsyncChild2.Dispose());
+
+            AddStep("Allow child 1 load", () => composite.AllowChild1Load());
+
+            AddUntilStep("Wait for child load", () => composite.AsyncChild1.LoadState == LoadState.Ready);
+
+            AddUntilStep("Wait for loaded callback", () => composite.LoadedChildren != null);
+
+            AddAssert("Only child1 loaded", () => composite.LoadedChildren.Count() == 1
+                                                  && composite.LoadedChildren.First() == composite.AsyncChild1);
+        }
+
+        private class AsyncChildrenLoadingComposite : CompositeDrawable
+        {
+            public IEnumerable<TestLoadBlockingDrawable> LoadedChildren;
+
+            public TestLoadBlockingDrawable AsyncChild1 { get; } = new TestLoadBlockingDrawable();
+
+            public TestLoadBlockingDrawable AsyncChild2 { get; } = new TestLoadBlockingDrawable();
+
+            public bool AsyncChild1LoadBegan => AsyncChild1.LoadState > LoadState.NotLoaded;
+
+            public void AllowChild1Load() => AsyncChild1.AllowLoad.Set();
+
+            public void AllowChild2Load() => AsyncChild2.AllowLoad.Set();
+
+            public new bool IsDisposed => base.IsDisposed;
+
+            protected override void LoadComplete()
+            {
+                // load but never add to hierarchy
+                LoadComponentsAsync(new[] { AsyncChild1, AsyncChild2 }, loadComplete);
+
+                base.LoadComplete();
+            }
+
+            private void loadComplete(IEnumerable<TestLoadBlockingDrawable> loadedChildren) => LoadedChildren = loadedChildren;
         }
 
         private class AsyncChildLoadingComposite : CompositeDrawable

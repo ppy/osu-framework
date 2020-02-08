@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
 
         protected readonly Direction Direction;
 

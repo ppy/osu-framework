@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using FFmpeg.AutoGen;
@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
-        public bool CanSeek => videoStream.CanSeek;
+        public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
         /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.Video
         public IBindable<DecoderState> State => bindableState;
 
         private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
+
         private volatile DecoderState volatileState;
 
         private DecoderState state
@@ -67,9 +68,9 @@ namespace osu.Framework.Graphics.Video
             get => volatileState;
             set
             {
-                if (bindableState.Value != value)
-                    scheduler?.AddOnce(() => bindableState.Value = value);
+                if (volatileState == value) return;
 
+                scheduler?.Add(() => bindableState.Value = value);
                 volatileState = value;
             }
         }
@@ -301,14 +302,14 @@ namespace osu.Framework.Graphics.Video
             buffersrcCtx = tmp;
 
             if (bufferSrcResult < 0)
-                throw new Exception($"Error {bufferSrcResult} creating buffer source");
+                throw new InvalidOperationException($"Error {bufferSrcResult} creating buffer source");
 
             tmp = null;
             var bufferSinkResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersink, "out", null, null, filterGraph);
             buffersinkCtx = tmp;
 
             if (bufferSinkResult < 0)
-                throw new Exception($"Error {bufferSinkResult} creating buffer sink");
+                throw new InvalidOperationException($"Error {bufferSinkResult} creating buffer sink");
 
             outputs->name = ffmpeg.av_strdup("in");
             outputs->filter_ctx = buffersrcCtx;
@@ -323,11 +324,11 @@ namespace osu.Framework.Graphics.Video
             var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, "format=pix_fmts=yuv420p",
                 &inputs, &outputs, null);
             if (filterGraphResult < 0)
-                throw new Exception($"Error {filterGraphResult} opening filter graph");
+                throw new InvalidOperationException($"Error {filterGraphResult} opening filter graph");
 
             var filterConfigResult = ffmpeg.avfilter_graph_config(filterGraph, null);
             if (filterConfigResult < 0)
-                throw new Exception($"Error {filterConfigResult} verifiying filter graph");
+                throw new InvalidOperationException($"Error {filterConfigResult} verifiying filter graph");
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -347,11 +348,11 @@ namespace osu.Framework.Graphics.Video
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             if (openInputResult < 0)
-                throw new Exception($"Error {openInputResult} opening file or stream.");
+                throw new InvalidOperationException($"Error {openInputResult} opening file or stream.");
 
             int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
             if (findStreamInfoResult < 0)
-                throw new Exception($"Error {findStreamInfoResult} finding stream info.");
+                throw new InvalidOperationException($"Error {findStreamInfoResult} finding stream info.");
 
             var nStreams = formatContext->nb_streams;
 
@@ -371,11 +372,11 @@ namespace osu.Framework.Graphics.Video
                     timeBaseInSeconds = stream->time_base.GetValue();
                     var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
                     if (codecPtr == null)
-                        throw new Exception($"Couldn't find codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Couldn't find codec with id: {codecParams.codec_id}");
 
                     int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
                     if (openCodecResult < 0)
-                        throw new Exception($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
 
                     break;
                 }
@@ -429,12 +430,12 @@ namespace osu.Framework.Graphics.Video
                                             {
                                                 var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);
                                                 if (addFrameResult < 0)
-                                                    throw new Exception($"Error {addFrameResult} feeding filtergraph.");
+                                                    throw new InvalidOperationException($"Error {addFrameResult} feeding filtergraph.");
 
                                                 outFrame = ffmpeg.av_frame_alloc();
                                                 var getFrameResult = ffmpeg.av_buffersink_get_frame(buffersinkCtx, outFrame);
                                                 if (getFrameResult < 0)
-                                                    throw new Exception($"Error {getFrameResult} gettting filtered frame.");
+                                                    throw new InvalidOperationException($"Error {getFrameResult} gettting filtered frame.");
 
                                                 ffmpeg.av_frame_free(&frame);
                                             }
@@ -584,12 +585,7 @@ namespace osu.Framework.Graphics.Video
 
             isDisposed = true;
 
-            videoStream.Dispose();
-            videoStream = null;
-
-            while (decoderCommands.TryDequeue(out var _))
-            {
-            }
+            decoderCommands.Clear();
 
             StopDecoding(true);
 
@@ -602,6 +598,9 @@ namespace osu.Framework.Graphics.Video
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
+
+            videoStream.Dispose();
+            videoStream = null;
 
             // gets freed by libavformat when closing the input
             contextBuffer = null;

@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -64,6 +65,15 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.That(bindable1.Value, Is.Not.EqualTo(expected_value));
             Assert.That(bindable2.Value, Is.EqualTo(expected_value));
+        }
+
+        [Test]
+        public void TestUIControlsUsingCurrent()
+        {
+            Assert.That(new BasicCheckbox().Current, Is.TypeOf<BindableWithCurrent<bool>>());
+            Assert.That(new BasicSliderBar<double>().Current, Is.TypeOf<BindableNumberWithCurrent<double>>());
+            Assert.That(new BasicTextBox().Current, Is.TypeOf<BindableWithCurrent<string>>());
+            Assert.That(new BasicDropdown<object>().Current, Is.TypeOf<BindableWithCurrent<object>>());
         }
     }
 }

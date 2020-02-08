@@ -1,12 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
-                innerRadius = MathHelper.Clamp(value, 0, 1);
+                innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }

@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>Tests whether obj is a <see cref="RectangleI"/> with the same location and size of this <see cref="RectangleI"/>.</summary>
         /// <returns>This method returns true if obj is a <see cref="RectangleI"/> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="RectangleI"/>; otherwise, false.</returns>
-        /// <param name="obj">The <see cref="T:System.Object"/> to test. </param>
+        /// <param name="obj">The <see cref="object"/> to test. </param>
         /// <filterpriority>1</filterpriority>
         public override bool Equals(object obj) => obj is RectangleI rec && Equals(rec);
 

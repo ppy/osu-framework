@@ -11,40 +11,82 @@ namespace osu.Framework.Tests.Visual.Testing
     {
         private int setupRun;
         private int setupStepsRun;
+        private int setupStepsDummyRun;
+        private int teardownStepsRun;
+        private int teardownStepsDummyRun;
         private int testRunCount;
+        private int testRunCountDummyRun;
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
+            // Under nUnit, [SetUp] is run once for the base TestScene.TestConstructor() method. Our own test method has not run yet by this point, so this is ignored.
+            // The test browser does _not_ invoke [SetUp] for the constructor, and the TestScene.TestConstructor() method is skipped.
+            if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
+                return;
+
             setupRun++;
         }
 
         [SetUpSteps]
-        public void SetUpSteps()
+        public virtual void SetUpSteps()
         {
+            // Under nUnit, [SetUpSteps] is run once for the base TestScene.TestConstructor() method. Our own test method has not run yet by this point, so this is ignored.
+            // The test browser does _not_ invoke [SetUpSteps] for the constructor, and the TestScene.TestConstructor() method is skipped.
+            if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
+                return;
+
+            AddStep("set up dummy", () => setupStepsDummyRun++);
             setupStepsRun++;
+        }
+
+        [TearDownSteps]
+        public virtual void TearDownSteps()
+        {
+            // Under nUnit, [TearDownSteps] is run once for the base TestScene.TestConstructor() method. Our own test method has not run yet by this point, so this is ignored.
+            // The test browser does _not_ invoke [TearDownSteps] for the constructor, and the TestScene.TestConstructor() method is skipped.
+            if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
+                return;
+
+            AddStep("tear down dummy", () => teardownStepsDummyRun++);
+            teardownStepsRun++;
         }
 
         public TestSceneTest()
         {
-            Schedule(() =>
-            {
-                // [SetUp] gets run via TestConstructor() when we are running under nUnit.
-                // note that in TestBrowser's case, this does not invoke SetUp methods, so we skip this increment.
-                // schedule is required to ensure that IsNUnitRunning is initialised.
-                if (DebugUtils.IsNUnitRunning)
-                    testRunCount++;
-            });
-
-            AddStep("dummy step", () => { });
+            // A dummy test used to pad the setup steps for visual testing purposes.
+            AddStep("dummy test", () => { });
         }
 
         [Test, Repeat(2)]
         public void Test()
         {
-            AddStep("increment run count", () => testRunCount++);
-            AddAssert("correct setup run count", () => testRunCount == setupRun);
-            AddAssert("correct setup steps run count", () => (DebugUtils.IsNUnitRunning ? testRunCount : 2) == setupStepsRun);
+            AddStep("increment run count", () => testRunCountDummyRun++);
+
+            // Under nUnit, the test steps for each method are run during [TearDown], meaning setup count == test run count.
+            // The test browser immediately invokes all test methods _before_ any test steps are run, meaning test run count == total number of tests,
+            // so the dummy value is used instead to track the true test run count inside the test browser.
+            //
+            // nUnit:
+            // [SetUp] -> [Test] -> [TearDown] -> {{ Run steps }} -> [SetUp] -> [Test] -> [TearDown] -> {{ Run steps }} ...
+            // Test browser:
+            // [SetUp] -> [Test] -> [TearDown] -> [SetUp] -> [Test] -> [TearDown] -> ... -> {{ Run steps }}
+            //
+            AddAssert("correct [SetUp] run count", () => setupRun == (DebugUtils.IsNUnitRunning ? testRunCount : testRunCountDummyRun));
+
+            // Under both nUnit and the test browser, this should be invoked once for all test methods _before_ any test steps are run.
+            AddAssert("correct [SetUpSteps] run count", () => setupStepsRun == testRunCount);
+
+            // Under both nUnit and the test browser, this should be invoked once before each test method.
+            AddAssert("correct setup step run", () => setupStepsDummyRun == testRunCountDummyRun);
+
+            // Under both nUnit and the test browser, this should be invoked once for all test methods _before_ any test steps are run.
+            AddAssert("correct [TearDownSteps] run count", () => teardownStepsRun == testRunCount);
+
+            // Under both nUnit and the test browser, this should be invoked once _after_ each test method.
+            AddAssert("correct teardown step run", () => teardownStepsDummyRun == testRunCountDummyRun - 1);
+
+            testRunCount++;
         }
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();

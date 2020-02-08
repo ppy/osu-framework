@@ -271,6 +271,8 @@ namespace osu.Framework.Graphics.Lines
 
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
+        public Vector2 FrameBufferScale { get; } = Vector2.One;
+
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
         public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
 
