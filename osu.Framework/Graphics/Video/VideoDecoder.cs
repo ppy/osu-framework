@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Video
         private AVFilterGraph* filterGraph;
         private AVFilterContext* buffersinkCtx;
         private AVFilterContext* buffersrcCtx;
-        private bool useFilter;
+        private bool useFilter = true;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -284,8 +284,25 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
-        private void initFilters()
+        private void prepareFilters()
         {
+            var filterStr = "";
+
+            // filtergraph to convert the video to the correct pixel format and colorspace for the shader (if needed)
+            if (stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P)
+                filterStr += "format=pix_fmts=yuv420p,";
+
+            // unspecifed is bt601, smpte170m assumes NTSC but it shouldn't matter
+            if (stream->codec->color_primaries != AVColorPrimaries.AVCOL_PRI_UNSPECIFIED)
+                filterStr += "colorspace=fast=1:all=smpte170m";
+
+            // video is already the correct format so skip the filter
+            if (filterStr.Length == 0)
+            {
+                useFilter = false;
+                return;
+            }
+
             AVFilter* buffersrc = ffmpeg.avfilter_get_by_name("buffer");
             AVFilter* buffersink = ffmpeg.avfilter_get_by_name("buffersink");
             AVFilterInOut* outputs = ffmpeg.avfilter_inout_alloc();
@@ -297,16 +314,16 @@ namespace osu.Framework.Graphics.Video
                        $"time_base={stream->codec->time_base.num}/{stream->codec->time_base.den}:" +
                        $"pixel_aspect={stream->codec->sample_aspect_ratio.num}/{stream->codec->sample_aspect_ratio.den}";
 
-            AVFilterContext* tmp;
-            var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersrc, "in", args, null, filterGraph);
-            buffersrcCtx = tmp;
+            AVFilterContext* src;
+            var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&src, buffersrc, "in", args, null, filterGraph);
+            buffersrcCtx = src;
 
             if (bufferSrcResult < 0)
                 throw new InvalidOperationException($"Error {bufferSrcResult} creating buffer source");
 
-            tmp = null;
-            var bufferSinkResult = ffmpeg.avfilter_graph_create_filter(&tmp, buffersink, "out", null, null, filterGraph);
-            buffersinkCtx = tmp;
+            AVFilterContext* sink;
+            var bufferSinkResult = ffmpeg.avfilter_graph_create_filter(&sink, buffersink, "out", null, null, filterGraph);
+            buffersinkCtx = sink;
 
             if (bufferSinkResult < 0)
                 throw new InvalidOperationException($"Error {bufferSinkResult} creating buffer sink");
@@ -321,8 +338,7 @@ namespace osu.Framework.Graphics.Video
             inputs->pad_idx = 0;
             inputs->next = null;
 
-            var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, "format=pix_fmts=yuv420p",
-                &inputs, &outputs, null);
+            var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, filterStr, &inputs, &outputs, null);
             if (filterGraphResult < 0)
                 throw new InvalidOperationException($"Error {filterGraphResult} opening filter graph");
 
@@ -364,9 +380,6 @@ namespace osu.Framework.Graphics.Video
 
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
-                    // The video shader only works on YUV420P pixel format
-                    useFilter = stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P;
-
                     duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
 
                     timeBaseInSeconds = stream->time_base.GetValue();
@@ -382,7 +395,7 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            if (useFilter) initFilters();
+            prepareFilters();
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
