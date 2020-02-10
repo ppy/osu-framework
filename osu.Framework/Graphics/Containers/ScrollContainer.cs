@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
@@ -237,7 +236,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left || !Content.AliveInternalChildren.Any())
+                return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -295,12 +295,6 @@ namespace osu.Framework.Graphics.Containers
         private bool dragBlocksClick;
 
         public override bool DragBlocksClick => dragBlocksClick;
-
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue) =>
-            Content.AliveInternalChildren.Any() && base.BuildPositionalInputQueue(screenSpacePos, queue);
-
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true) =>
-            Content.AliveInternalChildren.Any() && base.BuildNonPositionalInputQueue(queue, allowBlocking);
 
         protected override void OnDrag(DragEvent e)
         {
@@ -362,6 +356,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnScroll(ScrollEvent e)
         {
+            if (!Content.AliveInternalChildren.Any())
+                return false;
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;

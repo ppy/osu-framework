@@ -295,7 +295,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void TestEmptyScrollContainerDoesNotHandleInput()
+        public void TestEmptyScrollContainerDoesNotHandleScrollAndDrag()
         {
             AddStep("create scroll container", () =>
             {
@@ -307,21 +307,30 @@ namespace osu.Framework.Tests.Visual.Containers
                 });
             });
 
-            AddStep("move mouse to scroll container", () => InputManager.MoveMouseTo(scrollContainer));
-            AddStep("press page down", () =>
-            {
-                InputManager.PressKey(Key.PageDown);
-                InputManager.ReleaseKey(Key.PageDown);
-            });
-            AddAssert("Keyboard input was not handled", () => !((InputHandlingScrollContainer)scrollContainer).KeyboardInputHandled);
-
-            AddStep("Press mouse button", () =>
+            AddStep("Perform scroll", () =>
             {
                 InputManager.MoveMouseTo(scrollContainer);
-                InputManager.PressButton(MouseButton.Button1);
-                InputManager.ReleaseButton(MouseButton.Button1);
+                InputManager.ScrollVerticalBy(50);
             });
-            AddAssert("Mouse input was not handled", () => !((InputHandlingScrollContainer)scrollContainer).MouseInputHandled);
+
+            AddAssert("Scroll was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.ScrollHandled.HasValue && !inputHandlingScrollContainer.ScrollHandled.Value;
+            });
+
+            AddStep("Perform drag", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(scrollContainer, new Vector2(50));
+            });
+
+            AddAssert("Drag was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.DragHandled.HasValue && !inputHandlingScrollContainer.DragHandled.Value;
+            });
         }
 
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
@@ -394,19 +403,19 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private class InputHandlingScrollContainer : BasicScrollContainer
         {
-            public bool KeyboardInputHandled { get; private set; }
-            public bool MouseInputHandled { get; private set; }
+            public bool? ScrollHandled { get; private set; }
+            public bool? DragHandled { get; private set; }
 
-            protected override bool OnKeyDown(KeyDownEvent e)
+            protected override bool OnScroll(ScrollEvent e)
             {
-                KeyboardInputHandled = true;
-                return base.OnKeyDown(e);
+                ScrollHandled = base.OnScroll(e);
+                return ScrollHandled.Value;
             }
 
-            protected override bool OnMouseDown(MouseDownEvent e)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                MouseInputHandled = true;
-                return base.OnMouseDown(e);
+                DragHandled = base.OnDragStart(e);
+                return DragHandled.Value;
             }
         }
     }
