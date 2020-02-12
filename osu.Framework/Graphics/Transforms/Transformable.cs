@@ -127,6 +127,9 @@ namespace osu.Framework.Graphics.Transforms
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
+                            else
+                                t.Apply(t.EndTime);
+
                             appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
