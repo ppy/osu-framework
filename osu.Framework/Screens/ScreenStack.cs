@@ -42,16 +42,6 @@ namespace osu.Framework.Screens
         private readonly bool suspendImmediately;
 
         /// <summary>
-        /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
-        /// </summary>
-        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
-        public ScreenStack(bool suspendImmediately = true)
-        {
-            this.suspendImmediately = suspendImmediately;
-            ScreenExited += onExited;
-        }
-
-        /// <summary>
         /// Creates a new <see cref="ScreenStack"/>, and immediately pushes a <see cref="IScreen"/>.
         /// </summary>
         /// <param name="baseScreen">The initial <see cref="IScreen"/> to be loaded</param>
@@ -60,6 +50,18 @@ namespace osu.Framework.Screens
             : this(suspendImmediately)
         {
             Push(baseScreen);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ScreenStack"/> with no active <see cref="IScreen"/>.
+        /// </summary>
+        /// <param name="suspendImmediately">Whether <see cref="IScreen.OnSuspending"/> should be called immediately, or wait for the next screen to be loaded first.</param>
+        public ScreenStack(bool suspendImmediately = true)
+        {
+            RelativeSizeAxes = Axes.Both;
+
+            this.suspendImmediately = suspendImmediately;
+            ScreenExited += onExited;
         }
 
         /// <summary>

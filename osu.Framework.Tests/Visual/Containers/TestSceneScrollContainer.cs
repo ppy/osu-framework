@@ -294,6 +294,45 @@ namespace osu.Framework.Tests.Visual.Containers
             AddWaitStep("wait for repeats", 5);
         }
 
+        [Test]
+        public void TestEmptyScrollContainerDoesNotHandleScrollAndDrag()
+        {
+            AddStep("create scroll container", () =>
+            {
+                Add(scrollContainer = new InputHandlingScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(500),
+                });
+            });
+
+            AddStep("Perform scroll", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.ScrollVerticalBy(50);
+            });
+
+            AddAssert("Scroll was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.ScrollHandled.HasValue && !inputHandlingScrollContainer.ScrollHandled.Value;
+            });
+
+            AddStep("Perform drag", () =>
+            {
+                InputManager.MoveMouseTo(scrollContainer);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(scrollContainer, new Vector2(50));
+            });
+
+            AddAssert("Drag was not handled", () =>
+            {
+                var inputHandlingScrollContainer = (InputHandlingScrollContainer)scrollContainer;
+                return inputHandlingScrollContainer.DragHandled.HasValue && !inputHandlingScrollContainer.DragHandled.Value;
+            });
+        }
+
         private void scrollIntoView(int index, float expectedPosition, float? heightAdjust = null, float? expectedPostAdjustPosition = null)
         {
             if (heightAdjust != null)
@@ -359,6 +398,24 @@ namespace osu.Framework.Tests.Visual.Containers
                     : base(direction)
                 {
                 }
+            }
+        }
+
+        private class InputHandlingScrollContainer : BasicScrollContainer
+        {
+            public bool? ScrollHandled { get; private set; }
+            public bool? DragHandled { get; private set; }
+
+            protected override bool OnScroll(ScrollEvent e)
+            {
+                ScrollHandled = base.OnScroll(e);
+                return ScrollHandled.Value;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                DragHandled = base.OnDragStart(e);
+                return DragHandled.Value;
             }
         }
     }

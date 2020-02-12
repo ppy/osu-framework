@@ -549,13 +549,30 @@ namespace osu.Framework.Input
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
-            if (handledBy != null)
+            if (handledBy != null && shouldLog(e))
             {
                 var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
                 Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
             }
 
             return handledBy != null;
+        }
+
+        private bool shouldLog(UIEvent eventType)
+        {
+            switch (eventType)
+            {
+                case KeyDownEvent k:
+                    return !k.Repeat;
+
+                case DragEvent _:
+                case ScrollEvent _:
+                case MouseMoveEvent _:
+                    return false;
+
+                default:
+                    return true;
+            }
         }
 
         /// <summary>

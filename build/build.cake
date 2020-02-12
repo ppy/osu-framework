@@ -1,5 +1,5 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.33"
+#addin "nuget:?package=CodeFileSanity&version=0.0.34"
 #addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.3.0"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
@@ -200,7 +200,6 @@ Task("PackNativeLibs")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
-
                 return args;
             }
         });
@@ -215,6 +214,7 @@ Task("PackTemplate")
             ArgumentCustomization = args => {
                 args.Append($"/p:Version={version}");
                 args.Append($"/p:GenerateDocumentationFile=true");
+                args.Append($"/p:NoDefaultExcludes=true");
 
                 return args;
             }
