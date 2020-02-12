@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
