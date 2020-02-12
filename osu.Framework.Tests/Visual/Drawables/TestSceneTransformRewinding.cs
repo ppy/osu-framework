@@ -237,7 +237,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     box.FadeOutFromOne(interval);
                     box.Delay(interval * 3).FadeOutFromOne(interval);
 
-                    //FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
+                    // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
                     box.RemoveTransform(box.Transforms[2]);
                     box.RemoveTransform(box.Transforms[0]);
                 }
