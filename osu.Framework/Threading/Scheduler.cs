@@ -104,11 +104,8 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                if (!sd.Cancelled && !sd.Completed)
-                {
-                    //todo: error handling
-                    sd.RunTask();
-                }
+                //todo: error handling
+                sd.RunTaskInternal();
 
                 if (++countRun == countToRun)
                     break;
@@ -163,7 +160,8 @@ namespace osu.Framework.Threading
             for (int i = 0; i < perUpdateTasks.Count; i++)
             {
                 ScheduledDelegate task = perUpdateTasks[i];
-                task.Completed = false;
+
+                task.SetNextExecution(null);
 
                 if (task.Cancelled)
                 {
@@ -286,79 +284,6 @@ namespace osu.Framework.Threading
             }
 
             return true;
-        }
-    }
-
-    public class ScheduledDelegate : IComparable<ScheduledDelegate>
-    {
-        /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
-        /// </summary>
-        public double ExecutionTime { get; internal set; }
-
-        /// <summary>
-        /// Time in milliseconds between repeats of this task. -1 means no repeats.
-        /// </summary>
-        public readonly double RepeatInterval;
-
-        /// <summary>
-        /// In the case of a repeating execution, setting this to true will allow the delegate to run more than once at already elapsed points in time in order to catch up to current.
-        /// This will ensure a consistent number of runs over real-time, even if the <see cref="Scheduler"/> running the delegate is suspended.
-        /// Setting to false will skip catch-up executions, ensuring a future time is used after each execution.
-        /// </summary>
-        public bool PerformRepeatCatchUpExecutions = true;
-
-        /// <summary>
-        /// Whether this task has finished running.
-        /// </summary>
-        public bool Completed { get; internal set; }
-
-        /// <summary>
-        /// Whether this task has been cancelled.
-        /// </summary>
-        public bool Cancelled { get; private set; }
-
-        /// <summary>
-        /// The work task.
-        /// </summary>
-        internal readonly Action Task;
-
-        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
-        {
-            Task = task;
-
-            ExecutionTime = executionTime;
-            RepeatInterval = repeatInterval;
-        }
-
-        /// <summary>
-        /// Invokes the scheduled task.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when attempting to run a task that has been cancelled or already completed.</exception>
-        public void RunTask()
-        {
-            if (Cancelled)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}.");
-
-            if (Completed)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}.");
-
-            Task();
-            Completed = true;
-        }
-
-        public void Cancel() => Cancelled = true;
-
-        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
-
-        internal void SetNextExecution(double currentTime)
-        {
-            Completed = false;
-
-            ExecutionTime += RepeatInterval;
-
-            if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
-                ExecutionTime = currentTime + RepeatInterval;
         }
     }
 }
