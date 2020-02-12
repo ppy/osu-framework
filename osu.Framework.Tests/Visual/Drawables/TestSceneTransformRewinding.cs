@@ -220,6 +220,38 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void RewindBetweenDisparateValues()
+        {
+            boxTest(box =>
+            {
+                box.Alpha = 0;
+            });
+
+            // move forward to future point in time;
+            checkAtTime(interval * 4, _ => true);
+
+            AddStep("add transforms", () =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.FadeInFromZero(interval);
+                    box.Delay(interval * 3).FadeInFromZero(interval);
+
+                    box.RemoveTransform(box.Transforms[2]);
+                }
+            });
+
+            checkAtTime(0, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 1, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 1));
+
+            // importantly, this should be 0 not 1, reading from the EndValue of the first FadeInFromZero transform.
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 1));
+        }
+
+        [Test]
         public void LoopSequence()
         {
             boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(); });
