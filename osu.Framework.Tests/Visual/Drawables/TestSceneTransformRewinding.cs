@@ -234,21 +234,23 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 using (box.BeginAbsoluteSequence(0))
                 {
-                    box.FadeInFromZero(interval);
-                    box.Delay(interval * 3).FadeInFromZero(interval);
+                    box.FadeOutFromOne(interval);
+                    box.Delay(interval * 3).FadeOutFromOne(interval);
 
+                    //FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
                     box.RemoveTransform(box.Transforms[2]);
+                    box.RemoveTransform(box.Transforms[0]);
                 }
             });
 
-            checkAtTime(0, box => Precision.AlmostEquals(box.Alpha, 0));
-            checkAtTime(interval * 1, box => Precision.AlmostEquals(box.Alpha, 1));
-            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 1));
-            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 0));
-            checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(0, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 1, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 0));
 
-            // importantly, this should be 0 not 1, reading from the EndValue of the first FadeInFromZero transform.
-            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 1));
+            // importantly, this should be 0 not 1, reading from the EndValue of the first FadeOutFromOne transform.
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
         }
 
         [Test]
