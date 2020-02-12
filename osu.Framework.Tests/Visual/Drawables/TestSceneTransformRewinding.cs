@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 box.Alpha = 0;
             });
 
-            // move forward to future point in time;
+            // move forward to future point in time before adding transforms.
             checkAtTime(interval * 4, _ => true);
 
             AddStep("add transforms", () =>
