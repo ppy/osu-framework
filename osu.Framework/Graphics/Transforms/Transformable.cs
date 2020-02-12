@@ -467,7 +467,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms(Time.Current, transform.Rewindable && transform.EndTime <= Time.Current);
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
     }
 }
