@@ -7,11 +7,11 @@ namespace osu.Framework.Platform
 {
     public struct DisplayMode
     {
+        public string Format;
         public Size Size;
-        public int RefreshRate;
         public int BitDepth;
-        public string Name;
+        public int RefreshRate;
 
-        public override string ToString() => $"Name: {Name}, Size: {Size}, BitDepth: {BitDepth}, RefreshRate: {RefreshRate}";
+        public override string ToString() => $"Format: {Format ?? "Unknown"}, Size: {Size}, BitDepth: {BitDepth}, RefreshRate: {RefreshRate}";
     }
 }
