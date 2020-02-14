@@ -60,6 +60,10 @@ namespace osu.Framework.Platform
 
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
+        public Display? Display => windowBackend.Display;
+
+        public DisplayMode? DisplayMode => windowBackend.DisplayMode;
+
         #endregion
 
         #region Mutable Bindables

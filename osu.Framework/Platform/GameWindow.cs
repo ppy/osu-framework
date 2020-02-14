@@ -72,6 +72,10 @@ namespace osu.Framework.Platform
 
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
 
+        public virtual Display? Display => null;
+
+        public virtual DisplayMode? DisplayMode => null;
+
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>

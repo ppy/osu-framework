@@ -69,6 +69,18 @@ namespace osu.Framework.Platform
         /// </summary>
         IEnumerable<Display> Displays { get; }
 
+        /// <summary>
+        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Can be null if running headless.
+        /// </summary>
+        Display? Display { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Can be null if running headless.
+        /// </summary>
+        DisplayMode? DisplayMode { get; }
+
         #endregion
 
         #region Events

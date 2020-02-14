@@ -73,6 +73,13 @@ namespace osu.Framework.Platform
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int SdlGetWindowDisplayIndexDelegate(IntPtr window);
+
+        private static readonly SdlGetWindowDisplayIndexDelegate sdl_get_window_display_index = Sdl2Native.LoadFunction<SdlGetWindowDisplayIndexDelegate>("SDL_GetWindowDisplayIndex");
+
+        public static int SDL_GetWindowDisplayIndex(SDL_Window window) => sdl_get_window_display_index(window);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SdlGetWindowDisplayModeDelegate(IntPtr window, SDL_DisplayMode* mode);
 
         private static readonly SdlGetWindowDisplayModeDelegate sdl_get_window_display_mode = Sdl2Native.LoadFunction<SdlGetWindowDisplayModeDelegate>("SDL_GetWindowDisplayMode");
@@ -118,11 +125,11 @@ namespace osu.Framework.Platform
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate string SdlGetDisplayNameDelegate(int displayIndex);
+        private delegate IntPtr SdlGetDisplayNameDelegate(int displayIndex);
 
         private static readonly SdlGetDisplayNameDelegate sdl_get_display_name = Sdl2Native.LoadFunction<SdlGetDisplayNameDelegate>("SDL_GetDisplayName");
 
-        public static string SDL_GetDisplayName(int displayIndex) => sdl_get_display_name(displayIndex);
+        public static string SDL_GetDisplayName(int displayIndex) => Marshal.PtrToStringAnsi(sdl_get_display_name(displayIndex));
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr SdlGetPixelFormatNameDelegate(uint format);

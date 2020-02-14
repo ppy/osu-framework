@@ -92,7 +92,7 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep($"revert to {initialWindowMode.ToString()}", () => windowMode.Value = initialWindowMode);
 
             // show the available displays
-            AddStep("query displays", () =>
+            AddStep("query Window.Displays", () =>
             {
                 var displays = window.Displays.ToArray();
                 Logger.Log($"Available displays: {displays.Length}");
@@ -102,6 +102,10 @@ namespace osu.Framework.Tests.Visual.Platform
                     display.DisplayModes.ForEach(mode => Logger.Log($"-- {mode}"));
                 });
             });
+
+            AddStep("query Window.Display", () => Logger.Log(window.Display?.ToString() ?? "Unknown"));
+
+            AddStep("query Window.DisplayMode", () => Logger.Log(window.DisplayMode?.ToString() ?? "Unknown"));
         }
 
         protected override void Update()
