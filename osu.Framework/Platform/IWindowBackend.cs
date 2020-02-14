@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using osu.Framework.Input.StateChanges;
 using Veldrid;
@@ -62,6 +63,8 @@ namespace osu.Framework.Platform
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
         bool Exists { get; }
+
+        IEnumerable<Display> Displays { get; }
 
         #endregion
 

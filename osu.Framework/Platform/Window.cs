@@ -58,6 +58,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public float Scale => windowBackend.Scale;
 
+        public IEnumerable<Display> Displays => windowBackend.Displays;
+
         #endregion
 
         #region Mutable Bindables

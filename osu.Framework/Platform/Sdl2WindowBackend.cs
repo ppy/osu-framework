@@ -2,6 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using osu.Framework.Caching;
 using osu.Framework.Extensions;
@@ -12,6 +15,8 @@ using Veldrid.Sdl2;
 using Key = osuTK.Input.Key;
 using MouseButton = osuTK.Input.MouseButton;
 using MouseEvent = Veldrid.MouseEvent;
+using Point = Veldrid.Point;
+using Rectangle = System.Drawing.Rectangle;
 using TKVector2 = osuTK.Vector2;
 
 namespace osu.Framework.Platform
@@ -141,6 +146,25 @@ namespace osu.Framework.Platform
                 scheduler.Add(() => implementation.WindowState = value);
             }
         }
+
+        public IEnumerable<Display> Displays =>
+            Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayIndex => new Display
+            {
+                Name = Sdl2Functions.SDL_GetDisplayName(displayIndex),
+                Bounds = Sdl2Functions.SDL_GetDisplayBounds(displayIndex),
+                DisplayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex)).Select(modeIndex =>
+                {
+                    var mode = Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex);
+
+                    return new DisplayMode
+                    {
+                        Name = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
+                        Size = new Size(mode.Width, mode.Height),
+                        BitDepth = 32,
+                        RefreshRate = mode.RefreshRate
+                    };
+                }).ToArray()
+            });
 
         #endregion
 

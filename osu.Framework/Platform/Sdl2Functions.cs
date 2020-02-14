@@ -117,6 +117,20 @@ namespace osu.Framework.Platform
             return new Rectangle(rect.X, rect.Y, rect.Width, rect.Height);
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate string SdlGetDisplayNameDelegate(int displayIndex);
+
+        private static readonly SdlGetDisplayNameDelegate sdl_get_display_name = Sdl2Native.LoadFunction<SdlGetDisplayNameDelegate>("SDL_GetDisplayName");
+
+        public static string SDL_GetDisplayName(int displayIndex) => sdl_get_display_name(displayIndex);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr SdlGetPixelFormatNameDelegate(uint format);
+
+        private static readonly SdlGetPixelFormatNameDelegate sdl_get_pixel_format_name = Sdl2Native.LoadFunction<SdlGetPixelFormatNameDelegate>("SDL_GetPixelFormatName");
+
+        public static string SDL_GetPixelFormatName(uint format) => Marshal.PtrToStringAnsi(sdl_get_pixel_format_name(format));
+
         #endregion
     }
 
