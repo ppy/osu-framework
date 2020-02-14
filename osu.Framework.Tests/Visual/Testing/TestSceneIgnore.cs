@@ -14,5 +14,13 @@ namespace osu.Framework.Tests.Visual.Testing
         {
             AddStep($"Throw {typeof(InvalidOperationException)}", () => throw new InvalidOperationException());
         }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        [Ignore("test")]
+        public void IgnoredParameterizedTest(int test)
+        {
+            AddStep($"Throw {typeof(InvalidOperationException)}", () => throw new InvalidOperationException());
+        }
     }
 }
