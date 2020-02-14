@@ -155,12 +155,13 @@ namespace osu.Framework.Platform
                 DisplayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex)).Select(modeIndex =>
                 {
                     var mode = Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex);
+                    Sdl2Functions.SDL_PixelFormatEnumToMasks(mode.Format, out var bpp, out _, out _, out _, out _);
 
                     return new DisplayMode
                     {
                         Name = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
                         Size = new Size(mode.Width, mode.Height),
-                        BitDepth = 32,
+                        BitDepth = bpp,
                         RefreshRate = mode.RefreshRate
                     };
                 }).ToArray()

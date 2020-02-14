@@ -131,6 +131,26 @@ namespace osu.Framework.Platform
 
         public static string SDL_GetPixelFormatName(uint format) => Marshal.PtrToStringAnsi(sdl_get_pixel_format_name(format));
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool SdlPixelFormatEnumToMasksDelegate(uint format, int* bpp, uint* rMask, uint* gMask, uint* bMask, uint* aMask);
+
+        private static readonly SdlPixelFormatEnumToMasksDelegate sdl_pixel_format_enum_to_masks = Sdl2Native.LoadFunction<SdlPixelFormatEnumToMasksDelegate>("SDL_PixelFormatEnumToMasks");
+
+        public static bool SDL_PixelFormatEnumToMasks(uint format, out int bpp, out uint rMask, out uint gMask, out uint bMask, out uint aMask)
+        {
+            int lBpp;
+            uint lRMask, lGMask, lBMask, lAMask;
+            bool rv = sdl_pixel_format_enum_to_masks(format, &lBpp, &lRMask, &lGMask, &lBMask, &lAMask);
+
+            bpp = lBpp;
+            rMask = lRMask;
+            gMask = lGMask;
+            bMask = lBMask;
+            aMask = lAMask;
+
+            return rv;
+        }
+
         #endregion
     }
 
