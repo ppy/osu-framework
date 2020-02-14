@@ -70,6 +70,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
+        public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
+
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>

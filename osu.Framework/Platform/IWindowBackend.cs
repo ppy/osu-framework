@@ -64,6 +64,9 @@ namespace osu.Framework.Platform
         /// </summary>
         bool Exists { get; }
 
+        /// <summary>
+        /// Queries the physical displays and their supported resolutions.
+        /// </summary>
         IEnumerable<Display> Displays { get; }
 
         #endregion

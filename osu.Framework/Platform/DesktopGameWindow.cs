@@ -64,6 +64,27 @@ namespace osu.Framework.Platform
             Configuration.WindowMode.Fullscreen,
         };
 
+        /// <summary>
+        /// osuTK's list of available <see cref="DisplayDevice"/>s is private, but it assumes a maximum
+        /// of six devices. These are defined in the <see cref="DisplayIndex"/> enum, and a call to
+        /// <see cref="DisplayDevice.GetDisplay"/> with an invalid index will return null (which we skip).
+        /// </summary>
+        public override IEnumerable<Display> Displays =>
+            Enumerable.Range((int)DisplayIndex.First, 6)
+                      .Select(index => DisplayDevice.GetDisplay((DisplayIndex)index))
+                      .Where(x => x != null)
+                      .Select(display => new Display
+                      {
+                          Name = display.GetIndex().ToString(),
+                          Bounds = display.Bounds,
+                          DisplayModes = display.AvailableResolutions.Select(res => new DisplayMode
+                          {
+                              BitDepth = res.BitsPerPixel,
+                              RefreshRate = (int)res.RefreshRate,
+                              Size = new Size(res.Width, res.Height)
+                          }).ToArray()
+                      });
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {

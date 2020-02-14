@@ -159,7 +159,7 @@ namespace osu.Framework.Platform
 
                     return new DisplayMode
                     {
-                        Name = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
+                        Format = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
                         Size = new Size(mode.Width, mode.Height),
                         BitDepth = bpp,
                         RefreshRate = mode.RefreshRate

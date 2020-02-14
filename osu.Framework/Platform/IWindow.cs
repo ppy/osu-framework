@@ -86,5 +86,10 @@ namespace osu.Framework.Platform
         /// Available resolutions for full-screen display.
         /// </summary>
         IEnumerable<DisplayResolution> AvailableResolutions { get; }
+
+        /// <summary>
+        /// Queries the physical displays and their supported resolutions.
+        /// </summary>
+        IEnumerable<Display> Displays { get; }
     }
 }
