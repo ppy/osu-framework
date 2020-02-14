@@ -165,7 +165,7 @@ namespace osu.Framework.Platform
                         RefreshRate = mode.RefreshRate
                     };
                 }).ToArray()
-            });
+            }).ToArray();
 
         #endregion
 
