@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
                 var display = CurrentDisplay;
                 return new DisplayMode
                 {
-                    BitDepth = display.BitsPerPixel,
+                    BitsPerPixel = display.BitsPerPixel,
                     RefreshRate = (int)Math.Round(display.RefreshRate),
                     Size = new Size(display.Width, display.Height)
                 };
@@ -109,7 +109,7 @@ namespace osu.Framework.Platform
         private static DisplayMode displayModeFromOsuTK(DisplayResolution resolution) =>
             new DisplayMode
             {
-                BitDepth = resolution.BitsPerPixel,
+                BitsPerPixel = resolution.BitsPerPixel,
                 RefreshRate = (int)Math.Round(resolution.RefreshRate),
                 Size = new Size(resolution.Width, resolution.Height)
             };

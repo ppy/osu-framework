@@ -171,7 +171,7 @@ namespace osu.Framework.Platform
             {
                 Format = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
                 Size = new Size(mode.Width, mode.Height),
-                BitDepth = bpp,
+                BitsPerPixel = bpp,
                 RefreshRate = mode.RefreshRate
             };
         }
