@@ -16,7 +16,6 @@ using Key = osuTK.Input.Key;
 using MouseButton = osuTK.Input.MouseButton;
 using MouseEvent = Veldrid.MouseEvent;
 using Point = Veldrid.Point;
-using Rectangle = System.Drawing.Rectangle;
 using TKVector2 = osuTK.Vector2;
 
 namespace osu.Framework.Platform
