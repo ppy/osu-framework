@@ -36,12 +36,12 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged();
 
-            if (channel != 0)
-            {
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, bassFreq);
-            }
+            if (channel == 0)
+                return;
+
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, bassFreq);
 
             // Handle channels with 0 frequencies due to BASS not supporting them (0 = original rate)
             // Documentation for the frequency limits: http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm
