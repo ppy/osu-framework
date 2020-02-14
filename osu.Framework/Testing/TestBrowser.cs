@@ -467,28 +467,31 @@ namespace osu.Framework.Testing
                 if (name.StartsWith("Test"))
                     name = name.Substring(4);
 
-                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
+                if (m.GetCustomAttribute(typeof(IgnoreAttribute), false) == null)
                 {
-                    hadTestAttributeTest = true;
-                    handleTestMethod(m, name);
-
-                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                     {
-                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                        hadTestAttributeTest = true;
+                        handleTestMethod(m, name);
 
-                        for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{name} ({i})");
+                        if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                        {
+                            var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+
+                            for (int i = 2; i <= count; i++)
+                                handleTestMethod(m, $"{name} ({i})");
+                        }
                     }
-                }
 
-                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                {
-                    hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
 
-                    addSetUpSteps();
+                        addSetUpSteps();
 
-                    m.Invoke(CurrentTest, tc.Arguments);
+                        m.Invoke(CurrentTest, tc.Arguments);
+                    }
                 }
             }
 
