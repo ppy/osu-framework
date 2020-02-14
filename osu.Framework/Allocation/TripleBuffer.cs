@@ -11,6 +11,7 @@ namespace osu.Framework.Allocation
     /// Thread safety assumes at most one writer and one reader.
     /// </summary>
     public class TripleBuffer<T>
+        where T : class
     {
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 

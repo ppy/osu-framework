@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +25,15 @@ namespace osu.Framework.Input.States
         }
 
         /// <summary>
-        /// Finds whether a <see cref="TButton"/> is currently pressed.
+        /// Finds whether a <typeparamref name="TButton"/> is currently pressed.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to check.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to check.</param>
         public bool IsPressed(TButton button) => pressedButtons.Contains(button);
 
         /// <summary>
-        /// Sets the state of a <see cref="TButton"/>.
+        /// Sets the state of a <typeparamref name="TButton"/>.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to set the state of.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to set the state of.</param>
         /// <param name="pressed">Whether <paramref name="button"/> should be pressed.</param>
         /// <returns>Whether the state of <paramref name="button"/> actually changed.</returns>
         public bool SetPressed(TButton button, bool pressed)
@@ -67,7 +66,7 @@ namespace osu.Framework.Input.States
             pressedButtons.AddRange(other.pressedButtons);
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
+        public override string ToString() => $@"{GetType().ReadableName()}({string.Join(" ", pressedButtons)})";
 
         public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -75,7 +74,7 @@ namespace osu.Framework.Input.States
         // for collection initializer
         public void Add(TButton button) => SetPressed(button, true);
 
-        public struct ButtonStateDifference
+        public readonly struct ButtonStateDifference
         {
             public readonly IEnumerable<TButton> Released;
             public readonly IEnumerable<TButton> Pressed;

@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Reflection.Emit;
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Transforms
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
+    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : class, ITransformable
     {
         private delegate TValue ReadFunc(T transformable);
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
@@ -78,21 +78,27 @@ namespace osu.Framework.Graphics.Transforms
             if (property != null)
             {
                 if (property.PropertyType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {property.PropertyType.ReadableName()}.");
+                }
 
                 var getter = property.GetGetMethod(true);
                 var setter = property.GetSetMethod(true);
 
                 if (getter == null || setter == null)
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         "since it needs to have both a getter and a setter.");
+                }
 
                 if (getter.IsStatic || setter.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -106,13 +112,17 @@ namespace osu.Framework.Graphics.Transforms
             if (field != null)
             {
                 if (field.FieldType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {field.FieldType.ReadableName()}.");
+                }
 
                 if (field.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -134,7 +144,7 @@ namespace osu.Framework.Graphics.Transforms
         private readonly InterpolationFunc<TValue> interpolationFunc;
 
         /// <summary>
-        /// Creates a new instance operating on a property or field of <see cref="T"/>. The property or field is
+        /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
         /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
         /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
         /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
@@ -161,8 +171,10 @@ namespace osu.Framework.Graphics.Transforms
             this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
 
             if (this.interpolationFunc == null)
+            {
                 throw new InvalidOperationException(
                     $"Need to pass a custom {nameof(interpolationFunc)} since no default {nameof(Interpolation)}.{nameof(Interpolation.ValueAt)} exists.");
+            }
         }
 
         private TValue valueAt(double time)

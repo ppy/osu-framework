@@ -8,7 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -56,9 +56,12 @@ namespace osu.Framework.Graphics.Transforms
             {
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.EndTime > max)
                         max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                }
 
                 return max;
             }
@@ -86,9 +89,11 @@ namespace osu.Framework.Graphics.Transforms
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms(double time)
+        /// <param name="time">The point in time to update transforms to.</param>
+        /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
+        private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
-            bool rewinding = lastUpdateTransformsTime > time;
+            bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
             if (!transformsLazy.IsValueCreated)
@@ -124,6 +129,9 @@ namespace osu.Framework.Graphics.Transforms
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
+                            else
+                                t.Apply(t.EndTime);
+
                             appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
@@ -361,9 +369,11 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() =>
             {
                 if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                {
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
                         $"(begin={newTransformDelay} end={TransformDelay})");
+                }
 
                 AddDelay(-delay, recursive);
             });
@@ -384,9 +394,11 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() =>
             {
                 if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                {
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
                         $"(begin={newTransformDelay} end={TransformDelay})");
+                }
 
                 TransformDelay = oldTransformDelay;
             });
@@ -413,9 +425,11 @@ namespace osu.Framework.Graphics.Transforms
                 throw new ArgumentNullException(nameof(transform));
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
                     "using this object prior to being added.");
+            }
 
             if (Clock == null)
             {
@@ -453,7 +467,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms(Time.Current);
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
     }
 }

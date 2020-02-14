@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
@@ -21,10 +20,17 @@ namespace osu.Framework.Platform
 
         protected Storage(string baseName)
         {
-            BaseName = FileSafety.FilenameStrip(baseName);
+            static string filenameStrip(string entry)
+            {
+                foreach (char c in Path.GetInvalidFileNameChars())
+                    entry = entry.Replace(c.ToString(), string.Empty);
+                return entry;
+            }
+
+            BaseName = filenameStrip(baseName);
             BasePath = LocateBasePath();
             if (BasePath == null)
-                throw new NullReferenceException(nameof(BasePath));
+                throw new InvalidOperationException($"{nameof(BasePath)} not correctly initialized!");
         }
 
         /// <summary>

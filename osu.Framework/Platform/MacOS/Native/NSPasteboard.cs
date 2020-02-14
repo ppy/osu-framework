@@ -5,9 +5,9 @@ using System;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal struct NSPasteboard
+    internal readonly struct NSPasteboard
     {
-        internal IntPtr Handle { get; private set; }
+        internal IntPtr Handle { get; }
 
         private static readonly IntPtr class_pointer = Class.Get("NSPasteboard");
         private static readonly IntPtr sel_general_pasteboard = Selector.Get("generalPasteboard");

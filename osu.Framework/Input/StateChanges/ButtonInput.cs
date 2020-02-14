@@ -23,9 +23,9 @@ namespace osu.Framework.Input.StateChanges
         }
 
         /// <summary>
-        /// Creates a <see cref="ButtonInput{TButton}"/> with a single <see cref="TButton"/> state.
+        /// Creates a <see cref="ButtonInput{TButton}"/> with a single <typeparamref name="TButton"/> state.
         /// </summary>
-        /// <param name="button">The <see cref="TButton"/> to add.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> to add.</param>
         /// <param name="isPressed">The state of <paramref name="button"/>.</param>
         protected ButtonInput(TButton button, bool isPressed)
         {
@@ -36,8 +36,8 @@ namespace osu.Framework.Input.StateChanges
         /// Creates a <see cref="ButtonInput{TButton}"/> from the difference of two <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <remarks>
-        /// Buttons that are pressed in <paramref name="previous"/> and not pressed in <see cref="current"/> will be listed as <see cref="ButtonStateChangeKind.Released"/>.
-        /// Buttons that are not pressed in <paramref name="previous"/> and pressed in <see cref="current"/> will be listed as <see cref="ButtonStateChangeKind.Pressed"/>.
+        /// Buttons that are pressed in <paramref name="previous"/> and not pressed in <paramref name="current"/> will be listed as <see cref="ButtonStateChangeKind.Released"/>.
+        /// Buttons that are not pressed in <paramref name="previous"/> and pressed in <paramref name="current"/> will be listed as <see cref="ButtonStateChangeKind.Pressed"/>.
         /// </remarks>
         /// <param name="current">The newer <see cref="ButtonStates{TButton}"/>.</param>
         /// <param name="previous">The older <see cref="ButtonStates{TButton}"/>.</param>
@@ -55,10 +55,10 @@ namespace osu.Framework.Input.StateChanges
         protected abstract ButtonStates<TButton> GetButtonStates(InputState state);
 
         /// <summary>
-        /// Create a <see cref="TButton"/> state change event.
+        /// Create a <typeparamref name="TButton"/> state change event.
         /// </summary>
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
-        /// <param name="button">The <see cref="TButton"/> that changed.</param>
+        /// <param name="button">The <typeparamref name="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
         protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind) => new ButtonStateChangeEvent<TButton>(state, this, button, kind);
 

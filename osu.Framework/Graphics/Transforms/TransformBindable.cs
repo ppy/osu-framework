@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
     internal class TransformBindable<TValue, T> : Transform<TValue, T>
-        where T : ITransformable
+        where T : class, ITransformable
     {
         public override string TargetMember { get; }
 

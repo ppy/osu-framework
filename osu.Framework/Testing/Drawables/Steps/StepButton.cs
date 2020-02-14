@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -93,8 +92,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
             catch (Exception exc)
             {
-                if (exc.InnerException is DependencyInjectionException die)
-                    exc = die.DispatchInfo.SourceException;
                 Logging.Logger.Error(exc, $"Step {this} triggered an error");
             }
 

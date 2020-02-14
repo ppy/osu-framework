@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using osuTK;
@@ -67,16 +68,20 @@ namespace osu.Framework.Graphics.Cursor
             switch (e.Button)
             {
                 case MouseButton.Right:
-                    menuTarget = FindTargets().FirstOrDefault();
+                    var (target, items) = FindTargets()
+                                          .Select(t => (target: t, items: t.ContextMenuItems))
+                                          .FirstOrDefault(result => result.items != null);
 
-                    if (menuTarget == null)
+                    menuTarget = target;
+
+                    if (menuTarget == null || items.Length == 0)
                     {
                         if (menu.State == MenuState.Open)
                             menu.Close();
                         return false;
                     }
 
-                    menu.Items = menuTarget.ContextMenuItems;
+                    menu.Items = items;
 
                     targetRelativePosition = menuTarget.ToLocalSpace(e.ScreenSpaceMousePosition);
 
@@ -103,7 +108,7 @@ namespace osu.Framework.Graphics.Cursor
 
             if (menu.State != MenuState.Open || menuTarget == null) return;
 
-            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this)
+            if ((menuTarget as Drawable)?.FindClosestParent<ContextMenuContainer>() != this || (!menuTarget?.IsPresent ?? false))
             {
                 cancelDisplay();
                 return;
@@ -114,14 +119,14 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 overflow = pos + menu.DrawSize - DrawSize;
 
             if (overflow.X > 0)
-                pos.X -= MathHelper.Clamp(overflow.X, 0, menu.DrawWidth);
+                pos.X -= Math.Clamp(overflow.X, 0, menu.DrawWidth);
             if (overflow.Y > 0)
-                pos.Y -= MathHelper.Clamp(overflow.Y, 0, menu.DrawHeight);
+                pos.Y -= Math.Clamp(overflow.Y, 0, menu.DrawHeight);
 
             if (pos.X < 0)
-                pos.X += MathHelper.Clamp(-pos.X, 0, menu.DrawWidth);
+                pos.X += Math.Clamp(-pos.X, 0, menu.DrawWidth);
             if (pos.Y < 0)
-                pos.Y += MathHelper.Clamp(-pos.Y, 0, menu.DrawHeight);
+                pos.Y += Math.Clamp(-pos.Y, 0, menu.DrawHeight);
 
             menu.Position = pos;
         }

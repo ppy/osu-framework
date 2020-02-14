@@ -17,17 +17,17 @@ namespace osu.Framework.Graphics.Containers
         /// such that the <paramref name="container"/> can be used instead of the <paramref name="drawable"/>
         /// without affecting the layout. The <paramref name="container"/> must not contain any children before wrapping.
         /// </summary>
-        /// <typeparam name="T">The type of the <paramref name="container"/>.</typeparam>
-        /// <typeparam name="U">The type of the children of <paramref name="container"/>.</typeparam>
+        /// <typeparam name="TContainer">The type of the <paramref name="container"/>.</typeparam>
+        /// <typeparam name="TChild">The type of the children of <paramref name="container"/>.</typeparam>
         /// <param name="container">The <paramref name="container"/> that should wrap the given <paramref name="drawable"/>.</param>
         /// <param name="drawable">The <paramref name="drawable"/> that should be wrapped by the given <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
-        public static T Wrap<T, U>(this T container, U drawable)
-            where T : Container<U>
-            where U : Drawable
+        public static TContainer Wrap<TContainer, TChild>(this TContainer container, TChild drawable)
+            where TContainer : Container<TChild>
+            where TChild : Drawable
         {
             if (container.Children.Count != 0)
-                throw new InvalidOperationException($"You may not wrap a {nameof(Container<U>)} that has children.");
+                throw new InvalidOperationException($"You may not wrap a {nameof(Container<TChild>)} that has children.");
 
             container.RelativeSizeAxes = drawable.RelativeSizeAxes;
             container.AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes;
@@ -63,14 +63,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Set a specified <paramref name="child"/> on <paramref name="container"/>.
         /// </summary>
-        /// <typeparam name="T">The container type.</typeparam>
-        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
+        /// <typeparam name="TContainer">The container type.</typeparam>
+        /// <typeparam name="TChild">The type of children contained by <paramref name="container"/>.</typeparam>
         /// <param name="container">The <paramref name="container"/> that will have a child set.</param>
         /// <param name="child">The <paramref name="child"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
-        public static T WithChild<T, U>(this T container, U child)
-            where T : IContainerCollection<U>
-            where U : Drawable
+        public static TContainer WithChild<TContainer, TChild>(this TContainer container, TChild child)
+            where TContainer : IContainerCollection<TChild>
+            where TChild : Drawable
         {
             container.Child = child;
 
@@ -80,14 +80,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Set specified <paramref name="children"/> on <paramref name="container"/>.
         /// </summary>
-        /// <typeparam name="T">The container type.</typeparam>
-        /// <typeparam name="U">The type of children contained by <paramref name="container"/>.</typeparam>
+        /// <typeparam name="TContainer">The container type.</typeparam>
+        /// <typeparam name="TChild">The type of children contained by <paramref name="container"/>.</typeparam>
         /// <param name="container">The <paramref name="container"/> that will have children set.</param>
         /// <param name="children">The <paramref name="children"/> that should be set to the <paramref name="container"/>.</param>
         /// <returns>The given <paramref name="container"/>.</returns>
-        public static T WithChildren<T, U>(this T container, IEnumerable<U> children)
-            where T : IContainerCollection<U>
-            where U : Drawable
+        public static TContainer WithChildren<TContainer, TChild>(this TContainer container, IEnumerable<TChild> children)
+            where TContainer : IContainerCollection<TChild>
+            where TChild : Drawable
         {
             container.ChildrenEnumerable = children;
 

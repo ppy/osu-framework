@@ -5,10 +5,12 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
+    [HeadlessTest]
     public class TestSceneIsMaskedAway : FrameworkTestScene
     {
         /// <summary>

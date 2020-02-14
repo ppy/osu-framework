@@ -64,19 +64,7 @@ namespace osu.Framework.Allocation
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            switch (exc.InnerException)
-                            {
-                                case OperationCanceledException _:
-                                    // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
-                                    throw exc.InnerException;
-
-                                case DependencyInjectionException die:
-                                    // A nested activator has failed (multiple Invoke() calls) - propagate the original error
-                                    throw die;
-                            }
-
-                            // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
-                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
+                            ExceptionDispatchInfo.Capture(exc.InnerException).Throw();
                         }
                     };
 

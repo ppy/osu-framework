@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -13,29 +16,52 @@ namespace osu.Framework.Input.Bindings
     /// <summary>
     /// Represent a combination of more than one <see cref="InputKey"/>s.
     /// </summary>
-    public class KeyCombination : IEquatable<KeyCombination>
+    public readonly struct KeyCombination : IEquatable<KeyCombination>
     {
         /// <summary>
         /// The keys.
         /// </summary>
-        public readonly IEnumerable<InputKey> Keys;
+        public readonly ImmutableArray<InputKey> Keys;
+
+        private static readonly ImmutableArray<InputKey> none = ImmutableArray.Create(InputKey.None);
 
         /// <summary>
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new[] { InputKey.None };
+            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
         }
 
         /// <summary>
         /// Construct a new instance.
         /// </summary>
-        /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
+        /// <param name="keys">The keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
+        public KeyCombination(params InputKey[] keys)
+            : this(keys.AsEnumerable())
+        {
+        }
+
+        /// <summary>
+        /// Construct a new instance from string representation provided by <see cref="ToString"/>.
+        /// </summary>
+        /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
+        /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
             : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
         {
+        }
+
+        /// <summary>
+        /// Constructor optimized for known builder. The caller is responsible to sort it.
+        /// </summary>
+        /// <param name="keys">The already sorted <see cref="ImmutableArray{InputKey}"/>.</param>
+        private KeyCombination(ImmutableArray<InputKey> keys)
+        {
+            Keys = keys;
         }
 
         /// <summary>
@@ -46,56 +72,80 @@ namespace osu.Framework.Input.Bindings
         /// <returns>Whether the pressedKeys keys are valid.</returns>
         public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
+            Debug.Assert(!pressedKeys.Keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
+
+            if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
+                return true;
+
             switch (matchingMode)
             {
                 case KeyCombinationMatchingMode.Any:
-                    return !Keys.Except(pressedKeys.Keys).Any();
+                    return containsAll(pressedKeys.Keys, Keys, false);
 
                 case KeyCombinationMatchingMode.Exact:
-                    return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
+                    // Keys are always ordered
+                    return pressedKeys.Keys.SequenceEqual(Keys);
 
                 case KeyCombinationMatchingMode.Modifiers:
-                    if (Keys.Except(pressedKeys.Keys).Any())
-                        return false;
-
-                    var pressedModifiers = pressedKeys.Keys.Where(IsModifierKey);
-                    var requiredModifiers = Keys.Where(IsModifierKey);
-                    return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
+                    return containsAll(pressedKeys.Keys, Keys, true);
 
                 default:
                     return false;
             }
         }
 
-        public bool Equals(KeyCombination other)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool containsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, bool exactModifiers)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            // can be local function once attribute on local functions are implemented
+            // optimized to avoid allocation
+            // Usually Keys.Count <= 3. Does not worth special logic for Contains().
+            foreach (var key in candidateKey)
+            {
+                if (!pressedKey.Contains(key))
+                    return false;
+            }
 
-            return Keys.SequenceEqual(other.Keys);
+            if (exactModifiers)
+            {
+                foreach (var key in pressedKey)
+                {
+                    if (IsModifierKey(key) &&
+                        !candidateKey.Contains(key))
+                        return false;
+                }
+            }
+
+            return true;
         }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
+        public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
 
-            return Equals((KeyCombination)obj);
+        public override bool Equals(object obj) => obj is KeyCombination kc && Equals(kc);
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+            foreach (var key in Keys)
+                hash = hash * 17 + (int)key;
+            return hash;
         }
 
-        public override int GetHashCode() => Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2);
-
-        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(new[] { singleKey });
+        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(ImmutableArray.Create(singleKey));
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
         public static implicit operator KeyCombination(InputKey[] keys) => new KeyCombination(keys);
 
-        public override string ToString() => Keys.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
+        /// <summary>
+        /// Get a string representation can be used with <see cref="KeyCombination(string)"/>.
+        /// </summary>
+        /// <returns>The string representation.</returns>
+        public override string ToString() => string.Join(",", Keys.Select(k => (int)k));
 
-        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1} {s2}");
+        public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
         private string getReadableKey(InputKey key)
@@ -343,9 +393,16 @@ namespace osu.Framework.Input.Bindings
             return InputKey.None;
         }
 
+        /// <summary>
+        /// Construct a new instance from input state.
+        /// </summary>
+        /// <param name="state">The input state object.</param>
+        /// <param name="scrollDelta">Delta of scroller's position.</param>
+        /// <returns>The new constructed <see cref="KeyCombination"/> instance.</returns>
+        /// <remarks>This factory method is optimized and should be used for hot paths.</remarks>
         public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
-            List<InputKey> keys = new List<InputKey>();
+            var keys = ImmutableArray.CreateBuilder<InputKey>();
 
             if (state.Mouse != null)
             {
@@ -353,8 +410,8 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromMouseButton(button));
             }
 
-            if (scrollDelta.HasValue && scrollDelta.Value.Y != 0)
-                keys.Add(FromScrollDelta(scrollDelta.Value));
+            if (scrollDelta is Vector2 v && v.Y != 0)
+                keys.Add(FromScrollDelta(v));
 
             if (state.Keyboard != null)
             {
@@ -384,9 +441,14 @@ namespace osu.Framework.Input.Bindings
             }
 
             if (state.Joystick != null)
-                keys.AddRange(state.Joystick.Buttons.Select(FromJoystickButton));
+            {
+                foreach (var joystickButton in state.Joystick.Buttons)
+                    keys.Add(FromJoystickButton(joystickButton));
+            }
 
-            return new KeyCombination(keys);
+            Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
+            keys.Sort();
+            return new KeyCombination(keys.ToImmutable());
         }
     }
 

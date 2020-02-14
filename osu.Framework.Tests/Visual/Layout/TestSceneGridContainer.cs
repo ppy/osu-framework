@@ -9,7 +9,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -651,6 +651,127 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestAutoSizedCellsWithTransparentContent(bool alwaysPresent)
+        {
+            AddStep("set content", () =>
+            {
+                grid.RowDimensions = new[]
+                {
+                    new Dimension(),
+                    new Dimension(),
+                    new Dimension(GridSizeMode.AutoSize)
+                };
+                grid.ColumnDimensions = new[]
+                {
+                    new Dimension(),
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension()
+                };
+                grid.Content = new[]
+                {
+                    new Drawable[] { new FillBox(), transparentBox(alwaysPresent), new FillBox() },
+                    new Drawable[] { new FillBox(), transparentBox(alwaysPresent), new FillBox() },
+                    new Drawable[] { transparentBox(alwaysPresent), transparentBox(alwaysPresent), transparentBox(alwaysPresent) }
+                };
+            });
+
+            float desiredTransparentBoxSize = alwaysPresent ? 50 : 0;
+            AddAssert("non-transparent fill boxes have correct size", () =>
+                grid.Content
+                    .SelectMany(row => row)
+                    .Where(box => box.Alpha > 0)
+                    .All(box => Precision.AlmostEquals(box.DrawWidth, (grid.DrawWidth - desiredTransparentBoxSize) / 2)
+                                && Precision.AlmostEquals(box.DrawHeight, (grid.DrawHeight - desiredTransparentBoxSize) / 2)));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestAutoSizedRowOrColumnWithTransparentContent(bool row)
+        {
+            var boxes = new FillBox[5];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Absolute, 100f),
+                new Dimension(),
+                new Dimension(GridSizeMode.AutoSize),
+                new Dimension(GridSizeMode.Relative, 0.2f),
+                new Dimension()
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox(),
+                    boxes[2] = transparentBox(false),
+                    boxes[3] = new FillBox(),
+                    boxes[4] = new FillBox()
+                }
+            }.Invert(), dimensions, row);
+
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 100f));
+            AddAssert("box 1 has correct size", () =>
+                Precision.AlmostEquals(getDimension(boxes[1], row), (getDimension(grid, row) * 0.8f - 100f) / 2));
+            AddAssert("box 3 has correct size", () => Precision.AlmostEquals(getDimension(boxes[3], row), getDimension(grid, row) * 0.2f));
+            AddAssert("box 4 has correct size", () =>
+                Precision.AlmostEquals(getDimension(boxes[4], row), (getDimension(grid, row) * 0.8f - 100f) / 2));
+        }
+
+        private FillBox transparentBox(bool alwaysPresent) => new FillBox
+        {
+            Alpha = 0,
+            AlwaysPresent = alwaysPresent,
+            RelativeSizeAxes = Axes.None,
+            Size = new Vector2(50)
+        };
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestAutoSizedRowOrColumnWithDelayedLifetimeContent(bool row)
+        {
+            var boxes = new FillBox[3];
+
+            var dimensions = new[]
+            {
+                new Dimension(GridSizeMode.Absolute, 75f),
+                new Dimension(GridSizeMode.AutoSize),
+                new Dimension()
+            };
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    boxes[0] = new FillBox(),
+                    boxes[1] = new FillBox
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        LifetimeStart = double.MaxValue,
+                        Size = new Vector2(50)
+                    },
+                    boxes[2] = new FillBox()
+                }
+            }.Invert(), dimensions, row);
+
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
+            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 75f));
+
+            AddStep("make box 1 alive", () => boxes[1].LifetimeStart = Time.Current);
+            AddUntilStep("wait for alive", () => boxes[1].IsAlive);
+
+            AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
+            AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 125f));
+        }
+
+        /// <summary>
+        /// Returns drawable dimension along desired axis.
+        /// </summary>
+        private float getDimension(Drawable drawable, bool row) => row ? drawable.DrawHeight : drawable.DrawWidth;
 
         private void checkClampedSizes(bool row, FillBox[] boxes, Dimension[] dimensions)
         {

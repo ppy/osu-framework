@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (placeholderEnd != -1)
                     {
-                        strPiece = str.Substring(index, nextPlaceholderIndex - index);
+                        strPiece = str[index..nextPlaceholderIndex];
                         string placeholderStr = str.Substring(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim();
                         string placeholderName = placeholderStr;
                         string paramStr = "";
