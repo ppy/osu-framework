@@ -57,6 +57,8 @@ namespace osu.Framework.Input
         LineEnd,
         DocumentPrevious,
         DocumentNext,
+        ListStart,
+        ListEnd,
         Save
     }
 

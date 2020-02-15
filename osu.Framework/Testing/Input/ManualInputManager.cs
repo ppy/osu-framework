@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Input
         public void ScrollHorizontalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(delta, 0), isPrecise);
         public void ScrollVerticalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(0, delta), isPrecise);
 
-        public void MoveMouseTo(Drawable drawable) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
+        public void MoveMouseTo(Drawable drawable, Vector2? offset = null) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre) + (offset ?? Vector2.Zero));
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
         public void MoveTouchTo(Drawable drawable, MouseButton source) => MoveTouchTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre), source);
@@ -202,7 +202,7 @@ namespace osu.Framework.Testing.Input
                     return base.OnMouseDown(e);
                 }
 
-                protected override bool OnMouseUp(MouseUpEvent e)
+                protected override void OnMouseUp(MouseUpEvent e)
                 {
                     switch (e.Button)
                     {
@@ -216,7 +216,7 @@ namespace osu.Framework.Testing.Input
                     }
 
                     updateBorder(e);
-                    return base.OnMouseUp(e);
+                    base.OnMouseUp(e);
                 }
 
                 protected override bool OnScroll(ScrollEvent e)

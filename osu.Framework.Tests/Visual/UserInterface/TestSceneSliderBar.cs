@@ -91,11 +91,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
-        }
+        });
 
         [Test]
         public void TestVerticalDragHasNoEffect()

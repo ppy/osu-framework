@@ -32,10 +32,8 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public new void SetUp() => Schedule(() =>
         {
-            base.SetUp();
-
             Children = new Drawable[]
             {
                 focusTopLeft = new FocusBox
@@ -178,7 +176,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
             AddAssert("Received the key", () =>
                 focusBottomLeft.KeyDownCount == 1 && focusBottomLeft.KeyUpCount == 1 &&
-                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 1);
+                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 0);
             AddStep("Press a joystick (non blocking)", () =>
             {
                 InputManager.PressJoystickButton(JoystickButton.Button1);
@@ -329,10 +327,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return true;
             }
 
-            protected override bool OnKeyUp(KeyUpEvent e)
+            protected override void OnKeyUp(KeyUpEvent e)
             {
                 ++KeyUpCount;
-                return base.OnKeyUp(e);
+                base.OnKeyUp(e);
             }
 
             protected override bool OnJoystickPress(JoystickPressEvent e)
@@ -341,10 +339,10 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return base.OnJoystickPress(e);
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 ++JoystickReleaseCount;
-                return base.OnJoystickRelease(e);
+                base.OnJoystickRelease(e);
             }
         }
     }

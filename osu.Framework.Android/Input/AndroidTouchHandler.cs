@@ -17,14 +17,12 @@ namespace osu.Framework.Android.Input
         {
             this.view = view;
             view.Touch += handleTouches;
+            view.Hover += handleHover;
         }
 
         private void handleTouches(object sender, View.TouchEventArgs e)
         {
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput
-            {
-                Position = new osuTK.Vector2(e.Event.GetX() * view.ScaleX, e.Event.GetY() * view.ScaleY)
-            });
+            handlePointerEvent(e.Event);
 
             switch (e.Event.Action & MotionEventActions.Mask)
             {
@@ -39,9 +37,25 @@ namespace osu.Framework.Android.Input
             }
         }
 
+        private void handleHover(object sender, View.HoverEventArgs e)
+        {
+            handlePointerEvent(e.Event);
+
+            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, e.Event.ButtonState == MotionEventButtonState.StylusPrimary));
+        }
+
+        private void handlePointerEvent(MotionEvent e)
+        {
+            PendingInputs.Enqueue(new MousePositionAbsoluteInput
+            {
+                Position = new osuTK.Vector2(e.GetX() * view.ScaleX, e.GetY() * view.ScaleY)
+            });
+        }
+
         protected override void Dispose(bool disposing)
         {
             view.Touch -= handleTouches;
+            view.Hover -= handleHover;
             base.Dispose(disposing);
         }
 

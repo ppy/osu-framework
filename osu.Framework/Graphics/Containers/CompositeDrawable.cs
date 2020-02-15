@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Containers
 
             var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
-            return Task.Factory.StartNew(() => loadComponents(components, deps, true), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
@@ -199,13 +199,19 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            loadComponents(components, Dependencies, false);
+            loadComponents(ref components, Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isAsyncContext) where TLoadable : Drawable
+        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default) where TLoadable : Drawable
         {
             foreach (var c in components)
-                c.Load(Clock, dependencies, isAsyncContext);
+            {
+                if (cancellation.IsCancellationRequested)
+                    return;
+
+                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components = components.Except(c.Yield());
+            }
         }
 
         [BackgroundDependencyLoader(true)]

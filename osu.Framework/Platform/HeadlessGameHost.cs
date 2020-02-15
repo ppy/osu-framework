@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -31,6 +32,12 @@ namespace osu.Framework.Platform
             : base(gameName, bindIPC, portableInstallation: portableInstallation)
         {
             this.realtime = realtime;
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        {
+            base.SetupConfig(gameDefaults);
+            Config.Set(FrameworkSetting.AudioDevice, "No sound");
         }
 
         protected override void SetupForRun()

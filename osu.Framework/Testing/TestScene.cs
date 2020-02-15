@@ -113,14 +113,16 @@ namespace osu.Framework.Testing
 
                 if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                     schedule(() => StepsContainer.Clear());
-            }
 
-            RunSetUpSteps();
+                RunSetUpSteps();
+            }
         }
 
         [TearDown]
         public void RunTests()
         {
+            RunTearDownSteps();
+
             checkForErrors();
             runner.RunTestBlocking(this);
             checkForErrors();
@@ -368,14 +370,17 @@ namespace osu.Framework.Testing
             });
         });
 
-        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
-        private void schedule(Action action) => Scheduler.Add(action, false);
-
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {
-            foreach (var method in GetType().GetMethods().Where(m => m.GetCustomAttributes(typeof(SetUpStepsAttribute), false).Length > 0))
+            foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(SetUpStepsAttribute), true))
+                method.Invoke(this, null);
+        }
+
+        internal void RunTearDownSteps()
+        {
+            foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(TearDownStepsAttribute), true))
                 method.Invoke(this, null);
         }
 
@@ -389,5 +394,8 @@ namespace osu.Framework.Testing
             return name.Replace("TestCase", string.Empty) // TestScene used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.
                        .Replace(nameof(TestScene), string.Empty);
         }
+
+        // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
+        private void schedule(Action action) => Scheduler.Add(action, false);
     }
 }

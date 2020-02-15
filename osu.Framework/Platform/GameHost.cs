@@ -379,13 +379,21 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                Window.SwapBuffers();
-
-                if (Window.VSync == VSyncMode.On)
-                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                    // we will likely want to give the user control over this in the future as an advanced setting.
-                    GL.Finish();
+                Swap();
             }
+        }
+
+        /// <summary>
+        /// Swap the buffers.
+        /// </summary>
+        protected virtual void Swap()
+        {
+            Window.SwapBuffers();
+
+            if (Window.VSync == VSyncMode.On)
+                // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                // we will likely want to give the user control over this in the future as an advanced setting.
+                GL.Finish();
         }
 
         /// <summary>
@@ -936,7 +944,9 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageDown), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save))
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save)),
+            new KeyBinding(InputKey.Home, new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
+            new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move))
         };
 
         /// <summary>

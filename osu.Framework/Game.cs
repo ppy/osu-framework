@@ -285,7 +285,9 @@ namespace osu.Framework
             return false;
         }
 
-        public bool OnReleased(FrameworkAction action) => false;
+        public void OnReleased(FrameworkAction action)
+        {
+        }
 
         public void Exit()
         {

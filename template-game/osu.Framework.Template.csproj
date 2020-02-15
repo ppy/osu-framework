@@ -16,7 +16,7 @@
     <ContentTargetFolders>templates</ContentTargetFolders>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include=".template.config\*;app.manifest;Directory.Build.props;TemplateGame*.*;TemplateGame*\**\*" Exclude="**\bin\**;**\obj\**" />
+    <Content Include=".editor*;.idea\**\*;.template.config\*;app.manifest;Directory.Build.props;TemplateGame*.*;TemplateGame*\**\*" Exclude="**\bin\**;**\obj\**" />
     <Compile Remove="**\*" />
   </ItemGroup>
 </Project>

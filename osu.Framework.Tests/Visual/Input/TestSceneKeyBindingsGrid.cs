@@ -508,7 +508,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return false;
             }
 
-            public bool OnReleased(TestAction action)
+            public void OnReleased(TestAction action)
             {
                 if (Action == action)
                 {
@@ -520,11 +520,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                     alphaTarget -= 0.2f;
                     Background.Alpha = alphaTarget;
-
-                    return true;
                 }
-
-                return false;
             }
 
             public virtual void Reset()

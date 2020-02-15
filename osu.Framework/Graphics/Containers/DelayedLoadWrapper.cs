@@ -3,8 +3,10 @@
 
 using System;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.PolygonExtensions;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -16,6 +18,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class DelayedLoadWrapper : CompositeDrawable
     {
+        [Resolved]
+        protected Game Game { get; private set; }
+
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
         /// </summary>
@@ -60,8 +65,6 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            scheduleIsIntersecting();
-
             // This code can be expensive, so only run if we haven't yet loaded.
             if (DelayedLoadCompleted || DelayedLoadTriggered) return;
 
@@ -99,8 +102,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual void CancelTasks()
         {
-            cancelLoadScheduledDelegate();
-
             isIntersectingCache.Invalidate();
             loadTask = null;
         }
@@ -125,8 +126,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Cached optimisingContainerCache = new Cached();
         private readonly Cached isIntersectingCache = new Cached();
-
-        private ScheduledDelegate loadScheduledDelegate;
+        private ScheduledDelegate isIntersectingResetDelegate;
 
         protected bool IsIntersecting { get; private set; }
 
@@ -134,55 +134,51 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
 
-        private void scheduleIsIntersecting()
-        {
-            if (!optimisingContainerCache.IsValid)
-            {
-                OptimisingContainer = FindParentOptimisingContainer();
-                optimisingContainerCache.Validate();
-            }
-
-            if (OptimisingContainer == null)
-            {
-                IsIntersecting = true;
-                isIntersectingCache.Validate();
-            }
-            else
-            {
-                if (loadScheduledDelegate == null)
-                {
-                    loadScheduledDelegate = OptimisingContainer.ScheduleCheckAction(() =>
-                    {
-                        if (!isIntersectingCache.IsValid)
-                        {
-                            IsIntersecting = OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) == true;
-                            isIntersectingCache.Validate();
-                        }
-                    });
-                }
-            }
-        }
-
-        private void cancelLoadScheduledDelegate()
-        {
-            loadScheduledDelegate?.Cancel();
-            loadScheduledDelegate = null;
-        }
-
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation.HasFlag(Invalidation.Parent))
-            {
-                OptimisingContainer = null;
-                optimisingContainerCache.Invalidate();
+            bool result = base.Invalidate(invalidation, source, shallPropagate);
 
-                // Cancel the load task and allow the unload to take place by assuming the intersection is no longer valid
-                cancelLoadScheduledDelegate();
-                IsIntersecting = false;
+            if (invalidation.HasFlag(Invalidation.Parent))
+                result &= !optimisingContainerCache.Invalidate();
+            result &= !isIntersectingCache.Invalidate();
+
+            // For every invalidation, we schedule a reset of IsIntersecting to the game.
+            // This is done since UpdateSubTreeMasking() may not be invoked in the current frame, as a result of presence/masking changes anywhere in our super-tree.
+            // It is important that this is scheduled such that it occurs on the NEXT frame, in order to give this wrapper a chance to load its contents.
+            // For example, if a parent invalidated this wrapper every frame, IsIntersecting would be false by the time Update() is run and may only become true at the very end of the frame.
+            // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
+            if (isIntersectingResetDelegate == null)
+                isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+
+            return result;
+        }
+
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
+
+            // We can accurately compute intersections - the scheduled reset is no longer required.
+            isIntersectingResetDelegate?.Cancel();
+            isIntersectingResetDelegate = null;
+
+            if (!isIntersectingCache.IsValid)
+            {
+                if (!optimisingContainerCache.IsValid)
+                {
+                    OptimisingContainer = FindParentOptimisingContainer();
+                    optimisingContainerCache.Validate();
+                }
+
+                // The first condition is an intersection against the hierarchy, including any parents that may be masking this wrapper.
+                // It is the same calculation as Drawable.IsMaskedAway, however IsMaskedAway is optimised out for some CompositeDrawables (which this wrapper is).
+                // The second condition is an exact intersection against the optimising container, which further optimises rotated AABBs where the wrapper content is not visible.
+                IsIntersecting = maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat)
+                                 && OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) != false;
+
+                isIntersectingCache.Validate();
             }
 
-            isIntersectingCache.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
+            return result;
         }
 
         /// <summary>
@@ -190,13 +186,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal interface IOnScreenOptimisingContainer : IDrawable
         {
-            /// <summary>
-            /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.
-            /// Repeats every frame until manually cancelled.
-            /// </summary>
-            /// <param name="action">The action to perform.</param>
-            /// <returns>The scheduled delegate.</returns>
-            ScheduledDelegate ScheduleCheckAction(Action action);
         }
     }
 }
