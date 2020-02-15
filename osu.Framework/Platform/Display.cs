@@ -6,9 +6,9 @@ using System.Drawing;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Structure that represents a physical display device on the current system.
+    /// Represents a physical display device on the current system.
     /// </summary>
-    public struct Display
+    public class Display
     {
         /// <summary>
         /// The name of the display, if available. Usually the manufacturer.

@@ -6,9 +6,9 @@ using System.Drawing;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Structure that represents a display mode on a given <see cref="Display"/>.
+    /// Represents a display mode on a given <see cref="Display"/>.
     /// </summary>
-    public struct DisplayMode
+    public class DisplayMode
     {
         /// <summary>
         /// The pixel format of the display mode, if available.

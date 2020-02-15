@@ -73,46 +73,8 @@ namespace osu.Framework.Platform
             Enumerable.Range((int)DisplayIndex.First, 6)
                       .Select(index => DisplayDevice.GetDisplay((DisplayIndex)index))
                       .Where(x => x != null)
-                      .Select(displayFromOsuTK)
+                      .Select(ExtensionMethods.ToDisplay)
                       .ToArray();
-
-        public override Display? Display => CurrentDisplay == null ? (Display?)null : displayFromOsuTK(CurrentDisplay);
-
-        /// <summary>
-        /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
-        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplay"/>,
-        /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
-        /// report refresh rates such as 59.992863 where SDL2 will report 60.
-        /// </summary>
-        public override DisplayMode? DisplayMode
-        {
-            get
-            {
-                var display = CurrentDisplay;
-                return new DisplayMode
-                {
-                    BitsPerPixel = display.BitsPerPixel,
-                    RefreshRate = (int)Math.Round(display.RefreshRate),
-                    Size = new Size(display.Width, display.Height)
-                };
-            }
-        }
-
-        private static Display displayFromOsuTK(DisplayDevice device) =>
-            new Display
-            {
-                Name = device.GetIndex().ToString(),
-                Bounds = device.Bounds,
-                DisplayModes = device.AvailableResolutions.Select(displayModeFromOsuTK).ToArray()
-            };
-
-        private static DisplayMode displayModeFromOsuTK(DisplayResolution resolution) =>
-            new DisplayMode
-            {
-                BitsPerPixel = resolution.BitsPerPixel,
-                RefreshRate = (int)Math.Round(resolution.RefreshRate),
-                Size = new Size(resolution.Width, resolution.Height)
-            };
 
         protected DesktopGameWindow()
             : base(default_width, default_height)

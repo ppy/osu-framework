@@ -60,9 +60,9 @@ namespace osu.Framework.Platform
 
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
-        public Display? Display => windowBackend.Display;
+        public Display Display => windowBackend.Display;
 
-        public DisplayMode? DisplayMode => windowBackend.DisplayMode;
+        public DisplayMode DisplayMode => windowBackend.DisplayMode;
 
         #endregion
 

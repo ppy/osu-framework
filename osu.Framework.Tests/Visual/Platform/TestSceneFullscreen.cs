@@ -103,9 +103,9 @@ namespace osu.Framework.Tests.Visual.Platform
                 });
             });
 
-            AddStep("query Window.Display", () => Logger.Log(window.Display?.ToString() ?? "Unknown"));
+            AddStep("query Window.Display", () => Logger.Log(window.Display.ToString()));
 
-            AddStep("query Window.DisplayMode", () => Logger.Log(window.DisplayMode?.ToString() ?? "Unknown"));
+            AddStep("query Window.DisplayMode", () => Logger.Log(window.DisplayMode.ToString()));
         }
 
         protected override void Update()
