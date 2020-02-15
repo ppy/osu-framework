@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.Input
         private EventReceptor receptor1, receptor2;
 
         [SetUp]
-        public override void SetUp() => Schedule(() =>
+        public void Setup() => Schedule(() =>
         {
             Children = new Drawable[]
             {
