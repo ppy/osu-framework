@@ -86,13 +86,7 @@ namespace osu.Framework.Platform
             get
             {
                 var display = CurrentDisplay;
-
-                return new DisplayMode
-                {
-                    BitsPerPixel = display.BitsPerPixel,
-                    RefreshRate = (int)Math.Round(display.RefreshRate),
-                    Size = new Size(display.Width, display.Height)
-                };
+                return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate));
             }
         }
 

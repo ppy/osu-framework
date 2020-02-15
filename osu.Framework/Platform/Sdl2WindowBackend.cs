@@ -153,27 +153,19 @@ namespace osu.Framework.Platform
 
         public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
 
-        private static Display displayFromSDL(int displayIndex) =>
-            new Display
-            {
-                Name = Sdl2Functions.SDL_GetDisplayName(displayIndex),
-                Bounds = Sdl2Functions.SDL_GetDisplayBounds(displayIndex),
-                DisplayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
-                                         .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
-                                         .ToArray()
-            };
+        private static Display displayFromSDL(int displayIndex) => new Display
+        {
+            Name = Sdl2Functions.SDL_GetDisplayName(displayIndex),
+            Bounds = Sdl2Functions.SDL_GetDisplayBounds(displayIndex),
+            DisplayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
+                                     .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
+                                     .ToArray()
+        };
 
         private static DisplayMode displayModeFromSDL(SDL_DisplayMode mode)
         {
             Sdl2Functions.SDL_PixelFormatEnumToMasks(mode.Format, out var bpp, out _, out _, out _, out _);
-
-            return new DisplayMode
-            {
-                Format = Sdl2Functions.SDL_GetPixelFormatName(mode.Format),
-                Size = new Size(mode.Width, mode.Height),
-                BitsPerPixel = bpp,
-                RefreshRate = mode.RefreshRate
-            };
+            return new DisplayMode(Sdl2Functions.SDL_GetPixelFormatName(mode.Format), new Size(mode.Width, mode.Height), bpp, mode.RefreshRate);
         }
 
         #endregion

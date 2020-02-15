@@ -8,28 +8,36 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents a display mode on a given <see cref="Display"/>.
     /// </summary>
-    public class DisplayMode
+    public readonly struct DisplayMode
     {
         /// <summary>
         /// The pixel format of the display mode, if available.
         /// </summary>
-        public string Format;
+        public readonly string Format;
 
         /// <summary>
         /// The dimensions of the screen resolution in pixels.
         /// </summary>
-        public Size Size;
+        public readonly Size Size;
 
         /// <summary>
         /// The number of bits that represent the colour value for each pixel.
         /// </summary>
-        public int BitsPerPixel;
+        public readonly int BitsPerPixel;
 
         /// <summary>
         /// The refresh rate in hertz.
         /// </summary>
-        public int RefreshRate;
+        public readonly int RefreshRate;
 
-        public override string ToString() => $"Format: {Format ?? "Unknown"}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}";
+        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate)
+        {
+            Format = format ?? "Unknown";
+            Size = size;
+            BitsPerPixel = bitsPerPixel;
+            RefreshRate = refreshRate;
+        }
+
+        public override string ToString() => $"Format: {Format}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}";
     }
 }
