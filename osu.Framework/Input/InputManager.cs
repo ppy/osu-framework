@@ -136,14 +136,6 @@ namespace osu.Framework.Input
                 manager.GetCurrentTime = () => Time.Current;
                 mouseButtonEventManagers.Add(button, manager);
             }
-
-            // Create touch event managers
-            foreach (var source in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>().Skip((int)MouseButton.Touch1))
-            {
-                var manager = CreateTouchManagerFor(source);
-                manager.GetTouchInputQueue = pos => buildPositionalInputQueue(CurrentState, pos);
-                touchEventManagers.Add(source, manager);
-            }
         }
 
         protected override void LoadComplete()
@@ -171,13 +163,6 @@ namespace osu.Framework.Input
                     return new MouseMinorButtonEventManager(button);
             }
         }
-
-        /// <summary>
-        /// Creates a <see cref="TouchEventManager"/> for a specified touch source.
-        /// </summary>
-        /// <param name="source">The touch source.</param>
-        /// <returns>The <see cref="TouchEventManager"/>.</returns>
-        protected virtual TouchEventManager CreateTouchManagerFor(MouseButton source) => new TouchEventManager(source);
 
         /// <summary>
         /// Get the <see cref="MouseButtonEventManager"/> responsible for a specified mouse button.
@@ -208,6 +193,24 @@ namespace osu.Framework.Input
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
+
+        /// <summary>
+        /// Create a <see cref="TouchEventManager"/> for a specified touch source.
+        /// </summary>
+        /// <param name="source">The touch source to be handled by the returned manager.</param>
+        /// <returns>The <see cref="TouchEventManager"/>.</returns>
+        protected virtual TouchEventManager CreateTouchEventManagerFor(MouseButton source) => new TouchEventManager(source);
+
+        public TouchEventManager GetTouchEventManagerFor(MouseButton source)
+        {
+            if (touchEventManagers.TryGetValue(source, out var existing))
+                return existing;
+
+            var manager = CreateTouchEventManagerFor(source);
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState, CurrentState.Touch.GetTouchPosition(source));
+            return touchEventManagers[source] = manager;
+        }
+
         /// <summary>
         /// Create a <see cref="JoystickButtonEventManager"/> for a specified joystick button.
         /// </summary>
@@ -561,16 +564,10 @@ namespace osu.Framework.Input
         }
 
         protected virtual void HandleTouchPositionChange(TouchPositionChangeEvent e)
-        {
-            if (touchEventManagers.TryGetValue(e.Source, out var manager))
-                manager.HandlePositionChange(e.State, e.LastPosition);
-        }
+            => GetTouchEventManagerFor(e.Source).HandlePositionChange(e.State, e.LastPosition);
 
         protected virtual void HandleTouchActivityStateChange(TouchActivityChangeEvent e)
-        {
-            if (touchEventManagers.TryGetValue(e.Button, out var manager))
-                manager.HandleActivityChange(e.State, e.Kind);
-        }
+            => GetTouchEventManagerFor(e.Button).HandleButtonStateChange(e.State, e.Kind);
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
