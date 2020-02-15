@@ -2079,7 +2079,6 @@ namespace osu.Framework.Graphics
         /// <param name="e">The <see cref="KeyDownEvent"/> containing information about the input event.</param>
         /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
-        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="Key"/> is released.
@@ -2089,8 +2088,29 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <param name="e">The <see cref="KeyUpEvent"/> containing information about the input event.</param>
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is active.
+        /// </summary>
+        /// <param name="e">The <see cref="TouchDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
-        protected virtual bool OnTouchUp(TouchUpEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is not active.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchUp(TouchUpEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
