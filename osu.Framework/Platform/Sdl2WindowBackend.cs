@@ -151,7 +151,7 @@ namespace osu.Framework.Platform
 
         public Display Display => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
 
-        public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetWindowDisplayMode(SdlWindowHandle));
+        public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
 
         private static Display displayFromSDL(int displayIndex) =>
             new Display
