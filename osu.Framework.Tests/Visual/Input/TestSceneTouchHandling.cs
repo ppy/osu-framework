@@ -178,15 +178,23 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 switch (e)
                 {
-                    case TouchEvent t:
-                        TouchEvents.Enqueue(t);
+                    case TouchMoveEvent _:
+                    case TouchDownEvent _:
+                        TouchEvents.Enqueue((TouchEvent)e);
                         return true;
+
+                    case TouchUpEvent tue:
+                        TouchEvents.Enqueue(tue);
+                        return false;
 
                     case MouseMoveEvent _:
                     case MouseDownEvent _:
-                    case MouseUpEvent _:
                         MouseEvents.Enqueue((MouseEvent)e);
                         return true;
+
+                    case MouseUpEvent mue:
+                        MouseEvents.Enqueue(mue);
+                        return false;
                 }
 
                 return base.Handle(e);
@@ -233,11 +241,10 @@ namespace osu.Framework.Tests.Visual.Input
                 return false;
             }
 
-            protected override bool OnTouchUp(TouchUpEvent e)
+            protected override void OnTouchUp(TouchUpEvent e)
             {
                 drawableTouches[e.ScreenSpaceTouch].FadeOut(200, Easing.OutQuint).Expire();
                 drawableTouches.Remove(e.ScreenSpaceTouch);
-                return false;
             }
 
             protected override bool OnTouchMove(TouchMoveEvent e)
