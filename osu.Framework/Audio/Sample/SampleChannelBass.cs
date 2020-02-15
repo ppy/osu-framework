@@ -100,6 +100,7 @@ namespace osu.Framework.Audio.Sample
 
             if (AggregateFrequency.Value == 0)
             {
+                // The channel should be initially paused, no need to pause it here.
                 pausedDueToZeroFrequency = true;
                 return;
             }
