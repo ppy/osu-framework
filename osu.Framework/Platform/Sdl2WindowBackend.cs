@@ -153,14 +153,14 @@ namespace osu.Framework.Platform
 
         public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
 
-        private static Display displayFromSDL(int displayIndex) => new Display
+        private static Display displayFromSDL(int displayIndex)
         {
-            Name = Sdl2Functions.SDL_GetDisplayName(displayIndex),
-            Bounds = Sdl2Functions.SDL_GetDisplayBounds(displayIndex),
-            DisplayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
-                                     .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
-                                     .ToArray()
-        };
+            var displayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
+                                         .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
+                                         .ToArray();
+
+            return new Display(Sdl2Functions.SDL_GetDisplayName(displayIndex), Sdl2Functions.SDL_GetDisplayBounds(displayIndex), displayModes);
+        }
 
         private static DisplayMode displayModeFromSDL(SDL_DisplayMode mode)
         {

@@ -8,24 +8,31 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents a physical display device on the current system.
     /// </summary>
-    public class Display
+    public sealed class Display
     {
         /// <summary>
         /// The name of the display, if available. Usually the manufacturer.
         /// </summary>
-        public string Name;
+        public string Name { get; }
 
         /// <summary>
         /// The current rectangle of the display in screen space.
         /// Non-zero X and Y values represent a non-primary monitor, and indicate its position
         /// relative to the primary monitor.
         /// </summary>
-        public Rectangle Bounds;
+        public Rectangle Bounds { get; }
 
         /// <summary>
         /// The available <see cref="DisplayMode"/>s on this display.
         /// </summary>
-        public DisplayMode[] DisplayModes;
+        public DisplayMode[] DisplayModes { get; }
+
+        public Display(string name, Rectangle bounds, DisplayMode[] displayModes)
+        {
+            Name = name;
+            Bounds = bounds;
+            DisplayModes = displayModes;
+        }
 
         public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}";
     }
