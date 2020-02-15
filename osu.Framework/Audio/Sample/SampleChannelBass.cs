@@ -45,7 +45,7 @@ namespace osu.Framework.Audio.Sample
 
             // Handle channels with 0 frequencies due to BASS not supporting them (0 = original rate)
             // Documentation for the frequency limits: http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm
-            if (AggregateFrequency.Value == 0 && playing)
+            if (AggregateFrequency.Value == 0 && !pausedDueToZeroFrequency)
             {
                 pausedDueToZeroFrequency = true;
                 Bass.ChannelPause(channel);
