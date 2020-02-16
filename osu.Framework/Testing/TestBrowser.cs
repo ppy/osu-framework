@@ -461,37 +461,34 @@ namespace osu.Framework.Testing
             {
                 var name = m.Name;
 
-                if (name == nameof(TestScene.TestConstructor))
+                if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
 
                 if (name.StartsWith("Test"))
                     name = name.Substring(4);
 
-                if (m.GetCustomAttribute(typeof(IgnoreAttribute), false) == null)
+                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                 {
-                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
+                    hadTestAttributeTest = true;
+                    handleTestMethod(m, name);
+
+                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                     {
-                        hadTestAttributeTest = true;
-                        handleTestMethod(m, name);
+                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
 
-                        if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
-                        {
-                            var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
-
-                            for (int i = 2; i <= count; i++)
-                                handleTestMethod(m, $"{name} ({i})");
-                        }
+                        for (int i = 2; i <= count; i++)
+                            handleTestMethod(m, $"{name} ({i})");
                     }
+                }
 
-                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                    {
-                        hadTestAttributeTest = true;
-                        CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
+                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                {
+                    hadTestAttributeTest = true;
+                    CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
 
-                        addSetUpSteps();
+                    addSetUpSteps();
 
-                        m.Invoke(CurrentTest, tc.Arguments);
-                    }
+                    m.Invoke(CurrentTest, tc.Arguments);
                 }
             }
 
