@@ -85,20 +85,16 @@ namespace osu.Framework.Graphics.Containers
                 case NotifyCollectionChangedAction.Remove:
                     removeItems(e.OldItems);
                     reSort();
-
-                    if (Items.Count == 0)
-                    {
-                        // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
-                        // scroll position if we quickly add new items after calling a Clear().
-                        ScrollContainer.ScrollToStart();
-                    }
-
                     break;
 
                 case NotifyCollectionChangedAction.Reset:
                     currentlyDraggedItem = null;
                     ListContainer.Clear();
                     itemMap.Clear();
+
+                    // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
+                    // scroll position if we quickly add new items after calling a Clear().
+                    ScrollContainer.ScrollToStart();
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
