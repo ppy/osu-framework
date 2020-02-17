@@ -700,14 +700,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (child.IsAlive)
                 {
-                    MakeChildDead(child);
-                    state |= ChildLifeStateChange.MadeDead;
-                }
+                    if (MakeChildDead(child))
+                        state |= ChildLifeStateChange.Removed;
 
-                if (child.RemoveWhenNotAlive)
-                {
-                    removeChildByDeath(child);
-                    state |= ChildLifeStateChange.Removed;
+                    state |= ChildLifeStateChange.MadeDead;
                 }
             }
 
