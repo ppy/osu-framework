@@ -26,6 +26,9 @@ namespace osu.Framework.Input.StateChanges
 
         public TouchPositionInput(MouseButton source, Vector2 newPosition)
         {
+            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
+                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
+
             Source = source;
             Position = newPosition;
         }
@@ -33,9 +36,6 @@ namespace osu.Framework.Input.StateChanges
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var touch = state.Touch;
-
-            if (Source < MouseButton.Touch1)
-                return;
 
             Vector2? lastPosition = touch.GetTouchPosition(Source);
             if (lastPosition == Position)

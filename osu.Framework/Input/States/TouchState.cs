@@ -32,6 +32,12 @@ namespace osu.Framework.Input.States
             return pos;
         }
 
-        public bool IsActive(MouseButton source) => ActiveSources.IsPressed(source);
+        public bool IsActive(MouseButton source)
+        {
+            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
+                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
+
+            return ActiveSources.IsPressed(source);
+        }
     }
 }

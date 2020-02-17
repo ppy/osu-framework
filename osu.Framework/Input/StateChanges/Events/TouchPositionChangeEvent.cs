@@ -22,6 +22,9 @@ namespace osu.Framework.Input.StateChanges.Events
         public TouchPositionChangeEvent(InputState state, IInput input, MouseButton source, Vector2 lastPosition)
             : base(state, input)
         {
+            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
+                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
+
             Source = source;
             LastPosition = lastPosition;
         }

@@ -24,6 +24,9 @@ namespace osu.Framework.Input
 
         public Touch(MouseButton source, Vector2 position)
         {
+            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
+                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
+
             Source = source;
             Position = position;
         }
