@@ -156,8 +156,10 @@ namespace osu.Framework.Graphics.Containers
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                // The item could have been removed before the async load completed, in which case it wouldn't exist in the list container
-                if (itemMap.TryGetValue(Items[i], out var drawable))
+                var drawable = itemMap[Items[i]];
+
+                // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
+                if (drawable.Parent == ListContainer)
                     ListContainer.SetLayoutPosition(drawable, i);
             }
         }
