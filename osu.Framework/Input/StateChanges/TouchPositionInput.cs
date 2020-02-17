@@ -24,6 +24,20 @@ namespace osu.Framework.Input.StateChanges
         /// </summary>
         public readonly Vector2 Position;
 
+        /// <summary>
+        /// Constructs a <see cref="TouchPositionInput"/> from a <see cref="Touch"/> structure.
+        /// </summary>
+        /// <param name="touch">The <see cref="Touch"/> to construct from.</param>
+        public TouchPositionInput(Touch touch)
+            : this(touch.Source, touch.Position)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="TouchPositionInput"/> with a <paramref name="source"/> and a <paramref name="newPosition"/>.
+        /// </summary>
+        /// <param name="source">The touch source.</param>
+        /// <param name="newPosition">The new position to move to.</param>
         public TouchPositionInput(MouseButton source, Vector2 newPosition)
         {
             if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
