@@ -16,6 +16,7 @@ namespace osu.Framework.Input.States
 
         /// <summary>
         /// The array to retrieve current touch positions from and save them.
+        /// This is used for saving current touch positions of active sources, using <see cref="GetTouchPosition"/> is recommended as it contains checks to retrieve logical values.
         /// </summary>
         public readonly Vector2?[] TouchPositions = new Vector2?[10];
 
