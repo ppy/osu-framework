@@ -1020,7 +1020,9 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.IsTrue(wasNotified);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Reset));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new[] { "testA", "testA", "testA", "testA", "testA" }));
+            Assert.That(triggeredArgs.OldStartingIndex, Is.EqualTo(0));
         }
 
         [Test]
@@ -1352,7 +1354,9 @@ namespace osu.Framework.Tests.Bindables
             });
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
-            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Reset));
+            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.First().OldItems, Is.EquivalentTo(strings));
+            Assert.That(triggeredArgs.First().OldStartingIndex, Is.EqualTo(0));
         }
 
         [Test]
@@ -1390,7 +1394,9 @@ namespace osu.Framework.Tests.Bindables
             });
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
-            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Reset));
+            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.First().OldItems, Is.EquivalentTo("test123".Yield()));
+            Assert.That(triggeredArgs.First().OldStartingIndex, Is.EqualTo(0));
             Assert.That(triggeredArgs.ElementAt(1).Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.ElementAt(1).NewItems, Is.EquivalentTo(strings));
             Assert.That(triggeredArgs.ElementAt(1).NewStartingIndex, Is.EqualTo(0));

@@ -182,12 +182,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-#pragma warning disable 618 // can be removed 20200817
-            // The collection changed event does not provide items upon clearing, but the old interface expects it to.
-            ItemsRemoved?.Invoke(clearedItems);
-#pragma warning restore 618
-
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
         }
 
         /// <summary>
