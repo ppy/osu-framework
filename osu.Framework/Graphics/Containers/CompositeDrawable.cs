@@ -723,7 +723,7 @@ namespace osu.Framework.Graphics.Containers
         /// Make a child alive.
         /// </summary>
         /// <remarks>
-        /// Caller have to ensure that <paramref name="child"/> is this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the child is at least <see cref="LoadState.Ready"/>.
+        /// Caller have to ensure that <paramref name="child"/> is of this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the <paramref name="child"/> is at least <see cref="LoadState.Ready"/>.
         /// </remarks>
         /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make alive.</param>
         protected void MakeChildAlive(Drawable child)
@@ -751,13 +751,13 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Make a child dead (not alive).
+        /// Make a child dead (not alive), also removes it if <see cref="Drawable.RemoveWhenNotAlive"/> of the <paramref name="child"/> is set.
         /// </summary>
         /// <remarks>
-        /// Caller have to ensure that <paramref name="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
+        /// Caller have to ensure that <paramref name="child"/> is of this <see cref="AliveInternalChildren"/>.
         /// </remarks>
         /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make dead.</param>
-        /// <returns>Returns true if <paramref name="child"/> is removed by death.</returns>
+        /// <returns>Whether <paramref name="child"/> has been removed by death.</returns>
         protected bool MakeChildDead(Drawable child)
         {
             Debug.Assert(child.IsAlive);
@@ -769,19 +769,15 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.RemoveWhenNotAlive)
             {
-                removeChildByDeath(child);
+                RemoveInternal(child);
+
+                if (child.DisposeOnDeathRemoval)
+                    DisposeChildAsync(child);
+
                 return true;
             }
 
             return false;
-        }
-
-        private void removeChildByDeath(Drawable child)
-        {
-            RemoveInternal(child);
-
-            if (child.DisposeOnDeathRemoval)
-                DisposeChildAsync(child);
         }
 
         internal override void UnbindAllBindablesSubTree()
