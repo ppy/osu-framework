@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
         private RearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
+        private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListContainer{TModel}"/>.
@@ -75,6 +76,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            if (isCurrentlyRearranging)
+                return;
+
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -232,8 +236,12 @@ namespace osu.Framework.Graphics.Containers
             if (srcIndex == dstIndex)
                 return;
 
+            isCurrentlyRearranging = true;
+
             Items.RemoveAt(srcIndex);
             Items.Insert(dstIndex, currentlyDraggedItem.Model);
+
+            isCurrentlyRearranging = false;
 
             // Todo: this could be optimised, but it's a very simple iteration over all the items
             reSort();
