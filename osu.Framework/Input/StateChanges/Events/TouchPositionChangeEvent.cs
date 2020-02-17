@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -15,7 +16,7 @@ namespace osu.Framework.Input.StateChanges.Events
         public readonly MouseButton Source;
 
         /// <summary>
-        /// The last position of <see cref="Touch"/>.
+        /// The last position of the touch.
         /// </summary>
         public readonly Vector2 LastPosition;
 
