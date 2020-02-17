@@ -45,7 +45,7 @@ namespace osu.Framework.Input.StateChanges
         protected override void OnButtonStateChanged(InputState state, MouseButton button, bool isPressed)
         {
             if (isPressed == false)
-                state.Touch.TouchPositions.Remove(button);
+                state.Touch.TouchPositions[button - MouseButton.Touch1] = null;
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK;
@@ -55,7 +56,7 @@ namespace osu.Framework.Input.StateChanges
             if (lastPosition == Position)
                 return;
 
-            touch.TouchPositions[Source] = Position;
+            touch.TouchPositions[Source - MouseButton.Touch1] = Position;
             handler.HandleInputStateChange(new TouchPositionChangeEvent(state, this, Source, lastPosition ?? Position));
         }
     }
