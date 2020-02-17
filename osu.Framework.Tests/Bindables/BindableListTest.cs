@@ -126,8 +126,8 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList[0] = "1";
 
-            Assert.AreEqual(removedItem.Single(), "0");
-            Assert.AreEqual(addedItem.Single(), "1");
+            Assert.That(removedItem.Single(), Is.EqualTo("0"));
+            Assert.That(addedItem.Single(), Is.EqualTo("1"));
         }
 
         [Test]
@@ -145,8 +145,8 @@ namespace osu.Framework.Tests.Bindables
 
             bindableStringList[0] = "1";
 
-            Assert.AreEqual(removedItem.Single(), "0");
-            Assert.AreEqual(addedItem.Single(), "1");
+            Assert.That(removedItem.Single(), Is.EqualTo("0"));
+            Assert.That(addedItem.Single(), Is.EqualTo("1"));
         }
 
         #endregion
