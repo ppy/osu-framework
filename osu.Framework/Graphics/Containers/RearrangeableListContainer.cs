@@ -79,12 +79,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 case NotifyCollectionChangedAction.Add:
                     addItems(e.NewItems);
-                    reSort();
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     removeItems(e.OldItems);
-                    reSort();
 
                     // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
                     // scroll position if we quickly add new items after calling a Clear().
@@ -100,7 +98,6 @@ namespace osu.Framework.Graphics.Containers
                 case NotifyCollectionChangedAction.Replace:
                     removeItems(e.OldItems);
                     addItems(e.NewItems);
-                    reSort();
                     break;
             }
         }
@@ -115,10 +112,14 @@ namespace osu.Framework.Graphics.Containers
                 ListContainer.Remove(itemMap[item]);
                 itemMap.Remove(item);
             }
+
+            reSort();
         }
 
         private void addItems(IList items)
         {
+            var drawablesToAdd = new List<Drawable>();
+
             foreach (var item in items.Cast<TModel>())
             {
                 if (itemMap.ContainsKey(item))
@@ -134,15 +135,31 @@ namespace osu.Framework.Graphics.Containers
                     d.EndArrangement += endArrangement;
                 });
 
-                ListContainer.Add(drawable);
+                drawablesToAdd.Add(drawable);
                 itemMap[item] = drawable;
             }
+
+            LoadComponentsAsync(drawablesToAdd, loaded =>
+            {
+                foreach (var d in loaded.Cast<RearrangeableListItem<TModel>>())
+                {
+                    // We shouldn't add items that were removed during the async load
+                    if (itemMap.ContainsKey(d.Model))
+                        ListContainer.Add(d);
+                }
+
+                reSort();
+            });
         }
 
         private void reSort()
         {
             for (int i = 0; i < Items.Count; i++)
-                ListContainer.SetLayoutPosition(itemMap[Items[i]], i);
+            {
+                // The item could have been removed before the async load completed, in which case it wouldn't exist in the list container
+                if (itemMap.TryGetValue(Items[i], out var drawable))
+                    ListContainer.SetLayoutPosition(drawable, i);
+            }
         }
 
         private void startArrangement(RearrangeableListItem<TModel> item, DragStartEvent e)
