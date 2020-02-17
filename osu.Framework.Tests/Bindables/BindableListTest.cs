@@ -705,10 +705,21 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveDoesNotNotifySuBeforeItemIsRemoved()
+        public void TestRemoveDoesNotNotifySubscribersBeforeItemIsRemoved()
         {
             const string item = "item";
             bindableStringList.Add(item);
+
+#pragma warning disable 618
+            bool wasRemoved = false;
+            bindableStringList.ItemsRemoved += _ => wasRemoved = true;
+#pragma warning restore 618
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            Assert.That(wasRemoved, Is.False);
+
+            Assert.That(triggeredArgs, Is.Null);
         }
 
         #endregion
