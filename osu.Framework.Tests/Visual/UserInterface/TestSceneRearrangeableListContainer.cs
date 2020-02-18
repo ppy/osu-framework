@@ -227,6 +227,23 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
         }
 
+        [Test]
+        public void TestNotScrolledToTopOnRemove()
+        {
+            addItems(100);
+
+            float scrollPosition = 0;
+            AddStep("scroll to item 50", () =>
+            {
+                list.ScrollTo(50);
+                scrollPosition = list.ScrollPosition;
+            });
+
+            AddStep("remove item 50", () => list.Items.Remove(50));
+
+            AddAssert("scroll hasn't changed", () => list.ScrollPosition == scrollPosition);
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
