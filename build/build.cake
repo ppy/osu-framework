@@ -26,7 +26,7 @@ var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Fram
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
-var templateProject = rootDirectory.CombineWithFilePath("template-game/osu.Framework.Template.csproj");
+var templateProject = rootDirectory.CombineWithFilePath("osu.Framework.Templates/osu.Framework.Templates.csproj");
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
