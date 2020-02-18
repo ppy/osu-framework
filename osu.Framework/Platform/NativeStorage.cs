@@ -52,7 +52,7 @@ namespace osu.Framework.Platform
             {
                 if (!path.StartsWith(basePath)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
 
-                return path.Substring(basePath.Length).TrimStart(Path.DirectorySeparatorChar);
+                return path.AsSpan(basePath.Length).TrimStart(Path.DirectorySeparatorChar).ToString();
             });
         }
 
