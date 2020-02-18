@@ -86,7 +86,8 @@ namespace osu.Framework.Graphics.Containers
 
                     // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
                     // scroll position if we quickly add new items after calling a Clear().
-                    ScrollContainer.ScrollToStart();
+                    if (Items.Count == 0)
+                        ScrollContainer.ScrollToStart();
                     break;
 
                 case NotifyCollectionChangedAction.Reset:
