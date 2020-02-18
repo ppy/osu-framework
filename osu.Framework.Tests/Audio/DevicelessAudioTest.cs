@@ -23,7 +23,8 @@ namespace osu.Framework.Tests.Audio
 
             // start track
             track.Restart();
-            Assert.IsTrue(track.IsRunning);
+
+            WaitForOrAssert(() => track.IsRunning, "Track started", 1000);
 
             CheckTrackIsProgressing(track);
 

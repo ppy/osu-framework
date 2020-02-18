@@ -2,7 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -48,7 +51,6 @@ namespace osu.Framework.Graphics.Containers
         private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
         private RearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
-        private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListContainer{TModel}"/>.
@@ -68,20 +70,61 @@ namespace osu.Framework.Graphics.Containers
                 d.Child = ListContainer;
             });
 
-            Items.ItemsAdded += itemsAdded;
-            Items.ItemsRemoved += itemsRemoved;
+            Items.CollectionChanged += collectionChanged;
         }
 
-        private void itemsAdded(IEnumerable<TModel> items)
+        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (isCurrentlyRearranging)
-                return;
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    addItems(e.NewItems);
+                    reSort();
+                    break;
 
-            foreach (var item in items)
+                case NotifyCollectionChangedAction.Remove:
+                    removeItems(e.OldItems);
+                    reSort();
+
+                    // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
+                    // scroll position if we quickly add new items after calling a Clear().
+                    ScrollContainer.ScrollToStart();
+                    break;
+
+                case NotifyCollectionChangedAction.Reset:
+                    currentlyDraggedItem = null;
+                    ListContainer.Clear();
+                    itemMap.Clear();
+                    break;
+
+                case NotifyCollectionChangedAction.Replace:
+                    removeItems(e.OldItems);
+                    addItems(e.NewItems);
+                    reSort();
+                    break;
+            }
+        }
+
+        private void removeItems(IList items)
+        {
+            foreach (var item in items.Cast<TModel>())
+            {
+                if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
+                    currentlyDraggedItem = null;
+
+                ListContainer.Remove(itemMap[item]);
+                itemMap.Remove(item);
+            }
+        }
+
+        private void addItems(IList items)
+        {
+            foreach (var item in items.Cast<TModel>())
             {
                 if (itemMap.ContainsKey(item))
                 {
-                    throw new InvalidOperationException($"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
+                    throw new InvalidOperationException(
+                        $"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
                 }
 
                 var drawable = CreateDrawable(item).With(d =>
@@ -93,32 +136,6 @@ namespace osu.Framework.Graphics.Containers
 
                 ListContainer.Add(drawable);
                 itemMap[item] = drawable;
-            }
-
-            reSort();
-        }
-
-        private void itemsRemoved(IEnumerable<TModel> items)
-        {
-            if (isCurrentlyRearranging)
-                return;
-
-            foreach (var item in items)
-            {
-                if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
-                    currentlyDraggedItem = null;
-
-                ListContainer.Remove(itemMap[item]);
-                itemMap.Remove(item);
-            }
-
-            reSort();
-
-            if (Items.Count == 0)
-            {
-                // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
-                // scroll position if we quickly add new items after calling a Clear().
-                ScrollContainer.ScrollToStart();
             }
         }
 
@@ -215,15 +232,10 @@ namespace osu.Framework.Graphics.Containers
             if (srcIndex == dstIndex)
                 return;
 
-            isCurrentlyRearranging = true;
-
-            Items.RemoveAt(srcIndex);
-            Items.Insert(dstIndex, currentlyDraggedItem.Model);
+            Items.Move(srcIndex, dstIndex);
 
             // Todo: this could be optimised, but it's a very simple iteration over all the items
             reSort();
-
-            isCurrentlyRearranging = false;
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Lists;
@@ -15,12 +16,19 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
         /// </summary>
+        [Obsolete("Use CollectionChanged instead.")]
         public event Action<IEnumerable<T>> ItemsAdded;
 
         /// <summary>
         /// An event which is raised when any items are removed from this <see cref="BindableList{T}"/>.
         /// </summary>
+        [Obsolete("Use CollectionChanged instead.")]
         public event Action<IEnumerable<T>> ItemsRemoved;
+
+        /// <summary>
+        /// An event which is raised when this <see cref="BindableList{T}"/> changes.
+        /// </summary>
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
@@ -77,8 +85,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(new[] { lastItem });
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
         }
 
         /// <summary>
@@ -106,7 +113,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
         }
 
         /// <summary>
@@ -142,7 +149,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         /// <summary>
@@ -175,7 +182,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(clearedItems);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
         }
 
         /// <summary>
@@ -199,25 +206,27 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            bool removed = collection.Remove(item);
+            int index = collection.IndexOf(item);
 
-            if (removed)
+            if (index < 0)
+                return false;
+
+            collection.RemoveAt(index);
+
+            if (bindings != null)
             {
-                if (bindings != null)
+                foreach (var b in bindings)
                 {
-                    foreach (var b in bindings)
-                    {
-                        // prevent re-adding the item back to the callee.
-                        // That would result in a <see cref="StackOverflowException"/>.
-                        if (b != caller)
-                            b.remove(item, this);
-                    }
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.remove(item, this);
                 }
-
-                ItemsRemoved?.Invoke(new[] { item });
             }
 
-            return removed;
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
+
+            return true;
         }
 
         /// <summary>
@@ -252,7 +261,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(removedItems);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
         }
 
         /// <summary>
@@ -282,7 +291,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
         }
 
         /// <summary>
@@ -312,7 +321,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(removed);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
 
             return removed.Count;
         }
@@ -447,8 +456,12 @@ namespace osu.Framework.Bindables
 
         public void UnbindEvents()
         {
+#pragma warning disable 618 can be removed 20200817
             ItemsAdded = null;
             ItemsRemoved = null;
+#pragma warning restore 618
+
+            CollectionChanged = null;
             DisabledChanged = null;
         }
 
@@ -497,13 +510,13 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items as ICollection<T> ?? items.ToArray(), null);
+            => addRange(items as IList ?? items.ToArray(), null);
 
-        private void addRange(ICollection<T> items, BindableList<T> caller)
+        private void addRange(IList items, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
-            collection.AddRange(items);
+            collection.AddRange(items.Cast<T>());
 
             if (bindings != null)
             {
@@ -516,7 +529,38 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(items);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
+        }
+
+        /// <summary>
+        /// Moves an item in this collection.
+        /// </summary>
+        /// <param name="oldIndex">The index of the item to move.</param>
+        /// <param name="newIndex">The index specifying the new location of the item.</param>
+        public void Move(int oldIndex, int newIndex)
+            => move(oldIndex, newIndex, null);
+
+        private void move(int oldIndex, int newIndex, BindableList<T> caller)
+        {
+            ensureMutationAllowed();
+
+            T item = collection[oldIndex];
+
+            collection.RemoveAt(oldIndex);
+            collection.Insert(newIndex, item);
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.move(oldIndex, newIndex, this);
+                }
+            }
+
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
         }
 
         void IBindable.BindTo(IBindable them)
@@ -602,6 +646,33 @@ namespace osu.Framework.Bindables
             => GetEnumerator();
 
         #endregion IEnumerable
+
+        private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args)
+        {
+#pragma warning disable 618 can be removed 20200817
+            switch (args.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    ItemsAdded?.Invoke(args.NewItems.Cast<T>());
+                    break;
+
+                case NotifyCollectionChangedAction.Replace:
+                case NotifyCollectionChangedAction.Move:
+                    ItemsRemoved?.Invoke(args.OldItems.Cast<T>());
+                    ItemsAdded?.Invoke(args.NewItems.Cast<T>());
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    ItemsRemoved?.Invoke(args.OldItems.Cast<T>());
+                    break;
+
+                case NotifyCollectionChangedAction.Reset:
+                    break;
+            }
+#pragma warning restore 618
+
+            CollectionChanged?.Invoke(this, args);
+        }
 
         private void ensureMutationAllowed()
         {
