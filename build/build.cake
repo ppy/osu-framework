@@ -1,5 +1,5 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.35"
+#addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.3.0"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
