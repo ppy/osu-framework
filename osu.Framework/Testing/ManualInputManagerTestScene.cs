@@ -133,13 +133,12 @@ namespace osu.Framework.Testing
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
 
-            InputManager.UseParentInput = true;
+            // schedule after children to ensure pending inputs have been applied before using parent input manager.
+            ScheduleAfterChildren(returnUserInput);
         }
 
-        private void returnUserInput() =>
-            InputManager.UseParentInput = true;
+        private void returnUserInput() => InputManager.UseParentInput = true;
 
-        private void returnTestInput() =>
-            InputManager.UseParentInput = false;
+        private void returnTestInput() => InputManager.UseParentInput = false;
     }
 }
