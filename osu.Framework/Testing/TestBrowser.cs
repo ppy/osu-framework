@@ -461,7 +461,7 @@ namespace osu.Framework.Testing
             {
                 var name = m.Name;
 
-                if (name == nameof(TestScene.TestConstructor))
+                if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
 
                 if (name.StartsWith("Test"))
