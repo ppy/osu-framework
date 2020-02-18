@@ -4,8 +4,8 @@
     "classifications": [
         "Console"
     ],
-    "name": "osu!framework game template",
-    "identity": "ppy.osu.Framework.Templates",
+    "name": "osu!framework empty game template",
+    "identity": "ppy.osu.Framework.Template.Empty",
     "shortName": "osu-framework-game",
     "tags": {
         "language": "C#",
