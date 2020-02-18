@@ -532,6 +532,37 @@ namespace osu.Framework.Bindables
             notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
         }
 
+        /// <summary>
+        /// Moves an item in this collection.
+        /// </summary>
+        /// <param name="oldIndex">The index of the item to move.</param>
+        /// <param name="newIndex">The index specifying the new location of the item.</param>
+        public void Move(int oldIndex, int newIndex)
+            => move(oldIndex, newIndex, null);
+
+        private void move(int oldIndex, int newIndex, BindableList<T> caller)
+        {
+            ensureMutationAllowed();
+
+            T item = collection[oldIndex];
+
+            collection.RemoveAt(oldIndex);
+            collection.Insert(newIndex, item);
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.move(oldIndex, newIndex, this);
+                }
+            }
+
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+        }
+
         void IBindable.BindTo(IBindable them)
         {
             if (!(them is BindableList<T> tThem))
