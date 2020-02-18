@@ -134,7 +134,7 @@ namespace osu.Framework.Testing
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
 
             // schedule after children to ensure pending inputs have been applied before using parent input manager.
-            ScheduleAfterChildren(() => InputManager.UseParentInput = true);
+            ScheduleAfterChildren(returnUserInput);
         }
 
         private void returnUserInput() => InputManager.UseParentInput = true;
