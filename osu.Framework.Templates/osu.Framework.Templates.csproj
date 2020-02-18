@@ -9,7 +9,7 @@
     <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <copyright>Copyright (c) 2020 ppy Pty Ltd</copyright>
-    <Description>Templates to create sample games built on top of osu! framework.</Description>
+    <Description>Templates that can be used as starting points for new games, built with of osu! framework.</Description>
     <PackageTags>dotnet-new;templates;osu;framework</PackageTags>
     <TargetFramework>netstandard2.1</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
