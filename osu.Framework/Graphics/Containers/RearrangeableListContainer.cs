@@ -222,8 +222,13 @@ namespace osu.Framework.Graphics.Containers
 
             for (; dstIndex < Items.Count; dstIndex++)
             {
+                var drawable = itemMap[Items[dstIndex]];
+
+                if (!drawable.IsLoaded)
+                    continue;
+
                 // Using BoundingBox here takes care of scale, paddings, etc...
-                float height = itemMap[Items[dstIndex]].BoundingBox.Height;
+                float height = drawable.BoundingBox.Height;
 
                 // Rearrangement should occur only after the mid-point of items is crossed
                 heightAccumulator += height / 2;
