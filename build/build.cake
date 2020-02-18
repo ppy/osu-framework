@@ -1,5 +1,5 @@
 using System.Threading;
-#addin "nuget:?package=CodeFileSanity&version=0.0.34"
+#addin "nuget:?package=CodeFileSanity&version=0.0.36"
 #addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2019.3.0"
 #tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
@@ -26,7 +26,7 @@ var frameworkProject = rootDirectory.CombineWithFilePath("osu.Framework/osu.Fram
 var iosFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.iOS/osu.Framework.iOS.csproj");
 var androidFrameworkProject = rootDirectory.CombineWithFilePath("osu.Framework.Android/osu.Framework.Android.csproj");
 var nativeLibsProject = rootDirectory.CombineWithFilePath("osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj");
-var templateProject = rootDirectory.CombineWithFilePath("template-game/osu.Framework.Template.csproj");
+var templateProject = rootDirectory.CombineWithFilePath("osu.Framework.Templates/osu.Framework.Templates.csproj");
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
