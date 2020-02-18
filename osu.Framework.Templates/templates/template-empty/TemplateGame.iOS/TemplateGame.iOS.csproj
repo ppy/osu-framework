@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <Import Project="..\TemplateGame.iOS.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TemplateGame.iOS</RootNamespace>
+    <AssemblyName>TemplateGame</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <DebugType>full</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Debug</OutputPath>
+    <DefineConstants>iOS DEBUG DIST</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <additionalargs>/unsafe</additionalargs>
+    <Externalconsole>True</Externalconsole>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <DebugSymbols>True</DebugSymbols>
+    <IpaPackageName>
+    </IpaPackageName>
+    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\iPhoneSimulator\Debug</OutputPath>
+    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+    <MtouchDebug>True</MtouchDebug>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <MtouchI18n>
+    </MtouchI18n>
+    <MtouchArch>x86_64</MtouchArch>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Testflight</OutputPath>
+    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <additionalargs>/unsafe</additionalargs>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <MtouchUseLlvm>True</MtouchUseLlvm>
+    <ConsolePause>False</ConsolePause>
+    <IpaPackageName>
+    </IpaPackageName>
+    <BuildIpa>True</BuildIpa>
+    <MtouchLink>Full</MtouchLink>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
+    <BundleVersion>0</BundleVersion>
+    <BundleDisplayName>osu!template</BundleDisplayName>
+    <BundleIcon>IconTest.png</BundleIcon>
+    <MtouchArch>ARMv7</MtouchArch>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Distribution</OutputPath>
+    <DefineConstants>iOS DIST RELEASE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <additionalargs>/unsafe</additionalargs>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <MtouchUseLlvm>True</MtouchUseLlvm>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+    <MtouchLink>Full</MtouchLink>
+    <IpaPackageName>
+    </IpaPackageName>
+    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
+    <BundleVersion>1.2</BundleVersion>
+    <BundleDisplayName>osu!template</BundleDisplayName>
+    <BundleIcon>Icon.png</BundleIcon>
+    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
+    <CodesignProvision></CodesignProvision>
+    <MtouchUseThumb>true</MtouchUseThumb>
+    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <RootNamespace>TemplateGame.iOS</RootNamespace>
+    <AssemblyName>TemplateGame.iOS</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <DebugType>full</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Debug</OutputPath>
+    <DefineConstants>iOS DEBUG DIST</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <additionalargs>/unsafe</additionalargs>
+    <Externalconsole>True</Externalconsole>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <DebugSymbols>True</DebugSymbols>
+    <IpaPackageName>
+    </IpaPackageName>
+    <MtouchArch>ARM64</MtouchArch>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\iPhoneSimulator\Debug</OutputPath>
+    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+    <MtouchDebug>True</MtouchDebug>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <MtouchI18n>
+    </MtouchI18n>
+    <MtouchArch>x86_64</MtouchArch>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+    <CodesignProvision></CodesignProvision>
+    <MtouchLink>SdkOnly</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Testflight</OutputPath>
+    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchUseArmv7>false</MtouchUseArmv7>
+    <additionalargs>/unsafe</additionalargs>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <MtouchUseLlvm>True</MtouchUseLlvm>
+    <ConsolePause>False</ConsolePause>
+    <IpaPackageName>
+    </IpaPackageName>
+    <BuildIpa>True</BuildIpa>
+    <MtouchLink>Full</MtouchLink>
+    <CrashReportingApiKey>
+    </CrashReportingApiKey>
+    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
+    <BundleVersion>20120419</BundleVersion>
+    <BundleDisplayName>osu!test</BundleDisplayName>
+    <BundleIcon>IconTest.png</BundleIcon>
+    <MtouchArch>ARMv7</MtouchArch>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\iPhone\Distribution</OutputPath>
+    <DefineConstants>iOS DIST RELEASE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <additionalargs>/unsafe</additionalargs>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <MtouchUseLlvm>True</MtouchUseLlvm>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+    <MtouchLink>Full</MtouchLink>
+    <IpaPackageName>
+    </IpaPackageName>
+    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
+    <BundleVersion>1.2</BundleVersion>
+    <BundleDisplayName>osu!template</BundleDisplayName>
+    <BundleIcon>Icon.png</BundleIcon>
+    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
+    <CodesignProvision></CodesignProvision>
+    <MtouchUseThumb>true</MtouchUseThumb>
+    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignProvision></CodesignProvision>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <MtouchArch>ARM64</MtouchArch>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
+    <MtouchLink>SdkOnly</MtouchLink>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
+    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <InterfaceDefinition Include="LaunchScreen.storyboard" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Info.plist" />
+    <None Include="Entitlements.plist" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="AppDelegate.cs" />
+    <Compile Include="TemplateGameIOS.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ITunesArtwork Include="iTunesArtwork" />
+    <ITunesArtwork Include="iTunesArtwork%402x" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj">
+      <Project>{F02A411C-F069-433F-8910-7511A0DE34F2}</Project>
+      <Name>TemplateGame.Game</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+</Project>
