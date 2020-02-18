@@ -25,9 +25,9 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddAssert("mouse position reset", () => InputManager.CurrentState.Mouse.Position == InitialMousePosition);
             AddAssert("all input states released", () =>
-                InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
-                InputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed &&
-                InputManager.CurrentState.Joystick.Buttons.HasAnyButtonPressed);
+                !InputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
+                !InputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed &&
+                !InputManager.CurrentState.Joystick.Buttons.HasAnyButtonPressed);
         }
 
         [Test]
