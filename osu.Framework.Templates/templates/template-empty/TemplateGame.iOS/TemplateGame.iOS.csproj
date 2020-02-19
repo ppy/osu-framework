@@ -64,6 +64,7 @@
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
     <MtouchLink>None</MtouchLink>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -130,7 +131,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <CodesignKey>iPhone Developer</CodesignKey>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <additionalargs>/unsafe</additionalargs>
     <Externalconsole>True</Externalconsole>
@@ -155,7 +156,7 @@
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchUseLlvm>True</MtouchUseLlvm>
     <ConsolePause>False</ConsolePause>
     <IpaPackageName>
@@ -169,7 +170,7 @@
     <BundleDisplayName>osu!test</BundleDisplayName>
     <BundleIcon>IconTest.png</BundleIcon>
     <MtouchArch>ARMv7</MtouchArch>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignProvision></CodesignProvision>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
@@ -208,10 +209,11 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <MtouchLink>SdkOnly</MtouchLink>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <CodesignKey>iPhone Distribution</CodesignKey>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
