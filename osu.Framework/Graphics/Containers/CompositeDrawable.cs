@@ -720,7 +720,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Make a child alive.
+        /// Makes a child alive.
         /// </summary>
         /// <remarks>
         /// Callers have to ensure that <paramref name="child"/> is of this <see cref="CompositeDrawable"/>'s non-alive <see cref="InternalChildren"/> and <see cref="LoadState"/> of the <paramref name="child"/> is at least <see cref="LoadState.Ready"/>.
@@ -751,7 +751,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Make a child dead (not alive) and removes it if <see cref="Drawable.RemoveWhenNotAlive"/> of the <paramref name="child"/> is set.
+        /// Makes a child dead (not alive) and removes it if <see cref="Drawable.RemoveWhenNotAlive"/> of the <paramref name="child"/> is set.
         /// </summary>
         /// <remarks>
         /// Callers have to ensure that <paramref name="child"/> is of this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
