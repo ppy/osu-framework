@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
         protected readonly FillFlowContainer<RearrangeableListItem<TModel>> ListContainer;
 
         /// <summary>
-        /// The mapping of <see cref="TModel"/> to <see cref="RearrangeableListItem{TModel}"/>.
+        /// The mapping of <typeparamref name="TModel"/> to <see cref="RearrangeableListItem{TModel}"/>.
         /// </summary>
         protected IReadOnlyDictionary<TModel, RearrangeableListItem<TModel>> ItemMap => itemMap;
 
