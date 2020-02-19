@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Input.States;
-using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Input.StateChanges.Events
@@ -11,23 +10,22 @@ namespace osu.Framework.Input.StateChanges.Events
     public class TouchPositionChangeEvent : InputStateChangeEvent
     {
         /// <summary>
-        /// The touch source of this change event.
+        /// The touch structure at the last position.
         /// </summary>
-        public readonly MouseButton Source;
+        public readonly Touch LastTouch;
 
         /// <summary>
-        /// The last position of the touch.
+        /// The touch source of this change event.
         /// </summary>
-        public readonly Vector2 LastPosition;
+        public MouseButton Source => LastTouch.Source;
 
-        public TouchPositionChangeEvent(InputState state, IInput input, MouseButton source, Vector2 lastPosition)
+        public TouchPositionChangeEvent(InputState state, IInput input, Touch lastTouch)
             : base(state, input)
         {
-            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
-                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
+            if (lastTouch.Source < MouseButton.Touch1 || lastTouch.Source > MouseButton.Touch10)
+                throw new ArgumentException($"Invalid source provided within a touch: {lastTouch.Source}", nameof(lastTouch));
 
-            Source = source;
-            LastPosition = lastPosition;
+            LastTouch = lastTouch;
         }
     }
 }
