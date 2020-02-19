@@ -80,7 +80,7 @@ namespace osu.Framework.Input.StateChanges
 
         /// <summary>
         /// Invoked when a <paramref name="button"/>'s pressed state changed after it's handled on <see cref="IInputStateChangeHandler"/>.
-        /// Used to apply other changes than just setting <see cref="button"/>'s new state.
+        /// Used to apply other changes than just setting <paramref name="button"/>'s new state.
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="button">The button that its state changed.</param>
