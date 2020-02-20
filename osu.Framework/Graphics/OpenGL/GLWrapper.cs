@@ -110,11 +110,10 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
-        private static readonly GlobalStatistic<int> stat_expensive_operations = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operations queue");
-
-        private static readonly GlobalStatistic<int> stat_texture_uploads = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads queue");
-
+        private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operations queued");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads queued");
         private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
 
         internal static void Reset(Vector2 size)
         {
@@ -122,28 +121,33 @@ namespace osu.Framework.Graphics.OpenGL
 
             reset_scheduler.Update();
 
-            stat_expensive_operations.Value = expensive_operations_queue.Count;
-
+            stat_expensive_operations_queued.Value = expensive_operations_queue.Count;
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
 
-            stat_texture_uploads.Value = texture_upload_queue.Count;
-
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
             stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
 
             // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
             int targetUploads = Math.Max(1, texture_upload_queue.Count / 2);
             int uploads = 0;
 
-            // continue attempting to upload textures until enough perform uploads.
+            // continue attempting to upload textures until enough uploads have been performed.
             while (texture_upload_queue.TryDequeue(out TextureGL texture))
             {
+                stat_texture_uploads_dequeued.Value++;
+
                 texture.IsQueuedForUpload = false;
-                if (texture.Upload() && ++uploads >= targetUploads)
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
                     break;
             }
-
-            stat_texture_uploads_dequeued.Value = uploads;
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
 
