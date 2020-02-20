@@ -734,20 +734,24 @@ namespace osu.Framework.Graphics.UserInterface
                 manager.ChangeFocus(null);
         }
 
-        protected virtual void Commit()
+        /// <summary>
+        /// Commits current text on this <see cref="TextBox"/> and releases focus if <see cref="ReleaseFocusOnCommit"/> is set.
+        /// </summary>
+        /// <returns>Whether current text has been commited.</returns>
+        protected virtual bool Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
                 killFocus();
                 if (CommitOnFocusLost)
                     // the commit will happen as a result of the focus loss.
-                    return;
+                    return false;
             }
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
-
             OnCommit?.Invoke(this, hasNewComittableText);
             lastCommitText = text;
+            return true;
         }
 
         protected override void OnKeyUp(KeyUpEvent e)
