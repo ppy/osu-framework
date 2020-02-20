@@ -417,7 +417,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
                 audio.Samples.Get(@"Keyboard/key-movement")?.Play();
-                OnCaretMove(expand);
+                OnCaretMoved(expand);
                 cursorAndLayout.Invalidate();
             }
         }
@@ -453,7 +453,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             var removedText = text.Substring(start, count);
             text = text.Remove(start, count);
-            OnTextRemove(removedText);
+            OnTextRemoved(removedText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = start; i < TextFlow.Count; i++)
@@ -526,7 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
                 ch.Show();
             }
 
-            OnTextAdd(text);
+            OnTextAdded(text);
         }
 
         private Drawable addCharacter(char c)
@@ -562,7 +562,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Invoked whenever a text string has been inserted to <see cref="Text"/>.
         /// </summary>
         /// <param name="added">The inserted text string.</param>
-        protected virtual void OnTextAdd(string added)
+        protected virtual void OnTextAdded(string added)
         {
         }
 
@@ -570,7 +570,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Invoked whenever a text string has been removed from <see cref="Text"/>.
         /// </summary>
         /// <param name="removed">The removed text string.</param>
-        protected virtual void OnTextRemove(string removed)
+        protected virtual void OnTextRemoved(string removed)
         {
         }
 
@@ -578,7 +578,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Invoked whenever the caret has moved from its position.
         /// </summary>
         /// <param name="selecting">Whether the caret is selecting text while moving.</param>
-        protected virtual void OnCaretMove(bool selecting)
+        protected virtual void OnCaretMoved(bool selecting)
         {
         }
 
@@ -962,7 +962,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (deletedString.Length > 0)
                 {
                     audio.Samples.Get(@"Keyboard/key-delete")?.Play();
-                    OnTextRemove(deletedString);
+                    OnTextRemoved(deletedString);
                 }
 
                 return;
@@ -982,7 +982,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-            OnTextAdd(s.Substring(matchCount));
+            OnTextAdded(s.Substring(matchCount));
         }
 
         #endregion
