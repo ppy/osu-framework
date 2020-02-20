@@ -24,6 +24,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
+        internal virtual bool IsQueuedForUpload { get; set; }
+
         /// <summary>
         /// Whether this <see cref="TextureGL"/> can used for drawing.
         /// </summary>

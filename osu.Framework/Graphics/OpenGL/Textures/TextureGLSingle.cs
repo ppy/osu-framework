@@ -301,6 +301,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
+
                 if (requireUpload)
                     GLWrapper.EnqueueTextureUpload(this);
             }

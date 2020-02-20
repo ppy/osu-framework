@@ -114,6 +114,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly GlobalStatistic<int> stat_texture_uploads = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads queue");
 
+        private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
@@ -127,9 +129,13 @@ namespace osu.Framework.Graphics.OpenGL
 
             stat_texture_uploads.Value = texture_upload_queue.Count;
 
+            stat_texture_uploads_dequeued.Value = 0;
+
             // continue attempting to upload textures until one actually performed an upload.
             while (texture_upload_queue.TryDequeue(out TextureGL texture))
             {
+                stat_texture_uploads_dequeued.Value++;
+                texture.IsQueuedForUpload = false;
                 if (texture.Upload())
                     break;
             }
@@ -252,8 +258,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
+            if (texture.IsQueuedForUpload)
+                return;
+
             if (host != null)
+            {
+                texture.IsQueuedForUpload = true;
                 texture_upload_queue.Enqueue(texture);
+            }
         }
 
         /// <summary>
