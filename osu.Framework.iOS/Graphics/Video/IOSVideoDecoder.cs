@@ -24,6 +24,9 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern void av_frame_unref(AVFrame* frame);
 
         [DllImport(dll_name)]
+        private static extern int av_frame_get_buffer(AVFrame* frame, int align);
+
+        [DllImport(dll_name)]
         private static extern byte* av_strdup(string s);
 
         [DllImport(dll_name)]
@@ -72,31 +75,13 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
         [DllImport(dll_name)]
-        private static extern AVFilter* avfilter_get_by_name(string name);
+        private static extern void sws_freeContext(SwsContext* swsContext);
 
         [DllImport(dll_name)]
-        private static extern AVFilterInOut* avfilter_inout_alloc();
+        private static extern SwsContext* sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
 
         [DllImport(dll_name)]
-        private static extern void avfilter_graph_free(AVFilterGraph** graph);
-
-        [DllImport(dll_name)]
-        private static extern int avfilter_graph_create_filter(AVFilterContext** filt_ctx, AVFilter* filt, string name, string args, void* opaque, AVFilterGraph* graph_ctx);
-
-        [DllImport(dll_name)]
-        private static extern AVFilterGraph* avfilter_graph_alloc();
-
-        [DllImport(dll_name)]
-        private static extern int avfilter_graph_parse_ptr(AVFilterGraph* graph, string filters, AVFilterInOut** inputs, AVFilterInOut** outputs, void* log_ctx);
-
-        [DllImport(dll_name)]
-        private static extern int avfilter_graph_config(AVFilterGraph* graphctx, void* log_ctx);
-
-        [DllImport(dll_name)]
-        private static extern int av_buffersrc_add_frame_flags(AVFilterContext* buffer_src, AVFrame* frame, int flags);
-
-        [DllImport(dll_name)]
-        private static extern int av_buffersink_get_frame(AVFilterContext* ctx, AVFrame* frame);
+        private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
         public IOSVideoDecoder(string filename, Scheduler scheduler)
             : base(filename, scheduler)
@@ -113,6 +98,7 @@ namespace osu.Framework.iOS.Graphics.Video
             av_frame_alloc = av_frame_alloc,
             av_frame_free = av_frame_free,
             av_frame_unref = av_frame_unref,
+            av_frame_get_buffer = av_frame_get_buffer,
             av_strdup = av_strdup,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
@@ -129,15 +115,9 @@ namespace osu.Framework.iOS.Graphics.Video
             avformat_find_stream_info = avformat_find_stream_info,
             avformat_open_input = avformat_open_input,
             avio_alloc_context = avio_alloc_context,
-            avfilter_get_by_name = avfilter_get_by_name,
-            avfilter_inout_alloc = avfilter_inout_alloc,
-            avfilter_graph_free = avfilter_graph_free,
-            avfilter_graph_create_filter = avfilter_graph_create_filter,
-            avfilter_graph_alloc = avfilter_graph_alloc,
-            avfilter_graph_parse_ptr = avfilter_graph_parse_ptr,
-            avfilter_graph_config = avfilter_graph_config,
-            av_buffersrc_add_frame_flags = av_buffersrc_add_frame_flags,
-            av_buffersink_get_frame = av_buffersink_get_frame,
+            sws_freeContext = sws_freeContext,
+            sws_getContext = sws_getContext,
+            sws_scale = sws_scale
         };
     }
 }

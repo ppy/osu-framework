@@ -93,10 +93,8 @@ namespace osu.Framework.Graphics.Video
         private double timeBaseInSeconds;
         private long duration;
 
-        private AVFilterGraph* filterGraph;
-        private AVFilterContext* buffersinkCtx;
-        private AVFilterContext* buffersrcCtx;
-        private bool useFilter = true;
+        private SwsContext* convCtx;
+        private bool convert = true;
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
@@ -286,65 +284,17 @@ namespace osu.Framework.Graphics.Video
 
         private void prepareFilters()
         {
-            var filterStr = "";
-
-            // filtergraph to convert the video to the correct pixel format and colorspace for the shader (if needed)
-            if (stream->codec->pix_fmt != AVPixelFormat.AV_PIX_FMT_YUV420P)
-                filterStr += "format=pix_fmts=yuv420p,";
-
-            // unspecifed is bt601, smpte170m assumes NTSC but it shouldn't matter
-            if (stream->codec->color_primaries != AVColorPrimaries.AVCOL_PRI_UNSPECIFIED)
-                filterStr += "colorspace=fast=1:all=smpte170m";
-
-            // video is already the correct format so skip the filter
-            if (filterStr.Length == 0)
+            // only convert if needed
+            if (stream->codec->pix_fmt == AVPixelFormat.AV_PIX_FMT_YUV420P)
             {
-                useFilter = false;
+                convert = false;
                 return;
             }
 
-            AVFilter* buffersrc = ffmpeg.avfilter_get_by_name("buffer");
-            AVFilter* buffersink = ffmpeg.avfilter_get_by_name("buffersink");
-            AVFilterInOut* outputs = ffmpeg.avfilter_inout_alloc();
-            AVFilterInOut* inputs = ffmpeg.avfilter_inout_alloc();
-
-            filterGraph = ffmpeg.avfilter_graph_alloc();
-
-            var args = $"video_size={stream->codec->width}x{stream->codec->height}:pix_fmt={(int)stream->codec->pix_fmt}:" +
-                       $"time_base={stream->codec->time_base.num}/{stream->codec->time_base.den}:" +
-                       $"pixel_aspect={stream->codec->sample_aspect_ratio.num}/{stream->codec->sample_aspect_ratio.den}";
-
-            AVFilterContext* src;
-            var bufferSrcResult = ffmpeg.avfilter_graph_create_filter(&src, buffersrc, "in", args, null, filterGraph);
-            buffersrcCtx = src;
-
-            if (bufferSrcResult < 0)
-                throw new InvalidOperationException($"Error {bufferSrcResult} creating buffer source");
-
-            AVFilterContext* sink;
-            var bufferSinkResult = ffmpeg.avfilter_graph_create_filter(&sink, buffersink, "out", null, null, filterGraph);
-            buffersinkCtx = sink;
-
-            if (bufferSinkResult < 0)
-                throw new InvalidOperationException($"Error {bufferSinkResult} creating buffer sink");
-
-            outputs->name = ffmpeg.av_strdup("in");
-            outputs->filter_ctx = buffersrcCtx;
-            outputs->pad_idx = 0;
-            outputs->next = null;
-
-            inputs->name = ffmpeg.av_strdup("out");
-            inputs->filter_ctx = buffersinkCtx;
-            inputs->pad_idx = 0;
-            inputs->next = null;
-
-            var filterGraphResult = ffmpeg.avfilter_graph_parse_ptr(filterGraph, filterStr, &inputs, &outputs, null);
-            if (filterGraphResult < 0)
-                throw new InvalidOperationException($"Error {filterGraphResult} opening filter graph");
-
-            var filterConfigResult = ffmpeg.avfilter_graph_config(filterGraph, null);
-            if (filterConfigResult < 0)
-                throw new InvalidOperationException($"Error {filterConfigResult} verifiying filter graph");
+            // 1 =  SWS_FAST_BILINEAR
+            // https://www.ffmpeg.org/doxygen/3.1/swscale_8h_source.html#l00056
+            convCtx = ffmpeg.sws_getContext(stream->codec->width, stream->codec->height, stream->codec->pix_fmt, stream->codec->width, stream->codec->height,
+                AVPixelFormat.AV_PIX_FMT_YUV420P, 1, null, null, null);
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -439,16 +389,19 @@ namespace osu.Framework.Graphics.Video
 
                                             AVFrame* outFrame;
 
-                                            if (useFilter)
+                                            if (convert)
                                             {
-                                                var addFrameResult = ffmpeg.av_buffersrc_add_frame_flags(buffersrcCtx, frame, 0);
-                                                if (addFrameResult < 0)
-                                                    throw new InvalidOperationException($"Error {addFrameResult} feeding filtergraph.");
-
                                                 outFrame = ffmpeg.av_frame_alloc();
-                                                var getFrameResult = ffmpeg.av_buffersink_get_frame(buffersinkCtx, outFrame);
-                                                if (getFrameResult < 0)
-                                                    throw new InvalidOperationException($"Error {getFrameResult} gettting filtered frame.");
+                                                outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
+                                                outFrame->width = stream->codec->width;
+                                                outFrame->height = stream->codec->height;
+
+                                                var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
+                                                if (ret < 0)
+                                                    throw new InvalidOperationException($"Error {ret} allocating video frame");
+
+                                                ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
+                                                    outFrame->data, outFrame->linesize);
 
                                                 ffmpeg.av_frame_free(&frame);
                                             }
@@ -550,6 +503,7 @@ namespace osu.Framework.Graphics.Video
                 av_frame_alloc = AGffmpeg.av_frame_alloc,
                 av_frame_free = AGffmpeg.av_frame_free,
                 av_frame_unref = AGffmpeg.av_frame_unref,
+                av_frame_get_buffer = AGffmpeg.av_frame_get_buffer,
                 av_strdup = AGffmpeg.av_strdup,
                 av_malloc = AGffmpeg.av_malloc,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
@@ -566,15 +520,9 @@ namespace osu.Framework.Graphics.Video
                 avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
                 avformat_open_input = AGffmpeg.avformat_open_input,
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
-                avfilter_get_by_name = AGffmpeg.avfilter_get_by_name,
-                avfilter_inout_alloc = AGffmpeg.avfilter_inout_alloc,
-                avfilter_graph_free = AGffmpeg.avfilter_graph_free,
-                avfilter_graph_create_filter = AGffmpeg.avfilter_graph_create_filter,
-                avfilter_graph_alloc = AGffmpeg.avfilter_graph_alloc,
-                avfilter_graph_parse_ptr = AGffmpeg.avfilter_graph_parse_ptr,
-                avfilter_graph_config = AGffmpeg.avfilter_graph_config,
-                av_buffersrc_add_frame_flags = AGffmpeg.av_buffersrc_add_frame_flags,
-                av_buffersink_get_frame = AGffmpeg.av_buffersink_get_frame,
+                sws_freeContext = AGffmpeg.sws_freeContext,
+                sws_getContext = AGffmpeg.sws_getContext,
+                sws_scale = AGffmpeg.sws_scale
             };
         }
 
@@ -618,11 +566,8 @@ namespace osu.Framework.Graphics.Video
             // gets freed by libavformat when closing the input
             contextBuffer = null;
 
-            if (filterGraph != null)
-            {
-                fixed (AVFilterGraph** ptr = &filterGraph)
-                    ffmpeg.avfilter_graph_free(ptr);
-            }
+            if (convCtx != null)
+                ffmpeg.sws_freeContext(convCtx);
 
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();

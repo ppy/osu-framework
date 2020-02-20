@@ -62,8 +62,17 @@ namespace osu.Framework.Graphics.Video
                 for (int i = 0; i < textureIds.Length; i++)
                 {
                     GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
-                        videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1), 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+
+                    if (i == 0)
+                    {
+                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
+                            videoUpload.Frame->width, videoUpload.Frame->height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                    }
+                    else
+                    {
+                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
+                            (videoUpload.Frame->width + 1) / 2, (videoUpload.Frame->height + 1) / 2, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                    }
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
