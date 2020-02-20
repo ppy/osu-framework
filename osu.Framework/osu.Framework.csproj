@@ -23,7 +23,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.18.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
@@ -42,6 +42,6 @@
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2020.213.0" />
   </ItemGroup>
 </Project>

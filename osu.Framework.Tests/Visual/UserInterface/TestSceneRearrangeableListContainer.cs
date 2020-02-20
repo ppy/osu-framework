@@ -42,17 +42,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             for (int i = 0; i < 5; i++)
             {
-                string itemString = i.ToString();
+                int localI = i;
 
-                AddStep($"add item \"{itemString}\"", () => list.Items.Add(itemString));
-                AddAssert($"last item is \"{itemString}\"", () => list.ChildrenOfType<RearrangeableListItem<string>>().Last().Model == itemString);
+                addItems(1);
+                AddAssert($"last item is \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().Last().Model == localI);
             }
         }
 
         [Test]
         public void TestAddDuplicateItemsFails()
         {
-            const string item = "1";
+            const int item = 1;
 
             AddStep("add item 1", () => list.Items.Add(item));
 
@@ -73,29 +73,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRemoveItem()
         {
-            AddStep("add 5 items", () =>
-            {
-                for (int i = 0; i < 5; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(5);
 
             for (int i = 0; i < 5; i++)
             {
-                string itemString = i.ToString();
+                int localI = i;
 
-                AddStep($"remove item \"{itemString}\"", () => list.Items.Remove(itemString));
-                AddAssert($"first item is not \"{itemString}\"", () => list.ChildrenOfType<RearrangeableListItem<string>>().FirstOrDefault()?.Model != itemString);
+                AddStep($"remove item \"{i}\"", () => list.Items.Remove(localI));
+                AddAssert($"first item is not \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().FirstOrDefault()?.Model != localI);
             }
         }
 
         [Test]
         public void TestClearItems()
         {
-            AddStep("add 5 items", () =>
-            {
-                for (int i = 0; i < 5; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(5);
 
             AddStep("clear items", () => list.Items.Clear());
 
@@ -105,11 +97,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRearrangeByDrag()
         {
-            AddStep("add 5 items", () =>
-            {
-                for (int i = 0; i < 5; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(5);
 
             addDragSteps(1, 4, new[] { 0, 2, 3, 4, 1 });
             addDragSteps(1, 3, new[] { 0, 2, 1, 3, 4 });
@@ -122,11 +110,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRearrangeByDragAfterRemoval()
         {
-            AddStep("add 5 items", () =>
-            {
-                for (int i = 0; i < 5; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(5);
 
             addDragSteps(0, 4, new[] { 1, 2, 3, 4, 0 });
             addDragSteps(1, 4, new[] { 2, 3, 4, 1, 0 });
@@ -135,8 +119,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove 3 and 2", () =>
             {
-                list.Items.Remove("3");
-                list.Items.Remove("2");
+                list.Items.Remove(3);
+                list.Items.Remove(2);
             });
 
             addDragSteps(4, 0, new[] { 1, 0, 4 });
@@ -147,11 +131,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestRemoveAfterDragScrollThenTryRearrange()
         {
-            AddStep("add 5 items", () =>
-            {
-                for (int i = 0; i < 5; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(5);
 
             // Scroll
             AddStep("move mouse to first item", () => InputManager.MoveMouseTo(getItem(0)));
@@ -175,13 +155,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestScrolledWhenDraggedToBoundaries()
         {
-            AddStep("add 100 items", () =>
-            {
-                for (int i = 0; i < 100; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(100);
 
-            AddStep("scroll to item 50", () => list.ScrollTo("50"));
+            AddStep("scroll to item 50", () => list.ScrollTo(50));
 
             float scrollPosition = 0;
             AddStep("get scroll position", () => scrollPosition = list.ScrollPosition);
@@ -195,26 +171,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("drag to 0", () => InputManager.MoveMouseTo(getDragger(0), new Vector2(0, -1)));
 
             AddUntilStep("scrolling up", () => list.ScrollPosition < scrollPosition);
-            AddUntilStep("52 is the first item", () => list.Items.First() == "52");
+            AddUntilStep("52 is the first item", () => list.Items.First() == 52);
 
             AddStep("drag to 99", () => InputManager.MoveMouseTo(getDragger(99), new Vector2(0, 1)));
 
             AddUntilStep("scrolling down", () => list.ScrollPosition > scrollPosition);
-            AddUntilStep("52 is the last item", () => list.Items.Last() == "52");
+            AddUntilStep("52 is the last item", () => list.Items.Last() == 52);
         }
 
         [Test]
         public void TestRearrangeWhileAddingItems()
         {
-            int i = 0;
-
-            AddStep("add two items", () =>
-            {
-                i = 0;
-
-                list.Items.Add(i++.ToString());
-                list.Items.Add(i++.ToString());
-            });
+            addItems(2);
 
             AddStep("grab item 0", () =>
             {
@@ -224,26 +192,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft) + new Vector2(0, 10)));
 
-            AddRepeatStep("add items", () =>
-            {
-                list.Items.Add(i++.ToString());
-            }, 10);
+            addItems(10);
 
-            AddUntilStep("0 is the last item", () => list.Items.Last() == "0");
+            AddUntilStep("0 is the last item", () => list.Items.Last() == 0);
         }
 
         [Test]
         public void TestRearrangeWhileRemovingItems()
         {
-            int lastItem = 49;
-
-            AddStep("add 50 items", () =>
-            {
-                lastItem = 49;
-
-                for (int i = 0; i < 50; i++)
-                    list.Items.Add(i.ToString());
-            });
+            addItems(50);
 
             AddStep("grab item 0", () =>
             {
@@ -251,21 +208,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.PressButton(MouseButton.Left);
             });
 
-            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft) + new Vector2(0, 10)));
+            AddStep("move to bottom", () => InputManager.MoveMouseTo(list.ToScreenSpace(list.LayoutRectangle.BottomLeft) + new Vector2(0, 20)));
+
+            int lastItem = 49;
 
             AddRepeatStep("remove item", () =>
             {
-                list.Items.Remove(lastItem--.ToString());
+                list.Items.Remove(lastItem--);
             }, 25);
 
-            AddUntilStep("0 is the last item", () => list.Items.Last() == "0");
+            AddUntilStep("0 is the last item", () => list.Items.Last() == 0);
 
             AddRepeatStep("remove item", () =>
             {
-                list.Items.Remove(lastItem--.ToString());
+                list.Items.Remove(lastItem--);
             }, 25);
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
+        }
+
+        [Test]
+        public void TestNotScrolledToTopOnRemove()
+        {
+            addItems(100);
+
+            float scrollPosition = 0;
+            AddStep("scroll to item 50", () =>
+            {
+                list.ScrollTo(50);
+                scrollPosition = list.ScrollPosition;
+            });
+
+            AddStep("remove item 50", () => list.Items.Remove(50));
+
+            AddAssert("scroll hasn't changed", () => list.ScrollPosition == scrollPosition);
         }
 
         private void addDragSteps(int from, int to, int[] expectedSequence)
@@ -292,22 +268,37 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void assertSequence(params int[] sequence)
         {
             AddAssert($"sequence is {string.Join(", ", sequence)}",
-                () => list.Items.SequenceEqual(sequence.Select(value => value.ToString())));
+                () => list.Items.SequenceEqual(sequence.Select(value => value)));
         }
 
-        private RearrangeableListItem<string> getItem(int index)
-            => list.ChildrenOfType<RearrangeableListItem<string>>().First(i => i.Model == index.ToString());
+        private void addItems(int count)
+        {
+            AddStep($"add {count} item(s)", () =>
+            {
+                int startId = list.Items.Count == 0 ? 0 : list.Items.Max() + 1;
 
-        private BasicRearrangeableListItem<string>.Button getDragger(int index)
-            => list.ChildrenOfType<BasicRearrangeableListItem<string>>().First(i => i.Model == index.ToString())
-                   .ChildrenOfType<BasicRearrangeableListItem<string>.Button>().First();
+                for (int i = 0; i < count; i++)
+                    list.Items.Add(startId + i);
+            });
 
-        private class TestRearrangeableList : BasicRearrangeableListContainer<string>
+            AddUntilStep("wait for items to load", () => list.ItemMap.Values.All(i => i.IsLoaded));
+        }
+
+        private RearrangeableListItem<int> getItem(int index)
+            => list.ChildrenOfType<RearrangeableListItem<int>>().First(i => i.Model == index);
+
+        private BasicRearrangeableListItem<int>.Button getDragger(int index)
+            => list.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == index)
+                   .ChildrenOfType<BasicRearrangeableListItem<int>.Button>().First();
+
+        private class TestRearrangeableList : BasicRearrangeableListContainer<int>
         {
             public float ScrollPosition => ScrollContainer.Current;
 
-            public void ScrollTo(string item)
-                => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<string>>().First(i => i.Model == item), false);
+            public new IReadOnlyDictionary<int, RearrangeableListItem<int>> ItemMap => base.ItemMap;
+
+            public void ScrollTo(int item)
+                => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
         }
     }
 }
