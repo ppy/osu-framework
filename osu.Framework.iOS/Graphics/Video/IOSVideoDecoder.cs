@@ -26,7 +26,6 @@ namespace osu.Framework.iOS.Graphics.Video
         [DllImport(dll_name)]
         private static extern byte* av_strdup(string s);
 
-
         [DllImport(dll_name)]
         private static extern void* av_malloc(ulong size);
 
