@@ -131,14 +131,19 @@ namespace osu.Framework.Graphics.OpenGL
 
             stat_texture_uploads_dequeued.Value = 0;
 
-            // continue attempting to upload textures until one actually performed an upload.
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Max(1, texture_upload_queue.Count / 2);
+            int uploads = 0;
+
+            // continue attempting to upload textures until enough perform uploads.
             while (texture_upload_queue.TryDequeue(out TextureGL texture))
             {
-                stat_texture_uploads_dequeued.Value++;
                 texture.IsQueuedForUpload = false;
-                if (texture.Upload())
+                if (texture.Upload() && ++uploads >= targetUploads)
                     break;
             }
+
+            stat_texture_uploads_dequeued.Value = uploads;
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
 
