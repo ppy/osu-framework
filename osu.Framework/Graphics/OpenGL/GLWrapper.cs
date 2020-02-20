@@ -16,7 +16,6 @@ using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Video;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using GameWindow = osu.Framework.Platform.GameWindow;
@@ -119,6 +118,8 @@ namespace osu.Framework.Graphics.OpenGL
                 action.Invoke();
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -293,34 +294,11 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
+        private static readonly int[] last_bound_texture = new int[16];
+        private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
-        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
-
-        /// <summary>
-        /// Binds a video texture to draw with.
-        /// </summary>
-        /// <param name="texture">The texture to bind.</param>
-        /// <param name="unit">The texture unit to bind it to.</param>
-        internal static void BindTexture(VideoTexture texture, TextureUnit unit = TextureUnit.Texture0)
-        {
-            var index = GetTextureUnitId(unit);
-
-            if (last_bound_texture[index] != texture)
-            {
-                FlushCurrentBatch();
-
-                for (int i = 0; i < texture.TextureIds.Length; i++)
-                {
-                    GL.ActiveTexture(unit + i);
-                    GL.BindTexture(TextureTarget.Texture2D, texture.TextureIds[i]);
-                    FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-                }
-
-                last_bound_texture[index] = texture;
-            }
-        }
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
 
         /// <summary>
         /// Binds a texture to draw with.
@@ -329,15 +307,28 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="unit">The texture unit to bind it to.</param>
         public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
+            BindTexture(texture?.TextureId ?? 0, unit);
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
+        }
+
+        /// <summary>
+        /// Binds a texture to draw with.
+        /// </summary>
+        /// <param name="textureId">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
+        public static void BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
+        {
             var index = GetTextureUnitId(unit);
 
-            if (last_bound_texture[index] != texture)
+            if (last_bound_texture[index] != textureId)
             {
                 FlushCurrentBatch();
 
                 GL.ActiveTexture(unit);
-                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                last_bound_texture[index] = texture;
+                GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+                last_bound_texture[index] = textureId;
+                last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
 
                 FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -13,8 +12,7 @@ namespace osu.Framework.Graphics.Video
 {
     internal unsafe class VideoTexture : TextureGLSingle
     {
-        private readonly List<int> textureIds = new List<int> { 0, 0, 0 };
-        public int[] TextureIds => textureIds.ToArray();
+        private int[] textureIds;
 
         /// <summary>
         /// Whether the latest frame data has been uploaded.
@@ -40,10 +38,12 @@ namespace osu.Framework.Graphics.Video
 
         private void unload()
         {
-            textureIds.RemoveAll(i => i <= 0);
+            if (textureIds == null)
+                return;
 
-            for (int i = 0; i < textureIds.Count; i++)
-                GL.DeleteTextures(1, new[] { textureIds[i] });
+            for (int i = 0; i < textureIds.Length; i++)
+                if (textureIds[i] >= 0)
+                    GL.DeleteTextures(1, new[] { textureIds[i] });
         }
 
         #endregion
@@ -66,7 +66,8 @@ namespace osu.Framework.Graphics.Video
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
-            GLWrapper.BindTexture(this, unit);
+            for (int i = 0; i < textureIds.Length; i++)
+                GLWrapper.BindTexture(textureIds[i], unit + i);
 
             return true;
         }
@@ -77,15 +78,13 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             // Do we need to generate a new texture?
-            if (!textureIds.TrueForAll(i => i > 0))
+            if (textureIds == null)
             {
-                for (int i = 0; i < textureIds.Count; i++)
+                textureIds = new int[3];
+                GL.GenTextures(textureIds.Length, textureIds);
+
+                for (int i = 0; i < textureIds.Length; i++)
                 {
-                    int[] textures = new int[1];
-                    GL.GenTextures(1, textures);
-
-                    textureIds[i] = textures[0];
-
                     GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
                     GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
                         videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1), 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
@@ -97,7 +96,7 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            for (int i = 0; i < textureIds.Count; i++)
+            for (int i = 0; i < textureIds.Length; i++)
             {
                 GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);
