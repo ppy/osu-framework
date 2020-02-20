@@ -417,6 +417,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
                 audio.Samples.Get(@"Keyboard/key-movement")?.Play();
+                OnCaretMove(expand);
                 cursorAndLayout.Invalidate();
             }
         }
@@ -450,7 +451,9 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
+            var removedText = text.Substring(start, count);
             text = text.Remove(start, count);
+            OnTextRemove(removedText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = start; i < TextFlow.Count; i++)
@@ -522,6 +525,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 ch.Show();
             }
+
+            OnTextAdd(text);
         }
 
         private Drawable addCharacter(char c)
@@ -552,6 +557,30 @@ namespace osu.Framework.Graphics.UserInterface
         /// Called whenever an invalid character has been entered
         /// </summary>
         protected abstract void NotifyInputError();
+
+        /// <summary>
+        /// Invoked whenever a text string has been inserted to <see cref="Text"/>.
+        /// </summary>
+        /// <param name="added">The inserted text string.</param>
+        protected virtual void OnTextAdd(string added)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever a text string has been removed from <see cref="Text"/>.
+        /// </summary>
+        /// <param name="removed">The removed text string.</param>
+        protected virtual void OnTextRemove(string removed)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever the caret has moved from its position.
+        /// </summary>
+        /// <param name="selecting">Whether the caret is selecting text while moving.</param>
+        protected virtual void OnCaretMove(bool selecting)
+        {
+        }
 
         /// <summary>
         /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
@@ -605,8 +634,8 @@ namespace osu.Framework.Graphics.UserInterface
                     int startBefore = selectionStart;
                     selectionStart = selectionEnd = 0;
                     TextFlow?.Clear();
-                    text = string.Empty;
 
+                    text = string.Empty;
                     foreach (char c in value)
                         addCharacter(c);
 
@@ -876,7 +905,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                foreach (Drawable d in imeDrawables)
+                foreach ((char _, Drawable d) in imeDrawables)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
@@ -886,14 +915,14 @@ namespace osu.Framework.Graphics.UserInterface
             imeDrawables.Clear();
         }
 
-        private readonly List<Drawable> imeDrawables = new List<Drawable>();
+        private readonly List<(char, Drawable)> imeDrawables = new List<(char, Drawable)>();
 
         private void onImeComposition(string s)
         {
             //search for unchanged characters..
             int matchCount = 0;
             bool matching = true;
-            bool didDelete = false;
+            string deletedString = string.Empty;
 
             int searchStart = text.Length - imeDrawables.Count;
 
@@ -914,16 +943,20 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     //if we are no longer matching, we want to remove all further characters.
                     removeCharacterOrSelection(false);
+                    deletedString += imeDrawables[matchCount].Item1;
                     imeDrawables.RemoveAt(matchCount);
-                    didDelete = true;
                 }
             }
 
             if (matchCount == s.Length)
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
-                if (didDelete)
+                if (deletedString.Length > 0)
+                {
                     audio.Samples.Get(@"Keyboard/key-delete")?.Play();
+                    OnTextRemove(deletedString);
+                }
+
                 return;
             }
 
@@ -936,11 +969,12 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     dr.Colour = Color4.Aqua;
                     dr.Alpha = 0.6f;
-                    imeDrawables.Add(dr);
+                    imeDrawables.Add((s[i], dr));
                 }
             }
 
             audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            OnTextAdd(s.Substring(matchCount));
         }
 
         #endregion
