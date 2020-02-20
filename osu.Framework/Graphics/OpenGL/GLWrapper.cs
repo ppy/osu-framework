@@ -108,11 +108,15 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
+        private static readonly GlobalStatistic<int> stat_expensive_operations = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operations queue");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
+
+            stat_expensive_operations.Value = expensive_operations_queue.Count;
 
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
