@@ -63,6 +63,8 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
 
+        private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
+
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
         public static bool IsInitialized { get; private set; }
@@ -110,6 +112,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly GlobalStatistic<int> stat_expensive_operations = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operations queue");
 
+        private static readonly GlobalStatistic<int> stat_texture_uploads = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads queue");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
@@ -121,7 +125,17 @@ namespace osu.Framework.Graphics.OpenGL
             if (expensive_operations_queue.TryDequeue(out Action action))
                 action.Invoke();
 
+            stat_texture_uploads.Value = texture_upload_queue.Count;
+
+            // continue attempting to upload textures until one actually performed an upload.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                if (texture.Upload())
+                    break;
+            }
+
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -239,7 +253,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void EnqueueTextureUpload(TextureGL texture)
         {
             if (host != null)
-                expensive_operations_queue.Enqueue(() => texture.Upload());
+                texture_upload_queue.Enqueue(texture);
         }
 
         /// <summary>
