@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -22,39 +23,9 @@ namespace osu.Framework.Graphics.Video
         public VideoTexture(int width, int height)
             : base(width, height, true, All.Linear)
         {
-            memoryLease = NativeMemoryTracker.AddMemory(this, width * height * 3 / 2);
         }
 
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            memoryLease?.Dispose();
-
-            GLWrapper.ScheduleDisposal(unload);
-        }
-
-        private void unload()
-        {
-            if (textureIds == null)
-                return;
-
-            for (int i = 0; i < textureIds.Length; i++)
-            {
-                if (textureIds[i] >= 0)
-                    GL.DeleteTextures(1, new[] { textureIds[i] });
-            }
-        }
-
-        #endregion
-
-        #region Memory Tracking
-
-        private readonly NativeMemoryTracker.NativeMemoryLease memoryLease;
-
-        #endregion
+        private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         public override void SetData(ITextureUpload upload)
         {
@@ -82,6 +53,9 @@ namespace osu.Framework.Graphics.Video
             // Do we need to generate a new texture?
             if (textureIds == null)
             {
+                Debug.Assert(memoryLease == null);
+                memoryLease = NativeMemoryTracker.AddMemory(this, Width * Height * 3 / 2);
+
                 textureIds = new int[3];
                 GL.GenTextures(textureIds.Length, textureIds);
 
@@ -90,6 +64,7 @@ namespace osu.Framework.Graphics.Video
                     GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
                     GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
                         videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1), 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
@@ -110,5 +85,30 @@ namespace osu.Framework.Graphics.Video
 
             UploadComplete = true;
         }
+
+        #region Disposal
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            memoryLease?.Dispose();
+
+            GLWrapper.ScheduleDisposal(unload);
+        }
+
+        private void unload()
+        {
+            if (textureIds == null)
+                return;
+
+            for (int i = 0; i < textureIds.Length; i++)
+            {
+                if (textureIds[i] >= 0)
+                    GL.DeleteTextures(1, new[] { textureIds[i] });
+            }
+        }
+
+        #endregion
     }
 }
