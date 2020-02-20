@@ -16,8 +16,10 @@ namespace osu.Framework.Graphics.Video
         private readonly List<int> textureIds = new List<int> { 0, 0, 0 };
         public int[] TextureIds => textureIds.ToArray();
 
-        // True if the new frame data has been uploaded
-        public bool Loaded { get; private set; }
+        /// <summary>
+        /// Whether the latest frame data has been uploaded.
+        /// </summary>
+        public bool UploadComplete { get; private set; }
 
         public VideoTexture(int width, int height)
             : base(width, height, true, All.Linear)
@@ -54,7 +56,7 @@ namespace osu.Framework.Graphics.Video
 
         public override void SetData(ITextureUpload upload)
         {
-            Loaded = false;
+            UploadComplete = false;
 
             base.SetData(upload);
         }
@@ -105,7 +107,7 @@ namespace osu.Framework.Graphics.Video
 
             GL.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
 
-            Loaded = true;
+            UploadComplete = true;
         }
     }
 }
