@@ -68,11 +68,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool Commit()
         {
+            if (!base.Commit())
+                return false;
+
             background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
             background.ClearTransforms();
             background.FlashColour(BackgroundCommit, 400);
-
-            return base.Commit();
+            return true;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)
