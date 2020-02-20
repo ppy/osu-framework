@@ -61,7 +61,9 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
         /// </summary>
-        private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
+        private static readonly ConcurrentQueue<Action> expensive_operation_queue = new ConcurrentQueue<Action>();
+
+        private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
@@ -108,16 +110,47 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
+        private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture upload queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
 
-            if (expensive_operations_queue.TryDequeue(out Action action))
+            stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
+            if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
 
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Max(1, texture_upload_queue.Count / 2);
+            int uploads = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+            }
+
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -234,8 +267,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
+            if (texture.IsQueuedForUpload)
+                return;
+
             if (host != null)
-                expensive_operations_queue.Enqueue(() => texture.Upload());
+            {
+                texture.IsQueuedForUpload = true;
+                texture_upload_queue.Enqueue(texture);
+            }
         }
 
         /// <summary>
@@ -245,7 +284,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void EnqueueShaderCompile(Shader shader)
         {
             if (host != null)
-                expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+                expensive_operation_queue.Enqueue(shader.EnsureLoaded);
         }
 
         private static readonly int[] last_bound_buffers = new int[2];
