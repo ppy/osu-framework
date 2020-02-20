@@ -42,8 +42,10 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             for (int i = 0; i < textureIds.Length; i++)
+            {
                 if (textureIds[i] >= 0)
                     GL.DeleteTextures(1, new[] { textureIds[i] });
+            }
         }
 
         #endregion
