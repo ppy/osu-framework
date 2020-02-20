@@ -690,6 +690,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
+        #region Input event handling
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
@@ -892,7 +894,9 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        #region Native TextBox handling (winform specific)
+        #endregion
+
+        #region Native TextBox handling (platform-specific)
 
         private void unbindInput()
         {
