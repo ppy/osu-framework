@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             GL.DeleteTextures(1, new[] { disposableId });
 
-            textureId = 0;
-
             memoryLease?.Dispose();
+
+            textureId = 0;
         }
 
         #endregion
@@ -345,7 +345,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 using (upload)
                 {
                     fixed (Rgba32* ptr = upload.Data)
-                        doUpload(upload, (IntPtr)ptr);
+                        DoUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
                 }
@@ -381,7 +381,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
+        protected virtual void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
             // Do we need to generate a new texture?
             if (textureId <= 0 || internalWidth != width || internalHeight != height)
