@@ -373,6 +373,7 @@ namespace osu.Framework.Graphics.Video
         {
             var packet = ffmpeg.av_packet_alloc();
 
+            // 3 frame buffer * (Y + U + V)
             const int max_pending_frames = 9;
 
             try
@@ -426,7 +427,8 @@ namespace osu.Framework.Graphics.Video
 
                                                 ffmpeg.av_frame_free(&frame);
                                             }
-                                            else outFrame = frame;
+                                            else
+                                                outFrame = frame;
 
                                             if (!availableTextures.TryDequeue(out var tex))
                                                 tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
@@ -440,7 +442,8 @@ namespace osu.Framework.Graphics.Video
                                         lastDecodedFrameTime = (float)frameTime;
                                     }
                                 }
-                                else Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
+                                else
+                                    Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
                             }
 
                             ffmpeg.av_packet_unref(packet);
