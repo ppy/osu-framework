@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -103,6 +104,11 @@ namespace osu.Framework.Graphics.Video
         private const float lenience_before_seek = 2500;
 
         private bool isDisposed;
+
+        /// <summary>
+        /// YUV->RGB conversion matrix based on the video colorspace
+        /// </summary>
+        public Matrix3 ConversionMatrix => decoder.GetConversionMatrix();
 
         protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(this);
 
