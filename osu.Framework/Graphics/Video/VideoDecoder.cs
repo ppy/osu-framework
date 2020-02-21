@@ -238,6 +238,9 @@ namespace osu.Framework.Graphics.Video
         // https://en.wikipedia.org/wiki/YCbCr
         public Matrix3 GetConversionMatrix()
         {
+            if (stream == null)
+                return Matrix3.Zero;
+
             switch (stream->codec->colorspace)
             {
                 case AVColorSpace.AVCOL_SPC_BT709:
