@@ -508,8 +508,8 @@ namespace osu.Framework.Graphics.Video
             if (strErrorCode < 0)
                 return $"{errorCode} (av_strerror failed with code {strErrorCode})";
 
-            var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0) + 1);
-            return Encoding.ASCII.GetString(buffer)[..messageLength];
+            var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
+            return Encoding.ASCII.GetString(buffer[..messageLength]);
         }
 
         protected virtual FFmpegFuncs CreateFuncs()
