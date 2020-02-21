@@ -24,11 +24,9 @@
     <DebugType>full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <additionalargs>/unsafe</additionalargs>
     <Externalconsole>True</Externalconsole>
@@ -44,10 +42,8 @@
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
-    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
     <MtouchDebug>True</MtouchDebug>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <MtouchArch>x86_64</MtouchArch>
@@ -55,12 +51,7 @@
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
     <OutputPath>bin\iPhoneSimulator\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
-    <MtouchDebug>True</MtouchDebug>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
     <MtouchLink>None</MtouchLink>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
@@ -71,27 +62,19 @@
     <DebugType>none</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Testflight</OutputPath>
-    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
     <MtouchUseLlvm>True</MtouchUseLlvm>
-    <ConsolePause>False</ConsolePause>
-    <IpaPackageName>
-    </IpaPackageName>
     <BuildIpa>True</BuildIpa>
     <MtouchLink>Full</MtouchLink>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
     <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
     <BundleVersion>0</BundleVersion>
     <BundleDisplayName>osu!template</BundleDisplayName>
     <BundleIcon>IconTest.png</BundleIcon>
     <MtouchArch>ARMv7</MtouchArch>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
@@ -99,15 +82,11 @@
     <DebugType>none</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <DefineConstants>iOS DIST RELEASE</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <MtouchUseLlvm>True</MtouchUseLlvm>
-    <CodesignKey>iPhone Distribution</CodesignKey>
     <MtouchLink>Full</MtouchLink>
-    <IpaPackageName>
-    </IpaPackageName>
     <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
     <BundleVersion>1.2</BundleVersion>
     <BundleDisplayName>osu!template</BundleDisplayName>
@@ -127,94 +106,82 @@
     <DebugType>full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>iPhone Developer</CodesignKey>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <additionalargs>/unsafe</additionalargs>
     <Externalconsole>True</Externalconsole>
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <DebugSymbols>True</DebugSymbols>
-    <IpaPackageName>
-    </IpaPackageName>
     <MtouchArch>ARM64</MtouchArch>
     <CrashReportingApiKey>
     </CrashReportingApiKey>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugType>none</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Testflight</OutputPath>
-    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchUseLlvm>True</MtouchUseLlvm>
     <ConsolePause>False</ConsolePause>
-    <IpaPackageName>
-    </IpaPackageName>
     <BuildIpa>True</BuildIpa>
     <MtouchLink>Full</MtouchLink>
     <CrashReportingApiKey>
     </CrashReportingApiKey>
     <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>20120419</BundleVersion>
     <BundleDisplayName>osu!test</BundleDisplayName>
     <BundleIcon>IconTest.png</BundleIcon>
     <MtouchArch>ARMv7</MtouchArch>
-    <CodesignProvision></CodesignProvision>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <DefineConstants>iOS DIST RELEASE</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <MtouchUseLlvm>True</MtouchUseLlvm>
-    <CodesignKey>iPhone Distribution</CodesignKey>
     <MtouchLink>Full</MtouchLink>
-    <IpaPackageName>
-    </IpaPackageName>
     <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
     <BundleVersion>1.2</BundleVersion>
     <BundleDisplayName>osu!template</BundleDisplayName>
     <BundleIcon>Icon.png</BundleIcon>
     <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <CodesignProvision>
-    </CodesignProvision>
     <MtouchUseThumb>true</MtouchUseThumb>
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodesignProvision>
     </CodesignProvision>
-    <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchArch>ARM64</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <MtouchLink>SdkOnly</MtouchLink>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\iPhoneSimulator\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+    <MtouchArch>x86_64</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <CodesignKey>iPhone Distribution</CodesignKey>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
