@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -911,31 +912,31 @@ namespace osu.Framework.Graphics.UserInterface
         private void onImeResult()
         {
             //we only succeeded if there is pending data in the textbox
-            if (imeDrawables.Count > 0)
+            if (imeChars.Count > 0)
             {
-                foreach ((char _, Drawable d) in imeDrawables)
+                foreach ((char _, Drawable d) in imeChars)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
                 }
             }
 
-            imeDrawables.Clear();
+            imeChars.Clear();
         }
 
-        private readonly List<(char, Drawable)> imeDrawables = new List<(char, Drawable)>();
+        private readonly List<(char character, Drawable drawableChar)> imeChars = new List<(char, Drawable)>();
 
         private void onImeComposition(string s)
         {
             //search for unchanged characters..
             int matchCount = 0;
             bool matching = true;
-            string deletedString = string.Empty;
+            var deletedString = new StringBuilder();
 
-            int searchStart = text.Length - imeDrawables.Count;
+            int searchStart = text.Length - imeChars.Count;
 
             //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeDrawables.Count, s.Length);
+            int maxLength = Math.Max(imeChars.Count, s.Length);
 
             for (int i = 0; i < maxLength; i++)
             {
@@ -947,12 +948,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 matching = false;
 
-                if (matchCount < imeDrawables.Count)
+                if (matchCount < imeChars.Count)
                 {
                     //if we are no longer matching, we want to remove all further characters.
                     removeCharacterOrSelection(false);
-                    deletedString += imeDrawables[matchCount].Item1;
-                    imeDrawables.RemoveAt(matchCount);
+                    deletedString.Append(imeChars[matchCount].character);
+                    imeChars.RemoveAt(matchCount);
                 }
             }
 
@@ -962,7 +963,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (deletedString.Length > 0)
                 {
                     audio.Samples.Get(@"Keyboard/key-delete")?.Play();
-                    OnTextRemoved(deletedString);
+                    OnTextRemoved(deletedString.ToString());
                 }
 
                 return;
@@ -971,13 +972,14 @@ namespace osu.Framework.Graphics.UserInterface
             //add any new or changed characters
             for (int i = matchCount; i < s.Length; i++)
             {
-                Drawable dr = addCharacter(s[i]);
+                char c = s[i];
+                Drawable dr = addCharacter(c);
 
                 if (dr != null)
                 {
                     dr.Colour = Color4.Aqua;
                     dr.Alpha = 0.6f;
-                    imeDrawables.Add((s[i], dr));
+                    imeChars.Add((c, dr));
                 }
             }
 
