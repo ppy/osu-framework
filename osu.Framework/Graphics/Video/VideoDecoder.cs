@@ -373,8 +373,7 @@ namespace osu.Framework.Graphics.Video
         {
             var packet = ffmpeg.av_packet_alloc();
 
-            // 3 frame buffer * (Y + U + V)
-            const int max_pending_frames = 9;
+            const int max_pending_frames = 3;
 
             try
             {
