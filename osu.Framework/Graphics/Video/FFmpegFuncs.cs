@@ -21,6 +21,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate byte* AvStrDupDelegate(string s);
 
+        public delegate int AvStrErrorDelegate(int errnum, byte* buffer, ulong bufSize);
+
         public delegate void* AvMallocDelegate(ulong size);
 
         public delegate AVPacket* AvPacketAllocDelegate();
@@ -57,8 +59,6 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public delegate int AvStrerrorDelegate(int errnum, byte* buffer, ulong bufSize);
-
         #endregion
 
         public AvFrameAllocDelegate av_frame_alloc;
@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.Video
         public AvFrameUnrefDelegate av_frame_unref;
         public AvFrameGetBufferDelegate av_frame_get_buffer;
         public AvStrDupDelegate av_strdup;
+        public AvStrErrorDelegate av_strerror;
         public AvMallocDelegate av_malloc;
         public AvPacketAllocDelegate av_packet_alloc;
         public AvPacketUnrefDelegate av_packet_unref;
@@ -84,6 +85,5 @@ namespace osu.Framework.Graphics.Video
         public SwsFreeContextDelegate sws_freeContext;
         public SwsGetContextDelegate sws_getContext;
         public SwsScaleDelegate sws_scale;
-        public AvStrerrorDelegate av_strerror;
     }
 }

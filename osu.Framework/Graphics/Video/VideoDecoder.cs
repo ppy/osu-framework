@@ -549,6 +549,7 @@ namespace osu.Framework.Graphics.Video
                 av_frame_unref = AGffmpeg.av_frame_unref,
                 av_frame_get_buffer = AGffmpeg.av_frame_get_buffer,
                 av_strdup = AGffmpeg.av_strdup,
+                av_strerror = AGffmpeg.av_strerror,
                 av_malloc = AGffmpeg.av_malloc,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
                 av_packet_unref = AGffmpeg.av_packet_unref,
@@ -566,8 +567,7 @@ namespace osu.Framework.Graphics.Video
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
                 sws_freeContext = AGffmpeg.sws_freeContext,
                 sws_getContext = AGffmpeg.sws_getContext,
-                sws_scale = AGffmpeg.sws_scale,
-                av_strerror = AGffmpeg.av_strerror
+                sws_scale = AGffmpeg.sws_scale
             };
         }
 
