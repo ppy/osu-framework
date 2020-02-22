@@ -14,7 +14,7 @@ namespace osu.Framework.Statistics
 
         private static readonly Stack<Type> current_collection_type_stack = new Stack<Type>();
 
-        private static readonly Dictionary<Type, double> collected_times = new Dictionary<Type, double>();
+        private static readonly Dictionary<Type, Collection> collected_times = new Dictionary<Type, Collection>();
 
         private static double consumptionTime;
 
@@ -35,8 +35,10 @@ namespace osu.Framework.Statistics
             {
                 Type t = current_collection_type_stack.Peek();
 
-                if (!collected_times.ContainsKey(t)) collected_times[t] = 0;
-                collected_times[t] += consumeStopwatchElapsedTime();
+                if (!collected_times.TryGetValue(t, out var collection))
+                    collected_times[t] = collection = new Collection();
+
+                collection.TotalMilliseconds += consumeStopwatchElapsedTime();
             }
 
             current_collection_type_stack.Push(type);
@@ -53,8 +55,11 @@ namespace osu.Framework.Statistics
 
             current_collection_type_stack.Pop();
 
-            if (!collected_times.ContainsKey(type)) collected_times[type] = 0;
-            collected_times[type] += consumeStopwatchElapsedTime();
+            if (!collected_times.TryGetValue(type, out var collection))
+                collected_times[type] = collection = new Collection();
+
+            collection.TotalMilliseconds += consumeStopwatchElapsedTime();
+            collection.Count++;
         }
 
         private static double lastReport;
@@ -88,8 +93,14 @@ namespace osu.Framework.Statistics
                 GlobalStatistics.Clear(group_name);
 
                 int i = 0;
-                foreach (var t in collected_times.OrderByDescending(t => t.Value).Take(5))
-                    GlobalStatistics.Get<string>(group_name, $"{++i}. {t.Key.Name}").Value = $"{t.Value / framesSinceLastReport:N1}ms";
+
+                foreach (var t in collected_times.OrderByDescending(t => t.Value.TotalMilliseconds).Take(5))
+                {
+                    string runCount = t.Value.Count / framesSinceLastReport > 1 ? $" ({t.Value.Count / framesSinceLastReport} instances)" : string.Empty;
+
+                    GlobalStatistics.Get<string>(group_name, $"{++i}. {t.Key.Name}{runCount}").Value =
+                        $"{t.Value.TotalMilliseconds / framesSinceLastReport:N1}ms";
+                }
 
                 collected_times.Clear();
                 framesSinceLastReport = 0;
@@ -106,6 +117,12 @@ namespace osu.Framework.Statistics
             consumptionTime = clock.CurrentTime;
 
             return consumptionTime - last;
+        }
+
+        private class Collection
+        {
+            public int Count;
+            public double TotalMilliseconds;
         }
     }
 }
