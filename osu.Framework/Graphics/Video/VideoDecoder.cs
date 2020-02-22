@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
@@ -335,11 +336,11 @@ namespace osu.Framework.Graphics.Video
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             if (openInputResult < 0)
-                throw new InvalidOperationException($"Error {openInputResult} opening file or stream.");
+                throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
 
             int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
             if (findStreamInfoResult < 0)
-                throw new InvalidOperationException($"Error {findStreamInfoResult} finding stream info.");
+                throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
             var nStreams = formatContext->nb_streams;
 
@@ -360,7 +361,7 @@ namespace osu.Framework.Graphics.Video
 
                     int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
                     if (openCodecResult < 0)
-                        throw new InvalidOperationException($"Error {openCodecResult} trying to open codec with id: {codecParams.codec_id}");
+                        throw new InvalidOperationException($"Error trying to open codec with id {codecParams.codec_id}: {getErrorMessage(openCodecResult)}");
 
                     break;
                 }
@@ -420,7 +421,7 @@ namespace osu.Framework.Graphics.Video
 
                                                 var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
                                                 if (ret < 0)
-                                                    throw new InvalidOperationException($"Error {ret} allocating video frame");
+                                                    throw new InvalidOperationException($"Error allocating video frame: {getErrorMessage(ret)}");
 
                                                 ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
                                                     outFrame->data, outFrame->linesize);
@@ -492,6 +493,25 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
+        private string getErrorMessage(int errorCode)
+        {
+            const ulong buffer_size = 256;
+            byte[] buffer = new byte[buffer_size];
+
+            int strErrorCode;
+
+            fixed (byte* bufPtr = buffer)
+            {
+                strErrorCode = ffmpeg.av_strerror(errorCode, bufPtr, buffer_size);
+            }
+
+            if (strErrorCode < 0)
+                return $"{errorCode} (av_strerror failed with code {strErrorCode})";
+
+            var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
+            return Encoding.ASCII.GetString(buffer[..messageLength]);
+        }
+
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
@@ -529,6 +549,7 @@ namespace osu.Framework.Graphics.Video
                 av_frame_unref = AGffmpeg.av_frame_unref,
                 av_frame_get_buffer = AGffmpeg.av_frame_get_buffer,
                 av_strdup = AGffmpeg.av_strdup,
+                av_strerror = AGffmpeg.av_strerror,
                 av_malloc = AGffmpeg.av_malloc,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
                 av_packet_unref = AGffmpeg.av_packet_unref,
