@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +11,7 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -103,6 +105,13 @@ namespace osu.Framework.Graphics.Video
 
         private bool isDisposed;
 
+        /// <summary>
+        /// YUV->RGB conversion matrix based on the video colorspace
+        /// </summary>
+        public Matrix3 ConversionMatrix => decoder.GetConversionMatrix();
+
+        protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(this);
+
         public VideoSprite([NotNull] Stream stream)
         {
             this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
@@ -114,8 +123,10 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost)
+        private void load(GameHost gameHost, ShaderManager shaders)
         {
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO_ROUNDED);
             decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
             decoder.Looping = Loop;
             State.BindTo(decoder.State);
@@ -155,7 +166,12 @@ namespace osu.Framework.Graphics.Video
             {
                 if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
-                Texture = lastFrame.Texture;
+
+                var tex = lastFrame.Texture;
+
+                // Check if the new frame has been uploaded so we don't display an old frame
+                if ((tex?.TextureGL as VideoTexture)?.UploadComplete ?? false)
+                    Texture = tex;
             }
 
             if (availableFrames.Count == 0)

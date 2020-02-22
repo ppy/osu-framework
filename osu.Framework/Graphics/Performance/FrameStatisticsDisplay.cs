@@ -509,7 +509,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(WIDTH, HEIGHT) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 
