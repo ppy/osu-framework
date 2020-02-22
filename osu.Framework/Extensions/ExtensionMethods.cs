@@ -263,7 +263,7 @@ namespace osu.Framework.Extensions
         /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
         /// <returns>A <see cref="Display"/> structure populated with the corresponding properties and <see cref="DisplayMode"/>s.</returns>
         internal static Display ToDisplay(this DisplayDevice device) =>
-            new Display(device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
+            new Display((int)device.GetIndex(), device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
 
         /// <summary>
         /// Converts an osuTK <see cref="DisplayResolution"/> to a <see cref="DisplayMode"/> structure.

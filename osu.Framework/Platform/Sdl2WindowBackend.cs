@@ -159,7 +159,7 @@ namespace osu.Framework.Platform
                                          .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
                                          .ToArray();
 
-            return new Display(Sdl2Functions.SDL_GetDisplayName(displayIndex), Sdl2Functions.SDL_GetDisplayBounds(displayIndex), displayModes);
+            return new Display(displayIndex, Sdl2Functions.SDL_GetDisplayName(displayIndex), Sdl2Functions.SDL_GetDisplayBounds(displayIndex), displayModes);
         }
 
         private static DisplayMode displayModeFromSDL(SDL_DisplayMode mode)

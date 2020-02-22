@@ -27,8 +27,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public DisplayMode[] DisplayModes { get; }
 
-        public Display(string name, Rectangle bounds, DisplayMode[] displayModes)
+        /// <summary>
+        /// The zero-based index of the <see cref="Display"/>.
+        /// </summary>
+        public int Index { get; }
+
+        public Display(int index, string name, Rectangle bounds, DisplayMode[] displayModes)
         {
+            Index = index;
             Name = name;
             Bounds = bounds;
             DisplayModes = displayModes;
