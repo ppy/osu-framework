@@ -89,6 +89,7 @@ namespace osu.Framework.Graphics.Video
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
 
+        private bool inputOpened;
         private bool isDisposed;
         private Stream videoStream;
 
@@ -238,6 +239,9 @@ namespace osu.Framework.Graphics.Video
         // https://en.wikipedia.org/wiki/YCbCr
         public Matrix3 GetConversionMatrix()
         {
+            if (stream == null)
+                return Matrix3.Zero;
+
             switch (stream->codec->colorspace)
             {
                 case AVColorSpace.AVCOL_SPC_BT709:
@@ -335,7 +339,8 @@ namespace osu.Framework.Graphics.Video
             formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
-            if (openInputResult < 0)
+            inputOpened = openInputResult >= 0;
+            if (!inputOpened)
                 throw new InvalidOperationException($"Error opening file or stream: {getErrorMessage(openInputResult)}");
 
             int findStreamInfoResult = ffmpeg.avformat_find_stream_info(formatContext, null);
@@ -595,7 +600,7 @@ namespace osu.Framework.Graphics.Video
 
             StopDecoding(true);
 
-            if (formatContext != null)
+            if (formatContext != null && inputOpened)
             {
                 fixed (AVFormatContext** ptr = &formatContext)
                     ffmpeg.avformat_close_input(ptr);
