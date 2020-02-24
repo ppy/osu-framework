@@ -621,21 +621,24 @@ namespace osu.Framework.Platform
             {
                 if (value == runningSingleThreaded) return;
 
-                if (!value)
+                InputThread.Scheduler.Add(() =>
                 {
-                    foreach (var t in threads)
-                        t.Start();
-                }
-                else
-                {
-                    foreach (var t in threads)
-                        t.Pause();
+                    if (!value)
+                    {
+                        foreach (var t in threads)
+                            t.Start();
+                    }
+                    else
+                    {
+                        foreach (var t in threads)
+                            t.Pause();
 
-                    while (threads.Any(t => t.Running))
-                        Thread.Sleep(1);
-                }
+                        while (threads.Any(t => t.Running))
+                            Thread.Sleep(1);
+                    }
 
-                ThreadSafety.SingleThreaded = runningSingleThreaded = value;
+                    ThreadSafety.SingleThreaded = runningSingleThreaded = value;
+                });
             }
         }
 
