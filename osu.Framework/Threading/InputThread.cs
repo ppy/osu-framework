@@ -24,7 +24,5 @@ namespace osu.Framework.Threading
         {
             // InputThread does not get started. it is run manually by GameHost.
         }
-
-        public void RunUpdate() => ProcessFrame();
     }
 }

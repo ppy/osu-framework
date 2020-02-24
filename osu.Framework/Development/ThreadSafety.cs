@@ -12,18 +12,24 @@ namespace osu.Framework.Development
         [Conditional("DEBUG")]
         internal static void EnsureUpdateThread()
         {
+            if (SingleThreaded) return;
+
             Debug.Assert(IsUpdateThread);
         }
 
         [Conditional("DEBUG")]
         internal static void EnsureNotUpdateThread()
         {
+            if (SingleThreaded) return;
+
             Debug.Assert(!IsUpdateThread);
         }
 
         [Conditional("DEBUG")]
         internal static void EnsureDrawThread()
         {
+            if (SingleThreaded) return;
+
             Debug.Assert(IsDrawThread);
         }
 
@@ -35,6 +41,8 @@ namespace osu.Framework.Development
 
         private static readonly ThreadLocal<bool> is_audio_thread = new ThreadLocal<bool>(() =>
             Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio"));
+
+        internal static bool SingleThreaded;
 
         public static bool IsUpdateThread => is_update_thread.Value;
 

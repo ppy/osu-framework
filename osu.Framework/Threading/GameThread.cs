@@ -6,6 +6,8 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Threading
@@ -17,7 +19,7 @@ namespace osu.Framework.Threading
 
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
-        public Thread Thread { get; }
+        public Thread Thread { get; private set; }
         public Scheduler Scheduler { get; }
 
         /// <summary>
@@ -59,7 +61,7 @@ namespace osu.Framework.Threading
 
         public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
 
-        public bool Running => Thread.IsAlive;
+        public bool Running => Thread?.IsAlive == true;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
@@ -73,12 +75,6 @@ namespace osu.Framework.Threading
         {
             OnNewFrame = onNewFrame;
 
-            Thread = new Thread(runWork)
-            {
-                Name = PrefixedThreadNameFor(name),
-                IsBackground = true,
-            };
-
             Name = name;
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
@@ -86,6 +82,19 @@ namespace osu.Framework.Threading
             Scheduler = new Scheduler(null, Clock);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
+        }
+
+        private void createThread()
+        {
+            Debug.Assert(Thread == null);
+
+            Thread = new Thread(runWork)
+            {
+                Name = PrefixedThreadNameFor(Name),
+                IsBackground = true,
+            };
+
+            updateCulture();
         }
 
         public void WaitUntilInitialized()
@@ -103,7 +112,7 @@ namespace osu.Framework.Threading
 
             initializedEvent.Set();
 
-            while (!exitCompleted)
+            while (!exitCompleted && !paused)
             {
                 try
                 {
@@ -117,9 +126,11 @@ namespace osu.Framework.Threading
                         throw;
                 }
             }
+
+            Thread = null;
         }
 
-        protected void ProcessFrame()
+        public void ProcessFrame()
         {
             if (exitCompleted)
                 return;
@@ -148,8 +159,45 @@ namespace osu.Framework.Threading
 
         public bool Exited => exitCompleted;
 
+        private CultureInfo culture;
+
+        public CultureInfo CurrentCulture
+        {
+            get => culture;
+            set
+            {
+                culture = value;
+
+                updateCulture();
+            }
+        }
+
+        private void updateCulture()
+        {
+            if (Thread == null || culture == null) return;
+
+            Thread.CurrentCulture = culture;
+            Thread.CurrentUICulture = culture;
+        }
+
+        private bool paused;
+
+        public void Pause()
+        {
+            paused = true;
+        }
+
         public void Exit() => exitRequested = true;
-        public virtual void Start() => Thread?.Start();
+
+        public virtual void Start()
+        {
+            paused = false;
+
+            if (Thread == null)
+                createThread();
+
+            Thread.Start();
+        }
 
         protected virtual void PerformExit()
         {

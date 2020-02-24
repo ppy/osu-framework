@@ -264,7 +264,12 @@ namespace osu.Framework.Platform
 
             //wait for a potentially blocking response
             while (!response.HasValue)
-                Thread.Sleep(1);
+            {
+                if (runningSingleThreaded)
+                    handleInput();
+                else
+                    Thread.Sleep(1);
+            }
 
             if (response ?? false)
                 return true;
@@ -282,8 +287,11 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateInitialize()
         {
-            //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            DrawThread.WaitUntilInitialized();
+            if (!runningSingleThreaded)
+            {
+                //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
+                DrawThread.WaitUntilInitialized();
+            }
         }
 
         protected Container Root;
@@ -534,10 +542,22 @@ namespace osu.Framework.Platform
 
                 resetInputHandlers();
 
-                foreach (var t in threads)
-                    t.Start();
+                if (runningSingleThreaded)
+                {
+                    foreach (var t in threads)
+                    {
+                        t.OnThreadStart?.Invoke();
+                        t.OnThreadStart = null;
+                    }
+                }
+                else
+                {
+                    foreach (var t in threads)
+                        t.Start();
 
-                DrawThread.WaitUntilInitialized();
+                    DrawThread.WaitUntilInitialized();
+                }
+
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
@@ -578,7 +598,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            InputThread.RunUpdate();
+                            InputThread.ProcessFrame();
                     }
                 }
                 catch (OutOfMemoryException)
@@ -592,10 +612,46 @@ namespace osu.Framework.Platform
             }
         }
 
+        private bool runningSingleThreaded;
+
+        public bool RunningSingleThreaded
+        {
+            get => runningSingleThreaded;
+            set
+            {
+                if (value == runningSingleThreaded) return;
+
+                if (!value)
+                {
+                    foreach (var t in threads)
+                        t.Start();
+                }
+                else
+                {
+                    foreach (var t in threads)
+                        t.Pause();
+
+                    while (threads.Any(t => t.Running))
+                        Thread.Sleep(1);
+                }
+
+                ThreadSafety.SingleThreaded = runningSingleThreaded = value;
+            }
+        }
+
         private void handleInput()
         {
             inputPerformanceCollectionPeriod?.Dispose();
-            InputThread.RunUpdate();
+
+            InputThread.ProcessFrame();
+
+            if (runningSingleThreaded)
+            {
+                AudioThread.ProcessFrame();
+                UpdateThread.ProcessFrame();
+                DrawThread.ProcessFrame();
+            }
+
             inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
@@ -681,13 +737,16 @@ namespace osu.Framework.Platform
 
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
             while (!InputThread.Exited)
-                InputThread.RunUpdate();
+                InputThread.ProcessFrame();
         }
 
         private void legacyKeyDown(object sender, KeyboardKeyEventArgs e)
         {
             if (e.Control && e.Key == Key.F7)
                 cycleFrameSync();
+
+            if (e.Control && e.Key == Key.F6)
+                RunningSingleThreaded = !RunningSingleThreaded;
         }
 
         private void keyDown(KeyboardKeyInput e)
@@ -841,11 +900,7 @@ namespace osu.Framework.Platform
 
                 foreach (var t in threads)
                 {
-                    t.Scheduler.Add(() =>
-                    {
-                        t.Thread.CurrentCulture = culture;
-                        t.Thread.CurrentUICulture = culture;
-                    });
+                    t.Scheduler.Add(() => { t.CurrentCulture = culture; });
                 }
             }, true);
         }
