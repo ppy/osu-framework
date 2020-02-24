@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
-using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,6 +17,11 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         internal event Action OnLayout;
+
+        protected FlowContainer()
+        {
+            AddLayout(layout);
+        }
 
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
@@ -54,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Cached layout = new Cached();
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.DrawSize);
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -62,14 +67,6 @@ namespace osu.Framework.Graphics.Containers
         /// Invoked when layout should be invalidated.
         /// </summary>
         protected virtual void InvalidateLayout() => layout.Invalidate();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                InvalidateLayout();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 

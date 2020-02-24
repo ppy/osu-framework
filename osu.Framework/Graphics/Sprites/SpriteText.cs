@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.Layout;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Framework.Text;
@@ -43,6 +43,10 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText()
         {
             current.BindValueChanged(text => Text = text.NewValue);
+
+            AddLayout(charactersCache);
+            AddLayout(screenSpaceCharactersCache);
+            AddLayout(shadowOffsetCache);
         }
 
         [BackgroundDependencyLoader]
@@ -410,7 +414,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private readonly Cached charactersCache = new Cached();
+        private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence);
         private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
@@ -470,7 +474,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Cached screenSpaceCharactersCache = new Cached();
+        private readonly LayoutValue screenSpaceCharactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo | Invalidation.MiscGeometry);
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -507,7 +511,7 @@ namespace osu.Framework.Graphics.Sprites
             screenSpaceCharactersCache.Validate();
         }
 
-        private readonly Cached<Vector2> shadowOffsetCache = new Cached<Vector2>();
+        private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo);
 
         private Vector2 premultipliedShadowOffset =>
             shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
@@ -523,28 +527,6 @@ namespace osu.Framework.Graphics.Sprites
             screenSpaceCharactersCache.Invalidate();
 
             Invalidate(Invalidation.DrawNode, shallPropagate: false);
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            base.Invalidate(invalidation, source, shallPropagate);
-
-            if (source == Parent)
-            {
-                // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
-                    invalidate(true);
-
-                if ((invalidation & Invalidation.DrawInfo) > 0)
-                {
-                    invalidate();
-                    shadowOffsetCache.Invalidate();
-                }
-            }
-            else if ((invalidation & Invalidation.MiscGeometry) > 0)
-                invalidate();
-
-            return true;
         }
 
         #endregion

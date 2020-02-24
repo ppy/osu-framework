@@ -202,7 +202,8 @@ namespace osu.Framework.Graphics.Containers
             loadComponents(ref components, Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default) where TLoadable : Drawable
+        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+            where TLoadable : Drawable
         {
             foreach (var c in components)
             {
@@ -938,12 +939,14 @@ namespace osu.Framework.Graphics.Containers
                 childrenSizeDependencies.Invalidate();
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        public override void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
+            bool skip = (InvalidationState & invalidation) == invalidation;
 
-            if (!shallPropagate) return true;
+            base.Invalidate(invalidation, source, shallPropagate);
+
+            if (skip)
+                return;
 
             for (int i = 0; i < internalChildren.Count; ++i)
             {
@@ -968,8 +971,6 @@ namespace osu.Framework.Graphics.Containers
 
                 c.Invalidate(childInvalidation, this);
             }
-
-            return true;
         }
 
         #endregion

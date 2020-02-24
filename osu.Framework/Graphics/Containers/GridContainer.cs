@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Layout;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -15,6 +16,11 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class GridContainer : CompositeDrawable
     {
+        public GridContainer()
+        {
+            AddLayout(cellLayout);
+        }
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -108,14 +114,6 @@ namespace osu.Framework.Graphics.Containers
             layoutCells();
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-                cellLayout.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
-
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
@@ -125,7 +123,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly Cached cellContent = new Cached();
-        private readonly Cached cellLayout = new Cached();
+        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);
