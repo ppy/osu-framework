@@ -9,29 +9,19 @@ namespace osu.Framework.Development
 {
     internal static class ThreadSafety
     {
-        [Conditional("DEBUG")]
-        internal static void EnsureUpdateThread()
-        {
-            if (SingleThreaded) return;
-
-            Debug.Assert(IsUpdateThread);
-        }
+        internal static Thread SingleThreadThread;
 
         [Conditional("DEBUG")]
-        internal static void EnsureNotUpdateThread()
-        {
-            if (SingleThreaded) return;
-
-            Debug.Assert(!IsUpdateThread);
-        }
+        internal static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
 
         [Conditional("DEBUG")]
-        internal static void EnsureDrawThread()
-        {
-            if (SingleThreaded) return;
+        internal static void EnsureNotUpdateThread() => Debug.Assert(SingleThreadThread != null && is_main_thread.Value || !IsUpdateThread);
 
-            Debug.Assert(IsDrawThread);
-        }
+        [Conditional("DEBUG")]
+        internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
+
+        private static readonly ThreadLocal<bool> is_main_thread = new ThreadLocal<bool>(() =>
+            Thread.CurrentThread == SingleThreadThread);
 
         private static readonly ThreadLocal<bool> is_update_thread = new ThreadLocal<bool>(() =>
             Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update"));
@@ -42,12 +32,10 @@ namespace osu.Framework.Development
         private static readonly ThreadLocal<bool> is_audio_thread = new ThreadLocal<bool>(() =>
             Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio"));
 
-        internal static bool SingleThreaded;
+        public static bool IsUpdateThread => (SingleThreadThread != null && is_main_thread.Value) || is_update_thread.Value;
 
-        public static bool IsUpdateThread => is_update_thread.Value;
+        public static bool IsDrawThread => (SingleThreadThread != null && is_main_thread.Value) || is_draw_thread.Value;
 
-        public static bool IsDrawThread => is_draw_thread.Value;
-
-        public static bool IsAudioThread => is_audio_thread.Value;
+        public static bool IsAudioThread => (SingleThreadThread != null && is_main_thread.Value) || is_audio_thread.Value;
     }
 }

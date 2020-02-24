@@ -587,8 +587,6 @@ namespace osu.Framework.Graphics.Containers
 
         private void ensureChildMutationAllowed()
         {
-            if (ThreadSafety.SingleThreaded) return;
-
             switch (LoadState)
             {
                 case LoadState.NotLoaded:

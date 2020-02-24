@@ -80,6 +80,7 @@ namespace osu.Framework.Audio
         public void Update()
         {
             ThreadSafety.EnsureNotUpdateThread();
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
 

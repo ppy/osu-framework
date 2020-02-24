@@ -637,7 +637,8 @@ namespace osu.Framework.Platform
                             Thread.Sleep(1);
                     }
 
-                    ThreadSafety.SingleThreaded = runningSingleThreaded = value;
+                    runningSingleThreaded = value;
+                    ThreadSafety.SingleThreadThread = runningSingleThreaded ? Thread.CurrentThread : null;
                 });
             }
         }
