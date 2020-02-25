@@ -36,7 +36,7 @@ namespace FlappyDon.Game
             // Rotate the top pipe 180 degrees, and flip
             // it horizontally so the shading matches the bottom pipe
             topPipe = new Pipe();
-            topPipe.RotateTo(180);
+            topPipe.Rotation = 180.0f;
             topPipe.Scale = new Vector2(-topPipe.Scale.X, topPipe.Scale.Y);
             topPipe.Anchor = Anchor.Centre;
             topPipe.Origin = Anchor.TopCentre;
