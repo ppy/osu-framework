@@ -4,6 +4,7 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using ManagedBass;
 using osu.Framework.Audio;
 
 namespace osu.Framework.Threading
@@ -27,8 +28,12 @@ namespace osu.Framework.Threading
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
 
+        private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
+
         private void onNewFrame()
         {
+            cpu_usage.Value = Bass.CPUUsage;
+
             lock (managers)
             {
                 for (var i = 0; i < managers.Count; i++)
@@ -67,7 +72,7 @@ namespace osu.Framework.Threading
                 managers.Clear();
             }
 
-            ManagedBass.Bass.Free();
+            Bass.Free();
         }
     }
 }
