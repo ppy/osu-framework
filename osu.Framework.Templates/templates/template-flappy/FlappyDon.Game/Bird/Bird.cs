@@ -64,7 +64,7 @@ namespace FlappyDon.Game
             isPlaying = false;
             IsTouchingGround = false;
             ClearTransforms();
-            this.RotateTo(0.0f);
+            Rotation = 0.0f;
             Y = -60.0f;
             animation.IsPlaying = true;
             this.Loop(b => b.MoveToOffset(new Vector2(0.0f, -20.0f), 1000.0f, Easing.InOutSine)
