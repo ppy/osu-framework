@@ -87,7 +87,7 @@ namespace FlappyDon.Game
 
             // Inform the obstacles the position of the
             // bird in order to detect when the player successfully
-            // earns a pooint
+            // earns a point
             obstacles.BirdThreshold = bird.X;
 
             // Start animating the background elements
