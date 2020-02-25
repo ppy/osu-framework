@@ -26,7 +26,7 @@ namespace FlappyDon.Game
         private void load(GameHost host)
         {
             // Load the assets from our Resources project
-            Resources.AddStore(new DllResourceStore(typeof(Class1).Assembly));
+            Resources.AddStore(new DllResourceStore(typeof(FlappyDonResources).Assembly));
 
             // To preserve the 8-bit aesthetic, disable texture filtering
             // so they won't become blurry when upscaled

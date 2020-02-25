@@ -3,7 +3,7 @@
 
 namespace FlappyDon.Resources
 {
-    public class Class1
+    public class FlappyDonResources
     {
     }
 }
