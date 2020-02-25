@@ -16,7 +16,7 @@ namespace FlappyDon.Game
     /// arranged and animated horizontally
     /// to produce a backgroudn scrolling effect.
     /// </summary>
-    public class Backdrop : Container<Sprite>
+    public class Backdrop : CompositeDrawable
     {
         // Holds a lambda that generates new
         // instances of the same sprite on demand.
@@ -93,12 +93,12 @@ namespace FlappyDon.Game
 
             // Fetch an initial child sprite
             // we can use to measure
-            if (Children.Count > 0)
-                sprite = Children.First();
+            if (InternalChildren.Count > 0)
+                sprite = (Sprite)InternalChildren.First();
             else
             {
                 sprite = _createSprite();
-                Add(sprite);
+                AddInternal(sprite);
             }
 
             // Work out how many copies are needed to horizontally fill the screen
@@ -107,15 +107,15 @@ namespace FlappyDon.Game
             // If the number needed is higher or lower than
             // the current number of child sprites, add/remove
             // the amount needed for them to match.
-            if (spriteNum != Children.Count)
+            if (spriteNum != InternalChildren.Count)
             {
                 // Update the number of sprites in the list to match
                 // the number we need to cover the whole container
-                while (Children.Count > spriteNum)
-                    Remove(Children.Last());
+                while (InternalChildren.Count > spriteNum)
+                    RemoveInternal(InternalChildren.Last());
 
-                while (Children.Count < spriteNum)
-                    Add(_createSprite());
+                while (InternalChildren.Count < spriteNum)
+                    AddInternal(_createSprite());
             }
 
             // Lay out all of the child sprites horizontally,
@@ -123,7 +123,7 @@ namespace FlappyDon.Game
             // of constant scrolling.
             var offset = 0.0f;
 
-            foreach (var childSprite in Children)
+            foreach (var childSprite in InternalChildren)
             {
                 var width = childSprite.DrawWidth * sprite.Scale.X;
                 childSprite.Position = new Vector2(offset, childSprite.Position.Y);
@@ -141,7 +141,7 @@ namespace FlappyDon.Game
 
         private void stopAnimatingChildren()
         {
-            foreach (var childSprite in Children)
+            foreach (var childSprite in InternalChildren)
                 childSprite.ClearTransforms();
         }
     }
