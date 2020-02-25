@@ -139,12 +139,17 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        public override void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.Invalidate(invalidation, source, shallPropagate);
+            base.OnInvalidate(invalidation);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+            {
                 generate();
+                return true;
+            }
+
+            return false;
         }
 
         private CancellationTokenSource cancelSource = new CancellationTokenSource();

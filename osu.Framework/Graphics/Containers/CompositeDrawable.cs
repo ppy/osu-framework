@@ -939,19 +939,15 @@ namespace osu.Framework.Graphics.Containers
                 childrenSizeDependencies.Invalidate();
         }
 
-        public override void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation)
         {
-            bool skip = (InvalidationState & invalidation) == invalidation;
+            base.OnInvalidate(invalidation);
 
-            base.Invalidate(invalidation, source, shallPropagate);
-
-            if (skip)
-                return;
+            bool anyInvalidated = false;
 
             for (int i = 0; i < internalChildren.Count; ++i)
             {
                 Drawable c = internalChildren[i];
-                Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
@@ -969,8 +965,10 @@ namespace osu.Framework.Graphics.Containers
                 if (c.RelativeSizeAxes == Axes.None)
                     childInvalidation &= ~Invalidation.DrawSize;
 
-                c.Invalidate(childInvalidation, this);
+                anyInvalidated |= c.Invalidate(childInvalidation, this);
             }
+
+            return anyInvalidated;
         }
 
         #endregion

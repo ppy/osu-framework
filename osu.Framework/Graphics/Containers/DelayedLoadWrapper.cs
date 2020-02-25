@@ -137,9 +137,9 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
 
-        public override void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.Invalidate(invalidation, source, shallPropagate);
+            base.OnInvalidate(invalidation);
 
             // For every invalidation, we schedule a reset of IsIntersecting to the game.
             // This is done since UpdateSubTreeMasking() may not be invoked in the current frame, as a result of presence/masking changes anywhere in our super-tree.
@@ -147,7 +147,12 @@ namespace osu.Framework.Graphics.Containers
             // For example, if a parent invalidated this wrapper every frame, IsIntersecting would be false by the time Update() is run and may only become true at the very end of the frame.
             // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
             if (isIntersectingResetDelegate == null)
+            {
                 isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+                return true;
+            }
+
+            return false;
         }
 
         public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)

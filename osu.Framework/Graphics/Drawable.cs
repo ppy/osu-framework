@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics
                 Parent = null;
 
                 OnUpdate = null;
-                OnInvalidate = null;
+                Invalidated = null;
 
                 OnDispose?.Invoke();
                 OnDispose = null;
@@ -417,7 +417,7 @@ namespace osu.Framework.Graphics
         /// <summary>.
         /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
-        internal event Action<Drawable> OnInvalidate;
+        internal event Action<Drawable> Invalidated;
 
         /// <summary>
         /// Fired after the <see cref="dispose(bool)"/> method is called.
@@ -1720,10 +1720,10 @@ namespace osu.Framework.Graphics
         /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
-        public virtual void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        public bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
-                return;
+                return false;
 
             if (shallPropagate && Parent != null && source != Parent)
             {
@@ -1738,7 +1738,7 @@ namespace osu.Framework.Graphics
 
             // Todo: This needs to happen before InvalidateFromChild()
             if ((InvalidationState & invalidation) == invalidation)
-                return;
+                return false;
 
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
             invalidation &= ~Invalidation.DrawNode;
@@ -1751,13 +1751,18 @@ namespace osu.Framework.Graphics
                     anyInvalidated |= member.Invalidate();
             }
 
+            anyInvalidated |= OnInvalidate(invalidation);
+
             if (anyInvalidated)
                 InvalidationID = invalidation_counter.Increment();
 
-            OnInvalidate?.Invoke(this);
+            Invalidated?.Invoke(this);
 
             InvalidationState |= invalidation;
+            return anyInvalidated;
         }
+
+        protected virtual bool OnInvalidate(Invalidation invalidation) => false;
 
         public Invalidation InvalidationFromParentSize
         {

@@ -272,12 +272,17 @@ namespace osu.Framework.Graphics.Containers
         // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
         private readonly LayoutValue screenSpaceSizeBacking = new LayoutValue(Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
 
-        public override void Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.Invalidate(invalidation, source, shallPropagate);
+            base.OnInvalidate(invalidation);
 
             if ((invalidation & Invalidation.DrawNode) > 0)
+            {
                 ++updateVersion;
+                return true;
+            }
+
+            return false;
         }
 
         private long childrenUpdateVersion = -1;
