@@ -77,24 +77,6 @@
     <MtouchArch>ARMv7</MtouchArch>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <MtouchLink>Full</MtouchLink>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>1.2</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>Icon.png</BundleIcon>
-    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <MtouchUseThumb>true</MtouchUseThumb>
-    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -144,24 +126,6 @@
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <MtouchLink>Full</MtouchLink>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>1.2</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>Icon.png</BundleIcon>
-    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <MtouchUseThumb>true</MtouchUseThumb>
-    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
-    <CodesignKey>iPhone Developer</CodesignKey>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -182,6 +146,9 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodesignKey>iPhone Developer</CodesignKey>
+    <OutputPath>bin\iPhone\Release</OutputPath>
+    <MtouchArch>ARM64</MtouchArch>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -196,16 +163,12 @@
     <Compile Include="TemplateGameIOS.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ITunesArtwork Include="iTunesArtwork" />
-    <ITunesArtwork Include="iTunesArtwork%402x" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj">
-      <Project>{F02A411C-F069-433F-8910-7511A0DE34F2}</Project>
+      <Project>{1ADACD09-7BE3-46A1-AEAB-C41E78E8700F}</Project>
       <Name>TemplateGame.Game</Name>
     </ProjectReference>
     <ProjectReference Include="..\TemplateGame.Resources\TemplateGame.Resources.csproj">
-      <Project>{50AD988E-9D4C-4780-B6CA-3AA418C0DF6C}</Project>
+      <Project>{31D3872C-3A4F-437E-9655-3EF58DD62F46}</Project>
       <Name>TemplateGame.Resources</Name>
     </ProjectReference>
   </ItemGroup>
