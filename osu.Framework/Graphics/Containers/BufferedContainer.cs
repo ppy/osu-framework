@@ -274,15 +274,15 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.OnInvalidate(invalidation);
+            var result = base.OnInvalidate(invalidation);
 
             if ((invalidation & Invalidation.DrawNode) > 0)
             {
                 ++updateVersion;
-                return true;
+                result = true;
             }
 
-            return false;
+            return result;
         }
 
         private long childrenUpdateVersion = -1;

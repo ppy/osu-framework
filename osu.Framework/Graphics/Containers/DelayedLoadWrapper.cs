@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.OnInvalidate(invalidation);
+            var result = base.OnInvalidate(invalidation);
 
             // For every invalidation, we schedule a reset of IsIntersecting to the game.
             // This is done since UpdateSubTreeMasking() may not be invoked in the current frame, as a result of presence/masking changes anywhere in our super-tree.
@@ -149,10 +149,10 @@ namespace osu.Framework.Graphics.Containers
             if (isIntersectingResetDelegate == null)
             {
                 isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
-                return true;
+                result = true;
             }
 
-            return false;
+            return result;
         }
 
         public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)

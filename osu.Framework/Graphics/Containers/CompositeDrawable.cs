@@ -943,9 +943,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnInvalidate(Invalidation invalidation)
         {
-            base.OnInvalidate(invalidation);
-
-            bool anyInvalidated = false;
+            bool anyInvalidated = base.OnInvalidate(invalidation);
 
             for (int i = 0; i < internalChildren.Count; ++i)
             {
