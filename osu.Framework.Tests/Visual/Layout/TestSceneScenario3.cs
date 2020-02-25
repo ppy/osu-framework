@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Layout
             }, d =>
             {
                 content.Add(d);
-                d.FadeInFromZero(50000);
+                d.FadeInFromZero(500);
             }));
         }
     }
