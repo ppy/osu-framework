@@ -28,7 +28,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>Apple Development: Timothy Oliver (RSQSFECVR6)</CodesignKey>
+    <CodesignKey></CodesignKey>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <additionalargs>/unsafe</additionalargs>
     <Externalconsole>True</Externalconsole>
@@ -77,7 +77,7 @@
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer: Dean Herbert (8R8BSRCV48)</CodesignKey>
+    <CodesignKey></CodesignKey>
     <MtouchUseLlvm>True</MtouchUseLlvm>
     <ConsolePause>False</ConsolePause>
     <IpaPackageName>
