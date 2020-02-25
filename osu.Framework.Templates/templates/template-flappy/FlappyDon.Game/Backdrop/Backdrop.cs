@@ -14,7 +14,7 @@ namespace FlappyDon.Game
     /// <summary>
     /// Manages a pool of Sprite objects,
     /// arranged and animated horizontally
-    /// to produce a backgroudn scrolling effect.
+    /// to produce a background scrolling effect.
     /// </summary>
     public class Backdrop : CompositeDrawable
     {
@@ -32,7 +32,7 @@ namespace FlappyDon.Game
         public bool Running { get; private set; }
 
         // The duration it takes to animate one cycle
-        // of the sprintes in the container.
+        // of the sprites in the container.
         public float Duration;
 
         public Backdrop(Func<Sprite> createSprite, float duration = 2000.0f)
