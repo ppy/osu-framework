@@ -71,7 +71,7 @@ namespace FlappyDon.Game
                 screenFlash
             };
 
-            // Configure the sizing stratgey to maxium as this
+            // Configure the sizing strategy to maximum as this
             // will preserve element sizing between tall portait
             // style screens (eg smartphones) and 4:3 screens (tablets)
             Strategy = DrawSizePreservationStrategy.Maximum;
