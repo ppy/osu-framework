@@ -141,6 +141,7 @@
     <WarningLevel>4</WarningLevel>
     <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
