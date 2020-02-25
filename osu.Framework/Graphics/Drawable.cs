@@ -1757,7 +1757,8 @@ namespace osu.Framework.Graphics
 
             Invalidated?.Invoke(this);
 
-            InvalidationState |= invalidation & ~Invalidation.DrawNode;
+            // Trim off some invalidation flags that should never affect drawable states (these will always propagate)
+            InvalidationState |= invalidation & ~(Invalidation.DrawNode | Invalidation.Parent);
 
             return anyInvalidated;
         }
