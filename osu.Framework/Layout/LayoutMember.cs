@@ -10,19 +10,41 @@ namespace osu.Framework.Layout
 
     public abstract class LayoutMember
     {
+        /// <summary>
+        /// The <see cref="Invalidation"/> flags this <see cref="LayoutMember"/> responds to.
+        /// </summary>
         public readonly Invalidation InvalidationType;
+
+        /// <summary>
+        /// Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.
+        /// </summary>
         public readonly InvalidationConditionDelegate InvalidationCondition;
 
+        /// <summary>
+        /// The <see cref="Drawable"/> containing this <see cref="LayoutMember"/>.
+        /// </summary>
         internal Drawable Parent;
 
+        /// <summary>
+        /// Creates a new <see cref="LayoutMember"/>.
+        /// </summary>
+        /// <param name="invalidationType">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutMember"/>.</param>
+        /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.</param>
         protected LayoutMember(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null)
         {
             InvalidationType = invalidationType;
             InvalidationCondition = invalidationCondition;
         }
 
+        /// <summary>
+        /// Whether this <see cref="LayoutMember"/> is valid.
+        /// </summary>
         public bool IsValid { get; private set; }
 
+        /// <summary>
+        /// Invalidates this <see cref="LayoutMember"/>.
+        /// </summary>
+        /// <returns>Whether any invalidation occurred.</returns>
         public bool Invalidate()
         {
             if (!IsValid)
@@ -33,6 +55,9 @@ namespace osu.Framework.Layout
             return true;
         }
 
+        /// <summary>
+        /// Validates this <see cref="LayoutMember"/>.
+        /// </summary>
         protected void Validate()
         {
             if (IsValid)

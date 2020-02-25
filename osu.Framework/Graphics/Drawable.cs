@@ -1688,23 +1688,39 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
 
-        protected Invalidation InvalidationState { get; private set; }
+        /// <summary>
+        /// The flags which this <see cref="Drawable"/> has been invalidated with.
+        /// </summary>
+        private Invalidation invalidationState;
 
         private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
 
+        /// <summary>
+        /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.InvalidationType"/> is invalidated.
+        /// </summary>
+        /// <param name="member">The layout member to add.</param>
         protected void AddLayout(LayoutMember member)
         {
             layoutMembers.Add(member);
             member.Parent = this;
         }
 
-        public void ValidateSuperTree(Invalidation validationType)
+        /// <summary>
+        /// Validates the super-tree of this <see cref="Drawable"/> for the given <see cref="Invalidation"/> flags.
+        /// </summary>
+        /// <remarks>
+        /// This is internally invoked by <see cref="LayoutMember"/>, and should not be invoked manually.
+        /// </remarks>
+        /// <param name="validationType">The <see cref="Invalidation"/> flags to validate with.</param>
+        internal void ValidateSuperTree(Invalidation validationType)
         {
-            if ((InvalidationState & validationType) == 0)
+            // Prevent multiple traversals by only iterating on the invalid states.
+            if ((invalidationState & validationType) == 0)
                 return;
 
-            InvalidationState &= ~validationType;
+            invalidationState &= ~validationType;
 
+            // Propagate the validation up towards the parent if required.
             if (Parent != null)
             {
                 Parent.ValidateSuperTree(validationType);
@@ -1718,23 +1734,27 @@ namespace osu.Framework.Graphics
         public long InvalidationID { get; private set; } = invalidation_counter.Increment();
 
         /// <summary>
-        /// Invalidates draw matrix and autosize caches.
-        /// <para>
+        /// Invalidates the layout of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
         /// This does not ensure that the parent containers have been updated before us, thus operations involving
         /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overridden implementation.
-        /// </para>
-        /// </summary>
-        /// <returns>If the invalidate was actually necessary.</returns>
+        /// </remarks>
+        /// <param name="invalidation">The flags to invalidate with.</param>
+        /// <param name="source">The source that triggered the invalidation. A <c>null</c> value implies that this <see cref="Drawable"/> triggered the invalidation.</param>
+        /// <returns>If any layout was invalidated.</returns>
         public bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
         {
             if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
+            // Alert the parent that an invalidation has occurred.
             if (Parent != null && source != Parent)
             {
+                // Trim the invalidation flags for which the parent has already been alerted about.
                 var parentInvalidation = invalidation & ~Parent.ChildInvalidationState;
 
-                // Colour doesn't affect parent's properties
+                // Trim the invalidation flags that don't affect the parent's properties.
                 parentInvalidation &= ~Invalidation.Colour;
 
                 if (parentInvalidation > 0)
@@ -1744,19 +1764,26 @@ namespace osu.Framework.Graphics
                 }
             }
 
-            if ((InvalidationState & invalidation) == invalidation)
+            // Prevent duplicate invalidations for states that have already been invalidated in this subtree.
+            if ((invalidationState & invalidation) == invalidation)
                 return false;
 
+            // A DrawNode invalidation should always invalidate.
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
+            // Invalidate all layout members that at least partly match the given invalidation type.
             foreach (var member in layoutMembers)
             {
                 Invalidation memberInvalidation = invalidation & member.InvalidationType;
 
-                if (memberInvalidation > 0 && member.InvalidationCondition?.Invoke(this, memberInvalidation) != false)
+                if (memberInvalidation == 0)
+                    continue;
+
+                if (member.InvalidationCondition?.Invoke(this, memberInvalidation) != false)
                     anyInvalidated |= member.Invalidate();
             }
 
+            // Allow any custom invalidation to take place.
             anyInvalidated |= OnInvalidate(invalidation);
 
             if (anyInvalidated)
@@ -1764,12 +1791,22 @@ namespace osu.Framework.Graphics
 
             Invalidated?.Invoke(this);
 
-            // Trim off some invalidation flags that should never affect drawable states (these will always propagate)
-            InvalidationState |= invalidation & ~(Invalidation.DrawNode | Invalidation.Parent);
+            // Trim the invalidation flags that should never affect drawable states and are only used as special markers (these will always propagate).
+            invalidation &= ~(Invalidation.DrawNode | Invalidation.Parent);
+
+            invalidationState |= invalidation;
 
             return anyInvalidated;
         }
 
+        /// <summary>
+        /// Invoked when the layout of this <see cref="Drawable"/> was invalidated.
+        /// </summary>
+        /// <remarks>
+        /// This should be used to perform any custom invalidation logic that cannot be described as a layout.
+        /// </remarks>
+        /// <param name="invalidation">The flags that the this <see cref="Drawable"/> was invalidated with.</param>
+        /// <returns>Whether any custom invalidation was performed. Must be true if the <see cref="DrawNode"/> for this <see cref="Drawable"/> is to be invalidated.</returns>
         protected virtual bool OnInvalidate(Invalidation invalidation) => false;
 
         public Invalidation InvalidationFromParentSize
