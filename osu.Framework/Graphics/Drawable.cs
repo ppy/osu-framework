@@ -1712,17 +1712,27 @@ namespace osu.Framework.Graphics
         /// This is internally invoked by <see cref="LayoutMember"/>, and should not be invoked manually.
         /// </remarks>
         /// <param name="validationType">The <see cref="Invalidation"/> flags to validate with.</param>
-        /// <returns>If the layout was validated.</returns>
-        internal virtual bool ValidateSuperTree(Invalidation validationType)
+        internal void ValidateSuperTree(Invalidation validationType)
         {
-            // Prevent multiple traversals by only iterating on the invalid states.
-            if ((invalidationState & validationType) == 0)
-                return false;
+            bool anyValidated = false;
 
-            invalidationState &= ~validationType;
-            Parent?.ValidateSuperTree(validationType);
+            // Validate the local invalidation states.
+            if ((invalidationState & validationType) > 0)
+            {
+                invalidationState &= ~validationType;
+                anyValidated = true;
+            }
 
-            return true;
+            // Validate the local child invalidation states.
+            if (this is CompositeDrawable composite && (composite.ChildInvalidationState & validationType) > 0)
+            {
+                composite.ChildInvalidationState &= ~validationType;
+                anyValidated = true;
+            }
+
+            // Only propagate if any local state has changed, otherwise it can be assumed that the parent won't change.
+            if (anyValidated)
+                Parent?.ValidateSuperTree(validationType);
         }
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
