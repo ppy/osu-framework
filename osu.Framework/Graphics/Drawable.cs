@@ -415,7 +415,7 @@ namespace osu.Framework.Graphics
         public event Action<Drawable> OnLoadComplete;
 
         /// <summary>.
-        /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
+        /// Fired after the <see cref="Invalidate"/> method is called.
         /// </summary>
         internal event Action<Drawable> Invalidated;
 
@@ -1720,12 +1720,12 @@ namespace osu.Framework.Graphics
         /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
-        public bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        public bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
         {
             if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
-            if (shallPropagate && Parent != null && source != Parent)
+            if (Parent != null && source != Parent)
             {
                 var parentInvalidation = invalidation;
 

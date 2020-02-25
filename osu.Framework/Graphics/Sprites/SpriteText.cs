@@ -526,7 +526,7 @@ namespace osu.Framework.Graphics.Sprites
                 charactersCache.Invalidate();
             screenSpaceCharactersCache.Invalidate();
 
-            Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            Invalidate(Invalidation.DrawNode);
         }
 
         #endregion
