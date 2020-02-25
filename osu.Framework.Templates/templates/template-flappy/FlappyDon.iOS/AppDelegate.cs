@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using FlappyDon.Game;
 using Foundation;
 using osu.Framework.iOS;
 
@@ -10,6 +11,6 @@ namespace FlappyDon.iOS
     [Register("AppDelegate")]
     public class AppDelegate : GameAppDelegate
     {
-        protected override osu.Framework.Game CreateGame() => new FlappyDonIOS();
+        protected override osu.Framework.Game CreateGame() => new FlappyDonGame();
     }
 }
