@@ -139,10 +139,6 @@ namespace FlappyDon.Game
             }
         }
 
-        private void stopAnimatingChildren()
-        {
-            foreach (var childSprite in InternalChildren)
-                childSprite.ClearTransforms();
-        }
+        private void stopAnimatingChildren() => ClearTransforms(true);
     }
 }
