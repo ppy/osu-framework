@@ -21,6 +21,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override int TextureId => parent.TextureId;
         public override bool Loaded => parent.Loaded;
 
+        internal override bool IsQueuedForUpload
+        {
+            get => parent.IsQueuedForUpload;
+            set => parent.IsQueuedForUpload = value;
+        }
+
         public TextureGLSub(RectangleI bounds, TextureGLSingle parent)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available

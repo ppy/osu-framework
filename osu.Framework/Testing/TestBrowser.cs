@@ -92,7 +92,7 @@ namespace osu.Framework.Testing
                                                 .GroupBy(
                                                     t =>
                                                     {
-                                                        string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
+                                                        string group = t.Namespace?.AsSpan(namespacePrefix.Length).TrimStart('.').ToString();
                                                         return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
