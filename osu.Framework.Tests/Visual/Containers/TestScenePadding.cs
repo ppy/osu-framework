@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Masking = true;
             }
 
-            protected override void OnInvalidate(Invalidation invalidation)
+            protected override bool OnInvalidate(Invalidation invalidation)
             {
                 base.OnInvalidate(invalidation);
 
@@ -233,6 +233,8 @@ namespace osu.Framework.Tests.Visual.Containers
                 t2.Text = (Padding.Right > 0 ? $"p{Padding.Right}" : string.Empty) + (Margin.Right > 0 ? $"m{Margin.Right}" : string.Empty);
                 t3.Text = (Padding.Bottom > 0 ? $"p{Padding.Bottom}" : string.Empty) + (Margin.Bottom > 0 ? $"m{Margin.Bottom}" : string.Empty);
                 t4.Text = (Padding.Left > 0 ? $"p{Padding.Left}" : string.Empty) + (Margin.Left > 0 ? $"m{Margin.Left}" : string.Empty);
+
+                return true;
             }
 
             protected override void OnDrag(DragEvent e)
