@@ -928,6 +928,8 @@ namespace osu.Framework.Graphics.Containers
 
         #region Invalidation
 
+        internal Invalidation ChildInvalidationState;
+
         /// <summary>
         /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
         /// </summary>

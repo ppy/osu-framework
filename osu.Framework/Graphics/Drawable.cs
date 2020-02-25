@@ -1704,7 +1704,12 @@ namespace osu.Framework.Graphics
                 return;
 
             InvalidationState &= ~validationType;
-            Parent?.ValidateSuperTree(validationType);
+
+            if (Parent != null)
+            {
+                Parent.ValidateSuperTree(validationType);
+                Parent.ChildInvalidationState &= ~validationType;
+            }
         }
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
@@ -1727,16 +1732,18 @@ namespace osu.Framework.Graphics
 
             if (Parent != null && source != Parent)
             {
-                var parentInvalidation = invalidation;
+                var parentInvalidation = invalidation & ~Parent.ChildInvalidationState;
 
                 // Colour doesn't affect parent's properties
                 parentInvalidation &= ~Invalidation.Colour;
 
                 if (parentInvalidation > 0)
+                {
                     Parent.InvalidateFromChild(invalidation, this);
+                    Parent.ChildInvalidationState |= parentInvalidation;
+                }
             }
 
-            // Todo: This needs to happen before InvalidateFromChild()
             if ((InvalidationState & invalidation) == invalidation)
                 return false;
 
