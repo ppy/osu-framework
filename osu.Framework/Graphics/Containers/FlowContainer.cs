@@ -21,6 +21,7 @@ namespace osu.Framework.Graphics.Containers
         protected FlowContainer()
         {
             AddLayout(layout);
+            AddLayout(childLayout);
         }
 
         /// <summary>
@@ -60,6 +61,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly LayoutValue layout = new LayoutValue(Invalidation.DrawSize);
+        private readonly LayoutValue childLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, invalidationSource: InvalidationSource.Child);
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -147,14 +149,6 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                InvalidateLayout();
-
-            base.InvalidateFromChild(invalidation, source);
-        }
-
         /// <summary>
         /// Gets the children that appear in the flow of this <see cref="FlowContainer{T}"/> in the order in which they are processed within the flowing layout.
         /// </summary>
@@ -210,6 +204,12 @@ namespace osu.Framework.Graphics.Containers
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if (!childLayout.IsValid)
+            {
+                layout.Invalidate();
+                childLayout.Validate();
+            }
 
             if (!layout.IsValid)
             {

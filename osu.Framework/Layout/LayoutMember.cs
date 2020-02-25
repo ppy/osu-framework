@@ -20,6 +20,8 @@ namespace osu.Framework.Layout
         /// </summary>
         public readonly InvalidationConditionDelegate InvalidationCondition;
 
+        public readonly InvalidationSource InvalidationSource;
+
         /// <summary>
         /// The <see cref="Drawable"/> containing this <see cref="LayoutMember"/>.
         /// </summary>
@@ -30,10 +32,12 @@ namespace osu.Framework.Layout
         /// </summary>
         /// <param name="invalidationType">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutMember"/>.</param>
         /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.</param>
-        protected LayoutMember(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null)
+        /// <param name="invalidationSource">The source of the invalidation.</param>
+        protected LayoutMember(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
         {
             InvalidationType = invalidationType;
             InvalidationCondition = invalidationCondition;
+            InvalidationSource = invalidationSource;
         }
 
         /// <summary>

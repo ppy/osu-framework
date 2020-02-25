@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -225,9 +226,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 Masking = true;
             }
 
-            protected override bool OnInvalidate(Invalidation invalidation)
+            protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
-                base.OnInvalidate(invalidation);
+                base.OnInvalidate(invalidation, source);
 
                 t1.Text = (Padding.Top > 0 ? $"p{Padding.Top}" : string.Empty) + (Margin.Top > 0 ? $"m{Margin.Top}" : string.Empty);
                 t2.Text = (Padding.Right > 0 ? $"p{Padding.Right}" : string.Empty) + (Margin.Right > 0 ? $"m{Margin.Right}" : string.Empty);

@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK.Graphics;
@@ -139,9 +140,9 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        protected override bool OnInvalidate(Invalidation invalidation)
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.OnInvalidate(invalidation);
+            var result = base.OnInvalidate(invalidation, source);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
