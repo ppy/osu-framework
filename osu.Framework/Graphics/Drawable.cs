@@ -1716,6 +1716,12 @@ namespace osu.Framework.Graphics
         {
             bool anyValidated = false;
 
+            // The validation process propagates to the root Drawable, and attempts to clear any invalidation flags along the way.
+            // There are two locations where such flags may be found:
+            // 1. invalidationState - when a local invalidation occurs.
+            // 2. ChildInvalidationState - when a child is invalidated.
+            // If a validation fails to touch either of these two properties, it means that a validation has already occured, and the propagation can be stopped.
+
             // Validate the local invalidation states.
             if ((invalidationState & validationType) > 0)
             {
@@ -1723,14 +1729,14 @@ namespace osu.Framework.Graphics
                 anyValidated = true;
             }
 
-            // Validate the local child invalidation states.
+            // Validate the child invalidation states.
             if (this is CompositeDrawable composite && (composite.ChildInvalidationState & validationType) > 0)
             {
                 composite.ChildInvalidationState &= ~validationType;
                 anyValidated = true;
             }
 
-            // Only propagate if any local state has changed, otherwise it can be assumed that the parent won't change.
+            // Only propagate if any invalidation state has changed, otherwise it can be assumed that the parent won't change either.
             if (anyValidated)
                 Parent?.ValidateSuperTree(validationType);
         }
@@ -1755,13 +1761,25 @@ namespace osu.Framework.Graphics
             if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
-            // Alert the parent that an invalidation has occurred.
+            // The invalidation process has two parts to it:
+            // 1. Invalidation of this Drawable's layout via Invalidate().
+            // 2. Invalidation of the immediate parent via InvalidateFromChild().
+            //
+            // -> [ parent ]
+            // ^ ------------------- InvalidateFromChild() (debounce: ChildInvalidationState)
+            // ^- [ this ]
+            //    vvvvvvvv --------- Invalidate() (debounce: invalidationState)
+            //   [ layout ]
+            //
+            // Each of these processes is debounced to avoid excessive traversals.
+
+            // Alert the immediate parent that an invalidation has occurred.
             if (Parent != null && source != Parent)
             {
-                // Trim the invalidation flags for which the parent has already been alerted about.
+                // Remove invalidation flags for which the parent has already been alerted about.
                 var parentInvalidation = invalidation & ~Parent.ChildInvalidationState;
 
-                // Trim the invalidation flags that don't affect the parent's properties.
+                // Remove invalidation flags that don't affect the parent's properties.
                 parentInvalidation &= ~Invalidation.Colour;
 
                 if (parentInvalidation > 0)
@@ -1775,12 +1793,13 @@ namespace osu.Framework.Graphics
             if ((invalidationState & invalidation) == invalidation)
                 return false;
 
-            // A DrawNode invalidation should always invalidate.
+            // A DrawNode invalidation always invalidates.
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
 
             // Invalidate all layout members that at least partly match the given invalidation type.
             foreach (var member in layoutMembers)
             {
+                // Remove invalidation flags that don't refer to the layout member.
                 Invalidation memberInvalidation = invalidation & member.InvalidationType;
 
                 if (memberInvalidation == 0)
@@ -1798,7 +1817,7 @@ namespace osu.Framework.Graphics
 
             Invalidated?.Invoke(this);
 
-            // Trim the invalidation flags that should never affect drawable states and are only used as special markers (these will always propagate).
+            // Remove invalidation flags that should never affect drawable states and are only used as special markers (these will always propagate).
             invalidation &= ~(Invalidation.DrawNode | Invalidation.Parent);
 
             invalidationState |= invalidation;
