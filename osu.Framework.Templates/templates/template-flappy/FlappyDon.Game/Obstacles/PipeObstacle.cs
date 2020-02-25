@@ -15,7 +15,7 @@ namespace FlappyDon.Game
     /// consisting of two pipe sprites, one rotated 180
     /// degrees and placed along the top of the screen.
     /// </summary>
-    public class PipeObstacle : Container
+    public class PipeObstacle : CompositeDrawable
     {
         public bool Scored = false;
 
@@ -41,13 +41,13 @@ namespace FlappyDon.Game
             topPipe.Anchor = Anchor.Centre;
             topPipe.Origin = Anchor.TopCentre;
             topPipe.Position = new Vector2(0.0f, -110 + Offset);
-            Add(topPipe);
+            AddInternal(topPipe);
 
             bottomPipe = new Pipe();
             bottomPipe.Anchor = Anchor.Centre;
             bottomPipe.Origin = Anchor.TopCentre;
             bottomPipe.Position = new Vector2(0.0f, 110 + Offset);
-            Add(bottomPipe);
+            AddInternal(bottomPipe);
         }
 
         public bool Colliding(Quad birdQuad)

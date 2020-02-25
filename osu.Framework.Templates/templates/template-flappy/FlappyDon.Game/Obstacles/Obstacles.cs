@@ -17,7 +17,7 @@ namespace FlappyDon.Game
     /// as needed. Also handles collision detection between
     /// any pipes and the bird sprite.
     /// </summary>
-    public class Obstacles : Container
+    public class Obstacles : CompositeDrawable
     {
         // The bounding size of the collision box
         // representing the bird
@@ -82,25 +82,25 @@ namespace FlappyDon.Game
 
             // Remove all child pipes
             // from this container
-            Clear();
+            ClearInternal();
         }
 
         public bool CollisionDetected(Quad birdQuad)
         {
-            if (Children.Count == 0)
+            if (InternalChildren.Count == 0)
                 return false;
 
-            var obstacle = (PipeObstacle)Children.First();
+            var obstacle = (PipeObstacle)InternalChildren.First();
             return obstacle.Colliding(birdQuad);
         }
 
         public bool ThresholdCrossed()
         {
-            if (Children.Count == 0) return false;
+            if (InternalChildren.Count == 0) return false;
 
             // Only check the first pipe since no other pipes would
             // be in range yet
-            var first = (PipeObstacle)Children.First();
+            var first = (PipeObstacle)InternalChildren.First();
 
             // Disregard if the pipe object already registers as crossed
             if (first.Scored)
@@ -121,14 +121,14 @@ namespace FlappyDon.Game
         {
             if (!Running) return;
 
-            if (Children.Count == 0)
+            if (InternalChildren.Count == 0)
             {
                 spawnNewObstacle();
                 return;
             }
 
             // Update the position of each pipe obstacle, and de-queue ones that go off screen
-            foreach (var drawable in Children)
+            foreach (var drawable in InternalChildren)
             {
                 if (frozen)
                     break;
@@ -136,13 +136,13 @@ namespace FlappyDon.Game
                 var obstacle = (PipeObstacle)drawable;
                 obstacle.Position = new Vector2(obstacle.Position.X - pipeVelocity, 0.0f);
                 if (obstacle.Position.X + obstacle.DrawWidth < 0.0f)
-                    Remove(obstacle);
+                    RemoveInternal(obstacle);
             }
 
             // Spawn a new pipe when sufficient distance has passed
-            if (Children.Count > 0)
+            if (InternalChildren.Count > 0)
             {
-                var lastObstacle = (PipeObstacle)Children.Last();
+                var lastObstacle = (PipeObstacle)InternalChildren.Last();
                 if (lastObstacle.Position.X + lastObstacle.DrawWidth < DrawWidth - pipeDistance)
                     spawnNewObstacle();
             }
@@ -155,7 +155,7 @@ namespace FlappyDon.Game
             var obstacle = new PipeObstacle();
             obstacle.Position = new Vector2(DrawWidth, 0.0f);
             obstacle.Offset = RNG.NextSingle(-140.0f, 60.0f);
-            Add(obstacle);
+            AddInternal(obstacle);
         }
     }
 }
