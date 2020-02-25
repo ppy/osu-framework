@@ -12,7 +12,7 @@ namespace FlappyDon.Desktop
         public static void Main()
         {
             using (GameHost host = Host.GetSuitableHost(@"FlappyDon"))
-            using (osu.Framework.Game game = new FlappyDonGame())
+            using (osu.Framework.Game game = new FlappyDonGameBase())
             {
                 host.Run(game);
             }

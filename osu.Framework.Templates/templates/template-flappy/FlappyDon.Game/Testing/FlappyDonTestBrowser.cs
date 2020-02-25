@@ -9,7 +9,7 @@ using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Testing
 {
-    public class FlappyDonTestBrowser : FlappyDonGame
+    public class FlappyDonTestBrowser : FlappyDonGameBase
     {
         protected override void LoadComplete()
         {
@@ -36,3 +36,4 @@ namespace FlappyDon.Game.Testing
         }
     }
 }
+

@@ -11,11 +11,11 @@ namespace FlappyDon.Game.Tests.Visual
 {
     public class TestSceneFlappyDonGame : TestScene
     {
-        private FlappyDonGame game;
+        private FlappyDonGameBase game;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(FlappyDonGame),
+            typeof(FlappyDonGameBase),
         };
 
         [BackgroundDependencyLoader]
