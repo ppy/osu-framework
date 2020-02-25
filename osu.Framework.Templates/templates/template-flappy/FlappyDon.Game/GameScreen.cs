@@ -72,7 +72,7 @@ namespace FlappyDon.Game
             };
 
             // Configure the sizing strategy to maximum as this
-            // will preserve element sizing between tall portait
+            // will preserve element sizing between tall portrait
             // style screens (eg smartphones) and 4:3 screens (tablets)
             Strategy = DrawSizePreservationStrategy.Maximum;
         }
