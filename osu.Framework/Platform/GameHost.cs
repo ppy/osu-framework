@@ -266,7 +266,7 @@ namespace osu.Framework.Platform
             while (!response.HasValue)
             {
                 if (runningSingleThreaded)
-                    handleInput();
+                    ProcessInputFrame();
                 else
                     Thread.Sleep(1);
             }
@@ -578,12 +578,12 @@ namespace osu.Framework.Platform
                         if (Window is SDLWindow window)
                         {
                             window.KeyDown += keyDown;
-                            window.Update += handleInput;
+                            window.Update += ProcessInputFrame;
                         }
                         else
                         {
                             Window.KeyDown += legacyKeyDown;
-                            Window.UpdateFrame += (o, e) => handleInput();
+                            Window.UpdateFrame += (o, e) => ProcessInputFrame();
                         }
 
                         Window.ExitRequested += OnExitRequested;
@@ -598,7 +598,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            InputThread.ProcessFrame();
+                            ProcessInputFrame();
                     }
                 }
                 catch (OutOfMemoryException)
@@ -621,7 +621,7 @@ namespace osu.Framework.Platform
             {
                 if (value == runningSingleThreaded) return;
 
-                InputThread.Scheduler.Add(() =>
+                InputThread?.Scheduler.Add(() =>
                 {
                     if (!value)
                     {
@@ -643,7 +643,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleInput()
+        protected virtual void ProcessInputFrame()
         {
             inputPerformanceCollectionPeriod?.Dispose();
 
