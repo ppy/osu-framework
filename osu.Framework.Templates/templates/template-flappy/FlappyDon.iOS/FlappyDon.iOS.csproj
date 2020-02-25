@@ -94,28 +94,6 @@
     <CodesignProvision>VS: WildCard Development</CodesignProvision>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <DefineConstants>iOS DIST RELEASE</DefineConstants>
-    <WarningLevel>4</WarningLevel>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <CodesignKey>iPhone Distribution</CodesignKey>
-    <MtouchLink>Full</MtouchLink>
-    <IpaPackageName>
-    </IpaPackageName>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>1.2</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>Icon.png</BundleIcon>
-    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <MtouchUseThumb>true</MtouchUseThumb>
-    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -173,30 +151,6 @@
     <CodesignProvision></CodesignProvision>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Distribution|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Distribution</OutputPath>
-    <DefineConstants>iOS DIST RELEASE</DefineConstants>
-    <WarningLevel>4</WarningLevel>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <CodesignKey>iPhone Distribution</CodesignKey>
-    <MtouchLink>Full</MtouchLink>
-    <IpaPackageName>
-    </IpaPackageName>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>1.2</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>Icon.png</BundleIcon>
-    <MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>
-    <CodesignProvision>
-    </CodesignProvision>
-    <MtouchUseThumb>true</MtouchUseThumb>
-    <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -206,15 +160,21 @@
     <MtouchArch>ARM64</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
+    <OutputPath>bin\iPhoneSimulator\Release</OutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <MtouchLink>SdkOnly</MtouchLink>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodesignKey>iPhone Developer</CodesignKey>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <MtouchArch>x86_64</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CodesignKey>iPhone Distribution</CodesignKey>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
+    <OutputPath>bin\iPhone\Release</OutputPath>
+    <MtouchArch>ARM64</MtouchArch>
   </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
@@ -230,75 +190,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj">
-      <Project>{F02A411C-F069-433F-8910-7511A0DE34F2}</Project>
+      <Project>{1ADACD09-7BE3-46A1-AEAB-C41E78E8700F}</Project>
       <Name>FlappyDon.Game</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ITunesArtwork Include="iTunesArtwork" />
-    <ITunesArtwork Include="iTunesArtwork%402x" />
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\Contents.json">
       <Visible>false</Visible>
     </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iOSAppStore.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadApp1x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadApp2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadNotification1x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadNotification2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadProApp2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadSettings1x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadSettings2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadSpotlight1x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPadSpotlight2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneApp2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneApp3x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneNotification2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneNotification3x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneSettings2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneSettings3x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneSpotlight2x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
-    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\iPhoneSpotlight3x.png">
-      <Visible>false</Visible>
-    </ImageAsset>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
   </ItemGroup>
   <ItemGroup>
     <NativeReference Include="$(OutputPath)\libbass.a;$(OutputPath)\libbass_fx.a">
