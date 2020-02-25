@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Layout
 {
@@ -28,6 +29,7 @@ namespace osu.Framework.Layout
                 return false;
 
             IsValid = false;
+            FrameStatistics.Increment(StatisticsCounterType.Invalidations);
             return true;
         }
 
@@ -38,6 +40,7 @@ namespace osu.Framework.Layout
 
             IsValid = true;
             Parent?.ValidateSuperTree(InvalidationType);
+            FrameStatistics.Increment(StatisticsCounterType.Refreshes);
         }
     }
 }
