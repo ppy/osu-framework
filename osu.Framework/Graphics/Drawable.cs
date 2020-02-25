@@ -1712,20 +1712,17 @@ namespace osu.Framework.Graphics
         /// This is internally invoked by <see cref="LayoutMember"/>, and should not be invoked manually.
         /// </remarks>
         /// <param name="validationType">The <see cref="Invalidation"/> flags to validate with.</param>
-        internal void ValidateSuperTree(Invalidation validationType)
+        /// <returns>If the layout was validated.</returns>
+        internal virtual bool ValidateSuperTree(Invalidation validationType)
         {
             // Prevent multiple traversals by only iterating on the invalid states.
             if ((invalidationState & validationType) == 0)
-                return;
+                return false;
 
             invalidationState &= ~validationType;
+            Parent?.ValidateSuperTree(validationType);
 
-            // Propagate the validation up towards the parent if required.
-            if (Parent != null)
-            {
-                Parent.ValidateSuperTree(validationType);
-                Parent.ChildInvalidationState &= ~validationType;
-            }
+            return true;
         }
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();

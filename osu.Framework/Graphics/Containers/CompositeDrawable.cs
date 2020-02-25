@@ -930,6 +930,15 @@ namespace osu.Framework.Graphics.Containers
 
         internal Invalidation ChildInvalidationState;
 
+        internal sealed override bool ValidateSuperTree(Invalidation validationType)
+        {
+            if (!base.ValidateSuperTree(validationType))
+                return false;
+
+            ChildInvalidationState &= ~validationType;
+            return true;
+        }
+
         /// <summary>
         /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
         /// </summary>
