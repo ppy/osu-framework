@@ -1741,7 +1741,6 @@ namespace osu.Framework.Graphics
                 return false;
 
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
-            invalidation &= ~Invalidation.DrawNode;
 
             foreach (var member in layoutMembers)
             {
@@ -1758,7 +1757,8 @@ namespace osu.Framework.Graphics
 
             Invalidated?.Invoke(this);
 
-            InvalidationState |= invalidation;
+            InvalidationState |= invalidation & ~Invalidation.DrawNode;
+
             return anyInvalidated;
         }
 
