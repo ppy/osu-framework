@@ -1739,7 +1739,7 @@ namespace osu.Framework.Graphics
 
                 if (parentInvalidation > 0)
                 {
-                    Parent.InvalidateFromChild(invalidation, this);
+                    Parent.InvalidateFromChild(parentInvalidation, this);
                     Parent.ChildInvalidationState |= parentInvalidation;
                 }
             }
