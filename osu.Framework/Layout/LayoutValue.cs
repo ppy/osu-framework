@@ -6,6 +6,10 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.Layout
 {
+    /// <summary>
+    /// A member that represents the validation state of the layout of a <see cref="Drawable"/>.
+    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Graphics.Invalidation"/> flags), and validated on-demand when the layout has been re-computed.
+    /// </summary>
     public class LayoutValue : LayoutMember
     {
         /// <summary>
@@ -25,6 +29,11 @@ namespace osu.Framework.Layout
         public new void Validate() => base.Validate();
     }
 
+    /// <summary>
+    /// A member that represents the validation state of a value in the layout of a <see cref="Drawable"/>.
+    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Graphics.Invalidation"/> flags), and validated when an up-to-date value is set.
+    /// </summary>
+    /// <typeparam name="T">The type of value stored.</typeparam>
     public class LayoutValue<T> : LayoutMember
     {
         /// <summary>
@@ -41,7 +50,7 @@ namespace osu.Framework.Layout
         private T value;
 
         /// <summary>
-        /// The current value.
+        /// Gets or sets the current value.
         /// </summary>
         /// <exception cref="InvalidOperationException">If accessed while <see cref="LayoutMember.IsValid"/> is <code>false</code>.</exception>
         public T Value

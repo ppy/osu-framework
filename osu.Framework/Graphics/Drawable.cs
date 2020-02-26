@@ -319,10 +319,8 @@ namespace osu.Framework.Graphics
 
             // From a synchronous point of view, this is the first time the Drawable receives a parent.
             // If this Drawable calculated properties such as DrawInfo that depend on the parent state before this point, they must be re-validated in the now-correct state.
-            // DrawNode is trimmed since the draw node is always invalid by this point.
-            // Parent is trimmed since it always propagates from the Parent property, and is thus unnecessary.
             // A "parent" source is faked since Child+Self states are always assumed valid if they only access local Drawable states (e.g. Colour but not DrawInfo).
-            Invalidate(Invalidation.All & ~(Invalidation.DrawNode | Invalidation.Parent), InvalidationSource.Parent);
+            Invalidate(invalidationList.Trim(Invalidation.All), InvalidationSource.Parent);
 
             LoadComplete();
 
@@ -1597,13 +1595,7 @@ namespace osu.Framework.Graphics
                 if ((i & Invalidation.Colour) > 0)
                     return true;
 
-                if ((i & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0
-                    && (!s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour))
-                {
-                    return true;
-                }
-
-                return false;
+                return !s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour;
             });
 
         /// <summary>
@@ -1744,11 +1736,9 @@ namespace osu.Framework.Graphics
             if (LoadState < LoadState.Ready)
                 return false;
 
+            // Changes in the colour of children don't affect parents.
             if (source == InvalidationSource.Child)
-            {
-                // Changes in the colour of children don't affect parents.
                 invalidation &= ~Invalidation.Colour;
-            }
 
             if (invalidation == Invalidation.None)
                 return false;

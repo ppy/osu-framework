@@ -6,8 +6,10 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Layout
 {
-    public delegate bool InvalidationConditionDelegate(Drawable source, Invalidation invalidationType);
-
+    /// <summary>
+    /// A member that represents a part of the layout of a <see cref="Drawable"/>.
+    /// Can be invalidated according to state changes in a <see cref="Drawable"/> (via <see cref="Graphics.Invalidation"/> flags).
+    /// </summary>
     public abstract class LayoutMember
     {
         /// <summary>
@@ -75,4 +77,11 @@ namespace osu.Framework.Layout
             FrameStatistics.Increment(StatisticsCounterType.Refreshes);
         }
     }
+
+    /// <summary>
+    /// The delegate that provides extra conditions for an invalidation to occur.
+    /// </summary>
+    /// <param name="source">The <see cref="Drawable"/> to be invalidated.</param>
+    /// <param name="invalidation">The <see cref="Invalidation"/> flags.</param>
+    public delegate bool InvalidationConditionDelegate(Drawable source, Invalidation invalidation);
 }
