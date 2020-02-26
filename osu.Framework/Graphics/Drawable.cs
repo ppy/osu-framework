@@ -281,11 +281,16 @@ namespace osu.Framework.Graphics
 
             LoadAsyncComplete();
 
-            if (DebugUtils.LogPerformanceIssues && timeBefore > 1000)
+            if (timeBefore > 1000)
             {
                 double loadDuration = perf_clock.CurrentTime - timeBefore;
-                if (loadDuration > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
+
+                bool blocking = ThreadSafety.IsUpdateThread;
+
+                double allowedDuration = blocking ? 16 : 100;
+
+                if (loadDuration > allowedDuration)
+                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance, blocking ? LogLevel.Important : LogLevel.Verbose);
             }
         }
 
