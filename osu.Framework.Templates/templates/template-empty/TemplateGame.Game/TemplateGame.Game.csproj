@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;Testing</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <ItemGroup>

@@ -3,6 +3,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <Configurations>Debug;Release;Testing</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj" />
