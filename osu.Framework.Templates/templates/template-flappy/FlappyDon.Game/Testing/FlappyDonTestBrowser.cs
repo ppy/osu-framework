@@ -36,4 +36,3 @@ namespace FlappyDon.Game.Testing
         }
     }
 }
-
