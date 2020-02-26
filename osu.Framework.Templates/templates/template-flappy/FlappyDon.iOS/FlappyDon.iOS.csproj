@@ -28,7 +28,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey></CodesignKey>
+    <CodesignKey>
+    </CodesignKey>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <additionalargs>/unsafe</additionalargs>
     <Externalconsole>True</Externalconsole>
@@ -66,34 +67,6 @@
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Testflight</OutputPath>
-    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey></CodesignKey>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <ConsolePause>False</ConsolePause>
-    <IpaPackageName>
-    </IpaPackageName>
-    <BuildIpa>True</BuildIpa>
-    <MtouchLink>Full</MtouchLink>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>0</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>IconTest.png</BundleIcon>
-    <MtouchArch>ARMv7</MtouchArch>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -123,34 +96,6 @@
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <OutputPath>bin\iPhone\Testflight</OutputPath>
-    <DefineConstants>iOS RELEASE MAPPER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
-    <ConsolePause>False</ConsolePause>
-    <IpaPackageName>
-    </IpaPackageName>
-    <BuildIpa>True</BuildIpa>
-    <MtouchLink>Full</MtouchLink>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>20120419</BundleVersion>
-    <BundleDisplayName>osu!test</BundleDisplayName>
-    <BundleIcon>IconTest.png</BundleIcon>
-    <MtouchArch>ARMv7</MtouchArch>
-    <CodesignProvision></CodesignProvision>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -175,6 +120,9 @@
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
     <OutputPath>bin\iPhone\Release</OutputPath>
     <MtouchArch>ARM64</MtouchArch>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
+    <OutputPath>bin\Testing\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />

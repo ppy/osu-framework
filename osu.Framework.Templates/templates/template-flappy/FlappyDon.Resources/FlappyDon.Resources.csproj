@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
+        <Configurations>Debug;Release;Testing</Configurations>
+        <Platforms>AnyCPU;iPhoneSimulator</Platforms>
     </PropertyGroup>
     <ItemGroup>
         <EmbeddedResource Include="Beatmaps\**\*" />
