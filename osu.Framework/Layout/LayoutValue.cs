@@ -58,7 +58,7 @@ namespace osu.Framework.Layout
             get
             {
                 if (!IsValid)
-                    throw new InvalidOperationException("todo");
+                    throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(LayoutValue<T>)}.");
 
                 return value;
             }
