@@ -750,6 +750,8 @@ namespace osu.Framework.Graphics.Containers
             aliveInternalChildren.Add(child);
             child.IsAlive = true;
 
+            Invalidate(Invalidation.Presence, InvalidationSource.Child);
+
             ChildBecameAlive?.Invoke(child);
         }
 
