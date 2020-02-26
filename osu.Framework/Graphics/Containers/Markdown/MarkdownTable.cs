@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private readonly Table table;
 
-        private readonly LayoutValue columnDefinitionCache = new LayoutValue(Invalidation.DrawSize, (s, _) => s.Parent != null);
-        private readonly LayoutValue rowDefinitionCache = new LayoutValue(Invalidation.DrawSize, (s, _) => s.Parent != null);
+        private readonly LayoutValue columnDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
+        private readonly LayoutValue rowDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
 
         public MarkdownTable(Table table)
         {

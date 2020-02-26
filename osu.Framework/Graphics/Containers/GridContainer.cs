@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Cached cellContent = new Cached();
         private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
-        private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, invalidationSource: InvalidationSource.Child);
+        private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);

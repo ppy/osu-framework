@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private readonly LayoutValue sizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, invalidationSource: InvalidationSource.Child);
+        private readonly LayoutValue sizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
 
         private readonly Container<Menu> submenuContainer;
 

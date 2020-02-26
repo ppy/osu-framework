@@ -1592,7 +1592,7 @@ namespace osu.Framework.Graphics
 
         private readonly LayoutValue<DrawColourInfo> drawColourInfoBacking = new LayoutValue<DrawColourInfo>(
             Invalidation.Colour | Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence,
-            (s, i) =>
+            conditions: (s, i) =>
             {
                 if ((i & Invalidation.Colour) > 0)
                     return true;
@@ -1703,7 +1703,7 @@ namespace osu.Framework.Graphics
         private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
 
         /// <summary>
-        /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.InvalidationType"/> is invalidated.
+        /// Adds a layout member that will be invalidated when its <see cref="LayoutMember.Invalidation"/> is invalidated.
         /// </summary>
         /// <param name="member">The layout member to add.</param>
         protected void AddLayout(LayoutMember member)
@@ -1770,15 +1770,15 @@ namespace osu.Framework.Graphics
             foreach (var member in layoutMembers)
             {
                 // Only invalidate layout members that accept the given source.
-                if ((member.InvalidationSource & source) == 0)
+                if ((member.Source & source) == 0)
                     continue;
 
                 // Remove invalidation flags that don't refer to the layout member.
-                Invalidation memberInvalidation = invalidation & member.InvalidationType;
+                Invalidation memberInvalidation = invalidation & member.Invalidation;
                 if (memberInvalidation == 0)
                     continue;
 
-                if (member.InvalidationCondition?.Invoke(this, memberInvalidation) != false)
+                if (member.Conditions?.Invoke(this, memberInvalidation) != false)
                     anyInvalidated |= member.Invalidate();
             }
 

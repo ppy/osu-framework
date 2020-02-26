@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly LayoutValue layout = new LayoutValue(Invalidation.DrawSize);
-        private readonly LayoutValue childLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, invalidationSource: InvalidationSource.Child);
+        private readonly LayoutValue childLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 

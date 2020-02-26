@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private readonly LayoutValue layout = new LayoutValue(Invalidation.Colour, (s, _) => ((SpriteIcon)s).Shadow);
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.Colour, conditions: (s, _) => ((SpriteIcon)s).Shadow);
         private Container shadowVisibility;
 
         private FontStore store;

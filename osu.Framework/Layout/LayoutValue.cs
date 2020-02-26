@@ -11,11 +11,11 @@ namespace osu.Framework.Layout
         /// <summary>
         /// Creates a new <see cref="LayoutValue"/>.
         /// </summary>
-        /// <param name="invalidationType">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutValue"/>.</param>
-        /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutValue"/> is invalidated.</param>
-        /// <param name="invalidationSource">The source of the invalidation.</param>
-        public LayoutValue(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
-            : base(invalidationType, invalidationCondition, invalidationSource)
+        /// <param name="invalidation">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutValue"/>.</param>
+        /// <param name="source">The source of the invalidation.</param>
+        /// <param name="conditions">Any extra conditions that must be satisfied before this <see cref="LayoutValue"/> is invalidated.</param>
+        public LayoutValue(Invalidation invalidation, InvalidationSource source = InvalidationSource.Default, InvalidationConditionDelegate conditions = null)
+            : base(invalidation, source, conditions)
         {
         }
 
@@ -30,11 +30,11 @@ namespace osu.Framework.Layout
         /// <summary>
         /// Creates a new <see cref="LayoutValue{T}"/>.
         /// </summary>
-        /// <param name="invalidationType">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutValue{T}"/>.</param>
-        /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutValue{T}"/> is invalidated.</param>
-        /// <param name="invalidationSource">The source of the invalidation.</param>
-        public LayoutValue(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
-            : base(invalidationType, invalidationCondition, invalidationSource)
+        /// <param name="invalidation">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutValue{T}"/>.</param>
+        /// <param name="source">The source of the invalidation.</param>
+        /// <param name="conditions">Any extra conditions that must be satisfied before this <see cref="LayoutValue{T}"/> is invalidated.</param>
+        public LayoutValue(Invalidation invalidation, InvalidationSource source = InvalidationSource.Default, InvalidationConditionDelegate conditions = null)
+            : base(invalidation, source, conditions)
         {
         }
 

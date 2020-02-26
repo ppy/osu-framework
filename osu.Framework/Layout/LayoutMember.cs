@@ -11,16 +11,19 @@ namespace osu.Framework.Layout
     public abstract class LayoutMember
     {
         /// <summary>
-        /// The <see cref="Invalidation"/> flags this <see cref="LayoutMember"/> responds to.
+        /// The <see cref="Graphics.Invalidation"/> flags this <see cref="LayoutMember"/> responds to.
         /// </summary>
-        public readonly Invalidation InvalidationType;
+        public readonly Invalidation Invalidation;
 
         /// <summary>
         /// Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.
         /// </summary>
-        public readonly InvalidationConditionDelegate InvalidationCondition;
+        public readonly InvalidationConditionDelegate Conditions;
 
-        public readonly InvalidationSource InvalidationSource;
+        /// <summary>
+        /// The source of <see cref="Invalidation"/> this <see cref="LayoutMember"/> responds to.
+        /// </summary>
+        public readonly InvalidationSource Source;
 
         /// <summary>
         /// The <see cref="Drawable"/> containing this <see cref="LayoutMember"/>.
@@ -30,14 +33,14 @@ namespace osu.Framework.Layout
         /// <summary>
         /// Creates a new <see cref="LayoutMember"/>.
         /// </summary>
-        /// <param name="invalidationType">The <see cref="Invalidation"/> flags that will invalidate this <see cref="LayoutMember"/>.</param>
-        /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.</param>
-        /// <param name="invalidationSource">The source of the invalidation.</param>
-        protected LayoutMember(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
+        /// <param name="invalidation">The <see cref="Graphics.Invalidation"/> flags that will invalidate this <see cref="LayoutMember"/>.</param>
+        /// <param name="source">The source of the invalidation.</param>
+        /// <param name="conditions">Any extra conditions that must be satisfied before this <see cref="LayoutMember"/> is invalidated.</param>
+        protected LayoutMember(Invalidation invalidation, InvalidationSource source = InvalidationSource.Default, InvalidationConditionDelegate conditions = null)
         {
-            InvalidationType = invalidationType;
-            InvalidationCondition = invalidationCondition;
-            InvalidationSource = invalidationSource;
+            Invalidation = invalidation;
+            Conditions = conditions;
+            Source = source;
         }
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace osu.Framework.Layout
                 return;
 
             IsValid = true;
-            Parent?.ValidateSuperTree(InvalidationType);
+            Parent?.ValidateSuperTree(Invalidation);
             FrameStatistics.Increment(StatisticsCounterType.Refreshes);
         }
     }
