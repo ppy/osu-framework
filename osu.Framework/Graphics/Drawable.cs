@@ -1691,7 +1691,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The flags which this <see cref="Drawable"/> has been invalidated with, grouped by <see cref="InvalidationSource"/>.
         /// </summary>
-        private readonly Invalidation[] invalidationState = new Invalidation[3];
+        private readonly Invalidation[] invalidationState = new Invalidation[3]; // There are only 3 possible flags (0, 1, 2).
 
         private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
 
