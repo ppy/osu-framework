@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace osu.Framework.Bindables
 {
@@ -10,7 +11,7 @@ namespace osu.Framework.Bindables
     /// An readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableList{T}"/>.</typeparam>
-    public interface IBindableList<T> : IReadOnlyList<T>, IBindable
+    public interface IBindableList<T> : IReadOnlyList<T>, IBindable, INotifyCollectionChanged
     {
         /// <summary>
         /// An event which is raised when an range of items get added.
