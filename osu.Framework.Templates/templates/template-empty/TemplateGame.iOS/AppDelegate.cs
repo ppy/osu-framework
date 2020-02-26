@@ -3,12 +3,13 @@
 
 using Foundation;
 using osu.Framework.iOS;
+using TemplateGame.Game;
 
 namespace TemplateGame.iOS
 {
     [Register("AppDelegate")]
     public class AppDelegate : GameAppDelegate
     {
-        protected override osu.Framework.Game CreateGame() => new TemplateGameIOS();
+        protected override osu.Framework.Game CreateGame() => new TemplateGameGame();
     }
 }
