@@ -316,7 +316,14 @@ namespace osu.Framework.Graphics
             if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
-            Invalidate();
+
+            // From a synchronous point of view, this is the first time the Drawable receives a parent.
+            // If this Drawable calculated properties such as DrawInfo that depend on the parent state before this point, they must be re-validated in the now-correct state.
+            // DrawNode is trimmed since the draw node is always invalid by this point.
+            // Parent is trimmed since it always propagates from the Parent property, and is thus unnecessary.
+            // A "parent" source is faked since Child+Self states are always assumed valid if they only access local Drawable states (e.g. Colour but not DrawInfo).
+            Invalidate(Invalidation.All & ~(Invalidation.DrawNode | Invalidation.Parent), InvalidationSource.Parent);
+
             LoadComplete();
 
             OnLoadComplete?.Invoke(this);
@@ -1691,7 +1698,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The flags which this <see cref="Drawable"/> has been invalidated with, grouped by <see cref="InvalidationSource"/>.
         /// </summary>
-        private InvalidationList invalidationList = new InvalidationList();
+        private InvalidationList invalidationList = new InvalidationList(Invalidation.All);
 
         private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
 

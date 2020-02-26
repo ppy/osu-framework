@@ -13,6 +13,15 @@ namespace osu.Framework.Graphics
         private Invalidation parentInvalidation;
         private Invalidation childInvalidation;
 
+        public InvalidationList(Invalidation initialState)
+        {
+            this = default;
+
+            invalidate(ref selfInvalidation, initialState);
+            invalidate(ref parentInvalidation, initialState);
+            invalidate(ref childInvalidation, initialState);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Invalidate(InvalidationSource source, Invalidation invalidation)
         {
