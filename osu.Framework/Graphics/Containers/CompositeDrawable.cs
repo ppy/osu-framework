@@ -950,6 +950,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool anyInvalidated = base.OnInvalidate(invalidation, source);
 
+            // Child invalidations should not propagate to other children.
             if (source == InvalidationSource.Child)
                 return anyInvalidated;
 
@@ -964,8 +965,7 @@ namespace osu.Framework.Graphics.Containers
                 // Other geometry things like rotation, shearing, etc don't affect child properties.
                 childInvalidation &= ~Invalidation.MiscGeometry;
 
-                // Relative positioning can however affect child geometry
-                // ReSharper disable once PossibleNullReferenceException
+                // Relative positioning can however affect child geometry.
                 if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
                     childInvalidation |= Invalidation.MiscGeometry;
 

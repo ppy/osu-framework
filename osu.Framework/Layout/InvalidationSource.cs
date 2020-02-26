@@ -6,6 +6,9 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.Layout
 {
+    /// <summary>
+    /// Indicates the source of an invalidation of a <see cref="Drawable"/>.
+    /// </summary>
     [Flags]
     public enum InvalidationSource
     {

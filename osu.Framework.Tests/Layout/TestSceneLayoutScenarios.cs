@@ -82,6 +82,9 @@ namespace osu.Framework.Tests.Layout
             });
         }
 
+        /// <summary>
+        /// Tests that an auto-size properly captures a child's presence change.
+        /// </summary>
         [Test]
         public void TestAddHiddenChildAndFadeIn()
         {
