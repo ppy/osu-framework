@@ -1700,6 +1700,9 @@ namespace osu.Framework.Graphics
         /// <param name="member">The layout member to add.</param>
         protected void AddLayout(LayoutMember member)
         {
+            if (LoadState > LoadState.NotLoaded)
+                throw new InvalidOperationException($"{nameof(LayoutMember)}s cannot be added after {nameof(Drawable)}s have started loading. Consider adding in the constructor.");
+
             layoutMembers.Add(member);
             member.Parent = this;
         }
