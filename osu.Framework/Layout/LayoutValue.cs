@@ -15,7 +15,7 @@ namespace osu.Framework.Layout
         /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutValue"/> is invalidated.</param>
         /// <param name="invalidationSource">The source of the invalidation.</param>
         public LayoutValue(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
-            : base(invalidationType, invalidationCondition)
+            : base(invalidationType, invalidationCondition, invalidationSource)
         {
         }
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Layout
         /// <param name="invalidationCondition">Any extra conditions that must be satisfied before this <see cref="LayoutValue{T}"/> is invalidated.</param>
         /// <param name="invalidationSource">The source of the invalidation.</param>
         public LayoutValue(Invalidation invalidationType, InvalidationConditionDelegate invalidationCondition = null, InvalidationSource invalidationSource = InvalidationSource.Default)
-            : base(invalidationType, invalidationCondition)
+            : base(invalidationType, invalidationCondition, invalidationSource)
         {
         }
 
