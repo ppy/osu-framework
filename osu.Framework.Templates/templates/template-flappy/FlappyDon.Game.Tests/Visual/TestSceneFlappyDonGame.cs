@@ -9,13 +9,17 @@ using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Tests.Visual
 {
+    /// <summary>
+    /// A test scene wrapping the entire game,
+    /// including audio.
+    /// </summary>
     public class TestSceneFlappyDonGame : TestScene
     {
-        private FlappyDonGameBase game;
+        private FlappyDonGame game;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
-            typeof(FlappyDonGameBase),
+            typeof(FlappyDonGame),
         };
 
         [BackgroundDependencyLoader]
@@ -23,7 +27,6 @@ namespace FlappyDon.Game.Tests.Visual
         {
             game = new FlappyDonGame();
             game.SetHost(host);
-
             Add(game);
         }
     }
