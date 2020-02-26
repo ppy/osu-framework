@@ -269,7 +269,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Vector2 lastScreenSpaceSize;
 
-        // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
+        // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo
         private readonly LayoutValue screenSpaceSizeBacking = new LayoutValue(Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
