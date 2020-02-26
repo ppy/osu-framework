@@ -930,11 +930,12 @@ namespace osu.Framework.Graphics.Containers
 
         #region Invalidation
 
-        internal Invalidation ChildInvalidationState;
-
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
             bool anyInvalidated = base.OnInvalidate(invalidation, source);
+
+            if (source == InvalidationSource.Child)
+                return anyInvalidated;
 
             for (int i = 0; i < internalChildren.Count; ++i)
             {
