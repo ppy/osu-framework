@@ -45,7 +45,8 @@ namespace osu.Framework.Graphics.Sprites
             current.BindValueChanged(text => Text = text.NewValue);
 
             AddLayout(charactersCache);
-            AddLayout(screenSpaceCharactersCache);
+            AddLayout(parentScreenSpaceCache);
+            AddLayout(localScreenSpaceCache);
             AddLayout(shadowOffsetCache);
         }
 
@@ -414,7 +415,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence);
+        private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence, InvalidationSource.Parent);
         private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
@@ -474,7 +475,9 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly LayoutValue screenSpaceCharactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo | Invalidation.MiscGeometry);
+        private readonly LayoutValue parentScreenSpaceCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo, InvalidationSource.Parent);
+        private readonly LayoutValue localScreenSpaceCache = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
+
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -491,7 +494,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private void computeScreenSpaceCharacters()
         {
-            if (screenSpaceCharactersCache.IsValid)
+            if (!parentScreenSpaceCache.IsValid)
+            {
+                localScreenSpaceCache.Invalidate();
+                parentScreenSpaceCache.Validate();
+            }
+
+            if (localScreenSpaceCache.IsValid)
                 return;
 
             screenSpaceCharactersBacking.Clear();
@@ -508,10 +517,10 @@ namespace osu.Framework.Graphics.Sprites
                 });
             }
 
-            screenSpaceCharactersCache.Validate();
+            localScreenSpaceCache.Validate();
         }
 
-        private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo);
+        private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo, InvalidationSource.Parent);
 
         private Vector2 premultipliedShadowOffset =>
             shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
@@ -524,7 +533,8 @@ namespace osu.Framework.Graphics.Sprites
         {
             if (layout)
                 charactersCache.Invalidate();
-            screenSpaceCharactersCache.Invalidate();
+            parentScreenSpaceCache.Invalidate();
+            localScreenSpaceCache.Invalidate();
 
             Invalidate(Invalidation.DrawNode);
         }
