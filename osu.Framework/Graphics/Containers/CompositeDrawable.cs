@@ -835,11 +835,21 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildrenLife();
 
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
+            if (TypePerformanceMonitor.Active)
             {
-                Drawable c = aliveInternalChildren[i];
-                Debug.Assert(c.LoadState >= LoadState.Ready);
-                c.UpdateSubTree();
+                for (int i = 0; i < aliveInternalChildren.Count; ++i)
+                {
+                    Drawable c = aliveInternalChildren[i];
+
+                    TypePerformanceMonitor.BeginCollecting(c);
+                    updateChild(c);
+                    TypePerformanceMonitor.EndCollecting(c);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < aliveInternalChildren.Count; ++i)
+                    updateChild(aliveInternalChildren[i]);
             }
 
             if (schedulerAfterChildren.IsValueCreated)
@@ -853,6 +863,12 @@ namespace osu.Framework.Graphics.Containers
             updateChildrenSizeDependencies();
             UpdateAfterAutoSize();
             return true;
+        }
+
+        private void updateChild(Drawable c)
+        {
+            Debug.Assert(c.LoadState >= LoadState.Ready);
+            c.UpdateSubTree();
         }
 
         /// <summary>
