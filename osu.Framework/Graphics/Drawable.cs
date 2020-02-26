@@ -1691,7 +1691,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The flags which this <see cref="Drawable"/> has been invalidated with, grouped by <see cref="InvalidationSource"/>.
         /// </summary>
-        private readonly Invalidation[] invalidationState = new Invalidation[3]; // There are only 3 possible flags (0, 1, 2).
+        private InvalidationList invalidationList = new InvalidationList();
 
         private readonly List<LayoutMember> layoutMembers = new List<LayoutMember>();
 
@@ -1714,20 +1714,7 @@ namespace osu.Framework.Graphics
         /// <param name="validationType">The <see cref="Invalidation"/> flags to validate with.</param>
         internal void ValidateSuperTree(Invalidation validationType)
         {
-            bool anyValidated = false;
-
-            for (int i = 0; i < invalidationState.Length; i++)
-            {
-                ref Invalidation currentState = ref invalidationState[i];
-
-                if ((currentState & validationType) == 0)
-                    continue;
-
-                currentState &= ~validationType;
-                anyValidated = true;
-            }
-
-            if (anyValidated)
+            if (invalidationList.Validate(validationType))
                 Parent?.ValidateSuperTree(validationType);
         }
 
@@ -1759,16 +1746,15 @@ namespace osu.Framework.Graphics
             if (invalidation == Invalidation.None)
                 return false;
 
-            ref Invalidation currentState = ref invalidationState[(int)source];
-
-            // Prevent duplicate invalidations.
-            if ((currentState & invalidation) == invalidation)
-                return false;
-
-            // If the invalidation originated locally, propagate to the immediate parent. This only happens once.
-            // Todo: Is it a big cost to allow this to propagate all the way?
+            // If the invalidation originated locally, propagate to the immediate parent.
+            // Note: This is done _before_ invalidation is blocked below, since the parent always needs to be aware of changes even if the Drawable's invalidation state hasn't changed.
+            // This is for only propagating once, otherwise it would propagate all the way to the root Drawable.
             if (source == InvalidationSource.Self)
                 Parent?.Invalidate(invalidation, InvalidationSource.Child);
+
+            // Perform the invalidation.
+            if (!invalidationList.Invalidate(source, invalidation))
+                return false;
 
             // A DrawNode invalidation always invalidates.
             bool anyInvalidated = (invalidation & Invalidation.DrawNode) > 0;
@@ -1796,10 +1782,6 @@ namespace osu.Framework.Graphics
                 InvalidationID = invalidation_counter.Increment();
 
             Invalidated?.Invoke(this);
-
-            // Update the current state, removing invalidation flags that should never affect drawable states and are only used as special markers (these will always propagate).
-            invalidation &= ~(Invalidation.DrawNode | Invalidation.Parent);
-            currentState |= invalidation;
 
             return anyInvalidated;
         }
