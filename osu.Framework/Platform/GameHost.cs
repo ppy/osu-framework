@@ -143,7 +143,7 @@ namespace osu.Framework.Platform
             threads.Add(thread);
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
+            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -718,7 +718,8 @@ namespace osu.Framework.Platform
         private Bindable<string> ignoredInputHandlers;
 
         private Bindable<double> cursorSensitivity;
-        private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
+
+        public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
         private Bindable<WindowMode> windowMode;
 
@@ -824,11 +825,11 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            DebugConfig.BindWith(DebugSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(logging =>
+            PerformanceLogging.BindValueChanged(logging =>
             {
                 threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
+                TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
