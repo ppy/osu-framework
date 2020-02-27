@@ -27,6 +27,8 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
                 Child = parent = new GridContainer
                 {
                     AutoSizeAxes = Axes.Both,
+                    RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                    ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     Content = new[]
                     {
                         new Drawable[]
@@ -60,6 +62,8 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
                 Child = parent = new GridContainer
                 {
                     AutoSizeAxes = Axes.Both,
+                    RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                    ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     Content = new[]
                     {
                         new Drawable[]
@@ -89,6 +93,8 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
                 Child = parent = new GridContainer
                 {
                     AutoSizeAxes = Axes.Both,
+                    RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
+                    ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     Content = new[]
                     {
                         new Drawable[]

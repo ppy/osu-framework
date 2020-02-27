@@ -663,9 +663,6 @@ namespace osu.Framework.Graphics.Containers
 
             FrameStatistics.Add(StatisticsCounterType.CCL, internalChildren.Count);
 
-            if (anyAliveChanged)
-                childrenSizeDependencies.Invalidate();
-
             return anyAliveChanged;
         }
 
@@ -750,9 +747,9 @@ namespace osu.Framework.Graphics.Containers
             aliveInternalChildren.Add(child);
             child.IsAlive = true;
 
-            Invalidate(Invalidation.Presence, InvalidationSource.Child);
-
             ChildBecameAlive?.Invoke(child);
+
+            Invalidate(Invalidation.Presence, InvalidationSource.Child);
         }
 
         /// <summary>
@@ -772,6 +769,8 @@ namespace osu.Framework.Graphics.Containers
 
             ChildDied?.Invoke(child);
 
+            bool removed = false;
+
             if (child.RemoveWhenNotAlive)
             {
                 RemoveInternal(child);
@@ -779,10 +778,12 @@ namespace osu.Framework.Graphics.Containers
                 if (child.DisposeOnDeathRemoval)
                     DisposeChildAsync(child);
 
-                return true;
+                removed = true;
             }
 
-            return false;
+            Invalidate(Invalidation.Presence, InvalidationSource.Child);
+
+            return removed;
         }
 
         internal override void UnbindAllBindablesSubTree()
