@@ -36,8 +36,7 @@ namespace osu.Framework.iOS
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
 
-            IsIdleTimerEnabled.ValueChanged +=
-                val => handleIdleTimerEnabledChange(val.NewValue);
+            IsIdleTimerEnabled.ValueChanged += val => handleIdleTimerEnabledChange(val.NewValue);
         }
 
         /// <summary>
