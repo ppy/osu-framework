@@ -260,7 +260,7 @@ namespace osu.Framework.Platform
             //wait for a potentially blocking response
             while (!response.HasValue)
             {
-                if (threadRunner.SingleThreaded)
+                if (threadRunner.ExecutionMode == ExecutionMode.SingleThreaded)
                     threadRunner.RunMainLoop();
                 else
                     Thread.Sleep(1);
@@ -711,7 +711,10 @@ namespace osu.Framework.Platform
             }, true);
 
             singleThreaded = Config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
-            singleThreaded.BindValueChanged(e => threadRunner.SingleThreaded = e.NewValue, true);
+            singleThreaded.BindValueChanged(e =>
+            {
+                threadRunner.ExecutionMode = e.NewValue ? ExecutionMode.SingleThreaded : ExecutionMode.MultiThreaded;
+            }, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>

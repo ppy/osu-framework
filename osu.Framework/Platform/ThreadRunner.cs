@@ -88,27 +88,34 @@ namespace osu.Framework.Platform
                 threads.Remove(thread);
         }
 
-        private bool? singleThreaded;
+        private ExecutionMode? activeExecutionMode;
 
-        public bool SingleThreaded;
+        public ExecutionMode ExecutionMode = ExecutionMode.MultiThreaded;
 
         public void RunMainLoop()
         {
+            // propagate any requested change in execution mode at a safe point in frame execution
             ensureCorrectExecutionMode();
 
-            Debug.Assert(singleThreaded != null);
+            Debug.Assert(activeExecutionMode != null);
 
-            if (singleThreaded.Value)
+            switch (activeExecutionMode.Value)
             {
-                lock (threads)
+                case ExecutionMode.SingleThreaded:
                 {
-                    foreach (var t in threads)
-                        t.ProcessFrame();
+                    lock (threads)
+                    {
+                        foreach (var t in threads)
+                            t.ProcessFrame();
+                    }
+
+                    break;
                 }
-            }
-            else
-            {
-                mainThread.ProcessFrame();
+
+                case ExecutionMode.MultiThreaded:
+                    // still need to run the main/input thread on the window loop
+                    mainThread.ProcessFrame();
+                    break;
             }
         }
 
@@ -132,40 +139,50 @@ namespace osu.Framework.Platform
 
         private void ensureCorrectExecutionMode()
         {
-            if (SingleThreaded == singleThreaded)
+            if (ExecutionMode == activeExecutionMode)
                 return;
 
-            if (!SingleThreaded)
+            switch (ExecutionMode)
             {
-                // switch to multi-threaded
-                foreach (var t in Threads)
+                case ExecutionMode.MultiThreaded:
                 {
-                    t.Start();
-                    t.Clock.Throttling = true;
+                    ThreadSafety.SingleThreadThread = null;
+
+                    // switch to multi-threaded
+                    foreach (var t in Threads)
+                    {
+                        t.Start();
+                        t.Clock.Throttling = true;
+                    }
+
+                    break;
+                }
+
+                case ExecutionMode.SingleThreaded:
+                {
+                    ThreadSafety.SingleThreadThread = Thread.CurrentThread;
+
+                    // switch to single-threaded.
+                    foreach (var t in Threads)
+                        t.Pause();
+
+                    foreach (var t in Threads)
+                    {
+                        // only throttle for the main thread
+                        t.Initialize(withThrottling: t == mainThread);
+                    }
+
+                    break;
                 }
             }
-            else
-            {
-                // switch to single-threaded.
-                foreach (var t in Threads)
-                    t.Pause();
 
-                foreach (var t in Threads)
-                {
-                    // only throttle for the main thread
-                    t.Initialize(withThrottling: t == mainThread);
-                }
-            }
-
-            singleThreaded = SingleThreaded;
-
-            ThreadSafety.SingleThreadThread = singleThreaded.Value ? Thread.CurrentThread : null;
+            activeExecutionMode = ExecutionMode;
             updateMainThreadRates();
         }
 
         private void updateMainThreadRates()
         {
-            if (singleThreaded ?? false)
+            if (activeExecutionMode == ExecutionMode.SingleThreaded)
             {
                 mainThread.ActiveHz = maximumUpdateHz;
                 mainThread.InactiveHz = maximumInactiveHz;
@@ -176,5 +193,11 @@ namespace osu.Framework.Platform
                 mainThread.InactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
             }
         }
+    }
+
+    public enum ExecutionMode
+    {
+        SingleThreaded,
+        MultiThreaded
     }
 }
