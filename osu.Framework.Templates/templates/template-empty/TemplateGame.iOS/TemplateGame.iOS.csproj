@@ -18,6 +18,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TemplateGame.iOS</RootNamespace>
     <AssemblyName>TemplateGame</AssemblyName>
+    <MtouchUseLlvm>false<MtouchUseLlvm> <!-- This currently causes random lockups during gameplay. https://github.com/mono/mono/issues/18973 -->
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -117,7 +118,6 @@
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
     <BuildIpa>True</BuildIpa>
     <MtouchLink>Full</MtouchLink>
     <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
@@ -134,7 +134,6 @@
     <MtouchUseArmv7>false</MtouchUseArmv7>
     <additionalargs>/unsafe</additionalargs>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <MtouchUseLlvm>True</MtouchUseLlvm>
     <ConsolePause>False</ConsolePause>
     <BuildIpa>True</BuildIpa>
     <MtouchLink>Full</MtouchLink>
