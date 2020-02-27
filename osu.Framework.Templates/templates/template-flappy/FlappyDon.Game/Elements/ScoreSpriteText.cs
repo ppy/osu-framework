@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Text;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// Draws the current score on screen.

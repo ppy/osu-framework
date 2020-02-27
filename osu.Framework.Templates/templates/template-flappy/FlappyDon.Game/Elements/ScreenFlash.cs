@@ -2,7 +2,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// A full-screen white flash used

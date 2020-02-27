@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// Manages the buildings and sky texture in the far background of the game scene.
@@ -21,6 +21,7 @@ namespace FlappyDon.Game
             get
             {
                 if (Texture == null) return 1.0f;
+
                 var size = Texture.Size;
                 return size.X / size.Y;
             }

@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osuTK;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// A single obstacle for the player to overcome,
@@ -32,18 +32,25 @@ namespace FlappyDon.Game
 
             // Rotate the top pipe 180 degrees, and flip
             // it horizontally so the shading matches the bottom pipe
-            topPipe = new Pipe();
-            topPipe.Rotation = 180.0f;
+            topPipe = new Pipe
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.TopCentre,
+                Rotation = 180.0f,
+                Position = new Vector2(0.0f, -110 + Offset),
+            };
+
             topPipe.Scale = new Vector2(-topPipe.Scale.X, topPipe.Scale.Y);
-            topPipe.Anchor = Anchor.Centre;
-            topPipe.Origin = Anchor.TopCentre;
-            topPipe.Position = new Vector2(0.0f, -110 + Offset);
+
             AddInternal(topPipe);
 
-            bottomPipe = new Pipe();
-            bottomPipe.Anchor = Anchor.Centre;
-            bottomPipe.Origin = Anchor.TopCentre;
-            bottomPipe.Position = new Vector2(0.0f, 110 + Offset);
+            bottomPipe = new Pipe
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.TopCentre,
+                Position = new Vector2(0.0f, 110 + Offset)
+            };
+
             AddInternal(bottomPipe);
         }
 

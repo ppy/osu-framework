@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// The Sprite element controlled by the player.

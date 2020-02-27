@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
 using osuTK;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// A full-screen container used to manage
@@ -45,7 +45,7 @@ namespace FlappyDon.Game
             }
         }
 
-        private const float pipeDistance = 350.0f;
+        private const float pipe_distance = 350.0f;
 
         public Obstacles()
         {
@@ -140,7 +140,7 @@ namespace FlappyDon.Game
             if (InternalChildren.Count > 0)
             {
                 var lastObstacle = (PipeObstacle)InternalChildren.Last();
-                if (lastObstacle.Position.X + lastObstacle.DrawWidth < DrawWidth - pipeDistance)
+                if (lastObstacle.Position.X + lastObstacle.DrawWidth < DrawWidth - pipe_distance)
                     spawnNewObstacle();
             }
             else
@@ -149,9 +149,12 @@ namespace FlappyDon.Game
 
         private void spawnNewObstacle()
         {
-            var obstacle = new PipeObstacle();
-            obstacle.Position = new Vector2(DrawWidth, 0.0f);
-            obstacle.Offset = RNG.NextSingle(-140.0f, 60.0f);
+            var obstacle = new PipeObstacle
+            {
+                Position = new Vector2(DrawWidth, 0.0f),
+                Offset = RNG.NextSingle(-140.0f, 60.0f)
+            };
+
             AddInternal(obstacle);
         }
     }

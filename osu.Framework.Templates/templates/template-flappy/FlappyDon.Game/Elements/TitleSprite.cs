@@ -4,7 +4,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
-namespace FlappyDon.Game
+namespace FlappyDon.Game.Elements
 {
     /// <summary>
     /// A centered sprite used to display
@@ -12,7 +12,7 @@ namespace FlappyDon.Game
     /// </summary>
     public class TitleSprite : Sprite
     {
-        private string textureName;
+        private readonly string textureName;
 
         [Resolved]
         private TextureStore textures { get; set; }
