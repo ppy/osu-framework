@@ -30,6 +30,5 @@ namespace osu.Framework.Input
         ToggleLogOverlay,
         ToggleFullscreen,
         CycleFrameSync,
-        ToggleSingleThreaded
     }
 }
