@@ -530,7 +530,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                SetupConfig(game.GetFrameworkConfigDefaults());
+                SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 if (Window != null)
                 {
@@ -601,12 +601,6 @@ namespace osu.Framework.Platform
         }
 
         private ThreadRunner threadRunner;
-
-        public bool SingleThreaded
-        {
-            get => threadRunner.SingleThreaded;
-            set => threadRunner.SingleThreaded = value;
-        }
 
         private void windowUpdate()
         {
@@ -692,7 +686,7 @@ namespace osu.Framework.Platform
                 cycleFrameSync();
 
             if (e.Control && e.Key == Key.F6)
-                SingleThreaded = !SingleThreaded;
+                SingleThreaded.Value = !SingleThreaded.Value;
         }
 
         private void keyDown(KeyboardKeyInput e)
@@ -728,22 +722,13 @@ namespace osu.Framework.Platform
 
         private Bindable<string> threadLocale;
 
-        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            var hostDefaults = new Dictionary<FrameworkSetting, object>
-            {
-                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
-            };
-
-            // merge defaults provided by game into host defaults.
-            if (gameDefaults != null)
-            {
-                foreach (var d in gameDefaults)
-                    hostDefaults[d.Key] = d.Value;
-            }
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.WindowMode))
+                defaultOverrides.Add(FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed);
 
             Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
+            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, defaultOverrides));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
             windowMode.BindValueChanged(mode =>
@@ -754,6 +739,9 @@ namespace osu.Framework.Platform
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
+
+            SingleThreaded = Config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
+            SingleThreaded.BindValueChanged(e => threadRunner.SingleThreaded = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
@@ -870,6 +858,8 @@ namespace osu.Framework.Platform
         private bool isDisposed;
 
         private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
+
+        private Bindable<bool> SingleThreaded;
 
         protected virtual void Dispose(bool disposing)
         {

@@ -34,10 +34,11 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
-        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            base.SetupConfig(gameDefaults);
-            Config.Set(FrameworkSetting.AudioDevice, "No sound");
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
         }
 
         protected override void SetupForRun()

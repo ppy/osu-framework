@@ -67,9 +67,12 @@ namespace osu.Framework.iOS
 
         protected override IWindow CreateWindow() => new IOSGameWindow();
 
-        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            base.SetupConfig(gameDefaults);
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.SingleThreaded))
+                defaultOverrides.Add(FrameworkSetting.SingleThreaded, true);
+
+            base.SetupConfig(defaultOverrides);
 
             DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
         }
