@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Development;
@@ -92,119 +93,85 @@ namespace osu.Framework.Platform
         public bool SingleThreaded
         {
             get => singleThreaded;
-            set
-            {
-                if (value == singleThreaded) return;
-
-                lock (runStateLock)
-                {
-                    if (isRunning)
-                    {
-                        mainThread.Scheduler.Add(() => setRunMode(value));
-                    }
-                    else
-                    {
-                        setRunMode(value);
-                    }
-                }
-            }
+            set => pendingThreadMode = value;
         }
 
-        private void setRunMode(bool value)
-        {
-            lock (runStateLock)
-            {
-                if (!value)
-                {
-                    foreach (var t in Threads)
-                    {
-                        if (isRunning) t.Start();
-                        t.Clock.Throttling = true;
-                    }
-                }
-                else
-                {
-                    foreach (var t in Threads)
-                    {
-                        if (isRunning) t.Pause();
-                        t.Clock.Throttling = t == mainThread;
-                    }
-
-                    if (isRunning)
-                        while (Threads.Any(t => t.Running))
-                            Thread.Sleep(1);
-                }
-
-                singleThreaded = value;
-                ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
-                updateMainThreadRates();
-            }
-        }
+        private bool? pendingThreadMode;
 
         public void RunMainLoop()
         {
-            mainThread.ProcessFrame();
+            if (pendingThreadMode != null)
+                prepareExecutionMode();
 
             if (singleThreaded)
             {
                 lock (threads)
                 {
                     foreach (var t in threads)
-                    {
-                        if (t == mainThread)
-                            continue;
-
                         t.ProcessFrame();
-                    }
                 }
             }
-        }
-
-        private readonly object runStateLock = new object();
-
-        private bool isRunning;
-
-        public void Start()
-        {
-            lock (runStateLock)
+            else
             {
-                isRunning = true;
-
-                if (singleThreaded)
-                {
-                    foreach (var t in Threads)
-                    {
-                        t.OnThreadStart?.Invoke();
-                        t.OnThreadStart = null;
-                    }
-                }
-                else
-                {
-                    foreach (var t in Threads)
-                        t.Start();
-                }
+                mainThread.ProcessFrame();
             }
         }
 
-        private const int thread_join_timeout = 30000;
+        public void Start() => prepareExecutionMode();
 
         public void Stop()
         {
-            lock (runStateLock)
+            const int thread_join_timeout = 30000;
+
+            Threads.ForEach(t => t.Exit());
+            Threads.Where(t => t.Running).ForEach(t =>
             {
-                Threads.ForEach(t => t.Exit());
-                Threads.Where(t => t.Running).ForEach(t =>
+                if (!t.Thread.Join(thread_join_timeout))
+                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+            });
+
+            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
+            while (!mainThread.Exited)
+                mainThread.ProcessFrame();
+        }
+
+        private void prepareExecutionMode()
+        {
+            Debug.Assert(pendingThreadMode != null, nameof(pendingThreadMode) + " != null");
+
+            if (!pendingThreadMode.Value)
+            {
+                // switch to multi-threaded
+                foreach (var t in Threads)
                 {
-                    if (!t.Thread.Join(thread_join_timeout))
-                        Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
-                });
-
-                // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-                while (!mainThread.Exited)
-                    mainThread.ProcessFrame();
-
-                isRunning = false;
+                    t.Start();
+                    t.Clock.Throttling = true;
+                }
             }
+            else
+            {
+                // switch to single-threaded.
+                foreach (var t in Threads)
+                {
+                    t.Pause();
+                    t.Clock.Throttling = t == mainThread;
+                }
+
+                while (Threads.Any(t => t.Running))
+                    Thread.Sleep(1);
+
+                foreach (var t in Threads)
+                {
+                    t.Scheduler.SetCurrentThread();
+                    t.Initialize();
+                }
+            }
+
+            singleThreaded = pendingThreadMode.Value;
+            pendingThreadMode = null;
+
+            ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
+            updateMainThreadRates();
         }
 
         private void updateMainThreadRates()

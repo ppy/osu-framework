@@ -67,6 +67,15 @@ namespace osu.Framework.Threading
 
         public Action OnThreadStart;
 
+        internal void Initialize()
+        {
+            OnThreadStart?.Invoke();
+
+            Scheduler.SetCurrentThread();
+
+            initializedEvent.Set();
+        }
+
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
         public readonly string Name;
@@ -106,28 +115,29 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
-
-            OnThreadStart?.Invoke();
-
-            initializedEvent.Set();
-
-            while (!exitCompleted && !paused)
+            try
             {
-                try
+                Initialize();
+
+                while (!exitCompleted && !paused)
                 {
-                    ProcessFrame();
-                }
-                catch (Exception e)
-                {
-                    if (UnhandledException != null)
-                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                    else
-                        throw;
+                    try
+                    {
+                        ProcessFrame();
+                    }
+                    catch (Exception e)
+                    {
+                        if (UnhandledException != null)
+                            UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                        else
+                            throw;
+                    }
                 }
             }
-
-            Thread = null;
+            finally
+            {
+                Thread = null;
+            }
         }
 
         public void ProcessFrame()

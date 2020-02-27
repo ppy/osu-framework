@@ -282,8 +282,11 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateInitialize()
         {
-            //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            DrawThread.WaitUntilInitialized();
+            if (!singleThreaded.Value)
+            {
+                //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
+                DrawThread.WaitUntilInitialized();
+            }
         }
 
         protected Container Root;
