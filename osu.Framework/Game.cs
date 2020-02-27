@@ -165,6 +165,8 @@ namespace osu.Framework
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
+            singleThreaded = config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
+
             logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
             logOverlayVisibility.BindValueChanged(visibility =>
             {
@@ -226,6 +228,8 @@ namespace osu.Framework
         private Bindable<bool> logOverlayVisibility;
 
         private Bindable<FrameSync> frameSyncMode;
+
+        private Bindable<bool> singleThreaded;
 
         public bool OnPressed(FrameworkAction action)
         {
@@ -292,6 +296,10 @@ namespace osu.Framework
                         nextMode = FrameSync.VSync;
 
                     frameSyncMode.Value = nextMode;
+                    break;
+
+                case FrameworkAction.ToggleSingleThreaded:
+                    singleThreaded.Value = !singleThreaded.Value;
                     break;
             }
 
