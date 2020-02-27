@@ -399,6 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
                     monitor.FramesPool.Return(frame);
                 }
             }
