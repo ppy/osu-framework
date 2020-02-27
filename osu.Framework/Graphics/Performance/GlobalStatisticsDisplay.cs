@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
@@ -50,6 +51,13 @@ namespace osu.Framework.Graphics.Performance
 
             // ToArray is to guard against collection modification in underlying bindable.
             add(GlobalStatistics.Statistics.ToArray());
+
+            State.BindValueChanged(visibilityChanged, true);
+        }
+
+        private void visibilityChanged(ValueChangedEvent<Visibility> state)
+        {
+            TypePerformanceMonitor.Active = state.NewValue == Visibility.Visible;
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
