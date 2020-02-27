@@ -4,6 +4,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
+using osuTK;
 using osuTK.Input;
 
 namespace FlappyDon.Game
@@ -64,10 +65,11 @@ namespace FlappyDon.Game
                 screenFlash
             };
 
-            // Configure the sizing strategy to maximum as this
-            // will preserve element sizing between tall portrait
-            // style screens (eg smartphones) and 4:3 screens (tablets)
-            gameScreen.Strategy = DrawSizePreservationStrategy.Maximum;
+            // Configure the sizing strategy in such a way that all elements
+            // are relatively scaled in contrast to the Y-axis (ie height of the window),
+            // but changing the X-axis (ie window width) has no effect on scaling.
+            gameScreen.Strategy = DrawSizePreservationStrategy.Minimum;
+            gameScreen.TargetDrawSize = new Vector2(0, 768);
             AddInternal(gameScreen);
         }
 
