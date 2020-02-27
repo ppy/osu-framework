@@ -98,27 +98,24 @@ namespace osu.Framework.Platform
 
                 mainThread.Scheduler.Add(() =>
                 {
-                    lock (threads)
+                    if (!value)
                     {
-                        if (!value)
+                        foreach (var t in Threads)
                         {
-                            foreach (var t in threads)
-                            {
-                                t.Start();
-                                t.Clock.Throttling = true;
-                            }
+                            t.Start();
+                            t.Clock.Throttling = true;
                         }
-                        else
+                    }
+                    else
+                    {
+                        foreach (var t in Threads)
                         {
-                            foreach (var t in threads)
-                            {
-                                t.Pause();
-                                t.Clock.Throttling = t == mainThread;
-                            }
+                            t.Pause();
+                            t.Clock.Throttling = t == mainThread;
+                        }
 
-                            while (threads.Any(t => t.Running))
-                                Thread.Sleep(1);
-                        }
+                        while (Threads.Any(t => t.Running))
+                            Thread.Sleep(1);
                     }
 
                     singleThreaded = value;
@@ -149,21 +146,18 @@ namespace osu.Framework.Platform
 
         public void Start()
         {
-            lock (threads)
+            if (singleThreaded)
             {
-                if (singleThreaded)
+                foreach (var t in Threads)
                 {
-                    foreach (var t in threads)
-                    {
-                        t.OnThreadStart?.Invoke();
-                        t.OnThreadStart = null;
-                    }
+                    t.OnThreadStart?.Invoke();
+                    t.OnThreadStart = null;
                 }
-                else
-                {
-                    foreach (var t in threads)
-                        t.Start();
-                }
+            }
+            else
+            {
+                foreach (var t in Threads)
+                    t.Start();
             }
         }
 
@@ -171,15 +165,12 @@ namespace osu.Framework.Platform
 
         public void Stop()
         {
-            lock (threads)
+            Threads.ForEach(t => t.Exit());
+            Threads.Where(t => t.Running).ForEach(t =>
             {
-                threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Running).ForEach(t =>
-                {
-                    if (!t.Thread.Join(thread_join_timeout))
-                        Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
-                });
-            }
+                if (!t.Thread.Join(thread_join_timeout))
+                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+            });
 
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
             while (!mainThread.Exited)
