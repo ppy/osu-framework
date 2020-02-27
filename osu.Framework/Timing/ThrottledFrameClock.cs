@@ -22,6 +22,11 @@ namespace osu.Framework.Timing
         /// </summary>
         public double TimeSlept { get; private set; }
 
+        public void ProcessFrameWithoutThrottling()
+        {
+            base.ProcessFrame();
+        }
+
         public override void ProcessFrame()
         {
             Debug.Assert(MaximumUpdateHz >= 0);

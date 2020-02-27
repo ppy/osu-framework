@@ -116,7 +116,7 @@ namespace osu.Framework.Threading
             {
                 try
                 {
-                    ProcessFrame();
+                    ProcessFrame(true);
                 }
                 catch (Exception e)
                 {
@@ -130,7 +130,7 @@ namespace osu.Framework.Threading
             Thread = null;
         }
 
-        public void ProcessFrame()
+        public void ProcessFrame(bool throttle = true)
         {
             if (exitCompleted)
                 return;
@@ -150,8 +150,15 @@ namespace osu.Framework.Threading
             using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
                 OnNewFrame?.Invoke();
 
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
-                Clock.ProcessFrame();
+            if (throttle)
+            {
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
+                {
+                    Clock.ProcessFrame();
+                }
+            }
+            else
+                Clock.ProcessFrameWithoutThrottling();
         }
 
         private volatile bool exitRequested;
