@@ -163,6 +163,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 var exception = t.Exception?.AsSingular();
 
+                if (!components.Any())
+                    return;
+
                 if (linkedSource.Token.IsCancellationRequested)
                 {
                     linkedSource.Dispose();
