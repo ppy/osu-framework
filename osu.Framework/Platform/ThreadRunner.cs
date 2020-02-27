@@ -56,8 +56,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool singleThreaded;
-
         /// <summary>
         /// Construct a new ThreadRunner instance.
         /// </summary>
@@ -90,20 +88,17 @@ namespace osu.Framework.Platform
                 threads.Remove(thread);
         }
 
-        public bool SingleThreaded
-        {
-            get => singleThreaded;
-            set => pendingThreadMode = value;
-        }
+        private bool? singleThreaded;
 
-        private bool? pendingThreadMode;
+        public bool SingleThreaded;
 
         public void RunMainLoop()
         {
-            if (pendingThreadMode != null)
-                prepareExecutionMode();
+            ensureCorrectExecutionMode();
 
-            if (singleThreaded)
+            Debug.Assert(singleThreaded != null);
+
+            if (singleThreaded.Value)
             {
                 lock (threads)
                 {
@@ -117,7 +112,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public void Start() => prepareExecutionMode();
+        public void Start() => ensureCorrectExecutionMode();
 
         public void Stop()
         {
@@ -135,11 +130,12 @@ namespace osu.Framework.Platform
                 mainThread.ProcessFrame();
         }
 
-        private void prepareExecutionMode()
+        private void ensureCorrectExecutionMode()
         {
-            Debug.Assert(pendingThreadMode != null, nameof(pendingThreadMode) + " != null");
+            if (SingleThreaded == singleThreaded)
+                return;
 
-            if (!pendingThreadMode.Value)
+            if (!SingleThreaded)
             {
                 // switch to multi-threaded
                 foreach (var t in Threads)
@@ -152,31 +148,24 @@ namespace osu.Framework.Platform
             {
                 // switch to single-threaded.
                 foreach (var t in Threads)
-                {
                     t.Pause();
-                    t.Clock.Throttling = t == mainThread;
-                }
-
-                while (Threads.Any(t => t.Running))
-                    Thread.Sleep(1);
 
                 foreach (var t in Threads)
                 {
-                    t.Scheduler.SetCurrentThread();
-                    t.Initialize();
+                    // only throttle for the main thread
+                    t.Initialize(withThrottling: t == mainThread);
                 }
             }
 
-            singleThreaded = pendingThreadMode.Value;
-            pendingThreadMode = null;
+            singleThreaded = SingleThreaded;
 
-            ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
+            ThreadSafety.SingleThreadThread = singleThreaded.Value ? Thread.CurrentThread : null;
             updateMainThreadRates();
         }
 
         private void updateMainThreadRates()
         {
-            if (singleThreaded)
+            if (singleThreaded ?? false)
             {
                 mainThread.ActiveHz = maximumUpdateHz;
                 mainThread.InactiveHz = maximumInactiveHz;

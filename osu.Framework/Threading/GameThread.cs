@@ -67,8 +67,10 @@ namespace osu.Framework.Threading
 
         public Action OnThreadStart;
 
-        internal void Initialize()
+        internal void Initialize(bool withThrottling)
         {
+            Clock.Throttling = withThrottling;
+
             OnThreadStart?.Invoke();
 
             Scheduler.SetCurrentThread();
@@ -117,7 +119,7 @@ namespace osu.Framework.Threading
         {
             try
             {
-                Initialize();
+                Initialize(true);
 
                 while (!exitCompleted && !paused)
                 {
@@ -195,6 +197,8 @@ namespace osu.Framework.Threading
         public void Pause()
         {
             paused = true;
+            while (Running)
+                Thread.Sleep(1);
         }
 
         public void Exit() => exitRequested = true;
