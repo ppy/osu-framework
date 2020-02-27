@@ -15,7 +15,7 @@ namespace osu.Framework.Development
         internal static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
 
         [Conditional("DEBUG")]
-        internal static void EnsureNotUpdateThread() => Debug.Assert(SingleThreadThread != null && is_main_thread.Value || !IsUpdateThread);
+        internal static void EnsureNotUpdateThread() => Debug.Assert((SingleThreadThread != null && is_main_thread.Value) || !IsUpdateThread);
 
         [Conditional("DEBUG")]
         internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
