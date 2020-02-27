@@ -33,6 +33,28 @@ namespace osu.Framework.Platform
             }
         }
 
+        private double maximumUpdateHz;
+
+        public double MaximumUpdateHz
+        {
+            set
+            {
+                maximumUpdateHz = value;
+                updateMainThreadRates();
+            }
+        }
+
+        private double maximumInactiveHz;
+
+        public double MaximumInactiveHz
+        {
+            set
+            {
+                maximumInactiveHz = value;
+                updateMainThreadRates();
+            }
+        }
+
         private bool singleThreaded;
 
         /// <summary>
@@ -101,6 +123,7 @@ namespace osu.Framework.Platform
 
                     singleThreaded = value;
                     ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
+                    updateMainThreadRates();
                 });
             }
         }
@@ -161,6 +184,20 @@ namespace osu.Framework.Platform
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
             while (!mainThread.Exited)
                 mainThread.ProcessFrame();
+        }
+
+        private void updateMainThreadRates()
+        {
+            if (singleThreaded)
+            {
+                mainThread.ActiveHz = maximumUpdateHz;
+                mainThread.InactiveHz = maximumInactiveHz;
+            }
+            else
+            {
+                mainThread.ActiveHz = GameThread.DEFAULT_ACTIVE_HZ;
+                mainThread.InactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
+            }
         }
     }
 }

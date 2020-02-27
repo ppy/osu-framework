@@ -167,7 +167,7 @@ namespace osu.Framework.Platform
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
-            set => UpdateThread.ActiveHz = maximumUpdateHz = value;
+            set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
         private double maximumDrawHz;
@@ -184,7 +184,7 @@ namespace osu.Framework.Platform
             set
             {
                 DrawThread.InactiveHz = value;
-                UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
             }
         }
 
@@ -602,7 +602,7 @@ namespace osu.Framework.Platform
 
         private ThreadRunner threadRunner;
 
-        public bool RunningSingleThreaded
+        public bool SingleThreaded
         {
             get => threadRunner.SingleThreaded;
             set => threadRunner.SingleThreaded = value;
@@ -692,7 +692,7 @@ namespace osu.Framework.Platform
                 cycleFrameSync();
 
             if (e.Control && e.Key == Key.F6)
-                RunningSingleThreaded = !RunningSingleThreaded;
+                SingleThreaded = !SingleThreaded;
         }
 
         private void keyDown(KeyboardKeyInput e)
@@ -797,8 +797,8 @@ namespace osu.Framework.Platform
                         break;
                 }
 
-                if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
-                if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
+                MaximumDrawHz = drawLimiter;
+                MaximumUpdateHz = updateLimiter;
             };
 
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
