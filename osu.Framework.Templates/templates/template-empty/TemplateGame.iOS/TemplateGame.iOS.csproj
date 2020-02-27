@@ -109,44 +109,6 @@
     <MtouchArch>ARM64</MtouchArch>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -lbz2 -framework AudioToolbox -framework AVFoundation -framework CoreMedia -framework VideoToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate"</MtouchExtraArgs>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <BuildIpa>True</BuildIpa>
-    <MtouchLink>Full</MtouchLink>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleVersion>0</BundleVersion>
-    <BundleDisplayName>osu!template</BundleDisplayName>
-    <BundleIcon>IconTest.png</BundleIcon>
-    <MtouchArch>ARMv7</MtouchArch>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <DebugType>none</DebugType>
-    <Optimize>True</Optimize>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <MtouchUseArmv7>false</MtouchUseArmv7>
-    <additionalargs>/unsafe</additionalargs>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <ConsolePause>False</ConsolePause>
-    <BuildIpa>True</BuildIpa>
-    <MtouchLink>Full</MtouchLink>
-    <CrashReportingApiKey>
-    </CrashReportingApiKey>
-    <BundleIdentifier>sh.ppy.TemplateGame</BundleIdentifier>
-    <BundleDisplayName>osu!test</BundleDisplayName>
-    <BundleIcon>IconTest.png</BundleIcon>
-    <MtouchArch>ARMv7</MtouchArch>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <OutputPath>bin\Testing\</OutputPath>
-  </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
   </ItemGroup>
