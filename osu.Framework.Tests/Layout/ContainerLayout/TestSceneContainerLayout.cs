@@ -13,6 +13,9 @@ namespace osu.Framework.Tests.Layout.ContainerLayout
 {
     public class TestSceneContainerLayout : FrameworkTestScene
     {
+        /// <summary>
+        /// Tests that auto-size is updated when a child becomes alive.
+        /// </summary>
         [Test]
         public void TestContainerAutoSizeUpdatesWhenChildBecomesAlive()
         {
@@ -38,6 +41,9 @@ namespace osu.Framework.Tests.Layout.ContainerLayout
             AddAssert("parent has size 200", () => Precision.AlmostEquals(new Vector2(200), parent.DrawSize));
         }
 
+        /// <summary>
+        /// Tests that auto-size is updated when a child is removed through death.
+        /// </summary>
         [Test]
         public void TestContainerAutoSizeUpdatesWhenChildBecomesDead()
         {
@@ -58,6 +64,9 @@ namespace osu.Framework.Tests.Layout.ContainerLayout
             AddAssert("parent has size 0", () => Precision.AlmostEquals(Vector2.Zero, parent.DrawSize));
         }
 
+        /// <summary>
+        /// Tests that auto-size is updated when a child becomes dead and doesn't get removed.
+        /// </summary>
         [Test]
         public void TestContainerAutoSizeUpdatesWhenChildBecomesDeadWithoutRemoval()
         {
@@ -80,7 +89,7 @@ namespace osu.Framework.Tests.Layout.ContainerLayout
         }
 
         /// <summary>
-        /// Tests that an auto-size properly captures a child's presence change.
+        /// Tests that auto-size properly captures a child's presence change.
         /// </summary>
         [Test]
         public void TestAddHiddenChildAndFadeIn()

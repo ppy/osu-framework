@@ -13,6 +13,9 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
 {
     public class TestSceneGridContainerLayout : FrameworkTestScene
     {
+        /// <summary>
+        /// Tests that a grid's auto-size is updated when a child becomes alive.
+        /// </summary>
         [Test]
         public void TestGridContainerAutoSizeUpdatesWhenChildBecomesAlive()
         {
@@ -43,6 +46,9 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
             AddAssert("parent has size 200", () => Precision.AlmostEquals(new Vector2(200), parent.DrawSize));
         }
 
+        /// <summary>
+        /// Tests that a grid's auto-size is updated when a child is removed through death.
+        /// </summary>
         [Test]
         public void TestGridContainerAutoSizeUpdatesWhenChildBecomesDead()
         {
@@ -69,6 +75,9 @@ namespace osu.Framework.Tests.Layout.GridContainerLayout
             AddAssert("parent has size 0", () => Precision.AlmostEquals(Vector2.Zero, parent.DrawSize));
         }
 
+        /// <summary>
+        /// Tests that a grid's auto-size is updated when a child becomes dead and doesn't get removed.
+        /// </summary>
         [Test]
         public void TestGridContainerAutoSizeUpdatesWhenChildBecomesDeadWithoutRemoval()
         {

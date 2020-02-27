@@ -15,10 +15,10 @@ namespace osu.Framework.Tests.Layout.DrawableLayout
     public class TestSceneDrawableLayout : FrameworkTestScene
     {
         /// <summary>
-        /// Tests changing properties that overlap in their invalidation types (size + scale).
+        /// Tests that multiple invalidations trigger for properties that don't overlap in their invalidation types (size + scale).
         /// </summary>
         [Test]
-        public void TestChangeOverlappingProperties()
+        public void TestChangeNonOverlappingProperties()
         {
             Box[] boxes = new Box[4];
             TestContainer1 testContainer = null;
