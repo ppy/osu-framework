@@ -97,11 +97,8 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
-
-            OnThreadStart?.Invoke();
-
-            initializedEvent.Set();
+            Initialize();
+            MakeCurrent();
 
             while (!exitCompleted)
             {
@@ -117,6 +114,20 @@ namespace osu.Framework.Threading
                         throw;
                 }
             }
+        }
+
+        internal virtual void Initialize()
+        {
+            OnThreadStart?.Invoke();
+            initializedEvent.Set();
+        }
+
+        /// <summary>
+        /// Run when thread transitions into an active/processing state.
+        /// </summary>
+        internal virtual void MakeCurrent()
+        {
+            Scheduler.SetCurrentThread();
         }
 
         protected void ProcessFrame()

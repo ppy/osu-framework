@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using osu.Framework.Audio;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -15,6 +16,12 @@ namespace osu.Framework.Threading
             : base(name: "Audio")
         {
             OnNewFrame = onNewFrame;
+        }
+
+        internal override void MakeCurrent()
+        {
+            base.MakeCurrent();
+            ThreadSafety.IsAudioThread = true;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
