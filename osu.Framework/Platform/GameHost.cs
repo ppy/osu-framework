@@ -686,7 +686,7 @@ namespace osu.Framework.Platform
                 cycleFrameSync();
 
             if (e.Control && e.Key == Key.F6)
-                SingleThreaded.Value = !SingleThreaded.Value;
+                singleThreaded.Value = !singleThreaded.Value;
         }
 
         private void keyDown(KeyboardKeyInput e)
@@ -720,6 +720,8 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
+        private Bindable<bool> singleThreaded;
+
         private Bindable<string> threadLocale;
 
         protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
@@ -740,8 +742,8 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            SingleThreaded = Config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
-            SingleThreaded.BindValueChanged(e => threadRunner.SingleThreaded = e.NewValue, true);
+            singleThreaded = Config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
+            singleThreaded.BindValueChanged(e => threadRunner.SingleThreaded = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
@@ -858,8 +860,6 @@ namespace osu.Framework.Platform
         private bool isDisposed;
 
         private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
-
-        private Bindable<bool> SingleThreaded;
 
         protected virtual void Dispose(bool disposing)
         {
