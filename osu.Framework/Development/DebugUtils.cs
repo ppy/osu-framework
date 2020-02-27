@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using osu.Framework.Configuration;
 
 namespace osu.Framework.Development
 {
@@ -33,7 +32,7 @@ namespace osu.Framework.Development
         );
 
         /// <summary>
-        /// Whether the framework is currently logging performance issues via <see cref="DebugSetting.PerformanceLogging"/>.
+        /// Whether the framework is currently logging performance issues.
         /// This should be used only when a configuration is not available via DI or otherwise (ie. in a static context).
         /// </summary>
         public static bool LogPerformanceIssues { get; internal set; }
