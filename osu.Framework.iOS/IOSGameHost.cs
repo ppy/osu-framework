@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Foundation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -31,8 +32,12 @@ namespace osu.Framework.iOS
         public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
+
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
+
+            IsIdleTimerEnabled.ValueChanged +=
+                val => handleIdleTimerEnabledChange(val.NewValue);
         }
 
         /// <summary>
@@ -57,6 +62,17 @@ namespace osu.Framework.iOS
                 rawKeyboardHandler.KeyboardActive = !softwareKeyboard;
 
             gameView.KeyboardTextField.SoftwareKeyboard = softwareKeyboard;
+        }
+
+        /// <summary>
+        /// When <see cref="GameHost.IsIdleTimerEnabled"/> changes values, the value
+        /// is forwarded to the appropriate UIKit APIs to control
+        /// the timer that is responsible for dimming/locking the screen after
+        /// a certain amount of inactivity.
+        /// </summary>
+        private void handleIdleTimerEnabledChange(bool isEnabled)
+        {
+            UIApplication.SharedApplication.IdleTimerDisabled = !isEnabled;
         }
 
         protected override void SetupForRun()
