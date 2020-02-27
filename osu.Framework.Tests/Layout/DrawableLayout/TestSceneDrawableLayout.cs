@@ -5,16 +5,14 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Layout
+namespace osu.Framework.Tests.Layout.DrawableLayout
 {
-    [HeadlessTest]
-    public class TestSceneLayoutScenarios : FrameworkTestScene
+    public class TestSceneDrawableLayout : FrameworkTestScene
     {
         /// <summary>
         /// Tests changing properties that overlap in their invalidation types (size + scale).
@@ -82,39 +80,6 @@ namespace osu.Framework.Tests.Layout
 
                 return true;
             });
-        }
-
-        /// <summary>
-        /// Tests that an auto-size properly captures a child's presence change.
-        /// </summary>
-        [Test]
-        public void TestAddHiddenChildAndFadeIn()
-        {
-            Container content = null;
-            Box child = null;
-
-            AddStep("create test", () =>
-            {
-                Child = content = new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                };
-            });
-
-            AddStep("add child", () => LoadComponentAsync(child = new Box
-            {
-                RelativeSizeAxes = Axes.X,
-                Height = 500,
-            }, d =>
-            {
-                content.Add(d);
-                d.FadeInFromZero(50000);
-            }));
-
-            AddUntilStep("wait for child load", () => child.IsLoaded);
-
-            AddUntilStep("content height matches box height", () => Precision.AlmostEquals(content.DrawHeight, child.DrawHeight));
         }
 
         private class TestContainer1 : Container<Drawable>
