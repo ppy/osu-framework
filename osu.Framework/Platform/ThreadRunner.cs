@@ -96,32 +96,48 @@ namespace osu.Framework.Platform
             {
                 if (value == singleThreaded) return;
 
-                mainThread.Scheduler.Add(() =>
+                lock (runStateLock)
                 {
-                    if (!value)
+                    if (isRunning)
                     {
-                        foreach (var t in Threads)
-                        {
-                            t.Start();
-                            t.Clock.Throttling = true;
-                        }
+                        mainThread.Scheduler.Add(() => setRunMode(value));
                     }
                     else
                     {
-                        foreach (var t in Threads)
-                        {
-                            t.Pause();
-                            t.Clock.Throttling = t == mainThread;
-                        }
+                        setRunMode(value);
+                    }
+                }
+            }
+        }
 
-                        while (Threads.Any(t => t.Running))
-                            Thread.Sleep(1);
+        private void setRunMode(bool value)
+        {
+            lock (runStateLock)
+            {
+                if (!value)
+                {
+                    foreach (var t in Threads)
+                    {
+                        if (isRunning) t.Start();
+                        t.Clock.Throttling = true;
+                    }
+                }
+                else
+                {
+                    foreach (var t in Threads)
+                    {
+                        if (isRunning) t.Pause();
+                        t.Clock.Throttling = t == mainThread;
                     }
 
-                    singleThreaded = value;
-                    ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
-                    updateMainThreadRates();
-                });
+                    if (isRunning)
+                        while (Threads.Any(t => t.Running))
+                            Thread.Sleep(1);
+                }
+
+                singleThreaded = value;
+                ThreadSafety.SingleThreadThread = singleThreaded ? Thread.CurrentThread : null;
+                updateMainThreadRates();
             }
         }
 
@@ -144,20 +160,29 @@ namespace osu.Framework.Platform
             }
         }
 
+        private readonly object runStateLock = new object();
+
+        private bool isRunning;
+
         public void Start()
         {
-            if (singleThreaded)
+            lock (runStateLock)
             {
-                foreach (var t in Threads)
+                isRunning = true;
+
+                if (singleThreaded)
                 {
-                    t.OnThreadStart?.Invoke();
-                    t.OnThreadStart = null;
+                    foreach (var t in Threads)
+                    {
+                        t.OnThreadStart?.Invoke();
+                        t.OnThreadStart = null;
+                    }
                 }
-            }
-            else
-            {
-                foreach (var t in Threads)
-                    t.Start();
+                else
+                {
+                    foreach (var t in Threads)
+                        t.Start();
+                }
             }
         }
 
@@ -165,16 +190,21 @@ namespace osu.Framework.Platform
 
         public void Stop()
         {
-            Threads.ForEach(t => t.Exit());
-            Threads.Where(t => t.Running).ForEach(t =>
+            lock (runStateLock)
             {
-                if (!t.Thread.Join(thread_join_timeout))
-                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
-            });
+                Threads.ForEach(t => t.Exit());
+                Threads.Where(t => t.Running).ForEach(t =>
+                {
+                    if (!t.Thread.Join(thread_join_timeout))
+                        Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+                });
 
-            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            while (!mainThread.Exited)
-                mainThread.ProcessFrame();
+                // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
+                while (!mainThread.Exited)
+                    mainThread.ProcessFrame();
+
+                isRunning = false;
+            }
         }
 
         private void updateMainThreadRates()
