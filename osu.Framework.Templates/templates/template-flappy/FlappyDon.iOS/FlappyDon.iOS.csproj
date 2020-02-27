@@ -121,9 +121,6 @@
     <OutputPath>bin\iPhone\Release</OutputPath>
     <MtouchArch>ARM64</MtouchArch>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
-    <OutputPath>bin\Testing\</OutputPath>
-  </PropertyGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
   </ItemGroup>

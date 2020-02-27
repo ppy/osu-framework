@@ -7,8 +7,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>0.0.0</Version>
     <FileVersion>0.0.0</FileVersion>
-    <Configurations>Debug;Release;Testing</Configurations>
-    <Platforms>AnyCPU;iPhoneSimulator</Platforms>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj" />

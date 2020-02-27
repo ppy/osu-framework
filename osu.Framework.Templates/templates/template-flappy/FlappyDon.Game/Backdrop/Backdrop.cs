@@ -20,7 +20,7 @@ namespace FlappyDon.Game
     {
         // Holds a lambda that generates new
         // instances of the same sprite on demand.
-        private readonly Func<Sprite> _createSprite;
+        private readonly Func<Sprite> createSprite;
 
         // The previous size of this container,
         // used to determine when we need to
@@ -37,7 +37,7 @@ namespace FlappyDon.Game
 
         public Backdrop(Func<Sprite> createSprite, float duration = 2000.0f)
         {
-            _createSprite = createSprite;
+            this.createSprite = createSprite;
             Duration = duration;
         }
 
@@ -97,7 +97,7 @@ namespace FlappyDon.Game
                 sprite = (Sprite)InternalChildren.First();
             else
             {
-                sprite = _createSprite();
+                sprite = createSprite();
                 AddInternal(sprite);
             }
 
@@ -115,7 +115,7 @@ namespace FlappyDon.Game
                     RemoveInternal(InternalChildren.Last());
 
                 while (InternalChildren.Count < spriteNum)
-                    AddInternal(_createSprite());
+                    AddInternal(createSprite());
             }
 
             // Lay out all of the child sprites horizontally,
