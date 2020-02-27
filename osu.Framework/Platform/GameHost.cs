@@ -586,7 +586,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            InputThread.ProcessFrame(true);
+                            InputThread.ProcessFrame();
                     }
                 }
                 catch (OutOfMemoryException)

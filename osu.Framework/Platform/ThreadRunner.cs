@@ -81,12 +81,18 @@ namespace osu.Framework.Platform
                         if (!value)
                         {
                             foreach (var t in threads)
+                            {
                                 t.Start();
+                                t.Clock.Throttling = true;
+                            }
                         }
                         else
                         {
                             foreach (var t in threads)
+                            {
                                 t.Pause();
+                                t.Clock.Throttling = t == mainThread;
+                            }
 
                             while (threads.Any(t => t.Running))
                                 Thread.Sleep(1);
@@ -112,7 +118,7 @@ namespace osu.Framework.Platform
                         if (t == mainThread)
                             continue;
 
-                        t.ProcessFrame(false);
+                        t.ProcessFrame();
                     }
                 }
             }

@@ -18,14 +18,14 @@ namespace osu.Framework.Timing
         public double MaximumUpdateHz = 1000.0;
 
         /// <summary>
+        /// Whether throttling should be enabled. Defaults to true.
+        /// </summary>
+        public bool Throttling = true;
+
+        /// <summary>
         /// The time spent in a Thread.Sleep state during the last frame.
         /// </summary>
         public double TimeSlept { get; private set; }
-
-        public void ProcessFrameWithoutThrottling()
-        {
-            base.ProcessFrame();
-        }
 
         public override void ProcessFrame()
         {
@@ -33,7 +33,7 @@ namespace osu.Framework.Timing
 
             base.ProcessFrame();
 
-            if (MaximumUpdateHz > 0)
+            if (MaximumUpdateHz > 0 && Throttling)
             {
                 throttle();
             }
