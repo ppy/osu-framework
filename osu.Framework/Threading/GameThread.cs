@@ -147,10 +147,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Run when thread transitions into an active/processing state.
         /// </summary>
-        internal virtual void MakeCurrent()
-        {
-            Scheduler.SetCurrentThread();
-        }
+        internal virtual void MakeCurrent() { }
 
         internal void ProcessFrame()
         {
