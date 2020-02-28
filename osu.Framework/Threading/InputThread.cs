@@ -23,9 +23,10 @@ namespace osu.Framework.Threading
 
         public override bool IsCurrent => ThreadSafety.IsInputThread;
 
-        internal override void MakeCurrent()
+        internal sealed override void MakeCurrent()
         {
             base.MakeCurrent();
+
             ThreadSafety.IsInputThread = true;
         }
 
@@ -33,7 +34,5 @@ namespace osu.Framework.Threading
         {
             // InputThread does not get started. it is run manually by GameHost.
         }
-
-        public void RunUpdate() => ProcessFrame();
     }
 }

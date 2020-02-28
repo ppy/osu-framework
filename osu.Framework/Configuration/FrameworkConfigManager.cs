@@ -24,6 +24,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
             Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
+            Set(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
             Set(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
@@ -80,6 +81,7 @@ namespace osu.Framework.Configuration
         WindowMode,
         ConfineMouseMode,
         FrameSync,
+        ExecutionMode,
 
         ShowUnicode,
         Locale,

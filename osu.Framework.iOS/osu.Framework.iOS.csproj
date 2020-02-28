@@ -24,7 +24,7 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.140" />
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.149" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
   </ItemGroup>
   <ItemGroup>
