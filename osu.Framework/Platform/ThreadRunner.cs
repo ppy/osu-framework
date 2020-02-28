@@ -147,6 +147,10 @@ namespace osu.Framework.Platform
                 // in the case we have not yet got an execution mode, set this early to allow usage in GameThread.Initialize overrides.
                 activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
+            // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
+            foreach (var t in Threads.Reverse())
+                t.Pause();
+
             switch (ExecutionMode)
             {
                 case ExecutionMode.MultiThreaded:
@@ -164,11 +168,6 @@ namespace osu.Framework.Platform
                 case ExecutionMode.SingleThread:
                 {
                     // switch to single-threaded.
-
-                    // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
-                    foreach (var t in Threads.Reverse())
-                        t.Pause();
-
                     foreach (var t in Threads)
                     {
                         // only throttle for the main thread
