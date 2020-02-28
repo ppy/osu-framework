@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -55,7 +56,13 @@ namespace osu.Framework.Android
                 }
             };
 
-            gameView.Host.IsIdleTimerEnabled.ValueChanged += val => handleIdleTimerEnabledChange(val.NewValue);
+            gameView.Host.AllowScreenSuspension.BindValueChanged(allow =>
+            {
+                if (allow.NewValue)
+                    Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                else
+                    Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+            }, true);
         }
 
         protected override void OnPause()
@@ -87,20 +94,6 @@ namespace osu.Framework.Android
         public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             return gameView.OnKeyLongPress(keyCode, e);
-        }
-
-        /// <summary>
-        /// When <see cref="GameHost.IsIdleTimerEnabled"/> changes values, the value
-        /// is forwarded to the appropriate UIKit APIs to control
-        /// the timer that is responsible for dimming/locking the screen after
-        /// a certain amount of inactivity.
-        /// </summary>
-        private void handleIdleTimerEnabledChange(bool isEnabled)
-        {
-            if (isEnabled)
-                Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-            else
-                Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
         }
     }
 }
