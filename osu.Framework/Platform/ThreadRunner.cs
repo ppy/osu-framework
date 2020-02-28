@@ -134,6 +134,8 @@ namespace osu.Framework.Platform
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
             while (!mainThread.Exited)
                 mainThread.ProcessFrame();
+
+            ThreadSafety.ResetAllForCurrentThread();
         }
 
         private void ensureCorrectExecutionMode()
