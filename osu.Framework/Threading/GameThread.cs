@@ -124,17 +124,7 @@ namespace osu.Framework.Threading
 
                 while (!exitCompleted && !paused)
                 {
-                    try
-                    {
-                        ProcessFrame();
-                    }
-                    catch (Exception e)
-                    {
-                        if (UnhandledException != null)
-                            UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                        else
-                            throw;
-                    }
+                    ProcessFrame();
                 }
             }
             finally
@@ -153,28 +143,38 @@ namespace osu.Framework.Threading
 
         internal void ProcessFrame()
         {
-            if (exitCompleted)
-                return;
-
-            if (exitRequested)
+            try
             {
-                PerformExit();
-                exitCompleted = true;
-                return;
+                if (exitCompleted)
+                    return;
+
+                if (exitRequested)
+                {
+                    PerformExit();
+                    exitCompleted = true;
+                    return;
+                }
+
+                MakeCurrent();
+
+                Monitor?.NewFrame();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
+                    Scheduler.Update();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
+                    OnNewFrame?.Invoke();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
+                    Clock.ProcessFrame();
             }
-
-            MakeCurrent();
-
-            Monitor?.NewFrame();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
-                Scheduler.Update();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
-                OnNewFrame?.Invoke();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
-                Clock.ProcessFrame();
+            catch (Exception e)
+            {
+                if (UnhandledException != null)
+                    UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                else
+                    throw;
+            }
         }
 
         private volatile bool exitRequested;
