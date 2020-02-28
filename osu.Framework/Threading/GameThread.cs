@@ -166,7 +166,8 @@ namespace osu.Framework.Threading
             }
             catch (Exception e)
             {
-                if (UnhandledException != null)
+                if (UnhandledException != null && !ThreadSafety.IsInputThread)
+                    // the handler schedules back to the input thread, so don't run it if we are already on the input thread
                     UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
                 else
                     throw;
