@@ -35,10 +35,6 @@ namespace osu.Framework.iOS
 
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, handleKeyboardNotification);
             NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidHideNotification, handleKeyboardNotification);
-
-            AllowScreenSuspension.BindValueChanged(allow =>
-                    UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue,
-                true);
         }
 
         /// <summary>
@@ -69,6 +65,10 @@ namespace osu.Framework.iOS
         {
             base.SetupForRun();
             IOSGameWindow.GameView = gameView;
+
+            AllowScreenSuspension.BindValueChanged(allow =>
+                InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
+            true);
         }
 
         protected override IWindow CreateWindow() => new IOSGameWindow();
