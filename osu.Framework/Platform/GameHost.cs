@@ -260,7 +260,7 @@ namespace osu.Framework.Platform
             //wait for a potentially blocking response
             while (!response.HasValue)
             {
-                if (threadRunner.ExecutionMode == ExecutionMode.SingleThreaded)
+                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded)
                     threadRunner.RunMainLoop();
                 else
                     Thread.Sleep(1);
@@ -282,7 +282,7 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateInitialize()
         {
-            if (executionMode.Value != ExecutionMode.SingleThreaded)
+            if (ThreadSafety.ExecutionMode != ExecutionMode.SingleThreaded)
             {
                 //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
                 DrawThread.WaitUntilInitialized();
