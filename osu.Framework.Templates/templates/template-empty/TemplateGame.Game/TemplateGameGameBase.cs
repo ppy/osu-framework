@@ -3,6 +3,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
 using osuTK;
+using TemplateGame.Resources;
 
 namespace TemplateGame.Game
 {
@@ -27,7 +28,7 @@ namespace TemplateGame.Game
         [BackgroundDependencyLoader]
         private void load()
         {
-            Resources.AddStore(new DllResourceStore("TemplateGame.Resources.dll"));
+            Resources.AddStore(new DllResourceStore(typeof(TemplateGameResources).Assembly));
         }
     }
 }

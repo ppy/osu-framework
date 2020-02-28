@@ -63,6 +63,8 @@ namespace osu.Framework.Threading
 
         public bool Running => Thread?.IsAlive == true;
 
+        public virtual bool IsCurrent => true;
+
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public Action OnThreadStart;
@@ -90,7 +92,7 @@ namespace osu.Framework.Threading
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
-            Scheduler = new Scheduler(null, Clock);
+            Scheduler = new GameThreadScheduler(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -119,7 +121,8 @@ namespace osu.Framework.Threading
         {
             try
             {
-                Initialize(true);
+                Initialize();
+                MakeCurrent();
 
                 while (!exitCompleted && !paused)
                 {
@@ -142,7 +145,21 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void ProcessFrame()
+        internal virtual void Initialize()
+        {
+            OnThreadStart?.Invoke();
+            initializedEvent.Set();
+        }
+
+        /// <summary>
+        /// Run when thread transitions into an active/processing state.
+        /// </summary>
+        internal virtual void MakeCurrent()
+        {
+            Scheduler.SetCurrentThread();
+        }
+
+        internal void ProcessFrame()
         {
             if (exitCompleted)
                 return;
@@ -217,6 +234,19 @@ namespace osu.Framework.Threading
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+        }
+
+        public class GameThreadScheduler : Scheduler
+        {
+            private readonly GameThread thread;
+
+            protected override bool IsMainThread => thread.IsCurrent;
+
+            public GameThreadScheduler(GameThread thread)
+                : base(null, thread.Clock)
+            {
+                this.thread = thread;
+            }
         }
     }
 }
