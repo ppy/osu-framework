@@ -39,7 +39,7 @@ namespace osu.Framework.Android
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
-                defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThreaded);
+                defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
 
             base.SetupConfig(defaultOverrides);
         }
