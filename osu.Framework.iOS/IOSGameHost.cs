@@ -69,8 +69,8 @@ namespace osu.Framework.iOS
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            if (!defaultOverrides.ContainsKey(FrameworkSetting.SingleThreaded))
-                defaultOverrides.Add(FrameworkSetting.SingleThreaded, true);
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
+                defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThreaded);
 
             base.SetupConfig(defaultOverrides);
 

@@ -282,7 +282,7 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateInitialize()
         {
-            if (!singleThreaded.Value)
+            if (executionMode.Value != ExecutionMode.SingleThreaded)
             {
                 //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
                 DrawThread.WaitUntilInitialized();
@@ -688,7 +688,7 @@ namespace osu.Framework.Platform
 
         private Bindable<WindowMode> windowMode;
 
-        private Bindable<bool> singleThreaded;
+        private Bindable<ExecutionMode> executionMode;
 
         private Bindable<string> threadLocale;
 
@@ -710,11 +710,8 @@ namespace osu.Framework.Platform
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
 
-            singleThreaded = Config.GetBindable<bool>(FrameworkSetting.SingleThreaded);
-            singleThreaded.BindValueChanged(e =>
-            {
-                threadRunner.ExecutionMode = e.NewValue ? ExecutionMode.SingleThreaded : ExecutionMode.MultiThreaded;
-            }, true);
+            executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+            executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
