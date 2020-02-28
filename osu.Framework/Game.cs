@@ -301,7 +301,7 @@ namespace osu.Framework
                     var nextExecutionMode = executionMode.Value + 1;
 
                     if (nextExecutionMode > ExecutionMode.MultiThreaded)
-                        nextExecutionMode = ExecutionMode.SingleThreaded;
+                        nextExecutionMode = ExecutionMode.SingleThread;
 
                     executionMode.Value = nextExecutionMode;
                     break;

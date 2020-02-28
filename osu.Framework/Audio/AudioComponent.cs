@@ -29,7 +29,7 @@ namespace osu.Framework.Audio
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>
         protected Task EnqueueAction(Action action)
         {
-            if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded)
+            if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
             {
                 if (ThreadSafety.IsDrawThread)
                     throw new InvalidOperationException("Cannot perform audio operation from draw thread.");
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio
                     throw new InvalidOperationException("Cannot perform audio operation from input thread.");
             }
 
-            if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded && ThreadSafety.IsUpdateThread))
+            if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread && ThreadSafety.IsUpdateThread))
             {
                 action();
                 return Task.CompletedTask;

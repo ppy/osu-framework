@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Development;
@@ -100,7 +101,7 @@ namespace osu.Framework.Platform
 
             switch (activeExecutionMode.Value)
             {
-                case ExecutionMode.SingleThreaded:
+                case ExecutionMode.SingleThread:
                 {
                     lock (threads)
                     {
@@ -161,7 +162,7 @@ namespace osu.Framework.Platform
                     break;
                 }
 
-                case ExecutionMode.SingleThreaded:
+                case ExecutionMode.SingleThread:
                 {
                     // switch to single-threaded.
                     foreach (var t in Threads)
@@ -187,7 +188,7 @@ namespace osu.Framework.Platform
 
         private void updateMainThreadRates()
         {
-            if (activeExecutionMode == ExecutionMode.SingleThreaded)
+            if (activeExecutionMode == ExecutionMode.SingleThread)
             {
                 mainThread.ActiveHz = maximumUpdateHz;
                 mainThread.InactiveHz = maximumInactiveHz;
@@ -202,7 +203,10 @@ namespace osu.Framework.Platform
 
     public enum ExecutionMode
     {
-        SingleThreaded,
+        [Description("Single thread")]
+        SingleThread,
+
+        [Description("Multithreaded")]
         MultiThreaded
     }
 }
