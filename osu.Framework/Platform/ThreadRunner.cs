@@ -105,7 +105,13 @@ namespace osu.Framework.Platform
                     lock (threads)
                     {
                         foreach (var t in threads)
+                        {
+                            // required as we are constantly changing thread contexts while remaining on the same logical thread
+                            ThreadSafety.ResetAllForCurrentThread();
+
+                            t.MakeCurrent();
                             t.ProcessFrame();
+                        }
                     }
 
                     break;
@@ -145,10 +151,6 @@ namespace osu.Framework.Platform
             {
                 case ExecutionMode.MultiThreaded:
                 {
-                    ThreadSafety.IsAudioThread = false;
-                    ThreadSafety.IsDrawThread = false;
-                    ThreadSafety.IsInputThread = false;
-
                     // switch to multi-threaded
                     foreach (var t in Threads)
                     {

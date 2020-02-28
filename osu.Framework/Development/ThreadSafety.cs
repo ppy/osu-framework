@@ -17,6 +17,14 @@ namespace osu.Framework.Development
         [Conditional("DEBUG")]
         internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
 
+        internal static void ResetAllForCurrentThread()
+        {
+            IsInputThread = false;
+            IsUpdateThread = false;
+            IsDrawThread = false;
+            IsAudioThread = false;
+        }
+
         [ThreadStatic]
         public static bool IsInputThread;
 
