@@ -170,8 +170,6 @@ namespace osu.Framework.Platform
                     // switch to single-threaded.
                     foreach (var t in Threads)
                     {
-                        t.MakeCurrent();
-
                         // only throttle for the main thread
                         t.Initialize(withThrottling: t == mainThread);
                     }

@@ -19,7 +19,7 @@ namespace osu.Framework.Threading
             this.drawThread = drawThread;
         }
 
-        protected override void OnInitialize()
+        protected sealed override void OnInitialize()
         {
             if (ThreadSafety.ExecutionMode != ExecutionMode.SingleThread)
             {
@@ -30,7 +30,7 @@ namespace osu.Framework.Threading
 
         public override bool IsCurrent => ThreadSafety.IsUpdateThread;
 
-        internal override void MakeCurrent()
+        internal sealed override void MakeCurrent()
         {
             base.MakeCurrent();
 

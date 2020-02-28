@@ -24,7 +24,7 @@ namespace osu.Framework.Threading
 
         public override bool IsCurrent => ThreadSafety.IsDrawThread;
 
-        protected override void OnInitialize()
+        protected sealed override void OnInitialize()
         {
             var window = host.Window;
 
@@ -44,7 +44,7 @@ namespace osu.Framework.Threading
             ThreadSafety.IsDrawThread = true;
         }
 
-        protected override void Cleanup()
+        protected sealed override void Cleanup()
         {
             base.Cleanup();
 
