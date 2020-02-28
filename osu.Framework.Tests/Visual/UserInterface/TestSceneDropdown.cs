@@ -354,7 +354,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             private class TestDropdownMenu : BasicDropdownMenu
             {
                 public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
-                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
+                    .TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState, MouseButton.Left));
             }
 
             internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;

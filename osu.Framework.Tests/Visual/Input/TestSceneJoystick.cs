@@ -239,8 +239,8 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 base.Update();
 
-                var joy = GetContainingInputManager().CurrentState.Joystick;
-                rawValue.Text = joy.Axes.Find(a => a.Axis == axisIndex).Value.ToString("0.00");
+                var joy = GetContainingInputManager()?.CurrentState.Joystick;
+                rawValue.Text = joy?.Axes.Find(a => a.Axis == axisIndex).Value.ToString("0.00");
             }
 
             protected override bool OnJoystickPress(JoystickPressEvent e)

@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Shaders
 
                         string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
 
-                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                        backbufferCode = backbufferCode?.Replace("{{ real_main }}", realMainName);
                         code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
                     }
                 }

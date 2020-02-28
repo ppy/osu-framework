@@ -23,7 +23,7 @@ namespace osu.Framework.Localisation
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
 
             configLocale = config.GetBindable<string>(FrameworkSetting.Locale);
-            configLocale.BindValueChanged(updateLocale);
+            configLocale?.BindValueChanged(updateLocale);
         }
 
         public void AddLanguage(string language, IResourceStore<string> storage)

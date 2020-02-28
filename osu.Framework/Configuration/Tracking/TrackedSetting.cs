@@ -34,7 +34,7 @@ namespace osu.Framework.Configuration.Tracking
             where TLookup : struct, Enum
         {
             bindable = configManager.GetBindable<TValue>((TLookup)setting);
-            bindable.ValueChanged += displaySetting;
+            bindable?.BindValueChanged(displaySetting);
         }
 
         public void Unload()

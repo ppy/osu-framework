@@ -48,7 +48,7 @@ namespace osu.Framework.IO.Stores
 
             using (var stream = Store.GetStream(filename))
             {
-                string streamMd5 = stream.ComputeMD5Hash();
+                string streamMd5 = stream?.ComputeMD5Hash();
                 string filenameMd5 = filename.ComputeMD5Hash();
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";

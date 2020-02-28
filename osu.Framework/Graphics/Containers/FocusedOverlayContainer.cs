@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void PopOut()
         {
             if (HasFocus)
-                GetContainingInputManager().ChangeFocus(null);
+                GetContainingInputManager()?.ChangeFocus(null);
         }
     }
 }
