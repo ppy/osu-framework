@@ -173,6 +173,9 @@ namespace osu.Framework.Platform
                         t.Initialize(withThrottling: t == mainThread);
                     }
 
+                    // this is usually done in the execution loop, but required here for the initial game startup,
+                    // which would otherwise leave values in an incorrect state.
+                    ThreadSafety.ResetAllForCurrentThread();
                     break;
                 }
             }
