@@ -154,7 +154,7 @@ namespace osu.Framework.Platform
             thread.UnhandledException = null;
         }
 
-        public GameThread DrawThread;
+        public DrawThread DrawThread;
         public GameThread UpdateThread;
         public InputThread InputThread;
         public AudioThread AudioThread;
@@ -280,15 +280,6 @@ namespace osu.Framework.Platform
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
-        protected virtual void UpdateInitialize()
-        {
-            if (ThreadSafety.ExecutionMode != ExecutionMode.SingleThread)
-            {
-                //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-                DrawThread.WaitUntilInitialized();
-            }
-        }
-
         protected Container Root;
 
         private ulong frameCount;
@@ -317,16 +308,6 @@ namespace osu.Framework.Platform
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
-        }
-
-        protected virtual void DrawInitialize()
-        {
-            Window.MakeCurrent();
-            GLWrapper.Initialize(this);
-
-            setVSyncMode();
-
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
         }
 
         private long lastDrawFrameId;
@@ -498,16 +479,12 @@ namespace osu.Framework.Platform
 
                 RegisterThread(AudioThread = new AudioThread());
 
-                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame, DrawThread)
                 {
-                    OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                 });
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame)
-                {
-                    OnThreadStart = DrawInitialize,
-                });
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
 
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());

@@ -52,14 +52,6 @@ namespace osu.Framework.Platform
         {
         }
 
-        protected override void UpdateInitialize()
-        {
-        }
-
-        protected override void DrawInitialize()
-        {
-        }
-
         protected override void DrawFrame()
         {
             //we can't draw.

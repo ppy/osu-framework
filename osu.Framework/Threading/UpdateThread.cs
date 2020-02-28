@@ -5,14 +5,29 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Threading
 {
     public class UpdateThread : GameThread
     {
-        public UpdateThread(Action onNewFrame)
+        private readonly DrawThread drawThread;
+
+        public UpdateThread(Action onNewFrame, DrawThread drawThread)
             : base(onNewFrame, "Update")
         {
+            this.drawThread = drawThread;
+        }
+
+        internal override void Initialize(bool withThrottling)
+        {
+            if (ThreadSafety.ExecutionMode != ExecutionMode.SingleThread)
+            {
+                //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
+                drawThread?.WaitUntilInitialized();
+            }
+
+            base.Initialize(withThrottling);
         }
 
         public override bool IsCurrent => ThreadSafety.IsUpdateThread;

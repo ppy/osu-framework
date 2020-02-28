@@ -68,13 +68,9 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        public Action OnThreadStart;
-
-        internal void Initialize(bool withThrottling)
+        internal virtual void Initialize(bool withThrottling)
         {
             Clock.Throttling = withThrottling;
-
-            OnThreadStart?.Invoke();
 
             initializedEvent.Set();
         }
@@ -129,7 +125,7 @@ namespace osu.Framework.Threading
             }
             finally
             {
-                Thread = null;
+                Cleanup();
             }
         }
 
@@ -207,9 +203,21 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            paused = true;
-            while (Running)
-                Thread.Sleep(1);
+            if (Thread != null)
+            {
+                paused = true;
+                while (Running)
+                    Thread.Sleep(1);
+            }
+            else
+            {
+                Cleanup();
+            }
+        }
+
+        protected virtual void Cleanup()
+        {
+            Thread = null;
         }
 
         public void Exit() => exitRequested = true;
