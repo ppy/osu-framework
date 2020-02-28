@@ -93,7 +93,8 @@ namespace osu.Framework.Graphics.Performance
                     double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
 
                     displayFps = Interpolation.Damp(displayFps, clockFps, 0.01, dampRate);
-                    rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
+                    if (framesSinceLastUpdate > 0)
+                        rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
 
                     lastUpdate = Clock.CurrentTime;
 
