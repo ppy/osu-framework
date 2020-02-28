@@ -199,15 +199,16 @@ namespace FlappyDon.Game
                 return base.OnKeyDown(e);
 
             if (gameOver)
-            {
                 reset();
-                return base.OnKeyDown(e);
-            }
-
-            if (e.Key == Key.Space && e.Repeat == false)
+            else if (e.Key == Key.Space && e.Repeat == false)
                 onTapEvent();
+            else
+                return base.OnKeyDown(e);
 
-            return base.OnKeyDown(e);
+            // Since we captured and directly responded to
+            // this event, return true instead of
+            // continuing to forward the event
+            return true;
         }
 
         protected override bool OnMouseDown(MouseDownEvent e)
