@@ -4,6 +4,7 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -12,6 +13,14 @@ namespace osu.Framework.Threading
         public DrawThread(Action onNewFrame)
             : base(onNewFrame, "Draw")
         {
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsDrawThread;
+
+        internal override void MakeCurrent()
+        {
+            base.MakeCurrent();
+            ThreadSafety.IsDrawThread = true;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]

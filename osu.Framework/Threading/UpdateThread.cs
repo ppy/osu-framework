@@ -4,6 +4,7 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -12,6 +13,14 @@ namespace osu.Framework.Threading
         public UpdateThread(Action onNewFrame)
             : base(onNewFrame, "Update")
         {
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsUpdateThread;
+
+        internal override void MakeCurrent()
+        {
+            base.MakeCurrent();
+            ThreadSafety.IsUpdateThread = true;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]

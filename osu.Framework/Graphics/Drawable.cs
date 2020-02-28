@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            scheduler = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
             total_count.Value++;
         }
 
@@ -307,9 +307,6 @@ namespace osu.Framework.Graphics
         {
             if (loadState < LoadState.Ready) return false;
 
-            MainThread = Thread.CurrentThread;
-            if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
-
             loadState = LoadState.Loaded;
             Invalidate();
             LoadComplete();
@@ -425,8 +422,6 @@ namespace osu.Framework.Graphics
         internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
-
-        internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
