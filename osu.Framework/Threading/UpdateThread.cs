@@ -20,6 +20,7 @@ namespace osu.Framework.Threading
         internal override void MakeCurrent()
         {
             base.MakeCurrent();
+
             ThreadSafety.IsUpdateThread = true;
         }
 

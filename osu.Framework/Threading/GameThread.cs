@@ -76,8 +76,6 @@ namespace osu.Framework.Threading
             OnThreadStart?.Invoke();
 
             initializedEvent.Set();
-
-            MakeCurrent();
         }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
@@ -160,6 +158,8 @@ namespace osu.Framework.Threading
                 exitCompleted = true;
                 return;
             }
+
+            MakeCurrent();
 
             Monitor?.NewFrame();
 
