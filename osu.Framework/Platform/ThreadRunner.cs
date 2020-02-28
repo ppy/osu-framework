@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private double maximumUpdateHz;
+        private double maximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
 
         public double MaximumUpdateHz
         {
@@ -44,7 +44,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private double maximumInactiveHz;
+        private double maximumInactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
 
         public double MaximumInactiveHz
         {
