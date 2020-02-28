@@ -24,7 +24,7 @@ namespace osu.Framework.Threading
 
         public override bool IsCurrent => ThreadSafety.IsDrawThread;
 
-        internal override void Initialize(bool withThrottling)
+        protected override void OnInitialize()
         {
             var window = host.Window;
 
@@ -35,8 +35,6 @@ namespace osu.Framework.Threading
                 GLWrapper.Initialize(host);
                 GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
             }
-
-            base.Initialize(withThrottling);
         }
 
         internal sealed override void MakeCurrent()

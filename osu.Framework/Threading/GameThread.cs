@@ -68,12 +68,18 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        internal virtual void Initialize(bool withThrottling)
+        internal void Initialize(bool withThrottling)
         {
+            MakeCurrent();
+
+            OnInitialize();
+
             Clock.Throttling = withThrottling;
 
             initializedEvent.Set();
         }
+
+        protected virtual void OnInitialize() { }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 

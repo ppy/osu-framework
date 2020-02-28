@@ -19,15 +19,13 @@ namespace osu.Framework.Threading
             this.drawThread = drawThread;
         }
 
-        internal override void Initialize(bool withThrottling)
+        protected override void OnInitialize()
         {
             if (ThreadSafety.ExecutionMode != ExecutionMode.SingleThread)
             {
                 //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
                 drawThread?.WaitUntilInitialized();
             }
-
-            base.Initialize(withThrottling);
         }
 
         public override bool IsCurrent => ThreadSafety.IsUpdateThread;
