@@ -32,10 +32,10 @@ namespace osu.Framework.Audio
             if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded)
             {
                 if (ThreadSafety.IsDrawThread)
-                    throw new InvalidOperationException($"Cannot perform audio operation from draw thread.");
+                    throw new InvalidOperationException("Cannot perform audio operation from draw thread.");
 
                 if (ThreadSafety.IsInputThread)
-                    throw new InvalidOperationException($"Cannot perform audio operation from input thread.");
+                    throw new InvalidOperationException("Cannot perform audio operation from input thread.");
             }
 
             if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded && ThreadSafety.IsUpdateThread))
