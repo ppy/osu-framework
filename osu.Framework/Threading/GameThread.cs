@@ -127,10 +127,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Run when thread transitions into an active/processing state.
         /// </summary>
-        internal virtual void MakeCurrent()
-        {
-            Scheduler.SetCurrentThread();
-        }
+        internal virtual void MakeCurrent() { }
 
         protected void ProcessFrame()
         {
@@ -172,14 +169,9 @@ namespace osu.Framework.Threading
 
         public class GameThreadScheduler : Scheduler
         {
-            private readonly GameThread thread;
-
-            protected override bool IsMainThread => thread.IsCurrent;
-
             public GameThreadScheduler(GameThread thread)
-                : base(null, thread.Clock)
+                : base(() => thread.IsCurrent, thread.Clock)
             {
-                this.thread = thread;
             }
         }
     }
