@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -145,7 +146,10 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Run when thread transitions into an active/processing state.
         /// </summary>
-        internal virtual void MakeCurrent() { }
+        internal virtual void MakeCurrent()
+        {
+            ThreadSafety.ResetAllForCurrentThread();
+        }
 
         internal void ProcessFrame()
         {

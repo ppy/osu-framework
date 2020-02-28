@@ -105,13 +105,7 @@ namespace osu.Framework.Platform
                     lock (threads)
                     {
                         foreach (var t in threads)
-                        {
-                            // required as we are constantly changing thread contexts while remaining on the same logical thread
-                            ThreadSafety.ResetAllForCurrentThread();
-
-                            t.MakeCurrent();
                             t.ProcessFrame();
-                        }
                     }
 
                     break;

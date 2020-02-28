@@ -27,7 +27,6 @@ namespace osu.Framework.Threading
         {
             base.MakeCurrent();
 
-            ThreadSafety.ResetAllForCurrentThread();
             ThreadSafety.IsInputThread = true;
         }
 
