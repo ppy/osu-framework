@@ -164,7 +164,9 @@ namespace osu.Framework.Platform
                 case ExecutionMode.SingleThread:
                 {
                     // switch to single-threaded.
-                    foreach (var t in Threads)
+
+                    // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
+                    foreach (var t in Threads.Reverse())
                         t.Pause();
 
                     foreach (var t in Threads)
