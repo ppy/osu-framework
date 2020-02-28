@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Development;
@@ -199,14 +198,5 @@ namespace osu.Framework.Platform
                 mainThread.InactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
             }
         }
-    }
-
-    public enum ExecutionMode
-    {
-        [Description("Single thread")]
-        SingleThread,
-
-        [Description("Multithreaded")]
-        MultiThreaded
     }
 }
