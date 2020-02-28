@@ -65,7 +65,7 @@ namespace osu.Framework.Platform
         /// disable any system level timers that might dim or turn off the screen.
         /// For preserving battery life on mobile devices, this should be left on as much as possible.
         /// </summary>
-        public readonly IBindable<bool> IsIdleTimerEnabled = new Bindable<bool>(true);
+        public readonly IBindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
