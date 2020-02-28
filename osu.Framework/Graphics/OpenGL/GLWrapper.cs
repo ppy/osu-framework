@@ -18,6 +18,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
+using osu.Framework.Timing;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -56,7 +57,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
         public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
+        private static readonly Scheduler reset_scheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
@@ -79,7 +80,6 @@ namespace osu.Framework.Graphics.OpenGL
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
-            reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
             MaxRenderBufferSize = GL.GetInteger(GetPName.MaxRenderbufferSize);

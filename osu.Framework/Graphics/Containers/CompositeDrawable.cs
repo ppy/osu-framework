@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
-            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
 
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
@@ -276,12 +276,6 @@ namespace osu.Framework.Graphics.Containers
                     ExceptionDispatchInfo.Capture(e).Throw();
                 }
             }
-        }
-
-        protected override void LoadComplete()
-        {
-            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.SetCurrentThread(MainThread);
-            base.LoadComplete();
         }
 
         protected override void Dispose(bool isDisposing)

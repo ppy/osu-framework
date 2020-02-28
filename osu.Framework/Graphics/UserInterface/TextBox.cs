@@ -16,6 +16,7 @@ using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -89,7 +90,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler();
+        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -143,12 +144,6 @@ namespace osu.Framework.Graphics.UserInterface
                     cursorAndLayout.Invalidate();
                 };
             }
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            textUpdateScheduler.SetCurrentThread(MainThread);
         }
 
         public virtual bool OnPressed(PlatformAction action)

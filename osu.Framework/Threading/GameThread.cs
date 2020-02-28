@@ -228,14 +228,9 @@ namespace osu.Framework.Threading
 
         public class GameThreadScheduler : Scheduler
         {
-            private readonly GameThread thread;
-
-            protected override bool IsMainThread => thread.IsCurrent;
-
             public GameThreadScheduler(GameThread thread)
-                : base(null, thread.Clock)
+                : base(() => thread.IsCurrent, thread.Clock)
             {
-                this.thread = thread;
             }
         }
     }
