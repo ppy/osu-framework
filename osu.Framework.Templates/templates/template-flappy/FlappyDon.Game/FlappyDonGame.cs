@@ -223,14 +223,14 @@ namespace FlappyDon.Game
                 return base.OnMouseDown(e);
 
             if (gameOver)
-            {
                 reset();
-                return base.OnMouseDown(e);
-            }
+            else
+                onTapEvent();
 
-            onTapEvent();
-
-            return base.OnMouseDown(e);
+            // Return true instead of continuing to forward
+            // the mouse event up the chain as the logic above
+            // captured and responded to it.
+            return true;
         }
     }
 }
