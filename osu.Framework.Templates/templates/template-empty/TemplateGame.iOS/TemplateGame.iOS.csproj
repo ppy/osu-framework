@@ -18,7 +18,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TemplateGame.iOS</RootNamespace>
     <AssemblyName>TemplateGame</AssemblyName>
-    <MtouchUseLlvm>false</MtouchUseLlvm> <!-- This currently causes random lockups during gameplay. https://github.com/mono/mono/issues/18973 -->
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

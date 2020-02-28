@@ -45,9 +45,6 @@
     <DeviceSpecificBuild>true</DeviceSpecificBuild>
     <IOSDebuggerPort>28126</IOSDebuggerPort>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
-    <MtouchUseLlvm>true</MtouchUseLlvm>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
