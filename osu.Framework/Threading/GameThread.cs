@@ -75,9 +75,9 @@ namespace osu.Framework.Threading
 
             OnThreadStart?.Invoke();
 
-            Scheduler.SetCurrentThread();
-
             initializedEvent.Set();
+
+            MakeCurrent();
         }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
@@ -121,8 +121,7 @@ namespace osu.Framework.Threading
         {
             try
             {
-                Initialize();
-                MakeCurrent();
+                Initialize(true);
 
                 while (!exitCompleted && !paused)
                 {
@@ -143,12 +142,6 @@ namespace osu.Framework.Threading
             {
                 Thread = null;
             }
-        }
-
-        internal virtual void Initialize()
-        {
-            OnThreadStart?.Invoke();
-            initializedEvent.Set();
         }
 
         /// <summary>

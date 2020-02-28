@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -146,7 +145,9 @@ namespace osu.Framework.Platform
             {
                 case ExecutionMode.MultiThreaded:
                 {
-                    ThreadSafety.SingleThreadThread = null;
+                    ThreadSafety.IsAudioThread = false;
+                    ThreadSafety.IsDrawThread = false;
+                    ThreadSafety.IsInputThread = false;
 
                     // switch to multi-threaded
                     foreach (var t in Threads)
@@ -160,8 +161,6 @@ namespace osu.Framework.Platform
 
                 case ExecutionMode.SingleThreaded:
                 {
-                    ThreadSafety.SingleThreadThread = Thread.CurrentThread;
-
                     // switch to single-threaded.
                     foreach (var t in Threads)
                         t.Pause();
