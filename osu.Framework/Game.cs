@@ -163,6 +163,8 @@ namespace osu.Framework
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
 
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+
             logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
             logOverlayVisibility.BindValueChanged(visibility =>
             {
@@ -223,6 +225,8 @@ namespace osu.Framework
 
         private Bindable<bool> logOverlayVisibility;
 
+        private Bindable<FrameSync> frameSyncMode;
+
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
@@ -280,6 +284,15 @@ namespace osu.Framework
                 case FrameworkAction.ToggleFullscreen:
                     Window?.CycleMode();
                     return true;
+
+                case FrameworkAction.CycleFrameSync:
+                    var nextMode = frameSyncMode.Value + 1;
+
+                    if (nextMode > FrameSync.Unlimited)
+                        nextMode = FrameSync.VSync;
+
+                    frameSyncMode.Value = nextMode;
+                    break;
             }
 
             return false;

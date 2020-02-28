@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -38,10 +37,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
-using Key = osuTK.Input.Key;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using WindowState = osuTK.WindowState;
 
@@ -143,7 +140,7 @@ namespace osu.Framework.Platform
             threads.Add(thread);
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
+            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -558,15 +555,9 @@ namespace osu.Framework.Platform
                     if (Window != null)
                     {
                         if (Window is SDLWindow window)
-                        {
-                            window.KeyDown += keyDown;
                             window.Update += handleInput;
-                        }
                         else
-                        {
-                            Window.KeyDown += legacyKeyDown;
                             Window.UpdateFrame += (o, e) => handleInput();
-                        }
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
@@ -686,29 +677,6 @@ namespace osu.Framework.Platform
                 InputThread.RunUpdate();
         }
 
-        private void legacyKeyDown(object sender, KeyboardKeyEventArgs e)
-        {
-            if (e.Control && e.Key == Key.F7)
-                cycleFrameSync();
-        }
-
-        private void keyDown(KeyboardKeyInput e)
-        {
-            // TODO: check for control key
-            if (e.Entries.Any(x => x.Button == Key.F7 && x.IsPressed))
-                cycleFrameSync();
-        }
-
-        private void cycleFrameSync()
-        {
-            var nextMode = frameSyncMode.Value + 1;
-
-            if (nextMode > FrameSync.Unlimited)
-                nextMode = FrameSync.VSync;
-
-            frameSyncMode.Value = nextMode;
-        }
-
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
         private Bindable<bool> bypassFrontToBackPass;
@@ -718,7 +686,8 @@ namespace osu.Framework.Platform
         private Bindable<string> ignoredInputHandlers;
 
         private Bindable<double> cursorSensitivity;
-        private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
+
+        public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
         private Bindable<WindowMode> windowMode;
 
@@ -824,11 +793,11 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            DebugConfig.BindWith(DebugSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(logging =>
+            PerformanceLogging.BindValueChanged(logging =>
             {
                 threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
+                TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
