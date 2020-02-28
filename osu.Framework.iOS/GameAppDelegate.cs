@@ -30,7 +30,7 @@ namespace osu.Framework.iOS
             Window.MakeKeyAndVisible();
 
             // required to trigger the osuTK update loop, which is used for input handling.
-            gameView.Run(UIScreen.MainScreen.MaximumFramesPerSecond);
+            gameView.RunWithFrameInterval((int)UIScreen.MainScreen.MaximumFramesPerSecond);
 
             host.Run(CreateGame());
 
