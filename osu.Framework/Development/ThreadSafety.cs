@@ -3,28 +3,30 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Development
 {
     internal static class ThreadSafety
     {
         [Conditional("DEBUG")]
-        internal static void EnsureUpdateThread()
-        {
-            Debug.Assert(IsUpdateThread);
-        }
+        internal static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
 
         [Conditional("DEBUG")]
-        internal static void EnsureNotUpdateThread()
-        {
-            Debug.Assert(!IsUpdateThread);
-        }
+        internal static void EnsureNotUpdateThread() => Debug.Assert(!IsUpdateThread);
 
         [Conditional("DEBUG")]
-        internal static void EnsureDrawThread()
+        internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
+
+        internal static void ResetAllForCurrentThread()
         {
-            Debug.Assert(IsDrawThread);
+            IsInputThread = false;
+            IsUpdateThread = false;
+            IsDrawThread = false;
+            IsAudioThread = false;
         }
+
+        public static ExecutionMode ExecutionMode;
 
         [ThreadStatic]
         public static bool IsInputThread;

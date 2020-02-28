@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.Performance
                     elapsedSinceLastUpdate = 0;
 
                     counter.Text = $"{displayFps:0}fps({rollingElapsed:0.00}ms)"
-                                   + $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                                   + (clock.Throttling ? $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz" : string.Empty);
                 });
             }, 1000.0 / updates_per_second, true);
         }

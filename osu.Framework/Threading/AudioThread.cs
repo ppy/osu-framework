@@ -20,9 +20,10 @@ namespace osu.Framework.Threading
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
 
-        internal override void MakeCurrent()
+        internal sealed override void MakeCurrent()
         {
             base.MakeCurrent();
+
             ThreadSafety.IsAudioThread = true;
         }
 
