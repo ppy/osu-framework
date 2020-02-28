@@ -21,6 +21,8 @@ namespace osu.Framework.Threading
             StatisticsCounterType.JoystickEvents,
         };
 
+        public override bool IsCurrent => ThreadSafety.IsInputThread;
+
         internal override void MakeCurrent()
         {
             base.MakeCurrent();

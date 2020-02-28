@@ -61,6 +61,8 @@ namespace osu.Framework.Threading
 
         public bool Running => Thread.IsAlive;
 
+        public virtual bool IsCurrent => true;
+
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public Action OnThreadStart;
@@ -83,7 +85,7 @@ namespace osu.Framework.Threading
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
-            Scheduler = new Scheduler(null, Clock);
+            Scheduler = new GameThreadScheduler(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -166,6 +168,19 @@ namespace osu.Framework.Threading
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+        }
+
+        public class GameThreadScheduler : Scheduler
+        {
+            private readonly GameThread thread;
+
+            protected override bool IsMainThread => thread.IsCurrent;
+
+            public GameThreadScheduler(GameThread thread)
+                : base(null, thread.Clock)
+            {
+                this.thread = thread;
+            }
         }
     }
 }

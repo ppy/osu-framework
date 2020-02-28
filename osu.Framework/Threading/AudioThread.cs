@@ -18,6 +18,8 @@ namespace osu.Framework.Threading
             OnNewFrame = onNewFrame;
         }
 
+        public override bool IsCurrent => ThreadSafety.IsAudioThread;
+
         internal override void MakeCurrent()
         {
             base.MakeCurrent();
