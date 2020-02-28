@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Development
 {
@@ -24,6 +25,8 @@ namespace osu.Framework.Development
             IsDrawThread = false;
             IsAudioThread = false;
         }
+
+        public static ExecutionMode ExecutionMode;
 
         [ThreadStatic]
         public static bool IsInputThread;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
@@ -28,7 +29,7 @@ namespace osu.Framework.Audio
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>
         protected Task EnqueueAction(Action action)
         {
-            if (ThreadSafety.IsAudioThread)
+            if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThreaded && ThreadSafety.IsUpdateThread))
             {
                 action();
                 return Task.CompletedTask;

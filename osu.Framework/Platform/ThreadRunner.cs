@@ -177,7 +177,8 @@ namespace osu.Framework.Platform
                 }
             }
 
-            activeExecutionMode = ExecutionMode;
+            activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
+
             updateMainThreadRates();
         }
 
