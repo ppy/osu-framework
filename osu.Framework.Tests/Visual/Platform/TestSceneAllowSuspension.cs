@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
@@ -22,11 +21,7 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             base.LoadComplete();
 
-            AddToggleStep("Toggle Suspension", b =>
-                {
-                    allowSuspension.Value = b;
-                }
-            );
+            AddToggleStep("Toggle Suspension", b => allowSuspension.Value = b);
         }
     }
 }
