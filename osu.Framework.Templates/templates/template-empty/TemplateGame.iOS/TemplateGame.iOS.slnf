@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "TemplateGame.sln",
+    "projects": [
+      "TemplateGame.Game\\TemplateGame.Game.csproj",
+      "TemplateGame.Resources\\TemplateGame.Resources.csproj",
+      "TemplateGame.iOS\\TemplateGame.iOS.csproj"
+    ]
+  }
+}

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -163,6 +162,10 @@ namespace osu.Framework
             Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
 
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+
+            executionMode = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+
             logOverlayVisibility = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
             logOverlayVisibility.BindValueChanged(visibility =>
             {
@@ -202,7 +205,7 @@ namespace osu.Framework
 
             PerformanceOverlay performanceOverlay;
 
-            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads.Reverse())
+            LoadComponentAsync(performanceOverlay = new PerformanceOverlay(Host.Threads)
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,
@@ -222,6 +225,10 @@ namespace osu.Framework
         private GlobalStatisticsDisplay globalStatistics;
 
         private Bindable<bool> logOverlayVisibility;
+
+        private Bindable<FrameSync> frameSyncMode;
+
+        private Bindable<ExecutionMode> executionMode;
 
         public bool OnPressed(FrameworkAction action)
         {
@@ -280,6 +287,24 @@ namespace osu.Framework
                 case FrameworkAction.ToggleFullscreen:
                     Window?.CycleMode();
                     return true;
+
+                case FrameworkAction.CycleFrameSync:
+                    var nextFrameSync = frameSyncMode.Value + 1;
+
+                    if (nextFrameSync > FrameSync.Unlimited)
+                        nextFrameSync = FrameSync.VSync;
+
+                    frameSyncMode.Value = nextFrameSync;
+                    break;
+
+                case FrameworkAction.CycleExecutionMode:
+                    var nextExecutionMode = executionMode.Value + 1;
+
+                    if (nextExecutionMode > ExecutionMode.MultiThreaded)
+                        nextExecutionMode = ExecutionMode.SingleThread;
+
+                    executionMode.Value = nextExecutionMode;
+                    break;
             }
 
             return false;

@@ -299,7 +299,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLower()}]: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -328,7 +328,7 @@ namespace osu.Framework.Logging
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Name}:{level.ToString().ToLower()}] {line}");
+                            consoleLog($"[{Name.ToLower()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
