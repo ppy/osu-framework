@@ -148,6 +148,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             public FrameBufferTexture(Vector2 size, All filteringMode = All.Linear)
                 : base((int)Math.Ceiling(size.X), (int)Math.Ceiling(size.Y), true, filteringMode)
             {
+                BypassTextureUploadQueueing = true;
+
                 SetData(new TextureUpload());
                 Upload();
             }

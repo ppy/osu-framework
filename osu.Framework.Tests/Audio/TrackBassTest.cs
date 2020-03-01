@@ -8,6 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -289,6 +290,8 @@ namespace osu.Framework.Tests.Audio
 
             new Thread(() =>
             {
+                ThreadSafety.IsAudioThread = true;
+
                 action();
 
                 resetEvent.Set();

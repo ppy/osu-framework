@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
@@ -17,6 +18,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         private VideoSprite videoSprite;
         private SpriteText timeText;
         private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
+
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
         public TestSceneVideoSprite()
         {
