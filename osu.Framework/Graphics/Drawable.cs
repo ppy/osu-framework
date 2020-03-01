@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            scheduler = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
             total_count.Value++;
 
             AddLayout(drawInfoBacking);
@@ -216,8 +216,7 @@ namespace osu.Framework.Graphics
 
         private readonly object loadLock = new object();
 
-        private static readonly StopwatchClock perf = new StopwatchClock(true);
-        private static double getPerfTime() => perf.CurrentTime;
+        private static readonly StopwatchClock perf_clock = new StopwatchClock(true);
 
         /// <summary>
         /// Load this drawable from an async context.
@@ -272,15 +271,9 @@ namespace osu.Framework.Graphics
         {
             LoadThread = Thread.CurrentThread;
 
-            double t0 = getPerfTime();
-
-            double lockDuration = getPerfTime() - t0;
-            if (getPerfTime() > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
-                Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
-
             UpdateClock(clock);
 
-            double t1 = getPerfTime();
+            double timeBefore = DebugUtils.LogPerformanceIssues ? perf_clock.CurrentTime : 0;
 
             RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
             RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
@@ -294,9 +287,17 @@ namespace osu.Framework.Graphics
 
             LoadAsyncComplete();
 
-            double loadDuration = perf.CurrentTime - t1;
-            if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
-                Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
+            if (timeBefore > 1000)
+            {
+                double loadDuration = perf_clock.CurrentTime - timeBefore;
+
+                bool blocking = ThreadSafety.IsUpdateThread;
+
+                double allowedDuration = blocking ? 16 : 100;
+
+                if (loadDuration > allowedDuration)
+                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance, blocking ? LogLevel.Important : LogLevel.Verbose);
+            }
         }
 
         /// <summary>
@@ -311,9 +312,6 @@ namespace osu.Framework.Graphics
         private bool loadComplete()
         {
             if (loadState < LoadState.Ready) return false;
-
-            MainThread = Thread.CurrentThread;
-            if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
 
@@ -435,8 +433,6 @@ namespace osu.Framework.Graphics
         internal event Action OnUnbindAllBindables;
 
         private readonly Lazy<Scheduler> scheduler;
-
-        internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.

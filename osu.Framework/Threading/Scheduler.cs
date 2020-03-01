@@ -18,7 +18,8 @@ namespace osu.Framework.Threading
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
-        private int mainThreadId;
+
+        private readonly Func<bool> isCurrentThread;
 
         private IClock clock;
         private double currentTime => clock?.CurrentTime ?? 0;
@@ -35,25 +36,18 @@ namespace osu.Framework.Threading
         /// </summary>
         public Scheduler()
         {
-            SetCurrentThread();
+            var currentThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == currentThread;
+
             clock = new StopwatchClock(true);
         }
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread)
+        public Scheduler(Func<bool> isCurrentThread, IClock clock)
         {
-            SetCurrentThread(mainThread);
-            clock = new StopwatchClock(true);
-        }
-
-        /// <summary>
-        /// The base thread is assumed to be the the thread on which the constructor is run.
-        /// </summary>
-        public Scheduler(Thread mainThread, IClock clock)
-        {
-            SetCurrentThread(mainThread);
+            this.isCurrentThread = isCurrentThread;
             this.clock = clock;
         }
 
@@ -82,7 +76,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        protected bool IsMainThread => isCurrentThread?.Invoke() ?? true;
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
@@ -199,16 +193,6 @@ namespace osu.Framework.Threading
                     t.Cancel();
                 timedTasks.Clear();
             }
-        }
-
-        internal void SetCurrentThread(Thread thread)
-        {
-            mainThreadId = thread?.ManagedThreadId ?? -1;
-        }
-
-        internal void SetCurrentThread()
-        {
-            mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>

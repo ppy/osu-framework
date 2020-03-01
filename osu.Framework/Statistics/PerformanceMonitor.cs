@@ -153,8 +153,6 @@ namespace osu.Framework.Statistics
             //check for dropped (stutter) frames
             traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
 
-            //reset frame totals
-            currentCollectionTypeStack.Clear();
             consumeStopwatchElapsedTime();
         }
 

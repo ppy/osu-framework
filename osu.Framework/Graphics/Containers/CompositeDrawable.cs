@@ -19,6 +19,7 @@ using osu.Framework.Timing;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
@@ -44,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
-            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
 
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
@@ -98,9 +99,13 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected internal Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+        protected internal Task LoadComponentAsync<TLoadable>([NotNull] TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
-            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
+        {
+            if (component == null) throw new ArgumentNullException(nameof(component));
+
+            return LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
+        }
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> synchronously and immediately. <see cref="Dependencies"/>
@@ -159,6 +164,9 @@ namespace osu.Framework.Graphics.Containers
             return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
+
+                if (!components.Any())
+                    return;
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
@@ -271,12 +279,6 @@ namespace osu.Framework.Graphics.Containers
                     ExceptionDispatchInfo.Capture(e).Throw();
                 }
             }
-        }
-
-        protected override void LoadComplete()
-        {
-            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.SetCurrentThread(MainThread);
-            base.LoadComplete();
         }
 
         protected override void Dispose(bool isDisposing)
