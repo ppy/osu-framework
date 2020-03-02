@@ -89,9 +89,11 @@ namespace osu.Framework.Graphics.Transforms
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms(double time)
+        /// <param name="time">The point in time to update transforms to.</param>
+        /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
+        private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
-            bool rewinding = lastUpdateTransformsTime > time;
+            bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
             if (!transformsLazy.IsValueCreated)
@@ -127,6 +129,9 @@ namespace osu.Framework.Graphics.Transforms
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
+                            else
+                                t.Apply(t.EndTime);
+
                             appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
@@ -462,7 +467,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms(Time.Current);
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
     }
 }

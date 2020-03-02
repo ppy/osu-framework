@@ -225,10 +225,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return true;
             }
 
-            protected override bool OnMouseUp(MouseUpEvent e)
+            protected override void OnMouseUp(MouseUpEvent e)
             {
                 mouseDown = false;
-                return true;
             }
 
             protected override bool OnMouseMove(MouseMoveEvent e)

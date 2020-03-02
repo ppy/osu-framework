@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private readonly Table table;
 
-        private readonly Cached columnDefinitionCache = new Cached();
-        private readonly Cached rowDefinitionCache = new Cached();
+        private readonly LayoutValue columnDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
+        private readonly LayoutValue rowDefinitionCache = new LayoutValue(Invalidation.DrawSize, conditions: (s, _) => s.Parent != null);
 
         public MarkdownTable(Table table)
         {
@@ -35,6 +35,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RelativeSizeAxes = Axes.X;
 
             table.Normalize();
+
+            AddLayout(columnDefinitionCache);
+            AddLayout(rowDefinitionCache);
         }
 
         [BackgroundDependencyLoader]
@@ -61,19 +64,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 RelativeSizeAxes = Axes.X,
                 Content = rows.Select(x => x.ToArray()).ToArray(),
             };
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            var result = base.Invalidate(invalidation, source, shallPropagate);
-
-            if ((invalidation & Invalidation.DrawSize) > 0 && Parent != null)
-            {
-                result &= columnDefinitionCache.Invalidate();
-                result &= rowDefinitionCache.Invalidate();
-            }
-
-            return result;
         }
 
         protected override void Update()

@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -35,19 +35,22 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
+        private readonly List<T> items = new List<T>();
+
         /// <summary>
-        /// A list of items currently in the tab control in the order they are dispalyed.
+        /// The list of all items contained by this <see cref="TabControl{T}"/>.
         /// </summary>
-        public IEnumerable<T> Items
+        [NotNull]
+        public IReadOnlyList<T> Items
         {
-            get
+            get => items;
+            set
             {
-                var items = TabContainer.TabItems.Select(t => t.Value);
+                foreach (var item in items.ToList())
+                    RemoveItem(item);
 
-                if (Dropdown != null)
-                    items = items.Concat(Dropdown.Items).Distinct();
-
-                return items;
+                foreach (var item in value)
+                    AddItem(item);
             }
         }
 
@@ -61,8 +64,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown<T> Dropdown;
 
         protected readonly TabFillFlowContainer TabContainer;
-
-        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         protected TabItem<T> SelectedTab;
 
@@ -92,7 +93,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A mapping of tabs to their items.
         /// </summary>
-        private readonly Dictionary<T, TabItem<T>> tabMap;
+        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
+
+        private readonly Dictionary<T, TabItem<T>> tabMap = new Dictionary<T, TabItem<T>>();
 
         private bool firstSelection = true;
 
@@ -111,16 +114,17 @@ namespace osu.Framework.Graphics.UserInterface
 
                 Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
                 Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
-
-                // create tab items for already existing items in dropdown (if any).
-                tabMap = Dropdown.Items.ToDictionary(item => item, item => addTab(item, false));
             }
-            else
-                tabMap = new Dictionary<T, TabItem<T>>();
 
             AddInternal(TabContainer = CreateTabFlow());
             TabContainer.TabVisibilityChanged = updateDropdown;
-            TabContainer.ChildrenEnumerable = tabMap.Values;
+
+            if (Dropdown != null)
+            {
+                // create tab items for already existing items in dropdown (if any).
+                foreach (var item in Dropdown.Items)
+                    addTab(item, false);
+            }
 
             Current.ValueChanged += _ => firstSelection = false;
         }
@@ -184,7 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Removes all items from the control.
         /// </summary>
-        public void Clear() => tabMap.Keys.ToArray().ForEach(item => removeTab(item));
+        public void Clear() => Items = Array.Empty<T>();
 
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
@@ -214,12 +218,14 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += performTabSort;
+            tab.ActivationRequested += activationRequested;
 
-            tab.ActivationRequested += SelectTab;
-
+            items.Add(tab.Value);
             tabMap[tab.Value] = tab;
+
             if (addToDropdown)
                 Dropdown?.AddDropdownItem(tab.Value);
+
             TabContainer.Add(tab);
         }
 
@@ -236,6 +242,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (tab == SelectedTab)
                 SelectedTab = null;
 
+            items.Remove(tab.Value);
             tabMap.Remove(tab.Value);
 
             if (removeFromDropdown)
@@ -314,6 +321,14 @@ namespace osu.Framework.Graphics.UserInterface
             SelectTab(switchableTabs[targetIndex]);
         }
 
+        private void activationRequested(TabItem<T> tab)
+        {
+            if (Current.Disabled)
+                return;
+
+            SelectTab(tab);
+        }
+
         private void performTabSort(TabItem<T> tab)
         {
             TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
@@ -344,7 +359,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public bool OnReleased(PlatformAction action) => false;
+        public void OnReleased(PlatformAction action)
+        {
+        }
 
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {

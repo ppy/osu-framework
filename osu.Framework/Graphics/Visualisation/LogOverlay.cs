@@ -100,11 +100,11 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.ControlPressed)
                 setHoldState(false);
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void setHoldState(bool controlPressed)

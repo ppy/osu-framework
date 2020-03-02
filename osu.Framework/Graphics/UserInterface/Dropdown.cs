@@ -13,7 +13,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
-using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 
@@ -234,11 +233,11 @@ namespace osu.Framework.Graphics.UserInterface
             switch (action)
             {
                 case DropdownHeader.DropdownSelectionAction.Previous:
-                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
+                    SelectedItem = dropdownMenuItems[Math.Clamp(dropdownMenuItems.IndexOf(SelectedItem) - 1, 0, dropdownMenuItems.Count - 1)];
                     break;
 
                 case DropdownHeader.DropdownSelectionAction.Next:
-                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
+                    SelectedItem = dropdownMenuItems[Math.Clamp(dropdownMenuItems.IndexOf(SelectedItem) + 1, 0, dropdownMenuItems.Count - 1)];
                     break;
 
                 case DropdownHeader.DropdownSelectionAction.First:
@@ -394,7 +393,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            protected void PreselectItem(int index) => PreselectItem(Items[MathHelper.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
+            protected void PreselectItem(int index) => PreselectItem(Items[Math.Clamp(index, 0, DrawableMenuItems.Count() - 1)]);
 
             /// <summary>
             /// Preselects an item from this <see cref="DropdownMenu"/>.
@@ -589,7 +588,9 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public bool OnReleased(PlatformAction action) => false;
+            public void OnReleased(PlatformAction action)
+            {
+            }
         }
 
         #endregion

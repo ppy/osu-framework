@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
@@ -28,7 +29,16 @@ namespace osu.Framework.Audio
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>
         protected Task EnqueueAction(Action action)
         {
-            if (ThreadSafety.IsAudioThread)
+            if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
+            {
+                if (ThreadSafety.IsDrawThread)
+                    throw new InvalidOperationException("Cannot perform audio operation from draw thread.");
+
+                if (ThreadSafety.IsInputThread)
+                    throw new InvalidOperationException("Cannot perform audio operation from input thread.");
+            }
+
+            if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread && ThreadSafety.IsUpdateThread))
             {
                 action();
                 return Task.CompletedTask;
@@ -80,6 +90,7 @@ namespace osu.Framework.Audio
         public void Update()
         {
             ThreadSafety.EnsureNotUpdateThread();
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
 

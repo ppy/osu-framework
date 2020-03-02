@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -33,6 +34,13 @@ namespace osu.Framework.Platform
             this.realtime = realtime;
         }
 
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
+        }
+
         protected override void SetupForRun()
         {
             base.SetupForRun();
@@ -41,14 +49,6 @@ namespace osu.Framework.Platform
         }
 
         protected override void SetupToolkit()
-        {
-        }
-
-        protected override void UpdateInitialize()
-        {
-        }
-
-        protected override void DrawInitialize()
         {
         }
 

@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.MacOS.Native
 {
     internal static class Cocoa
     {
-        internal const string LIB_DL = "libdl.dylib";
+        internal const string LIB_DL = "libSystem.dylib";
         internal const string LIB_APPKIT = "/System/Library/Frameworks/AppKit.framework/AppKit";
         internal const string LIB_OBJ_C = "/usr/lib/libobjc.dylib";
         internal const string LIB_CORE_GRAPHICS = "/System/Library/Frameworks/CoreGraphics.framework/Versions/Current/CoreGraphics";

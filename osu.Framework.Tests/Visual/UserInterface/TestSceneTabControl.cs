@@ -19,6 +19,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(TabControl<>),
+            typeof(TabItem),
+            typeof(BasicTabControl<>),
+        };
+
         private readonly TestEnum[] items;
 
         private StyledTabControl pinnedAndAutoSort;
@@ -145,7 +152,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Length);
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -172,7 +179,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestDisabledBindable()
+        public void TestTabSelectedWhenDisabledBindableIsBound()
         {
             Bindable<TestEnum?> bindable;
 
@@ -195,9 +202,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test2);
+        }
 
-            // Todo: Should not fail
-            // AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test0].Click());
+        [Test]
+        public void TestClicksBlockedWhenBindableDisabled()
+        {
+            AddStep("add tabcontrol", () =>
+            {
+                Child = simpleTabcontrol = new StyledTabControl { Size = new Vector2(200, 30) };
+
+                foreach (var item in items)
+                    simpleTabcontrol.AddItem(item);
+
+                simpleTabcontrol.Current = new Bindable<TestEnum?>
+                {
+                    Value = TestEnum.Test0,
+                    Disabled = true
+                };
+            });
+
+            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].Click());
+            AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
         }
 
         [TestCase(true)]
@@ -222,6 +247,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 simpleTabcontrol.RemoveItem(simpleTabcontrol.Items.First(d => simpleTabcontrol.TabMap[d].IsPresent));
                 return !simpleTabcontrol.Dropdown.Items.Any();
             });
+        }
+
+        [Test]
+        public void TestItemsImmediatelyUpdatedAfterAdd()
+        {
+            TabControlWithNoDropdown tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControl = new TabControlWithNoDropdown { Size = new Vector2(200, 30) };
+
+                foreach (var item in items)
+                    tabControl.AddItem(item);
+            });
+
+            AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
+        }
+
+        [Test]
+        public void TestItemsAddedWhenSet()
+        {
+            TabControlWithNoDropdown tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControl = new TabControlWithNoDropdown
+                {
+                    Size = new Vector2(200, 30),
+                    Items = items
+                };
+            });
+
+            AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
@@ -299,6 +357,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     new Box { Width = 20, Height = 20 }
                 };
             }
+        }
+
+        private class TabControlWithNoDropdown : BasicTabControl<TestEnum>
+        {
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
         }
 
         private enum TestEnum

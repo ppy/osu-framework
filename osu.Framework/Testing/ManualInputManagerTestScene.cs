@@ -23,9 +23,8 @@ namespace osu.Framework.Testing
 
         /// <summary>
         /// The position which is used to initialize the mouse position before at setup.
-        /// If the value is null, the mouse position is not moved.
         /// </summary>
-        protected virtual Vector2? InitialMousePosition => null;
+        protected virtual Vector2 InitialMousePosition => Vector2.Zero;
 
         /// <summary>
         /// The <see cref="ManualInputManager"/>.
@@ -36,7 +35,7 @@ namespace osu.Framework.Testing
         private readonly BasicButton buttonLocal;
 
         [SetUp]
-        public virtual void SetUp() => ResetInput();
+        public void SetUp() => ResetInput();
 
         protected ManualInputManagerTestScene()
         {
@@ -122,12 +121,10 @@ namespace osu.Framework.Testing
         /// </summary>
         protected void ResetInput()
         {
-            InputManager.UseParentInput = true;
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
-            var position = InitialMousePosition;
-            if (position != null) InputManager.MoveMouseTo(position.Value);
+            InputManager.MoveMouseTo(InitialMousePosition);
             mouse.Buttons.ForEach(InputManager.ReleaseButton);
 
             var keyboard = currentState.Keyboard;
@@ -135,12 +132,13 @@ namespace osu.Framework.Testing
 
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
+
+            // schedule after children to ensure pending inputs have been applied before using parent input manager.
+            ScheduleAfterChildren(returnUserInput);
         }
 
-        private void returnUserInput() =>
-            InputManager.UseParentInput = true;
+        private void returnUserInput() => InputManager.UseParentInput = true;
 
-        private void returnTestInput() =>
-            InputManager.UseParentInput = false;
+        private void returnTestInput() => InputManager.UseParentInput = false;
     }
 }

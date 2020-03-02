@@ -66,7 +66,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             var flash = new Box
             {
@@ -80,7 +80,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             flash.FadeOut(200).Expire();
 
             Success();
-            return base.OnDragEnd(e);
+            base.OnDragEnd(e);
         }
 
         protected override void UpdateValue(float normalizedValue)

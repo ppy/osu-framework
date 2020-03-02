@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Layout;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -15,6 +16,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class GridContainer : CompositeDrawable
     {
+        public GridContainer()
+        {
+            AddLayout(cellLayout);
+            AddLayout(cellChildLayout);
+        }
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -108,24 +115,9 @@ namespace osu.Framework.Graphics.Containers
             layoutCells();
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-                cellLayout.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
-
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                cellLayout.Invalidate();
-
-            base.InvalidateFromChild(invalidation, source);
-        }
-
         private readonly Cached cellContent = new Cached();
-        private readonly Cached cellLayout = new Cached();
+        private readonly LayoutValue cellLayout = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+        private readonly LayoutValue cellChildLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);
@@ -189,6 +181,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void layoutCells()
         {
+            if (!cellChildLayout.IsValid)
+            {
+                cellLayout.Invalidate();
+                cellChildLayout.Validate();
+            }
+
             if (cellLayout.IsValid)
                 return;
 
@@ -258,13 +256,13 @@ namespace osu.Framework.Graphics.Containers
                         {
                             // Go through each row and get the width of the cell at the indexed column
                             for (int r = 0; r < cellRows; r++)
-                                size = Math.Max(size, Content[r]?[i]?.BoundingBox.Width ?? 0);
+                                size = Math.Max(size, getCellWidth(Content[r]?[i]));
                         }
                         else
                         {
                             // Go through each column and get the height of the cell at the indexed row
                             for (int c = 0; c < cellColumns; c++)
-                                size = Math.Max(size, Content[i]?[c]?.BoundingBox.Height ?? 0);
+                                size = Math.Max(size, getCellHeight(Content[i]?[c]));
                         }
 
                         sizes[i] = size;
@@ -276,6 +274,10 @@ namespace osu.Framework.Graphics.Containers
 
             return sizes;
         }
+
+        private static bool shouldConsiderCell(Drawable cell) => cell != null && cell.IsAlive && cell.IsPresent;
+        private static float getCellWidth(Drawable cell) => shouldConsiderCell(cell) ? cell.BoundingBox.Width : 0;
+        private static float getCellHeight(Drawable cell) => shouldConsiderCell(cell) ? cell.BoundingBox.Height : 0;
 
         /// <summary>
         /// Distributes any available length along all distributed dimensions, if required.
@@ -321,12 +323,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private class CellContainer : Container
         {
-            public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+            protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
-                if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                    Parent?.InvalidateFromChild(invalidation, this);
+                var result = base.OnInvalidate(invalidation, source);
 
-                base.InvalidateFromChild(invalidation, source);
+                if (source == InvalidationSource.Child && (invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
+                    result |= Parent?.Invalidate(invalidation, InvalidationSource.Child) ?? false;
+
+                return result;
             }
         }
     }
