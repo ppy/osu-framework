@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Testing
         }
 
         [Test, Repeat(2)]
-        public void Test()
+        public void TestTest()
         {
             AddStep("increment run count", () => testRunCountDummyRun++);
 
@@ -88,6 +88,11 @@ namespace osu.Framework.Tests.Visual.Testing
 
             testRunCount++;
         }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        [Repeat(2)]
+        public void TestTestCase(int _) => TestTest();
 
         protected override ITestSceneTestRunner CreateRunner() => new TestRunner();
 
