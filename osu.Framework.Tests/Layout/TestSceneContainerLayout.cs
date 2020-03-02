@@ -123,6 +123,10 @@ namespace osu.Framework.Tests.Layout
             AddUntilStep("content height matches box height", () => Precision.AlmostEquals(content.DrawHeight, child.DrawHeight));
         }
 
+        /// <summary>
+        /// Tests that a parent container is not re-auto-sized when a child's size changes along the bypassed axes.
+        /// </summary>
+        /// <param name="axes">The bypassed axes that are bypassed.</param>
         [TestCase(Axes.X)]
         [TestCase(Axes.Y)]
         [TestCase(Axes.Both)]
@@ -160,6 +164,10 @@ namespace osu.Framework.Tests.Layout
             AddAssert("not autosized", () => !autoSized);
         }
 
+        /// <summary>
+        /// Tests that a parent container is not re-auto-sized when a child's position changes along the bypassed axes.
+        /// </summary>
+        /// <param name="axes">The bypassed axes that are bypassed.</param>
         [TestCase(Axes.X)]
         [TestCase(Axes.Y)]
         [TestCase(Axes.Both)]
