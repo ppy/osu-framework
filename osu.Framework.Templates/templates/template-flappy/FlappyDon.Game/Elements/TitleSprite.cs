@@ -16,6 +16,10 @@ namespace FlappyDon.Game.Elements
         [Resolved]
         private TextureStore textures { get; set; }
 
+        /// <summary>
+        /// Creates a new screen sprite that will display a message to the player.
+        /// </summary>
+        /// <param name="textureName">The filename of the texture to display.</param>
         public TitleSprite(string textureName)
         {
             this.textureName = textureName;
@@ -31,6 +35,10 @@ namespace FlappyDon.Game.Elements
             Texture = textures.Get(textureName);
         }
 
+        /// <summary>
+        /// Show the sprite after optionally waiting for a small duration
+        /// </summary>
+        /// <param name="delay">The duration to wait before showing the sprite.</param>
         public void Show(float delay = 0.0f)
         {
             this.Delay(delay).Then().FadeIn();

@@ -10,6 +10,9 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class ScreenFlash : Box
     {
+        /// <summary>
+        /// The duration for the screen flash to play.
+        /// </summary>
         public float FlashDuration = 30.0f;
 
         public ScreenFlash()

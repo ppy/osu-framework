@@ -13,8 +13,9 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class Backdrop : CompositeDrawable
     {
-        // Holds a lambda that generates new
-        // instances of the same sprite on demand.
+        /// <summary>
+        /// Holds a lambda that generates new instances of the same sprite on demand.
+        /// </summary>
         private readonly Func<Sprite> createSprite;
 
         // The previous size of this container,
@@ -22,14 +23,23 @@ namespace FlappyDon.Game.Elements
         // perform a fresh layout
         private Vector2 lastSize;
 
-        // Whether the sprite set is currently
-        // animating or not
+        /// <summary>
+        // Whether the sprite set is currently animating or not.
+        /// </summary>
         public bool Running { get; private set; }
 
-        // The duration it takes to animate one cycle
-        // of the sprites in the container.
+        /// <summary>
+        // The duration it takes to animate one cycle of the sprites in the container.
+        /// </summary>
         public float Duration;
 
+        /// <summary>
+        /// Create a new instance of a backdrop element,
+        /// supplying a lamba to dynamically generate multiple copies of one sprite,
+        /// and an animation value dictating the scrolling speed of the whole element.
+        /// </summary>
+        /// <param name="createSprite">A lamba that will create and return the same Sprite object for this container to manage.</param>
+        /// <param name="duration">The horizontal speed from right to left that the sprites will scroll at.</param>
         public Backdrop(Func<Sprite> createSprite, float duration = 2000.0f)
         {
             this.createSprite = createSprite;
@@ -43,6 +53,9 @@ namespace FlappyDon.Game.Elements
             Size = new Vector2(1.0f);
         }
 
+        /// <summary>
+        /// Start animating the child sprites across the screen
+        /// </summary>
         public void Start()
         {
             if (Running)
@@ -52,6 +65,9 @@ namespace FlappyDon.Game.Elements
             updateChildrenList();
         }
 
+        /// <summary>
+        /// Cancel the animations, but leave all sprites in place.
+        /// </summary>
         public void Freeze()
         {
             if (!Running)

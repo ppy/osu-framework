@@ -14,22 +14,25 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class Obstacles : CompositeDrawable
     {
-        // The bounding size of the collision box
-        // representing the bird
+        /// <summary>
+        /// The bounding size of the collision box representing the bird
+        /// </summary>
         public Vector2 CollisionBoxSize = new Vector2(50);
 
-        // Whether the obstacles are presently
-        // animating or not.
+        /// <summary>
+        /// Whether the obstacles are presently animating or not.
+        /// </summary>
         public bool Running { get; private set; }
 
-        // A horizontal X value from the left that
-        // indicates where the bird is on the X-axis.
-        // When a pipe crosses over this threshold, it
-        // counts as a point to the player.
+        /// <summary>
+        /// A horizontal X value from the left that indicates where the bird is on the X-axis.
+        /// When a pipe crosses over this threshold, it counts as a point to the player.
+        /// </summary>
         public float BirdThreshold = 0.0f;
 
-        // If the pipes are visible on screen, but their
-        // animation has been stopped.
+        /// <summary>
+        /// If the pipes are visible on screen, but their animation has been stopped.
+        /// </summary>
         private bool frozen;
 
         private float pipeVelocity

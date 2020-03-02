@@ -65,9 +65,8 @@ namespace FlappyDon.Game
                 screenFlash
             };
 
-            // Configure the sizing strategy in such a way that all elements
-            // are relatively scaled in contrast to the Y-axis (ie height of the window),
-            // but changing the X-axis (ie window width) has no effect on scaling.
+            // Configure the sizing strategy in such a way that all elements are relatively scaled in
+            // contrast to the Y-axis (ie height of the window), but changing the X-axis (ie window width) has no effect on scaling.
             gameScreen.Strategy = DrawSizePreservationStrategy.Minimum;
             gameScreen.TargetDrawSize = new Vector2(0, 768);
             AddInternal(gameScreen);
@@ -77,13 +76,11 @@ namespace FlappyDon.Game
         {
             base.LoadComplete();
 
-            // Set the Y offset from the top
-            // that counts as the ground for the bird
+            // Set the Y offset from the top that counts as the ground for the bird
             bird.GroundY = 525.0f;
 
-            // Inform the obstacles the position of the
-            // bird in order to detect when the player successfully
-            // earns a point
+            // Inform the obstacles the position of the bird in order to detect when the
+            // player successfully earns a point
             obstacles.BirdThreshold = bird.X;
 
             // Start animating the background elements
@@ -146,9 +143,8 @@ namespace FlappyDon.Game
             groundBackdrop.Freeze();
             skyBackdrop.Freeze();
 
-            // Set a flag to block input for half a second
-            // so the user can't accidentally reset the game instantly
-            // after hitting a pipe.
+            // Set a flag to block input for half a second so the user can't
+            // accidentally reset the game instantly after hitting a pipe.
             gameOverCooldown = true;
             Scheduler.AddDelayed(() => gameOverCooldown = false, 500.0f);
         }
@@ -193,8 +189,7 @@ namespace FlappyDon.Game
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            // After dying, disable input briefly to stop the user
-            // restarting the game too quickly.
+            // After dying, disable input briefly to stop the user restarting the game too quickly.
             if (gameOverCooldown)
                 return base.OnKeyDown(e);
 
@@ -205,16 +200,14 @@ namespace FlappyDon.Game
             else
                 return base.OnKeyDown(e);
 
-            // Since we captured and directly responded to
-            // this event, return true instead of
+            // Since we captured and directly responded to this event, return true instead of
             // continuing to forward the event
             return true;
         }
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            // Since some devices rely on top or bottom swipe touches,
-            // (eg, swipe-to-close on iPhone X),
+            // Since some devices rely on top or bottom swipe touches, (eg, swipe-to-close on iPhone X),
             // disregard events around those areas
             float verticalOffset = e.MouseDownPosition.Y / DrawHeight;
             if (verticalOffset < 0.05f || verticalOffset > 0.95f)
@@ -228,9 +221,8 @@ namespace FlappyDon.Game
             else
                 onTapEvent();
 
-            // Return true instead of continuing to forward
-            // the mouse event up the chain as the logic above
-            // captured and responded to it.
+            // Return true instead of continuing to forward the mouse event up
+            // the chain as the logic above captured and responded to it.
             return true;
         }
     }
