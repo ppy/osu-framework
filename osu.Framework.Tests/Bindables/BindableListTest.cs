@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("0");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             IEnumerable<string> addedItem = null;
             IEnumerable<string> removedItem = null;
             bindableStringList.ItemsAdded += v => addedItem = v;
@@ -149,7 +149,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             IEnumerable<string> addedItem = null;
             IEnumerable<string> removedItem = null;
             list.ItemsAdded += v => addedItem = v;
@@ -189,7 +189,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesSubscriber(string str)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             string addedString = null;
             bindableStringList.ItemsAdded += s => addedString = s.SingleOrDefault();
 #pragma warning restore 618
@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesSubscriberOnce(string str)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             int notificationCount = 0;
             bindableStringList.ItemsAdded += s => notificationCount++;
 #pragma warning restore 618
@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesMultipleSubscribers(string str)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
@@ -260,7 +260,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesMultipleSubscribersOnlyAfterTheAdd(string str)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
@@ -369,7 +369,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             bindableStringList.BindTo(list);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             IEnumerable<string> addedItems = null;
             list.ItemsAdded += e => addedItems = e;
 #pragma warning restore 618
@@ -438,7 +438,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.AddRange(new[] { "0", "1", "2" });
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             string removedItem = null;
             string addedItem = null;
             bindableStringList.ItemsAdded += s => addedItem = s.Single();
@@ -464,7 +464,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.AddRange(new[] { "0", "1", "2" });
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool updatedA = false;
             bool updatedB = false;
             bool updatedC = false;
@@ -533,7 +533,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasMoved = false;
             list.ItemsRemoved += s => wasMoved = true;
 #pragma warning restore 618
@@ -558,7 +558,7 @@ namespace osu.Framework.Tests.Bindables
             var listA = new BindableList<string>();
             listA.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasMovedA1 = false;
             bool wasMovedA2 = false;
             listA.ItemsRemoved += s => wasMovedA1 = true;
@@ -572,7 +572,7 @@ namespace osu.Framework.Tests.Bindables
             var listB = new BindableList<string>();
             listB.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasMovedB1 = false;
             bool wasMovedB2 = false;
             listB.ItemsRemoved += s => wasMovedB1 = true;
@@ -625,7 +625,7 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("2");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasAdded = false;
             bindableStringList.ItemsAdded += _ => wasAdded = true;
 #pragma warning restore 618
@@ -650,7 +650,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasAdded = false;
             list.ItemsAdded += _ => wasAdded = true;
 #pragma warning restore 618
@@ -734,7 +734,7 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringList.Add(item);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool updated = false;
             bindableStringList.ItemsRemoved += s => updated = true;
 #pragma warning restore 618
@@ -756,7 +756,7 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringList.Add(item);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool updatedA = false;
             bool updatedB = false;
             bool updatedC = false;
@@ -828,7 +828,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasRemoved = false;
             list.ItemsRemoved += s => wasRemoved = true;
 #pragma warning restore 618
@@ -852,7 +852,7 @@ namespace osu.Framework.Tests.Bindables
             var listA = new BindableList<string>();
             listA.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasRemovedA1 = false;
             bool wasRemovedA2 = false;
             listA.ItemsRemoved += s => wasRemovedA1 = true;
@@ -866,7 +866,7 @@ namespace osu.Framework.Tests.Bindables
             var listB = new BindableList<string>();
             listB.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasRemovedB1 = false;
             bool wasRemovedB2 = false;
             listB.ItemsRemoved += s => wasRemovedB1 = true;
@@ -946,7 +946,7 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("1");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             List<string> itemsRemoved = null;
             bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
 #pragma warning restore 618
@@ -978,7 +978,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             List<string> itemsRemoved = null;
             list.ItemsRemoved += i => itemsRemoved = i.ToList();
 #pragma warning restore 618
@@ -1006,7 +1006,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool notified = false;
             list.ItemsRemoved += i => notified = true;
 #pragma warning restore 618
@@ -1051,7 +1051,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("abc");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasRemoved = false;
             bindableStringList.ItemsRemoved += _ => wasRemoved = true;
 #pragma warning restore 618
@@ -1075,7 +1075,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasRemoved = false;
             list.ItemsRemoved += s => wasRemoved = true;
 #pragma warning restore 618
@@ -1120,7 +1120,7 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("0");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             List<string> itemsRemoved = null;
             bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
 #pragma warning restore 618
@@ -1144,7 +1144,7 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             List<string> itemsRemoved = null;
             list.ItemsRemoved += i => itemsRemoved = i.ToList();
 #pragma warning restore 618
@@ -1209,7 +1209,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasNotified = false;
             bindableStringList.ItemsRemoved += items => wasNotified = true;
 #pragma warning restore 618
@@ -1231,7 +1231,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasNotified = false;
             bindableStringList.ItemsRemoved += items => wasNotified = true;
 #pragma warning restore 618
@@ -1251,7 +1251,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool wasNotifiedA = false;
             bool wasNotifiedB = false;
             bool wasNotifiedC = false;
@@ -1533,7 +1533,7 @@ namespace osu.Framework.Tests.Bindables
             string[] strings = { "testA", "testB", "testC" };
             bindableStringList.AddRange(strings);
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool itemsGotCleared = false;
             IEnumerable<string> clearedItems = null;
             bindableStringList.ItemsRemoved += items =>
@@ -1565,7 +1565,7 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("test123");
             IEnumerable<string> strings = new[] { "testA", "testB" };
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
             bindableStringList.ItemsAdded += items =>
@@ -1611,7 +1611,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var boundCopy = bindableStringList.GetBoundCopy();
 
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             bool boundCopyItemAdded = false;
             boundCopy.ItemsAdded += item => boundCopyItemAdded = true;
 #pragma warning restore 618
