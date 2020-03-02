@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>ppy.osu.Framework.Templates</PackageId>
+    <Title>osu! framework templates</Title>
+    <Authors>ppy Pty Ltd</Authors>
+    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
+    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
+    <copyright>Copyright (c) 2020 ppy Pty Ltd</copyright>
+    <Description>Templates that can be used as starting points for new games, built with of osu! framework.</Description>
+    <PackageTags>dotnet-new;templates;osu;framework</PackageTags>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+</Project>
