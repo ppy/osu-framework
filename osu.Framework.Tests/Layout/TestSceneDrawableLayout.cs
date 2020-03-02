@@ -5,13 +5,15 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
-namespace osu.Framework.Tests.Layout.DrawableLayout
+namespace osu.Framework.Tests.Layout
 {
+    [HeadlessTest]
     public class TestSceneDrawableLayout : FrameworkTestScene
     {
         /// <summary>
