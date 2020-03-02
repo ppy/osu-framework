@@ -24,12 +24,12 @@ namespace FlappyDon.Game.Elements
         private Vector2 lastSize;
 
         /// <summary>
-        // Whether the sprite set is currently animating or not.
+        /// Whether the sprite set is currently animating or not.
         /// </summary>
         public bool Running { get; private set; }
 
         /// <summary>
-        // The duration it takes to animate one cycle of the sprites in the container.
+        /// The duration it takes to animate one cycle of the sprites in the container.
         /// </summary>
         public float Duration;
 
