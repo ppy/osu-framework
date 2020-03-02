@@ -540,9 +540,17 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Position)} must be finite, but is {value}.");
 
+                Axes changedAxes = Axes.None;
+
+                if (position.X != value.X)
+                    changedAxes |= Axes.X;
+
+                if (position.Y != value.Y)
+                    changedAxes |= Axes.Y;
+
                 position = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, changedAxes);
             }
         }
 
@@ -563,7 +571,7 @@ namespace osu.Framework.Graphics
 
                 x = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, Axes.X);
             }
         }
 
@@ -581,7 +589,7 @@ namespace osu.Framework.Graphics
 
                 y = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, Axes.Y);
             }
         }
 
@@ -671,9 +679,17 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Size)} must be finite, but is {value}.");
 
+                Axes changedAxes = Axes.None;
+
+                if (size.X != value.X)
+                    changedAxes |= Axes.X;
+
+                if (size.Y != value.Y)
+                    changedAxes |= Axes.Y;
+
                 size = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, changedAxes);
             }
         }
 
@@ -694,7 +710,7 @@ namespace osu.Framework.Graphics
 
                 width = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, Axes.X);
             }
         }
 
@@ -712,7 +728,7 @@ namespace osu.Framework.Graphics
 
                 height = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, Axes.Y);
             }
         }
 
@@ -1808,6 +1824,20 @@ namespace osu.Framework.Graphics
                     result |= Invalidation.MiscGeometry;
                 return result;
             }
+        }
+
+        /// <summary>
+        /// A fast path for invalidating ourselves and our parent's children size dependencies whenever a size or position change occurs.
+        /// </summary>
+        /// <param name="invalidation">The <see cref="Invalidation"/> to invalidate with.</param>
+        /// <param name="changedAxes">The <see cref="Axes"/> that were affected.</param>
+        private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
+        {
+            // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
+            Invalidate(Invalidation.DrawSize, InvalidationSource.Parent);
+
+            // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
+            Parent?.InvalidateChildrenSizeDependencies(Invalidation.DrawSize, changedAxes, this);
         }
 
         #endregion
