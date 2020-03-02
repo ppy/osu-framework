@@ -11,8 +11,7 @@ using osuTK;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// The Sprite element controlled by the player.
-    /// Plays a looping 'flapping' texture sequence, which
+    /// The Sprite element controlled by the player. Plays a looping 'flapping' texture sequence, which
     /// is reset each time the player interacts with it.
     /// </summary>
     public class Bird : CompositeDrawable

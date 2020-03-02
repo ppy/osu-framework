@@ -9,8 +9,7 @@ namespace FlappyDon.Game
 {
     /// <summary>
     /// The main entry point to the game.
-    /// Sets up the relevant resource stores
-    /// and texture settings.
+    /// Sets up the relevant resource stores and texture settings.
     /// </summary>
     public abstract class FlappyDonGameBase : osu.Framework.Game
     {

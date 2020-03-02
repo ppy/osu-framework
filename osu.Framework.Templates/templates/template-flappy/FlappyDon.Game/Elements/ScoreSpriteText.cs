@@ -8,10 +8,8 @@ using osu.Framework.Text;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// Draws the current score on screen.
-    /// The score is displayed by using a glyph store
-    /// to load the appropriate character images and
-    /// display them like text on-screen.
+    /// Draws the current score on screen. The score is displayed by using a glyph store
+    /// to load the appropriate character images and display them like text on-screen.
     /// </summary>
     public class ScoreSpriteText : SpriteText
     {

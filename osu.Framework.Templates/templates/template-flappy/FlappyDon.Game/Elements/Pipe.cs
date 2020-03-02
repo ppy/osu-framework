@@ -7,8 +7,7 @@ using osuTK;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// A sprite that shows a single green pipe.
-    /// There are two pipe sprites for every obstacle the
+    /// A sprite that shows a single green pipe. There are two pipe sprites for every obstacle the
     /// player must overcome.
     /// </summary>
     public class Pipe : Sprite

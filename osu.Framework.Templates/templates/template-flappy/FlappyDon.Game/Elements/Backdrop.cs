@@ -9,9 +9,7 @@ using osuTK;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// Manages a pool of Sprite objects,
-    /// arranged and animated horizontally
-    /// to produce a background scrolling effect.
+    /// Manages a pool of Sprite objects, arranged and animated horizontally to produce a background scrolling effect.
     /// </summary>
     public class Backdrop : CompositeDrawable
     {

@@ -8,8 +8,7 @@ using osuTK;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// A single obstacle for the player to overcome,
-    /// consisting of two pipe sprites, one rotated 180
+    /// A single obstacle for the player to overcome, consisting of two pipe sprites, one rotated 180
     /// degrees and placed along the top of the screen.
     /// </summary>
     public class PipeObstacle : CompositeDrawable
