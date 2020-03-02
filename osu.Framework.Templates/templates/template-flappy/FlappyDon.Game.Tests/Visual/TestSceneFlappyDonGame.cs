@@ -14,11 +14,6 @@ namespace FlappyDon.Game.Tests.Visual
     {
         private FlappyDonGame game;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(FlappyDonGame),
-        };
-
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
