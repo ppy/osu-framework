@@ -28,15 +28,18 @@ namespace FlappyDon.Game.Elements
         private Pipe topPipe;
         private Pipe bottomPipe;
 
-        [BackgroundDependencyLoader]
-        private void load()
+        public PipeObstacle()
         {
             Anchor = Anchor.CentreLeft;
             Origin = Anchor.CentreLeft;
 
             RelativeSizeAxes = Axes.Y;
             AutoSizeAxes = Axes.X;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             // Rotate the top pipe 180 degrees, and flip
             // it horizontally so the shading matches the bottom pipe
             topPipe = new Pipe

@@ -19,8 +19,6 @@ namespace FlappyDon.Game.Tests.Visual
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(1.0f),
             });
         }
     }
