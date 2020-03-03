@@ -215,16 +215,14 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 handleMouseInput(e);
-                return true;
             }
 
-            protected override bool OnDragEnd(DragEndEvent e)
+            protected override void OnDragEnd(DragEndEvent e)
             {
                 handleMouseInput(e);
-                return true;
             }
 
             private void handleMouseInput(UIEvent e)
@@ -288,16 +286,14 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 handleMouseInput(e);
-                return true;
             }
 
-            protected override bool OnDragEnd(DragEndEvent e)
+            protected override void OnDragEnd(DragEndEvent e)
             {
                 handleMouseInput(e);
-                return true;
             }
 
             private void handleMouseInput(UIEvent e)

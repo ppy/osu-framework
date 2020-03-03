@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp()
         {
             colorPicker.Current.SetDefault();
             count = 0;
