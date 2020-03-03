@@ -8,9 +8,8 @@ using osuTK;
 namespace FlappyDon.Game.Elements
 {
     /// <summary>
-    /// A full-screen container used to manage a pool of pipe obstacles. Dequeues pipes
-    /// when they go off screen, and creates new instances as needed. Also handles collision detection between
-    /// any pipes and the bird sprite.
+    /// A full-screen container used to manage a pool of pipe obstacles. De-queues pipes when they go off screen and creates
+    /// new instances as needed. Also handles collision detection between any pipes and the bird sprite.
     /// </summary>
     public class Obstacles : CompositeDrawable
     {

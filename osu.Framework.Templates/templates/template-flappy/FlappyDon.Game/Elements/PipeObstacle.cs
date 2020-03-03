@@ -14,14 +14,13 @@ namespace FlappyDon.Game.Elements
     public class PipeObstacle : CompositeDrawable
     {
         /// <summary>
-        /// When the bird has been detected to have crossed the pipe, and the score has been incremented,
-        /// this flag is set to true to denote it has already been counted in the score
+        /// When the bird has been detected to have crossed the pipe, and the score has been incremented, this flag is set to
+        /// true to denote it has already been counted in the score.
         /// </summary>
         public bool Scored = false;
 
         /// <summary>
-        /// The vertical offset from the middle of the screen to denote
-        /// the default vertical position of the gap in the pipes.
+        /// The vertical offset from the middle of the screen to denote the default vertical position of the gap in the pipes.
         /// </summary>
         public float Offset = -130.0f;
 
@@ -40,8 +39,7 @@ namespace FlappyDon.Game.Elements
         [BackgroundDependencyLoader]
         private void load()
         {
-            // Rotate the top pipe 180 degrees, and flip
-            // it horizontally so the shading matches the bottom pipe
+            // Rotate the top pipe 180 degrees and flip it horizontally so the shading matches the bottom pipe.
             topPipe = new Pipe
             {
                 Anchor = Anchor.Centre,
@@ -66,8 +64,7 @@ namespace FlappyDon.Game.Elements
 
         public bool Colliding(Quad birdQuad)
         {
-            // Extend the top pipe bounds upwards so
-            // it's not possible to simply fly over it.
+            // Extend the top pipe bounds upwards so it's not possible to simply fly over it.
             RectangleF topPipeRect = topPipe.ScreenSpaceDrawQuad.AABBFloat;
             topPipeRect.Y -= 5000.0f;
             topPipeRect.Height += 5000.0f;

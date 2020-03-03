@@ -17,8 +17,7 @@ namespace FlappyDon.Game.Elements
     public class Bird : CompositeDrawable
     {
         /// <summary>
-        /// In the relative space, the absolute position of the ground that when crossed,
-        /// will register as a collision.
+        /// In the relative space, the absolute position of the ground that when crossed will register as a collision.
         /// </summary>
         public float GroundY = 0.0f;
 
@@ -64,7 +63,7 @@ namespace FlappyDon.Game.Elements
         }
 
         /// <summary>
-        /// Rest the animation and rotation state of the bird
+        /// Reset the animation and rotation state of the bird.
         /// </summary>
         public void Reset()
         {
@@ -81,7 +80,7 @@ namespace FlappyDon.Game.Elements
         }
 
         /// <summary>
-        /// Halt all animations and velocity so the bird will promptly start falling
+        /// Halt all animations and velocity so the bird will promptly start falling.
         /// </summary>
         public void FallDown()
         {
@@ -91,8 +90,7 @@ namespace FlappyDon.Game.Elements
         }
 
         /// <summary>
-        /// Called on each screen tap, increment the velocity slightly to make the bird
-        /// fly up vertically.
+        /// Called on each screen tap, increment the velocity slightly to make the bird fly up vertically.
         /// </summary>
         public void FlyUp()
         {

@@ -36,7 +36,7 @@ namespace FlappyDon.Game.Elements
         }
 
         /// <summary>
-        /// Show the sprite after optionally waiting for a small duration
+        /// Show the sprite after optionally waiting for a small duration.
         /// </summary>
         /// <param name="delay">The duration to wait before showing the sprite.</param>
         public void Show(float delay = 0.0f)

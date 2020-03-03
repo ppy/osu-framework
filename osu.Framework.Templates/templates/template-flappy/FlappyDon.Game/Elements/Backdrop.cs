@@ -18,9 +18,9 @@ namespace FlappyDon.Game.Elements
         /// </summary>
         private readonly Func<Sprite> createSprite;
 
-        // The previous size of this container,
-        // used to determine when we need to
-        // perform a fresh layout
+        /// <summary>
+        /// The previous size of this container, used to determine when we need to perform a fresh layout.
+        /// </summary>
         private Vector2 lastSize;
 
         /// <summary>
@@ -34,11 +34,10 @@ namespace FlappyDon.Game.Elements
         public float Duration;
 
         /// <summary>
-        /// Create a new instance of a backdrop element,
-        /// supplying a lamba to dynamically generate multiple copies of one sprite,
+        /// Create a new instance of a backdrop element, supplying a function to dynamically generate multiple copies of one sprite,
         /// and an animation value dictating the scrolling speed of the whole element.
         /// </summary>
-        /// <param name="createSprite">A lamba that will create and return the same Sprite object for this container to manage.</param>
+        /// <param name="createSprite">A function that will create and return the same Sprite object for this container to manage.</param>
         /// <param name="duration">The horizontal speed from right to left that the sprites will scroll at.</param>
         public Backdrop(Func<Sprite> createSprite, float duration = 2000.0f)
         {
@@ -81,9 +80,7 @@ namespace FlappyDon.Game.Elements
         {
             base.UpdateAfterChildren();
 
-            // If the bounds of this container changed,
-            // add or remove the number of child sprites
-            // to fill the visible space.
+            // If the bounds of this container changed, add or remove the number of child sprites to fill the visible space.
             if (DrawSize.Equals(lastSize) == false)
             {
                 updateChildrenList();
@@ -102,12 +99,12 @@ namespace FlappyDon.Game.Elements
             // Get an initial sprite we can use to derive size
             Sprite sprite;
 
-            // Fetch an initial child sprite
-            // we can use to measure
+            // Fetch an initial child sprite we can use to measure
             if (InternalChildren.Count > 0)
                 sprite = (Sprite)InternalChildren.First();
             else
             {
+                // TODO: this is probably wrong. we are adding the first sprite *twice* – once here and once below.
                 sprite = createSprite();
                 AddInternal(sprite);
             }
@@ -115,13 +112,10 @@ namespace FlappyDon.Game.Elements
             // Work out how many copies are needed to horizontally fill the screen
             var spriteNum = (int)Math.Ceiling(DrawWidth / sprite.DrawWidth) + 1;
 
-            // If the number needed is higher or lower than
-            // the current number of child sprites, add/remove
-            // the amount needed for them to match.
+            // If the number needed is higher or lower than the current number of child sprites, add/remove the amount needed for them to match
             if (spriteNum != InternalChildren.Count)
             {
-                // Update the number of sprites in the list to match
-                // the number we need to cover the whole container
+                // Update the number of sprites in the list to match the number we need to cover the whole container
                 while (InternalChildren.Count > spriteNum)
                     RemoveInternal(InternalChildren.Last());
 
@@ -129,9 +123,7 @@ namespace FlappyDon.Game.Elements
                     AddInternal(createSprite());
             }
 
-            // Lay out all of the child sprites horizontally,
-            // and assign a looping pan animation to create the effect
-            // of constant scrolling.
+            // Lay out all of the child sprites horizontally, and assign a looping pan animation to create the effect of constant scrolling
             var offset = 0.0f;
 
             foreach (var childSprite in InternalChildren)

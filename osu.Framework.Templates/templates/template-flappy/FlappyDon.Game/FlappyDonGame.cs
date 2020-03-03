@@ -65,8 +65,8 @@ namespace FlappyDon.Game
                 screenFlash
             };
 
-            // Configure the sizing strategy in such a way that all elements are relatively scaled in
-            // contrast to the Y-axis (ie height of the window), but changing the X-axis (ie window width) has no effect on scaling.
+            // Configure the sizing strategy in such a way that all elements are relatively scaled in contrast to the Y-axis (ie height of the window),
+            // but changing the X-axis (ie window width) has no effect on scaling.
             gameScreen.Strategy = DrawSizePreservationStrategy.Minimum;
             gameScreen.TargetDrawSize = new Vector2(0, 768);
             AddInternal(gameScreen);
@@ -79,8 +79,7 @@ namespace FlappyDon.Game
             // Set the Y offset from the top that counts as the ground for the bird
             bird.GroundY = 525.0f;
 
-            // Inform the obstacles the position of the bird in order to detect when the
-            // player successfully earns a point
+            // Inform the obstacles the position of the bird in order to detect when the player successfully earns a point
             obstacles.BirdThreshold = bird.X;
 
             // Start animating the background elements
@@ -129,8 +128,7 @@ namespace FlappyDon.Game
 
             // Play the punch sound, and then the 'fall' sound slightly after
             punchSound.Play();
-            Scheduler.AddDelayed(() => fallSound.Play(),
-                70.0);
+            Scheduler.AddDelayed(() => fallSound.Play(), 70.0);
 
             // Show the game over title in the middle of the flash
             gameOverSprite.Show(screenFlash.FlashDuration);
@@ -155,8 +153,7 @@ namespace FlappyDon.Game
                 return;
 
             // Register a collision if the bird hits a pipe or the ground
-            if (obstacles.CollisionDetected(bird.ScreenSpaceDrawQuad)
-                || bird.IsTouchingGround)
+            if (obstacles.CollisionDetected(bird.ScreenSpaceDrawQuad) || bird.IsTouchingGround)
             {
                 gameOver = true;
                 fail();
@@ -200,8 +197,7 @@ namespace FlappyDon.Game
             else
                 return base.OnKeyDown(e);
 
-            // Since we captured and directly responded to this event, return true instead of
-            // continuing to forward the event
+            // Return true as we handled this event and want to block it from being handled again.
             return true;
         }
 
@@ -221,8 +217,7 @@ namespace FlappyDon.Game
             else
                 onTapEvent();
 
-            // Return true instead of continuing to forward the mouse event up
-            // the chain as the logic above captured and responded to it.
+            // Return true as we handled this event and want to block it from being handled again.
             return true;
         }
     }

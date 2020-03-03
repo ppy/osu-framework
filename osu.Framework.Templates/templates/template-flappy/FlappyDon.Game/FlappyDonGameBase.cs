@@ -8,8 +8,7 @@ using osuTK.Graphics.ES30;
 namespace FlappyDon.Game
 {
     /// <summary>
-    /// The main entry point to the game.
-    /// Sets up the relevant resource stores and texture settings.
+    /// Set up the relevant resource stores and texture settings.
     /// </summary>
     public abstract class FlappyDonGameBase : osu.Framework.Game
     {
