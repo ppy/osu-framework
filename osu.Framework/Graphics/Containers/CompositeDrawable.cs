@@ -984,6 +984,27 @@ namespace osu.Framework.Graphics.Containers
             return anyInvalidated;
         }
 
+        /// <summary>
+        /// Invalidates the children size dependencies of this <see cref="CompositeDrawable"/> when a child's position or size changes.
+        /// </summary>
+        /// <param name="invalidation">The <see cref="Invalidation"/> to invalidate with.</param>
+        /// <param name="axes">The position or size <see cref="Axes"/> that changed.</param>
+        /// <param name="source">The source <see cref="Drawable"/>.</param>
+        internal void InvalidateChildrenSizeDependencies(Invalidation invalidation, Axes axes, Drawable source)
+        {
+            // Store the current state of the children size dependencies.
+            // This state may be restored later if the invalidation proved to be unnecessary.
+            bool wasValid = childrenSizeDependencies.IsValid;
+
+            // The invalidation still needs to occur as normal, since a derived CompositeDrawable may want to respond to children size invalidations.
+            Invalidate(invalidation, InvalidationSource.Child);
+
+            // If all the changed axes were bypassed and an invalidation occurred, the children size dependencies can immediately be
+            // re-validated without a recomputation, as a recomputation would not change the auto-sized size.
+            if (wasValid && (axes & source.BypassAutoSizeAxes) == axes)
+                childrenSizeDependencies.Validate();
+        }
+
         #endregion
 
         #region DrawNode

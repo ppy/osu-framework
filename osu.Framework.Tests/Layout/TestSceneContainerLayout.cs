@@ -123,6 +123,88 @@ namespace osu.Framework.Tests.Layout
             AddUntilStep("content height matches box height", () => Precision.AlmostEquals(content.DrawHeight, child.DrawHeight));
         }
 
+        /// <summary>
+        /// Tests that a parent container is not re-auto-sized when a child's size changes along the bypassed axes.
+        /// </summary>
+        /// <param name="axes">The bypassed axes that are bypassed.</param>
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentNotInvalidatedByBypassedSize(Axes axes)
+        {
+            Box child = null;
+
+            bool autoSized = false;
+
+            AddStep("create test", () =>
+            {
+                Child = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = child = new Box { BypassAutoSizeAxes = axes }
+                }.With(c => c.OnAutoSize += () => autoSized = true);
+            });
+
+            AddUntilStep("wait for autosize", () => autoSized);
+
+            AddStep("adjust child size", () =>
+            {
+                autoSized = false;
+
+                if (axes == Axes.Both)
+                    child.Size = new Vector2(50);
+                else if (axes == Axes.X)
+                    child.Width = 50;
+                else if (axes == Axes.Y)
+                    child.Height = 50;
+            });
+
+            AddWaitStep("wait for autosize", 1);
+
+            AddAssert("not autosized", () => !autoSized);
+        }
+
+        /// <summary>
+        /// Tests that a parent container is not re-auto-sized when a child's position changes along the bypassed axes.
+        /// </summary>
+        /// <param name="axes">The bypassed axes that are bypassed.</param>
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentNotInvalidatedByBypassedPosition(Axes axes)
+        {
+            Box child = null;
+
+            bool autoSized = false;
+
+            AddStep("create test", () =>
+            {
+                Child = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = child = new Box { BypassAutoSizeAxes = axes }
+                }.With(c => c.OnAutoSize += () => autoSized = true);
+            });
+
+            AddUntilStep("wait for autosize", () => autoSized);
+
+            AddStep("adjust child size", () =>
+            {
+                autoSized = false;
+
+                if (axes == Axes.Both)
+                    child.Position = new Vector2(50);
+                else if (axes == Axes.X)
+                    child.X = 50;
+                else if (axes == Axes.Y)
+                    child.Y = 50;
+            });
+
+            AddWaitStep("wait for autosize", 1);
+
+            AddAssert("not autosized", () => !autoSized);
+        }
+
         private class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
