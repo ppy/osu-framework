@@ -118,11 +118,11 @@ namespace osu.Framework.Bindables
 
                 if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
 
-                setDefault(defaultValue, value);
+                SetDefaultValue(defaultValue, value);
             }
         }
 
-        private void setDefault(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
@@ -172,9 +172,9 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        public Bindable<T> BindTarget
+        public IBindable<T> BindTarget
         {
-            set => BindTo(value);
+            set => ((IBindable<T>)this).BindTo(value);
         }
 
         /// <summary>
@@ -237,23 +237,21 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
+            Type underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
             switch (input)
             {
                 case T t:
                     Value = t;
                     break;
 
-                case string s:
-                    var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
-                    if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, s);
-                    else
-                        Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
+                case string s when underlyingType.IsEnum:
+                    Value = (T)Enum.Parse(underlyingType, s);
                     break;
 
                 default:
-                    throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                    break;
             }
         }
 
@@ -297,7 +295,7 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    b.setDefault(previousValue, defaultValue, bypassChecks, this);
+                    b.SetDefaultValue(previousValue, defaultValue, bypassChecks, this);
                 }
             }
 

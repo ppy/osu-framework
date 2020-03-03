@@ -245,7 +245,11 @@ namespace osu.Framework.Audio
                 InitBass(deviceIndex);
             }
 
-            Trace.Assert(Bass.LastError == Errors.OK);
+            if (Bass.LastError != Errors.OK)
+            {
+                Logger.Log($@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.", LoggingTarget.Runtime, LogLevel.Important);
+                return false;
+            }
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
@@ -268,7 +272,19 @@ namespace osu.Framework.Audio
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
         /// It can be overridden for unit testing.
         /// </summary>
-        protected virtual bool InitBass(int device) => Bass.Init(device);
+        protected virtual bool InitBass(int device)
+        {
+            // reduce latency to a known sane minimum.
+            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
+
+            // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
+            Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
+
+            // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
+            Bass.Configure((ManagedBass.Configuration)68, 1);
+
+            return Bass.Init(device);
+        }
 
         private void updateAvailableAudioDevices()
         {

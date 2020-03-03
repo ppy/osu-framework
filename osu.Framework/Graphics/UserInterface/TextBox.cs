@@ -16,6 +16,7 @@ using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
@@ -89,7 +90,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler();
+        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
         protected TextBox()
         {
@@ -143,12 +144,6 @@ namespace osu.Framework.Graphics.UserInterface
                     cursorAndLayout.Invalidate();
                 };
             }
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            textUpdateScheduler.SetCurrentThread(MainThread);
         }
 
         public virtual bool OnPressed(PlatformAction action)
@@ -213,7 +208,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = 1;
                     else
                     {
-                        int searchNext = Math.Clamp(selectionEnd, 0, Text.Length - 1);
+                        int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
                         while (searchNext < Text.Length && text[searchNext] == ' ')
                             searchNext++;
                         int nextSpace = text.IndexOf(' ', searchNext);
@@ -227,7 +222,7 @@ namespace osu.Framework.Graphics.UserInterface
                         amount = -1;
                     else
                     {
-                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Math.Max(0, Text.Length - 1));
                         while (searchPrev > 0 && text[searchPrev] == ' ')
                             searchPrev--;
                         int lastSpace = text.LastIndexOf(' ', searchPrev);
@@ -264,7 +259,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public virtual bool OnReleased(PlatformAction action) => false;
+        public virtual void OnReleased(PlatformAction action)
+        {
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
@@ -450,6 +447,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             text = text.Remove(start, count);
 
+            // Reorder characters depth after removal to avoid ordering issues with newly added characters.
+            for (int i = start; i < TextFlow.Count; i++)
+                TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
+
             if (selectionLength > 0)
                 selectionStart = selectionEnd = selectionLeft;
             else
@@ -476,13 +477,13 @@ namespace osu.Framework.Graphics.UserInterface
             TextFlow.RemoveRange(charsRight);
 
             // Update their depth to make room for the to-be inserted character.
-            int i = -selectionLeft;
+            int i = selectionLeft;
             foreach (Drawable d in charsRight)
-                d.Depth = --i;
+                d.Depth = getDepthForCharacterIndex(i++);
 
             // Add the character
             Drawable ch = GetDrawableCharacter(c);
-            ch.Depth = -selectionLeft;
+            ch.Depth = getDepthForCharacterIndex(selectionLeft);
 
             TextFlow.Add(ch);
 
@@ -491,6 +492,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             return ch;
         }
+
+        private float getDepthForCharacterIndex(int index) => -index;
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
@@ -713,15 +716,15 @@ namespace osu.Framework.Graphics.UserInterface
             lastCommitText = text;
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.HasAnyKeyPressed)
                 EndConsumingText();
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
 
@@ -751,7 +754,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (text.Length == 0) return true;
+                if (text.Length == 0) return;
 
                 selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
@@ -759,8 +762,6 @@ namespace osu.Framework.Graphics.UserInterface
 
                 cursorAndLayout.Invalidate();
             }
-
-            return true;
         }
 
         protected override bool OnDragStart(DragStartEvent e)
@@ -825,10 +826,9 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e)
+        protected override void OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
-            return true;
         }
 
         protected override void OnFocusLost(FocusLostEvent e)

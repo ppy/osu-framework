@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -21,7 +22,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
@@ -29,6 +29,7 @@ using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Testing
 {
@@ -91,7 +92,7 @@ namespace osu.Framework.Testing
                                                 .GroupBy(
                                                     t =>
                                                     {
-                                                        string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
+                                                        string group = t.Namespace?.AsSpan(namespacePrefix.Length).TrimStart('.').ToString();
                                                         return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
@@ -219,7 +220,8 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>().FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>()
+                                                                         .FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
                                     },
@@ -389,7 +391,9 @@ namespace osu.Framework.Testing
             return false;
         }
 
-        public bool OnReleased(TestBrowserAction action) => false;
+        public void OnReleased(TestBrowserAction action)
+        {
+        }
 
         public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
@@ -440,7 +444,7 @@ namespace osu.Framework.Testing
                 RecordState.Value = Testing.RecordState.Normal;
         }
 
-        private void finishLoad(Drawable newTest, Action onCompletion)
+        private void finishLoad(TestScene newTest, Action onCompletion)
         {
             if (CurrentTest != newTest)
             {
@@ -451,34 +455,42 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
-            var methods = newTest.GetType().GetMethods();
-
             bool hadTestAttributeTest = false;
 
-            foreach (var m in methods.Where(m => m.Name != nameof(TestScene.TestConstructor)))
+            foreach (var m in newTest.GetType().GetMethods())
             {
-                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
-                {
-                    hadTestAttributeTest = true;
-                    handleTestMethod(m);
+                var name = m.Name;
 
-                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
+                    continue;
+
+                if (name.StartsWith("Test"))
+                    name = name.Substring(4);
+
+                int runCount = 1;
+
+                if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    runCount += (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+
+                for (int i = 0; i < runCount; i++)
+                {
+                    string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
+
+                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                     {
-                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}{repeatSuffix}");
 
-                        for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{m.Name} ({i})");
+                        handleTestMethod(m);
                     }
-                }
 
-                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                {
-                    hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{m.Name}({string.Join(", ", tc.Arguments)})");
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)}){repeatSuffix}");
 
-                    addSetUpSteps();
-
-                    m.Invoke(CurrentTest, tc.Arguments);
+                        handleTestMethod(m, tc.Arguments);
+                    }
                 }
             }
 
@@ -492,7 +504,8 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = methods.Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit) && m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0).ToArray();
+                var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
+                                          .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
 
                 if (setUpMethods.Any())
                 {
@@ -505,13 +518,11 @@ namespace osu.Framework.Testing
                 CurrentTest.RunSetUpSteps();
             }
 
-            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            void handleTestMethod(MethodInfo methodInfo, object[] arguments = null)
             {
-                CurrentTest.AddLabel(name ?? methodInfo.Name);
-
                 addSetUpSteps();
-
-                methodInfo.Invoke(CurrentTest, null);
+                methodInfo.Invoke(CurrentTest, arguments);
+                CurrentTest.RunTearDownSteps();
             }
         }
 

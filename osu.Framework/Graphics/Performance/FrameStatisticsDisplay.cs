@@ -324,7 +324,7 @@ namespace osu.Framework.Graphics.Performance
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             switch (e.Key)
             {
@@ -337,7 +337,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -399,6 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
                     monitor.FramesPool.Return(frame);
                 }
             }
@@ -509,7 +510,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(WIDTH, HEIGHT) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 

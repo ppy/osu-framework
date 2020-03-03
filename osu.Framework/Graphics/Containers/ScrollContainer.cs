@@ -8,7 +8,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 
@@ -148,7 +147,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
-        public bool IsHandlingKeyboardScrolling => IsHovered || ReceivePositionalInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
+        public bool IsHandlingKeyboardScrolling
+        {
+            get
+            {
+                if (IsHovered)
+                    return true;
+
+                InputManager inputManager = GetContainingInputManager();
+                return inputManager != null && ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position);
+            }
+        }
 
         /// <summary>
         /// The direction in which scrolling is supported.
@@ -226,7 +235,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
+                return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -285,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool DragBlocksClick => dragBlocksClick;
 
-        protected override bool OnDrag(DragEvent e)
+        protected override void OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -315,10 +325,9 @@ namespace osu.Framework.Graphics.Containers
             dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
             offset(scrollOffset, false);
-            return true;
         }
 
-        protected override bool OnDragEnd(DragEndEvent e)
+        protected override void OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -327,7 +336,7 @@ namespace osu.Framework.Graphics.Containers
             IsDragging = false;
 
             if (averageDragTime <= 0.0)
-                return true;
+                return;
 
             double velocity = averageDragDelta / averageDragTime;
 
@@ -342,12 +351,13 @@ namespace osu.Framework.Graphics.Containers
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
             offset((float)distance, true, DistanceDecayDrag);
-
-            return true;
         }
 
         protected override bool OnScroll(ScrollEvent e)
         {
+            if (Content.AliveInternalChildren.Count == 0)
+                return false;
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;
@@ -597,10 +607,9 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnDrag(DragEvent e)
+            protected override void OnDrag(DragEvent e)
             {
                 Dragged?.Invoke(e.MousePosition[(int)ScrollDirection] - dragOffset);
-                return true;
             }
         }
 
@@ -624,8 +633,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action) => false;
-
-        ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
+        public void OnReleased(PlatformAction action)
+        {
+        }
     }
 }

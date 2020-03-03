@@ -125,7 +125,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo == screen2);
             AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom == screen1);
 
-            AddAssert("ensure child", () => screen1.GetChildScreen() != null);
+            AddAssert("ensure child", () => screen1.GetChildScreen() == screen2);
+            AddAssert("ensure parent 1", () => screen1.GetParentScreen() == baseScreen);
+            AddAssert("ensure parent 2", () => screen2.GetParentScreen() == screen1);
 
             AddStep("pop", () => screen2.Exit());
 
@@ -134,6 +136,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure parent gone", () => screen2.GetParentScreen() == null);
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());

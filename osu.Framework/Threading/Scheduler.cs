@@ -18,7 +18,8 @@ namespace osu.Framework.Threading
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
-        private int mainThreadId;
+
+        private readonly Func<bool> isCurrentThread;
 
         private IClock clock;
         private double currentTime => clock?.CurrentTime ?? 0;
@@ -35,25 +36,18 @@ namespace osu.Framework.Threading
         /// </summary>
         public Scheduler()
         {
-            SetCurrentThread();
+            var currentThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == currentThread;
+
             clock = new StopwatchClock(true);
         }
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread)
+        public Scheduler(Func<bool> isCurrentThread, IClock clock)
         {
-            SetCurrentThread(mainThread);
-            clock = new StopwatchClock(true);
-        }
-
-        /// <summary>
-        /// The base thread is assumed to be the the thread on which the constructor is run.
-        /// </summary>
-        public Scheduler(Thread mainThread, IClock clock)
-        {
-            SetCurrentThread(mainThread);
+            this.isCurrentThread = isCurrentThread;
             this.clock = clock;
         }
 
@@ -82,7 +76,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        protected bool IsMainThread => isCurrentThread?.Invoke() ?? true;
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
@@ -104,11 +98,8 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                if (!sd.Cancelled && !sd.Completed)
-                {
-                    //todo: error handling
-                    sd.RunTask();
-                }
+                //todo: error handling
+                sd.RunTaskInternal();
 
                 if (++countRun == countToRun)
                     break;
@@ -163,7 +154,8 @@ namespace osu.Framework.Threading
             for (int i = 0; i < perUpdateTasks.Count; i++)
             {
                 ScheduledDelegate task = perUpdateTasks[i];
-                task.Completed = false;
+
+                task.SetNextExecution(null);
 
                 if (task.Cancelled)
                 {
@@ -201,16 +193,6 @@ namespace osu.Framework.Threading
                     t.Cancel();
                 timedTasks.Clear();
             }
-        }
-
-        internal void SetCurrentThread(Thread thread)
-        {
-            mainThreadId = thread?.ManagedThreadId ?? -1;
-        }
-
-        internal void SetCurrentThread()
-        {
-            mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>
@@ -286,79 +268,6 @@ namespace osu.Framework.Threading
             }
 
             return true;
-        }
-    }
-
-    public class ScheduledDelegate : IComparable<ScheduledDelegate>
-    {
-        /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
-        /// </summary>
-        public double ExecutionTime { get; internal set; }
-
-        /// <summary>
-        /// Time in milliseconds between repeats of this task. -1 means no repeats.
-        /// </summary>
-        public readonly double RepeatInterval;
-
-        /// <summary>
-        /// In the case of a repeating execution, setting this to true will allow the delegate to run more than once at already elapsed points in time in order to catch up to current.
-        /// This will ensure a consistent number of runs over real-time, even if the <see cref="Scheduler"/> running the delegate is suspended.
-        /// Setting to false will skip catch-up executions, ensuring a future time is used after each execution.
-        /// </summary>
-        public bool PerformRepeatCatchUpExecutions = true;
-
-        /// <summary>
-        /// Whether this task has finished running.
-        /// </summary>
-        public bool Completed { get; internal set; }
-
-        /// <summary>
-        /// Whether this task has been cancelled.
-        /// </summary>
-        public bool Cancelled { get; private set; }
-
-        /// <summary>
-        /// The work task.
-        /// </summary>
-        internal readonly Action Task;
-
-        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
-        {
-            Task = task;
-
-            ExecutionTime = executionTime;
-            RepeatInterval = repeatInterval;
-        }
-
-        /// <summary>
-        /// Invokes the scheduled task.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when attempting to run a task that has been cancelled or already completed.</exception>
-        public void RunTask()
-        {
-            if (Cancelled)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}.");
-
-            if (Completed)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been already {nameof(Completed)}.");
-
-            Task();
-            Completed = true;
-        }
-
-        public void Cancel() => Cancelled = true;
-
-        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
-
-        internal void SetNextExecution(double currentTime)
-        {
-            Completed = false;
-
-            ExecutionTime += RepeatInterval;
-
-            if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
-                ExecutionTime = currentTime + RepeatInterval;
         }
     }
 }
