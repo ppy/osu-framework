@@ -104,7 +104,7 @@ namespace FlappyDon.Game.Elements
             ClearInternal();
         }
 
-        public bool CollisionDetected(Quad birdQuad)
+        public bool CheckForCollision(Quad birdQuad)
         {
             if (InternalChildren.Count == 0)
                 return false;
