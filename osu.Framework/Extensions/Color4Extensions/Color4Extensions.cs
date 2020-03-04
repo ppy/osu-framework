@@ -3,6 +3,7 @@
 
 using osuTK.Graphics;
 using System;
+using System.Globalization;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -95,6 +96,140 @@ namespace osu.Framework.Extensions.Color4Extensions
                 Math.Min(1, colour.G * scalar),
                 Math.Min(1, colour.B * scalar),
                 colour.A);
+        }
+
+        public static Color4 FromHex(string hex)
+        {
+            var hexSpan = hex[0] == '#' ? hex.AsSpan().Slice(1) : hex.AsSpan();
+
+            switch (hexSpan.Length)
+            {
+                default:
+                    throw new ArgumentException(@"Invalid hex string length!");
+
+                case 3:
+                    return new Color4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
+                        255);
+
+                case 6:
+                    return new Color4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        255);
+
+                case 4:
+                    return new Color4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+
+                case 8:
+                    return new Color4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
+            }
+        }
+
+        public static string ToHex(this Color4 color, bool forceOutputAlpha = false)
+        {
+            var argb = color.ToArgb();
+            byte a = (byte)(argb >> 24);
+            byte r = (byte)(argb >> 16);
+            byte g = (byte)(argb >> 8);
+            byte b = (byte)argb;
+
+            if (!forceOutputAlpha && a == 255)
+                return $"#{r:X2}{g:X2}{b:X2}";
+
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
+        }
+
+        /// <summary>
+        /// Convert HSV to Color4
+        /// </summary>
+        /// <param name="h">Hue value, between 0 to 360</param>
+        /// <param name="s">Saturation value, between 0 to 1</param>
+        /// <param name="v">Value value, between 0 to 1</param>
+        /// <returns></returns>
+        public static Color4 ToRGB(float h, float s, float v)
+        {
+            int hi = ((int)(h / 60.0f)) % 6;
+            float f = h / 60.0f - (int)(h / 60.0);
+            float p = v * (1 - s);
+            float q = v * (1 - f * s);
+            float t = v * (1 - (1 - f) * s);
+
+            switch (hi)
+            {
+                case 0:
+                    return toColor4(v, t, p);
+
+                case 1:
+                    return toColor4(q, v, p);
+
+                case 2:
+                    return toColor4(p, v, t);
+
+                case 3:
+                    return toColor4(p, q, v);
+
+                case 4:
+                    return toColor4(t, p, v);
+
+                case 5:
+                    return toColor4(v, p, q);
+            }
+
+            // Should not goes to here
+            throw new ArgumentOutOfRangeException($"{nameof(hi)} is not valid.");
+
+            static Color4 toColor4(float fr, float fg, float fb)
+            {
+                byte r = (byte)Math.Clamp(fr * 255, 0, 255);
+                byte g = (byte)Math.Clamp(fg * 255, 0, 255);
+                byte b = (byte)Math.Clamp(fb * 255, 0, 255);
+                return new Color4(r, g, b, 255);
+            }
+        }
+
+        /// <summary>
+        /// Convert color4 to HSV
+        /// </summary>
+        /// <param name="color">Color4</param>
+        /// <param name="h">Hue value, between 0 to 360</param>
+        /// <param name="s">Saturation value, between 0 to 1</param>
+        /// <param name="v">Value value, between 0 to 1</param>
+        public static void ToHsv(this Color4 color, out float h, out float s, out float v)
+        {
+            float r = color.R;
+            float g = color.G;
+            float b = color.B;
+
+            var max = Math.Max(r, Math.Max(g, b));
+            var min = Math.Min(r, Math.Min(g, b));
+
+            if (max == min)
+                h = 0;
+            else if (max == r)
+                h = (60 * (g - b) / (max - min) + 360) % 360;
+            else if (max == g)
+                h = 60 * (b - r) / (max - min) + 120;
+            else
+                h = 60 * (r - g) / (max - min) + 240;
+
+            if (max == 0)
+                s = 0;
+            else
+                s = (max - min) / max;
+
+            v = max;
         }
     }
 }
