@@ -212,7 +212,6 @@ namespace osu.Framework.Extensions.Color4Extensions
             float h;
             float s;
             float v;
-
             float r = colour.R;
             float g = colour.G;
             float b = colour.B;
