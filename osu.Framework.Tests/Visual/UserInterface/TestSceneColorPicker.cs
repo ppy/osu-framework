@@ -198,7 +198,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestAssighColor()
+        public void TestAssignColour()
         {
             AddStep("Assign first color",
                 () => { InputManager.MoveMouseTo(colorArea.Content[0][0]); });
