@@ -17,8 +17,6 @@ namespace FlappyDon.Game.Elements
         {
             get
             {
-                if (Texture == null) return 1.0f;
-
                 var size = Texture.Size;
                 return size.X / size.Y;
             }
