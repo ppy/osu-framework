@@ -168,7 +168,7 @@ namespace FlappyDon.Game.Elements
             AddInternal(new PipeObstacle
             {
                 Position = new Vector2(DrawWidth, 0.0f),
-                Offset = RNG.NextSingle(-140.0f, 60.0f)
+                VerticalPositionAdjust = RNG.NextSingle(-140.0f, 60.0f)
             });
         }
     }

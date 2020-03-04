@@ -16,7 +16,7 @@ namespace FlappyDon.Game.Elements
         /// <summary>
         /// The vertical offset from the middle of the screen to denote the default vertical position of the gap in the pipes.
         /// </summary>
-        public float Offset = -130.0f;
+        public float VerticalPositionAdjust = -130.0f;
 
         private Pipe topPipe;
         private Pipe bottomPipe;
@@ -39,7 +39,7 @@ namespace FlappyDon.Game.Elements
                 Anchor = Anchor.Centre,
                 Origin = Anchor.TopCentre,
                 Rotation = 180.0f,
-                Position = new Vector2(0.0f, -110 + Offset),
+                Position = new Vector2(0.0f, -110 + VerticalPositionAdjust),
             };
 
             topPipe.Scale = new Vector2(-topPipe.Scale.X, topPipe.Scale.Y);
@@ -50,7 +50,7 @@ namespace FlappyDon.Game.Elements
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.TopCentre,
-                Position = new Vector2(0.0f, 110 + Offset)
+                Position = new Vector2(0.0f, 110 + VerticalPositionAdjust)
             };
 
             AddInternal(bottomPipe);
