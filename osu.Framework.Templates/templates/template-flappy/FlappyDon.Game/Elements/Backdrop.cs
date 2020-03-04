@@ -31,7 +31,7 @@ namespace FlappyDon.Game.Elements
         /// <summary>
         /// The duration it takes to animate one cycle of the sprites in the container.
         /// </summary>
-        public float Duration;
+        public readonly double Duration;
 
         /// <summary>
         /// Create a new instance of a backdrop element, supplying a function to dynamically generate multiple copies of one sprite,
@@ -39,7 +39,7 @@ namespace FlappyDon.Game.Elements
         /// </summary>
         /// <param name="createSprite">A function that will create and return the same Sprite object for this container to manage.</param>
         /// <param name="duration">The horizontal speed from right to left that the sprites will scroll at.</param>
-        public Backdrop(Func<Sprite> createSprite, float duration = 2000.0f)
+        public Backdrop(Func<Sprite> createSprite, double duration = 2000.0f)
         {
             this.createSprite = createSprite;
             Duration = duration;
