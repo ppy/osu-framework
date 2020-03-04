@@ -163,7 +163,7 @@ namespace FlappyDon.Game
                 return;
 
             // Register a collision if the bird hits a pipe or the ground
-            if (obstacles.CollisionDetected(bird.CollisionQuad) || bird.IsTouchingGround)
+            if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
             {
                 gameOver = true;
                 fail();
