@@ -152,14 +152,17 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Convert HSV to Color4
+        /// Convert HSV to <see cref="Color4"/>
         /// </summary>
         /// <param name="h">Hue value, between 0 to 360</param>
         /// <param name="s">Saturation value, between 0 to 1</param>
         /// <param name="v">Value value, between 0 to 1</param>
         /// <returns></returns>
-        public static Color4 ToRGB(float h, float s, float v)
+        public static Color4 FromHSV(float h, float s, float v)
         {
+            if (h < 0 || h > 360)
+                throw new ArgumentOutOfRangeException(nameof(h), "Hue must be between 0 and 360.");
+
             int hi = ((int)(h / 60.0f)) % 6;
             float f = h / 60.0f - (int)(h / 60.0);
             float p = v * (1 - s);
@@ -185,10 +188,10 @@ namespace osu.Framework.Extensions.Color4Extensions
 
                 case 5:
                     return toColor4(v, p, q);
-            }
 
-            // Should not goes to here
-            throw new ArgumentOutOfRangeException($"{nameof(hi)} is not valid.");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(h), "Hue is out of range.");
+            }
 
             static Color4 toColor4(float fr, float fg, float fb)
             {
