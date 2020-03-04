@@ -50,6 +50,9 @@ namespace FlappyDon.Game.Elements
         {
             RelativeSizeAxes = Axes.Both;
             Size = new Vector2(1.0f);
+
+            // Add an initial sprite from which we can get the aspect ratio
+            AddInternal(createSprite());
         }
 
         /// <summary>
@@ -91,17 +94,7 @@ namespace FlappyDon.Game.Elements
         private void updateLayout()
         {
             // Get an initial sprite we can use to derive size
-            Sprite sprite;
-
-            // Fetch an initial child sprite we can use to measure
-            if (InternalChildren.Count > 0)
-                sprite = (Sprite)InternalChildren.First();
-            else
-            {
-                // TODO: this is probably wrong. we are adding the first sprite *twice* – once here and once below.
-                sprite = createSprite();
-                AddInternal(sprite);
-            }
+            Sprite sprite = (Sprite)InternalChildren.First();
 
             // Work out how many copies are needed to horizontally fill the screen
             var spriteNum = (int)Math.Ceiling(DrawWidth / sprite.DrawWidth) + 1;
