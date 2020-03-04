@@ -13,15 +13,6 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class BackdropSprite : Sprite
     {
-        public float AspectRatio
-        {
-            get
-            {
-                var size = Texture.Size;
-                return size.X / size.Y;
-            }
-        }
-
         public BackdropSprite()
         {
             Anchor = Anchor.TopLeft;
@@ -40,9 +31,12 @@ namespace FlappyDon.Game.Elements
         {
             base.Update();
 
+            Vector2 size = Texture.Size;
+            double aspectRatio = size.X / size.Y;
+
             // Taking the relative height, calculates the appropriate width.
             // The "Fill" feature of Sprite should really be doing this for us.
-            Width = (float)Math.Ceiling(DrawHeight * AspectRatio);
+            Width = (float)Math.Ceiling(DrawHeight * aspectRatio);
         }
     }
 }
