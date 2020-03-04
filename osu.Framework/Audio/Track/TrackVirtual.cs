@@ -38,6 +38,9 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
+            if (Length == 0)
+                return;
+
             lock (clock) clock.Start();
         }
 
