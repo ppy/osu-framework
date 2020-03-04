@@ -59,6 +59,8 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             track.StartAsync();
+            updateTrack();
+
             track.StopAsync();
             updateTrack();
 
@@ -99,7 +101,11 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekWhileRunning()
         {
             track.StartAsync();
+            updateTrack();
+
             track.SeekAsync(1000);
+
+            Thread.Sleep(50);
             updateTrack();
 
             Assert.IsTrue(track.IsRunning);
