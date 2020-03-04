@@ -34,14 +34,5 @@ namespace FlappyDon.Game.Elements
         {
             Texture = textures.Get(textureName);
         }
-
-        /// <summary>
-        /// Show the sprite after optionally waiting for a small duration.
-        /// </summary>
-        /// <param name="delay">The duration to wait before showing the sprite.</param>
-        public void Show(float delay = 0.0f)
-        {
-            this.Delay(delay).Then().FadeIn();
-        }
     }
 }

@@ -9,11 +9,6 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class ScreenFlash : Box
     {
-        /// <summary>
-        /// The duration for the screen flash to play.
-        /// </summary>
-        public float FlashDuration = 30.0f;
-
         public ScreenFlash()
         {
             Colour = Color4.White;
@@ -21,14 +16,9 @@ namespace FlappyDon.Game.Elements
             Alpha = 0.0f;
         }
 
-        public void GameOverFlash()
+        public void Flash(double fadeInDuration, double fadeOutDuration)
         {
-            this.FadeIn(FlashDuration).Then().FadeOut(500.0f);
-        }
-
-        public void ResetFlash()
-        {
-            this.FadeIn().Then().FadeOut(700.0f);
+            this.FadeIn(fadeInDuration).Then().FadeOut(fadeOutDuration);
         }
     }
 }
