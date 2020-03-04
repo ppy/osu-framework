@@ -56,7 +56,7 @@ namespace FlappyDon.Game.Elements
             AddInternal(bottomPipe);
         }
 
-        public bool Colliding(Quad birdQuad)
+        public bool CheckCollision(Quad birdQuad)
         {
             // Extend the top pipe bounds upwards so it's not possible to simply fly over it.
             RectangleF topPipeRect = topPipe.ScreenSpaceDrawQuad.AABBFloat;

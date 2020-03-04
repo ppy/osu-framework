@@ -110,7 +110,7 @@ namespace FlappyDon.Game.Elements
                 return false;
 
             var obstacle = (PipeObstacle)InternalChildren.First();
-            return obstacle.Colliding(birdQuad);
+            return obstacle.CheckCollision(birdQuad);
         }
 
         protected override void Update()
