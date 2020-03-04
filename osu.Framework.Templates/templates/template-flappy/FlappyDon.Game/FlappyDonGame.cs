@@ -70,6 +70,9 @@ namespace FlappyDon.Game
             gameScreen.Strategy = DrawSizePreservationStrategy.Minimum;
             gameScreen.TargetDrawSize = new Vector2(0, 768);
             AddInternal(gameScreen);
+
+            // Register a method to be triggered each time the bird crosses a pipe threshold
+            obstacles.ThresholdCrossed = thresholdCrossed;
         }
 
         protected override void LoadComplete()
@@ -147,6 +150,13 @@ namespace FlappyDon.Game
             Scheduler.AddDelayed(() => gameOverCooldown = false, 500.0f);
         }
 
+        private void thresholdCrossed(int crossedCount)
+        {
+            score = crossedCount;
+            scoreSpriteText.Text = score.ToString();
+            scoreSound.Play();
+        }
+
         protected override void Update()
         {
             if (gameOver)
@@ -158,16 +168,6 @@ namespace FlappyDon.Game
                 gameOver = true;
                 fail();
                 return;
-            }
-
-            // If a pipe crosses the bird's X offset,
-            // (And no collisions occurred),
-            // increment the score by 1
-            if (obstacles.ThresholdCrossed())
-            {
-                score++;
-                scoreSpriteText.Text = score.ToString();
-                scoreSound.Play();
             }
 
             base.Update();

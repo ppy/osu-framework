@@ -14,12 +14,6 @@ namespace FlappyDon.Game.Elements
     public class PipeObstacle : CompositeDrawable
     {
         /// <summary>
-        /// When the bird has been detected to have crossed the pipe, and the score has been incremented, this flag is set to
-        /// true to denote it has already been counted in the score.
-        /// </summary>
-        public bool Scored = false;
-
-        /// <summary>
         /// The vertical offset from the middle of the screen to denote the default vertical position of the gap in the pipes.
         /// </summary>
         public float Offset = -130.0f;

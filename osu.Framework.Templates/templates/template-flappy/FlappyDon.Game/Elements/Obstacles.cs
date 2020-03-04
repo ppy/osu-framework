@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -28,6 +29,24 @@ namespace FlappyDon.Game.Elements
         /// When a pipe crosses over this threshold, it counts as a point to the player.
         /// </summary>
         public float BirdThreshold = 0.0f;
+
+        /// <summary>
+        /// An event handler that is called each time a pipe crosses the X
+        /// position of the bird, which should increment the score.
+        /// </summary>
+        public Action<int> ThresholdCrossed;
+
+        /// <summary>
+        /// An internal counter for the number of pipes that have crossed the threshold
+        /// in order to correctly call the event handler once per threshold.
+        /// </summary>
+        private int crossedThresholdCount = 0;
+
+        /// <summary>
+        /// A counter that keeps track of the number of pipes spawned in order to track
+        /// how many have passed the threshold for score tracking.
+        /// </summary>
+        private int obstacleCount = 0;
 
         /// <summary>
         /// If the pipes are visible on screen, but their animation has been stopped.
@@ -77,6 +96,9 @@ namespace FlappyDon.Game.Elements
             Running = false;
             frozen = false;
 
+            obstacleCount = 0;
+            crossedThresholdCount = 0;
+
             // Remove all child pipes
             // from this container
             ClearInternal();
@@ -89,29 +111,6 @@ namespace FlappyDon.Game.Elements
 
             var obstacle = (PipeObstacle)InternalChildren.First();
             return obstacle.Colliding(birdQuad);
-        }
-
-        public bool ThresholdCrossed()
-        {
-            if (InternalChildren.Count == 0) return false;
-
-            // Only check the first pipe since no other pipes would
-            // be in range yet
-            var first = (PipeObstacle)InternalChildren.First();
-
-            // Disregard if the pipe object already registers as crossed
-            if (first.Scored)
-                return false;
-
-            // If the pipe has moved to in front of the bird,
-            // register as a new point.
-            if (first.X < BirdThreshold)
-            {
-                first.Scored = true;
-                return true;
-            }
-
-            return false;
         }
 
         protected override void Update()
@@ -132,8 +131,25 @@ namespace FlappyDon.Game.Elements
 
                 var obstacle = (PipeObstacle)drawable;
                 obstacle.Position = new Vector2(obstacle.Position.X - pipeVelocity, 0.0f);
+
                 if (obstacle.Position.X + obstacle.DrawWidth < 0.0f)
+                {
                     RemoveInternal(obstacle);
+
+                    // Increase the obstacle count, which will reset threshold detection
+                    // for the pipe after this one.
+                    obstacleCount++;
+                }
+            }
+
+            // When we cross the threshold, increment the score counter, and call the event handler
+            var first = InternalChildren.First();
+            if (first.X < BirdThreshold && obstacleCount == crossedThresholdCount)
+            {
+                crossedThresholdCount++;
+
+                // Alert the observer that the threshold was crossed in this update loop
+                ThresholdCrossed(crossedThresholdCount);
             }
 
             // Spawn a new pipe when sufficient distance has passed
@@ -149,13 +165,11 @@ namespace FlappyDon.Game.Elements
 
         private void spawnNewObstacle()
         {
-            var obstacle = new PipeObstacle
+            AddInternal(new PipeObstacle
             {
                 Position = new Vector2(DrawWidth, 0.0f),
                 Offset = RNG.NextSingle(-140.0f, 60.0f)
-            };
-
-            AddInternal(obstacle);
+            });
         }
     }
 }
