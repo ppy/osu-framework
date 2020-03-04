@@ -61,7 +61,7 @@ namespace FlappyDon.Game.Elements
                 return;
 
             Running = true;
-            updateChildrenList();
+            updateLayout();
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace FlappyDon.Game.Elements
             base.UpdateAfterChildren();
 
             // If the bounds of this container changed, add or remove the number of child sprites to fill the visible space.
-            if (DrawSize.Equals(lastSize) == false)
+            if (!DrawSize.Equals(lastSize))
             {
-                updateChildrenList();
+                updateLayout();
                 lastSize = DrawSize;
             }
         }
@@ -91,10 +91,10 @@ namespace FlappyDon.Game.Elements
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateChildrenList();
+            updateLayout();
         }
 
-        private void updateChildrenList()
+        private void updateLayout()
         {
             // Get an initial sprite we can use to derive size
             Sprite sprite;
