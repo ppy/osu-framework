@@ -11,9 +11,6 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class GroundSprite : Sprite
     {
-        [Resolved]
-        private TextureStore textures { get; set; }
-
         public GroundSprite()
         {
             Anchor = Anchor.BottomLeft;
@@ -21,7 +18,7 @@ namespace FlappyDon.Game.Elements
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TextureStore textures)
         {
             Texture = textures.Get("base");
             Scale = new Vector2(2.5f);
