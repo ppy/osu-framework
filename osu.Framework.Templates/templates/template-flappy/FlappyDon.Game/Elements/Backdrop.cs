@@ -88,12 +88,6 @@ namespace FlappyDon.Game.Elements
             }
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            updateLayout();
-        }
-
         private void updateLayout()
         {
             // Get an initial sprite we can use to derive size
