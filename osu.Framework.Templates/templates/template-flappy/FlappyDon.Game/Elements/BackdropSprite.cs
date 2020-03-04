@@ -13,9 +13,6 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class BackdropSprite : Sprite
     {
-        [Resolved]
-        private TextureStore textures { get; set; }
-
         public float AspectRatio
         {
             get
@@ -34,7 +31,7 @@ namespace FlappyDon.Game.Elements
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TextureStore textures)
         {
             Texture = textures.Get("background-day");
             RelativeSizeAxes = Axes.Y;
