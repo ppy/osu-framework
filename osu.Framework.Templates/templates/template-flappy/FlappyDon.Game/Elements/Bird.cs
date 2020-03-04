@@ -5,6 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
@@ -25,6 +26,22 @@ namespace FlappyDon.Game.Elements
         /// Will return true once the bird has passed the GroundY value.
         /// </summary>
         public bool IsTouchingGround { get; private set; }
+
+        /// <summary>
+        /// The quad value representing this sprite for collision purposes.
+        /// </summary>
+        public Quad CollisionQuad
+        {
+            get
+            {
+                // Because the quad is rotated 45 degrees during animation and the collision
+                // event occurs when even the corner touches, shrink the collision box
+                // so that it more acdurately matches the bounds of the character on-screen.
+                RectangleF rect = ScreenSpaceDrawQuad.AABBFloat;
+                rect = rect.Shrink(new Vector2(rect.Width * 0.3f, rect.Height * 0.2f));
+                return Quad.FromRectangle(rect);
+            }
+        }
 
         private TextureAnimation animation;
 
@@ -48,7 +65,6 @@ namespace FlappyDon.Game.Elements
             {
                 Origin = Anchor.Centre,
                 Anchor = Anchor.Centre,
-                Scale = new Vector2(0.5f),
             };
 
             animation.AddFrame(textures.Get("redbird-upflap"), 200.0f);
@@ -58,7 +74,8 @@ namespace FlappyDon.Game.Elements
             AddInternal(animation);
             AddInternal(flapSound = new DrawableSample(samples.Get("wing.ogg")));
 
-            Size = new Vector2(50.0f, 35.0f);
+            Size = animation.Size;
+            Scale = new Vector2(0.45f);
         }
 
         protected override void LoadComplete()
