@@ -26,14 +26,15 @@ namespace FlappyDon.Game.Elements
         /// </summary>
         public bool IsTouchingGround { get; private set; }
 
-        private readonly TextureAnimation animation = new TextureAnimation();
+        private TextureAnimation animation;
 
         [Resolved]
         private TextureStore textures { get; set; }
 
         private DrawableSample flapSound;
 
-        private bool isPlaying;
+        private bool isIdle;
+
         private float currentVelocity;
 
         [BackgroundDependencyLoader]
@@ -43,12 +44,16 @@ namespace FlappyDon.Game.Elements
             Origin = Anchor.Centre;
             Position = new Vector2(120.0f, .0f);
 
+            animation = new TextureAnimation
+            {
+                Origin = Anchor.Centre,
+                Anchor = Anchor.Centre,
+                Scale = new Vector2(0.5f),
+            };
+
             animation.AddFrame(textures.Get("redbird-upflap"), 200.0f);
             animation.AddFrame(textures.Get("redbird-downflap"), 200.0f);
             animation.AddFrame(textures.Get("redbird-midflap"), 200.0f);
-            animation.Origin = Anchor.Centre;
-            animation.Anchor = Anchor.Centre;
-            animation.Scale = new Vector2(0.5f);
 
             AddInternal(animation);
             AddInternal(flapSound = new DrawableSample(samples.Get("wing.ogg")));
@@ -67,7 +72,7 @@ namespace FlappyDon.Game.Elements
         /// </summary>
         public void Reset()
         {
-            isPlaying = false;
+            isIdle = true;
             IsTouchingGround = false;
             ClearTransforms();
             Rotation = 0.0f;
@@ -94,9 +99,9 @@ namespace FlappyDon.Game.Elements
         /// </summary>
         public void FlyUp()
         {
-            if (!isPlaying)
+            if (isIdle)
             {
-                isPlaying = true;
+                isIdle = false;
                 ClearTransforms();
             }
 
@@ -109,7 +114,7 @@ namespace FlappyDon.Game.Elements
 
         protected override void Update()
         {
-            if (!isPlaying)
+            if (isIdle)
             {
                 base.Update();
                 return;
