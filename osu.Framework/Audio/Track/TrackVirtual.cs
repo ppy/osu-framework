@@ -69,7 +69,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return seekOffset + clock.CurrentTime;
+                lock (clock) return Math.Min(Length, seekOffset + clock.CurrentTime);
             }
         }
 
