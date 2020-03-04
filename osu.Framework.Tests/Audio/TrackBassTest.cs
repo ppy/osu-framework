@@ -104,6 +104,7 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
 
             track.SeekAsync(1000);
+            updateTrack();
 
             Thread.Sleep(50);
             updateTrack();
