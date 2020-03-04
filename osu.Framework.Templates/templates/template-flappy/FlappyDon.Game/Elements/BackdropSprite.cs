@@ -33,7 +33,7 @@ namespace FlappyDon.Game.Elements
         {
             Texture = textures.Get("background-day");
             RelativeSizeAxes = Axes.Y;
-            Size = new Vector2(Texture.Size.X, 1.0f);
+            Height = 1.0f;
         }
 
         protected override void Update()
