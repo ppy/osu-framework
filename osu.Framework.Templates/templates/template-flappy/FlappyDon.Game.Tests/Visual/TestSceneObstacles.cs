@@ -22,11 +22,5 @@ namespace FlappyDon.Game.Tests.Visual
 
             Add(obstacles);
         }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-        }
     }
 }
