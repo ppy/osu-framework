@@ -200,17 +200,19 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Convert color4 to HSV
+        /// Convert <see cref="Color4"/> to HSV.
         /// </summary>
-        /// <param name="color">Color4</param>
-        /// <param name="h">Hue value, between 0 to 360</param>
-        /// <param name="s">Saturation value, between 0 to 1</param>
-        /// <param name="v">Value value, between 0 to 1</param>
-        public static void ToHsv(this Color4 color, out float h, out float s, out float v)
+        /// <param name="colour">The <see cref="Color4"/> to convert.</param>
+        /// <returns></returns>
+        public static (float h, float s, float v) ToHSV(this Color4 colour)
         {
-            float r = color.R;
-            float g = color.G;
-            float b = color.B;
+            float h;
+            float s;
+            float v;
+
+            float r = colour.R;
+            float g = colour.G;
+            float b = colour.B;
 
             var max = Math.Max(r, Math.Max(g, b));
             var min = Math.Min(r, Math.Min(g, b));
@@ -230,6 +232,8 @@ namespace osu.Framework.Extensions.Color4Extensions
                 s = (max - min) / max;
 
             v = max;
+
+            return (h, s, v);
         }
     }
 }
