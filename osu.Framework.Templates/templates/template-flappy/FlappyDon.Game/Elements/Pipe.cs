@@ -12,9 +12,6 @@ namespace FlappyDon.Game.Elements
     /// </summary>
     public class Pipe : Sprite
     {
-        [Resolved]
-        private TextureStore textures { get; set; }
-
         public Pipe()
         {
             Anchor = Anchor.BottomCentre;
@@ -23,7 +20,7 @@ namespace FlappyDon.Game.Elements
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(TextureStore textures)
         {
             Texture = textures.Get("pipe-green");
         }
