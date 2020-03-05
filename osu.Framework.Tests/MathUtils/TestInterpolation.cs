@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.MathUtils
         {
         }
 
-        private struct TestClassWithValueAt
+        private struct TestClassWithValueAt : IInterpolable<TestClassWithValueAt>
         {
             private readonly int i;
 
@@ -89,7 +89,8 @@ namespace osu.Framework.Tests.MathUtils
 
             public bool Equals(TestClassWithValueAt other) => i == other.i;
 
-            public static TestClassWithValueAt ValueAt(double time, TestClassWithValueAt startValue, TestClassWithValueAt endValue, double startTime, double endTime, Easing easingType) => new TestClassWithValueAt(Interpolation.ValueAt(time, startValue.i, endValue.i, startTime, endTime, easingType));
+            public TestClassWithValueAt ValueAt(double time, TestClassWithValueAt startValue, TestClassWithValueAt endValue, double startTime, double endTime, Easing easingType)
+                => new TestClassWithValueAt(Interpolation.ValueAt(time, startValue.i, endValue.i, startTime, endTime, easingType));
 
             public override string ToString() => $"{nameof(i)}: {i}";
         }
