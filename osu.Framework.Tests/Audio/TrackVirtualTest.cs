@@ -3,48 +3,31 @@
 
 using System;
 using System.Threading;
-using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
-using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
-
-#pragma warning disable 4014
 
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
-    public class TrackBassTest
+    public class TrackVirtualTest
     {
-        private DllResourceStore resources;
-
-        private TrackBass track;
+        private TrackVirtual track;
 
         [SetUp]
         public void Setup()
         {
-            // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Bass.Init(0);
-
-            resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-
-            track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
+            track = new TrackVirtual(10000);
             updateTrack();
-        }
-
-        [TearDown]
-        public void Teardown()
-        {
-            Bass.Free();
         }
 
         [Test]
         public void TestStart()
         {
-            track.StartAsync();
+            track.Start();
             updateTrack();
 
             Thread.Sleep(50);
@@ -56,12 +39,25 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestStop()
+        public void TestStartZeroLength()
         {
-            track.StartAsync();
+            // override default with custom length
+            track = new TrackVirtual(0);
+
+            track.Start();
             updateTrack();
 
-            track.StopAsync();
+            Thread.Sleep(50);
+
+            Assert.IsTrue(!track.IsRunning);
+            Assert.AreEqual(0, track.CurrentTime);
+        }
+
+        [Test]
+        public void TestStop()
+        {
+            track.Start();
+            track.Stop();
             updateTrack();
 
             Assert.IsFalse(track.IsRunning);
@@ -80,7 +76,7 @@ namespace osu.Framework.Tests.Audio
             Thread.Sleep(50);
 
             updateTrack();
-            track.StopAsync();
+            track.Stop();
             updateTrack();
 
             Assert.IsFalse(track.IsRunning);
@@ -90,7 +86,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSeek()
         {
-            track.SeekAsync(1000);
+            track.Seek(1000);
             updateTrack();
 
             Assert.IsFalse(track.IsRunning);
@@ -100,39 +96,19 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSeekWhileRunning()
         {
-            track.StartAsync();
-            updateTrack();
-
-            track.SeekAsync(1000);
-            updateTrack();
-
-            Thread.Sleep(50);
+            track.Start();
+            track.Seek(1000);
             updateTrack();
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
         }
 
-        /// <summary>
-        /// Bass does not allow seeking to the end of the track. It should fail and the current time should not change.
-        /// </summary>
-        [Test]
-        public void TestSeekToEndFails()
-        {
-            bool? success = null;
-
-            runOnAudioThread(() => { success = track.Seek(track.Length); });
-            updateTrack();
-
-            Assert.AreEqual(0, track.CurrentTime);
-            Assert.IsFalse(success);
-        }
-
         [Test]
         public void TestSeekBackToSamePosition()
         {
-            track.SeekAsync(1000);
-            track.SeekAsync(0);
+            track.Seek(1000);
+            track.Seek(0);
             updateTrack();
 
             Thread.Sleep(50);
@@ -158,7 +134,7 @@ namespace osu.Framework.Tests.Audio
 
         /// <summary>
         /// Bass restarts the track from the beginning if Start is called when the track has been completed.
-        /// This is blocked locally in <see cref="TrackBass"/>, so this test expects the track to not restart.
+        /// This is blocked locally in <see cref="TrackVirtual"/>, so this test expects the track to not restart.
         /// </summary>
         [Test]
         public void TestStartFromEndDoesNotRestart()
@@ -168,7 +144,7 @@ namespace osu.Framework.Tests.Audio
             Thread.Sleep(50);
 
             updateTrack();
-            track.StartAsync();
+            track.Start();
             updateTrack();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -250,9 +226,6 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSetTempoNegative()
         {
-            Assert.Throws<ArgumentException>(() => track.Tempo.Value = -1);
-            Assert.Throws<ArgumentException>(() => track.Tempo.Value = 0.04f);
-
             Assert.IsFalse(track.IsReversed);
 
             track.Tempo.Value = 0.05f;
@@ -270,16 +243,16 @@ namespace osu.Framework.Tests.Audio
 
         private void startPlaybackAt(double time)
         {
-            track.SeekAsync(time);
-            track.StartAsync();
+            track.Seek(time);
+            track.Start();
             updateTrack();
         }
 
-        private void updateTrack() => runOnAudioThread(() => track.Update());
+        private void updateTrack() => RunOnAudioThread(() => track.Update());
 
         private void restartTrack()
         {
-            runOnAudioThread(() =>
+            RunOnAudioThread(() =>
             {
                 track.Restart();
                 track.Update();
@@ -291,7 +264,7 @@ namespace osu.Framework.Tests.Audio
         /// Here we simulate this process on a correctly named thread to avoid endless blocking.
         /// </summary>
         /// <param name="action">The action to perform.</param>
-        private void runOnAudioThread(Action action)
+        public static void RunOnAudioThread(Action action)
         {
             var resetEvent = new ManualResetEvent(false);
 
@@ -312,5 +285,3 @@ namespace osu.Framework.Tests.Audio
         }
     }
 }
-
-#pragma warning restore 4014
