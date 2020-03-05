@@ -104,14 +104,7 @@ namespace FlappyDon.Game.Elements
             ClearInternal();
         }
 
-        public bool CheckForCollision(Quad birdQuad)
-        {
-            if (InternalChildren.Count == 0)
-                return false;
-
-            var obstacle = (PipeObstacle)InternalChildren.First();
-            return obstacle.CheckCollision(birdQuad);
-        }
+        public bool CheckForCollision(Quad birdQuad) => InternalChildren.Cast<PipeObstacle>().FirstOrDefault()?.CheckCollision(birdQuad) ?? false;
 
         protected override void Update()
         {
