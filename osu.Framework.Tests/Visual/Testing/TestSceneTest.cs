@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Development;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Drawables.Steps;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
@@ -36,7 +38,8 @@ namespace osu.Framework.Tests.Visual.Testing
             if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
                 return;
 
-            AddStep("set up dummy", () => setupStepsDummyRun++);
+            AddSetupStep("set up dummy", () => setupStepsDummyRun++);
+            AddStep("set up second step", () => { });
             setupStepsRun++;
         }
 
@@ -85,6 +88,8 @@ namespace osu.Framework.Tests.Visual.Testing
 
             // Under both nUnit and the test browser, this should be invoked once _after_ each test method.
             AddAssert("correct teardown step run", () => teardownStepsDummyRun == testRunCountDummyRun - 1);
+
+            AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text == "set up second step") is SetUpStepButton);
 
             testRunCount++;
         }
