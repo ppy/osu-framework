@@ -158,9 +158,9 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// Converts a <see cref="Color4"/> into a hex colour code.
         /// </summary>
         /// <param name="colour">The <see cref="Color4"/> to convert.</param>
-        /// <param name="forceOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if <paramref name="colour"/> is translucent.</param>
+        /// <param name="alwaysOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if <paramref name="colour"/> is translucent.</param>
         /// <returns>The hex code representing the colour.</returns>
-        public static string ToHex(this Color4 colour, bool forceOutputAlpha = false)
+        public static string ToHex(this Color4 colour, bool alwaysOutputAlpha = false)
         {
             var argb = colour.ToArgb();
             byte a = (byte)(argb >> 24);
@@ -168,7 +168,7 @@ namespace osu.Framework.Extensions.Color4Extensions
             byte g = (byte)(argb >> 8);
             byte b = (byte)argb;
 
-            if (!forceOutputAlpha && a == 255)
+            if (!alwaysOutputAlpha && a == 255)
                 return $"#{r:X2}{g:X2}{b:X2}";
 
             return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
