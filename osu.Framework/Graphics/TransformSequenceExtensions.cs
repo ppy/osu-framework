@@ -10,7 +10,6 @@ using osu.Framework.Threading;
 using System;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {
@@ -240,9 +239,8 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None,
-                                                                          InterpolationFunc<TValue> interpolationFunc = null)
+        public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where T : class, ITransformable =>
-            t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc));
+            t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing));
     }
 }
