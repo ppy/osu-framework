@@ -18,7 +18,6 @@ namespace FlappyDon.Game
         private readonly TitleSprite gameOverSprite = new TitleSprite("gameover");
         private readonly TitleSprite logoSprite = new TitleSprite("message");
         private readonly ScreenFlash screenFlash = new ScreenFlash();
-        private readonly ScoreSpriteText scoreSpriteText = new ScoreSpriteText();
 
         // Game elements
         private readonly Bird bird = new Bird();
@@ -28,6 +27,9 @@ namespace FlappyDon.Game
         private Backdrop skyBackdrop;
         private Backdrop groundBackdrop;
 
+        // Score Counter
+        private readonly ScoreCounter scoreCounter = new ScoreCounter();
+
         // Sound effects
         private DrawableSample scoreSound;
         private DrawableSample punchSound;
@@ -35,7 +37,6 @@ namespace FlappyDon.Game
         private DrawableSample whooshSound;
 
         // Game state
-        private int score;
         private bool gameOver;
         private bool gameOverCooldown;
 
@@ -61,7 +62,7 @@ namespace FlappyDon.Game
                 groundBackdrop,
                 gameOverSprite,
                 logoSprite,
-                scoreSpriteText,
+                scoreCounter.ScoreSpriteText,
                 screenFlash
             };
 
@@ -90,7 +91,6 @@ namespace FlappyDon.Game
             skyBackdrop.Start();
 
             // Update the screen UI to show only the launch art
-            scoreSpriteText.Hide();
             gameOverSprite.Hide();
             logoSprite.Show();
         }
@@ -100,8 +100,7 @@ namespace FlappyDon.Game
             gameOver = false;
 
             // Reset score
-            score = 0;
-            scoreSpriteText.Text = "0";
+            scoreCounter.Reset();
 
             // Play reset noise
             whooshSound.Play();
@@ -119,7 +118,6 @@ namespace FlappyDon.Game
             skyBackdrop.Start();
 
             // Reset the UI elements
-            scoreSpriteText.Hide();
             gameOverSprite.Hide();
             logoSprite.Show();
         }
@@ -152,8 +150,7 @@ namespace FlappyDon.Game
 
         private void thresholdCrossed(int crossedCount)
         {
-            score = crossedCount;
-            scoreSpriteText.Text = score.ToString();
+            scoreCounter.IncrementScore();
             scoreSound.Play();
         }
 
@@ -178,7 +175,6 @@ namespace FlappyDon.Game
             // Begin game play
             obstacles.Start();
             logoSprite.Hide();
-            scoreSpriteText.Show();
 
             // Animate the bird flying up
             bird.FlyUp();
