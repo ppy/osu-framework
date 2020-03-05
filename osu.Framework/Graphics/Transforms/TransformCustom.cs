@@ -141,7 +141,7 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
-        private readonly Interpolation<TValue>.InterpolationDelegate interpolationDelegate;
+        private readonly InterpolationFunc<TValue> interpolationFunc;
 
         /// <summary>
         /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            interpolationDelegate = Interpolation<TValue>.FUNCTION;
+            interpolationFunc = Interpolation<TValue>.FUNCTION;
         }
 
         private TValue valueAt(double time)
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationDelegate(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }

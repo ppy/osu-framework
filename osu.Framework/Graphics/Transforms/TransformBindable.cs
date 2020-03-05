@@ -12,12 +12,12 @@ namespace osu.Framework.Graphics.Transforms
         public override string TargetMember { get; }
 
         private readonly Bindable<TValue> targetBindable;
-        private readonly Interpolation<TValue>.InterpolationDelegate interpolationDelegate;
+        private readonly InterpolationFunc<TValue> interpolationFunc;
 
         public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            interpolationDelegate = Interpolation<TValue>.FUNCTION;
+            interpolationFunc = Interpolation<TValue>.ValueAt;
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationDelegate(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         protected override void Apply(T d, double time) => targetBindable.Value = valueAt(time);

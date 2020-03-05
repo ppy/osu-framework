@@ -418,27 +418,27 @@ namespace osu.Framework.Utils
 
     internal static class Interpolation<TValue>
     {
-        public static readonly InterpolationDelegate FUNCTION;
+        public static readonly InterpolationFunc<TValue> FUNCTION;
 
         static Interpolation()
         {
             const string interpolation_method = nameof(Interpolation.ValueAt);
 
-            var parameters = typeof(InterpolationDelegate)
-                             .GetMethod(nameof(InterpolationDelegate.Invoke))
+            var parameters = typeof(InterpolationFunc<TValue>)
+                             .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                              ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
             var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
                                 ?? typeof(TValue).GetMethod(interpolation_method, parameters)
                                 ?? throw new NotSupportedException(
-                                    $"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationDelegate)} or interpolate the value manually.");
+                                    $"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
 
-            FUNCTION = (InterpolationDelegate)valueAtMethod.CreateDelegate(typeof(InterpolationDelegate));
+            FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
 
-        public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType = Easing.None)
-            => FUNCTION(time, startValue, endValue, startTime, endTime, easingType);
-
-        public delegate TValue InterpolationDelegate(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
+        public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
+            => FUNCTION(time, startValue, endValue, startTime, endTime, easing);
     }
+
+    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
 }
