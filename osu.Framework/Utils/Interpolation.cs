@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
@@ -430,12 +432,19 @@ namespace osu.Framework.Utils
                                  .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                                  ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
-                var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
-                                    ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                                    ?? throw new NotSupportedException(
-                                        $"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
+                MethodInfo valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters);
 
-                FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
+                if (valueAtMethod != null)
+                    FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
+                else
+                {
+                    var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
+
+                    if (typeRef == null)
+                        throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
+
+                    FUNCTION = typeRef.ValueAt;
+                }
             }
         }
     }
