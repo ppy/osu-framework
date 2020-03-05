@@ -430,7 +430,8 @@ namespace osu.Framework.Utils
 
             var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
                                 ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                                ?? throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
+                                ?? throw new NotSupportedException(
+                                    $"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
 
             FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
