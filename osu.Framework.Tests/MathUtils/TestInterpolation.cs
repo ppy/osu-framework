@@ -63,15 +63,15 @@ namespace osu.Framework.Tests.MathUtils
         public void TestGenericInterpolation()
         {
             // Implementations from Interpolation
-            Assert.AreEqual(10, Interpolation<int>.ValueAt(0.1, 0, 100, 0, 1));
-            Assert.IsTrue(Precision.AlmostEquals(0.01, Interpolation<double>.ValueAt(0.1, 0, 0.1, 0, 1)));
+            Assert.AreEqual(10, Interpolation.ValueAt<int>(0.1, 0, 100, 0, 1));
+            Assert.IsTrue(Precision.AlmostEquals(0.01, Interpolation.ValueAt<double>(0.1, 0, 0.1, 0, 1)));
 
             // Implementations inside struct
-            Assert.AreEqual(new MarginPadding(10), Interpolation<MarginPadding>.ValueAt(0.1, new MarginPadding(0), new MarginPadding(100), 0, 1));
-            Assert.AreEqual(new TestClassWithValueAt(50), Interpolation<TestClassWithValueAt>.ValueAt(10, new TestClassWithValueAt(0), new TestClassWithValueAt(100), 0, 20));
+            Assert.AreEqual(new MarginPadding(10), Interpolation.ValueAt(0.1, new MarginPadding(0), new MarginPadding(100), 0, 1));
+            Assert.AreEqual(new TestClassWithValueAt(50), Interpolation.ValueAt(10, new TestClassWithValueAt(0), new TestClassWithValueAt(100), 0, 20));
 
             // Without implementations
-            Assert.Throws<TypeInitializationException>(() => Interpolation<TestClassWithoutValueAt>.ValueAt(0, new TestClassWithoutValueAt(), new TestClassWithoutValueAt(), 0, 0));
+            Assert.Throws<TypeInitializationException>(() => Interpolation.ValueAt(0, new TestClassWithoutValueAt(), new TestClassWithoutValueAt(), 0, 0));
         }
 
         private struct TestClassWithoutValueAt
