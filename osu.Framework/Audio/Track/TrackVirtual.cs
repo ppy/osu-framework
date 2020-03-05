@@ -38,6 +38,9 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
+            if (Length == 0)
+                return;
+
             lock (clock) clock.Start();
         }
 
@@ -66,7 +69,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return seekOffset + clock.CurrentTime;
+                lock (clock) return Math.Min(Length, seekOffset + clock.CurrentTime);
             }
         }
 
