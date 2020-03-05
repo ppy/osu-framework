@@ -8,9 +8,9 @@ namespace osu.Framework.Testing.Drawables.Steps
     /// <summary>
     /// A step which is used to get a test into a ready state. Automatically run by test browser.
     /// </summary>
-    internal class SetUpStep : SingleStepButton
+    internal class SetUpStepButton : SingleStepButton
     {
-        public SetUpStep()
+        public SetUpStepButton()
         {
             Text = "[SetUp]";
             LightColour = Color4.Teal;

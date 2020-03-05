@@ -289,7 +289,7 @@ namespace osu.Framework.Testing
 
         public StepButton AddSetupStep(string description, Action action)
         {
-            var step = new SetUpStep
+            var step = new SetUpStepButton
             {
                 Text = description,
                 Action = action
