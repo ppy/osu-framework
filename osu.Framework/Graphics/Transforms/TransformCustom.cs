@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            interpolationFunc = Interpolation<TValue>.FUNCTION;
+            interpolationFunc = Interpolation.ValueAt;
         }
 
         private TValue valueAt(double time)
