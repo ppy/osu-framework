@@ -330,7 +330,7 @@ namespace osu.Framework.Utils
 
         public static TValue ValueAt<TValue, TEasing>(double time, TValue startValue, TValue endValue, double startTime, double endTime, in TEasing easing)
             where TEasing : IEasingFunction
-            => GenericInterpolation<TValue>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+            => GenericInterpolation<TValue, TEasing>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
 
         #endregion
 
@@ -341,22 +341,23 @@ namespace osu.Framework.Utils
             where TEasing : IEasingFunction
             => easing.ApplyEasing(time);
 
-        private static class GenericInterpolation<TValue>
+        private static class GenericInterpolation<TValue, TEasing>
+            where TEasing : IEasingFunction
         {
-            public static readonly InterpolationFunc<TValue> FUNCTION;
+            public static readonly InterpolationFunc<TValue, TEasing> FUNCTION;
 
             static GenericInterpolation()
             {
                 const string interpolation_method = nameof(Interpolation.ValueAt);
 
-                var parameters = typeof(InterpolationFunc<TValue>)
-                                 .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
+                var parameters = typeof(InterpolationFunc<TValue, TEasing>)
+                                 .GetMethod(nameof(InterpolationFunc<TValue, TEasing>.Invoke))
                                  ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
                 MethodInfo valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters);
 
                 if (valueAtMethod != null)
-                    FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
+                    FUNCTION = (InterpolationFunc<TValue, TEasing>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue, TEasing>));
                 else
                 {
                     var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
@@ -370,5 +371,5 @@ namespace osu.Framework.Utils
         }
     }
 
-    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
+    public delegate TValue InterpolationFunc<TValue, TEasing>(double time, TValue startValue, TValue endValue, double startTime, double endTime, in TEasing easingType) where TEasing : IEasingFunction;
 }

@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Utils
 {
@@ -22,8 +22,8 @@ namespace osu.Framework.Utils
         /// <param name="endValue">The <typeparamref name="TValue"/> at <paramref name="time"/> = <paramref name="endTime"/>.</param>
         /// <param name="startTime">The start time.</param>
         /// <param name="endTime">The end time.</param>
-        /// <param name="easingType">The easing to use.</param>
+        /// <param name="easing">The easing function to use.</param>
         /// <returns>The interpolated value.</returns>
-        TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType = Easing.None);
+        TValue ValueAt<TEasing>(double time, TValue startValue, TValue endValue, double startTime, double endTime, in TEasing easing) where TEasing : IEasingFunction;
     }
 }
