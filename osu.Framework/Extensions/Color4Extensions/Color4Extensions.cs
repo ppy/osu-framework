@@ -98,6 +98,23 @@ namespace osu.Framework.Extensions.Color4Extensions
                 colour.A);
         }
 
+        /// <summary>
+        /// Converts an RGB or RGBA-formatted hex colour code into a <see cref="Color4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <returns>The <see cref="Color4"/> representing the colour.</returns>
+        /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Color4 FromHex(string hex)
         {
             var hexSpan = hex[0] == '#' ? hex.AsSpan().Slice(1) : hex.AsSpan();
@@ -137,9 +154,15 @@ namespace osu.Framework.Extensions.Color4Extensions
             }
         }
 
-        public static string ToHex(this Color4 color, bool forceOutputAlpha = false)
+        /// <summary>
+        /// Converts a <see cref="Color4"/> into a hex colour code.
+        /// </summary>
+        /// <param name="colour">The <see cref="Color4"/> to convert.</param>
+        /// <param name="forceOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if <paramref name="colour"/> is translucent.</param>
+        /// <returns>The hex code representing the colour.</returns>
+        public static string ToHex(this Color4 colour, bool forceOutputAlpha = false)
         {
-            var argb = color.ToArgb();
+            var argb = colour.ToArgb();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
@@ -152,11 +175,11 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Convert HSV to <see cref="Color4"/>
+        /// Converts an HSV colour to a <see cref="Color4"/>.
         /// </summary>
-        /// <param name="h">Hue value, between 0 to 360</param>
-        /// <param name="s">Saturation value, between 0 to 1</param>
-        /// <param name="v">Value value, between 0 to 1</param>
+        /// <param name="h">The hue, between 0 and 360.</param>
+        /// <param name="s">The saturation, between 0 and 1.</param>
+        /// <param name="v">The value, between 0 and 1.</param>
         /// <returns></returns>
         public static Color4 FromHSV(float h, float s, float v)
         {
@@ -203,10 +226,10 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Convert <see cref="Color4"/> to HSV.
+        /// Converts a <see cref="Color4"/> to an HSV colour.
         /// </summary>
         /// <param name="colour">The <see cref="Color4"/> to convert.</param>
-        /// <returns></returns>
+        /// <returns>The HSV colour.</returns>
         public static (float h, float s, float v) ToHSV(this Color4 colour)
         {
             float h;
