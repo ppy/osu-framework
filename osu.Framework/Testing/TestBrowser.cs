@@ -526,15 +526,6 @@ namespace osu.Framework.Testing
             }
         }
 
-        private class SetUpStep : SingleStepButton
-        {
-            public SetUpStep()
-            {
-                Text = "[SetUp]";
-                LightColour = Color4.Teal;
-            }
-        }
-
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;

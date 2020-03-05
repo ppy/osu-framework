@@ -287,6 +287,19 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
+        public StepButton AddSetupStep(string description, Action action)
+        {
+            var step = new SetUpStep
+            {
+                Text = description,
+                Action = action
+            };
+
+            AddStep(step);
+
+            return step;
+        }
+
         public StepButton AddStep(string description, Action action)
         {
             var step = new SingleStepButton
