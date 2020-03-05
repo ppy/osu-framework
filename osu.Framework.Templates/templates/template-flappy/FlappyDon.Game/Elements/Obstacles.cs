@@ -40,13 +40,13 @@ namespace FlappyDon.Game.Elements
         /// An internal counter for the number of pipes that have crossed the threshold
         /// in order to correctly call the event handler once per threshold.
         /// </summary>
-        private int crossedThresholdCount = 0;
+        private int crossedThresholdCount;
 
         /// <summary>
         /// A counter that keeps track of the number of pipes spawned in order to track
         /// how many have passed the threshold for score tracking.
         /// </summary>
-        private int obstacleCount = 0;
+        private int obstacleCount;
 
         /// <summary>
         /// If the pipes are visible on screen, but their animation has been stopped.
@@ -137,6 +137,7 @@ namespace FlappyDon.Game.Elements
 
             // When we cross the threshold, increment the score counter, and call the event handler
             var first = InternalChildren.First();
+
             if (first.X < BirdThreshold && obstacleCount == crossedThresholdCount)
             {
                 crossedThresholdCount++;
