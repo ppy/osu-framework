@@ -20,11 +20,15 @@ namespace FlappyDon.Game.Elements
             ScoreSpriteText.Hide();
         }
 
+        public void Start()
+        {
+            ScoreSpriteText.Show();
+        }
+
         public void IncrementScore()
         {
             Score++;
             ScoreSpriteText.Text = Score.ToString();
-            ScoreSpriteText.Show();
         }
     }
 }

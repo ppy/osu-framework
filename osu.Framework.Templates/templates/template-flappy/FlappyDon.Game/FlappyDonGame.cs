@@ -9,6 +9,13 @@ using osuTK.Input;
 
 namespace FlappyDon.Game
 {
+    enum GameState
+    {
+        Ready,
+        Playing,
+        GameOver
+    }
+
     public class FlappyDonGame : FlappyDonGameBase
     {
         // The main container for holding all of the game content
@@ -37,8 +44,8 @@ namespace FlappyDon.Game
         private DrawableSample whooshSound;
 
         // Game state
-        private bool gameOver;
-        private bool gameOverCooldown;
+        private GameState gameState = GameState.Ready;
+        private bool disableInput;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -74,31 +81,56 @@ namespace FlappyDon.Game
 
             // Register a method to be triggered each time the bird crosses a pipe threshold
             obstacles.ThresholdCrossed = thresholdCrossed;
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
 
             // Set the Y offset from the top that counts as the ground for the bird
             bird.GroundY = 525.0f;
 
             // Inform the obstacles the position of the bird in order to detect when the player successfully earns a point
             obstacles.BirdThreshold = bird.X;
+        }
 
-            // Start animating the background elements
-            groundBackdrop.Start();
-            skyBackdrop.Start();
-
-            // Update the screen UI to show only the launch art
-            gameOverSprite.Hide();
-            logoSprite.Show();
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            ready();
         }
 
         private void reset()
         {
-            gameOver = false;
+            changeGameState(GameState.Ready);
+        }
 
+        private void disableGameInput(double duration)
+        {
+            disableInput = true;
+            Scheduler.AddDelayed(() => disableInput = false, duration);
+        }
+
+        private void changeGameState(GameState state)
+        {
+            if (state == gameState)
+                return;
+
+            switch (state)
+            {
+                case GameState.Ready:
+                    ready();
+                    break;
+
+                case GameState.Playing:
+                    play();
+                    break;
+
+                case GameState.GameOver:
+                    fail();
+                    break;
+            }
+
+            gameState = state;
+        }
+
+        private void ready()
+        {
             // Reset score
             scoreCounter.Reset();
 
@@ -120,6 +152,13 @@ namespace FlappyDon.Game
             // Reset the UI elements
             gameOverSprite.Hide();
             logoSprite.Show();
+        }
+
+        private void play()
+        {
+            obstacles.Start();
+            logoSprite.Hide();
+            scoreCounter.ScoreSpriteText.Show();
         }
 
         private void fail()
@@ -144,8 +183,7 @@ namespace FlappyDon.Game
 
             // Set a flag to block input for half a second so the user can't
             // accidentally reset the game instantly after hitting a pipe.
-            gameOverCooldown = true;
-            Scheduler.AddDelayed(() => gameOverCooldown = false, 500.0f);
+            disableGameInput(500.0f);
         }
 
         private void thresholdCrossed(int crossedCount)
@@ -156,14 +194,13 @@ namespace FlappyDon.Game
 
         protected override void Update()
         {
-            if (gameOver)
+            if (gameState == GameState.GameOver)
                 return;
 
             // Register a collision if the bird hits a pipe or the ground
             if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
             {
-                gameOver = true;
-                fail();
+                changeGameState(GameState.GameOver);
                 return;
             }
 
@@ -172,9 +209,8 @@ namespace FlappyDon.Game
 
         private void onTapEvent()
         {
-            // Begin game play
-            obstacles.Start();
-            logoSprite.Hide();
+            // Start the game
+            changeGameState(GameState.Playing);
 
             // Animate the bird flying up
             bird.FlyUp();
@@ -182,18 +218,10 @@ namespace FlappyDon.Game
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            // After dying, disable input briefly to stop the user restarting the game too quickly.
-            if (gameOverCooldown)
+            if (!onInputEvent(e.Key == Key.Space && e.Repeat == false))
                 return base.OnKeyDown(e);
 
-            if (gameOver)
-                reset();
-            else if (e.Key == Key.Space && e.Repeat == false)
-                onTapEvent();
-            else
-                return base.OnKeyDown(e);
-
-            // Return true as we handled this event and want to block it from being handled again.
+            // Return true to denote we captured the input here, so we don't need to continue the chain
             return true;
         }
 
@@ -205,15 +233,31 @@ namespace FlappyDon.Game
             if (verticalOffset < 0.05f || verticalOffset > 0.95f)
                 return base.OnMouseDown(e);
 
-            if (gameOverCooldown)
+            if (!onInputEvent(true))
                 return base.OnMouseDown(e);
 
-            if (gameOver)
-                reset();
-            else
-                onTapEvent();
+            // Return true to denote we captured the input here, so we don't need to continue the chain
+            return true;
+        }
 
-            // Return true as we handled this event and want to block it from being handled again.
+        /// <summary>
+        /// Handles all of the commonly shared input logic between mouse clicks,
+        /// button pushes and screen taps
+        /// </summary>
+        /// <returns>Returns true if successfully handled (so input should stop here), or false if the event should continue to be forwarded</returns>
+        private bool onInputEvent(bool inputCondition)
+        {
+            // After dying, disable input briefly to stop the user restarting the game too quickly.
+            if (disableInput)
+                return false;
+
+            if (gameState == GameState.GameOver)
+                reset();
+            else if (inputCondition)
+                onTapEvent();
+            else
+                return false;
+
             return true;
         }
     }
