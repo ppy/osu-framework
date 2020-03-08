@@ -14,10 +14,10 @@ namespace osu.Framework.Graphics.Transforms
         private readonly Bindable<TValue> targetBindable;
         private readonly InterpolationFunc<TValue> interpolationFunc;
 
-        public TransformBindable(Bindable<TValue> targetBindable, InterpolationFunc<TValue> interpolationFunc)
+        public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+            interpolationFunc = Interpolation.ValueAt;
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }

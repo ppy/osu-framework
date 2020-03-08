@@ -109,8 +109,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!internalUpdate.IsValid)
                     return;
 
-                // Assigh canvas and scroller to change to current color
-                newColor.ToHsv(out float h, out float s, out float v);
+                // Assign canvas and scroller to change to current color
+                (float h, float s, float v) = newColor.ToHSV();
                 HueSlider.Hue.Value = h;
                 PickerArea.Saturation.Value = s;
                 PickerArea.Value.Value = v;
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
             var v = PickerArea.Value.Value;
 
             // Update current color
-            var color = Color4Extensions.ToRGB(h, s, v);
+            var color = Color4Extensions.FromHSV(h, s, v);
             Current.Value = color;
 
             // Set to valid
@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Re-calculate display color if HSV's hue changed.
                 Hue.BindValueChanged(value =>
                 {
-                    var color = Color4Extensions.ToRGB(value.NewValue, 1, 1);
+                    var color = Color4Extensions.FromHSV(value.NewValue, 1, 1);
                     horizontalBackground.Colour = ColourInfo.GradientHorizontal(new Color4(), color);
                     verticalBackground.Colour = ColourInfo.GradientVertical(new Color4(), Color4.Black);
                 }, true);

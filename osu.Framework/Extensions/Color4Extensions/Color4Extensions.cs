@@ -3,6 +3,7 @@
 
 using osuTK.Graphics;
 using System;
+using System.Globalization;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -97,55 +98,94 @@ namespace osu.Framework.Extensions.Color4Extensions
                 colour.A);
         }
 
+        /// <summary>
+        /// Converts an RGB or RGBA-formatted hex colour code into a <see cref="Color4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <returns>The <see cref="Color4"/> representing the colour.</returns>
+        /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Color4 FromHex(string hex)
         {
-            if (hex[0] == '#')
-                hex = hex.Substring(1);
+            var hexSpan = hex[0] == '#' ? hex.AsSpan().Slice(1) : hex.AsSpan();
 
-            switch (hex.Length)
+            switch (hexSpan.Length)
             {
                 default:
                     throw new ArgumentException(@"Invalid hex string length!");
 
                 case 3:
                     return new Color4(
-                        (byte)(Convert.ToByte(hex.Substring(0, 1), 16) * 17),
-                        (byte)(Convert.ToByte(hex.Substring(1, 1), 16) * 17),
-                        (byte)(Convert.ToByte(hex.Substring(2, 1), 16) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
                         255);
 
                 case 6:
                     return new Color4(
-                        Convert.ToByte(hex.Substring(0, 2), 16),
-                        Convert.ToByte(hex.Substring(2, 2), 16),
-                        Convert.ToByte(hex.Substring(4, 2), 16),
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
                         255);
+
+                case 4:
+                    return new Color4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+
+                case 8:
+                    return new Color4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
             }
         }
 
-        public static string ToHex(this Color4 color, bool forceOutputAlpha = false)
+        /// <summary>
+        /// Converts a <see cref="Color4"/> into a hex colour code.
+        /// </summary>
+        /// <param name="colour">The <see cref="Color4"/> to convert.</param>
+        /// <param name="alwaysOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if <paramref name="colour"/> is translucent.</param>
+        /// <returns>The hex code representing the colour.</returns>
+        public static string ToHex(this Color4 colour, bool alwaysOutputAlpha = false)
         {
-            var argb = color.ToArgb();
+            var argb = colour.ToArgb();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
             byte b = (byte)argb;
 
-            if (!forceOutputAlpha && a == 255)
+            if (!alwaysOutputAlpha && a == 255)
                 return $"#{r:X2}{g:X2}{b:X2}";
 
             return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
         }
 
         /// <summary>
-        /// Convert HSV to Color4
+        /// Converts an HSV colour to a <see cref="Color4"/>.
         /// </summary>
-        /// <param name="h">Hue value, between 0 to 360</param>
-        /// <param name="s">Saturation value, between 0 to 1</param>
-        /// <param name="v">Value value, between 0 to 1</param>
+        /// <param name="h">The hue, between 0 and 360.</param>
+        /// <param name="s">The saturation, between 0 and 1.</param>
+        /// <param name="v">The value, between 0 and 1.</param>
         /// <returns></returns>
-        public static Color4 ToRGB(float h, float s, float v)
+        public static Color4 FromHSV(float h, float s, float v)
         {
+            if (h < 0 || h > 360)
+                throw new ArgumentOutOfRangeException(nameof(h), "Hue must be between 0 and 360.");
+
             int hi = ((int)(h / 60.0f)) % 6;
             float f = h / 60.0f - (int)(h / 60.0);
             float p = v * (1 - s);
@@ -171,10 +211,10 @@ namespace osu.Framework.Extensions.Color4Extensions
 
                 case 5:
                     return toColor4(v, p, q);
-            }
 
-            // Should not goes to here
-            throw new ArgumentOutOfRangeException($"{nameof(hi)} is not valid.");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(h), "Hue is out of range.");
+            }
 
             static Color4 toColor4(float fr, float fg, float fb)
             {
@@ -186,17 +226,17 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Convert color4 to HSV
+        /// Converts a <see cref="Color4"/> to an HSV colour.
         /// </summary>
-        /// <param name="color">Color4</param>
-        /// <param name="h">Hue value, between 0 to 360</param>
-        /// <param name="s">Saturation value, between 0 to 1</param>
-        /// <param name="v">Value value, between 0 to 1</param>
-        public static void ToHsv(this Color4 color, out float h, out float s, out float v)
+        /// <param name="colour">The <see cref="Color4"/> to convert.</param>
+        /// <returns>The HSV colour.</returns>
+        public static (float h, float s, float v) ToHSV(this Color4 colour)
         {
-            float r = color.R;
-            float g = color.G;
-            float b = color.B;
+            float h;
+            float s;
+            float r = colour.R;
+            float g = colour.G;
+            float b = colour.B;
 
             var max = Math.Max(r, Math.Max(g, b));
             var min = Math.Min(r, Math.Min(g, b));
@@ -215,7 +255,9 @@ namespace osu.Framework.Extensions.Color4Extensions
             else
                 s = (max - min) / max;
 
-            v = max;
+            var v = max;
+
+            return (h, s, v);
         }
     }
 }
