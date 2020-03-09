@@ -5,6 +5,9 @@ using System;
 
 namespace osu.Framework.Graphics.Transforms
 {
+    /// <summary>
+    /// An easing function corresponding to one of the <see cref="Easing"/> types.
+    /// </summary>
     public readonly struct DefaultEasingFunction : IEasingFunction
     {
         private const double elastic_const = 2 * Math.PI / .3;
@@ -24,6 +27,10 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Easing easing;
 
+        /// <summary>
+        /// Creates a new <see cref="DefaultEasingFunction"/> for an <see cref="Easing"/>.
+        /// </summary>
+        /// <param name="easing">The <see cref="Easing"/> type.</param>
         public DefaultEasingFunction(Easing easing)
         {
             this.easing = easing;
