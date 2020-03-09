@@ -29,8 +29,6 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
-        internal Action<Thread> ThreadChanged;
-
         protected Action OnNewFrame;
 
         /// <summary>
@@ -215,7 +213,6 @@ namespace osu.Framework.Threading
         protected virtual void Cleanup()
         {
             Thread = null;
-            ThreadChanged?.Invoke(null);
         }
 
         public void Exit()
@@ -237,7 +234,6 @@ namespace osu.Framework.Threading
             Thread = CreateRunningThread();
             if (Thread.Name == null)
                 Thread.Name = PrefixedThreadNameFor(Name);
-            ThreadChanged?.Invoke(Thread);
         }
 
         protected virtual void PerformExit()
