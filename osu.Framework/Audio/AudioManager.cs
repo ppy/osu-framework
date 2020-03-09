@@ -283,6 +283,9 @@ namespace osu.Framework.Audio
             // Enable custom BASS_CONFIG_MP3_OLDGAPS flag for backwards compatibility.
             Bass.Configure((ManagedBass.Configuration)68, 1);
 
+            // For iOS devices, set the default audio policy to one that obeys the mute switch.
+            Bass.Configure(ManagedBass.Configuration.IOSMixAudio, 5);
+
             return Bass.Init(device);
         }
 
