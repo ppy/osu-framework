@@ -5,6 +5,8 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
+using AVFoundation;
+using System;
 
 namespace osu.Framework.iOS
 {
@@ -34,6 +36,10 @@ namespace osu.Framework.iOS
 
             host.Run(CreateGame());
 
+            // Watch for the volume button changing in order to change audio policy
+            AVAudioSession audioSession = AVAudioSession.SharedInstance();
+            audioSession.AddObserver(this, "outputVolume", NSKeyValueObservingOptions.New, IntPtr.Zero);
+
             return true;
         }
 
@@ -49,6 +55,15 @@ namespace osu.Framework.iOS
             catch
             {
             }
+        }
+
+        public override void ObserveValue(NSString keyPath, NSObject ofObject, NSDictionary change, IntPtr context)
+        {
+            if (keyPath != "outputVolume")
+                return;
+
+            AVAudioSession audioSession = AVAudioSession.SharedInstance();
+            audioSession.SetCategory(AVAudioSessionCategory.Playback);
         }
     }
 }
