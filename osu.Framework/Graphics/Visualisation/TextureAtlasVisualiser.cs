@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Source.avgUsagesPerFrame = Source.avgUsagesPerFrame * 0.9f + delta * 0.1f;
 
                     drawColour = DrawColourInfo.Colour;
-                    drawColour.ApplyChild(Interpolation.ValueAt(Source.avgUsagesPerFrame, Color4.Black.Opacity(0), Color4.Red, 0, 50));
+                    drawColour.ApplyChild(Interpolation.ValueAt(Source.avgUsagesPerFrame, Color4.Red.Opacity(0), Color4.Red, 0, 200));
 
                     base.Draw(vertexAction);
 
