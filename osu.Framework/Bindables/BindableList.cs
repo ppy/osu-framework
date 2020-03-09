@@ -41,6 +41,9 @@ namespace osu.Framework.Bindables
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
+        IEnumerable<IBindable> IBindable.Bindings => bindings;
+        public IEnumerable<IBindableList<T>> Bindings => bindings;
+
         private LockedWeakList<BindableList<T>> bindings;
 
         /// <summary>

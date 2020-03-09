@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Bindables
 {
@@ -10,6 +11,11 @@ namespace osu.Framework.Bindables
     /// </summary>
     public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
+        /// <summary>
+        /// The list of all bindables that are bound to this <see cref="IBindable"/>.
+        /// </summary>
+        IEnumerable<IBindable> Bindings { get; }
+
         /// <summary>
         /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
         /// </summary>
@@ -54,6 +60,11 @@ namespace osu.Framework.Bindables
         /// The default value of this bindable. Used when querying <see cref="IHasDefaultValue.IsDefault">IsDefault</see>.
         /// </summary>
         T Default { get; }
+
+        /// <summary>
+        /// The list of all bindables that are bound to this <see cref="IBindable{T}"/>.
+        /// </summary>
+        new IEnumerable<IBindable<T>> Bindings { get; }
 
         /// <summary>
         /// Binds ourselves to another bindable such that we receive any values and value limitations of the bindable we bind width.

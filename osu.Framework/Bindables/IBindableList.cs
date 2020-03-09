@@ -24,6 +24,11 @@ namespace osu.Framework.Bindables
         event Action<IEnumerable<T>> ItemsRemoved;
 
         /// <summary>
+        /// The list of all bindables that are bound to this <see cref="IBindableList{T}"/>.
+        /// </summary>
+        new IEnumerable<IBindableList<T>> Bindings { get; }
+
+        /// <summary>
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>

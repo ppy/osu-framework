@@ -132,6 +132,11 @@ namespace osu.Framework.Bindables
 
         private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
+        IEnumerable<IBindable> IBindable.Bindings => InternalBindings;
+        public IEnumerable<IBindable<T>> Bindings => InternalBindings;
+
+        protected LockedWeakList<Bindable<T>> InternalBindings { get; private set; }
+
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
         /// </summary>
@@ -149,8 +154,6 @@ namespace osu.Framework.Bindables
         {
             value = Default = defaultValue;
         }
-
-        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -222,13 +225,13 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
+            if (InternalBindings == null)
+                InternalBindings = new LockedWeakList<Bindable<T>>();
 
-            Bindings.Add(weakReference);
+            InternalBindings.Add(weakReference);
         }
 
-        private void removeWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
+        private void removeWeakReference(WeakReference<Bindable<T>> weakReference) => InternalBindings?.Remove(weakReference);
 
         /// <summary>
         /// Parse an object into this instance.
@@ -272,7 +275,7 @@ namespace osu.Framework.Bindables
 
             if (propagateToBindings && Bindings != null)
             {
-                foreach (var b in Bindings)
+                foreach (var b in InternalBindings)
                 {
                     if (b == source) continue;
 
@@ -291,7 +294,7 @@ namespace osu.Framework.Bindables
 
             if (propagateToBindings && Bindings != null)
             {
-                foreach (var b in Bindings)
+                foreach (var b in InternalBindings)
                 {
                     if (b == source) continue;
 
@@ -310,7 +313,7 @@ namespace osu.Framework.Bindables
 
             if (propagateToBindings && Bindings != null)
             {
-                foreach (var b in Bindings)
+                foreach (var b in InternalBindings)
                 {
                     if (b == source) continue;
 
@@ -341,13 +344,13 @@ namespace osu.Framework.Bindables
 
             // ToArray required as this may be called from an async disposal thread.
             // This can lead to deadlocks since each child is also enumerating its Bindings.
-            foreach (var b in Bindings.ToArray())
+            foreach (var b in InternalBindings.ToArray())
                 b.Unbind(this);
 
-            Bindings.Clear();
+            InternalBindings.Clear();
         }
 
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
+        protected void Unbind(Bindable<T> binding) => InternalBindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
@@ -441,7 +444,7 @@ namespace osu.Framework.Bindables
 
             bool found = false;
 
-            foreach (var b in Bindings)
+            foreach (var b in InternalBindings)
             {
                 if (b != source)
                     found |= b.checkForLease(this);
