@@ -21,10 +21,11 @@ namespace osu.Framework.Statistics
         private IList<ClrStackFrame> backgroundMonitorStackTrace;
 
         private readonly StopwatchClock clock;
+        private readonly string name;
 
         private readonly Lazy<Logger> logger;
 
-        private readonly Thread targetThread;
+        private Thread targetThread;
 
         internal double LastConsumptionTime;
 
@@ -37,16 +38,19 @@ namespace osu.Framework.Statistics
         /// </summary>
         /// <param name="targetThread">The thread to monitor.</param>
         /// <param name="clock">The clock to use for elapsed time checks.</param>
-        public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
+        /// <param name="name">A name used for tracking purposes. Can be used to track potentially changing threads under a single name.</param>
+        public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock, string name = null)
         {
-            if (Debugger.IsAttached) return;
+            if (Debugger.IsAttached)
+                return;
 
             this.clock = clock;
+            this.name = name;
             this.targetThread = targetThread;
 
             logger = new Lazy<Logger>(() =>
             {
-                var l = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
+                var l = Logger.GetLogger($"performance-{getThreadName()?.ToLower() ?? "unknown"}");
                 l.OutputToListeners = false;
                 return l;
             });
@@ -70,6 +74,8 @@ namespace osu.Framework.Statistics
             }
         }
 
+        private string getThreadName() => name ?? targetThread?.Name;
+
         private CancellationTokenSource cancellation;
 
         private void startThread()
@@ -78,24 +84,31 @@ namespace osu.Framework.Statistics
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
             {
-                Name = $"{targetThread.Name}-StackTraceCollector",
+                Name = $"{getThreadName()}-StackTraceCollector",
                 IsBackground = true
             };
 
             thread.Start();
         }
 
+        private bool isCollecting;
+
         private void run(CancellationToken cancellation)
         {
             while (!cancellation.IsCancellationRequested)
             {
-                if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
+                var elapsed = clock.ElapsedMilliseconds - LastConsumptionTime;
+                var threshold = spikeRecordThreshold / 2;
+
+                if (targetThread.IsAlive && isCollecting && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                 {
                     try
                     {
-                        Logger.Log($"Retrieving background stack trace on {targetThread.Name} thread...");
+                        Logger.Log($"Retrieving background stack trace on {getThreadName()} thread ({elapsed:N0}ms over threshold of {threshold:N0}ms)...");
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
                         Logger.Log("Done!");
+
+                        Thread.Sleep(100);
                     }
                     catch (Exception e)
                     {
@@ -119,6 +132,8 @@ namespace osu.Framework.Statistics
         {
             if (targetThread == null) return;
 
+            isCollecting = true;
+
             var frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
@@ -131,7 +146,7 @@ namespace osu.Framework.Statistics
 
             StringBuilder logMessage = new StringBuilder();
 
-            logMessage.AppendLine($@"| Slow frame on thread ""{targetThread.Name}""");
+            logMessage.AppendLine($@"| Slow frame on thread ""{getThreadName()}""");
             logMessage.AppendLine(@"|");
             logMessage.AppendLine($@"| * Thread time  : {clock.CurrentTime:#0,#}ms");
             logMessage.AppendLine($@"| * Frame length : {elapsedFrameTime:#0,#}ms (allowable: {currentThreshold:#0,#}ms)");
@@ -149,6 +164,11 @@ namespace osu.Framework.Statistics
                 logMessage.AppendLine(@"| Call stack was not recorded.");
 
             logger.Value.Add(logMessage.ToString());
+        }
+
+        public void EndFrame()
+        {
+            isCollecting = false;
         }
 
         private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
@@ -181,6 +201,7 @@ namespace osu.Framework.Statistics
             {
                 Enabled = false; // stops the thread if running.
                 isDisposed = true;
+                targetThread = null;
             }
         }
 

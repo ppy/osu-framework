@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System.Collections.Generic;
+using System.Threading;
 using osu.Framework.Development;
 
 namespace osu.Framework.Threading
@@ -30,9 +31,19 @@ namespace osu.Framework.Threading
             ThreadSafety.IsInputThread = true;
         }
 
-        public override void Start()
+        public override bool Running => !Paused;
+
+        protected override Thread CreateRunningThread()
         {
             // InputThread does not get started. it is run manually by GameHost.
+            return Thread.CurrentThread;
+        }
+
+        protected override void PerformExit()
+        {
+            base.PerformExit();
+
+            Paused = true;
         }
     }
 }

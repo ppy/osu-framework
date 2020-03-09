@@ -64,7 +64,7 @@ namespace osu.Framework.Threading
 
         public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
 
-        public bool Running => Thread?.IsAlive == true;
+        public virtual bool Running => Thread?.IsAlive == true;
 
         public virtual bool IsCurrent => true;
 
@@ -77,6 +77,10 @@ namespace osu.Framework.Threading
             OnInitialize();
 
             Clock.Throttling = withThrottling;
+
+            Monitor.Thread = Thread.CurrentThread;
+
+            updateCulture();
 
             initializedEvent.Set();
         }
@@ -100,19 +104,11 @@ namespace osu.Framework.Threading
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
 
-        private void createThread()
+        protected virtual Thread CreateRunningThread()
         {
-            Debug.Assert(Thread == null);
-
-            Thread = new Thread(runWork)
-            {
-                Name = PrefixedThreadNameFor(Name),
-                IsBackground = true,
-            };
-
-            ThreadChanged?.Invoke(Thread);
-
-            updateCulture();
+            var thread = new Thread(runWork) { IsBackground = true };
+            thread.Start();
+            return thread;
         }
 
         public void WaitUntilInitialized()
@@ -128,7 +124,7 @@ namespace osu.Framework.Threading
             {
                 Initialize(true);
 
-                while (!exitCompleted && !paused)
+                while (!Exited && !Paused)
                 {
                     ProcessFrame();
                 }
@@ -151,15 +147,8 @@ namespace osu.Framework.Threading
         {
             try
             {
-                if (exitCompleted)
+                if (Exited)
                     return;
-
-                if (exitRequested)
-                {
-                    PerformExit();
-                    exitCompleted = true;
-                    return;
-                }
 
                 MakeCurrent();
 
@@ -173,6 +162,8 @@ namespace osu.Framework.Threading
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                     Clock.ProcessFrame();
+
+                Monitor?.EndFrame();
             }
             catch (Exception e)
             {
@@ -184,10 +175,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private volatile bool exitRequested;
-        private volatile bool exitCompleted;
-
-        public bool Exited => exitCompleted;
+        public bool Exited { get; private set; }
 
         private CultureInfo culture;
 
@@ -210,44 +198,53 @@ namespace osu.Framework.Threading
             Thread.CurrentUICulture = culture;
         }
 
-        private bool paused;
+        protected bool Paused;
 
         public void Pause()
         {
             if (Thread != null)
             {
-                paused = true;
+                Paused = true;
                 while (Running)
                     Thread.Sleep(1);
             }
-            else
-            {
-                Cleanup();
-            }
+
+            Cleanup();
         }
 
         protected virtual void Cleanup()
         {
             Thread = null;
-            ThreadChanged?.Invoke(Thread);
+            ThreadChanged?.Invoke(null);
         }
 
-        public void Exit() => exitRequested = true;
-
-        public virtual void Start()
+        public void Exit()
         {
-            paused = false;
+            // if already on the correct thread, perform exit inline
+            // can't rely on scheduler since ThreadSafety gets reset to non-current.
+            if (Thread.CurrentThread == Thread)
+                PerformExit();
+            else
+                Scheduler.Add(PerformExit);
+        }
 
-            if (Thread == null)
-                createThread();
+        public void Start()
+        {
+            Debug.Assert(Thread == null);
 
-            Thread.Start();
+            Paused = false;
+
+            Thread = CreateRunningThread();
+            if (Thread.Name == null)
+                Thread.Name = PrefixedThreadNameFor(Name);
+            ThreadChanged?.Invoke(Thread);
         }
 
         protected virtual void PerformExit()
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+            Exited = true;
         }
 
         public class GameThreadScheduler : Scheduler
