@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -22,7 +23,10 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void CreateWithDefaultEasing()
+        public Transform CreateSingleBlank() => new TestTransform();
+
+        [Benchmark]
+        public void CreateSequenceWithDefaultEasing()
         {
             target.FadeIn(1000, Easing.OutQuint)
                   .Then().FadeOut(500)
@@ -31,7 +35,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void ApplyWithDefaultEasing()
+        public void ApplySequenceWithDefaultEasing()
         {
             target.FadeIn(1000, Easing.OutQuint);
             target.ApplyTransformsAt(double.MaxValue);
@@ -39,7 +43,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void CreateWithValueEasing()
+        public void CreateSequenceWithValueEasing()
         {
             target.FadeIn(1000, new ValueEasingFunction())
                   .Then().FadeOut(500, new ValueEasingFunction())
@@ -48,7 +52,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void ApplyWithValueEasing()
+        public void ApplySequenceWithValueEasing()
         {
             target.FadeIn(1000, new ValueEasingFunction());
             target.ApplyTransformsAt(double.MaxValue);
@@ -56,7 +60,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void CreateWithReferenceEasing()
+        public void CreateSequenceWithReferenceEasing()
         {
             target.FadeIn(1000, new ReferenceEasingFunction())
                   .Then().FadeOut(500, new ReferenceEasingFunction())
@@ -65,7 +69,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void ApplyWithReferenceEasing()
+        public void ApplySequenceWithReferenceEasing()
         {
             target.FadeIn(1000, new ReferenceEasingFunction());
             target.ApplyTransformsAt(double.MaxValue);
@@ -85,6 +89,21 @@ namespace osu.Framework.Benchmarks
         private class TestBox : Box
         {
             public override bool RemoveCompletedTransforms => false;
+        }
+
+        private class TestTransform : Transform<float, Box>
+        {
+            public override string TargetMember => throw new NotImplementedException();
+
+            protected override void Apply(Box d, double time)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override void ReadIntoStartValue(Box d)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
