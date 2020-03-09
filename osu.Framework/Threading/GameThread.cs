@@ -29,6 +29,8 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
+        internal Action<Thread> ThreadChanged;
+
         protected Action OnNewFrame;
 
         /// <summary>
@@ -107,6 +109,8 @@ namespace osu.Framework.Threading
                 Name = PrefixedThreadNameFor(Name),
                 IsBackground = true,
             };
+
+            ThreadChanged?.Invoke(Thread);
 
             updateCulture();
         }
@@ -225,6 +229,7 @@ namespace osu.Framework.Threading
         protected virtual void Cleanup()
         {
             Thread = null;
+            ThreadChanged?.Invoke(Thread);
         }
 
         public void Exit() => exitRequested = true;

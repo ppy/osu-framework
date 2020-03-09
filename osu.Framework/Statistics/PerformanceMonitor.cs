@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 using osu.Framework.Allocation;
 using osu.Framework.Utils;
@@ -20,7 +21,7 @@ namespace osu.Framework.Statistics
 
         private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
-        private readonly BackgroundStackTraceCollector traceCollector;
+        private BackgroundStackTraceCollector traceCollector;
 
         private FrameStatistics currentFrame;
 
@@ -34,10 +35,16 @@ namespace osu.Framework.Statistics
 
         internal bool[] ActiveCounters { get; } = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
+        private bool enablePerformanceProfiling;
+
         public bool EnablePerformanceProfiling
         {
-            get => traceCollector.Enabled;
-            set => traceCollector.Enabled = value;
+            set
+            {
+                enablePerformanceProfiling = value;
+                if (traceCollector != null)
+                    traceCollector.Enabled = value;
+            }
         }
 
         private double consumptionTime;
@@ -63,7 +70,14 @@ namespace osu.Framework.Statistics
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
 
-            traceCollector = new BackgroundStackTraceCollector(thread.Thread, ourClock);
+            Thread.ThreadChanged += threadChanged;
+            if (Thread.Thread != null) threadChanged(Thread.Thread);
+        }
+
+        private void threadChanged(Thread thread)
+        {
+            traceCollector?.Dispose();
+            traceCollector = new BackgroundStackTraceCollector(thread, ourClock) { Enabled = enablePerformanceProfiling };
         }
 
         /// <summary>

@@ -93,8 +93,9 @@ namespace osu.Framework.Statistics
                 {
                     try
                     {
-                        Logger.Log("Retrieving background stack trace...");
+                        Logger.Log($"Retrieving background stack trace on {targetThread.Name} thread...");
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
+                        Logger.Log("Done!");
                     }
                     catch (Exception e)
                     {
