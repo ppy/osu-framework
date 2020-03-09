@@ -188,7 +188,7 @@ namespace osu.Framework.Utils
         public static double ApplyEasing(Easing easing, double time)
             => ApplyEasing(new DefaultEasingFunction(easing), time);
 
-        public static double ApplyEasing<TEasing>(TEasing easing, double time)
+        public static double ApplyEasing<TEasing>(in TEasing easing, double time)
             where TEasing : IEasingFunction
             => easing.ApplyEasing(time);
 
